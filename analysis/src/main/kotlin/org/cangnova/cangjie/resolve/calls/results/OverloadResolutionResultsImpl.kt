@@ -84,17 +84,6 @@ class OverloadResolutionResultsImpl<D : CallableDescriptor> private constructor(
         }
 
     /**
-     * 设置所有候选者
-     *
-     * 用于在解析完成后设置所有参与解析的候选者集合。通常在收集所有候选者模式下使用。
-     *
-     * @param allCandidates 所有候选调用的集合，可以为 null
-     */
-    fun setAllCandidates(allCandidates: Collection<ResolvedCall<D>>?) {
-        this._allCandidates = allCandidates
-    }
-
-    /**
      * 获取结果调用集合
      *
      * 返回解析后的有效候选调用集合。如果解析成功且无歧义，集合只包含一个元素；
@@ -280,7 +269,7 @@ class OverloadResolutionResultsImpl<D : CallableDescriptor> private constructor(
          */
         fun <D : CallableDescriptor> nameNotFound(): OverloadResolutionResultsImpl<D> =
             OverloadResolutionResultsImpl<D>(OverloadResolutionResults.Code.NAME_NOT_FOUND, emptyList()).apply {
-                setAllCandidates(emptyList())
+                allCandidates = emptyList()
             }
 
         /**

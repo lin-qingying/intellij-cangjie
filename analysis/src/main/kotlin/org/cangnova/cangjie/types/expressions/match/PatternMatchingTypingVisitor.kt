@@ -23,7 +23,7 @@
  */
 
 package org.cangnova.cangjie.types.expressions.match
-
+import org.cangnova.cangjie.descriptors.toSourceElement
 import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.StandardNames.ITERABLE
@@ -1375,7 +1375,7 @@ object MatchChecker {
         val subjectExpression = expression.subjectExpression
         val type = when {
 //            subjectVariable != null -> context.get(VARIABLE, subjectVariable)?.type
-            subjectExpression != null -> context.get(SMARTCAST, subjectExpression)?.defaultType ?: context.getType(
+            subjectExpression != null -> context[SMARTCAST, subjectExpression]?.defaultType ?: context.getType(
                 subjectExpression
             )
 
@@ -1652,12 +1652,12 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
 //            }
             is CjMatchConditionWithExpression -> {
                 val reference = expression?.let { getReference(it) } ?: return null
-                context.get(REFERENCE_TARGET, reference) as? ClassDescriptor
+                context[REFERENCE_TARGET, reference] as? ClassDescriptor
             }
 
             is CjEnumPattern -> {
                 val reference = expression?.let { getReference(it) } ?: return null
-                context.get(REFERENCE_TARGET, reference).let {
+                context[REFERENCE_TARGET, reference].let {
                     when (it) {
 
                         is ClassDescriptor -> it
@@ -1683,7 +1683,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
 
             is CjBindingPattern -> {
                 val reference = expression?.let { getReference(it) } ?: return null
-                context.get(REFERENCE_TARGET, reference).let {
+                context[REFERENCE_TARGET, reference].let {
                     when (it) {
                         is ClassDescriptor -> it
                         is FakeCallableDescriptorForObject -> it.classDescriptor
@@ -2043,7 +2043,10 @@ private object MatchOnEnumExhaustivenessChecker : MatchOnClassExhaustivenessChec
     ): List<MatchMissingCase> {
         assert(isEnum(subjectDescriptor)) { "isMatchOnEnumExhaustive should be called with an enum class descriptor" }
         return buildList {
-            addAll(getMissingClassCases(expression, subjectDescriptor!!.enumEntriesConstructor, context))
+            subjectDescriptor?.let{
+                addAll(getMissingClassCases(expression, subjectDescriptor.enumEntriesConstructor, context))
+
+            }
             addAll(MatchOnNullableExhaustivenessChecker.getMissingCases(expression, context, nullable))
             addIfNotNull(MatchOnExpectExhaustivenessChecker.getMissingCase(subjectDescriptor))
         }
@@ -2105,10 +2108,7 @@ fun checkTypePattern(condition: CjTypePattern, type: CangJieType?, context: Bind
 }
 
 fun isBindingPattern(pattern: CjBindingPattern, context: BindingContext): Boolean {
-    return context.get(
-        VARIABLE,
-        pattern
-    ) != null
+    return context[VARIABLE, pattern] != null
 }
 
 

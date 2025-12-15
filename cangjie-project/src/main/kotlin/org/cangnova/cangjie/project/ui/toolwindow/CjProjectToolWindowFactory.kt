@@ -50,8 +50,8 @@ class CjProjectToolWindowFactory : ToolWindowFactory, DumbAware {
     override suspend fun isApplicableAsync(project: Project): Boolean {
         // 仅当存在仓颉项目时显示工具窗口
         val service = project.getService(CjProjectsService::class.java) ?: return false
-//        return service.allProjects.isNotEmpty()
-        return service.initialized
+
+        return service.cjProject.isValid
 
     }
 

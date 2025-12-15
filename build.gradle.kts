@@ -497,6 +497,9 @@ project(":") {
         implementation(project(":messages"))
         implementation(project(":notifications"))
         implementation(project(":analysis"))
+
+        api(project(":analysis:decompiler-to-psi"))
+
         implementation(project(":cangjie-project"))
 
         // 第三方依赖

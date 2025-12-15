@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.psi
 
-open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
+open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
 
     open fun visitCjElement(element: CjElement) {
         super.visitCjElement(element, Unit)
@@ -38,17 +38,17 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
         super.visitFunctionType(type, Unit)
     }
 
-    override fun visitTupleType(cjTupleType: CjTupleType, data: Unit) {
+    override fun visitTupleType(cjTupleType: CjTupleType, data: Unit?) {
         visitTupleType(cjTupleType)
 
     }
 
-    override fun visitFunctionType(type: CjFunctionType, data: Unit): Unit {
+    override fun visitFunctionType(type: CjFunctionType, data: Unit?): Unit {
         visitFunctionType(type)
 
     }
 
-    override fun visitParenthesizedType(cjParenthesizedType: CjParenthesizedType, data: Unit): Unit {
+    override fun visitParenthesizedType(cjParenthesizedType: CjParenthesizedType, data: Unit?): Unit {
         visitParenthesizedType(cjParenthesizedType)
 
     }
@@ -57,7 +57,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
         super.visitParenthesizedType(cjParenthesizedType, Unit)
     }
 
-    override fun visitOptionType(optionType: CjOptionType, data: Unit): Unit {
+    override fun visitOptionType(optionType: CjOptionType, data: Unit?) {
         visitOptionType(optionType)
 
     }
@@ -82,7 +82,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
         super.visitClass(klass, Unit)
     }
 
-    override fun visitExtend(cjExtend: CjExtend, data: Unit): Unit {
+    override fun visitExtend(cjExtend: CjExtend, data: Unit?): Unit {
         visitExtend(cjExtend)
 
     }
@@ -91,7 +91,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
         super.visitExtend(cjExtend, Unit)
     }
 
-    override fun visitMainFunction(cjMainFunction: CjMainFunction, data: Unit): Unit {
+    override fun visitMainFunction(cjMainFunction: CjMainFunction, data: Unit?): Unit {
         visitMainFunction(cjMainFunction)
 
     }
@@ -332,7 +332,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
         super.visitLambdaExpression(lambdaExpression, Unit)
     }
 
-    override fun visitLambdaExpression(expression: CjLambdaExpression, data: Unit): Unit {
+    override fun visitLambdaExpression(expression: CjLambdaExpression, data: Unit?): Unit {
         visitLambdaExpression(expression)
 
     }
@@ -454,59 +454,59 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
     }
 
     // hidden methods
-    override fun visitCjElement(element: CjElement, data: Unit): Unit {
+    override fun visitCjElement(element: CjElement, data: Unit?): Unit {
         visitCjElement(element)
 
     }
 
-    override fun visitDeclaration(dcl: CjDeclaration, data: Unit): Unit {
+    override fun visitDeclaration(dcl: CjDeclaration, data: Unit?): Unit {
         visitDeclaration(dcl)
 
     }
 
-    override fun visitProperty(property: CjProperty, data: Unit): Unit {
+    override fun visitProperty(property: CjProperty, data: Unit?): Unit {
         visitProperty(property)
 
     }
 
-    override fun visitVariable(variable: CjVariable, data: Unit): Unit {
+    override fun visitVariable(variable: CjVariable, data: Unit?): Unit {
         visitVariable(variable)
 
     }
 
-    override fun visitEndSecondaryConstructor(constructor: CjEndSecondaryConstructor, data: Unit): Unit {
+    override fun visitEndSecondaryConstructor(constructor: CjEndSecondaryConstructor, data: Unit?): Unit {
         visitEndSecondaryConstructor(constructor)
 
     }
 
-    override fun visitSecondaryConstructor(constructor: CjSecondaryConstructor, data: Unit): Unit {
+    override fun visitSecondaryConstructor(constructor: CjSecondaryConstructor, data: Unit?): Unit {
         visitSecondaryConstructor(constructor)
 
     }
 
-    override fun visitPrimaryConstructor(constructor: CjPrimaryConstructor, data: Unit): Unit {
+    override fun visitPrimaryConstructor(constructor: CjPrimaryConstructor, data: Unit?): Unit {
         visitPrimaryConstructor(constructor)
 
     }
 
-    override fun visitMacroDeclaration(macroDeclaration: CjMacroDeclaration, data: Unit): Unit {
+    override fun visitMacroDeclaration(macroDeclaration: CjMacroDeclaration, data: Unit?): Unit {
         visitMacroDeclaration(macroDeclaration)
 
     }
 
-    override fun visitNamedFunction(function: CjNamedFunction, data: Unit): Unit {
+    override fun visitNamedFunction(function: CjNamedFunction, data: Unit?): Unit {
         visitNamedFunction(function)
 
     }
 
-    override fun visitTypeAlias(typeAlias: CjTypeAlias, data: Unit): Unit {
+    override fun visitTypeAlias(typeAlias: CjTypeAlias, data: Unit?): Unit {
         visitTypeAlias(typeAlias)
 
     }
 
     override fun visitDestructuringDeclaration(
         cjDestructuringDeclaration: CjDestructuringDeclaration,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitDestructuringDeclaration(cjDestructuringDeclaration)
 
@@ -514,326 +514,326 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
 
     override fun visitDestructuringDeclarationEntry(
         cjDestructuringDeclarationEntry: CjDestructuringDeclarationEntry,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitDestructuringDeclarationEntry(cjDestructuringDeclarationEntry)
 
     }
 
-    override fun visitCjFile(file: CjFile, data: Unit): Unit {
+    override fun visitCjFile(file: CjFile, data: Unit?): Unit {
         visitCjFile(file)
 
     }
 
-    override fun visitImportDirectiveItem(importDirectiveItem: CjImportDirectiveItem, data: Unit): Unit {
+    override fun visitImportDirectiveItem(importDirectiveItem: CjImportDirectiveItem, data: Unit?): Unit {
         visitImportDirectiveItem(importDirectiveItem)
 
     }
 
-    override fun visitImportDirective(importDirective: CjImportDirective, data: Unit): Unit {
+    override fun visitImportDirective(importDirective: CjImportDirective, data: Unit?): Unit {
         visitImportDirective(importDirective)
 
     }
 
-    override fun visitImportList(importList: CjImportList, data: Unit): Unit {
+    override fun visitImportList(importList: CjImportList, data: Unit?): Unit {
         visitImportList(importList)
 
     }
 
-    override fun visitClassBody(classBody: CjAbstractClassBody, data: Unit): Unit {
+    override fun visitClassBody(classBody: CjAbstractClassBody, data: Unit?): Unit {
         visitClassBody(classBody)
 
     }
 
-    override fun visitModifierList(list: CjModifierList, data: Unit): Unit {
+    override fun visitModifierList(list: CjModifierList, data: Unit?): Unit {
         visitModifierList(list)
 
     }
 
     override fun visitConstructorCalleeExpression(
         constructorCalleeExpression: CjConstructorCalleeExpression,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitConstructorCalleeExpression(constructorCalleeExpression)
 
     }
 
-    override fun visitTypeParameterList(list: CjTypeParameterList, data: Unit): Unit {
+    override fun visitTypeParameterList(list: CjTypeParameterList, data: Unit?): Unit {
         visitTypeParameterList(list)
 
     }
 
-    override fun visitTypeParameter(parameter: CjTypeParameter, data: Unit): Unit {
+    override fun visitTypeParameter(parameter: CjTypeParameter, data: Unit?): Unit {
         visitTypeParameter(parameter)
 
     }
 
-    override fun visitEnumEntry(cjEnumEntry: CjEnumEntry, data: Unit): Unit {
+    override fun visitEnumEntry(cjEnumEntry: CjEnumEntry, data: Unit?): Unit {
         visitEnumEntry(cjEnumEntry)
 
     }
 
-    override fun visitParameterList(cjParameterList: CjParameterList, data: Unit): Unit {
+    override fun visitParameterList(cjParameterList: CjParameterList, data: Unit?): Unit {
         visitParameterList(cjParameterList)
 
     }
 
-    override fun visitParameter(cjParameter: CjParameter, data: Unit): Unit {
+    override fun visitParameter(cjParameter: CjParameter, data: Unit?): Unit {
         visitParameter(cjParameter)
 
     }
 
-    override fun visitSuperTypeList(list: CjSuperTypeList, data: Unit): Unit {
+    override fun visitSuperTypeList(list: CjSuperTypeList, data: Unit?): Unit {
         visitSuperTypeList(list)
 
     }
 
-    override fun visitSuperTypeListEntry(specifier: CjSuperTypeListEntry, data: Unit): Unit {
+    override fun visitSuperTypeListEntry(specifier: CjSuperTypeListEntry, data: Unit?): Unit {
         visitSuperTypeListEntry(specifier)
 
     }
 
-    override fun visitSuperTypeCallEntry(call: CjSuperTypeCallEntry, data: Unit): Unit {
+    override fun visitSuperTypeCallEntry(call: CjSuperTypeCallEntry, data: Unit?): Unit {
         visitSuperTypeCallEntry(call)
 
     }
 
-    override fun visitSuperTypeEntry(specifier: CjSuperTypeEntry, data: Unit): Unit {
+    override fun visitSuperTypeEntry(specifier: CjSuperTypeEntry, data: Unit?): Unit {
         visitSuperTypeEntry(specifier)
 
     }
 
     override fun visitConstructorDelegationCall(
         call: CjConstructorDelegationCall,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitConstructorDelegationCall(call)
 
     }
 
-    override fun visitTypeReference(typeReference: CjTypeReference, data: Unit): Unit {
+    override fun visitTypeReference(typeReference: CjTypeReference, data: Unit?): Unit {
         visitTypeReference(typeReference)
 
     }
 
-    override fun visitValueArgumentList(list: CjValueArgumentList, data: Unit): Unit {
+    override fun visitValueArgumentList(list: CjValueArgumentList, data: Unit?): Unit {
         visitValueArgumentList(list)
 
     }
 
-    override fun visitExpression(expression: CjExpression, data: Unit): Unit {
+    override fun visitExpression(expression: CjExpression, data: Unit?): Unit {
         visitExpression(expression)
 
     }
 
-    override fun visitLoopExpression(loopExpression: CjLoopExpression, data: Unit): Unit {
+    override fun visitLoopExpression(loopExpression: CjLoopExpression, data: Unit?): Unit {
         visitLoopExpression(loopExpression)
 
     }
 
-    override fun visitConstantExpression(expression: CjConstantExpression, data: Unit): Unit {
+    override fun visitConstantExpression(expression: CjConstantExpression, data: Unit?): Unit {
         visitConstantExpression(expression)
 
     }
 
-    override fun visitSimpleNameExpression(expression: CjSimpleNameExpression, data: Unit): Unit {
+    override fun visitSimpleNameExpression(expression: CjSimpleNameExpression, data: Unit?): Unit {
         visitSimpleNameExpression(expression)
 
     }
 
     override fun visitReferenceExpression(
         expression: CjReferenceExpression,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitReferenceExpression(expression)
 
     }
 
-    override fun visitPrefixExpression(expression: CjPrefixExpression, data: Unit): Unit {
+    override fun visitPrefixExpression(expression: CjPrefixExpression, data: Unit?): Unit {
         visitPrefixExpression(expression)
 
     }
 
-    override fun visitPostfixExpression(expression: CjPostfixExpression, data: Unit): Unit {
+    override fun visitPostfixExpression(expression: CjPostfixExpression, data: Unit?): Unit {
         visitPostfixExpression(expression)
 
     }
 
-    override fun visitUnaryExpression(expression: CjUnaryExpression, data: Unit): Unit {
+    override fun visitUnaryExpression(expression: CjUnaryExpression, data: Unit?): Unit {
         visitUnaryExpression(expression)
 
     }
 
-    override fun visitBinaryExpression(expression: CjBinaryExpression, data: Unit): Unit {
+    override fun visitBinaryExpression(expression: CjBinaryExpression, data: Unit?): Unit {
         visitBinaryExpression(expression)
 
     }
 
-    override fun visitReturnExpression(expression: CjReturnExpression, data: Unit): Unit {
+    override fun visitReturnExpression(expression: CjReturnExpression, data: Unit?): Unit {
         visitReturnExpression(expression)
 
     }
 
-    override fun visitExpressionWithLabel(expression: CjExpressionWithLabel, data: Unit): Unit {
+    override fun visitExpressionWithLabel(expression: CjExpressionWithLabel, data: Unit?): Unit {
         visitExpressionWithLabel(expression)
 
     }
 
-    override fun visitThrowExpression(expression: CjThrowExpression, data: Unit): Unit {
+    override fun visitThrowExpression(expression: CjThrowExpression, data: Unit?): Unit {
         visitThrowExpression(expression)
 
     }
 
-    override fun visitBreakExpression(expression: CjBreakExpression, data: Unit): Unit {
+    override fun visitBreakExpression(expression: CjBreakExpression, data: Unit?): Unit {
         visitBreakExpression(expression)
 
     }
 
-    override fun visitContinueExpression(expression: CjContinueExpression, data: Unit): Unit {
+    override fun visitContinueExpression(expression: CjContinueExpression, data: Unit?): Unit {
         visitContinueExpression(expression)
 
     }
 
-    override fun visitIfExpression(expression: CjIfExpression, data: Unit): Unit {
+    override fun visitIfExpression(expression: CjIfExpression, data: Unit?): Unit {
         visitIfExpression(expression)
 
     }
 
-    override fun visitMatchExpression(expression: CjMatchExpression, data: Unit): Unit {
+    override fun visitMatchExpression(expression: CjMatchExpression, data: Unit?): Unit {
         visitMatchExpression(expression)
 
     }
 
     override fun visitCollectionLiteralExpression(
         expression: CjCollectionLiteralExpression,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitCollectionLiteralExpression(expression)
 
     }
 
-    override fun visitTryExpression(expression: CjTryExpression, data: Unit): Unit {
+    override fun visitTryExpression(expression: CjTryExpression, data: Unit?): Unit {
         visitTryExpression(expression)
 
     }
 
-    override fun visitForExpression(expression: CjForExpression, data: Unit): Unit {
+    override fun visitForExpression(expression: CjForExpression, data: Unit?): Unit {
         visitForExpression(expression)
 
     }
 
-    override fun visitWhileExpression(expression: CjWhileExpression, data: Unit): Unit {
+    override fun visitWhileExpression(expression: CjWhileExpression, data: Unit?): Unit {
         visitWhileExpression(expression)
 
     }
 
-    override fun visitDoWhileExpression(expression: CjDoWhileExpression, data: Unit): Unit {
+    override fun visitDoWhileExpression(expression: CjDoWhileExpression, data: Unit?): Unit {
         visitDoWhileExpression(expression)
 
     }
 
-    override fun visitCallExpression(expression: CjCallExpression, data: Unit): Unit {
+    override fun visitCallExpression(expression: CjCallExpression, data: Unit?): Unit {
         visitCallExpression(expression)
 
     }
 
     override fun visitArrayAccessExpression(
         expression: CjArrayAccessExpression,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitArrayAccessExpression(expression)
 
     }
 
-    override fun visitQualifiedExpression(expression: CjQualifiedExpression, data: Unit): Unit {
+    override fun visitQualifiedExpression(expression: CjQualifiedExpression, data: Unit?): Unit {
         visitQualifiedExpression(expression)
 
     }
 
-    override fun visitDotQualifiedExpression(expression: CjDotQualifiedExpression, data: Unit): Unit {
+    override fun visitDotQualifiedExpression(expression: CjDotQualifiedExpression, data: Unit?): Unit {
         visitDotQualifiedExpression(expression)
 
     }
 
-    override fun visitBlockExpression(expression: CjBlockExpression, data: Unit): Unit {
+    override fun visitBlockExpression(expression: CjBlockExpression, data: Unit?): Unit {
         visitBlockExpression(expression)
 
     }
 
-    override fun visitCatchSection(catchClause: CjCatchClause, data: Unit): Unit {
+    override fun visitCatchSection(catchClause: CjCatchClause, data: Unit?): Unit {
         visitCatchSection(catchClause)
 
     }
 
-    override fun visitFinallySection(finallySection: CjFinallySection, data: Unit): Unit {
+    override fun visitFinallySection(finallySection: CjFinallySection, data: Unit?): Unit {
         visitFinallySection(finallySection)
 
     }
 
     override fun visitTypeArgumentList(
         typeArgumentList: CjTypeArgumentList,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitTypeArgumentList(typeArgumentList)
 
     }
 
-    override fun visitThisExpression(expression: CjThisExpression, data: Unit): Unit {
+    override fun visitThisExpression(expression: CjThisExpression, data: Unit?): Unit {
         visitThisExpression(expression)
 
     }
 
-    override fun visitSuperExpression(expression: CjSuperExpression, data: Unit): Unit {
+    override fun visitSuperExpression(expression: CjSuperExpression, data: Unit?): Unit {
         visitSuperExpression(expression)
 
     }
 
     override fun visitParenthesizedExpression(
         expression: CjParenthesizedExpression,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitParenthesizedExpression(expression)
 
     }
 
-    override fun visitAnonymousInitializer(initializer: CjAnonymousInitializer, data: Unit): Unit {
+    override fun visitAnonymousInitializer(initializer: CjAnonymousInitializer, data: Unit?): Unit {
         visitAnonymousInitializer(initializer)
 
     }
 
-    override fun visitTypeConstraintList(list: CjTypeConstraintList, data: Unit): Unit {
+    override fun visitTypeConstraintList(list: CjTypeConstraintList, data: Unit?): Unit {
         visitTypeConstraintList(list)
 
     }
 
-    override fun visitTypeConstraint(constraint: CjTypeConstraint, data: Unit): Unit {
+    override fun visitTypeConstraint(constraint: CjTypeConstraint, data: Unit?): Unit {
         visitTypeConstraint(constraint)
 
     }
 
-    override fun visitUserType(type: CjUserType, data: Unit): Unit {
+    override fun visitUserType(type: CjUserType, data: Unit?): Unit {
         visitUserType(type)
 
     }
 
-    override fun visitVArrayType(optionType: CjVArrayType, data: Unit): Unit {
+    override fun visitVArrayType(optionType: CjVArrayType, data: Unit?): Unit {
         visitVArrayType(optionType)
 
     }
 
-    override fun visitThisType(thisType: CjThisType, data: Unit): Unit {
+    override fun visitThisType(thisType: CjThisType, data: Unit?): Unit {
         visitThisType(thisType)
 
     }
 
-    override fun visitBasicType(cjBasicType: CjBasicType, data: Unit): Unit {
+    override fun visitBasicType(cjBasicType: CjBasicType, data: Unit?): Unit {
         visitBasicType(cjBasicType)
 
     }
 
     override fun visitBinaryWithTypeRHSExpression(
         expression: CjBinaryExpressionWithTypeRHS,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitBinaryWithTypeRHSExpression(expression)
 
@@ -841,18 +841,18 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
 
     override fun visitStringTemplateExpression(
         expression: CjStringTemplateExpression,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitStringTemplateExpression(expression)
 
     }
 
-    override fun visitNamedDeclaration(declaration: CjNamedDeclaration, data: Unit): Unit {
+    override fun visitNamedDeclaration(declaration: CjNamedDeclaration, data: Unit?): Unit {
         visitNamedDeclaration(declaration)
 
     }
 
-    override fun visitTypeProjection(typeProjection: CjTypeProjection, data: Unit): Unit {
+    override fun visitTypeProjection(typeProjection: CjTypeProjection, data: Unit?): Unit {
         visitTypeProjection(typeProjection)
 
     }
@@ -861,24 +861,24 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
         super.visitMatchEntry(cjMatchEntry, Unit)
     }
 
-    override fun visitMatchEntry(cjMatchEntry: CjMatchEntry, data: Unit): Unit {
+    override fun visitMatchEntry(cjMatchEntry: CjMatchEntry, data: Unit?): Unit {
         visitMatchEntry(cjMatchEntry)
 
     }
 
-    override fun visitIsExpression(expression: CjIsExpression, data: Unit): Unit {
+    override fun visitIsExpression(expression: CjIsExpression, data: Unit?): Unit {
         visitIsExpression(expression)
 
     }
 
-    override fun visitStringTemplateEntry(entry: CjStringTemplateEntry, data: Unit): Unit {
+    override fun visitStringTemplateEntry(entry: CjStringTemplateEntry, data: Unit?): Unit {
         visitStringTemplateEntry(entry)
 
     }
 
     override fun visitStringTemplateEntryWithExpression(
         entry: CjStringTemplateEntryWithExpression,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitStringTemplateEntryWithExpression(entry)
 
@@ -886,7 +886,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
 
     override fun visitBlockStringTemplateEntry(
         entry: CjBlockStringTemplateEntry,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitBlockStringTemplateEntry(entry)
 
@@ -894,7 +894,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
 
     override fun visitSimpleNameStringTemplateEntry(
         entry: CjSimpleNameStringTemplateEntry,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitSimpleNameStringTemplateEntry(entry)
 
@@ -902,7 +902,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
 
     override fun visitLiteralStringTemplateEntry(
         entry: CjLiteralStringTemplateEntry,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitLiteralStringTemplateEntry(entry)
 
@@ -910,48 +910,48 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
 
     override fun visitEscapeStringTemplateEntry(
         entry: CjEscapeStringTemplateEntry,
-        data: Unit,
+        data: Unit?,
     ): Unit {
         visitEscapeStringTemplateEntry(entry)
 
     }
 
-    override fun visitPackageDirective(packageDirective: CjPackageDirective, data: Unit): Unit {
+    override fun visitPackageDirective(packageDirective: CjPackageDirective, data: Unit?): Unit {
         visitPackageDirective(packageDirective)
 
     }
 
-    override fun visitTypeStatement(typeStatement: CjTypeStatement, data: Unit): Unit {
+    override fun visitTypeStatement(typeStatement: CjTypeStatement, data: Unit?): Unit {
         visitTypeStatement(typeStatement)
 
     }
 
-    override fun visitClass(klass: CjClass, data: Unit): Unit {
+    override fun visitClass(klass: CjClass, data: Unit?): Unit {
         visitClass(klass)
 
     }
 
-    override fun visitStruct(cstruct: CjStruct, data: Unit): Unit {
+    override fun visitStruct(cstruct: CjStruct, data: Unit?): Unit {
         visitStruct(cstruct)
 
     }
 
-    override fun visitEnum(cenum: CjEnum, data: Unit): Unit {
+    override fun visitEnum(cenum: CjEnum, data: Unit?): Unit {
         visitEnum(cenum)
 
     }
 
-    override fun visitInterface(cinterface: CjInterface, data: Unit): Unit {
+    override fun visitInterface(cinterface: CjInterface, data: Unit?): Unit {
         visitInterface(cinterface)
 
     }
 
-    override fun visitClassInitializer(initializer: CjClassInitializer, data: Unit): Unit {
+    override fun visitClassInitializer(initializer: CjClassInitializer, data: Unit?): Unit {
         visitClassInitializer(initializer)
 
     }
 
-    override fun visitCasePattern(element: CjCasePattern, data: Unit): Unit {
+    override fun visitCasePattern(element: CjCasePattern, data: Unit?): Unit {
         visitCasePattern(element)
 
     }
@@ -960,7 +960,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
         super.visitCasePattern(element, Unit)
     }
 
-    override fun visitPatternByBinding(element: CjBindingPattern, data: Unit): Unit {
+    override fun visitPatternByBinding(element: CjBindingPattern, data: Unit?): Unit {
         visitPatternByBinding(element)
 
     }
@@ -969,7 +969,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
         super.visitPatternByBinding(element, Unit)
     }
 
-    override fun visitPatternByConstant(element: CjConstantPattern, data: Unit): Unit {
+    override fun visitPatternByConstant(element: CjConstantPattern, data: Unit?): Unit {
         visitPatternByConstant(element)
 
     }
@@ -978,12 +978,12 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
         super.visitPatternByConstant(element, Unit)
     }
 
-    override fun visitMatchConditionWithExpression(condition: CjMatchConditionWithExpression, data: Unit): Unit {
+    override fun visitMatchConditionWithExpression(condition: CjMatchConditionWithExpression, data: Unit?): Unit {
         visitMatchConditionWithExpression(condition)
 
     }
 
-    override fun visitPatternByEnum(element: CjEnumPattern, data: Unit): Unit {
+    override fun visitPatternByEnum(element: CjEnumPattern, data: Unit?): Unit {
         visitPatternByEnum(element)
 
     }
@@ -996,7 +996,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
         super.visitPatternByEnum(element, Unit)
     }
 
-    override fun visitPatternByTuple(element: CjTuplePattern, data: Unit): Unit {
+    override fun visitPatternByTuple(element: CjTuplePattern, data: Unit?): Unit {
         visitPatternByTuple(element)
 
     }
@@ -1005,12 +1005,12 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit>() {
         super.visitPatternByTuple(element, Unit)
     }
 
-    override fun visitPatternByWildcard(element: CjWildcardPattern, data: Unit): Unit {
+    override fun visitPatternByWildcard(element: CjWildcardPattern, data: Unit?): Unit {
         visitPatternByWildcard(element)
 
     }
 
-    override fun visitPatternByType(element: CjTypePattern, data: Unit): Unit {
+    override fun visitPatternByType(element: CjTypePattern, data: Unit?): Unit {
         visitPatternByType(element)
 
     }

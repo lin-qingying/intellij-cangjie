@@ -154,11 +154,18 @@ class CangJieSyncTask(
                     // 调用项目服务的刷新方法，触发完整的刷新流程
                     // 使用回调确保在所有异步操作完成后才执行后续操作
                     cjProject.refresh {
-                        // 刷新完成后,同步到 Workspace Model
+                        // 更新进度：刷新完成，开始同步 Workspace Model
+                        indicator.text = CjProjectBundle.message(
+                            "progress.text.syncing.workspace.model",
+                            cjProject.name
+                        )
+
+                        // 刷新完成后，同步到 Workspace Model
                         try {
                             val workspaceSync = projectService.intellijProject.service<CjWorkspaceModelSync>()
 
-                            // 使用 runBlocking 而非 runBlockingCancellable,因为我们在后台线程池中
+                            // 在后台线程中使用 runBlocking 执行协程
+                            // runBlocking 会创建协程上下文，允许调用 suspend 函数
                             kotlinx.coroutines.runBlocking {
                                 workspaceSync.syncProject(cjProject)
                             }
@@ -166,7 +173,7 @@ class CangJieSyncTask(
                             LOG.info("Successfully synced workspace model for project: ${cjProject.name}")
                         } catch (e: Exception) {
                             LOG.error("Failed to sync workspace model for project: ${cjProject.name}", e)
-                            // 不抛出异常,允许后续操作继续
+                            // 不抛出异常，允许后续操作继续
                         }
 
                         // 所有操作完成后调用 onFinished

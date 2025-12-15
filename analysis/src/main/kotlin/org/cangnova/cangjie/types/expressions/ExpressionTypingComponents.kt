@@ -209,328 +209,170 @@ class ExpressionTypingComponents {
     // ========== 核心类型系统组件 ==========
 
     /** 内置类型信息（Int、String、Boolean 等） */
+    @Inject
     lateinit var builtIns: CangJieBuiltIns
 
     /** 类型检查器，执行子类型判断和类型等价性检查 */
+    @Inject
     lateinit var cangjieTypeChecker: NewCangJieTypeChecker
 
     /** 数据流值工厂，创建数据流分析所需的值 */
+    @Inject
     lateinit var dataFlowValueFactory: DataFlowValueFactory
 
     /** 数据流分析器，跟踪类型信息在控制流中的变化 */
+    @Inject
     lateinit var dataFlowAnalyzer: DataFlowAnalyzer
 
     // ========== 表达式解析器 ==========
 
     /** 调用表达式解析器，处理函数调用表达式 */
+    @Inject
     lateinit var callExpressionResolver: CallExpressionResolver
 
     /** 常量表达式求值器，编译期计算常量值 */
+    @Inject
     lateinit var constantExpressionEvaluator: ConstantExpressionEvaluator
 
     /** 集合字面量解析器，处理 [1, 2, 3] 等字面量 */
+    @Inject
     lateinit var collectionLiteralResolver: CollectionLiteralResolver
 
     /** 范围字面量解析器，处理 1..10、'a'..'z' 等范围表达式 */
+    @Inject
     lateinit var rangeLiteralResolver: RangeLiteralResolver
 
     /** 可变数组解析器，处理可变数组字面量 */
+    @Inject
     lateinit var vArrayResolver: VArrayResolver
 
     /** spawn 表达式解析器，处理并发创建表达式 */
+    @Inject
     lateinit var spawnExpressionResolver: SpawnExpressionResolver
 
     /** unsafe 表达式解析器，处理 unsafe 块 */
+    @Inject
     lateinit var unsafeExpressionResolver: UnsafeExpressionResolver
 
     /** sync 表达式解析器，处理同步块 */
+    @Inject
     lateinit var syncExpressionResolver: SyncExpressionResolver
 
     /** 流操作符解析器，处理 yield、await 等流操作 */
+    @Inject
     lateinit var flowOperatorResolver: FlowOperatorResolver
 
     // ========== 声明解析器 ==========
 
     /** 描述符解析器，将声明解析为描述符 */
+    @Inject
     lateinit var descriptorResolver: DescriptorResolver
 
     /** 函数描述符解析器，专门处理函数声明 */
+    @Inject
     lateinit var functionDescriptorResolver: FunctionDescriptorResolver
 
     /** 局部变量解析器，处理局部变量声明 */
+    @Inject
     lateinit var localVariableResolver: LocalVariableResolver
 
     /** 值参数解析器，处理函数参数 */
+    @Inject
     lateinit var valueParameterResolver: ValueParameterResolver
 
     /** 解构声明解析器，处理 let (a, b) = pair */
+    @Inject
     lateinit var destructuringDeclarationResolver: DestructuringDeclarationResolver
 
     /** 缺失父类型解析器，处理父类型缺失情况 */
+    @Inject
     lateinit var missingSupertypesResolver: MissingSupertypesResolver
 
     // ========== 调用和重载解析 ==========
 
     /** 调用解析器，处理函数调用和操作符重载 */
+    @Inject
     lateinit var callResolver: CallResolver
 
     /** 调用组件，提供调用解析所需的工具和配置 */
+    @Inject
     lateinit var callComponents: CangJieCallComponents
 
     /** 重载检查器，验证函数重载的合法性 */
+    @Inject
     lateinit var overloadChecker: OverloadChecker
 
     // ========== 检查器 ==========
 
     /** 调用检查器集合，检查调用的各个方面（参数、类型、契约等） */
+    @Inject
     lateinit var callCheckers: Iterable<CallChecker>
 
     /** 赋值检查器集合，检查赋值操作的合法性 */
+    @Inject
     lateinit var assignmentCheckers: Iterable<AssignmentChecker>
 
     /** RTTI 表达式检查器集合，检查 is、as 等类型判断表达式 */
+    @Inject
     lateinit var rttiExpressionCheckers: Iterable<RttiExpressionChecker>
 
     /** 修饰符检查器，验证修饰符的正确使用 */
+    @Inject
     lateinit var modifiersChecker: ModifiersChecker
 
     /** for 循环约定检查器，验证 for 循环的迭代器约定 */
+    @Inject
     lateinit var forLoopConventionsChecker: ForLoopConventionsChecker
 
     /** 标识符检查器，检查标识符命名规范 */
+    @Inject
     lateinit var identifierChecker: IdentifierChecker
 
     // ========== 其他组件 ==========
 
     /** 类型解析器，将类型引用解析为类型描述符 */
+    @Inject
     lateinit var typeResolver: TypeResolver
 
     /** 类型解析拦截器，自定义类型解析逻辑 */
+    @Inject
     lateinit var typeResolutionInterceptor: TypeResolutionInterceptor
 
     /** 函数返回值解析器，处理函数返回类型推导 */
+    @Inject
     lateinit var functionReturnResolver: FunctionReturnResolver
 
     /** 控制结构类型工具，处理 if、when、loop 等控制结构 */
+    @Inject
     lateinit var controlStructureTypingUtils: ControlStructureTypingUtils
 
     /** 模式匹配类型访问者，处理模式匹配表达式 */
+    @Inject
     lateinit var patternMatchingTypingVisitor: PatternMatchingTypingVisitor
 
     /** 废弃标记解析器，处理 @Deprecated 注解 */
+    @Inject
     lateinit var deprecationResolver: DeprecationResolver
 
     /** 效应系统，处理副作用和契约 */
+    @Inject
     lateinit var effectSystem: EffectSystem
 
     /** 平台到仓颉类映射器，处理平台特定类型映射 */
+    @Inject
     lateinit var platformToCangJieClassMapper: PlatformToCangJieClassMapper
 
     // ========== 配置和上下文 ==========
 
     /** 语言版本设置，控制语言特性的启用/禁用 */
+    @Inject
     lateinit var languageVersionSettings: LanguageVersionSettings
 
     /** 模块描述符，表示当前编译的模块 */
+    @Inject
     lateinit var moduleDescriptor: ModuleDescriptor
 
     /** 表达式类型检查服务，提供高层的类型检查接口 */
+    @Inject
     lateinit var expressionTypingServices: ExpressionTypingServices
-
-    // ========== Setter 方法（用于依赖注入） ==========
-
-    @Inject
-    fun setBuiltIns(builtIns: CangJieBuiltIns) {
-        this.builtIns = builtIns
-    }
-
-    @Inject
-    fun setCangJieTypeChecker(cangjieTypeChecker: NewCangJieTypeChecker) {
-        this.cangjieTypeChecker = cangjieTypeChecker
-    }
-
-    @Inject
-    fun setDataFlowValueFactory(dataFlowValueFactory: DataFlowValueFactory) {
-        this.dataFlowValueFactory = dataFlowValueFactory
-    }
-
-    @Inject
-    fun setDataFlowAnalyzer(dataFlowAnalyzer: DataFlowAnalyzer) {
-        this.dataFlowAnalyzer = dataFlowAnalyzer
-    }
-
-    @Inject
-    fun setCallExpressionResolver(callExpressionResolver: CallExpressionResolver) {
-        this.callExpressionResolver = callExpressionResolver
-    }
-
-    @Inject
-    fun setConstantExpressionEvaluator(constantExpressionEvaluator: ConstantExpressionEvaluator) {
-        this.constantExpressionEvaluator = constantExpressionEvaluator
-    }
-
-    @Inject
-    fun setCollectionLiteralResolver(collectionLiteralResolver: CollectionLiteralResolver) {
-        this.collectionLiteralResolver = collectionLiteralResolver
-    }
-
-    @Inject
-    fun setRangeLiteralResolver(rangeLiteralResolver: RangeLiteralResolver) {
-        this.rangeLiteralResolver = rangeLiteralResolver
-    }
-
-    @Inject
-    fun setVArrayResolver(vArrayResolver: VArrayResolver) {
-        this.vArrayResolver = vArrayResolver
-    }
-
-    @Inject
-    fun setSpawnExpressionResolver(spawnExpressionResolver: SpawnExpressionResolver) {
-        this.spawnExpressionResolver = spawnExpressionResolver
-    }
-
-    @Inject
-    fun setUnsafeExpressionResolver(unsafeExpressionResolver: UnsafeExpressionResolver) {
-        this.unsafeExpressionResolver = unsafeExpressionResolver
-    }
-
-    @Inject
-    fun setSyncExpressionResolver(syncExpressionResolver: SyncExpressionResolver) {
-        this.syncExpressionResolver = syncExpressionResolver
-    }
-
-    @Inject
-    fun setFlowOperatorResolver(flowOperatorResolver: FlowOperatorResolver) {
-        this.flowOperatorResolver = flowOperatorResolver
-    }
-
-    @Inject
-    fun setDescriptorResolver(descriptorResolver: DescriptorResolver) {
-        this.descriptorResolver = descriptorResolver
-    }
-
-    @Inject
-    fun setFunctionDescriptorResolver(functionDescriptorResolver: FunctionDescriptorResolver) {
-        this.functionDescriptorResolver = functionDescriptorResolver
-    }
-
-    @Inject
-    fun setLocalVariableResolver(localVariableResolver: LocalVariableResolver) {
-        this.localVariableResolver = localVariableResolver
-    }
-
-    @Inject
-    fun setValueParameterResolver(valueParameterResolver: ValueParameterResolver) {
-        this.valueParameterResolver = valueParameterResolver
-    }
-
-    @Inject
-    fun setDestructuringDeclarationResolver(destructuringDeclarationResolver: DestructuringDeclarationResolver) {
-        this.destructuringDeclarationResolver = destructuringDeclarationResolver
-    }
-
-    @Inject
-    fun setMissingSupertypesResolver(missingSupertypesResolver: MissingSupertypesResolver) {
-        this.missingSupertypesResolver = missingSupertypesResolver
-    }
-
-    @Inject
-    fun setCallResolver(callResolver: CallResolver) {
-        this.callResolver = callResolver
-    }
-
-    @Inject
-    fun setCallComponents(callComponents: CangJieCallComponents) {
-        this.callComponents = callComponents
-    }
-
-    @Inject
-    fun setOverloadChecker(overloadChecker: OverloadChecker) {
-        this.overloadChecker = overloadChecker
-    }
-
-    @Inject
-    fun setCallCheckers(callCheckers: Iterable<CallChecker>) {
-        this.callCheckers = callCheckers
-    }
-
-    @Inject
-    fun setAssignmentCheckers(assignmentCheckers: Iterable<AssignmentChecker>) {
-        this.assignmentCheckers = assignmentCheckers
-    }
-
-    @Inject
-    fun setRttiExpressionCheckers(rttiExpressionCheckers: Iterable<RttiExpressionChecker>) {
-        this.rttiExpressionCheckers = rttiExpressionCheckers
-    }
-
-    @Inject
-    fun setModifiersChecker(modifiersChecker: ModifiersChecker) {
-        this.modifiersChecker = modifiersChecker
-    }
-
-    @Inject
-    fun setForLoopConventionsChecker(forLoopConventionsChecker: ForLoopConventionsChecker) {
-        this.forLoopConventionsChecker = forLoopConventionsChecker
-    }
-
-    @Inject
-    fun setIdentifierChecker(identifierChecker: IdentifierChecker) {
-        this.identifierChecker = identifierChecker
-    }
-
-    @Inject
-    fun setTypeResolver(typeResolver: TypeResolver) {
-        this.typeResolver = typeResolver
-    }
-
-    @Inject
-    fun setTypeResolutionInterceptor(typeResolutionInterceptor: TypeResolutionInterceptor) {
-        this.typeResolutionInterceptor = typeResolutionInterceptor
-    }
-
-    @Inject
-    fun setFunctionReturnResolver(functionReturnResolver: FunctionReturnResolver) {
-        this.functionReturnResolver = functionReturnResolver
-    }
-
-    @Inject
-    fun setControlStructureTypingUtils(controlStructureTypingUtils: ControlStructureTypingUtils) {
-        this.controlStructureTypingUtils = controlStructureTypingUtils
-    }
-
-    @Inject
-    fun setPatternMatchingTypingVisitor(patternMatchingTypingVisitor: PatternMatchingTypingVisitor) {
-        this.patternMatchingTypingVisitor = patternMatchingTypingVisitor
-    }
-
-    @Inject
-    fun setDeprecationResolver(deprecationResolver: DeprecationResolver) {
-        this.deprecationResolver = deprecationResolver
-    }
-
-    @Inject
-    fun setEffectSystem(effectSystem: EffectSystem) {
-        this.effectSystem = effectSystem
-    }
-
-    @Inject
-    fun setPlatformToCangJieClassMap(platformToCangJieClassMapper: PlatformToCangJieClassMapper) {
-        this.platformToCangJieClassMapper = platformToCangJieClassMapper
-    }
-
-    @Inject
-    fun setLanguageVersionSettings(languageVersionSettings: LanguageVersionSettings) {
-        this.languageVersionSettings = languageVersionSettings
-    }
-
-    @Inject
-    fun setModuleDescriptor(moduleDescriptor: ModuleDescriptor) {
-        this.moduleDescriptor = moduleDescriptor
-    }
-
-    @Inject
-    fun setExpressionTypingServices(expressionTypingServices: ExpressionTypingServices) {
-        this.expressionTypingServices = expressionTypingServices
-    }
 }

@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.project.service.impl
 
 
-
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.*
@@ -205,7 +204,6 @@ class CjProjectsServiceImpl(
     private val project = AsyncValue(noProjectMarker)
 
 
-
     /**
      * 模块索引
      *
@@ -382,6 +380,7 @@ class CjProjectsServiceImpl(
                 if (options != ModifyProjectsOptions.LOAD_STATE) {
                     invokeAndWaitIfNeeded {
                         runWriteAction {
+                            // 允许在 EDT 上执行慢操作，因为项目初始化需要同步完成
                             // 文件类型关联
                             if (proj.isValid && !options.lightweight) {
                                 val fileTypeManager = FileTypeManager.getInstance()
@@ -391,10 +390,6 @@ class CjProjectsServiceImpl(
                                 )
                             }
 
-                            // 重置索引
-//                            if (options.resetIndices) {
-//                                directoryIndex.resetIndex()
-//                            }
 
                             // 更新项目根目录
                             if (options.updateRoots) {
@@ -415,6 +410,7 @@ class CjProjectsServiceImpl(
                             initialized = true
                         }
                     }
+
                 } else {
                     // 在 LOAD_STATE 模式下，仅设置初始化标志
                     initialized = true
@@ -445,7 +441,7 @@ class CjProjectsServiceImpl(
     ): CjProject {
         return modifyProjectAsync(options) { proj ->
             CompletableFuture.completedFuture(updater(proj))
-        }.join()
+        }   .join()
     }
 
 
@@ -465,33 +461,72 @@ class CjProjectsServiceImpl(
      *
      * 使用 CangJieSyncTask 进行项目刷新，提供更好的进度显示和错误处理。
      * 该方法会触发完整的刷新流程，包括：
-     * 1. 执行项目的 refresh() 方法重新加载项目结构
-     * 2. 使用 CangJieSyncTask 提供进度显示
-     * 3. 通过 modifyProjectSync 确保正确的事件发布和索引更新
+     * 1. 提交 CangJieSyncTask 到后台队列
+     * 2. CangJieSyncTask 执行项目刷新和 Workspace Model 同步
+     * 3. 刷新完成后，通过 modifyProjectSync 更新服务中的 CjProject 对象
+     * 4. 执行项目根目录更新（TOTAL_RESCAN）
+     * 5. 发布项目更新事件
+     *
+     * 注意：此方法异步执行，不会阻塞调用者
      */
     override fun refreshProject() {
         val startTime = System.currentTimeMillis()
         log.info("Refreshing project: ${cjProject.name}")
 
-        try {
-            // 使用 modifyProjectSync 确保正确的事件发布和索引更新
-            modifyProjectSync(ModifyProjectsOptions.DEFAULT) { currentProject ->
-                // 使用 CangJieSyncTask 进行项目刷新，提供更好的进度显示和错误处理
-                val syncTask = CangJieSyncTask(intellijProject) { syncedProject ->
-                    // 发布配置变更事件
-                    publishEvent(CjProjectEvent(syncedProject, CjProjectEventType.CONFIG_CHANGED))
+        // 创建 CangJieSyncTask，在后台执行刷新和 Workspace Model 同步
+        val syncTask = CangJieSyncTask(intellijProject) { syncedProject ->
+            // CangJieSyncTask 已完成：
+            // 1. 项目数据刷新 (cjProject.refresh())
+            // 2. Workspace Model 同步 (workspaceSync.syncProject())
 
-                    // 发布同步完成事件，供 LSP 等服务监听并重启
-                    publishEvent(CjProjectEvent(syncedProject, CjProjectEventType.SYNCED))
+            // 现在通过 modifyProjectSync 更新服务中的 CjProject 对象
+            // 并执行后续的同步操作
+            modifyProjectSync(ModifyProjectsOptions.DEFAULT) { _ ->
+                // 在写操作中执行项目根目录更新
+                invokeAndWaitIfNeeded {
+                    runWriteAction {
+                        // 文件类型关联
+                        if (syncedProject.isValid) {
+                            val fileTypeManager = FileTypeManager.getInstance()
+                            fileTypeManager.associateExtension(
+                                CangJieFileType.INSTANCE,
+                                CangJieFileType.INSTANCE.defaultExtension
+                            )
+                        }
+
+                        // 更新项目根目录 - TOTAL_RESCAN
+                        runWithNonLightProject(intellijProject) {
+                            ProjectRootManagerEx.getInstanceEx(intellijProject)
+                                .makeRootsChange(
+                                    EmptyRunnable.getInstance(),
+                                    RootsChangeRescanningInfo.TOTAL_RESCAN
+                                )
+                        }
+
+                        // 发布项目更新通知
+                        intellijProject.messageBus.syncPublisher(CANGJIE_PROJECTS_TOPIC)
+                            .cangjieProjectsUpdated(this, listOf(syncedProject))
+
+                        initialized = true
+                    }
                 }
-                intellijProject.taskQueue.run(syncTask)
 
-                currentProject
+                // 返回刷新后的项目
+                syncedProject
             }
-        } finally {
+
+            // 发布配置变更事件
+            publishEvent(CjProjectEvent(syncedProject, CjProjectEventType.CONFIG_CHANGED))
+
+            // 发布同步完成事件，供 LSP 等服务监听并重启
+            publishEvent(CjProjectEvent(syncedProject, CjProjectEventType.SYNCED))
+
             val duration = System.currentTimeMillis() - startTime
             log.info("Project refresh completed in ${duration}ms for project: ${cjProject.name}")
         }
+
+        // 提交刷新任务到后台队列
+        intellijProject.taskQueue.run(syncTask)
     }
 
 

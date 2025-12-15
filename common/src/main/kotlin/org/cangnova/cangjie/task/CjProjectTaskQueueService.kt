@@ -30,17 +30,52 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 
+/**
+ * 仓颉项目任务队列服务
+ *
+ * 管理项目级别的后台任务队列，提供任务调度和取消功能。
+ *
+ * ## 主要功能
+ * - 提交后台任务到队列
+ * - 根据任务类型取消任务
+ * - 检查队列状态
+ *
+ * ## 使用示例
+ * ```kotlin
+ * val taskQueue = project.taskQueue
+ * taskQueue.run(MyBackgroundTask(project))
+ * ```
+ *
+ * @see CjBackgroundTaskQueue
+ * @see CangJieTask
+ */
 @Service
 class CjProjectTaskQueueService: Disposable {
     private val queue: CjBackgroundTaskQueue = CjBackgroundTaskQueue()
 
-    /** Submits a task. A task can implement [CangJieTask] */
+    /**
+     * 提交一个任务到队列
+     *
+     * 任务可以实现 [CangJieTask] 接口以提供额外的配置选项
+     *
+     * @param task 要执行的后台任务
+     */
     fun run(task: Task.Backgroundable) = queue.run(task)
 
-    /** Equivalent to running an empty task with [CangJieTask.taskType] = [taskType] */
+    /**
+     * 取消指定类型的所有任务
+     *
+     * 相当于运行一个空任务，其 [CangJieTask.taskType] = [taskType]
+     *
+     * @param taskType 要取消的任务类型
+     */
     fun cancelTasks(taskType:CangJieTask.TaskType) = queue.cancelTasks(taskType)
 
-    /** @return true if no running or pending tasks */
+    /**
+     * 检查队列是否为空
+     *
+     * @return 如果没有正在运行或待执行的任务，返回 true
+     */
     val isEmpty: Boolean get() = queue.isEmpty
 
     override fun dispose() {

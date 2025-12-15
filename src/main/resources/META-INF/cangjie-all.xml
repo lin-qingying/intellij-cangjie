@@ -88,7 +88,6 @@
 
     <xi:include href="/META-INF/cangjie-registry-key.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/cangjie-copyright.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/META-INF/cangjie-analysis.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <!-- 引入 json schema 相关 -->
     <xi:include href="/META-INF/cangjie-json.xml" xpointer="xpointer(/idea-plugin/*)" />
@@ -96,5 +95,6 @@
     <xi:include href="/META-INF/cangjie-project.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/cangjie-dependency.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
+    <xi:include href="/META-INF/cangjie-analysis.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 </idea-plugin>
