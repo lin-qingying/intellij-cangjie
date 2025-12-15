@@ -24,9 +24,9 @@
 
 package org.cangnova.cangjie.resolve.caches
 
-import org.cangnova.cangjie.resolve.calls.inference.EmptyIntersectionTypeInfo
-import org.cangnova.cangjie.resolve.calls.inference.EmptyIntersectionTypeKind
+import org.cangnova.cangjie.resolve.checkers.EmptyIntersectionTypeInfo
 import org.cangnova.cangjie.types.AbstractTypeChecker
+import org.cangnova.cangjie.types.EmptyIntersectionTypeKind
 import org.cangnova.cangjie.types.TypeCheckerState
 import org.cangnova.cangjie.types.model.*
 

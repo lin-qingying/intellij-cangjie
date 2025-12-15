@@ -102,10 +102,7 @@ open class UpperBoundChecker(
                 type, trace, typeReference,
                 // The errors have been reported previously if cjTypeArguments.size accidentally was equal to the amount of arguments
                 // in the expanded type
-                reportWarning = cjTypeArguments.size != arguments.size &&
-                        !languageVersionSettings.supportsFeature(
-                            LanguageFeature.ReportMissingUpperBoundsViolatedErrorOnAbbreviationAtSupertypes
-                        )
+                reportWarning = cjTypeArguments.size != arguments.size
             )
             return
         }

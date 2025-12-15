@@ -34,6 +34,8 @@ import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.caches.ModuleContent
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
 
 fun createModuleDescriptor(projectContext: ProjectContext, project: Project): ModuleDescriptor {
 
@@ -325,19 +327,19 @@ private object DiagnoseUnknownContextReporter {
 
     // Do not inline 'error*'-methods, they are needed to avoid Exception Analyzer merging those AssertionErrors
 
-    private fun errorInSdkResolver(message: String) = CangJieExceptionWithAttachments(message)
-    private fun errorInLibrariesResolver(message: String) = CangJieExceptionWithAttachments(message)
-    private fun errorInModulesResolver(message: String) = CangJieExceptionWithAttachments(message)
+    private fun errorInSdkResolver(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun errorInLibrariesResolver(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun errorInModulesResolver(message: String) = CangJieExceptionWithAttachmentsImpl(message)
 
-    private fun errorInModulesResolverWithEmptyInfos(message: String) = CangJieExceptionWithAttachments(message)
-    private fun errorInModulesResolverWithScriptDependencies(message: String) = CangJieExceptionWithAttachments(message)
-    private fun errorInModulesResolverWithLibraryInfo(message: String) = CangJieExceptionWithAttachments(message)
+    private fun errorInModulesResolverWithEmptyInfos(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun errorInModulesResolverWithScriptDependencies(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun errorInModulesResolverWithLibraryInfo(message: String) = CangJieExceptionWithAttachmentsImpl(message)
 
-    private fun errorInScriptDependenciesInfoResolver(message: String) = CangJieExceptionWithAttachments(message)
-    private fun errorInScriptModuleInfoResolver(message: String) = CangJieExceptionWithAttachments(message)
-    private fun errorInSpecialModuleInfoResolver(message: String) = CangJieExceptionWithAttachments(message)
+    private fun errorInScriptDependenciesInfoResolver(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun errorInScriptModuleInfoResolver(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun errorInSpecialModuleInfoResolver(message: String) = CangJieExceptionWithAttachmentsImpl(message)
 
-    private fun otherError(message: String) = CangJieExceptionWithAttachments(message)
+    private fun otherError(message: String) = CangJieExceptionWithAttachmentsImpl(message)
 }
 
 private class DelegatingPackageFragmentProvider<M : AnalysisContext>(

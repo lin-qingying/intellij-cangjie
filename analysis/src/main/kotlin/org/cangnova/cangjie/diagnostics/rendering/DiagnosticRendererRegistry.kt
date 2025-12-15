@@ -227,7 +227,7 @@ object DiagnosticRendererRegistry {
      * 使用默认渲染器（TO_STRING），复杂情况需要显式配置
      */
     @Suppress("UNCHECKED_CAST")
-    private fun <E : PsiElement, A : Any, B : Any> inferRenderer2(
+    private fun <E : PsiElement, A , B> inferRenderer2(
         factory: DiagnosticFactory2<E, A, B>
     ): DiagnosticRenderer<*> {
         return DiagnosticWithParameters2Renderer(

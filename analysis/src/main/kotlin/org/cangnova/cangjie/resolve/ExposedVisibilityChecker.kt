@@ -51,7 +51,7 @@ class ExposedVisibilityChecker(
         val trace = trace ?: return
         val restrictingVisibility = restrictingDescriptor.effectiveVisibility()
 
-        if (!languageVersionSettings.supportsFeature(LanguageFeature.PrivateInFileEffectiveVisibility) &&
+        if (/*!languageVersionSettings.supportsFeature(LanguageFeature.PrivateInFileEffectiveVisibility) &&*/
             elementVisibility == EffectiveVisibility.PrivateInFile
         ) {
             trace.report(

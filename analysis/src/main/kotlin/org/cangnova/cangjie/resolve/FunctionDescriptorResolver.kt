@@ -294,9 +294,9 @@ class FunctionDescriptorResolver(
             resolveVisibilityFromModifiers(
                 modifierList,
                 DescriptorUtils.getDefaultConstructorVisibility(
-                    classDescriptor, languageVersionSettings.supportsFeature(
+                    classDescriptor,false /*languageVersionSettings.supportsFeature(
                         LanguageFeature.AllowSealedInheritorsInDifferentFilesOfSamePackage
-                    )
+                    )*/
                 )
             )
         )

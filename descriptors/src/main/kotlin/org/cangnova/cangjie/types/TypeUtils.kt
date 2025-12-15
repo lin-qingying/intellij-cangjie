@@ -47,6 +47,7 @@ import org.cangnova.cangjie.types.TypeUtils.makeProjection
 import org.cangnova.cangjie.types.checker.*
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker.Companion.DEFAULT
 import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isMarkedOption
+import org.cangnova.cangjie.types.error.ErrorScopeKind
 import org.cangnova.cangjie.types.error.ErrorType
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.model.TypeArgumentMarker
@@ -54,6 +55,7 @@ import org.cangnova.cangjie.types.model.TypeVariableTypeConstructorMarker
 import org.cangnova.cangjie.utils.SmartSet
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
+import kotlin.toString
 
 /**
  * 仓颉语言类型工具类
@@ -2026,4 +2028,96 @@ fun FlexibleType.unCapture(): FlexibleType {
     }
 
     return FlexibleTypeImpl(unCapturedLowerBound, unCapturedUpperBound)
+}
+fun CangJieType.unwrapEnhancement(): CangJieType = getEnhancement() ?: this
+
+fun CangJieType.approximateFlexibleTypes(
+    preferNotNull: Boolean = false,
+    preferStarForRaw: Boolean = false,
+    preferUpperBoundsForCollections: Boolean = false,
+): CangJieType {
+    if (this is OptionType) return this
+    if (isDynamic()) return this
+    if (isDefinitelyNonOptionType) return this
+    return unwrapEnhancement().approximateNonDynamicFlexibleTypes(
+        preferNotNull,
+        preferStarForRaw,
+        preferUpperBoundsForCollections
+    )
+}
+
+
+private fun CangJieType.approximateNonDynamicFlexibleTypes(
+    preferNotNull: Boolean = false,
+    preferStarForRaw: Boolean = false,
+    preferUpperBoundsForCollections: Boolean = false,
+): SimpleType {
+    if (this is ErrorType) return this
+
+    if (isFlexible()) {
+        val flexible = asFlexibleType()
+        val lowerBound = flexible.lowerBound
+        val upperBound = flexible.upperBound
+        val lowerClass = lowerBound.constructor.declarationDescriptor as? ClassDescriptor?
+        val isCollection = lowerClass != null
+
+        var approximation =
+            if (isCollection) {
+
+                val bound = if (preferUpperBoundsForCollections) upperBound else lowerBound
+                if (lowerBound.isMarkedOption() != upperBound.isMarkedOption())
+                    bound.makeOptionAsSpecified(!preferNotNull)
+                else
+                    bound
+            } else {
+                if (this is RawType && preferStarForRaw)
+                    upperBound.makeOptionAsSpecified(!preferNotNull)
+                else
+                    if (preferNotNull) lowerBound else upperBound
+            }
+
+        approximation = approximation.approximateNonDynamicFlexibleTypes()
+
+        approximation =
+            if (optionality() == TypeOptionality.NOT_OPTION) approximation.makeOptionAsSpecified(false) else approximation
+
+        if (approximation.isMarkedOption() && !lowerBound
+                .isMarkedOption() &&  TypeUtils.isTypeParameter(approximation) && TypeUtils.hasOptionSuperType(
+                approximation
+            )
+        ) {
+            approximation = approximation.makeOptionAsSpecified(false)
+        }
+
+        return approximation
+    }
+
+    (unwrap() as? AbbreviatedType)?.let {
+        return AbbreviatedType(it.expandedType, it.abbreviation.approximateNonDynamicFlexibleTypes(preferNotNull))
+    }
+    return simpleTypeWithNonTrivialMemberScope(
+        annotations.toDefaultAttributes(),
+        constructor,
+        arguments.map { it.substitute { type -> type.approximateFlexibleTypes(preferNotNull = true) } },
+        isMarkedOption(),
+        ErrorUtils.createErrorScope(ErrorScopeKind.UNSUPPORTED_TYPE_SCOPE, true, constructor.toString())
+    )
+}
+
+
+fun TypeProjection.substitute(doSubstitute: (CangJieType) -> CangJieType): TypeProjection {
+
+    return TypeProjectionImpl(projectionKind, doSubstitute(type))
+}
+enum class TypeOptionality{
+    NOT_OPTION,
+    OPTIONAL,
+    FLEXIBLE
+}
+fun CangJieType.optionality(): TypeOptionality {
+    return when {
+        isNullabilityFlexible() -> TypeOptionality.FLEXIBLE
+       TypeUtils.isOptionType(this) -> TypeOptionality.OPTIONAL
+        else -> TypeOptionality.NOT_OPTION
+    }
 }

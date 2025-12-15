@@ -50,6 +50,10 @@ import com.intellij.util.containers.MultiMap
 import com.intellij.xml.util.XmlStringUtil
 import org.cangnova.cangjie.diagnostics.Diagnostic
 import org.cangnova.cangjie.diagnostics.Severity
+import org.cangnova.cangjie.diagnostics.rendering.DefaultErrorMessages
+import org.cangnova.cangjie.diagnostics.rendering.DiagnosticRendererRegistry
+import org.cangnova.cangjie.diagnostics.rendering.IdeErrorMessages
+import org.cangnova.cangjie.inspections.suppress.CangJieSuppressableWarningProblemGroup
 import org.cangnova.cangjie.utils.isApplicationInternalMode
 import org.cangnova.cangjie.utils.isUnitTestMode
 
@@ -67,6 +71,7 @@ class AnnotationPresentationInfo(
     }
 
     private fun getDefaultMessage(diagnostic: Diagnostic): String {
+
         val message = DefaultErrorMessages.render(diagnostic)
         return if (isApplicationInternalMode() || isUnitTestMode) {
             "[${diagnostic.factory.name}] $message"

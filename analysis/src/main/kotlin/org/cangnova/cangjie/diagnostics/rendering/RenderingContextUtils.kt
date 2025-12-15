@@ -31,7 +31,7 @@ import org.cangnova.cangjie.renderer.DescriptorRenderer
 
 fun RenderingContext.Companion.fromDiagnostic(d: Diagnostic): RenderingContext = RenderingContext.Impl(parameters(d))
 
-fun RenderingContext.Companion.parameters(d: Diagnostic): List<Any> = when (d) {
+fun RenderingContext.Companion.parameters(d: Diagnostic)  = when (d) {
     is SimpleDiagnostic<*> -> listOf()
     is DiagnosticWithParameters1<*, *> -> listOf(d.a)
     is DiagnosticWithParameters2<*, *, *> -> listOf(d.a, d.b)

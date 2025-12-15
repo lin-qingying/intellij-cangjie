@@ -30,7 +30,7 @@ import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.descriptors.ModuleOrigin
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
-import org.cangnova.cangjie.builtins.createBuiltIns
+
 import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.container.StorageComponentContainer
@@ -39,15 +39,12 @@ import org.cangnova.cangjie.container.useImpl
 import org.cangnova.cangjie.container.useInstance
 import org.cangnova.cangjie.context.ModuleContext
 import org.cangnova.cangjie.context.ProjectContext
-import org.cangnova.cangjie.descriptors.BindingTrace
-import org.cangnova.cangjie.descriptors.CompositePackageFragmentProvider
 import org.cangnova.cangjie.descriptors.ModuleCapability
+import org.cangnova.cangjie.descriptors.impl.CompositePackageFragmentProvider
 import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import org.cangnova.cangjie.frontend.configureModule
 import org.cangnova.cangjie.frontend.configureStandardResolveComponents
-import org.cangnova.cangjie.ide.vfilefinder.VirtualFileFinderFactory
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.platform.TargetPlatform
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.caches.ModuleContent
@@ -59,10 +56,6 @@ import org.cangnova.cangjie.resolve.lazy.ResolveSession
 import org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactory
 import org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService
 import org.cangnova.cangjie.resolve.scopes.optimization.OptimizingOptions
-import org.cangnova.cangjie.serialization.builtins.CommonDependenciesContainer
-import org.cangnova.cangjie.serialization.deserialization.CangJieBuiltInsPackageFragmentProvider
-import org.cangnova.cangjie.serialization.deserialization.MetadataPackageFragmentProvider
-import org.cangnova.cangjie.serialization.deserialization.MetadataPartProvider
 import org.cangnova.cangjie.types.expressions.LocalLazyDeclarationResolver
 
 class CommonAnalysisParameters(

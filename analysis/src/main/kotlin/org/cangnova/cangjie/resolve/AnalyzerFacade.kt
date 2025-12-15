@@ -32,6 +32,7 @@ import org.cangnova.cangjie.container.ComponentProvider
 import org.cangnova.cangjie.container.get
 import org.cangnova.cangjie.context.ModuleContext
 import org.cangnova.cangjie.descriptors.AnalysisContext
+import org.cangnova.cangjie.descriptors.ModuleCapability
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.PackageFragmentProvider
 import org.cangnova.cangjie.descriptors.impl.CompositePackageFragmentProvider

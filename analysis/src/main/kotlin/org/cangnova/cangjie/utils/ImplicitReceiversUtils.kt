@@ -28,6 +28,7 @@ import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.DescriptorToSourceUtils
 import org.cangnova.cangjie.descriptors.ReceiverParameterDescriptor
+import org.cangnova.cangjie.diagnostics.rendering.IdeDescriptorRenderers
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjExpression
