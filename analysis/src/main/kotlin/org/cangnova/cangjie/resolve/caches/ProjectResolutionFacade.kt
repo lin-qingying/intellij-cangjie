@@ -37,6 +37,7 @@ import org.cangnova.cangjie.context.GlobalContextImpl
 import org.cangnova.cangjie.context.withProject
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.AnalysisContext
+import org.cangnova.cangjie.descriptors.AnalysisContextProvider
 import org.cangnova.cangjie.descriptors.NotUnderContentRootModuleInfo
 import org.cangnova.cangjie.descriptors.analysisContext
 import org.cangnova.cangjie.descriptors.analysisContextProvider

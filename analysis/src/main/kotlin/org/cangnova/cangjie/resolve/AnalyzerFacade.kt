@@ -41,6 +41,7 @@ import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import org.cangnova.cangjie.frontend.createContainerForLazyResolve
 import org.cangnova.cangjie.resolve.LazyModuleDependencies.Companion.assertModuleDependencyIsCorrect
 import org.cangnova.cangjie.resolve.caches.ModuleContent
+import org.cangnova.cangjie.resolve.calls.util.languageVersionSettings
 import org.cangnova.cangjie.resolve.lazy.AbsentDescriptorHandler
 import org.cangnova.cangjie.resolve.lazy.ResolveSession
 import org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService
@@ -242,13 +243,28 @@ interface LanguageSettingsProvider {
     ): LanguageVersionSettings
 
 
-    object Default : LanguageSettingsProvider {
-        override fun getLanguageVersionSettings(
-            context: AnalysisContext,
-            project: Project
-        ) = LanguageVersionSettingsImpl.DEFAULT
+    companion object {
+        object Default : LanguageSettingsProvider {
+            override fun getLanguageVersionSettings(
+                context: AnalysisContext,
+                project: Project
+            ) = LanguageVersionSettingsImpl.DEFAULT
 
+        }
     }
+}
+internal class IDELanguageSettingsProvider : LanguageSettingsProvider {
+
+    override fun getLanguageVersionSettings(
+        context: AnalysisContext,
+        project: Project
+    ): LanguageVersionSettings {
+        return when (context) {
+            else -> project.languageVersionSettings
+        }
+    }
+
+
 }
 
 

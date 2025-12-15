@@ -48,10 +48,10 @@ class CjLibraryAnalysisContext(
 ) : AnalysisContext {
 
     override val contextId: String = when (dependency) {
-        is CjDependency.Library -> "${dependency.name}:${dependency.version}"
+        is CjDependency.Library -> "${dependency.name}:${dependency.versionReq}"
         is CjDependency.Path -> "path:${dependency.path}"
         is CjDependency.Git -> "git:${dependency.url}"
-        is CjDependency.Stdlib -> "stdlib:${dependency.version}"
+        is CjDependency.Stdlib -> "stdlib:${dependency.versionReq}"
         is CjDependency.Binary -> "binary:${dependency.name}"
     }
 

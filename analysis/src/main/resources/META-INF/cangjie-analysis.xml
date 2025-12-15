@@ -40,6 +40,7 @@
                         serviceImplementation="org.cangnova.cangjie.analysis.decompiler.psi.IdeBuiltInsVirtualFileProviderImpl"/>
 
 
+
         <highlightVisitor implementation="org.cangnova.cangjie.analysis.CangJieHighlightVisitor"/>
 
 
@@ -95,7 +96,7 @@
 
         <projectService
                 serviceInterface="org.cangnova.cangjie.resolve.LanguageSettingsProvider"
-                serviceImplementation="org.cangnova.cangjie.resolve.LanguageSettingsProvider"/>
+                serviceImplementation="org.cangnova.cangjie.resolve.IDELanguageSettingsProvider"/>
 
         <projectService
                 serviceInterface="org.cangnova.cangjie.ide.cdoc.CDocLinkResolutionService"
