@@ -185,8 +185,8 @@ class CompileTimeConstantChecker(
         val diagnostic: Diagnostic? = null,
         val value: Char? = null
     ) {
-        constructor(diagnostic: Diagnostic) : this(diagnostic, null)
-        constructor(value: Char) : this(null, value)
+        constructor(diagnostic: Diagnostic) : this(diagnostic = diagnostic,value = null)
+        constructor(value: Char) : this(diagnostic = null,value = value)
     }
 
     companion object {

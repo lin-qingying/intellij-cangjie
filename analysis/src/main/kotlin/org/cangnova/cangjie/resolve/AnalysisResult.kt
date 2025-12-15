@@ -81,7 +81,7 @@ open class AnalysisResult protected constructor(
 
         @JvmStatic
         fun success(bindingContext: BindingContext, module: ModuleDescriptor): AnalysisResult {
-            return AnalysisResult(bindingContext, module, true)
+            return AnalysisResult(bindingContext, module)
         }
 
         @JvmStatic

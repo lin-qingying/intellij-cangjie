@@ -32,7 +32,7 @@ open class CompilationCanceledException : ProcessCanceledException()
 class IncrementalNextRoundException : CompilationCanceledException()
 
 interface CompilationCanceledStatus {
-    fun checkCanceled(): Unit
+    fun checkCanceled()
 }
 
 object ProgressIndicatorAndCompilationCanceledStatus {
@@ -40,7 +40,7 @@ object ProgressIndicatorAndCompilationCanceledStatus {
 
     @JvmStatic
     @Synchronized
-    fun setCompilationCanceledStatus(newCanceledStatus: CompilationCanceledStatus?): Unit {
+    fun setCompilationCanceledStatus(newCanceledStatus: CompilationCanceledStatus?) {
         canceledStatus = newCanceledStatus
     }
 

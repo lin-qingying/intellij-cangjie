@@ -70,5 +70,6 @@
                         interface="org.cangnova.cangjie.diagnostics.rendering.DiagnosticRendererProvider"
                         dynamic="true"/>
 
+
     </extensionPoints>
 </idea-plugin>

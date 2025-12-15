@@ -81,7 +81,7 @@ class BodyResolver(
         // Member variable
         val processed = mutableSetOf<CjVariable>()
 
-        for ((typeStatement, classDescriptor) in c.declaredClasses) {
+        for ((typeStatement, _) in c.declaredClasses) {
             for (variable in typeStatement.variables) {
                 val variableDescriptor = c.variables[variable]
                 requireNotNull(variableDescriptor)
@@ -564,7 +564,7 @@ class BodyResolver(
         // Member properties
         val processed = mutableSetOf<CjProperty>()
 
-        for ((typeStatement, classDescriptor) in c.declaredClasses) {
+        for ((typeStatement, _) in c.declaredClasses) {
             if (typeStatement is CjEnumEntry) continue
 
             for (property in typeStatement.properties) {
@@ -735,7 +735,7 @@ class BodyResolver(
     ) {
         ProgressManager.checkCanceled()
 
-        val scopeForConstructor = primaryConstructor?.let {
+        primaryConstructor?.let {
             FunctionDescriptorUtil.getFunctionInnerScope(scopeForConstructorResolution, it, trace, overloadChecker)
         }
 

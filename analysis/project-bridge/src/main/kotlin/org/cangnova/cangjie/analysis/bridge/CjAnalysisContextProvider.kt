@@ -61,20 +61,20 @@ import java.util.concurrent.ConcurrentHashMap
  * - 外部库依赖
  * - 标准库依赖
  *
- * ## 服务注册
+ * ## 扩展点注册
  *
- * 此类需要在 plugin.xml 中注册为项目级服务：
+ * 此类作为扩展实现注册到 cangjie-analysis.xml：
  * ```xml
- * <projectService
- *     serviceInterface="org.cangnova.cangjie.descriptors.AnalysisContextProvider"
- *     serviceImplementation="org.cangnova.cangjie.analysis.bridge.CjAnalysisContextProvider"/>
+ * <extensions defaultExtensionNs="org.cangnova.cangjie">
+ *     <analysisContextProvider implementation="org.cangnova.cangjie.analysis.bridge.CjAnalysisContextProvider"/>
+ * </extensions>
  * ```
  *
  * @see AnalysisContextProvider
  * @see CjModuleAnalysisContext
  */
-@Service(Service.Level.PROJECT)
-class CjAnalysisContextProvider(private val project: Project) : AnalysisContextProvider {
+
+class CjAnalysisContextProvider : AnalysisContextProvider {
 
     /**
      * 模块上下文缓存
@@ -90,15 +90,46 @@ class CjAnalysisContextProvider(private val project: Project) : AnalysisContextP
      */
     private val dependencyContextCache = ConcurrentHashMap<CjDependency, AnalysisContext>()
 
+    override fun isApplicable(project: Project): Boolean {
+        // 判断项目是否是仓颉项目
+        // 检查项目根目录下是否存在 cjpm.toml 或 package.cjpkg 文件
+        val baseDir = project.baseDir ?: return false
+
+        // 检查是否存在仓颉项目配置文件
+        val hasCjpmToml = baseDir.findChild("cjpm.toml") != null
+        val hasPackageCjpkg = baseDir.findChild("package.cjpkg") != null
+
+        if (!hasCjpmToml && !hasPackageCjpkg) {
+            return false
+        }
+
+        // 如果存在配置文件，尝试获取服务并验证
+        return try {
+            val projectsService = CjProjectsService.getInstance(project)
+            val cjProject = projectsService.cjProject
+
+            // 检查项目是否包含有效的模块或工作空间
+            when {
+                cjProject.module != null -> true
+                cjProject.workspace != null && cjProject.workspace!!.modules.isNotEmpty() -> true
+                else -> false
+            }
+        } catch (e: Exception) {
+            // 如果服务尚未初始化或出现其他问题，基于文件存在性判断
+            hasCjpmToml || hasPackageCjpkg
+        }
+    }
+
     override fun getContextForFile(file: PsiFile): AnalysisContext? {
         // 只处理仓颉文件
         if (file !is CjFile) return null
 
         val virtualFile = file.virtualFile ?: return null
-        return getContextForFile(virtualFile)
+        val project = file.project
+        return getContextForFile(project, virtualFile)
     }
 
-    override fun getContextForFile(file: VirtualFile): AnalysisContext? {
+    override fun getContextForFile(project: Project, file: VirtualFile): AnalysisContext? {
         // 获取项目服务
         val projectsService = CjProjectsService.getInstance(project)
         val cjProject = projectsService.cjProject
@@ -110,7 +141,7 @@ class CjAnalysisContextProvider(private val project: Project) : AnalysisContextP
         return getOrCreateContextForModule(module)
     }
 
-    override fun getAllContexts(): List<AnalysisContext> {
+    override fun getAllContexts(project: Project): List<AnalysisContext> {
         val projectsService = CjProjectsService.getInstance(project)
         val cjProject = projectsService.cjProject
 
@@ -151,10 +182,11 @@ class CjAnalysisContextProvider(private val project: Project) : AnalysisContextP
     /**
      * 获取或创建依赖的分析上下文
      *
+     * @param project 项目实例
      * @param dependency 依赖实例
      * @return 对应的 AnalysisContext
      */
-    fun getOrCreateContextForDependency(dependency: CjDependency): AnalysisContext {
+    fun getOrCreateContextForDependency(project: Project, dependency: CjDependency): AnalysisContext {
         return dependencyContextCache.getOrPut(dependency) {
             CjLibraryAnalysisContext(dependency, project)
         }

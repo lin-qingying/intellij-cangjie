@@ -750,7 +750,7 @@ class OverrideResolver(
             // -- if it's fake, overridden declarations (non-fake) of this descriptor are collected
             val overriddenDeclarationsByDirectParent = collectOverriddenDeclarations(directOverridden)
 
-            val allOverriddenDeclarations = ContainerUtil.flatten(overriddenDeclarationsByDirectParent.values)
+            ContainerUtil.flatten(overriddenDeclarationsByDirectParent.values)
 //            val allFilteredOverriddenDeclarations = OverridingUtil.filterOutOverridden(
 //                Sets.newLinkedHashSet(allOverriddenDeclarations)
 //            )

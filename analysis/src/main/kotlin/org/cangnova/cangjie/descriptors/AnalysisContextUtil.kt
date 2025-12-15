@@ -68,10 +68,12 @@ val PsiElement.analysisContextOrNull: AnalysisContext?
 /**
  * 从虚拟文件获取分析上下文
  *
+ * @param project 项目实例
+ * @param virtualFile 虚拟文件
  * @return 分析上下文，如果无法确定返回 null
  */
-fun AnalysisContextProvider.firstOrNull(virtualFile: VirtualFile): AnalysisContext? =
-    getContextForFile(virtualFile)
+fun AnalysisContextProvider.firstOrNull(project: com.intellij.openapi.project.Project, virtualFile: VirtualFile): AnalysisContext? =
+    getContextForFile(project, virtualFile)
 
 /**
  * 从 PSI 元素获取分析上下文

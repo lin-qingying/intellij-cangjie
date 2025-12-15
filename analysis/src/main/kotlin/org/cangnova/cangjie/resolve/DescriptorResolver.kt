@@ -146,7 +146,7 @@ class DescriptorResolver(
             targetSet.add(AnnotationUseSiteTarget.PROPERTY_SETTER)
             targetSet.add(AnnotationUseSiteTarget.SETTER_PARAMETER)
         }
-        val annotationSplitter = AnnotationSplitter(
+        AnnotationSplitter(
             storageManager, allAnnotations, targetSet
         )
 
@@ -342,7 +342,7 @@ class DescriptorResolver(
     ): PropertyDescriptor {
         val annotations =
             variableDeclaration.annotations
-        val modifierList = variableDeclaration.modifierList
+        variableDeclaration.modifierList
         val isVar = variableDeclaration.isVar
 
         val visibility =
@@ -372,7 +372,7 @@ class DescriptorResolver(
             storageManager, allAnnotations, targetSet
         )
 
-        val propertyAnnotations: Annotations = CompositeAnnotations(
+        CompositeAnnotations(
             listOf(
                 annotationSplitter.getAnnotationsForTarget(AnnotationUseSiteTarget.PROPERTY),
                 annotationSplitter.getOtherAnnotations()
@@ -984,7 +984,7 @@ class DescriptorResolver(
         trace: BindingTrace,
         additionalAnnotations: Annotations
     ): Annotations {
-        val modifierList = parameter.modifierList ?: return additionalAnnotations
+        parameter.modifierList ?: return additionalAnnotations
         val annotations = parameter.annotations
         val allAnnotations = annotationResolver.resolveAnnotationsWithoutArguments(scope, annotations, trace)
         if (!parameter.hasLetOrVar()) {
@@ -1096,7 +1096,7 @@ class DescriptorResolver(
 //        }
 
         val annotations = typeAlias.annotations
-        val modifierList = typeAlias.modifierList
+        typeAlias.modifierList
         val visibility =
             resolveVisibilityFromModifiers(typeAlias, getDefaultVisibility(typeAlias, containingDeclaration))
 
@@ -1215,13 +1215,13 @@ class DescriptorResolver(
     ): VariableDescriptor {
         val variableInfo = createFromProperty(variableDeclaration)
 
-        val modifierList = variableDeclaration.modifierList
+        variableDeclaration.modifierList
         val isVar = variableDeclaration.isVar
 
         val visibility =
             resolveVisibilityFromModifiers(variableDeclaration, getDefaultVisibility(variableDeclaration, container))
 
-        val modality = if (container is ClassDescriptor)
+        if (container is ClassDescriptor)
             resolveMemberModalityFromModifiers(
                 variableDeclaration,
                 getDefaultModality(container, visibility, variableInfo.hasBody),

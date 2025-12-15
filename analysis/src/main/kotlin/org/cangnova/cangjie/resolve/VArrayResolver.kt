@@ -55,8 +55,7 @@ class VArrayResolver(
         val call = CallMaker.makeCall(null, null, expression)
 
 
-        val resolutionResults =
-            callResolver.resolveCall(context, expression, call, constructor)
+        callResolver.resolveCall(context, expression, call, constructor)
 
 
 

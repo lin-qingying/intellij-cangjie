@@ -60,6 +60,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.containers.CollectionFactory
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.indexing.DumbModeAccessType
+import org.cangnova.cangjie.descriptors.AnalysisContextProvider
 import org.cangnova.cangjie.descriptors.analysisContext
 import org.cangnova.cangjie.descriptors.analysisContextProvider
 import org.cangnova.cangjie.resolve.caches.PerModulePackageCacheService.Companion.DEBUG_LOG_ENABLE_PerModulePackageCache
@@ -209,7 +210,8 @@ class PerModulePackageCacheService(private val project: Project) : Disposable {
                         }
                     }
                 } else {
-                    val infoByVirtualFile = project.analysisContextProvider.getContextForFile(vfile)
+                    val provider = AnalysisContextProvider.getInstance(project)
+                    val infoByVirtualFile = provider.getContextForFile(project, vfile)
                     if (infoByVirtualFile == null) {
                         LOG.debugIfEnabled(project) { "Skip $vfile as it has no AnalysisContext" }
                     }

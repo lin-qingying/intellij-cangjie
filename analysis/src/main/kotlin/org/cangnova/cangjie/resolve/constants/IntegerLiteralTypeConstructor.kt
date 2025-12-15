@@ -135,7 +135,7 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
          * @return 这些类型的交集类型，如果不存在则返回null
          */
         fun findIntersectionType(types: Collection<SimpleType>): SimpleType? =
-            findCommonSuperTypeOrIntersectionType(types, Companion.Mode.INTERSECTION_TYPE)
+            findCommonSuperTypeOrIntersectionType(types, Mode.INTERSECTION_TYPE)
 
         /**
          * 模式枚举，用于确定类型查找的模式

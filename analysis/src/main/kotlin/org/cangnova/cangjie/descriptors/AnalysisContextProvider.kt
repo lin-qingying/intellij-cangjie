@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.descriptors
 
 import com.intellij.openapi.components.service
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
@@ -32,7 +33,7 @@ import com.intellij.psi.PsiFile
 /**
  * AnalysisContext 提供者接口
  *
- * 这是一个项目级服务接口，定义了从不同来源获取分析上下文的标准方法。
+ * 这是一个项目扩展点接口，定义了从不同来源获取分析上下文的标准方法。
  * 具体实现由项目模型模块（如 cangjie-project）提供。
  *
  * ## 设计原则
@@ -40,21 +41,25 @@ import com.intellij.psi.PsiFile
  * **接口在 analysis，实现在 project-bridge**：
  * - analysis 模块定义接口，不依赖具体项目模型
  * - project-bridge 模块提供实现，桥接 CjModule 和 AnalysisContext
- * - 通过 IntelliJ 服务机制解耦
+ * - 通过 IntelliJ 扩展点机制解耦
  *
  * **扩展点模式**：
  * - 不同的项目类型（CJPM、KCJPM 等）可以提供不同的实现
  * - 支持多种构建系统和项目结构
+ * - 通过 isApplicable 方法判断是否适用于当前项目
  *
  * ## 核心功能
  *
- * ### 1. 文件到上下文的映射
+ * ### 1. 适用性判断
+ * 通过 isApplicable 方法判断当前提供者是否适用于给定项目。
+ *
+ * ### 2. 文件到上下文的映射
  * 根据文件所在位置，找到其所属的分析上下文（模块）。
  *
- * ### 2. 全局上下文管理
+ * ### 3. 全局上下文管理
  * 提供项目中所有可分析上下文的视图。
  *
- * ### 3. 缓存管理
+ * ### 4. 缓存管理
  * 缓存已创建的上下文实例，避免重复创建。
  *
  * ## 使用示例
@@ -90,19 +95,23 @@ import com.intellij.psi.PsiFile
  *
  * 实现此接口时需要：
  *
- * 1. **文件定位逻辑**：根据文件路径找到所属模块
- * 2. **上下文创建**：将项目模型转换为 AnalysisContext
- * 3. **缓存策略**：避免重复创建相同的上下文
- * 4. **线程安全**：支持多线程并发访问
+ * 1. **适用性判断**：实现 isApplicable 方法，判断是否适用于当前项目
+ * 2. **文件定位逻辑**：根据文件路径找到所属模块
+ * 3. **上下文创建**：将项目模型转换为 AnalysisContext
+ * 4. **缓存策略**：避免重复创建相同的上下文
+ * 5. **线程安全**：支持多线程并发访问
  *
  * ### 实现示例
  * ```kotlin
- * @Service(Service.Level.PROJECT)
- * class CjAnalysisContextProvider(
- *     private val project: Project
- * ) : AnalysisContextProvider {
+ * class CjAnalysisContextProvider : AnalysisContextProvider {
  *
  *     private val cache = ConcurrentHashMap<CjModule, AnalysisContext>()
+ *
+ *     override fun isApplicable(project: Project): Boolean {
+ *         // 判断项目是否是仓颉项目
+ *         val projectsService = CjProjectsService.getInstanceIfCreated(project) ?: return false
+ *         return projectsService.cjProject != null
+ *     }
  *
  *     override fun getContextForFile(file: PsiFile): AnalysisContext? {
  *         val module = findModuleForFile(file) ?: return null
@@ -130,6 +139,27 @@ import com.intellij.psi.PsiFile
 interface AnalysisContextProvider {
 
     /**
+     * 判断此提供者是否适用于给定的项目
+     *
+     * 此方法用于确定当前提供者是否能够为指定项目提供分析上下文。
+     * 多个提供者可以注册到扩展点，系统会选择第一个返回 true 的提供者。
+     *
+     * **实现建议**：
+     * - 检查项目是否包含特定的配置文件（如 cjpm.toml）
+     * - 检查项目服务是否已初始化
+     * - 避免执行耗时操作，此方法可能被频繁调用
+     *
+     * **使用场景**：
+     * - 系统自动选择合适的提供者
+     * - 支持多种项目类型共存
+     * - 插件化扩展
+     *
+     * @param project IntelliJ 项目实例
+     * @return true 如果此提供者适用于该项目，否则 false
+     */
+    fun isApplicable(project: Project): Boolean
+
+    /**
      * 从 PSI 文件获取分析上下文
      *
      * 根据文件所在的模块返回对应的分析上下文。
@@ -151,10 +181,11 @@ interface AnalysisContextProvider {
      * 类似于 [getContextForFile]，但直接接受 VirtualFile。
      * 适用于尚未加载 PSI 的场景。
      *
+     * @param project 项目实例
      * @param file 虚拟文件实例
      * @return 对应的分析上下文，如果无法确定返回 null
      */
-    fun getContextForFile(file: VirtualFile): AnalysisContext?
+    fun getContextForFile(project: Project, file: VirtualFile): AnalysisContext?
 
     /**
      * 获取项目中所有的分析上下文
@@ -169,9 +200,10 @@ interface AnalysisContextProvider {
      * - 索引构建：为所有模块建立索引
      * - 批量操作：对所有模块执行某个操作
      *
+     * @param project 项目实例
      * @return 所有模块的分析上下文列表
      */
-    fun getAllContexts(): List<AnalysisContext>
+    fun getAllContexts(project: Project): List<AnalysisContext>
 
     /**
      * 清除所有缓存的上下文
@@ -186,21 +218,24 @@ interface AnalysisContextProvider {
     fun clearCache()
 
     companion object {
+        val EP_NAME = ExtensionPointName.create<AnalysisContextProvider>("org.cangnova.cangjie.analysisContextProvider")
         /**
-         * 获取服务实例
+         * 获取适用于当前项目的提供者实例
          *
-         * 使用 IntelliJ Platform 的服务机制获取当前项目的提供者实例。
-         * 具体实现由项目模型模块注册。
+         * 使用 IntelliJ Platform 的扩展点机制获取当前项目的提供者实例。
+         * 系统会遍历所有注册的提供者，返回第一个 isApplicable 返回 true 的提供者。
          *
-         * **注意**：如果没有注册任何实现，此方法会抛出异常。
+         * **注意**：如果没有找到适用的提供者，此方法会抛出异常。
          *
          * @param project IntelliJ 项目实例
          * @return AnalysisContextProvider 实例
-         * @throws IllegalStateException 如果没有注册实现
+         * @throws IllegalStateException 如果没有找到适用的提供者
          */
         @JvmStatic
         fun getInstance(project: Project): AnalysisContextProvider {
-            return project.service()
+
+            return EP_NAME.extensionList.firstOrNull { it.isApplicable(project) }
+                ?: throw IllegalStateException("No applicable AnalysisContextProvider found for project: ${project.name}")
         }
     }
 }

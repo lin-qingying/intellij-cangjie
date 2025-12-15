@@ -67,8 +67,7 @@ interface AnnotationBasedExtension {
             for (metaAnnotation in annotationType.annotations) {
                 if (metaAnnotation.isASpecialAnnotation(
                         specialAnnotations,
-                        visitedAnnotations,
-                        allowMetaAnnotations = true
+                        visitedAnnotations
                     )
                 ) {
                     return true

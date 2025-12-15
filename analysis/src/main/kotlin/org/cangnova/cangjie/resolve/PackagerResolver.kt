@@ -49,7 +49,7 @@ class PackagerResolver(
         // 获取上下文中第一个文件，如果存在，则进行包级别检查
         c.files.firstOrNull()?.let {
             // 获取文件对应的包视图
-            val packageView = moduleDescriptor.getPackage(it.packageFqName)
+            moduleDescriptor.getPackage(it.packageFqName)
 
             // 调用函数检查包级别
             checkPackageLevel(it)

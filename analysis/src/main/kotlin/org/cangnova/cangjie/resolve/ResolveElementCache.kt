@@ -283,7 +283,7 @@ class ResolveElementCache(
                             "${elementOfAdditionalResolve.text} for context element ${element.text}"
                 )
             }
-            getElementsAdditionalResolve(elementOfAdditionalResolve, element, null, bodyResolveMode)
+            getElementsAdditionalResolve(elementOfAdditionalResolve, element, bodyResolveMode = bodyResolveMode)
         } else {
             element.getNonStrictParentOfType<CjDeclaration>()?.takeIf {
 
@@ -353,7 +353,6 @@ class ResolveElementCache(
                     return getElementsAdditionalResolve(
                         resolveElement,
                         contextElement = null,
-                        contextElements = null,
                         bodyResolveMode = FULL
                     )
                 }
@@ -682,11 +681,11 @@ class ResolveElementCache(
     ): BindingTrace {
         val trace = createDelegatingTrace(property, bindingTraceFilter)
 
-        val bodyResolver = createBodyResolver(resolveSession, trace, file, statementFilter)
+        createBodyResolver(resolveSession, trace, file, statementFilter)
         val descriptor = resolveSession.resolveToDescriptor(property) as PropertyDescriptor
         ForceResolveUtil.forceResolveAllContents(descriptor)
 
-        val bodyResolveContext = BodyResolveContextForLazy(TopDownAnalysisMode.LocalDeclarations) { declaration ->
+        BodyResolveContextForLazy(TopDownAnalysisMode.LocalDeclarations) { declaration ->
             assert(declaration.parent == property || declaration == property || declaration.parent.parent == property) {
                 "Must be called only for property accessors or for property, but called for $declaration"
             }

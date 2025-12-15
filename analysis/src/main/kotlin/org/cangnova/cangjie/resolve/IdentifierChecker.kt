@@ -75,7 +75,7 @@ object CangJieSimpleNameBacktickChecker : IdentifierChecker {
     }
 
     private fun reportIfNeeded(name: String, reportOn: () -> PsiElement?, diagnosticHolder: DiagnosticSink) {
-        val text = CjPsiUtil.unquoteIdentifier(name)
+        CjPsiUtil.unquoteIdentifier(name)
 //        when {
 //            text.isEmpty() -> {
 //                diagnosticHolder.report(Errors.INVALID_CHARACTERS.on(reportOn() ?: return, "should not be empty"))

@@ -728,7 +728,7 @@ class ControlFlowInformationProviderImpl private constructor(
 
     private fun PropertyDescriptor.isDefinitelyInitialized(): Boolean {
         if (trace[BACKING_FIELD_REQUIRED, this] == true) return false
-        val property = DescriptorToSourceUtils.descriptorToDeclaration(this)
+        DescriptorToSourceUtils.descriptorToDeclaration(this)
 
         return true
     }
@@ -1082,7 +1082,7 @@ class ControlFlowInformationProviderImpl private constructor(
 // Tail calls
 
     private fun markAndCheckTailCalls() {
-        val subroutineDescriptor = trace[DECLARATION_TO_DESCRIPTOR, subroutine] as? FunctionDescriptor ?: return
+        trace[DECLARATION_TO_DESCRIPTOR, subroutine] as? FunctionDescriptor ?: return
 
 //        markAndCheckRecursiveTailCalls(subroutineDescriptor)
     }

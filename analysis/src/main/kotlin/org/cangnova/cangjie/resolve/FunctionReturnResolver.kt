@@ -117,7 +117,7 @@ class FunctionReturnResolver(
                     }
 
 
-                    override val declarationDescriptor: ClassifierDescriptor?
+                    override val declarationDescriptor: ClassifierDescriptor
                         get() = this@ReturnOfTypeParameterDescriptor
 
 //                override fun isSameClassifier(classifier: ClassifierDescriptor): Boolean {

@@ -517,7 +517,7 @@ internal object CollectionTypeVariableUsagesInfo : ResolutionPart() {
 
         if (declaredTypeParameters.size < baseType.arguments.size) return false
 
-        for ((argumentsIndex, argument) in baseType.arguments.withIndex()) {
+        for ((_, argument) in baseType.arguments.withIndex()) {
 //            if ( argument.type.isMarkedOption) continue
 
             val currentEffectiveVariance = false

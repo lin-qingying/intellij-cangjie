@@ -293,7 +293,8 @@ class ProjectResolutionFacade(
         // 尝试从文件获取上下文
         val containingFile = element.containingFile
         val elementContext = if (containingFile != null) {
-            element.project.analysisContextProvider.getContextForFile(containingFile)
+            val provider = AnalysisContextProvider.getInstance(element.project)
+            provider.getContextForFile(containingFile)
         } else {
             null
         }

@@ -497,7 +497,7 @@ project(":") {
         implementation(project(":messages"))
         implementation(project(":notifications"))
         implementation(project(":analysis"))
-
+        api(project(":analysis:project-bridge"))
         api(project(":analysis:decompiler-to-psi"))
 
         implementation(project(":cangjie-project"))

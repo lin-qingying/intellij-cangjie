@@ -23,6 +23,14 @@
   -->
 
 <ide-plugin>
+    <!-- 扩展点定义 -->
+    <extensionPoints>
+        <!-- 分析上下文提供者扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.analysisContextProvider"
+                        interface="org.cangnova.cangjie.descriptors.AnalysisContextProvider"
+                        dynamic="true"/>
+    </extensionPoints>
+
     <extensions defaultExtensionNs="com.intellij">
         <projectService
                 serviceInterface="org.cangnova.cangjie.analysis.decompiler.psi.CangJieBuiltInDecompilationInterceptor"
@@ -33,6 +41,69 @@
 
 
         <highlightVisitor implementation="org.cangnova.cangjie.analysis.CangJieHighlightVisitor"/>
+
+
+
+        <projectService
+                serviceInterface="org.cangnova.cangjie.projectStructure.RootKindMatcher"
+                serviceImplementation="org.cangnova.cangjie.projectStructure.RootKindMatcherImpl"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.resolve.caches.CangJieCacheService"
+                serviceImplementation="org.cangnova.cangjie.resolve.caches.CangJieCacheServiceImpl"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.cache.trackers.ModuleDependencyProviderExtension"
+                serviceImplementation="org.cangnova.cangjie.cache.trackers.ResolutionAnchorModuleDependencyProviderExtension"/>
+
+        <!-- 额外服务注册 -->
+        <!-- 应用级服务 -->
+        <applicationService
+                serviceInterface="org.cangnova.cangjie.references.CjReferenceMutateService"
+                serviceImplementation="org.cangnova.cangjie.references.rename.CjReferenceMutateServiceBase"/>
+
+        <applicationService
+                serviceInterface="org.cangnova.cangjie.analysis.decompiler.psi.CangJieBuiltInStubVersionOffsetProvider"
+                serviceImplementation="org.cangnova.cangjie.analysis.decompiler.psi.CangJieBuiltInStubVersionOffsetProvider"/>
+
+        <applicationService
+                serviceInterface="org.cangnova.cangjie.references.CjReferenceResolutionHelper"
+                serviceImplementation="org.cangnova.cangjie.references.CjReferenceResolutionHelper"/>
+
+        <!-- 项目级服务 -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.psi.CangJiePsiFacade"
+                serviceImplementation="org.cangnova.cangjie.psi.DefaultCangJiePsiFacade"/>
+
+        <projectService
+                serviceInterface="org.cangnova.cangjie.resolve.CangJieModificationTrackerService"
+                serviceImplementation="org.cangnova.cangjie.resolve.CangJieModificationTrackerService"/>
+
+        <projectService
+                serviceInterface="org.cangnova.cangjie.cache.trackers.CangJieIDEModificationTrackerService"
+                serviceImplementation="org.cangnova.cangjie.cache.trackers.CangJieIDEModificationTrackerService"/>
+
+        <projectService
+                serviceInterface="org.cangnova.cangjie.highlighter.CangJieQuickFixProvider"
+                serviceImplementation="org.cangnova.cangjie.highlighter.CangJieQuickFixProvider"/>
+
+        <projectService
+                serviceInterface="org.cangnova.cangjie.resolve.CodeAnalyzerInitializer"
+                serviceImplementation="org.cangnova.cangjie.resolve.CodeAnalyzerInitializer"/>
+
+        <projectService
+                serviceInterface="org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService"
+                serviceImplementation="org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService"/>
+
+        <projectService
+                serviceInterface="org.cangnova.cangjie.resolve.LanguageSettingsProvider"
+                serviceImplementation="org.cangnova.cangjie.resolve.LanguageSettingsProvider"/>
+
+        <projectService
+                serviceInterface="org.cangnova.cangjie.ide.cdoc.CDocLinkResolutionService"
+                serviceImplementation="org.cangnova.cangjie.ide.cdoc.IdeCDocLinkResolutionService"/>
+
+        <projectService
+                serviceInterface="org.cangnova.cangjie.references.ReadWriteAccessChecker"
+                serviceImplementation="org.cangnova.cangjie.references.ReadWriteAccessChecker"/>
 
     </extensions>
 

@@ -227,7 +227,7 @@ class RangeLiteralResolver(
                     return "T"
                 }
 
-                override val declarationDescriptor: ClassifierDescriptor?
+                override val declarationDescriptor: ClassifierDescriptor
                     get() = this@RangeOfTypeParameterDescriptor
 
 

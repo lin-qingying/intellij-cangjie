@@ -102,7 +102,7 @@ class ControlFlowProcessor(
     }
 
     fun generatePseudocode(subroutine: CjElement): Pseudocode {
-        val pseudocode = generate(subroutine, null)
+        val pseudocode = generate(subroutine)
         (pseudocode as PseudocodeImpl).postProcess()
         return pseudocode
     }
@@ -117,7 +117,7 @@ class ControlFlowProcessor(
         val afterDeclaration = builder.createUnboundLabel("after local declaration")
 
         builder.nondeterministicJump(afterDeclaration, subroutine, null)
-        generate(subroutine, null)
+        generate(subroutine)
         builder.bindLabel(afterDeclaration)
     }
 
@@ -1575,7 +1575,7 @@ class ControlFlowProcessor(
         }
 
         private fun generateQualifier(expression: CjExpression, qualifier: QualifierReceiver): Boolean {
-            val qualifierDescriptor = qualifier.descriptor
+            qualifier.descriptor
 //            if (qualifierDescriptor is ClassDescriptor) {
 //                getFakeDescriptorForObject(qualifierDescriptor)?.let {
 //                    mark(expression)
@@ -1588,7 +1588,7 @@ class ControlFlowProcessor(
 
         private fun generateCall(callElement: CjElement): Boolean {
             val resolvedCall = callElement.getResolvedCall(trace.bindingContext)
-            val callElementFromResolvedCall = resolvedCall?.call?.callElement ?: return false
+            resolvedCall?.call?.callElement ?: return false
 
             return checkAndGenerateCall(resolvedCall)
         }

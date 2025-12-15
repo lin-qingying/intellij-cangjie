@@ -418,7 +418,7 @@ private fun GlobalContextImpl.contextWithNewLockAndCompositeExceptionTracker(
 
 private class CompositeExceptionTracker(val delegate: ExceptionTracker) : ExceptionTracker() {
     override fun getModificationCount(): Long {
-        return super.getModificationCount() + delegate.getModificationCount()
+        return super.getModificationCount() + delegate.modificationCount
     }
 }
 

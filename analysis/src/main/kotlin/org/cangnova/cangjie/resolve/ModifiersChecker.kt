@@ -191,15 +191,14 @@ class ModifiersChecker(
             descriptor: DeclarationDescriptor
         ) {
             if (declaration !is CjTypeStatement) return
-            val typeStatemtnt: CjTypeStatement = declaration
+            declaration
             if (descriptor !is ClassDescriptor) return
             val classDescriptor: ClassDescriptor =
                 descriptor
             val containingDeclaration: DeclarationDescriptor =
                 descriptor.containingDeclaration as? ClassDescriptor
                     ?: return
-            val containingClass: ClassDescriptor =
-                containingDeclaration as ClassDescriptor
+            containingDeclaration as ClassDescriptor
 
             val kind: DetailedClassKind =
                 DetailedClassKind.getClassKind(classDescriptor)
@@ -305,7 +304,7 @@ class ModifiersChecker(
                 return defaultModality
             }
             val hasAbstractModifier = modifierList.hasModifier(CjTokens.ABSTRACT_KEYWORD)
-            val hasOverrideModifier = modifierList.hasModifier(CjTokens.OVERRIDE_KEYWORD)
+            modifierList.hasModifier(CjTokens.OVERRIDE_KEYWORD)
 
             if (allowSealed && modifierList.hasModifier(CjTokens.SEALED_KEYWORD)) {
                 return Modality.SEALED

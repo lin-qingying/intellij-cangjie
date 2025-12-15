@@ -182,9 +182,8 @@ class CompletionModeCalculator {
             argument: TypeArgumentMarker,
             parameter: TypeParameterMarker
         ): TypeVariance {
-            val effectiveArgumentVariance =
-                AbstractTypeChecker.effectiveVariance(parameter.getVariance(), argument.getVariance())
-                    ?: TypeVariance.INV // conflicting variance
+            AbstractTypeChecker.effectiveVariance(parameter.getVariance(), argument.getVariance())
+                ?: TypeVariance.INV // conflicting variance
             return when (outerVariance) {
                 TypeVariance.INV -> TypeVariance.INV
 //                TypeVariance.OUT -> effectiveArgumentVariance

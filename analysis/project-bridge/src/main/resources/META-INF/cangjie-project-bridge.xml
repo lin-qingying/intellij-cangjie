@@ -22,19 +22,9 @@
   ~
   -->
 
-<idea-plugin>
-
-
-    <extensions defaultExtensionNs="com.intellij">
-        <projectService
-                serviceInterface="org.cangnova.cangjie.debugger.dap.session.DebugSessionCoordinator"
-                serviceImplementation="org.cangnova.cangjie.debugger.dap.session.DebugSessionCoordinator"/>
-
-        <xdebugger.breakpointType
-                implementation="org.cangnova.cangjie.debugger.dap.ui.CangJieLineBreakpointType"
-        />
-
+<ide-plugin>
+    <!-- 分析上下文提供者扩展点实现 -->
+    <extensions defaultExtensionNs="org.cangnova.cangjie">
+        <analysisContextProvider implementation="org.cangnova.cangjie.analysis.bridge.CjAnalysisContextProvider"/>
     </extensions>
-
-
-</idea-plugin>
+</ide-plugin>

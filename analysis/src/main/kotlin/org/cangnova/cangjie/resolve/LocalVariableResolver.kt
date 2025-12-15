@@ -190,7 +190,7 @@ class LocalVariableResolver(
         inferenceSession: InferenceSession,
         trace: BindingTrace
     ): VariableDescriptor {
-        val containingDeclaration = scope.ownerDescriptor
+        scope.ownerDescriptor
         val result: VariableDescriptorWithInitializerImpl
         val type: CangJieType
 

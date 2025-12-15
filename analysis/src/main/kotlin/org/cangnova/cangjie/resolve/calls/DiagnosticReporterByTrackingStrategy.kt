@@ -1047,7 +1047,7 @@ class DiagnosticReporterByTrackingStrategy(
             }
 
             is OnlyInputTypesDiagnostic -> {
-                val typeVariable = error.typeVariable as? TypeVariableFromCallableDescriptor ?: return
+                error.typeVariable as? TypeVariableFromCallableDescriptor ?: return
                 psiCangJieCall.psiCall.calleeExpression?.let {
                     TODO()
 //                    trace.report(

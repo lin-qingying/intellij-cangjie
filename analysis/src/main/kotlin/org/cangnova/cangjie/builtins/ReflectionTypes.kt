@@ -40,7 +40,7 @@ class ReflectionTypes(module: ModuleDescriptor, private val notFoundClasses: Not
             if (fqName.isRoot) return false
 
 //      if (fqName.parent().toSafe() != CANGJIE_REFLECT_FQ_NAME) return false
-            val shortName = descriptor.name.asString()
+            descriptor.name.asString()
 
 //      for (prefix in PREFIXES) {
 //        if (shortName.startsWith(prefix)) {

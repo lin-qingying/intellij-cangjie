@@ -24,12 +24,9 @@
 
 package org.cangnova.cangjie.projectStructure
 
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 
 data class RootKindFilter(
     val includeProjectSourceFiles: Boolean,
@@ -142,26 +139,4 @@ fun RootKindFilter.matches(project: Project, virtualFile: VirtualFile): Boolean 
     return RootKindMatcher.matches(project, virtualFile, this)
 }
 
-interface RootKindMatcher {
-    fun matches(filter: RootKindFilter, virtualFile: VirtualFile): Boolean
 
-    companion object {
-        @JvmStatic
-        fun matches(project: Project, virtualFile: VirtualFile, filter: RootKindFilter): Boolean {
-            val matcherService = project.service<RootKindMatcher>()
-            return matcherService.matches(filter, virtualFile)
-        }
-
-        @JvmStatic
-        fun matches(element: PsiElement, filter: RootKindFilter): Boolean {
-            val virtualFile = when (element) {
-                is PsiDirectory -> element.virtualFile
-                is PsiFile -> element.virtualFile
-                else -> element.containingFile?.virtualFile
-            }
-
-            return if (virtualFile != null) matches(element.project, virtualFile, filter) else false
-        }
-    }
-
-}

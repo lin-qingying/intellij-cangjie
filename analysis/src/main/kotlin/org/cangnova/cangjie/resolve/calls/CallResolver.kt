@@ -420,7 +420,7 @@ class CallResolver(
                 context.call
             )
 
-        val reportOn: PsiElement = if (call.isImplicit) call else calleeExpression
+        if (call.isImplicit) call else calleeExpression
 
         //
 //        if (delegateClassDescriptor.isInner()
@@ -865,7 +865,7 @@ class CallResolver(
         resolutionTask: ResolutionTask<D>,
         tracing: TracingStrategy
     ): OverloadResolutionResultsImpl<D> {
-        val initialInfo = context.dataFlowInfoForArguments.resultInfo
+        context.dataFlowInfoForArguments.resultInfo
         if (context.checkArguments == CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS) {
             argumentTypeResolver.analyzeArgumentsAndRecordTypes(
                 context,

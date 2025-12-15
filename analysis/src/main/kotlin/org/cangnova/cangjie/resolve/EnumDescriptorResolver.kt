@@ -68,7 +68,7 @@ class EnumDescriptorResolver(
             LocalRedeclarationChecker.DO_NOTHING,
             LexicalScopeKind.CONSTRUCTOR_HEADER
         )
-        val types = entry.typeReferences.map {
+        entry.typeReferences.map {
             typeResolver.resolveType(parameterScope, it, trace, true)
         }
 

@@ -219,7 +219,7 @@ class ArgumentTypeResolver //        this.functionPlaceholders = functionPlaceho
             return noTypeInfo(context)
         }
 
-        val functionLiteralArgument = getFunctionLiteralArgumentIfAny(expression, context)
+        getFunctionLiteralArgumentIfAny(expression, context)
 
         //        if (functionLiteralArgument != null) {
 //            return getFunctionLiteralTypeInfo(expression, functionLiteralArgument, context, resolveArgumentsMode, suspendFunctionTypeExpected);

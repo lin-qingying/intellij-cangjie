@@ -40,8 +40,8 @@ import javax.swing.Icon
  *
  * 提供标准的 CJPM 命令实现，如 build、test、run 等。
  */
-@Service(Service.Level.PROJECT)
-class CjpmCommandProvider : CjCommandProvider {
+
+internal class CjpmCommandProvider : CjCommandProvider {
     override fun getBuildSystemId(): ProjectBuildSystemId = CjpmBuildSystemId
 
     override fun getName(): String = "CJPM"

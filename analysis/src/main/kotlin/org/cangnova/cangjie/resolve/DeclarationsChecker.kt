@@ -198,7 +198,7 @@ class DeclarationsChecker(
 
     private fun checkModifiersAndAnnotationsInPackageDirective(file: CjFile) {
         val packageDirective = file.packageDirective ?: return
-        val modifierList = packageDirective.modifierList ?: return
+        packageDirective.modifierList ?: return
         val annotations = packageDirective.annotations
         for (annotationEntry in annotations.entries) {
             val calleeExpression = annotationEntry.calleeExpression
@@ -206,7 +206,7 @@ class DeclarationsChecker(
                 calleeExpression.constructorReferenceExpression?.let { trace.report(UNRESOLVED_REFERENCE.on(it, it)) }
             }
         }
-        annotationChecker.check(packageDirective, trace, null)
+        annotationChecker.check(packageDirective, trace)
         ModifierCheckerCore.check(
             packageDirective,
             trace,
@@ -380,7 +380,7 @@ class DeclarationsChecker(
             val inInterface = containingDescriptor.kind == ClassKind.INTERFACE
             val isClass = containingDescriptor.kind == ClassKind.CLASS
             val isStruct = containingDescriptor.kind == ClassKind.STRUCT
-            val isEnum = containingDescriptor.kind == ClassKind.ENUM
+            containingDescriptor.kind == ClassKind.ENUM
 
 //            判断const方法
             val isConst = function.isConst

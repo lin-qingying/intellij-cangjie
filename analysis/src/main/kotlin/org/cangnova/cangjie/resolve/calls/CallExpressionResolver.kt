@@ -283,7 +283,7 @@ class CallExpressionResolver(
     ): DeclarationDescriptor? {
 
 
-        val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
+        CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
 
 
 
@@ -325,7 +325,7 @@ class CallExpressionResolver(
             val functionDescriptor = resolvedCall?.resultingDescriptor
             if (functionDescriptor !is ConstructorDescriptor) {
                 temporaryForFunction.commit()
-                val hasValueParameters = functionDescriptor == null || functionDescriptor.valueParameters.isNotEmpty()
+                functionDescriptor == null || functionDescriptor.valueParameters.isNotEmpty()
 //                context.trace.report(FUNCTION_CALL_EXPECTED.on(nameExpression, nameExpression, hasValueParameters))
                 return createTypeInfo(functionDescriptor?.toFunctionType(), context)
             }

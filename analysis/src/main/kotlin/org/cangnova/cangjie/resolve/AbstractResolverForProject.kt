@@ -168,8 +168,8 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
             Name.identifier(module.contextId),
             projectContext.storageManager,
             mapOf(AnalysisContextCapability to module),
-            null, // stableName
-            false // isBuiltInsModule
+            null // stableName
+            // isBuiltInsModule
         )
         contextByDescriptor[moduleDescriptor] = module
         setupModuleDescriptor(module, moduleDescriptor)
@@ -263,7 +263,7 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
             resolverByModuleDescriptor.getOrPut(descriptor) {
                 checkModuleIsCorrect(module)
 
-                ResolverForModuleComputationTracker.Companion.getInstance(projectContext.project)
+                ResolverForModuleComputationTracker.getInstance(projectContext.project)
                     ?.onResolverComputed(module)
 
                 createResolverForModule(descriptor, module)
@@ -296,8 +296,8 @@ private object DiagnoseUnknownContextReporter {
         val message = "$name does not know how to resolve"
         val error = when {
 
-            name.contains(ResolverForProject.Companion.resolverForLibrariesName) -> errorInLibrariesResolver(message)
-            name.contains(ResolverForProject.Companion.resolverForModulesName) -> {
+            name.contains(ResolverForProject.resolverForLibrariesName) -> errorInLibrariesResolver(message)
+            name.contains(ResolverForProject.resolverForModulesName) -> {
                 when {
                     contexts.isEmpty() -> errorInModulesResolverWithEmptyInfos(message)
                     contexts.size == 1 -> {
@@ -317,7 +317,7 @@ private object DiagnoseUnknownContextReporter {
             }
 
 
-            name.contains(ResolverForProject.Companion.resolverForSpecialInfoName) -> {
+            name.contains(ResolverForProject.resolverForSpecialInfoName) -> {
                 when {
                     name.contains("ScriptModuleInfo") -> errorInScriptModuleInfoResolver(message)
                     else -> errorInSpecialModuleInfoResolver(message)

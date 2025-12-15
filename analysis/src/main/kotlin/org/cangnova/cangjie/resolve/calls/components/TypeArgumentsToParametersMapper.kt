@@ -74,7 +74,7 @@ class TypeArgumentsToParametersMapper {
         val topDescriptor = descriptor.containingDeclaration as? ClassDescriptor
 
 
-        val sharedTypeParameter = getSharedTypeParametersByDeclarationDescriptor(topDescriptor, descriptor)
+        getSharedTypeParametersByDeclarationDescriptor(topDescriptor, descriptor)
 
 
 
