@@ -456,12 +456,12 @@ class TowerResolver {
                     scope.mayFitForName(name)
                 )
 
-            if (!areContextReceiversEnabled) {
-                lexicalScope.parentsWithSelf.forEach { scope ->
-                    if (scope is LexicalScope) addLevelForLexicalScope(scope) else addLevelForImportingScope(scope)
-                }
-                return mainResult
-            }
+//            if (!areContextReceiversEnabled) {
+//                lexicalScope.parentsWithSelf.forEach { scope ->
+//                    if (scope is LexicalScope) addLevelForLexicalScope(scope) else addLevelForImportingScope(scope)
+//                }
+//                return mainResult
+//            }
 
             val parentScopes = lexicalScope.parentsWithSelf.toList()
 
@@ -561,16 +561,16 @@ class TowerResolver {
                 scopes: Sequence<HierarchicalScope>,
                 resolveExtensionsForImplicitReceiver: (HierarchicalScope) -> Boolean
             ): Collection<C>? {
-                if (!implicitScopeTower.areContextReceiversEnabled) {
-                    scopes.forEach { scope ->
-                        if (scope is LexicalScope) {
-                            processLexicalScope(scope, resolveExtensionsForImplicitReceiver(scope))?.let { return it }
-                        } else {
-                            processImportingScope(scope as ImportingScope)?.let { return it }
-                        }
-                    }
-                    return null
-                }
+//                if (!implicitScopeTower.areContextReceiversEnabled) {
+//                    scopes.forEach { scope ->
+//                        if (scope is LexicalScope) {
+//                            processLexicalScope(scope, resolveExtensionsForImplicitReceiver(scope))?.let { return it }
+//                        } else {
+//                            processImportingScope(scope as ImportingScope)?.let { return it }
+//                        }
+//                    }
+//                    return null
+//                }
                 var firstImportingScopePassed = false
                 for (scope in scopes) {
                     if (scope is LexicalScope) {

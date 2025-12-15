@@ -36,7 +36,6 @@ import com.intellij.ui.dsl.gridLayout.UnscaledGaps
 import com.intellij.ui.table.JBTable
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.JBInsets
-import org.cangnova.cangjie.highlighter.CangJieHighlightingColors
 import org.cangnova.cangjie.messages.CangJieBundle
 import org.jetbrains.annotations.Nls
 

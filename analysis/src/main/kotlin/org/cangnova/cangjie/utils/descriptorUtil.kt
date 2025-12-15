@@ -52,6 +52,7 @@ fun ClassDescriptor.getAllSuperclassesWithoutAny() =
     ).toCollection(SmartList<ClassDescriptor>())
 val VariableDescriptor.isUnderscoreNamed
     get() = !name.isSpecial && name.identifier == "_"
+fun ClassDescriptor.getClassObjectReferenceTarget(): ClassDescriptor = this
 
 fun CallableMemberDescriptor.firstOverridden(
     useOriginal: Boolean = false,

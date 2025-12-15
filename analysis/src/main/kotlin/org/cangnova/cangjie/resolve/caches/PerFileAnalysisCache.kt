@@ -37,6 +37,9 @@ import com.intellij.psi.util.findParentInFile
 import com.intellij.psi.util.findTopmostParentInFile
 import com.intellij.psi.util.findTopmostParentOfType
 import com.intellij.psi.util.parents
+import org.cangnova.cangjie.cache.trackers.clearInBlockModifications
+import org.cangnova.cangjie.cache.trackers.inBlockModifications
+import org.cangnova.cangjie.cache.trackers.removeInBlockModifications
 import org.cangnova.cangjie.resolve.AnalysisResult
 import org.cangnova.cangjie.resolve.DelegateAnalysisResult
 import org.cangnova.cangjie.container.ComponentProvider
@@ -50,6 +53,7 @@ import org.cangnova.cangjie.descriptors.InvalidModuleException
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.diagnostics.*
 import org.cangnova.cangjie.diagnostics.PositioningStrategies.DECLARATION_WITH_BODY
+import org.cangnova.cangjie.frontend.createContainerForLazyBodyResolve
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.parentsWithSelf
 import org.cangnova.cangjie.resolve.*

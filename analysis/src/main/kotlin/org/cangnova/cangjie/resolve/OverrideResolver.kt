@@ -165,9 +165,9 @@ class OverrideResolver(
         override fun doReportErrors() {
             val canHaveAbstractMembers = classCanHaveAbstractFakeOverride(classDescriptor)
             if (abstractInBaseClassNoImpl.isNotEmpty() && !canHaveAbstractMembers) {
-                if (languageVersionSettings.supportsFeature(
+                if (/*languageVersionSettings.supportsFeature(
                         LanguageFeature.AbstractClassMemberNotImplementedWithIntermediateAbstractClass
-                    )
+                    )*/true
                 ) {
                     trace.report(
                         ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED.on(
@@ -184,9 +184,9 @@ class OverrideResolver(
             }
             if (conflictingInterfaceMembers.isNotEmpty()) {
                 val interfaceMember = conflictingInterfaceMembers.first()
-                if (languageVersionSettings.supportsFeature(
+                if (/*languageVersionSettings.supportsFeature(
                         LanguageFeature.AbstractClassMemberNotImplementedWithIntermediateAbstractClass
-                    )
+                    )*/ true
                 ) {
                     trace.report(MANY_INTERFACES_MEMBER_NOT_IMPLEMENTED.on(cclass, cclass, interfaceMember))
                 } else {
@@ -319,11 +319,11 @@ class OverrideResolver(
             }
 
             if (abstractInvisibleSuper.isNotEmpty() && !canHaveAbstractMembers) {
-                trace.report(
-                    INVISIBLE_ABSTRACT_MEMBER_FROM_SUPER.on(
-                        languageVersionSettings, cclass, classDescriptor, abstractInvisibleSuper
-                    )
-                )
+//                trace.report(
+//                    INVISIBLE_ABSTRACT_MEMBER_FROM_SUPER.on(
+//                        languageVersionSettings, cclass, classDescriptor, abstractInvisibleSuper
+//                    )
+//                )
             }
 
             conflictingInterfaceMembers.removeAll(conflictingReturnTypes)
@@ -633,7 +633,8 @@ class OverrideResolver(
 
     private fun checkVisibility(c: TopDownAnalysisContext) {
         for ((key, value) in c.members) {
-            checkVisibilityForMember(key, value)
+            if (value is CallableMemberDescriptor)
+                checkVisibilityForMember(key, value)
 //       TODO     属性检查
 //            if (key is CjProperty && value is PropertyDescriptor) {
 //                val setter = key.setter
@@ -1127,7 +1128,7 @@ class OverrideResolver(
             cangjieTypeRefiner: CangJieTypeRefiner,
             languageVersionSettings: LanguageVersionSettings
         ): CallableMemberDescriptor? {
-              for (supertype in cangjieTypeRefiner.refineSupertypes(declaringClass)) {
+            for (supertype in cangjieTypeRefiner.refineSupertypes(declaringClass)) {
                 val all = linkedSetOf<CallableMemberDescriptor>()
                 all.addAll(
                     supertype.memberScope.getContributedFunctions(

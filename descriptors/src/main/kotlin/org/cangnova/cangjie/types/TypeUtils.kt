@@ -2121,3 +2121,4 @@ fun CangJieType.optionality(): TypeOptionality {
         else -> TypeOptionality.NOT_OPTION
     }
 }
+

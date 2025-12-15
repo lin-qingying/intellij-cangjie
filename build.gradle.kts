@@ -483,6 +483,7 @@ project(":") {
         intellijPlatform {
             bundledPlugins(tomlPlugin, copyright, jsonPlugin)
         }
+        implementation(project(":highlighter"))
 
         // 项目内部模块
         implementation(project(":common"))

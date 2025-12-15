@@ -39,6 +39,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
@@ -59,11 +60,10 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.containers.CollectionFactory
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.indexing.DumbModeAccessType
+import org.cangnova.cangjie.descriptors.analysisContext
 import org.cangnova.cangjie.descriptors.analysisContextProvider
-import org.cangnova.cangjie.psi.analysisContext
 import org.cangnova.cangjie.resolve.caches.PerModulePackageCacheService.Companion.DEBUG_LOG_ENABLE_PerModulePackageCache
 import org.cangnova.cangjie.stubindex.CangJiePackageIndexUtils
-import org.cangnova.cangjie.stubindex.resolve.isUnitTestMode
 import org.cangnova.cangjie.utils.isCangJieFileType
 import org.cangnova.cangjie.utils.isUnitTestMode
 
@@ -229,11 +229,11 @@ class PerModulePackageCacheService(private val project: Project) : Disposable {
                     return@processPending
                 }
                 val analysisContext = file.analysisContext
-                if (analysisContext != null && analysisContext.isSourceContext) {
+                if (  analysisContext.isSourceContext) {
                     invalidateCacheForAnalysisContext(analysisContext)
-                } else if (analysisContext == null) {
+                } /*else if (analysisContext == null) {
                     LOG.debugIfEnabled(project) { "Skip $file as it has no AnalysisContext" }
-                }
+                }*/
                 implicitPackagePrefixCache.update(file)
             }
         }

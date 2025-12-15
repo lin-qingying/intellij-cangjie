@@ -31,6 +31,7 @@ import org.cangnova.cangjie.config.LanguageVersionSettingsImpl
 import org.cangnova.cangjie.context.ProjectContext
 import org.cangnova.cangjie.context.withModule
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
+import org.cangnova.cangjie.descriptors.ProjectDescriptor
 import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.resolve.caches.ModuleContent
@@ -40,6 +41,7 @@ import com.intellij.psi.search.GlobalSearchScope
 class ResolverForSingleModuleProject<M : AnalysisContext>(
     debugName: String,
     projectContext: ProjectContext,
+    projectDescriptor: ProjectDescriptor,
     private val module: M,
     private val resolverForModuleFactory: ResolverForModuleFactory,
     private val searchScope: GlobalSearchScope,
@@ -51,6 +53,7 @@ class ResolverForSingleModuleProject<M : AnalysisContext>(
 ) : AbstractResolverForProject<M>(
     debugName,
     projectContext,
+    projectDescriptor,
     listOf(module) + knownDependencyModuleDescriptors.keys,
     null,
     EmptyResolverForProject(),

@@ -110,8 +110,8 @@ class ResultTypeResolver(
             ?: this
     }
 
-    private val useImprovedCapturedTypeApproximation: Boolean =
-        languageVersionSettings.supportsFeature(LanguageFeature.ImprovedCapturedTypeApproximationInInference)
+//    private val useImprovedCapturedTypeApproximation: Boolean =
+//        languageVersionSettings.supportsFeature(LanguageFeature.ImprovedCapturedTypeApproximationInInference)
 
     fun findResultTypeOrNull(
         c: Context,
@@ -496,7 +496,7 @@ class ResultTypeResolver(
     }
 
     private fun Context.computeUpperType(upperConstraints: List<Constraint>): CangJieTypeMarker {
-        return if (languageVersionSettings.supportsFeature(LanguageFeature.AllowEmptyIntersectionsInResultTypeResolver)) {
+        return if (/*languageVersionSettings.supportsFeature(LanguageFeature.AllowEmptyIntersectionsInResultTypeResolver)*/ true) {
             intersectTypes(upperConstraints.map { it.type })
         } else {
             val intersectionUpperType = intersectTypes(upperConstraints.map { it.type })

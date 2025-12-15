@@ -61,6 +61,7 @@ import io.github.classgraph.TypeArgument
 import org.cangnova.cangjie.diagnostics.infos.errors.*
 import org.cangnova.cangjie.diagnostics.infos.warnings.*
 import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.module
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.isExtensionFunctionType

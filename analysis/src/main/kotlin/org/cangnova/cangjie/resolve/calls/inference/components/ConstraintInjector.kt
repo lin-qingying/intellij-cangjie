@@ -238,8 +238,8 @@ class ConstraintInjector(
         skipProperEqualityConstraints: Boolean
     ): MutableList<Pair<TypeVariableMarker, Constraint>>? {
         // 检查语言版本是否支持正确的类型推断约束处理
-        val properConstraintsProcessingEnabled =
-            languageVersionSettings.supportsFeature(LanguageFeature.ProperTypeInferenceConstraintsProcessing)
+        val properConstraintsProcessingEnabled = true
+//            languageVersionSettings.supportsFeature(LanguageFeature.ProperTypeInferenceConstraintsProcessing)
 
         while (typeCheckerState.hasConstraintsToProcess()) {
             // 处理当前的所有约束

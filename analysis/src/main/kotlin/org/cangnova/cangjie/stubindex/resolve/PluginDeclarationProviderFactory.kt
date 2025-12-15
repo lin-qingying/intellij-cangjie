@@ -33,6 +33,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.descriptors.PackageMemberDeclarationProvider
 import org.cangnova.cangjie.descriptors.data.CjClassLikeInfo
+import org.cangnova.cangjie.descriptors.projectSourceModules
 import org.cangnova.cangjie.resolve.caches.PerModulePackageCacheService
 import org.cangnova.cangjie.resolve.lazy.declarations.AbstractDeclarationProviderFactory
 import org.cangnova.cangjie.resolve.lazy.declarations.CombinedPackageMemberDeclarationProvider
@@ -113,21 +114,25 @@ class PluginDeclarationProviderFactory(
 
     private val onCreationDebugInfo = debugInfo()
     override fun diagnoseMissingPackageFragment(fqName: FqName, file: CjFile?) {
-        val moduleSourceInfo = moduleInfo as? ModuleSourceInfo
+        // 检查是否为源码上下文
+        val isSourceContext = context.isSourceContext
 
         val packageExists = CangJiePackageIndexUtils.packageExists(fqName, indexedFilesScope)
         val spiPackageExists = CangJiePackageIndexUtils.packageExists(fqName, project)
         val oldPackageExists = oldPackageExists(fqName)
-        val cachedPackageExists =
-            moduleSourceInfo?.let { project.service<PerModulePackageCacheService>().packageExists(fqName, it) }
-//        val moduleModificationCount = moduleSourceInfo?.createModificationTracker()?.modificationCount
+        val cachedPackageExists = if (isSourceContext) {
+            context.projectSourceModules()
+                .firstOrNull()
+                ?.let { project.service<PerModulePackageCacheService>().packageExists(fqName, it) }
+        } else null
+//        val moduleModificationCount = context.createModificationTracker()?.modificationCount
 
         val common = """
                 packageExists = $packageExists, cachedPackageExists = $cachedPackageExists,
                 oldPackageExists = $oldPackageExists,
                 SPI.packageExists = $spiPackageExists,
-                OOCB count = ${CangJieCodeBlockModificationListener.getInstance(project).cangjieOutOfCodeBlockTracker.modificationCount}
-             
+                context = ${context.contextId}
+
             """.trimIndent()
 //        moduleModificationCount = $moduleModificationCount
 

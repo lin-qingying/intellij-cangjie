@@ -29,6 +29,7 @@ import org.cangnova.cangjie.context.ProjectContext
 import org.cangnova.cangjie.context.withModule
 import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
+import org.cangnova.cangjie.descriptors.ProjectDescriptor
 import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 
 import org.cangnova.cangjie.psi.CjFile
@@ -44,6 +45,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.search.GlobalSearchScope
+import org.cangnova.cangjie.types.DefaultBuiltIns.projectDescriptor
 import java.util.*
 
 data class ModuleContent<out M : AnalysisContext>(
@@ -56,6 +58,7 @@ data class ModuleContent<out M : AnalysisContext>(
 class IdeaResolverForProject(
     debugName: String,
     projectContext: ProjectContext,
+    projectDescriptor: ProjectDescriptor,
     modules: Collection<AnalysisContext>,
     private val syntheticFilesByModule: Map<AnalysisContext, Collection<CjFile>>,
     delegateResolver: ResolverForProject<AnalysisContext>,
@@ -65,6 +68,7 @@ class IdeaResolverForProject(
 
     debugName,
     projectContext,
+    projectDescriptor,
     modules,
     fallbackModificationTracker,
     delegateResolver,
@@ -130,7 +134,9 @@ class IdeaResolverForProject(
             if (cachedBuiltIns != null) return@compute cachedBuiltIns
 
 
-            createBuiltIns(projectContext, resolver)
+            val builtIns = CangJieBuiltIns(projectDescriptor, projectContext.storageManager)
+            builtIns.createBuiltInsModule(isFallback = false)
+            builtIns
                 .also {
                     // TODO: MemoizedFunction should be used here instead, but for proper we also need a module (for LV settings) that is not contained in the key
                     cache[key] = it

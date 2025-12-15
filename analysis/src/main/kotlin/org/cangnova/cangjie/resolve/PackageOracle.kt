@@ -29,6 +29,7 @@ import org.cangnova.cangjie.name.FqName
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import org.cangnova.cangjie.resolve.caches.PerModulePackageCacheService
 
 
 interface PackageOracle {
@@ -69,7 +70,7 @@ class IdePackageOracleFactory(val project: Project) : PackageOracleFactory {
         override fun packageExists(fqName: FqName): Boolean {
             // 在当前上下文及其依赖中查找包
             // TODO: 可能需要递归查找依赖
-            return cacheService.packageExists(fqName, context.contextId)
+            return cacheService.packageExists(fqName, context)
         }
     }
 

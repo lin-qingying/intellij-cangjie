@@ -35,11 +35,16 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import org.cangnova.cangjie.ExceptionTracker
 import org.cangnova.cangjie.context.GlobalContext
 import org.cangnova.cangjie.context.GlobalContextImpl
 import org.cangnova.cangjie.descriptors.AnalysisContext
+import org.cangnova.cangjie.descriptors.NotUnderContentRootModuleInfo
 import org.cangnova.cangjie.descriptors.analysisContext
+import org.cangnova.cangjie.descriptors.isLibraryContext
 import org.cangnova.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
+import org.cangnova.cangjie.projectStructure.RootKindFilter
+import org.cangnova.cangjie.projectStructure.matches
 import org.cangnova.cangjie.psi.CjCodeFragment
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjFile
@@ -51,6 +56,7 @@ import org.cangnova.cangjie.resolve.ResolverForProject.Companion.resolverForLibr
 import org.cangnova.cangjie.resolve.ResolverForProject.Companion.resolverForModulesName
 import org.cangnova.cangjie.resolve.ResolverForProject.Companion.resolverForSpecialInfoName
 import org.cangnova.cangjie.storage.LockBasedStorageManager
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
 import org.cangnova.cangjie.utils.sumByLong
 
 
@@ -176,7 +182,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
 //        val settings = moduleInfo.platformSettings(platform)
         val projectFacade = facadeForModules(/*settings*/)
 
-        return ModuleResolutionFacadeImpl(projectFacade, moduleInfo)
+        return ModuleResolutionFacadeImpl(projectFacade, context)
     }
 
     override fun getResolutionFacade(elements: List<CjElement>): ResolutionFacade {
@@ -197,7 +203,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
     }
 
     private fun Collection<CjFile>.filterNotInProjectSource(context: AnalysisContext): Set<CjFile> =
-        mapNotNullTo(mutableSetOf()) { filterNotInProjectSource(it, moduleInfo) }
+        mapNotNullTo(mutableSetOf()) { filterNotInProjectSource(it, context) }
 
     private fun filterNotInProjectSource(file: CjFile, context: AnalysisContext): CjFile? {
         val fileToAnalyze = when (file) {
@@ -210,7 +216,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
         }
 
         val isInProjectSource = RootKindFilter.projectSources.matches(fileToAnalyze)
-                && moduleInfo.contentScope.contains(fileToAnalyze)
+                && context.scope.contains(fileToAnalyze)
 
         return if (!isInProjectSource) fileToAnalyze else null
     }
@@ -229,7 +235,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
     }
 
     private fun getFacadeToAnalyzeFiles(files: Collection<CjFile>/*, settings: PlatformAnalysisSettings*/): ResolutionFacade {
-        val moduleInfo = files.first().moduleInfo
+        val moduleInfo = files.first().analysisContext
         val specialFiles = files.filterNotInProjectSource(moduleInfo)
 
 
@@ -312,8 +318,9 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
                 )
             }
 
-            specialContext?.isSourceContext == true -> {
-                val dependentModules = (specialContext as? IdeaModuleInfo)?.getDependentModules() ?: listOf(specialContext)
+            specialContext.isSourceContext -> {
+                // 获取依赖模块：当前上下文及其所有依赖
+                val dependentModules = listOf(specialContext) + specialContext.dependencies
                 val modulesFacade = facadeForModules()
                 val globalContext =
                     modulesFacade.globalContext.contextWithCompositeExceptionTracker(
@@ -328,7 +335,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
                 )
             }
 
-            specialContext?.isLibraryClasses() == true -> {
+            specialContext.isLibraryContext -> {
                 //NOTE: this code should not be called for sdk or library classes
                 // currently the only known scenario is when we cannot determine that file is a library source
                 // (file under both classes and sources root)
@@ -341,7 +348,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
                 )
             }
 
-            else -> throw IllegalStateException("Unknown AnalysisContext ${specialContext?.javaClass}")
+            else -> throw IllegalStateException("Unknown AnalysisContext ${specialContext.javaClass}")
         }
     }
 
@@ -358,19 +365,11 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
         getContainingCjFile() ?: throw IllegalStateException("containingCjFile was null for $this of ${this.javaClass}")
     } catch (e: Exception) {
         if (e is ControlFlowException) throw e
-        throw CangJieExceptionWithAttachments("Couldn't get containingCjFile for cjElement", e)
+        throw CangJieExceptionWithAttachmentsImpl("Couldn't get containingCjFile for cjElement", e)
             .withPsiAttachment("element", this)
             .withPsiAttachment("file", this.containingFile)
             .withAttachment("original", e.message)
     }
-}
-
-private fun GlobalContextImpl.contextWithCompositeExceptionTracker(debugName: String): GlobalContextImpl {
-    val newExceptionTracker = CompositeExceptionTracker(this.exceptionTracker)
-    return GlobalContextImpl(
-        storageManager.replaceExceptionHandling(this.storageManager.project, debugName, newExceptionTracker),
-        newExceptionTracker
-    )
 }
 
 internal interface ModuleFilters {
@@ -396,14 +395,17 @@ internal fun GlobalContextImpl.contextWithCompositeExceptionTracker(
 //    if (project.useCompositeAnalysis || project.useLibraryToSourceAnalysis) {
 //        this.contextWithCompositeExceptionTracker(name)
 //    } else {
-    this.contextWithNewLockAndCompositeExceptionTracker(debugName)
+    this.contextWithNewLockAndCompositeExceptionTracker(project, debugName)
 //    }
 
-private fun GlobalContextImpl.contextWithNewLockAndCompositeExceptionTracker(debugName: String): GlobalContextImpl {
+private fun GlobalContextImpl.contextWithNewLockAndCompositeExceptionTracker(
+    project: Project,
+    debugName: String
+): GlobalContextImpl {
     val newExceptionTracker = CompositeExceptionTracker(this.exceptionTracker)
     return GlobalContextImpl(
         LockBasedStorageManager.createWithExceptionHandling(
-            this.storageManager.project,
+            project,
             debugName,
             newExceptionTracker,
             {
@@ -416,7 +418,7 @@ private fun GlobalContextImpl.contextWithNewLockAndCompositeExceptionTracker(deb
 
 private class CompositeExceptionTracker(val delegate: ExceptionTracker) : ExceptionTracker() {
     override fun getModificationCount(): Long {
-        return super.getModificationCount() + delegate.modificationCount
+        return super.getModificationCount() + delegate.getModificationCount()
     }
 }
 

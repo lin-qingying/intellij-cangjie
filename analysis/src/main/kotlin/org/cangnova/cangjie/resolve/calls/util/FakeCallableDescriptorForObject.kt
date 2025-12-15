@@ -25,84 +25,63 @@
 package org.cangnova.cangjie.resolve.calls.util
 
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.resolve.descriptorUtil.classValueType
-import org.cangnova.cangjie.resolve.descriptorUtil.getClassObjectReferenceTarget
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.utils.classValueType
+import org.cangnova.cangjie.utils.getClassObjectReferenceTarget
 import java.util.*
 
 open class FakeCallableDescriptorForObject(
     val classDescriptor: ClassDescriptor,
 ) : DeclarationDescriptorWithVisibility by classDescriptor.getClassObjectReferenceTarget(), VariableDescriptor {
-    //
-//    init {
-//        assert(classDescriptor.hasClassValueDescriptor) {
-//            "FakeCallableDescriptorForObject can be created only for objects, classes with companion object or enum entries: $classDescriptor"
-//        }
-//
-//    }
+
     open fun getReferencedDescriptor(): ClassifierDescriptorWithTypeParameters =
         classDescriptor.getClassObjectReferenceTarget()
 
     fun getReferencedObject(): ClassDescriptor = classDescriptor.getClassObjectReferenceTarget()
 
-    override fun getContextReceiverParameters(): List<ReceiverParameterDescriptor> = emptyList()
+    override val contextReceiverParameters: List<ReceiverParameterDescriptor> = emptyList()
 
-    override fun getExtensionReceiverParameter(): ReceiverParameterDescriptor? = null
+    override val extensionReceiverParameter: ReceiverParameterDescriptor? = null
 
-    override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? = null
+    override val dispatchReceiverParameter: ReceiverParameterDescriptor? = null
+
     override fun hasSynthesizedParameterNames() = false
 
-
-    override fun getTypeParameters(): List<TypeParameterDescriptor> = Collections.emptyList()
+    override val typeParameters: List<TypeParameterDescriptor> = Collections.emptyList()
 
     override fun hasStableParameterNames() = false
 
-    override fun getValueParameters(): List<ValueParameterDescriptor> = Collections.emptyList()
+    override val valueParameters: List<ValueParameterDescriptor> = Collections.emptyList()
 
-    override fun getReturnType(): CangJieType? = type
+    override val returnType: CangJieType? = type
 
-//    override fun hasSynthesizedParameterNames() = false
-//
-//    override fun hasStableParameterNames() = false
+    override val overriddenDescriptors: Collection<CallableDescriptor> = Collections.emptySet()
 
-    override fun getOverriddenDescriptors(): Set<CallableDescriptor> = Collections.emptySet()
-
-    override fun getType(): CangJieType = classDescriptor.classValueType!!
-
+    override val type: CangJieType get()= classDescriptor.classValueType!!
 
     override val original: CallableDescriptor
         get() = this
 
-
-//
-
-    //
     override fun getCompileTimeInitializer() = null
 
     override fun cleanCompileTimeInitializerCache() {}
 
     override val source: SourceElement
         get() = classDescriptor.source
+
     override val isConst: Boolean = false
     override val isVar: Boolean = false
-
-//    override fun isConst(): Boolean = false
-//
-//    override fun isLateInit(): Boolean = false
 
     override fun equals(other: Any?) =
         other is FakeCallableDescriptorForObject && classDescriptor == other.classDescriptor
 
     override fun hashCode() = classDescriptor.hashCode()
+
     override val containingDeclaration: DeclarationDescriptor
         get() = classDescriptor.getClassObjectReferenceTarget().containingDeclaration
 
-    override fun getModality(): Modality {
-        return Modality.FINAL
-    }
-
+    override val modality: Modality = Modality.FINAL
 
     override fun substitute(substitutor: TypeSubstitutor) = this
-
-//    override fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>?): V? = null
 }

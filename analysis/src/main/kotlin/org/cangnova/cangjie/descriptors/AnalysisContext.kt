@@ -300,6 +300,44 @@ val AnalysisContext.isLibraryContext: Boolean
     get() = !isSourceContext
 
 /**
+ * 获取项目源码模块
+ *
+ * 返回当前分析上下文对应的源码模块列表。这是从旧的 `ModuleInfo.projectSourceModules()` 迁移而来的兼容方法。
+ *
+ * ## 行为说明
+ *
+ * - 如果当前上下文是源码上下文 ([isSourceContext] = true)，返回包含自身的列表
+ * - 如果当前上下文不是源码上下文（如库上下文），返回空列表
+ *
+ * ## 使用场景
+ *
+ * 主要用于需要区分源码模块和库模块的场景，例如：
+ * - 包缓存服务中的模块过滤
+ * - 索引构建时的作用域限定
+ * - 诊断信息收集
+ *
+ * ## 迁移说明
+ *
+ * 旧代码：
+ * ```kotlin
+ * val sourceModules = moduleInfo.projectSourceModules()
+ * ```
+ *
+ * 新代码：
+ * ```kotlin
+ * val sourceModules = context.projectSourceModules()
+ * ```
+ *
+ * @return 源码上下文列表，如果当前是源码上下文则包含自身，否则为空列表
+ */
+fun AnalysisContext.projectSourceModules(): List<AnalysisContext> {
+    return when {
+        isSourceContext -> listOf(this)
+        else -> emptyList()
+    }
+}
+
+/**
  * 不在内容根下的文件的分析上下文
  *
  * 用于表示那些不属于任何正常模块的文件，例如：

@@ -37,13 +37,16 @@ import org.cangnova.cangjie.resolve.caches.ModuleContent
 import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
 import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
 
-fun createModuleDescriptor(projectContext: ProjectContext, project: Project): ModuleDescriptor {
-
+fun createModuleDescriptor(
+    projectDescriptor: ProjectDescriptor,
+    moduleName: String,
+    projectContext: ProjectContext
+): ModuleDescriptor {
     return ModuleDescriptorImpl(
-        projectContext.project,
-        Name.identifier(project.currentCjpmProject?.presentableName!!),
+        projectDescriptor,
+        Name.identifier(moduleName),
         projectContext.storageManager,
-        CangJieBuiltIns(projectContext.project, projectContext.storageManager)
+        mapOf(AnalysisContextCapability to NotUnderContentRootModuleInfo(projectDescriptor.project))
     )
 }
 
@@ -51,6 +54,7 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
 
     private val debugName: String,
     protected val projectContext: ProjectContext,
+    protected val projectDescriptor: ProjectDescriptor,
     modules: Collection<M>,
     protected val fallbackModificationTracker: ModificationTracker? = null,
     private val delegateResolver: ResolverForProject<M> = EmptyResolverForProject(),
@@ -102,7 +106,8 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
 
     @Suppress("UNCHECKED_CAST")
     private val contextToResolvableInfo: Map<M, M> =
-        modules.flatMap { module -> module.flatten().map { modulePart -> modulePart to module } }.toMap() as Map<M, M>
+        // 在新的 AnalysisContext 系统中，每个上下文都是独立的，不需要 flatten
+        modules.associateWith { it } as Map<M, M>
 
     override val allModules: Collection<M> by lazy {
         this.contextToResolvableInfo.keys + delegateResolver.allModules
@@ -146,8 +151,9 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
             oldDescriptor.isValid = false
             contextByDescriptor.remove(oldDescriptor)
             resolverByModuleDescriptor.remove(oldDescriptor)
-            projectContext.project.messageBus.syncPublisher(ModuleDescriptorListener.Companion.TOPIC)
-                .moduleDescriptorInvalidated(oldDescriptor)
+            // ModuleDescriptorListener 不再可用，直接跳过
+            // projectContext.project.messageBus.syncPublisher(ModuleDescriptorListener.Companion.TOPIC)
+            //     .moduleDescriptorInvalidated(oldDescriptor)
         }
 
         val moduleData = createModuleDescriptor(module)
@@ -158,13 +164,12 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
 
     private fun createModuleDescriptor(module: M): ModuleData {
         val moduleDescriptor = ModuleDescriptorImpl(
-            projectContext.project,
+            projectDescriptor,
             Name.identifier(module.contextId),
             projectContext.storageManager,
-            builtInsForModule(module),
-//            module.platform,
-//            module.capabilities + getAdditionalCapabilities(),
-//            module.stableName,
+            mapOf(AnalysisContextCapability to module),
+            null, // stableName
+            false // isBuiltInsModule
         )
         contextByDescriptor[moduleDescriptor] = module
         setupModuleDescriptor(module, moduleDescriptor)

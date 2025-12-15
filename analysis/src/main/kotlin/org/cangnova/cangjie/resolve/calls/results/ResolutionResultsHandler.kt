@@ -279,12 +279,12 @@ class ResolutionResultsHandler(
 
         // 过滤掉合成的候选（如果不支持精细的 SAM 适配器优先级）
         var refinedCandidates = candidates
-        if (!languageVersionSettings.supportsFeature(LanguageFeature.RefinedSamAdaptersPriority)) {
-            val nonSynthesized = candidates.filter { !it.candidateDescriptor.isSynthesized }.toSet()
-            if (nonSynthesized.isNotEmpty()) {
-                refinedCandidates = nonSynthesized
-            }
-        }
+//        if (!languageVersionSettings.supportsFeature(LanguageFeature.RefinedSamAdaptersPriority)) {
+//            val nonSynthesized = candidates.filter { !it.candidateDescriptor.isSynthesized }.toSet()
+//            if (nonSynthesized.isNotEmpty()) {
+//                refinedCandidates = nonSynthesized
+//            }
+//        }
 
         // 选择最具体的候选
         var specificCalls = myResolver.chooseMaximallySpecificCandidates(

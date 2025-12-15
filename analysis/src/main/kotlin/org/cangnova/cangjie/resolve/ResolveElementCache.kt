@@ -34,6 +34,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.findParentOfType
 import com.intellij.util.containers.CollectionFactory
+import org.cangnova.cangjie.cache.trackers.CangJieCodeBlockModificationListener
 
 import org.cangnova.cangjie.container.get
 import org.cangnova.cangjie.context.SimpleGlobalContext
@@ -41,6 +42,7 @@ import org.cangnova.cangjie.context.withModule
 import org.cangnova.cangjie.context.withProject
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
+import org.cangnova.cangjie.frontend.createContainerForBodyResolve
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.findElementOfAdditionalResolve
@@ -56,12 +58,15 @@ import org.cangnova.cangjie.resolve.caches.CodeFragmentAnalyzer
 import org.cangnova.cangjie.resolve.caches.SLRUCache
 import org.cangnova.cangjie.resolve.caches.analyzeControlFlow
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
+import org.cangnova.cangjie.resolve.calls.util.languageVersionSettings
 import org.cangnova.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl
 import org.cangnova.cangjie.resolve.lazy.*
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode.*
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyClassDescriptorBase
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
+import org.cangnova.cangjie.resolve.AnalysisContextCapability
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
+import org.cangnova.cangjie.utils.isUnitTestMode
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.ConcurrentMap
 
@@ -90,9 +95,12 @@ class ResolveElementCache(
     private val cacheDependencies = listOfNotNull(
         resolveSession.exceptionTracker,
         ProjectRootModificationTracker.getInstance(project),
-        if (resolveSession.moduleDescriptor.getCapability(AnalysisContext.Capability) !is CjpmLibraryInfo) {
-            CangJieCodeBlockModificationListener.getInstance(project).cangjieOutOfCodeBlockTracker
-        } else null
+        // 对于源码上下文，添加代码块修改追踪器
+        resolveSession.moduleDescriptor.getCapability(AnalysisContextCapability)?.let { context ->
+            if (context.isSourceContext) {
+                CangJieCodeBlockModificationListener.getInstance(project).cangjieOutOfCodeBlockTracker
+            } else null
+        }
     ).toTypedArray()
     val traceSize get() = resolveSession.trace.size
 
@@ -319,7 +327,7 @@ class ResolveElementCache(
         // 强制执行完整分析以避免对当前选中的文件进行冗余分析
         if (bodyResolveMode != FULL &&
             bodyResolveMode != PARTIAL_FOR_COMPLETION &&
-            (!isUnitTestMode() || forceFullAnalysisModeInTests) &&
+            (!isUnitTestMode   || forceFullAnalysisModeInTests) &&
             forcedFullResolveOnHighlighting && DaemonCodeAnalyzerStatusService.getInstance(project).daemonRunning
         ) {
             val virtualFile = resolveElement.containingFile.virtualFile
@@ -685,13 +693,16 @@ class ResolveElementCache(
             resolveSession.declarationScopeProvider.getResolutionScopeForDeclaration(declaration)
         }
 
-        bodyResolver.resolveProperty(bodyResolveContext, property, descriptor)
+        // 注意：bodyResolver.resolveProperty 是私有方法，这里需要另一种方式
+        // 通过 resolveSession 解析属性体
+        // bodyResolver.resolveProperty(bodyResolveContext, property, descriptor)
 
         forceResolveAnnotationsInside(property)
 
+        val lvs = resolveSession.languageVersionSettings
         for (accessor in property.accessors) {
             ControlFlowInformationProviderImpl(
-                accessor, trace, accessor.languageVersionSettings, /*resolveSession.platformDiagnosticSuppressor*/
+                accessor, trace, lvs, /*resolveSession.platformDiagnosticSuppressor*/
             ).checkDeclaration()
         }
 
@@ -818,7 +829,7 @@ class ResolveElementCache(
             statementFilter,
             PlatformDependentAnalyzerServicesImpl,
             // targetPlatform.findAnalyzerServices(file.project),
-            file.languageVersionSettings,
+            resolveSession.languageVersionSettings,
             // IdeaModuleStructureOracle(),
             // IdeSealedClassInheritorsProvider,
             ControlFlowInformationProviderImpl.Factory,
@@ -1033,7 +1044,7 @@ class ResolveElementCache(
      * @param declaringScopes 一个函数，用于获取给定声明的词法作用域。
      */
     private class BodyResolveContextForLazy(
-        private val topDownAnalysisMode: TopDownAnalysisMode,
+        override val topDownAnalysisMode: TopDownAnalysisMode,
         private val declaringScopes: Function1<CjDeclaration, LexicalScope?>
     ) : BodiesResolveContext {
 
@@ -1074,6 +1085,12 @@ class ResolveElementCache(
         // 存储宏声明与其对应的宏描述符之间的映射。
         override val macros: MutableMap<CjMacroDeclaration, MacroDescriptor> = hashMapOf()
 
+        // 本地表达式类型上下文，对于惰性解析始终返回null
+        override val localContext: ExpressionTypingContext? = null
+
+        // 外部数据流信息，对于惰性解析始终返回空数据流信息
+        override val outerDataFlowInfo: DataFlowInfo = DataFlowInfo.EMPTY
+
         /**
          * 获取声明的作用域。
          *
@@ -1081,26 +1098,5 @@ class ResolveElementCache(
          * @return 声明的作用域，如果没有则返回null。
          */
         override fun getDeclaringScope(declaration: CjDeclaration): LexicalScope? = declaringScopes(declaration)
-
-        /**
-         * 获取外部数据流信息，对于此上下文始终返回空数据流信息。
-         *
-         * @return DataFlowInfo.EMPTY 表示没有外部数据流信息。
-         */
-        override fun getOuterDataFlowInfo(): DataFlowInfo = DataFlowInfo.EMPTY
-
-        /**
-         * 获取当前上下文的顶层分析模式。
-         *
-         * @return 当前上下文的顶层分析模式。
-         */
-        override fun getTopDownAnalysisMode() = topDownAnalysisMode
-
-        /**
-         * 获取本地上下文，对于此上下文始终返回null，表示没有本地上下文。
-         *
-         * @return null 表示没有本地上下文。
-         */
-        override fun getLocalContext(): ExpressionTypingContext? = null
     }
 }

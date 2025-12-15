@@ -42,7 +42,7 @@ import org.cangnova.cangjie.utils.importableFqName
 // For property accessor return enclosing property
 val PsiReference.unwrappedTargets: Set<PsiElement>
     get() {
-        fun PsiElement.adjust(): PsiElement? = when (val target = unwrapped?.originalElement) {
+        fun PsiElement.adjust(): PsiElement? = when (val target = this/*unwrapped?.originalElement*/) {
             is CjPropertyAccessor -> target.getNonStrictParentOfType<CjProperty>()
             else -> target
         }

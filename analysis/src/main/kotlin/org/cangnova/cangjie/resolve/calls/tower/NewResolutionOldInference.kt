@@ -248,7 +248,7 @@ class NewResolutionOldInference(
                     createCallTowerProcessorForExplicitInvoke(
                         scopeTower,
                         functionFactory,
-                        context.transformToReceiverWithSmartCastInfo(call.dispatchReceiver),
+                        context.transformToReceiverWithSmartCastInfo(call.dispatchReceiver!!),
                         it
                     )
                 }

@@ -25,17 +25,22 @@
 package org.cangnova.cangjie.resolve.caches
 
 import com.intellij.openapi.diagnostic.ControlFlowException
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import org.cangnova.cangjie.cache.trackers.CangJieCodeBlockModificationListener
 import org.cangnova.cangjie.context.GlobalContextImpl
 import org.cangnova.cangjie.context.withProject
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.AnalysisContext
+import org.cangnova.cangjie.descriptors.NotUnderContentRootModuleInfo
 import org.cangnova.cangjie.descriptors.analysisContext
+import org.cangnova.cangjie.descriptors.analysisContextProvider
+import org.cangnova.cangjie.types.DefaultBuiltIns
 import org.cangnova.cangjie.diagnostics.DiagnosticSink
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjFile
@@ -110,10 +115,8 @@ class ProjectResolutionFacade(
         val delegateResolverForProject: ResolverForProject<AnalysisContext> =
             reuseDataFrom?.cachedResolverForProject ?: EmptyResolverForProject()
 
-        // 获取所有模块信息，如果allModules为空，则从Idea模型中获取
-        val allModuleInfos = (allModules
-            ?: getModuleInfosFromIdeaModel(project/*, (settings as? PlatformAnalysisSettingsImpl)?.platform*/))
-            .toMutableSet()
+        // 获取所有模块信息，如果allModules为空，则使用空集合
+        val allModuleInfos = (allModules ?: emptySet()).toMutableSet()
 
         // 将合成文件按分析上下文分组，以便后续处理
         val syntheticFilesByContext = syntheticFiles.groupBy { it.analysisContext }
@@ -132,6 +135,7 @@ class ProjectResolutionFacade(
         return IdeaResolverForProject(
             resolverDebugName,
             globalContext.withProject(project),
+            DefaultBuiltIns.projectDescriptor,
             resolvedModulesWithDependencies,
             syntheticFilesByContext,
             delegateResolverForProject,
@@ -145,7 +149,7 @@ class ProjectResolutionFacade(
 
 
     internal fun getResolverForProject(): ResolverForProject<AnalysisContext> = cachedResolverForProject
-    internal fun resolverForModuleInfo(context: AnalysisContext) = cachedResolverForProject.resolverForModule(moduleInfo)
+    internal fun resolverForModuleInfo(context: AnalysisContext) = cachedResolverForProject.resolverForModule(context)
 
 
     private val analysisResults = CachedValuesManager.getManager(project).createCachedValue(
@@ -300,7 +304,7 @@ class ProjectResolutionFacade(
             if (resolver != null) {
                 return resolver
             } else {
-                moduleInfos += elementContext
+                moduleInfos += listOf(elementContext)
             }
         } else {
             LOG.warn("Could not find AnalysisContext for element: ${element::class.java}")
@@ -311,6 +315,9 @@ class ProjectResolutionFacade(
             ?: cachedResolverForProject.diagnoseUnknownContext(moduleInfos.toList())
     }
 
+    companion object {
+        private val LOG = Logger.getInstance(ProjectResolutionFacade::class.java)
+    }
 }
 
 const val CHECK_CANCELLATION_PERIOD_MS: Long = 50

@@ -22,27 +22,25 @@
  *
  */
 
+package org.cangnova.cangjie.analysis
 
-dependencies {
-    testImplementation(platform(libs.junit.bom))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    implementation(project(":telemetry"))
-    implementation(project(":toolchain"))
-    implementation(project(":analysis:diagnostics"))
-    implementation(libs.vavr)
-    implementation(project(":psi"))
-    implementation(project(":descriptors"))
-    implementation(project(":descriptors:deserialization"))
-    implementation(project(":highlighter"))
-    implementation(project(":messages"))
-    implementation(project(":common"))
-    implementation(project(":util"))
-    implementation(libs.jakarta.inject.api)
-    implementation(libs.reflections)
+import com.intellij.codeInsight.daemon.impl.HighlightVisitor
+import org.cangnova.cangjie.psi.CjFunction
+import org.cangnova.cangjie.psi.CjMainFunction
+import org.cangnova.cangjie.psi.CjParameter
+import org.cangnova.cangjie.psi.CjParameterList
+import org.cangnova.cangjie.psi.psiUtil.parents
+import org.cangnova.cangjie.utils.match
 
-    implementation(project(":psi:stubindex"))
+class CangJieHighlightVisitor : AbstractCangJieHighlightVisitor() {
 
-    api(project(":analysis:decompiler-to-psi"))
+    override fun shouldSuppressUnusedParameter(parameter: CjParameter): Boolean {
+        val grandParent = parameter.parents.match(CjParameterList::class, last = CjFunction::class) ?: return false
+//        if (!UnusedSymbolInspection.isEntryPoint(grandParent)) return false
+        return  grandParent !is CjMainFunction
+    }
+
+    override fun clone(): HighlightVisitor = CangJieHighlightVisitor()
+
+
 }
-

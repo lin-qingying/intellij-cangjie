@@ -31,6 +31,9 @@
         <applicationService serviceInterface="org.cangnova.cangjie.analysis.decompiler.psi.BuiltinsVirtualFileProvider"
                         serviceImplementation="org.cangnova.cangjie.analysis.decompiler.psi.IdeBuiltInsVirtualFileProviderImpl"/>
 
+
+        <highlightVisitor implementation="org.cangnova.cangjie.analysis.CangJieHighlightVisitor"/>
+
     </extensions>
 
     <!-- 诊断渲染器提供者注册 -->

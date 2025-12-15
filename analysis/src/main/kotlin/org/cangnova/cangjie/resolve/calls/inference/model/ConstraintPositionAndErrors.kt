@@ -25,10 +25,10 @@
 package org.cangnova.cangjie.resolve.calls.inference.model
 
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
-import org.cangnova.cangjie.resolve.calls.inference.EmptyIntersectionTypeKind
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.tower.CandidateApplicability
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.EmptyIntersectionTypeKind
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
 import org.cangnova.cangjie.types.model.TypeVariableMarker
 

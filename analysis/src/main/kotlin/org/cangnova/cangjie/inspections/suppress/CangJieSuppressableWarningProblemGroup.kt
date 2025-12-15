@@ -29,6 +29,7 @@ import com.intellij.codeInspection.SuppressableProblemGroup
 import com.intellij.openapi.util.NlsSafe
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
+import org.cangnova.cangjie.codeinsight.CangJieCodeInsightBundle
 import org.cangnova.cangjie.diagnostics.Severity
 import org.cangnova.cangjie.psi.CjBlockExpression
 import org.cangnova.cangjie.psi.CjClass
@@ -115,7 +116,7 @@ fun createSuppressWarningActions(
 
 private object DeclarationKindDetector : CjVisitor<AnnotationHostKind?, Unit>() {
     @Suppress("UNCHECKED_CAST")
-    fun detect(declaration: CjDeclaration) = declaration.accept(this as CjVisitor<Any?, Any?>, null as Any?)
+    fun detect(declaration: CjDeclaration) = declaration.accept(this as CjVisitor<AnnotationHostKind?, Unit?>, null as Unit?)
 
     override fun visitDeclaration(declaration: CjDeclaration, data: Unit) = null
 

@@ -251,8 +251,7 @@ class TypeResolver(
         annotations: Annotations,
         outerModifierList: CjModifierList?,
         typeElement: CjTypeElement?,
-//        该参数仅解决出现递归调用
-        isgetExtend: Boolean = true
+
     ): PossiblyBareType {
 
         fun resolveOptionType(): CangJieType {
@@ -316,7 +315,7 @@ class TypeResolver(
 //                } else {
 //                    emptyList()
 //                }.toSet()
-                result = type(createBasicType(moduleDescriptor.builtIns, type.text /*extendSuper*/))
+//                result = type(createBasicType(moduleDescriptor.builtIns, type.text /*extendSuper*/))
             }
 
 
@@ -1175,7 +1174,7 @@ class TypeResolver(
     fun resolvePossiblyBareType(
         c: TypeResolutionContext,
         typeReference: CjTypeReference,
-        isgetExtend: Boolean = true
+
 
     ): PossiblyBareType {
         if (c.useCache) {
@@ -1188,7 +1187,7 @@ class TypeResolver(
 
         val annotations = resolveTypeAnnotations(c.trace, c.scope, typeReference)
         val type =
-            resolveTypeElement(c, annotations, typeReference.modifierList, typeReference.typeElement, isgetExtend)
+            resolveTypeElement(c, annotations, typeReference.modifierList, typeReference.typeElement)
         c.trace.recordScope(c.scope, typeReference)
 
         if (!type.isBare()) {
@@ -1203,34 +1202,13 @@ class TypeResolver(
     private fun resolveType(
         c: TypeResolutionContext,
         typeReference: CjTypeReference,
-        isgetExtend: Boolean = true
     ): CangJieType {
         assert(!c.allowBareTypes) { "Use resolvePossiblyBareType() when bare types are allowed" }
 
-        return resolvePossiblyBareType(c, typeReference, isgetExtend).actualType
+        return resolvePossiblyBareType(c, typeReference).actualType
     }
 
-    fun resolveEnumType(
-        scope: LexicalScope,
-        typeReference: CjTypeReference,
-        trace: BindingTrace,
-        checkBounds: Boolean,
 
-        ): CangJieType {
-        // bare types are not allowed
-        return resolveType(
-            TypeResolutionContext(
-                scope,
-                trace,
-                checkBounds,
-                false,
-                typeReference.suppressDiagnosticsInDebugMode(),
-                false
-            ),
-            typeReference,
-            true
-        )
-    }
 
     fun resolveType(
         scope: LexicalScope,
@@ -1255,7 +1233,6 @@ class TypeResolver(
         typeReference: CjTypeReference,
         trace: BindingTrace,
         checkBounds: Boolean,
-        isgetExtend: Boolean = true,
         useCache: Boolean = true
     ): CangJieType {
         // bare types are not allowed
@@ -1270,7 +1247,7 @@ class TypeResolver(
                 useCache
             ),
             typeReference,
-            isgetExtend
+
         )
     }
 }
