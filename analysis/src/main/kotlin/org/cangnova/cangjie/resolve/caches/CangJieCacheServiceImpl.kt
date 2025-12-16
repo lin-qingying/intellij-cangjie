@@ -405,7 +405,7 @@ private fun GlobalContextImpl.contextWithNewLockAndCompositeExceptionTracker(
     val newExceptionTracker = CompositeExceptionTracker(this.exceptionTracker)
     return GlobalContextImpl(
         LockBasedStorageManager.createWithExceptionHandling(
-            project,
+
             debugName,
             newExceptionTracker,
             {

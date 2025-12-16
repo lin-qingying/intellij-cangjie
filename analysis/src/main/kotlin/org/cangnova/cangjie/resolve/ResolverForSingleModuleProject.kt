@@ -35,8 +35,8 @@ import org.cangnova.cangjie.descriptors.ProjectDescriptor
 import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.resolve.caches.ModuleContent
-import org.cangnova.cangjie.types.DefaultBuiltIns
 import com.intellij.psi.search.GlobalSearchScope
+import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.DefaultBuiltIns
 
 class ResolverForSingleModuleProject<M : AnalysisContext>(
     debugName: String,
@@ -75,7 +75,6 @@ class ResolverForSingleModuleProject<M : AnalysisContext>(
         else -> ModuleContent(module, emptyList(), searchScope)
     }
 
-    override fun builtInsForModule(module: M): CangJieBuiltIns = builtIns
 
     override fun createResolverForModule(descriptor: ModuleDescriptor, context: M): ResolverForModule =
         resolverForModuleFactory.createResolverForModule(

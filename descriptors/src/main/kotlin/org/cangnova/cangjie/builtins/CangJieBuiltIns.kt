@@ -66,6 +66,7 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import org.cangnova.cangjie.resolve.resolveClassByFqName
+import org.cangnova.cangjie.storage.LockBasedStorageManager
 import org.cangnova.cangjie.storage.NotNullLazyValue
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
@@ -80,6 +81,8 @@ open class CangJieBuiltIns(
 
 
     companion object {
+        val DefaultBuiltIns: CangJieBuiltIns =
+            CangJieBuiltIns(ProjectDescriptor.ERROR, LockBasedStorageManager("DefaultBuiltIns"))
 
 
         /**
@@ -355,12 +358,6 @@ open class CangJieBuiltIns(
     }
 
 
-    init {
-
-        createBuiltInsModule(true)
-    }
-
-
     val defaultBound: SimpleType get() = anyType
 
     //    fun getNumberType(): SimpleType {
@@ -471,19 +468,14 @@ open class CangJieBuiltIns(
         classifier
     }
 
-    var myBuiltInsModule: ModuleDescriptorImpl? = null
+    private val builtInsModuleProvider: NotNullLazyValue<ModuleDescriptorImpl> =
+        storageManager.createLazyValue {
+            val sdk = CjProjectSdkConfig.getInstance(projectDescriptor.project).getProjectSdk()
+            createBuiltInsModuleInternal(isFallback = sdk == null)
+        }
 
     val builtInsModule: ModuleDescriptorImpl
-        get() {
-
-            assert(myBuiltInsModule != null || postponedBuiltInsModule != null) { "Uninitialized built-ins module" }
-            if (myBuiltInsModule == null) {
-                myBuiltInsModule = postponedBuiltInsModule!!.invoke()
-            }
-            return myBuiltInsModule!!
-        }
-    private var postponedBuiltInsModule: NotNullLazyValue<ModuleDescriptorImpl>? =
-        null
+        get() = builtInsModuleProvider()
     val binaryOperatorRules: MutableMap<CjToken, List<BinaryOperatorRule>> = mutableMapOf()
 
     //    填充规则
@@ -615,27 +607,23 @@ open class CangJieBuiltIns(
     }
 
 
-    fun createBuiltInsModule(isFallback: Boolean) {
-        myBuiltInsModule = ModuleDescriptorImpl(
+    private fun createBuiltInsModuleInternal(isFallback: Boolean): ModuleDescriptorImpl {
+        val module = ModuleDescriptorImpl(
             projectDescriptor,
-            BUILTINS_MODULE_NAME, storageManager,
-
-
+            BUILTINS_MODULE_NAME,
+            storageManager,
             isBuiltInsModule = true
         )
-        builtInsModule.initialize(
+        module.initialize(
             BuiltInsLoader.Instance.createPackageFragmentProvider(
                 storageManager,
-                builtInsModule,
+                module,
                 isFallback,
                 CjProjectSdkConfig.getInstance(projectDescriptor.project).getProjectSdk()
             )
         )
-        builtInsModule.setDependencies(builtInsModule)
-    }
-
-    fun setPostponedBuiltinsModuleComputation(computation: () -> ModuleDescriptorImpl) {
-        postponedBuiltInsModule = storageManager.createLazyValue(computation)
+        module.setDependencies(module)
+        return module
     }
 
 

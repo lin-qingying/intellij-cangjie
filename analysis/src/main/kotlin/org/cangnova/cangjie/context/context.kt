@@ -79,7 +79,7 @@ open class SimpleGlobalContext(
 
 fun GlobalContext(debugName: String, project: Project): GlobalContextImpl {
     val tracker = ExceptionTracker()
-    return GlobalContextImpl(LockBasedStorageManager.createWithExceptionHandling(project, debugName, tracker, {
+    return GlobalContextImpl(LockBasedStorageManager.createWithExceptionHandling( debugName, tracker, {
         ProgressManager.checkCanceled()
     }, { throw ProcessCanceledException(it) }), tracker)
 }

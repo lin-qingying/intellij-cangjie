@@ -21,15 +21,11 @@
  * any damages or issues arising from its use.
  *
  */
-
-package org.cangnova.cangjie.resolve.source
-
-import org.cangnova.cangjie.descriptors.SourceElement
-import org.cangnova.cangjie.psi.CjElement
-import org.cangnova.cangjie.psi.CjPureElement
-
-class CangJieSourceElement(override val psi: CjElement) : PsiSourceElement
-
-
-fun CjPureElement?.toSourceElement(): SourceElement =
-    if (this == null) SourceElement.NO_SOURCE else CangJieSourceElement(getPsiOrParent())
+/**
+ * @author: Dmitry Batkovich
+ */
+function navigate(an_id) {
+  problem_div = document.getElementById("d" + an_id);
+  preview_div = document.getElementById("preview");
+  preview_div.innerHTML = problem_div != null ? problem_div.innerHTML : "Select a problem element in tree";
+}

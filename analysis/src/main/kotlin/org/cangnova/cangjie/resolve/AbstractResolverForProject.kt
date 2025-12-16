@@ -114,7 +114,6 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
     }
 
     abstract fun createResolverForModule(descriptor: ModuleDescriptor, context: M): ResolverForModule
-    abstract fun builtInsForModule(module: M): CangJieBuiltIns
 
     override fun diagnoseUnknownContext(contexts: List<AnalysisContext>): Nothing {
         DiagnoseUnknownContextReporter.report(name, contexts, allModules)
@@ -172,6 +171,16 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
             // isBuiltInsModule
         )
         contextByDescriptor[moduleDescriptor] = module
+
+        // 自动将模块注册到 ProjectDescriptor 中
+        // 这样可以通过 projectDescriptor.getModule() 获取模块
+        try {
+            projectDescriptor.addModule(moduleDescriptor)
+        } catch (e: IllegalArgumentException) {
+            // 模块已存在，忽略异常
+            // 这种情况可能发生在模块被重新创建时
+        }
+
         setupModuleDescriptor(module, moduleDescriptor)
         val modificationTracker =
             (module as? TrackableAnalysisContext)?.createModificationTracker() ?: fallbackModificationTracker

@@ -45,7 +45,6 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.search.GlobalSearchScope
-import org.cangnova.cangjie.types.DefaultBuiltIns.projectDescriptor
 import java.util.*
 
 data class ModuleContent<out M : AnalysisContext>(
@@ -75,8 +74,6 @@ class IdeaResolverForProject(
     projectContext.project.service<IdePackageOracleFactory>()
 ) {
 
-    private val builtInsCache: BuiltInsCache =
-        (delegateResolver as? IdeaResolverForProject)?.builtInsCache ?: BuiltInsCache(projectContext, this)
     private val created = Date().toString()
 
 
@@ -114,37 +111,7 @@ class IdeaResolverForProject(
         return resolverForModule
     }
 
-    override fun builtInsForModule(module: AnalysisContext): CangJieBuiltIns {
 
-
-        return builtInsCache.getOrCreateIfNeeded(module)
-    }
-
-    class BuiltInsCache(private val projectContext: ProjectContext, private val resolver: IdeaResolverForProject) {
-        private val cache = mutableMapOf<BuiltInsCacheKey, CangJieBuiltIns>()
-
-        fun getOrCreateIfNeeded(module: AnalysisContext): CangJieBuiltIns = projectContext.storageManager.compute {
-            ProgressManager.checkCanceled()
-
-//            val sdk = resolverForSdk.sdkDependency(module)
-//            val stdlib = findStdlibForModulesBuiltins(module)
-
-            val key = module.getKeyForBuiltIns()
-            val cachedBuiltIns = cache[key]
-            if (cachedBuiltIns != null) return@compute cachedBuiltIns
-
-
-            val builtIns = CangJieBuiltIns(projectDescriptor, projectContext.storageManager)
-            builtIns.createBuiltInsModule(isFallback = false)
-            builtIns
-                .also {
-                    // TODO: MemoizedFunction should be used here instead, but for proper we also need a module (for LV settings) that is not contained in the key
-                    cache[key] = it
-                }
-        }
-
-
-    }
 
 
 }

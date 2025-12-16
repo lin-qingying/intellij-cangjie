@@ -49,12 +49,45 @@ import org.cangnova.cangjie.resolve.scopes.optimization.OptimizingOptions
 import org.cangnova.cangjie.serialization.deserialization.CompilerDeserializationConfiguration
 
 /**
- * Actually, those should be present in 'configurePlatformIndependentComponents',
- * but, unfortunately, this is currently impossible, because in some lightweight
- * containers (see [createContainerForBodyResolve] and similar) some dependencies
- * are missing
+ * 依赖注入容器配置
  *
- * If you're not doing some trickery with containers, you should use them.
+ * 本文件包含了仓颉语言分析器的各种依赖注入容器配置函数。
+ * 这些容器用于组织和管理代码分析过程中需要的各种组件。
+ *
+ * ## 核心概念
+ *
+ * - **容器 (Container)**: 管理组件生命周期和依赖注入的容器
+ * - **useImpl**: 通过构造函数自动注入依赖并注册实现类
+ * - **useInstance**: 直接注册已创建的实例
+ * - **registerSingleton**: 注册单例组件
+ *
+ * ## 容器类型
+ *
+ * 1. **LazyResolve**: 懒加载解析容器，用于完整的模块分析
+ * 2. **BodyResolve**: 函数体解析容器，用于局部代码分析
+ * 3. **LazyBodyResolve**: 懒加载函数体解析容器
+ *
+ * @see StorageComponentContainer
+ * @see ModuleContext
+ */
+
+/**
+ * 配置标准解析组件
+ *
+ * 注册代码解析所需的标准组件。这些组件在大多数解析场景中都需要用到。
+ *
+ * **注意**: 这些组件理论上应该在 `configurePlatformIndependentComponents` 中配置，
+ * 但由于某些轻量级容器（如 `createContainerForBodyResolve`）缺少部分依赖，
+ * 因此单独提取出来作为可选配置。
+ *
+ * ## 注册的组件
+ *
+ * - [ResolveSession]: 解析会话，管理解析状态
+ * - [LazyTopDownAnalyzer]: 自顶向下的懒加载分析器
+ * - [AnnotationResolverImpl]: 注解解析器
+ * - [DeclarationScopeProviderForLocalClassifierAnalyzer]: 本地分类器作用域提供者
+ *
+ * @receiver 存储组件容器
  */
 fun StorageComponentContainer.configureStandardResolveComponents() {
 ////    useImpl<LazyTopDownAnalyzer>()
@@ -75,6 +108,22 @@ fun StorageComponentContainer.configureStandardResolveComponents() {
 
 }
 
+/**
+ * 配置平台无关组件
+ *
+ * 注册与平台无关的核心组件，这些组件在所有平台上的行为都是一致的。
+ *
+ * ## 注册的组件
+ *
+ * - [SupertypeLoopCheckerImpl]: 父类型循环检查器，防止继承循环
+ * - [CangJieResolutionStatelessCallbacksImpl]: 无状态解析回调
+ * - [DataFlowValueFactoryImpl]: 数据流值工厂，用于数据流分析
+ * - [CompilerDeserializationConfiguration]: 反序列化配置
+ * - [ClassicTypeSystemContextForCS]: 约束系统的类型系统上下文
+ * - [ClassicConstraintSystemUtilContext]: 约束系统工具上下文
+ *
+ * @receiver 存储组件容器
+ */
 private fun StorageComponentContainer.configurePlatformIndependentComponents() {
     useImpl<SupertypeLoopCheckerImpl>()
     useImpl<CangJieResolutionStatelessCallbacksImpl>()
@@ -92,6 +141,37 @@ private fun StorageComponentContainer.configurePlatformIndependentComponents() {
 //    useInstance(ProgressManagerBasedCancellationChecker)
 }
 
+/**
+ * 创建函数体解析容器
+ *
+ * 为单个函数体或代码块的解析创建轻量级容器。
+ * 这个容器专门用于分析局部代码，不需要完整的模块分析能力。
+ *
+ * ## 使用场景
+ *
+ * - IDE 中的实时代码分析
+ * - 单个函数的类型检查
+ * - 局部变量的作用域分析
+ * - 快速错误检测
+ *
+ * ## 容器特点
+ *
+ * - **轻量级**: 只包含必要的组件，启动快速
+ * - **局部性**: 只分析指定的代码块，不影响全局
+ * - **实时性**: 适合 IDE 实时分析场景
+ *
+ * @param moduleContext 模块上下文，提供模块级别的信息
+ * @param bindingTrace 绑定追踪器，记录解析结果
+ * @param statementFilter 语句过滤器，控制哪些语句需要分析
+ * @param analyzerServices 平台相关的分析器服务
+ * @param languageVersionSettings 语言版本设置
+ * @param controlFlowInformationProviderFactory 控制流信息提供者工厂
+ * @param absentDescriptorHandler 缺失描述符处理器（可选）
+ * @return 配置好的存储组件容器
+ *
+ * @see createContainerForLazyResolve
+ * @see createContainerForLazyBodyResolve
+ */
 fun createContainerForBodyResolve(
     moduleContext: ModuleContext,
     bindingTrace: BindingTrace,
@@ -124,6 +204,48 @@ fun createContainerForBodyResolve(
 //    useInstance(InlineConstTracker.DoNothing)
 }
 
+/**
+ * 配置模块级组件
+ *
+ * 为模块容器配置所有必要的组件。这是模块级分析的核心配置函数。
+ *
+ * ## 配置内容
+ *
+ * 1. **核心依赖注入**:
+ *    - ModuleContext: 模块上下文
+ *    - Project: IntelliJ 项目实例
+ *    - StorageManager: 存储管理器
+ *    - CangJieBuiltIns: 内置类型（从 moduleContext.module.builtIns 获取）
+ *    - BindingTrace: 绑定追踪器
+ *    - LanguageVersionSettings: 语言版本设置
+ *
+ * 2. **平台配置**:
+ *    - 调用平台配置器配置模块组件
+ *    - 注册平台相关的检查器
+ *
+ * 3. **扩展点支持**:
+ *    - TypeAttributeTranslatorExtension: 类型属性转换器
+ *    - StorageComponentContainerContributor: 容器贡献者扩展
+ *
+ * 4. **类型系统**:
+ *    - NewCangJieTypeCheckerImpl: 新的类型检查器
+ *    - CangJieTypeRefiner: 类型精化器
+ *    - CangJieTypePreparator: 类型预处理器
+ *
+ * **重要**: CangJieBuiltIns 通过 `useInstance` 注入已创建的实例，
+ * 而不是通过 `useImpl` 自动创建，避免循环依赖问题。
+ *
+ * @receiver 存储组件容器
+ * @param moduleContext 模块上下文
+ * @param analyzerServices 平台相关的分析器服务
+ * @param trace 绑定追踪器
+ * @param languageVersionSettings 语言版本设置
+ * @param sealedProvider 密封类继承者提供者
+ * @param optimizingOptions 优化选项（可选）
+ * @param absentDescriptorHandlerClass 缺失描述符处理器类（可选）
+ *
+ * @see configurePlatformIndependentComponents
+ */
 fun StorageComponentContainer.configureModule(
     moduleContext: ModuleContext,
 
@@ -140,6 +262,8 @@ fun StorageComponentContainer.configureModule(
     useInstance(moduleContext.project)
     useInstance(moduleContext.storageManager)
     useInstance(moduleContext.module.builtIns)
+    useInstance(moduleContext.module.projectDescriptor)
+
     useInstance(trace)
     useInstance(languageVersionSettings)
 
@@ -160,8 +284,8 @@ fun StorageComponentContainer.configureModule(
 
     useInstance(TypeAttributeTranslatorExtension.createTranslators(moduleContext.project))
 
-    for (extension in StorageComponentContainerContributor.EP_NAME.extensionList ) {
-        extension.registerModuleComponents(this,   moduleContext.module)
+    for (extension in StorageComponentContainerContributor.EP_NAME.extensionList) {
+        extension.registerModuleComponents(this, moduleContext.module)
     }
 
     useImpl<NewCangJieTypeCheckerImpl>()
@@ -177,16 +301,39 @@ fun StorageComponentContainer.configureModule(
     configurePlatformIndependentComponents()
 }
 
+/**
+ * 通用容器配置函数
+ *
+ * 这是一个简化版的配置函数，用于某些特殊场景（如测试或轻量级分析）。
+ * 相比 `configureModule`，它提供了更少的配置选项。
+ *
+ * ## 与 configureModule 的区别
+ *
+ * - 不支持 sealed provider
+ * - 不支持优化选项
+ * - 更简洁的参数列表
+ *
+ * ## 配置的组件
+ *
+ * - 基础上下文和服务
+ * - 类型系统组件
+ * - 平台无关组件
+ *
+ * @receiver 存储组件容器
+ * @param context 模块上下文
+ * @param analyzerServices 平台相关的分析器服务
+ * @param trace 绑定追踪器
+ * @param languageVersionSettings 语言版本设置
+ * @param absentDescriptorHandlerClass 缺失描述符处理器类（可选）
+ *
+ * @see configureModule
+ */
 fun StorageComponentContainer.configure(
-//    context: GlobalContext,
     context: ModuleContext,
 
-//    platform: TargetPlatform,
     analyzerServices: PlatformDependentAnalyzerServices,
     trace: BindingTrace,
     languageVersionSettings: LanguageVersionSettings,
-//    sealedProvider: SealedClassInheritorsProvider = CliSealedClassInheritorsProvider,
-//    optimizingOptions: OptimizingOptions?,
     absentDescriptorHandlerClass: Class<out AbsentDescriptorHandler>?
 ) {
     if (absentDescriptorHandlerClass != null) {
@@ -203,11 +350,9 @@ fun StorageComponentContainer.configure(
     useImpl<NewCangJieTypeCheckerImpl>()
     useInstance(TypeAttributeTranslatorExtension.createTranslators(context.project))
 
-//    if (context.module.isTypeRefinementEnabled()) {
-//        useImpl<CangJieTypeRefinerImpl>()
-//    } else {
+
     useInstance(CangJieTypeRefiner.Default)
-//    }
+
     useInstance(CangJieTypePreparator.Default)
 
     configurePlatformIndependentComponents()
@@ -215,6 +360,47 @@ fun StorageComponentContainer.configure(
 }
 
 
+/**
+ * 创建懒加载解析容器
+ *
+ * 创建一个支持懒加载的完整模块解析容器。这是最常用的容器配置，
+ * 用于 IDE 中的模块级代码分析。
+ *
+ * ## 容器特性
+ *
+ * - **懒加载**: 按需加载和解析声明，提高性能
+ * - **完整性**: 支持完整的模块分析功能
+ * - **缓存**: 自动缓存解析结果
+ *
+ * ## 使用场景
+ *
+ * - IDE 中的全局代码分析
+ * - 模块级别的类型检查
+ * - 代码导航和引用查找
+ * - 重构操作
+ *
+ * ## 关键组件
+ *
+ * - **DeclarationProviderFactory**: 声明提供者工厂，负责查找声明
+ * - **ResolveSession**: 解析会话，管理解析过程
+ * - **LazyTopDownAnalyzer**: 懒加载的自顶向下分析器
+ * - **ResolveElementCache**: 解析元素缓存
+ *
+ * **注意**: CangJieBuiltIns 从 `context.module.builtIns` 获取，
+ * 这是一个已经创建好的实例，不会通过容器构造。
+ *
+ * @param context 模块上下文
+ * @param bindingTrace 绑定追踪器，记录解析结果
+ * @param declarationProviderFactory 声明提供者工厂
+ * @param moduleContentScope 模块内容范围
+ * @param languageVersionSettings 语言版本设置
+ * @param absentDescriptorHandlerClass 缺失描述符处理器类（可选）
+ * @param sealedProvider 密封类继承者提供者
+ * @return 配置好的存储组件容器
+ *
+ * @see createContainerForBodyResolve
+ * @see createContainerForLazyBodyResolve
+ */
 fun createContainerForLazyResolve(
 
     context: ModuleContext,
@@ -239,14 +425,10 @@ fun createContainerForLazyResolve(
 
         )
     useInstance(moduleContentScope)
-//    useInstance(VirtualFileFinderFactory.getInstance(context.project).create(moduleContentScope))
     useInstance(sealedProvider)
 
     val builtIns = context.module.builtIns
 
-//    useInstance(builtIns.customizer)
-//    useImpl<CangJieBuiltInsPackageFragmentProvider>()
-//    useInstance(VirtualFileFinderFactory.getInstance(context.project).create(moduleContentScope))
 
     useInstance(declarationProviderFactory)
     configureStandardResolveComponents()
@@ -256,27 +438,64 @@ fun createContainerForLazyResolve(
     useImpl<ResolveElementCache>()
 
     useImpl<CompilerLocalDescriptorResolver>()
-    useInstance(ControlFlowInformationProviderImpl.Factory )
+    useInstance(ControlFlowInformationProviderImpl.Factory)
 }
 
 
+/**
+ * 创建懒加载函数体解析容器
+ *
+ * 创建一个支持懒加载的函数体解析容器。这个容器结合了懒加载和局部分析的优点，
+ * 适用于需要缓存解析结果的场景。
+ *
+ * ## 容器特性
+ *
+ * - **懒加载**: 按需解析函数体
+ * - **局部性**: 只分析函数体，不影响全局
+ * - **缓存支持**: 通过 BodyResolveCache 缓存解析结果
+ *
+ * ## 使用场景
+ *
+ * - IDE 中的增量分析
+ * - 函数体修改后的重新分析
+ * - 需要缓存的局部分析
+ *
+ * ## 与其他容器的区别
+ *
+ * - vs `createContainerForBodyResolve`: 添加了懒加载和缓存支持
+ * - vs `createContainerForLazyResolve`: 专注于函数体，更轻量级
+ *
+ * ## 关键组件
+ *
+ * - **CangJieCodeAnalyzer**: 代码分析器
+ * - **BodyResolveCache**: 函数体解析缓存
+ * - **LazyTopDownAnalyzer**: 懒加载分析器
+ * - **ControlFlowInformationProvider**: 控制流信息提供者
+ *
+ * @param context 模块上下文
+ * @param cangjieCodeAnalyzer 仓颉代码分析器
+ * @param bindingTrace 绑定追踪器
+ * @param bodyResolveCache 函数体解析缓存
+ * @param analyzerServices 平台相关的分析器服务
+ * @param languageVersionSettings 语言版本设置
+ * @param controlFlowInformationProviderFactory 控制流信息提供者工厂
+ * @param absentDescriptorHandler 缺失描述符处理器（可选）
+ * @return 配置好的存储组件容器
+ *
+ * @see createContainerForBodyResolve
+ * @see createContainerForLazyResolve
+ */
 fun createContainerForLazyBodyResolve(
 
     context: ModuleContext,
 
     cangjieCodeAnalyzer: CangJieCodeAnalyzer,
     bindingTrace: BindingTrace,
-//    platform: TargetPlatform,
     bodyResolveCache: BodyResolveCache,
     analyzerServices: PlatformDependentAnalyzerServices,
-//    declarationProviderFactory: DeclarationProviderFactory,
 
     languageVersionSettings: LanguageVersionSettings,
-//    moduleStructureOracle: ModuleStructureOracle,
-//    mainFunctionDetectorFactory: MainFunctionDetector.Factory,
-//    sealedProvider: SealedClassInheritorsProvider,
     controlFlowInformationProviderFactory: ControlFlowInformationProvider.Factory,
-//    optimizingOptions: OptimizingOptions?,
     absentDescriptorHandler: AbsentDescriptorHandler?,
 ): StorageComponentContainer = createContainer("LazyBodyResolve", analyzerServices) {
 
@@ -298,5 +517,5 @@ fun createContainerForLazyBodyResolve(
     useImpl<LazyTopDownAnalyzer>()
     useImpl<DeclarationScopeProviderForLocalClassifierAnalyzer>()
     useImpl<AnnotationResolverImpl>()
-useInstance(controlFlowInformationProviderFactory)
+    useInstance(controlFlowInformationProviderFactory)
 }

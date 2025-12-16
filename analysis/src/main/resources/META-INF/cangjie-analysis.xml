@@ -1,3 +1,4 @@
+
 <!--
   ~ Copyright 2025 LinQingYing. and contributors.
   ~
@@ -28,6 +29,16 @@
         <!-- 分析上下文提供者扩展点 -->
         <extensionPoint qualifiedName="org.cangnova.cangjie.analysisContextProvider"
                         interface="org.cangnova.cangjie.descriptors.AnalysisContextProvider"
+                        dynamic="true"/>
+
+        <!-- 解析优化选项提供者扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.caches.resolve.resolveOptimizingOptionsProvider"
+                        interface="org.cangnova.cangjie.resolve.caches.ResolveOptimizingOptionsProvider"
+                        dynamic="true"/>
+
+        <!-- 类型属性转换器扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.typeAttributeTranslatorExtension"
+                        interface="org.cangnova.cangjie.extensions.TypeAttributeTranslatorExtension"
                         dynamic="true"/>
     </extensionPoints>
 
@@ -67,7 +78,7 @@
 
         <applicationService
                 serviceInterface="org.cangnova.cangjie.references.CjReferenceResolutionHelper"
-                serviceImplementation="org.cangnova.cangjie.references.CjReferenceResolutionHelper"/>
+                serviceImplementation="org.cangnova.cangjie.references.CjReferenceResolutionHelperImpl"/>
 
         <!-- 项目级服务 -->
         <projectService
@@ -82,17 +93,8 @@
                 serviceInterface="org.cangnova.cangjie.cache.trackers.CangJieIDEModificationTrackerService"
                 serviceImplementation="org.cangnova.cangjie.cache.trackers.CangJieIDEModificationTrackerService"/>
 
-        <projectService
-                serviceInterface="org.cangnova.cangjie.highlighter.CangJieQuickFixProvider"
-                serviceImplementation="org.cangnova.cangjie.highlighter.CangJieQuickFixProvider"/>
 
-        <projectService
-                serviceInterface="org.cangnova.cangjie.resolve.CodeAnalyzerInitializer"
-                serviceImplementation="org.cangnova.cangjie.resolve.CodeAnalyzerInitializer"/>
 
-        <projectService
-                serviceInterface="org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService"
-                serviceImplementation="org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService"/>
 
         <projectService
                 serviceInterface="org.cangnova.cangjie.resolve.LanguageSettingsProvider"
@@ -104,7 +106,19 @@
 
         <projectService
                 serviceInterface="org.cangnova.cangjie.references.ReadWriteAccessChecker"
-                serviceImplementation="org.cangnova.cangjie.references.ReadWriteAccessChecker"/>
+                serviceImplementation="org.cangnova.cangjie.references.ReadWriteAccessCheckerDescriptorsImpl"/>
+        <!--        解析范围-->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.resolveScopeEnlarger"
+                        dynamic="true"
+                        interface="org.cangnova.cangjie.resolve.CangJieResolveScopeEnlarger"/>
+
+
+        <projectService
+                serviceInterface="org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService"
+                serviceImplementation="org.cangnova.cangjie.stubindex.resolve.PluginDeclarationProviderFactoryService"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.resolve.CodeAnalyzerInitializer"
+                serviceImplementation="org.cangnova.cangjie.resolve.DummyCodeAnalyzerInitializer"/>
 
     </extensions>
 

@@ -27,8 +27,9 @@ package org.cangnova.cangjie.descriptors
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
+import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.DefaultBuiltIns
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.types.DefaultBuiltIns
+
 
 /**
  * 仓颉项目描述符接口
@@ -101,6 +102,16 @@ interface ProjectDescriptor : DeclarationDescriptor {
     fun getModule(moduleName: Name): ModuleDescriptor?
 
     /**
+     * 添加模块到项目中
+     *
+     * **注意**: 此方法仅供内部使用，模块创建时会自动调用
+     *
+     * @param module 要添加的模块描述符
+     * @throws IllegalArgumentException 如果已存在同名模块
+     */
+    fun addModule(module: ModuleDescriptor)
+
+    /**
      * 项目是否有效
      */
     val isValid: Boolean
@@ -124,6 +135,10 @@ interface ProjectDescriptor : DeclarationDescriptor {
 
             override fun getModule(moduleName: Name): ModuleDescriptor? {
                 return modules.firstOrNull { it.name == moduleName }
+            }
+
+            override fun addModule(module: ModuleDescriptor) {
+                // ERROR ProjectDescriptor does not support addModule
             }
 
             override val isValid: Boolean

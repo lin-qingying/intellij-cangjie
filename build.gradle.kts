@@ -375,6 +375,8 @@ project(":plugin") {
             }
         }
         implementation(project(":"))
+
+
     }
     val mergePluginJarTask = tasks.register<Jar>("mergePluginJars") {
         duplicatesStrategy = DuplicatesStrategy.FAIL

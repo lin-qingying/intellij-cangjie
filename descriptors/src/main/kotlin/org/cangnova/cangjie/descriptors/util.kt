@@ -24,5 +24,8 @@
 
 package org.cangnova.cangjie.descriptors
 
-val DeclarationDescriptor.toSourceElement: SourceElement
+import com.intellij.psi.PsiElement
+
+val DeclarationDescriptor.sourceElement: SourceElement
     get() = if (this is DeclarationDescriptorWithSource) source else SourceElement.NO_SOURCE
+

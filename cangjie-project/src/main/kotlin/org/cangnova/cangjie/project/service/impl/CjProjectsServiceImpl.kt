@@ -391,16 +391,6 @@ class CjProjectsServiceImpl(
                             }
 
 
-                            // 更新项目根目录
-                            if (options.updateRoots) {
-                                runWithNonLightProject(intellijProject) {
-                                    ProjectRootManagerEx.getInstanceEx(intellijProject)
-                                        .makeRootsChange(
-                                            EmptyRunnable.getInstance(),
-                                            RootsChangeRescanningInfo.TOTAL_RESCAN
-                                        )
-                                }
-                            }
 
                             // 发布项目更新通知
                             intellijProject.messageBus.syncPublisher(CANGJIE_PROJECTS_TOPIC)
@@ -441,7 +431,7 @@ class CjProjectsServiceImpl(
     ): CjProject {
         return modifyProjectAsync(options) { proj ->
             CompletableFuture.completedFuture(updater(proj))
-        }   .join()
+        }.join()
     }
 
 

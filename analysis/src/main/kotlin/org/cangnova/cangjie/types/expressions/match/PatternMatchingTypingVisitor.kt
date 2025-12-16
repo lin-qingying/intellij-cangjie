@@ -23,7 +23,6 @@
  */
 
 package org.cangnova.cangjie.types.expressions.match
-import org.cangnova.cangjie.descriptors.toSourceElement
 import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.StandardNames.ITERABLE
@@ -1035,7 +1034,7 @@ TODO("")
 //            val enumEntry =
 //                data.context.trace[REFERENCE_TARGET, expression?.referenceExpression()!!]
 //            val enumEntrySource =
-//                enumEntry?.toSourceElement?.getPsi() as? CjEnumEntry
+//                enumEntry?.sourceElement?.getPsi() as? CjEnumEntry
 //                    ?: return returnResult(
 //                        element, data, Pattern(typeInfo.type, PatternKind.Error)
 //                    )
@@ -1205,7 +1204,7 @@ TODO("")
                     val enumEntry =
                         data.context.trace[REFERENCE_TARGET, expression?.referenceExpression()!!]
                     val enumEntrySource =
-                        enumEntry?.toSourceElement?.getPsi() as? CjEnumEntry
+                        enumEntry?.sourceElement?.getPsi() as? CjEnumEntry
                             ?: return returnResult(
                                 element, data, Pattern(typeInfo.type, PatternKind.Error)
                             )

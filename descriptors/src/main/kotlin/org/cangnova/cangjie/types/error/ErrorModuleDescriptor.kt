@@ -25,11 +25,11 @@
 package org.cangnova.cangjie.types.error
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
+import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.DefaultBuiltIns
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.types.DefaultBuiltIns
 
 object ErrorModuleDescriptor: ModuleDescriptor {
     override val projectDescriptor: ProjectDescriptor

@@ -59,7 +59,7 @@ class CangJieMetadataDeserializerForDecompiler(
 
     ) : DeserializerForDecompilerBase(packageFqName, project) {
     val cangjieProject = ProjectDescriptorImpl(
-        Name.identifier("BuiltIns"), project, LockBasedStorageManager(project, "BuiltIns"),
+        Name.identifier("BuiltIns"), project, LockBasedStorageManager(  "BuiltIns"),
     )
     override val builtIns: CangJieBuiltIns
         get() = cangjieProject.builtIns

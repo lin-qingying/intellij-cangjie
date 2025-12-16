@@ -70,11 +70,7 @@ class ProjectDescriptorImpl(
      * 全局唯一的 BuiltIns 实例，基于 SDK 创建
      */
     override val builtIns: CangJieBuiltIns by lazy {
-        val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk()
-        CangJieBuiltIns(this,storageManager, ).apply {
-            // 初始化 builtInsModule
-            createBuiltInsModule(isFallback = sdk == null)
-        }
+        CangJieBuiltIns(this, storageManager)
     }
 
     override val modules: List<ModuleDescriptor>
@@ -103,7 +99,7 @@ class ProjectDescriptorImpl(
      * @param module 要添加的模块描述符
      * @throws IllegalArgumentException 如果已存在同名模块
      */
-    fun addModule(module: ModuleDescriptor) {
+    override fun addModule(module: ModuleDescriptor) {
         assertValid()
         val existingModule = moduleMap.putIfAbsent(module.name, module)
         require(existingModule == null) {

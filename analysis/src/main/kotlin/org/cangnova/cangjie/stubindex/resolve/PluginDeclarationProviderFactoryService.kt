@@ -22,30 +22,34 @@
  *
  */
 
-package org.cangnova.cangjie.resolve.caches
+package org.cangnova.cangjie.stubindex.resolve
 
-import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
+import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.descriptors.AnalysisContext
-import org.cangnova.cangjie.descriptors.ModuleDescriptor
-import org.cangnova.cangjie.resolve.scopes.optimization.OptimizingOptions
+import org.cangnova.cangjie.projectStructure.CangJieSourceFilterScope
+import org.cangnova.cangjie.psi.CjFile
+import org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactory
+import org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService
+import org.cangnova.cangjie.storage.StorageManager
 
 
-interface ResolveOptimizingOptionsProvider {
-    fun getOptimizingOptions(project: Project, descriptor: ModuleDescriptor, context: AnalysisContext): OptimizingOptions?
+class PluginDeclarationProviderFactoryService : DeclarationProviderFactoryService() {
+    override fun create(
+        project: Project,
+        storageManager: StorageManager,
+        syntheticFiles: Collection<CjFile>,
+        filesScope: GlobalSearchScope,
+        context: AnalysisContext
+    ): DeclarationProviderFactory {
 
-    companion object {
-        val EP_NAME =
-            ExtensionPointName.create<ResolveOptimizingOptionsProvider>("org.cangnova.cangjie.caches.resolve.resolveOptimizingOptionsProvider")
 
-        fun getOptimizingOptions(
-            project: Project,
-            descriptor: ModuleDescriptor,
-            context: AnalysisContext
-        ): OptimizingOptions? {
-            return EP_NAME.extensions.firstNotNullOfOrNull { extension ->
-                extension.getOptimizingOptions(project, descriptor, context)
-            }
-        }
+        return PluginDeclarationProviderFactory(
+            project,
+            CangJieSourceFilterScope.projectSourcesAndLibraryClasses(filesScope, project),
+            storageManager,
+            syntheticFiles,
+            context
+        )
     }
 }

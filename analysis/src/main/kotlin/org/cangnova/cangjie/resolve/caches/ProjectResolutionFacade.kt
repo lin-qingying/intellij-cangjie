@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve.caches
 
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -38,10 +39,10 @@ import org.cangnova.cangjie.context.withProject
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.descriptors.AnalysisContextProvider
+import org.cangnova.cangjie.descriptors.CjProjectDescriptorService
 import org.cangnova.cangjie.descriptors.NotUnderContentRootModuleInfo
 import org.cangnova.cangjie.descriptors.analysisContext
 import org.cangnova.cangjie.descriptors.analysisContextProvider
-import org.cangnova.cangjie.types.DefaultBuiltIns
 import org.cangnova.cangjie.diagnostics.DiagnosticSink
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjFile
@@ -112,6 +113,9 @@ class ProjectResolutionFacade(
      * @return ResolverForProject<AnalysisContext> 实例，用于解析模块信息
      */
     private fun computeModuleResolverProvider(): ResolverForProject<AnalysisContext> {
+        // 获取项目描述符
+        val projectDescriptor = project.service<CjProjectDescriptorService>().projectDescriptor
+
         // 初始化代理解析器，如果没有重用的数据，则使用空解析器
         val delegateResolverForProject: ResolverForProject<AnalysisContext> =
             reuseDataFrom?.cachedResolverForProject ?: EmptyResolverForProject()
@@ -136,7 +140,7 @@ class ProjectResolutionFacade(
         return IdeaResolverForProject(
             resolverDebugName,
             globalContext.withProject(project),
-            DefaultBuiltIns.projectDescriptor,
+            projectDescriptor,
             resolvedModulesWithDependencies,
             syntheticFilesByContext,
             delegateResolverForProject,

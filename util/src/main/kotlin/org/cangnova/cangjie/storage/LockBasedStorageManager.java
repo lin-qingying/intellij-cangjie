@@ -26,7 +26,6 @@ package org.cangnova.cangjie.storage;
 
 import org.cangnova.cangjie.utils.ExceptionUtilsKt;
 import org.cangnova.cangjie.utils.WrappedValues;
-import com.intellij.openapi.project.Project;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
@@ -43,7 +42,7 @@ import java.util.concurrent.ConcurrentMap;
 
 
 public class LockBasedStorageManager implements StorageManager {
-    public static final StorageManager NO_LOCKS = new LockBasedStorageManager(null, "NO_LOCKS", ExceptionHandlingStrategy.THROW, EmptySimpleLock.INSTANCE) {
+    public static final StorageManager NO_LOCKS = new LockBasedStorageManager("NO_LOCKS", ExceptionHandlingStrategy.THROW, EmptySimpleLock.INSTANCE) {
         @NotNull
         @Override
         protected <K, V> RecursionDetectedResult<V> recursionDetectedDefault(@NotNull String source, K input) {
@@ -54,15 +53,14 @@ public class LockBasedStorageManager implements StorageManager {
     protected final SimpleLock lock;
     private final ExceptionHandlingStrategy exceptionHandlingStrategy;
     private final String debugText;
-    private final Project project;
 
     private LockBasedStorageManager(
-            Project project,
+
             @NotNull String debugText,
             @NotNull ExceptionHandlingStrategy exceptionHandlingStrategy,
             @NotNull SimpleLock lock
     ) {
-        this.project = project;
+
 
         this.lock = lock;
         this.exceptionHandlingStrategy = exceptionHandlingStrategy;
@@ -70,53 +68,28 @@ public class LockBasedStorageManager implements StorageManager {
     }
 
     public LockBasedStorageManager(String debugText) {
-        this(null, debugText, (Runnable) null, null);
+        this(debugText, (Runnable) null, null);
     }
 
-    public LockBasedStorageManager(Project project, String debugText) {
-        this(project, debugText, (Runnable) null, null);
-    }
-
-    private LockBasedStorageManager(
-            @NotNull String debugText,
-            @NotNull ExceptionHandlingStrategy exceptionHandlingStrategy,
-            @NotNull SimpleLock lock
-    ) {
-        this.project = null;
-        this.lock = lock;
-        this.exceptionHandlingStrategy = exceptionHandlingStrategy;
-        this.debugText = debugText;
-    }
 
     public LockBasedStorageManager(
-            Project project,
+
             String debugText,
             @Nullable Runnable checkCancelled,
             @Nullable Function1<InterruptedException, Unit> interruptedExceptionHandler
     ) {
-        this(project, debugText, ExceptionHandlingStrategy.THROW, SimpleLock.Companion.simpleLock(checkCancelled, interruptedExceptionHandler));
+        this(debugText, ExceptionHandlingStrategy.THROW, SimpleLock.Companion.simpleLock(checkCancelled, interruptedExceptionHandler));
     }
 
-    public LockBasedStorageManager replaceExceptionHandling(Project project,
-                                                            @NotNull String debugText, @NotNull ExceptionHandlingStrategy exceptionHandlingStrategy
+    public LockBasedStorageManager replaceExceptionHandling(
+            @NotNull String debugText, @NotNull ExceptionHandlingStrategy exceptionHandlingStrategy
     ) {
-        return new LockBasedStorageManager(project, debugText, exceptionHandlingStrategy, lock);
+        return new LockBasedStorageManager(debugText, exceptionHandlingStrategy, lock);
     }
 
     @NotNull
     public static LockBasedStorageManager createWithExceptionHandling(
-            Project project,
-            @NotNull String debugText,
-            @NotNull ExceptionHandlingStrategy exceptionHandlingStrategy,
-            @Nullable Runnable checkCancelled,
-            @Nullable Function1<InterruptedException, Unit> interruptedExceptionHandler
-    ) {
-        return new LockBasedStorageManager(project, debugText, exceptionHandlingStrategy,
-                SimpleLock.Companion.simpleLock(checkCancelled, interruptedExceptionHandler));
-    }
 
-    @NotNull
-    public static LockBasedStorageManager createWithExceptionHandling(
             @NotNull String debugText,
             @NotNull ExceptionHandlingStrategy exceptionHandlingStrategy,
             @Nullable Runnable checkCancelled,
