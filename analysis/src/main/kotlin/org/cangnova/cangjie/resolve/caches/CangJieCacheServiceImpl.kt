@@ -39,6 +39,7 @@ import org.cangnova.cangjie.ExceptionTracker
 import org.cangnova.cangjie.context.GlobalContext
 import org.cangnova.cangjie.context.GlobalContextImpl
 import org.cangnova.cangjie.descriptors.AnalysisContext
+import org.cangnova.cangjie.descriptors.AnalysisContextProvider
 import org.cangnova.cangjie.descriptors.NotUnderContentRootModuleInfo
 import org.cangnova.cangjie.descriptors.analysisContext
 import org.cangnova.cangjie.descriptors.isLibraryContext
@@ -114,35 +115,36 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
 
 
     private inner class GlobalFacade {
-        private val context = GlobalContext("cjpm", project)
-//        private val sdkContext = GlobalContext(resolverForSdkName)
-//        private val moduleFilters = GlobalFacadeModuleFilters(project)
-//        val facadeForSdk = ProjectResolutionFacade(
-//            "facadeForSdk", "$resolverForSdkName with settings=$settings",
-//            project, sdkContext, settings,
-//            moduleFilter = moduleFilters::sdkFacadeFilter,
-//            dependencies = listOf(
+        private val context = GlobalContext("cangjie", project)
 
-//                ProjectRootModificationTracker.getInstance(project)
-//            ),
-//            invalidateOnOOCB = false,
-//            reuseDataFrom = null
-//        )
+        /**
+         * 获取所有分析上下文（包括模块和依赖）
+         *
+         * 从 AnalysisContextProvider 获取项目中的所有上下文，包括：
+         * - 源码模块上下文
+         * - 库依赖上下文（包括 stdlib）
+         * - 其他类型的上下文
+         *
+         * 这个列表会被传递给 ProjectResolutionFacade，最终填充到 AbstractResolverForProject.allModules 中。
+         */
+        private val allAnalysisContexts: Collection<AnalysisContext> by lazy {
+            AnalysisContextProvider.getAllContexts(project)
+        }
 
-        //        private val moduleFilters = GlobalFacadeModuleFilters(project)
         private val librariesContext = context.contextWithCompositeExceptionTracker(project, resolverForLibrariesName)
 
         val facadeForLibraries = ProjectResolutionFacade(
             "facadeForLibraries", "$resolverForLibrariesName  ",
             project, context,
             reuseDataFrom = null,
-            moduleFilter = { true },
+            moduleFilter = { it.isLibraryContext },
             invalidateOnOOCB = false,
             dependencies = listOf(
-
                 ProjectRootModificationTracker.getInstance(project)
-            )
+            ),
+            allModules = allAnalysisContexts  // ✅ 传入所有上下文（包括 stdlib）
         )
+
         private val modulesContext =
             librariesContext.contextWithCompositeExceptionTracker(project, resolverForModulesName)
 
@@ -150,13 +152,10 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
             "facadeForModules", resolverForModulesName,
             project, modulesContext,
             reuseDataFrom = facadeForLibraries,
-//            moduleFilter = moduleFilters::sdkFacadeFilter,
-            moduleFilter = {
-                true
-            },
-
+            moduleFilter = { true },
             dependencies = listOf(ProjectRootModificationTracker.getInstance(project)),
-            invalidateOnOOCB = true
+            invalidateOnOOCB = true,
+            allModules = allAnalysisContexts  // ✅ 传入所有上下文（包括 stdlib）
         )
     }
 

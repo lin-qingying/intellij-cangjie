@@ -268,24 +268,21 @@ internal class OpenAddressLinearProbingHashTable<K : Any, V> : AbstractMutableMa
     /**
      * 获取所有条目的集合
      *
-     * 注意：此操作不被支持（为了性能优化）
+     * 返回一个只读的条目集合视图。
      *
-     * - 在 DEBUG 模式下，返回一个只读的条目集合（性能较差）
-     * - 在生产模式下，抛出 IllegalStateException
+     * 注意：
+     * - 返回的集合是只读的，不支持修改操作
+     * - 此操作会创建新的 Set 对象，性能开销较大
+     * - 建议使用 forEach(BiConsumer) 方法代替，性能更好
      *
-     * 建议使用 forEach 方法代替
-     *
-     * @throws IllegalStateException 在非 DEBUG 模式下总是抛出
+     * @return 包含所有键值对的只读集合
      */
     override val entries: MutableSet<MutableMap.MutableEntry<K, V>>
         get() {
-            if (@Suppress("ConstantConditionIf") DEBUG) {
-                return Collections.unmodifiableSet(mutableSetOf<MutableMap.MutableEntry<K, V>>().apply {
-                    forEach { (key, value) -> add(Entry(key, value)) }
-                })
-            }
-
-            throw IllegalStateException("OpenAddressLinearProbingHashTable::entries is not supported and hardly will be")
+            val result = mutableSetOf<MutableMap.MutableEntry<K, V>>()
+            // 使用 Java 的 forEach(BiConsumer) 方法，避免递归调用 entries
+            forEach { key, value -> result.add(Entry(key, value)) }
+            return Collections.unmodifiableSet(result)
         }
 
     /**
@@ -300,16 +297,6 @@ internal class OpenAddressLinearProbingHashTable<K : Any, V> : AbstractMutableMa
          * @throws UnsupportedOperationException 总是抛出
          */
         override fun setValue(newValue: V): V = throw UnsupportedOperationException("This Entry is not mutable.")
-    }
-
-    companion object {
-        /**
-         * DEBUG 标志
-         *
-         * - 设为 true 时，可以在调试器中查看 Map 的内容（通过 entries 属性）
-         * - 生产环境应设为 false，以保持性能
-         */
-        private const val DEBUG = false
     }
 }
 

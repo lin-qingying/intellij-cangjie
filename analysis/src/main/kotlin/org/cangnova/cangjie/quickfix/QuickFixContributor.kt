@@ -21,11 +21,18 @@
  * any damages or issues arising from its use.
  *
  */
-/**
- * @author: Dmitry Batkovich
- */
-function navigate(an_id) {
-  problem_div = document.getElementById("d" + an_id);
-  preview_div = document.getElementById("preview");
-  preview_div.innerHTML = problem_div != null ? problem_div.innerHTML : "Select a problem element in tree";
+
+package org.cangnova.cangjie.quickfix
+
+
+import com.intellij.openapi.extensions.ExtensionPointName
+
+
+interface QuickFixContributor {
+    companion object {
+        val EP_NAME: ExtensionPointName<QuickFixContributor> =
+            ExtensionPointName.create("org.cangnova.cangjie.quickFixContributor")
+    }
+
+    fun registerQuickFixes(quickFixes: QuickFixes)
 }

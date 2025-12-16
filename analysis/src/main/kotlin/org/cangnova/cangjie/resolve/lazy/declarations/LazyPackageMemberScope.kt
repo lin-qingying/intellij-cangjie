@@ -47,7 +47,7 @@ class LazyPackageMemberScope(
     resolveSession.trace
 ) {
     override fun getScopeForMemberDeclarationResolution(declaration: CjDeclaration) =
-        resolveSession.fileScopeProvider!!.getFileResolutionScope(declaration.getContainingCjFile())
+        resolveSession.fileScopeProvider.getFileResolutionScope(declaration.getContainingCjFile())
 
     override fun getNonDeclaredFunctions(name: Name, result: MutableSet<SimpleFunctionDescriptor>) {
 

@@ -47,29 +47,8 @@ import org.cangnova.cangjie.extensions.StorageComponentContainerContributor
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.scopes.optimization.OptimizingOptions
 import org.cangnova.cangjie.serialization.deserialization.CompilerDeserializationConfiguration
+import org.cangnova.cangjie.utils.ProgressManagerBasedCancellationChecker
 
-/**
- * 依赖注入容器配置
- *
- * 本文件包含了仓颉语言分析器的各种依赖注入容器配置函数。
- * 这些容器用于组织和管理代码分析过程中需要的各种组件。
- *
- * ## 核心概念
- *
- * - **容器 (Container)**: 管理组件生命周期和依赖注入的容器
- * - **useImpl**: 通过构造函数自动注入依赖并注册实现类
- * - **useInstance**: 直接注册已创建的实例
- * - **registerSingleton**: 注册单例组件
- *
- * ## 容器类型
- *
- * 1. **LazyResolve**: 懒加载解析容器，用于完整的模块分析
- * 2. **BodyResolve**: 函数体解析容器，用于局部代码分析
- * 3. **LazyBodyResolve**: 懒加载函数体解析容器
- *
- * @see StorageComponentContainer
- * @see ModuleContext
- */
 
 /**
  * 配置标准解析组件
@@ -121,6 +100,7 @@ fun StorageComponentContainer.configureStandardResolveComponents() {
  * - [CompilerDeserializationConfiguration]: 反序列化配置
  * - [ClassicTypeSystemContextForCS]: 约束系统的类型系统上下文
  * - [ClassicConstraintSystemUtilContext]: 约束系统工具上下文
+ * - [LookupTracker.DO_NOTHING]: 查找追踪器，用于增量编译的符号查找追踪
  *
  * @receiver 存储组件容器
  */
@@ -128,17 +108,13 @@ private fun StorageComponentContainer.configurePlatformIndependentComponents() {
     useImpl<SupertypeLoopCheckerImpl>()
     useImpl<CangJieResolutionStatelessCallbacksImpl>()
     useImpl<DataFlowValueFactoryImpl>()
-//
-//    useImpl<OptInUsageChecker>()
-//    useImpl<OptInUsageChecker.Overrides>()
-//    useImpl<OptInUsageChecker.ClassifierUsage>()
-//
-//    useImpl<ContractDeserializerImpl>()
+
     useImpl<CompilerDeserializationConfiguration>()
-//
     useImpl<ClassicTypeSystemContextForCS>()
     useImpl<ClassicConstraintSystemUtilContext>()
-//    useInstance(ProgressManagerBasedCancellationChecker)
+    useInstance(ProgressManagerBasedCancellationChecker)
+    useInstance(org.cangnova.cangjie.incremental.components.LookupTracker.DO_NOTHING)
+
 }
 
 /**
@@ -186,9 +162,13 @@ fun createContainerForBodyResolve(
     controlFlowInformationProviderFactory: ControlFlowInformationProvider.Factory,
     absentDescriptorHandler: AbsentDescriptorHandler?
 ): StorageComponentContainer = createContainer("BodyResolve", analyzerServices) {
-    configure(
-        moduleContext, analyzerServices, bindingTrace,
+    configureModule(
+        moduleContext,
+        analyzerServices,
+        bindingTrace,
         languageVersionSettings,
+        sealedProvider = CliSealedClassInheritorsProvider,
+        optimizingOptions = null,
         absentDescriptorHandlerClass = if (absentDescriptorHandler == null) BasicAbsentDescriptorHandler::class.java else null
     )
     useInstanceIfNotNull(absentDescriptorHandler)
@@ -301,64 +281,6 @@ fun StorageComponentContainer.configureModule(
     configurePlatformIndependentComponents()
 }
 
-/**
- * 通用容器配置函数
- *
- * 这是一个简化版的配置函数，用于某些特殊场景（如测试或轻量级分析）。
- * 相比 `configureModule`，它提供了更少的配置选项。
- *
- * ## 与 configureModule 的区别
- *
- * - 不支持 sealed provider
- * - 不支持优化选项
- * - 更简洁的参数列表
- *
- * ## 配置的组件
- *
- * - 基础上下文和服务
- * - 类型系统组件
- * - 平台无关组件
- *
- * @receiver 存储组件容器
- * @param context 模块上下文
- * @param analyzerServices 平台相关的分析器服务
- * @param trace 绑定追踪器
- * @param languageVersionSettings 语言版本设置
- * @param absentDescriptorHandlerClass 缺失描述符处理器类（可选）
- *
- * @see configureModule
- */
-fun StorageComponentContainer.configure(
-    context: ModuleContext,
-
-    analyzerServices: PlatformDependentAnalyzerServices,
-    trace: BindingTrace,
-    languageVersionSettings: LanguageVersionSettings,
-    absentDescriptorHandlerClass: Class<out AbsentDescriptorHandler>?
-) {
-    if (absentDescriptorHandlerClass != null) {
-        registerSingleton(absentDescriptorHandlerClass)
-    }
-    useInstance(trace)
-    useInstance(context)
-    useInstance(context.module)
-    useInstance(languageVersionSettings)
-
-    useInstance(context.project)
-    useInstance(context.storageManager)
-    useInstance(analyzerServices)
-    useImpl<NewCangJieTypeCheckerImpl>()
-    useInstance(TypeAttributeTranslatorExtension.createTranslators(context.project))
-
-
-    useInstance(CangJieTypeRefiner.Default)
-
-    useInstance(CangJieTypePreparator.Default)
-
-    configurePlatformIndependentComponents()
-
-}
-
 
 /**
  * 创建懒加载解析容器
@@ -415,17 +337,16 @@ fun createContainerForLazyResolve(
 
     ) = createContainer("LazyResolve", PlatformDependentAnalyzerServicesImpl)
 {
-    configure(
+    configureModule(
         context,
         PlatformDependentAnalyzerServicesImpl,
         bindingTrace,
         languageVersionSettings,
-
-        absentDescriptorHandlerClass,
-
-        )
+        sealedProvider = sealedProvider,
+        optimizingOptions = null,
+        absentDescriptorHandlerClass = absentDescriptorHandlerClass
+    )
     useInstance(moduleContentScope)
-    useInstance(sealedProvider)
 
     val builtIns = context.module.builtIns
 
@@ -499,12 +420,13 @@ fun createContainerForLazyBodyResolve(
     absentDescriptorHandler: AbsentDescriptorHandler?,
 ): StorageComponentContainer = createContainer("LazyBodyResolve", analyzerServices) {
 
-    configure(
+    configureModule(
         context,
         analyzerServices,
         bindingTrace,
         languageVersionSettings,
-
+        sealedProvider = CliSealedClassInheritorsProvider,
+        optimizingOptions = null,
         absentDescriptorHandlerClass = BasicAbsentDescriptorHandler::class.java.takeIf { absentDescriptorHandler == null }
     )
 

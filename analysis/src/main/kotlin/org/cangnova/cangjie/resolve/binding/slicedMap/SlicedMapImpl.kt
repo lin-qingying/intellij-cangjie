@@ -190,7 +190,9 @@ open class SlicedMapImpl(
      * @param f 回调函数，接收 (WritableSlice, Key, Value) 三个参数
      */
     override fun forEach(f: (WritableSlice<*, *>, Any?, Any?) -> Unit) {
-        _map?.forEach { (key, holder) ->
+        // 使用 Java 的 forEach(BiConsumer) 方法而不是 Kotlin 的扩展函数
+        // 避免调用 entries 属性（在 OpenAddressLinearProbingHashTable 中不支持）
+        _map?.forEach { key, holder ->
             holder.keys.forEach { sliceKey ->
                 val value = holder[sliceKey]
                 val slice = (sliceKey as AbstractWritableSlice<*, *>).slice

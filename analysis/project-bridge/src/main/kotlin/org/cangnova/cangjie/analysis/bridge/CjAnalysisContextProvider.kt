@@ -154,10 +154,25 @@ class CjAnalysisContextProvider : AnalysisContextProvider {
             else -> emptyList()
         }
 
+        val allContexts = mutableListOf<AnalysisContext>()
+
         // 为每个模块创建或获取上下文
-        return modules.map { module ->
-            getOrCreateContextForModule(module)
+        for (module in modules) {
+            // 添加模块自身的上下文
+            val moduleContext = getOrCreateContextForModule(module)
+            allContexts.add(moduleContext)
+
+            // 添加模块的所有依赖上下文（包括 stdlib）
+            for (dependency in module.dependencies) {
+                val dependencyContext = getOrCreateContextForDependency(project, dependency)
+                // 使用 Set 去重，避免重复添加相同的依赖
+                if (dependencyContext !in allContexts) {
+                    allContexts.add(dependencyContext)
+                }
+            }
         }
+
+        return allContexts
     }
 
     override fun clearCache() {

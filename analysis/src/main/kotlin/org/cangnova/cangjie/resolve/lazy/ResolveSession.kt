@@ -104,79 +104,79 @@ class ResolveSession @Deprecated("Only calls from injectors expected") construct
     // 可注入的依赖项 - 使用lateinit和属性委托
     @set:Inject
     lateinit var controlFlowAnalyzer: ControlFlowAnalyzer
-        private set
+
 
     @set:Inject
     lateinit var lazyDeclarationResolver: LazyDeclarationResolver
-        private set
+
 
     @set:Inject
     lateinit var localDescriptorResolver: LocalDescriptorResolver
-        private set
+
 
     @set:Inject
     override lateinit var delegationFilter: DelegationFilter
-        private set
+
 
     @set:Inject
     override lateinit var wrappedTypeFactory: WrappedTypeFactory
-        private set
+
 
     @set:Inject
     override lateinit var descriptorResolver: DescriptorResolver
-        private set
+
 
     @set:Inject
     lateinit var supertypeLoopsResolver: SupertypeLoopChecker
-        private set
+
 
     @set:Inject
     lateinit var extendDescriptorResolver: ExtendDescriptorResolver
-        private set
+
 
     @set:Inject
     override lateinit var functionDescriptorResolver: FunctionDescriptorResolver
-        private set
+
 
     @set:Inject
     lateinit var fileScopeProvider: FileScopeProvider
-        private set
+
 
     @set:Inject
     override lateinit var declarationScopeProvider: DeclarationScopeProvider
-        private set
+
 
     @set:Inject
     override lateinit var lookupTracker: LookupTracker
-        private set
+
 
     @set:Inject
     override lateinit var languageVersionSettings: LanguageVersionSettings
-        private set
+
 
     @set:Inject
     override lateinit var typeResolver: TypeResolver
-        private set
+
 
     @set:Inject
     override lateinit var sealedClassInheritorsProvider: SealedClassInheritorsProvider
-        private set
+
 
     @set:Inject
     override lateinit var overloadChecker: OverloadChecker
-        private set
+
 
     @set:Inject
     override lateinit var overloadResolver: OverloadResolver
-        private set
+
 
     @set:Inject
     lateinit var annotationResolver: AnnotationResolver
-        private set
+
 
     @set:Inject
     override lateinit var enumDescriptorResolver: EnumDescriptorResolver
-        private set
+
 
     override fun getPackageFragmentProvider(): PackageFragmentProvider {
         return object : PackageFragmentProviderOptimized {

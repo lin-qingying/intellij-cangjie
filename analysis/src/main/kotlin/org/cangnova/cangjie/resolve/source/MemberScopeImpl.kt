@@ -64,12 +64,12 @@ abstract class MemberScopeImpl : MemberScope {
 
     //    override fun getFunctionClassDescriptor(parameterCount: Int): FunctionClassDescriptor?  = null
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
-    override val functionNames: Set<Name> =
+    override val functionNames: Set<Name> get()  =
         getContributedDescriptors(
             DescriptorKindFilter.FUNCTIONS, alwaysTrue()
         ).filterIsInstanceMapTo<SimpleFunctionDescriptor, Name, MutableSet<Name>>(mutableSetOf()) { it.name }
 
-    override val variableNames: Set<Name> =
+    override val variableNames: Set<Name> get()  =
         getContributedDescriptors(
             DescriptorKindFilter.VARIABLES, alwaysTrue()
         ).filterIsInstanceMapTo<SimpleFunctionDescriptor, Name, MutableSet<Name>>(mutableSetOf()) { it.name }

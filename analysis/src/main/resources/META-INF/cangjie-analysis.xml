@@ -40,9 +40,71 @@
         <extensionPoint qualifiedName="org.cangnova.cangjie.typeAttributeTranslatorExtension"
                         interface="org.cangnova.cangjie.extensions.TypeAttributeTranslatorExtension"
                         dynamic="true"/>
+
+        <!-- 存储组件容器贡献者扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.storageComponentContainerContributor"
+                        interface="org.cangnova.cangjie.extensions.StorageComponentContainerContributor"
+                        dynamic="true"/>
+
+        <!-- 合成解析扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.syntheticResolveExtension"
+                        interface="org.cangnova.cangjie.resolve.extensions.SyntheticResolveExtension"
+                        dynamic="true"/>
+
+        <!-- 仓颉索引助手扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.cangjieIndicesHelperExtension"
+                        interface="org.cangnova.cangjie.extensions.CangJieIndicesHelperExtension"
+                        dynamic="true"/>
+
+        <!-- 收集额外源文件扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.collectAdditionalSourcesExtension"
+                        interface="org.cangnova.cangjie.extensions.CollectAdditionalSourcesExtension"
+                        dynamic="true"/>
+
+        <!-- 声明属性修改器扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.declarationAttributeAltererExtension"
+                        interface="org.cangnova.cangjie.extensions.DeclarationAttributeAltererExtension"
+                        dynamic="true"/>
+
+        <!-- 编译前处理源文件扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.processSourcesBeforeCompiling"
+                        interface="org.cangnova.cangjie.extensions.ProcessSourcesBeforeCompilingExtension"
+                        dynamic="true"/>
+
+        <!-- 调用解析拦截器扩展点（内部非稳定） -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.extensions.internal.callResolutionInterceptorExtension"
+                        interface="org.cangnova.cangjie.extensions.internal.CallResolutionInterceptorExtension"
+                        dynamic="true"/>
+
+        <!-- 类型解析拦截器扩展点（内部非稳定） -->
+        <extensionPoint qualifiedName="org.jetbrains.CangJie.extensions.internal.typeResolutionInterceptorExtension"
+                        interface="org.cangnova.cangjie.extensions.internal.TypeResolutionInterceptorExtension"
+                        dynamic="true"/>
+
+        <!-- 额外导入提供者扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.extraImportsProviderExtension"
+                        interface="org.cangnova.cangjie.resolve.extensions.ExtraImportsProviderExtension"
+                        dynamic="true"/>
+
+        <!-- 诊断抑制器扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.diagnosticSuppressor"
+                        interface="org.cangnova.cangjie.analysis.DiagnosticSuppressor"
+                        dynamic="true"/>
+
+        <!-- 快速修复贡献者扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.quickFixContributor"
+                        interface="org.cangnova.cangjie.quickfix.QuickFixContributor"
+                        dynamic="true"/>
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
+
+        <!-- 诊断系统初始化启动活动 -->
+        <postStartupActivity implementation="org.cangnova.cangjie.diagnostics.DiagnosticInitializerStartupActivity"/>
+
+        <registryKey key="cangjie.highlighting.suppress.deprecated"
+                     description="Suppress cangjie.Deprecated warning"
+                     defaultValue="false"/>
         <projectService
                 serviceInterface="org.cangnova.cangjie.analysis.decompiler.psi.CangJieBuiltInDecompilationInterceptor"
                 serviceImplementation="org.cangnova.cangjie.analysis.decompiler.psi.IdeCangJieBuiltInDecompilationInterceptor"
@@ -50,6 +112,9 @@
         <applicationService serviceInterface="org.cangnova.cangjie.analysis.decompiler.psi.BuiltinsVirtualFileProvider"
                         serviceImplementation="org.cangnova.cangjie.analysis.decompiler.psi.IdeBuiltInsVirtualFileProviderImpl"/>
 
+        <projectService
+                serviceInterface="org.cangnova.cangjie.highlighter.CangJieQuickFixProvider"
+                serviceImplementation="org.cangnova.cangjie.highlighter.CangJieQuickFixProviderImpl"/>
 
 
         <highlightVisitor implementation="org.cangnova.cangjie.analysis.CangJieHighlightVisitor"/>
