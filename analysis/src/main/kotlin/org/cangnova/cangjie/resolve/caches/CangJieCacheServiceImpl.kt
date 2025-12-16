@@ -128,7 +128,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
          * 这个列表会被传递给 ProjectResolutionFacade，最终填充到 AbstractResolverForProject.allModules 中。
          */
         private val allAnalysisContexts: Collection<AnalysisContext> by lazy {
-            AnalysisContextProvider.getAllContexts(project)
+            AnalysisContextProvider.getInstance(project).getAllContexts(project)
         }
 
         private val librariesContext = context.contextWithCompositeExceptionTracker(project, resolverForLibrariesName)
