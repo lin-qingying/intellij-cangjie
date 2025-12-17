@@ -30,7 +30,45 @@ interface BuiltInsCacheKey {
     object DefaultBuiltInsKey : BuiltInsCacheKey
 }
 
-class CangJieModuleBuiltInsKey(context: AnalysisContext) : BuiltInsCacheKey
+/**
+ * 仓颉模块的内置类型缓存键
+ *
+ * 基于 [AnalysisContext] 创建的缓存键，用于在不同的分析上下文之间共享或隔离内置类型。
+ *
+ * ## 缓存策略
+ *
+ * - 每个 [AnalysisContext] 对应一个唯一的缓存键
+ * - 通过 [equals] 和 [hashCode] 确保缓存的正确性
+ * - 用于 `CachedValuesManager` 等缓存系统
+ *
+ * ## 使用场景
+ *
+ * ```kotlin
+ * val builtIns = cache.get(CangJieModuleBuiltInsKey(context)) {
+ *     // 计算内置类型
+ *     createBuiltIns(context)
+ * }
+ * ```
+ *
+ * @property context 关联的分析上下文
+ * @see BuiltInsCacheKey
+ * @see AnalysisContext
+ */
+class CangJieModuleBuiltInsKey(private val context: AnalysisContext) : BuiltInsCacheKey {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is CangJieModuleBuiltInsKey) return false
+        return context == other.context
+    }
+
+    override fun hashCode(): Int {
+        return context.hashCode()
+    }
+
+    override fun toString(): String {
+        return "CangJieModuleBuiltInsKey(context=$context)"
+    }
+}
 
 private var _builtinsKey: CangJieModuleBuiltInsKey? = null
 fun AnalysisContext.getKeyForBuiltIns(): BuiltInsCacheKey {

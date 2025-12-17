@@ -616,7 +616,7 @@ class ExpressionTypingServices(
 
     private class EffectsFilteringTrace(parentTrace: BindingTrace) :
         AbstractFilteringTrace(parentTrace, "Effects filtering trace") {
-        override fun <K : Any, V> shouldBeHiddenFromParent(slice: WritableSlice<K, V>, key: K): Boolean {
+        override fun <K : Any, V: Any> shouldBeHiddenFromParent(slice: WritableSlice<K, V>, key: K): Boolean {
             return slice === BindingContext.EXPRESSION_EFFECTS
         }
     }

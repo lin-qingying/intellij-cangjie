@@ -80,10 +80,10 @@ class LockBasedLazyResolveStorageManager(private val storageManager: StorageMana
         override val diagnostics: Diagnostics
             get() = storageManager.compute { context.diagnostics }
 
-        override fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V? =
+        override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? =
             storageManager.compute { context[slice, key] }
 
-        override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> =
+        override fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K> =
             storageManager.compute { context.getKeys(slice) }
 
         override fun addOwnDataTo(trace: BindingTrace, commitDiagnostics: Boolean) {
@@ -91,7 +91,7 @@ class LockBasedLazyResolveStorageManager(private val storageManager: StorageMana
         }
 
         @TestOnly
-        override fun <K : Any, V> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> =
+        override fun <K : Any, V : Any> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> =
             storageManager.compute { context.getSliceContents(slice) }
     }
 
@@ -112,14 +112,14 @@ class LockBasedLazyResolveStorageManager(private val storageManager: StorageMana
         override val size: Int
             get() = trace.size
 
-        override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> =
+        override fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K> =
             storageManager.compute { trace.getKeys(slice) }
 
         override fun getType(expression: CjExpression): CangJieType? =
             storageManager.compute { context.getType(expression) }
 
 
-        override fun <K : Any, V> record(slice: WritableSlice<K, V>, key: K, value: V) {
+        override fun <K : Any, V : Any> record(slice: WritableSlice<K, V>, key: K, value: V) {
             storageManager.compute { trace.record(slice, key, value) }
         }
 
@@ -131,7 +131,7 @@ class LockBasedLazyResolveStorageManager(private val storageManager: StorageMana
             storageManager.compute { trace.recordType(expression, type) }
         }
 
-        override fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V? =
+        override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? =
             storageManager.compute { trace[slice, key] }
 
 

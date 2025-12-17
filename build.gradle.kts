@@ -47,6 +47,7 @@ val pluginProjects: List<Project>
 // ============================================================
 val platformVersion = prop("platformVersion").toInt()
 val baseIDE = prop("baseIDE")
+
 val ideToRunType = prop("ideToRunType").ifEmpty { baseIDE }
 val ideRunVersion = prop("ideRunVersion")
 val ideVersion = prop("ideVersion")
@@ -65,7 +66,6 @@ val cangjiePluginVersion = "$pluginVersion$versionSuffix"
 // ============================================================
 val psiViewerPlugin = prop("psiViewerPlugin")
 val indexViewPlugin = prop("indexViewPlugin")
-val chinesePlugin = "com.intellij.zh:233.407"
 
 // 内置插件
 val tomlPlugin = "org.toml.lang"
@@ -202,7 +202,9 @@ allprojects {
         plugin("org.jetbrains.intellij.platform")
         plugin("org.gradle.test-retry")
     }
-
+kotlin {
+    jvmToolchain(21)
+}
     repositories {
         intellijPlatform {
             intellijDependencies()
@@ -272,7 +274,7 @@ allprojects {
 
         withType<KotlinCompile> {
             compilerOptions {
-                jvmTarget.set(JvmTarget.JVM_17)
+//                jvmTarget.set(JvmTarget.JVM_17)
                 freeCompilerArgs.add("-Xjvm-default=all")
                 freeCompilerArgs.add("-Xcontext-parameters")
             }
@@ -370,7 +372,7 @@ project(":plugin") {
     dependencies {
         intellijPlatform {
             if (!isBuildPlugin()) {
-                plugins(psiViewerPlugin, indexViewPlugin, chinesePlugin)
+                plugins(psiViewerPlugin, indexViewPlugin, )
                 bundledPlugins(tomlPlugin, copyright, jsonPlugin)
             }
         }

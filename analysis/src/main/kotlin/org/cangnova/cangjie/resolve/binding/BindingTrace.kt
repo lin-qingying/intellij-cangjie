@@ -35,14 +35,14 @@ interface BindingTrace : DiagnosticSink {
 
     val bindingContext: BindingContext
 
-    fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K>
+    fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K>
 
     /**
      * Expression type should be taken from EXPRESSION_TYPE_INFO slice
      */
     fun getType(expression: CjExpression): CangJieType?
 
-    fun <K : Any, V> record(slice: WritableSlice<K, V>, key: K, value: V)
+    fun <K : Any, V : Any> record(slice: WritableSlice<K, V>, key: K, value: V)
 
     // Writes TRUE for a bool value
     fun <K : Any> record(slice: WritableSlice<K, Boolean>, key: K)
@@ -52,7 +52,7 @@ interface BindingTrace : DiagnosticSink {
      * (either updated old or a new one)
      */
     fun recordType(expression: CjExpression, type: CangJieType?)
-    operator fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V?
+    operator fun <K : Any, V  : Any> get(slice: ReadOnlySlice<K, V>, key: K): V?
     val size: Int get() = 0
 
 }

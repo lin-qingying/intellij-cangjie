@@ -28,6 +28,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
+import org.cangnova.cangjie.diagnostics.rendering.DiagnosticRendererRegistry
 
 /**
  * 诊断初始化器启动活动
@@ -85,8 +86,13 @@ class DiagnosticInitializerStartupActivity : ProjectActivity {
     /**
      * 项目启动后执行
      *
-     * 触发 [DiagnosticInitializer] 的初始化。
-     * 这会通过反射扫描所有诊断定义并注册到系统中。
+     * 触发诊断系统的初始化，包括：
+     * 1. [DiagnosticInitializer] - 扫描并注册所有诊断工厂（诊断声明）
+     * 2. [DiagnosticRendererRegistry] - 加载所有诊断渲染器（显示信息）
+     *
+     * **初始化顺序**：
+     * - 先初始化 DiagnosticInitializer（诊断声明）
+     * - 再初始化 DiagnosticRendererRegistry（显示信息）
      *
      * @param project 当前项目实例（未使用，但由接口要求）
      */
@@ -99,10 +105,14 @@ class DiagnosticInitializerStartupActivity : ProjectActivity {
         try {
             LOG.info("Initializing CangJie diagnostic system...")
 
-            // 触发 DiagnosticInitializer 的初始化
-            // 访问 object 会自动执行其 init 块
-            // init 块中会调用 initializeAll() 进行实际的初始化工作
-            DiagnosticInitializer.toString() // 强制加载 object
+            // 1. 先触发 DiagnosticInitializer 的初始化
+            // 扫描所有诊断工厂并设置名称（诊断声明）
+            DiagnosticInitializer.ensureInitialized()
+
+            // 2. 再触发 DiagnosticRendererRegistry 的初始化
+            // 加载所有渲染器提供者（显示信息）
+            // 在启动时初始化，避免在类加载时（静态初始化阶段）依赖服务
+            DiagnosticRendererRegistry.ensureInitialized()
 
             LOG.info("CangJie diagnostic system initialized successfully")
         } catch (e: Exception) {

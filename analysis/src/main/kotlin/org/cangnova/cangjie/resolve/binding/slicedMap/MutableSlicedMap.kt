@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableMap
 import org.jetbrains.annotations.TestOnly
 
 interface MutableSlicedMap : SlicedMap {
-    fun <K : Any, V> put(slice: WritableSlice<K, V>, key: K, value: V)
+    fun <K : Any, V : Any> put(slice: WritableSlice<K, V>, key: K, value: V)
 
     val size: Int get() = 0
     fun clear()
@@ -36,5 +36,5 @@ interface MutableSlicedMap : SlicedMap {
     fun <K : Any> remove(key: K)
 
     @TestOnly
-    fun <K : Any, V> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V>
+    fun <K : Any, V: Any> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V>
 }

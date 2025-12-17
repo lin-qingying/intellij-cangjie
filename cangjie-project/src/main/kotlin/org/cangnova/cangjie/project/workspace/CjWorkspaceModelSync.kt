@@ -203,7 +203,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                         entitySource = entitySource
                     ) {
                         //                     创建所有 ExcludeUrlEntity
-                        val excludeUrlBuilders = mutableListOf<ExcludeUrlEntity.Builder>()
+                        val excludeUrlBuilders = mutableListOf<ExcludeUrlEntityBuilder>()
                         // 从工作空间的源码集中获取输出目录
                         for (sourceSet in project.workspace?.sourceSets ?: emptyList()) {
                             for (outputDir in sourceSet.outputDirectory) {
@@ -269,7 +269,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                     entitySource = entitySource
                 ) {
 //                     创建所有 SourceRootEntity
-                    val sourceRootBuilders = mutableListOf<SourceRootEntity.Builder>()
+                    val sourceRootBuilders = mutableListOf<SourceRootEntityBuilder>()
                     for (sourceSet in cjModule.sourceSets) {
                         for (sourceRoot in sourceSet.roots) {
                             val sourceRootUrl = urlManager.getOrCreateFromUrl(sourceRoot.url)
@@ -293,7 +293,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                     this.sourceRoots = sourceRootBuilders
 
 //                     创建所有 ExcludeUrlEntity
-                    val excludeUrlBuilders = mutableListOf<ExcludeUrlEntity.Builder>()
+                    val excludeUrlBuilders = mutableListOf<ExcludeUrlEntityBuilder>()
                     // 从源码集的 outputDirectory 获取输出目录
                     for (sourceSet in cjModule.sourceSets) {
                         for (outputDir in sourceSet.outputDirectory) {
@@ -395,7 +395,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                     entitySource = entitySource
                 ) {
                     // 创建所有 SourceRootEntity
-                    val sourceRootBuilders = mutableListOf<SourceRootEntity.Builder>()
+                    val sourceRootBuilders = mutableListOf<SourceRootEntityBuilder>()
                     for (sourceSet in cjModule.sourceSets) {
                         for (sourceRoot in sourceSet.roots) {
                             val sourceRootUrl = urlManager.getOrCreateFromUrl(sourceRoot.url)
@@ -419,7 +419,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                     this.sourceRoots = sourceRootBuilders
 
                     // 创建所有 ExcludeUrlEntity
-                    val excludeUrlBuilders = mutableListOf<ExcludeUrlEntity.Builder>()
+                    val excludeUrlBuilders = mutableListOf<ExcludeUrlEntityBuilder>()
                     // 从源码集的 outputDirectory 获取输出目录
                     for (sourceSet in cjModule.sourceSets) {
                         for (outputDir in sourceSet.outputDirectory) {

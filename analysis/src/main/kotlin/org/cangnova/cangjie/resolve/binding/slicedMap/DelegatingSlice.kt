@@ -32,7 +32,7 @@ package org.cangnova.cangjie.resolve.binding.slicedMap
  * @param V 值的类型
  * @property delegate 被委托的 WritableSlice
  */
-open class DelegatingSlice<K : Any, V>(
+open class DelegatingSlice<K : Any, V: Any>(
     private val delegate: WritableSlice<K, V>
 ) : WritableSlice<K, V> {
 

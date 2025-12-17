@@ -37,7 +37,15 @@ import java.lang.reflect.Modifier
  * 负责自动初始化所有诊断工厂的名称和渲染器。
  * 通过反射机制扫描所有带有 [DiagnosticHolder] 注解的类，并为每个诊断工厂设置其名称。
  *
- * 初始化会在首次访问此对象时自动执行，无需手动调用。
+ * ## 延迟初始化
+ *
+ * 为避免在类加载时（静态初始化阶段）依赖服务，本初始化器采用延迟初始化策略：
+ * - 不在 `init` 块中进行初始化
+ * - 通过 [org.cangnova.cangjie.diagnostics.DiagnosticInitializerStartupActivity]
+ *   在项目启动后显式调用 [ensureInitialized]
+ * - 避免 IntelliJ 平台的 "Class initialization must not depend on services" 错误
+ *
+ * @see DiagnosticInitializerStartupActivity
  */
 object DiagnosticInitializer {
     private const val WARNING = "_WARNING"
@@ -47,9 +55,39 @@ object DiagnosticInitializer {
     @Volatile
     private var initialized = false
 
-    // 自动初始化
-    init {
-        initializeAll()
+    /**
+     * 确保诊断系统已初始化
+     *
+     * 扫描所有带有 [DiagnosticHolder] 注解的类，为每个诊断工厂设置名称和渲染器。
+     *
+     * 此方法是线程安全的，可以被多次调用（后续调用会立即返回）。
+     * 通常由 [DiagnosticInitializerStartupActivity] 在项目启动时调用。
+     */
+    fun ensureInitialized() {
+        if (initialized) return
+
+        synchronized(this) {
+            if (initialized) return
+
+            // 扫描所有带有 DiagnosticHolder 注解的类
+            val reflections = Reflections(
+                ConfigurationBuilder()
+                    .forPackages(BASE_PACKAGE)
+                    .setScanners(Scanners.TypesAnnotated)
+            )
+
+            val annotatedClasses = reflections.getTypesAnnotatedWith(DiagnosticHolder::class.java)
+
+            // 初始化每个带注解的类
+            for (clazz in annotatedClasses) {
+                val annotation = clazz.getAnnotation(DiagnosticHolder::class.java)
+                if (annotation != null) {
+                    initializeFactoryNames(clazz)
+                }
+            }
+
+            initialized = true
+        }
     }
 
     /**
@@ -100,39 +138,4 @@ object DiagnosticInitializer {
         // 从新系统获取渲染器
         factory.defaultRenderer = DiagnosticRendererRegistry.getRenderer(factory) as? DiagnosticRenderer<Any>
     }
-
-    /**
-     * 初始化所有诊断包
-     *
-     * 自动扫描并初始化所有带有 [DiagnosticHolder] 注解的类。
-     * 此方法是幂等的，多次调用只会执行一次初始化。
-     */
-    private fun initializeAll() {
-        if (initialized) return
-
-        synchronized(this) {
-            if (initialized) return
-
-            // 扫描所有带有 DiagnosticHolder 注解的类
-            val reflections = Reflections(
-                ConfigurationBuilder()
-                    .forPackages(BASE_PACKAGE)
-                    .setScanners(Scanners.TypesAnnotated)
-            )
-
-            val annotatedClasses = reflections.getTypesAnnotatedWith(DiagnosticHolder::class.java)
-
-            // 初始化每个带注解的类
-            for (clazz in annotatedClasses) {
-                val annotation = clazz.getAnnotation(DiagnosticHolder::class.java)
-                if (annotation != null) {
-                    initializeFactoryNames(clazz)
-                }
-            }
-
-            initialized = true
-        }
-    }
-
-
 }

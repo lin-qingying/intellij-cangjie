@@ -34,7 +34,7 @@ class ObservableBindingTrace(private val originalTrace: BindingTrace) : BindingT
         originalTrace.recordType(expression, type)
     }
 
-    fun interface RecordHandler<K : Any, V> {
+    fun interface RecordHandler<K : Any, V: Any> {
         fun handleRecord(slice: WritableSlice<K, V>, key: K, value: V?)
     }
 
@@ -45,12 +45,12 @@ class ObservableBindingTrace(private val originalTrace: BindingTrace) : BindingT
     override val bindingContext: BindingContext
         get() = originalTrace.bindingContext
 
-    fun <K : Any, V> addHandler(slice: WritableSlice<K, V>, handler: RecordHandler<K, V>): ObservableBindingTrace {
+    fun <K : Any, V: Any> addHandler(slice: WritableSlice<K, V>, handler: RecordHandler<K, V>): ObservableBindingTrace {
         handlers = handlers.plus(slice, handler)
         return this
     }
 
-    override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
+    override fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K> {
         return originalTrace.getKeys(slice)
     }
 
@@ -59,7 +59,7 @@ class ObservableBindingTrace(private val originalTrace: BindingTrace) : BindingT
         return originalTrace.getType(expression)
     }
 
-    override fun <K : Any, V> record(slice: WritableSlice<K, V>, key: K, value: V) {
+    override fun <K : Any, V : Any> record(slice: WritableSlice<K, V>, key: K, value: V) {
         originalTrace.record(slice, key, value)
         @Suppress("UNCHECKED_CAST")
         val recordHandler = handlers.get(slice) as? RecordHandler<K, V>
@@ -70,7 +70,7 @@ class ObservableBindingTrace(private val originalTrace: BindingTrace) : BindingT
         record(slice, key, true)
     }
 
-    override fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
+    override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? {
         return originalTrace[slice, key]
     }
 

@@ -46,7 +46,7 @@ object Slices {
     val ONLY_REWRITE_TO_EQUAL: RewritePolicy = object : RewritePolicy {
         override fun <K : Any> rewriteProcessingNeeded(key: K): Boolean = true
 
-        override fun <K : Any, V> processRewrite(
+        override fun <K : Any, V: Any> processRewrite(
             slice: WritableSlice<K, V>,
             key: K,
             oldValue: V?,
@@ -68,7 +68,7 @@ object Slices {
     val COMPILE_TIME_VALUE_REWRITE_POLICY: RewritePolicy = object : RewritePolicy {
         override fun <K : Any> rewriteProcessingNeeded(key: K): Boolean = true
 
-        override fun <K : Any, V> processRewrite(
+        override fun <K : Any, V: Any> processRewrite(
             slice: WritableSlice<K, V>,
             key: K,
             oldValue: V?,
@@ -109,7 +109,7 @@ object Slices {
      * 创建简单的 Slice
      */
     @JvmStatic
-    fun <K : Any, V> createSimpleSlice(): WritableSlice<K, V> {
+    fun <K : Any, V: Any> createSimpleSlice(): WritableSlice<K, V> {
         return BasicWritableSlice(ONLY_REWRITE_TO_EQUAL)
     }
 
@@ -125,14 +125,14 @@ object Slices {
      * 创建 Slice 构建器
      */
     @JvmStatic
-    fun <K : Any, V> sliceBuilder(): SliceBuilder<K, V> {
+    fun <K : Any, V: Any> sliceBuilder(): SliceBuilder<K, V> {
         return SliceBuilder(ONLY_REWRITE_TO_EQUAL)
     }
 
     /**
      * 记录关于重写不相等对象的错误
      */
-    private fun <K : Any, V> logErrorAboutRewritingNonEqualObjects(
+    private fun <K : Any, V: Any> logErrorAboutRewritingNonEqualObjects(
         slice: WritableSlice<K, V>,
         key: K,
         oldValue: V?,
@@ -155,7 +155,7 @@ object Slices {
     /**
      * Slice 构建器，用于构建带有高级功能的 Slice
      */
-    class SliceBuilder<K : Any, V> internal constructor(
+    class SliceBuilder<K : Any, V: Any> internal constructor(
         private val rewritePolicy: RewritePolicy
     ) {
         private var furtherLookupSlices: List<ReadOnlySlice<K, V>>? = null

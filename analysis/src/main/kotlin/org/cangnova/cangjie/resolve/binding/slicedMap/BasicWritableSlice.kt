@@ -34,7 +34,7 @@ import java.lang.reflect.Modifier
  * @property rewritePolicy 重写策略
  * @property isCollective 是否为集合式 slice
  */
-open class BasicWritableSlice<K : Any, V>(
+open class BasicWritableSlice<K : Any, V: Any>(
     private val rewritePolicy: RewritePolicy,
     private val isCollective: Boolean = false
 ) : AbstractWritableSlice<K, V>("<BasicWritableSlice>") {

@@ -31,7 +31,7 @@ package org.cangnova.cangjie.resolve.binding.slicedMap
  * @param K 键的类型
  * @param V 值的类型
  */
-interface WritableSlice<K : Any, V> : ReadOnlySlice<K, V> {
+interface WritableSlice<K : Any, V: Any> : ReadOnlySlice<K, V> {
     /**
      * 获取与此 slice 关联的键
      */

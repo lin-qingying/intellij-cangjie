@@ -47,7 +47,10 @@ class CjFunctionType : CjElementImplStub<CangJiePlaceHolderStub<CjFunctionType>>
                 result.add(receiverTypeRef)
             }
             for (cjParameter in parameters) {
-                result.add(cjParameter.typeReference)
+                cjParameter.typeReference?.let{
+                    result.add(it)
+
+                }
             }
             val returnTypeRef = returnTypeReference
             if (returnTypeRef != null) {

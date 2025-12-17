@@ -38,9 +38,9 @@ abstract class AbstractFilteringTrace(
     private val parentTrace: BindingTrace,
     name: String
 ) : DelegatingBindingTrace(parentTrace.bindingContext, name, true, BindingTraceFilter.ACCEPT_ALL, false) {
-    protected abstract fun <K : Any, V> shouldBeHiddenFromParent(slice: WritableSlice<K, V>, key: K): Boolean
+    protected abstract fun <K : Any, V: Any> shouldBeHiddenFromParent(slice: WritableSlice<K, V>, key: K): Boolean
 
-    override fun <K : Any, V> record(slice: WritableSlice<K, V>, key: K, value: V) {
+    override fun <K : Any, V : Any> record(slice: WritableSlice<K, V>, key: K, value: V) {
         if (shouldBeHiddenFromParent(slice, key)) super.record(slice, key, value) else parentTrace.record(
             slice,
             key,

@@ -23,7 +23,8 @@
       "Bash(for file in ResolutionFacadeImpl.kt ResolveElementCache.kt caches/*.kt scopes/*.kt)",
       "Bash(then sed -i 's/\\bModuleInfo\\b/AnalysisContext/g' \"$file\")",
       "Bash(awk:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(comm:*)"
     ],
     "deny": [],
     "ask": []

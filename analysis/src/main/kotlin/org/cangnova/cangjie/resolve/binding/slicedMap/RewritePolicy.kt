@@ -45,7 +45,7 @@ interface RewritePolicy {
      * @param newValue 新值
      * @return true 表示执行写入，false 表示跳过
      */
-    fun <K : Any, V> processRewrite(slice: WritableSlice<K, V>, key: K, oldValue: V?, newValue: V): Boolean
+    fun <K : Any, V: Any> processRewrite(slice: WritableSlice<K, V>, key: K, oldValue: V?, newValue: V): Boolean
 
     companion object {
         /**
@@ -55,7 +55,7 @@ interface RewritePolicy {
         object DO_NOTHING : RewritePolicy {
             override fun <K : Any> rewriteProcessingNeeded(key: K): Boolean = false
 
-            override fun <K : Any, V> processRewrite(
+            override fun <K : Any, V: Any> processRewrite(
                 slice: WritableSlice<K, V>,
                 key: K,
                 oldValue: V?,

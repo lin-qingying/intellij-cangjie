@@ -750,7 +750,10 @@ class OverrideResolver(
             // -- if it's fake, overridden declarations (non-fake) of this descriptor are collected
             val overriddenDeclarationsByDirectParent = collectOverriddenDeclarations(directOverridden)
 
-            ContainerUtil.flatten(overriddenDeclarationsByDirectParent.values)
+            // 明确使用 Iterable 重载以避免歧义
+            val allOverriddenDeclarations = ContainerUtil.flatten(
+                overriddenDeclarationsByDirectParent.values as Iterable<Collection<CallableMemberDescriptor>>
+            )
 //            val allFilteredOverriddenDeclarations = OverridingUtil.filterOutOverridden(
 //                Sets.newLinkedHashSet(allOverriddenDeclarations)
 //            )

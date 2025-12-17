@@ -37,7 +37,7 @@ interface SlicedMap {
      * @param key 键
      * @return 对应的值，如果不存在则返回 null
      */
-    operator fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V?
+    operator fun <K : Any, V: Any> get(slice: ReadOnlySlice<K, V>, key: K): V?
 
     /**
      * 获取集合式 slice 的所有键
@@ -46,14 +46,14 @@ interface SlicedMap {
      * @param slice 集合式 slice
      * @return 所有键的集合
      */
-    fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K>
+    fun <K : Any, V:Any> getKeys(slice: WritableSlice<K, V>): Collection<K>
 
     /**
      * 遍历 SlicedMap 中的所有条目
      *
      * @param f 遍历函数，接收 (WritableSlice, Key, Value) 三个参数
      */
-    fun forEach(f: (WritableSlice<*, *>, Any?, Any?) -> Unit)
+    fun  <K : Any, V:Any>  forEach(f: (WritableSlice<K, V>, K, V) -> Unit)
 
     companion object {
         /**
@@ -61,15 +61,15 @@ interface SlicedMap {
          */
         @JvmField
         val DO_NOTHING: SlicedMap = object : SlicedMap {
-            override fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
+            override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? {
                 return slice.computeValue(this, key, null, true)
             }
 
-            override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
+            override fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K> {
                 return emptySet()
             }
 
-            override fun forEach(f: (WritableSlice<*, *>, Any?, Any?) -> Unit) {
+            override fun <K : Any, V : Any> forEach(f: (WritableSlice<K, V>, K, V) -> Unit) {
                 // 不做任何操作
             }
         }

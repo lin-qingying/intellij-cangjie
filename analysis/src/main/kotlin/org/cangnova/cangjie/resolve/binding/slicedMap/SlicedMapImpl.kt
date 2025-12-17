@@ -147,7 +147,7 @@ open class SlicedMapImpl(
      * @param key 键
      * @return 对应的值，如果不存在则返回 slice 的默认值
      */
-    override fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
+    override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? {
         val currentMap = _map
         if (currentMap == null) {
             return slice.computeValue(this, key, null, valueNotFound = true)
@@ -171,7 +171,7 @@ open class SlicedMapImpl(
      * @return 所有键的集合
      * @throws IllegalArgumentException 如果 slice 不是集合式的
      */
-    override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
+    override fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K> {
         require(slice.isCollective()) { "Keys are not collected for slice $slice" }
 
         val keys = _collectiveSliceKeys
@@ -189,14 +189,14 @@ open class SlicedMapImpl(
      *
      * @param f 回调函数，接收 (WritableSlice, Key, Value) 三个参数
      */
-    override fun forEach(f: (WritableSlice<*, *>, Any?, Any?) -> Unit) {
+    override fun <K : Any, V : Any> forEach(f: (WritableSlice<K, V>, K, V) -> Unit) {
         // 使用 Java 的 forEach(BiConsumer) 方法而不是 Kotlin 的扩展函数
         // 避免调用 entries 属性（在 OpenAddressLinearProbingHashTable 中不支持）
         _map?.forEach { key, holder ->
             holder.keys.forEach { sliceKey ->
                 val value = holder[sliceKey]
-                val slice = (sliceKey as AbstractWritableSlice<*, *>).slice
-                f(slice, key, value)
+                val slice = (sliceKey as AbstractWritableSlice<K, V>).slice
+                f(slice, key as K, value as V)
             }
         }
     }
@@ -216,7 +216,7 @@ open class SlicedMapImpl(
      * @param key 键
      * @param value 值
      */
-    override fun <K : Any, V> put(slice: WritableSlice<K, V>, key: K, value: V) {
+    override fun <K : Any, V : Any> put(slice: WritableSlice<K, V>, key: K, value: V) {
         // 1. 验证键值对
         if (!slice.check(key, value)) {
             return
@@ -255,7 +255,7 @@ open class SlicedMapImpl(
      *
      * @return true 允许重写，false 禁止重写
      */
-    private fun <K : Any, V> canRewrite(
+    private fun <K : Any, V: Any> canRewrite(
         slice: WritableSlice<K, V>,
         key: K,
         holder: KeyFMap,
@@ -293,8 +293,11 @@ open class SlicedMapImpl(
      * @param slice 要查询的 slice
      * @return 不可变的 Map，包含所有 (key, value) 对
      */
-    override fun <K : Any, V> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> {
-        val currentMap = _map ?: return ImmutableMap.of()
+    override fun <K : Any, V : Any> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> {
+        val currentMap = _map ?: run {
+            @Suppress("UNCHECKED_CAST")
+            return ImmutableMap.of<K, V>() as ImmutableMap<K, V>
+        }
         return buildSliceContents(currentMap, slice)
     }
 
@@ -307,21 +310,22 @@ open class SlicedMapImpl(
      * @param slice 目标 slice
      * @return 不可变的 Map
      */
-    private fun <K : Any, V> buildSliceContents(
+    private fun <K : Any, V: Any> buildSliceContents(
         currentMap: Map<Any, KeyFMap>,
         slice: ReadOnlySlice<K, V>
     ): ImmutableMap<K, V> {
-        val builder = ImmutableMap.builder<K, V>()
+        val result = hashMapOf<K, V>()
         val sliceKey = slice.getKey()
 
         currentMap.forEach { (key, holder) ->
             holder[sliceKey]?.let { value ->
                 @Suppress("UNCHECKED_CAST")
-                builder.put(key as K, value)
+                result.put(key as K, value)
             }
         }
 
-        return builder.build()
+
+        return ImmutableMap.copyOf(result)
     }
 
     /**
@@ -336,7 +340,7 @@ open class SlicedMapImpl(
      * @param key 要删除的键
      * @return true 成功删除，false 键不存在
      */
-    fun <K : Any, V> removeBySlice(slice: ReadOnlySlice<K, V>, key: K): Boolean {
+    fun <K : Any, V: Any> removeBySlice(slice: ReadOnlySlice<K, V>, key: K): Boolean {
         val currentMap = _map ?: return false
         val holder = currentMap[key] ?: return false
         val sliceKey = slice.getKey()
@@ -366,7 +370,7 @@ open class SlicedMapImpl(
      * @param slice 目标 slice
      * @param key 要移除的键
      */
-    private fun <K : Any, V> removeFromCollectiveKeys(slice: ReadOnlySlice<K, V>, key: K) {
+    private fun <K : Any, V: Any> removeFromCollectiveKeys(slice: ReadOnlySlice<K, V>, key: K) {
         if (slice is WritableSlice && slice.isCollective()) {
             _collectiveSliceKeys?.remove(slice, key)
         }

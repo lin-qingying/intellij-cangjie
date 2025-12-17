@@ -82,19 +82,20 @@ class CompositeBindingContext private constructor(
     override val diagnostics: Diagnostics
         get() = CompositeDiagnostics(delegates.map { it.diagnostics })
 
-    override fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
+    override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? {
         return delegates.asSequence().map { it[slice, key] }.firstOrNull { it != null }
     }
 
-    override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
+    override fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K> {
         return delegates.flatMap { it.getKeys(slice) }
     }
 
-    override fun <K : Any, V> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> {
+    override fun <K : Any, V : Any> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> {
         //we need intermediate map cause ImmutableMap doesn't support same entries obtained from different slices
         val map = hashMapOf<K, V>()
         delegates.forEach { map.putAll(it.getSliceContents(slice)) }
-        return ImmutableMap.builder<K, V>().putAll(map).build()
+
+        return ImmutableMap.copyOf(map)
     }
 
 

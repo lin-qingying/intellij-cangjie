@@ -791,7 +791,7 @@ private class StackedCompositeBindingContextTrace(
         /**
          * 获取绑定切片中的值。
          */
-        override fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
+        override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? {
             selfGet(slice, key)?.let { return it }
             if (!key.containedInReanalyzedElement()) {
                 return parentContext.get(slice, key)?.takeIf {
@@ -812,7 +812,7 @@ private class StackedCompositeBindingContextTrace(
         /**
          * 获取切片的所有键。
          */
-        override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
+        override fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K> {
             val keys = map.getKeys(slice)
             val fromParent = parentContext.getKeys(slice).filter {
                 !it.containedInReanalyzedElement()
@@ -826,7 +826,7 @@ private class StackedCompositeBindingContextTrace(
         /**
          * 获取切片的内容。
          */
-        override fun <K : Any, V> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> {
+        override fun <K : Any, V : Any> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> {
             val parentSliceContents = parentContext.getSliceContents(slice).filter {
                 !it.key.containedInReanalyzedElement()
             }
@@ -844,7 +844,7 @@ private class StackedCompositeBindingContextTrace(
     /**
      * 从当前上下文或父上下文中获取绑定数据。
      */
-    override fun <K : Any, V > get(slice: ReadOnlySlice<K, V>, key: K): V? =
+    override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? =
         if (slice == BindingContext.ANNOTATION) {
             selfGet(slice, key) ?: parentContext.get(slice, key)
         } else {

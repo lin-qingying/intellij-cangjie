@@ -223,10 +223,10 @@ inline fun <Scope, T> getFirstFromAllScopes(scopes: Array<Scope>, callback: (Sco
     }
 
 fun listOfNonEmptyScopes(scopes: Iterable<MemberScope?>): SmartList<MemberScope> =
-    scopes.filterTo(SmartList<MemberScope>()) { it != null && it !== MemberScope.Empty }
+    scopes.filterNotNull().filterTo(SmartList()) { it !== MemberScope.Empty }
 
 fun listOfNonEmptyScopes(vararg scopes: MemberScope?): SmartList<MemberScope> =
-    scopes.filterTo(SmartList<MemberScope>()) { it != null && it !== MemberScope.Empty }
+    scopes.filterNotNull().filterTo(SmartList()) { it !== MemberScope.Empty }
 
 inline fun <Scope, T : ClassifierDescriptor> getListClassifierDiscriminateHeaders(
     scopes: Array<Scope>,

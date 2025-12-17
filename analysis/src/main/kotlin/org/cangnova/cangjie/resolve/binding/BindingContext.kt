@@ -85,7 +85,7 @@ interface BindingContext {
      * @param key 键
      * @return 对应的值，如果不存在则返回 null
      */
-    operator fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V?
+    operator fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V?
 
     /**
      * 获取集合式 slice 的所有键
@@ -96,7 +96,7 @@ interface BindingContext {
      * @return 所有键的集合
      */
     @ReadOnly
-    fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K>
+    fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K>
 
     /**
      * 获取指定 slice 的所有内容
@@ -107,7 +107,7 @@ interface BindingContext {
      * @return 不可变的 Map，包含所有内容
      */
     @TestOnly
-    fun <K : Any, V> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V>
+    fun <K : Any, V : Any> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V>
 
     /**
      * 获取表达式的类型
@@ -134,13 +134,15 @@ interface BindingContext {
             override val diagnostics: Diagnostics
                 get() = Diagnostics.EMPTY
 
-            override fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V? = null
+            override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? = null
 
-            override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> = emptyList()
+            override fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K> = emptyList()
 
             @TestOnly
-            override fun <K : Any, V> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> =
-                ImmutableMap.of()
+            override fun <K : Any, V : Any> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> {
+
+                return ImmutableMap.of<K, V>()
+            }
 
             override fun getType(expression: CjExpression): CangJieType? = null
 

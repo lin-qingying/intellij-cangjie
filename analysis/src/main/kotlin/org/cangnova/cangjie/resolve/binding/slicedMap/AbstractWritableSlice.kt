@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.resolve.binding.slicedMap
 
 
-abstract class AbstractWritableSlice<K : Any, V>(debugName: String) :
+abstract class AbstractWritableSlice<K : Any, V: Any>(debugName: String) :
     KeyWithSlice<K, V, WritableSlice<K, V>>(debugName), WritableSlice<K, V> {
     override val slice: WritableSlice<K, V>
         get() = this

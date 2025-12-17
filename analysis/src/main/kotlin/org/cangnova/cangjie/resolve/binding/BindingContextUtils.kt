@@ -136,14 +136,14 @@ object BindingContextUtils {
     }
 
     @JvmStatic
-    fun <K : Any, V> getNotNull(
+    fun <K : Any, V: Any> getNotNull(
         bindingContext: BindingContext,
         slice: ReadOnlySlice<K, V>,
         key: K
     ): V = getNotNull(bindingContext, slice, key, "Value at $slice must not be null for $key")
 
     @JvmStatic
-    fun <K : Any, V> getNotNull(
+    fun <K : Any, V : Any> getNotNull(
         bindingContext: BindingContext,
         slice: ReadOnlySlice<K, V>,
         key: K,
@@ -182,8 +182,8 @@ object BindingContextUtils {
             if (filter == null || filter.accept(slice, key)) {
                 // 由于 forEach 使用星号投影，需要进行类型转换
                 // 这在运行时是安全的，因为 slice 保证了类型一致性
-                @Suppress("UNCHECKED_CAST")
-                recordEntry(trace, slice as WritableSlice<Any, Any?>, key as Any, value)
+
+                recordEntry(trace, slice  , key  , value)
             }
             null
         }
@@ -204,14 +204,14 @@ object BindingContextUtils {
      * 辅助方法：安全地记录 trace 条目
      * 此方法封装了类型转换逻辑，使类型系统能够正确推断
      */
-    @Suppress("UNCHECKED_CAST")
-    private fun <K : Any, V> recordEntry(
+
+    private fun <K : Any, V: Any> recordEntry(
         trace: BindingTrace,
         slice: WritableSlice<K, V>,
         key: K,
-        value: Any?
+        value: V
     ) {
-        trace.record(slice, key, value as V)
+        trace.record(slice, key, value  )
     }
 
     @JvmStatic
@@ -233,7 +233,7 @@ object BindingContextUtils {
     }
 
     @JvmStatic
-    fun <K : Any, V> removeBySlice(slice: ReadOnlySlice<K, V>, key: K, trace: BindingTrace) {
+    fun <K : Any, V: Any> removeBySlice(slice: ReadOnlySlice<K, V>, key: K, trace: BindingTrace) {
         (trace as? DelegatingBindingTrace)?.removeBySlice(slice, key)
     }
 

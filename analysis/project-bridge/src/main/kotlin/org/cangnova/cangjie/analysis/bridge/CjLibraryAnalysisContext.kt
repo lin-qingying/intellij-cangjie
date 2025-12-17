@@ -39,6 +39,9 @@ import org.cangnova.cangjie.project.model.CjDependency
  * - 可能没有源码
  * - 不参与增量编译
  *
+ * **依赖传递**：库的传递依赖由 cangjie-project 模块负责解析，
+ * 此类只需提供基本的上下文信息即可。
+ *
  * @property dependency 底层的 CjDependency 实例
  * @property project 所属的 IntelliJ 项目
  */

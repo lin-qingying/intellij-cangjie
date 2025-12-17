@@ -62,7 +62,15 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
 
     abstract fun setResultingSubstitutor(substitutor: NewTypeSubstitutor?)
     abstract fun updateDispatchReceiverType(newType: CangJieType)
-    override var valueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument> = createValueArguments()
+    private var _valueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument>? = null
+    override val valueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument>
+        get() {
+
+            return _valueArguments ?: createValueArguments().also {
+                _valueArguments = it
+            }
+        }
+
     private var argumentToParameterMap: Map<ValueArgument, ArgumentMatchImpl>? = null
     abstract fun argumentToParameterMap(
         resultingDescriptor: CallableDescriptor,
@@ -85,8 +93,9 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
 
     override val dataFlowInfoForArguments: DataFlowInfoForArguments
         get() = object : DataFlowInfoForArguments {
-            override val resultInfo : DataFlowInfo get() =
-                nonTrivialUpdatedResultInfo ?: psiCangJieCall.resultDataFlowInfo
+            override val resultInfo: DataFlowInfo
+                get() =
+                    nonTrivialUpdatedResultInfo ?: psiCangJieCall.resultDataFlowInfo
 
             override fun getInfo(valueArgument: ValueArgument): DataFlowInfo {
                 val externalPsiCallArgument = cangjieCall?.externalArgument?.psiCallArgument
@@ -98,7 +107,8 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
         }
 
     fun updateValueArguments(newValueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument>) {
-        valueArguments = newValueArguments
+
+        _valueArguments = newValueArguments
     }
 
     /**
@@ -242,7 +252,6 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
 
     protected fun substitutedResultingDescriptor(substitutor: NewTypeSubstitutor?) =
         when (val candidateDescriptor = candidateDescriptor) {
-
 
 
             is ClassConstructorDescriptor, is SyntheticMemberDescriptor<*> -> {

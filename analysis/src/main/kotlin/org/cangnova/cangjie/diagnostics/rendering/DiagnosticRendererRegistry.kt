@@ -37,6 +37,15 @@ import java.util.concurrent.ConcurrentHashMap
  * 2. 显式配置：复杂诊断可以手动配置渲染逻辑
  * 3. 分包管理：每个诊断包维护自己的渲染器配置
  *
+ * ## 初始化机制
+ *
+ * **延迟初始化**：为避免在类加载时（静态初始化阶段）依赖服务，
+ * 本注册中心采用延迟初始化策略：
+ * - 不在 `init` 块或静态字段中进行初始化
+ * - 通过 [org.cangnova.cangjie.diagnostics.DiagnosticInitializerStartupActivity]
+ *   在项目启动后调用 [ensureInitialized]
+ * - 避免 IntelliJ 平台的 "Class initialization must not depend on services" 错误
+ *
  * ## 自动推断规则
  *
  * - 消息：使用 `DiagnosticFactory.name` 查找 `CangJieDiagnosisBundle`
@@ -67,6 +76,8 @@ import java.util.concurrent.ConcurrentHashMap
  *     }
  * }
  * ```
+ *
+ * @see org.cangnova.cangjie.diagnostics.DiagnosticInitializerStartupActivity
  */
 object DiagnosticRendererRegistry {
     private val explicitRenderers = ConcurrentHashMap<DiagnosticFactory<*>, DiagnosticRenderer<*>>()
@@ -76,16 +87,18 @@ object DiagnosticRendererRegistry {
     @Volatile
     private var initialized = false
 
-    init {
-        initialize()
-    }
-
     /**
-     * 初始化注册中心
+     * 确保渲染器注册中心已初始化
      *
-     * 通过扩展点自动加载所有 [DiagnosticRendererProvider] 实现
+     * 通过扩展点自动加载所有 [DiagnosticRendererProvider] 实现。
+     *
+     * **延迟初始化**：不在类加载时初始化，而是在项目启动后通过
+     * [org.cangnova.cangjie.diagnostics.DiagnosticInitializerStartupActivity] 调用，
+     * 避免在静态初始化阶段依赖服务。
+     *
+     * 此方法是线程安全的，可以被多次调用（后续调用会立即返回）。
      */
-    private fun initialize() {
+    fun ensureInitialized() {
         if (initialized) return
 
         synchronized(this) {
@@ -97,8 +110,7 @@ object DiagnosticRendererRegistry {
                     provider.register()
                 } catch (e: Exception) {
                     // 记录错误但继续加载其他提供者
-                    LOG.warn("Failed to register diagnostic renderer provider: ${provider.javaClass.name}")
-                    e.printStackTrace()
+                    LOG.warn("Failed to register diagnostic renderer provider: ${provider.javaClass.name}", e)
                 }
             }
 

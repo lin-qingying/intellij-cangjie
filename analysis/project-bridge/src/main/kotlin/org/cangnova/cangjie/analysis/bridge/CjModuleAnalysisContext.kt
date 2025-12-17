@@ -24,8 +24,12 @@
 
 package org.cangnova.cangjie.analysis.bridge
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
+import org.cangnova.cangjie.analysis.bridge.cache.CacheKeys
+import org.cangnova.cangjie.analysis.bridge.cache.cacheOnRootModifications
+import org.cangnova.cangjie.analysis.bridge.scope.AnalysisScopeUtils
 import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjDependency
@@ -57,6 +61,10 @@ class CjModuleAnalysisContext(
     private val cjModule: CjModule
 ) : AnalysisContext {
 
+    companion object {
+        private val LOG = Logger.getInstance(CjModuleAnalysisContext::class.java)
+    }
+
     /**
      * 上下文标识符
      *
@@ -81,20 +89,7 @@ class CjModuleAnalysisContext(
      * **延迟计算**：作用域在首次访问时计算并缓存。
      */
     override val scope: GlobalSearchScope by lazy {
-        val allSourceRoots = cjModule.sourceSets.flatMap { sourceSet ->
-            sourceSet.sourceRoots
-        }
-
-        if (allSourceRoots.isEmpty()) {
-            // 如果没有源码根，返回空作用域
-            GlobalSearchScope.EMPTY_SCOPE
-        } else {
-            // 创建包含所有源码根的联合作用域
-            GlobalSearchScope.filesScope(
-                project,
-                allSourceRoots.toList()
-            )
-        }
+        AnalysisScopeUtils.createModuleScope(cjModule)
     }
 
     /**
@@ -108,12 +103,24 @@ class CjModuleAnalysisContext(
      * - CjDependency.Stdlib：标准库依赖
      * - CjDependency.Binary：二进制依赖
      *
-     * **延迟计算**：依赖在首次访问时解析并缓存。
+     * **缓存策略**：使用 CachedValuesManager，当项目根目录修改时自动失效。
      */
-    override val dependencies: List<AnalysisContext> by lazy {
-        val result = mutableListOf<AnalysisContext>()
+    override val dependencies: List<AnalysisContext>
+        get() = cjModule.cacheOnRootModifications(CacheKeys.DEPENDENCY_LIST) {
+            collectDependencies()
+        }
 
-        // 获取编译期依赖
+    /**
+     * 收集模块的所有依赖
+     *
+     * @return 依赖的上下文列表
+     */
+    private fun collectDependencies(): List<AnalysisContext> {
+        if (LOG.isDebugEnabled) {
+            LOG.debug("Collecting dependencies for module: $contextId")
+        }
+
+        val result = mutableListOf<AnalysisContext>()
         val compileDeps = cjModule.dependencies
 
         for (dep in compileDeps) {
@@ -121,14 +128,23 @@ class CjModuleAnalysisContext(
                 val depContext = resolveDependencyToContext(dep)
                 if (depContext != null) {
                     result.add(depContext)
+                    if (LOG.isDebugEnabled) {
+                        LOG.debug("  Added dependency: ${depContext.contextId}")
+                    }
+                } else {
+                    LOG.warn("Failed to resolve dependency: $dep for module $contextId")
                 }
             } catch (e: Exception) {
                 // 记录但不中断：某个依赖解析失败不应影响其他依赖
-                // TODO: 添加日志记录
+                LOG.error("Error resolving dependency: $dep for module $contextId", e)
             }
         }
 
-        result
+        if (LOG.isDebugEnabled) {
+            LOG.debug("Total dependencies collected for $contextId: ${result.size}")
+        }
+
+        return result + listOf(this)
     }
 
     /**

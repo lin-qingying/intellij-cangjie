@@ -32,7 +32,7 @@ class BindingTraceForBodyResolve(
     debugName: String,
     filter: BindingTraceFilter = BindingTraceFilter.ACCEPT_ALL
 ) : DelegatingBindingTrace(parentContext, debugName, filter = filter, allowSliceRewrite = true) {
-    override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
+    override fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K> {
         if (slice == BindingContext.DEFERRED_TYPE) {
             return map.getKeys(slice)
         }

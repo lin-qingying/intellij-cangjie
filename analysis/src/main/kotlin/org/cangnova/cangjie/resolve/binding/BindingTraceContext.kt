@@ -87,12 +87,12 @@ class BindingTraceContext(
             get() = mutableDiagnostics ?: Diagnostics.EMPTY
 
 
-        override fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
+        override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? {
             return this@BindingTraceContext[slice, key]
 
         }
 
-        override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
+        override fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K> {
             return this@BindingTraceContext.getKeys(slice)
 
         }
@@ -111,7 +111,7 @@ class BindingTraceContext(
         }
 
         @TestOnly
-        override fun <K : Any, V> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> {
+        override fun <K : Any, V : Any> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> {
             return map.getSliceContents(slice)
         }
 
@@ -146,7 +146,7 @@ class BindingTraceContext(
 
 //    override fun getBindingContext(): BindingContext  = bindingContext
 
-    override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
+    override fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K> {
         return map.getKeys(slice)
     }
 
@@ -157,7 +157,7 @@ class BindingTraceContext(
         )?.type
     }
 
-    override fun <K : Any, V> record(slice: WritableSlice<K, V>, key: K, value: V) {
+    override fun <K : Any, V : Any> record(slice: WritableSlice<K, V>, key: K, value: V) {
         if (isValidationEnabled && value is ValidateableDescriptor && !ProgressManager.getInstance().isInNonCancelableSection) {
             (value as ValidateableDescriptor).validate()
         }
@@ -183,7 +183,7 @@ class BindingTraceContext(
         )
     }
 
-    override fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
+    override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? {
         return map.get(slice, key)
 
     }

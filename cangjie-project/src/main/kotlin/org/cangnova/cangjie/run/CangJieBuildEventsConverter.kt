@@ -38,6 +38,7 @@ import com.intellij.openapi.util.NlsActions
 import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.util.text.StringUtil
 import org.cangnova.cangjie.project.CjProjectBundle
+import org.jetbrains.annotations.Nls
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.function.Consumer
@@ -271,7 +272,7 @@ class CangJieBuildEventsConverter(private val context: CangJieBuildContext) : Bu
             parentEventId: Any,
             kind: MessageEvent.Kind,
             @BuildEventsNls.Message message: String,
-            @org.jetbrains.annotations.Nls detailedMessage: String?,
+            @Nls detailedMessage: String?,
             filePosition: FilePosition? = null
         ): MessageEvent = FileMessageEventImpl(
             parentEventId,

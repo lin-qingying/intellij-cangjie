@@ -1176,37 +1176,23 @@ class LazyModuleDependencies<M : AnalysisContext>(
      * 这样模块可以通过统一的 packageFragmentProvider 访问自己定义的类型。
      */
     private val dependencies = storageManager.createLazyValue {
-        val moduleDescriptors = mutableListOf<ModuleDescriptorImpl>()
-
-        // 1. 首先添加模块自身
-        //    这样模块可以查找到自己定义的类型
-        val selfDescriptor = resolverForProject.descriptorForModule(module)
-        moduleDescriptors.add(selfDescriptor)
-
-        // 2. 添加 firstDependency（通常是 SDK/stdlib）
+        val moduleDescriptors = mutableSetOf<ModuleDescriptorImpl>()
         firstDependency?.let {
             module.assertModuleDependencyIsCorrect(it)
-            val descriptor = resolverForProject.descriptorForModule(it)
-            if (descriptor != selfDescriptor) {  // 避免重复添加
-                moduleDescriptors.add(descriptor)
-            }
+            moduleDescriptors.add(resolverForProject.descriptorForModule(it))
         }
 
-        // 3. 处理其他所有依赖
+        // 处理所有依赖
         for (dependency in module.dependencies) {
             if (dependency == firstDependency) continue
             module.assertModuleDependencyIsCorrect(dependency)
 
             @Suppress("UNCHECKED_CAST")
-            val descriptor = resolverForProject.descriptorForModule(dependency as M)
-            if (descriptor !in moduleDescriptors) {  // 避免重复添加
-                moduleDescriptors.add(descriptor)
-            }
+            moduleDescriptors.add(resolverForProject.descriptorForModule(dependency as M))
         }
 
-        moduleDescriptors
+        moduleDescriptors.toList()
     }
-
     /**
      * 所有依赖模块
      *

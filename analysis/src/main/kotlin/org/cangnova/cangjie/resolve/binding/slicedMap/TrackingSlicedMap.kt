@@ -41,7 +41,7 @@ class TrackingSlicedMap(
      * 可追踪的值包装器，记录值及其写入时的堆栈信息
      */
     private data class TrackableValue<V>(
-        val value: V, // 支持可空值 使用Null object
+        val value: V,
         val stackTrace: Array<StackTraceElement>,
         val threadName: String
     ) {
@@ -76,31 +76,34 @@ class TrackingSlicedMap(
         }
     }
 
-    override fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
+    override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? {
         return super.get(wrapSlice(slice), key)?.value
     }
 
-    override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
+    override fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K> {
         return super.getKeys(wrapSlice(slice))
     }
 
-    override fun forEach(f: (WritableSlice<*, *>, Any?, Any?) -> Unit) {
-        super.forEach { slice, key, value ->
-            @Suppress("UNCHECKED_CAST")
-            f(
-                (slice as SliceWithStackTrace<*, *>).writableDelegate,
-                key,
-                (value as TrackableValue<*>).value
-            )
-        }
+    override fun <K : Any, V : Any> forEach(f: (WritableSlice<K, V>, K, V) -> Unit) {
+        super.forEach(
+            { slice: WritableSlice<K, V>, key, value ->
+                @Suppress("UNCHECKED_CAST")
+                f(
+                    (slice as SliceWithStackTrace<*, *>).writableDelegate as WritableSlice<K, V>,
+                    key,
+                    (value as TrackableValue<*>).value as V
+                )
+            }
+        )
+
     }
 
-    override fun <K : Any, V> put(slice: WritableSlice<K, V>, key: K, value: V) {
+    override fun <K : Any, V : Any> put(slice: WritableSlice<K, V>, key: K, value: V) {
         super.put(wrapSlice(slice), key, TrackableValue(value, trackWithStackTraces))
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <K : Any, V> wrapSlice(slice: ReadOnlySlice<K, V>): SliceWithStackTrace<K, V> {
+    private fun <K : Any, V : Any> wrapSlice(slice: ReadOnlySlice<K, V>): SliceWithStackTrace<K, V> {
         return sliceTranslationMap.getOrPut(slice) {
             SliceWithStackTrace(slice)
         } as SliceWithStackTrace<K, V>
@@ -109,7 +112,7 @@ class TrackingSlicedMap(
     /**
      * 带有堆栈跟踪的 Slice 包装器
      */
-    private inner class SliceWithStackTrace<K : Any, V>(
+    private inner class SliceWithStackTrace<K : Any, V : Any>(
         private val delegate: ReadOnlySlice<K, V>
     ) : AbstractWritableSlice<K, TrackableValue<V>>(delegate.toString()),
         WritableSlice<K, TrackableValue<V>> {

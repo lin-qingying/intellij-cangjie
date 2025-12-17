@@ -89,7 +89,7 @@ open class DelegatingBindingTrace(
         override val diagnostics: Diagnostics
             get() = mutableDiagnostics ?: Diagnostics.EMPTY
 
-        override fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
+        override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? {
             return this@DelegatingBindingTrace.get(slice, key)
         }
 
@@ -97,7 +97,7 @@ open class DelegatingBindingTrace(
             return this@DelegatingBindingTrace.getType(expression)
         }
 
-        override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
+        override fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K> {
             return this@DelegatingBindingTrace.getKeys(slice)
         }
 
@@ -106,15 +106,19 @@ open class DelegatingBindingTrace(
         }
 
         @TestOnly
-        override fun <K : Any, V> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> {
-            return ImmutableMap.copyOf(parentContext.getSliceContents(slice) + map.getSliceContents(slice))
+        override fun <K : Any, V : Any> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> {
+            val combined = hashMapOf<K, V>()
+            combined.putAll(parentContext.getSliceContents(slice))
+            combined.putAll(map.getSliceContents(slice))
+            @Suppress("UNCHECKED_CAST")
+            return ImmutableMap.copyOf(combined) as ImmutableMap<K, V>
         }
     }
 
     /**
      * 删除某个ReadOnlySlice
      */
-    fun <K : Any, V> removeBySlice(slice: ReadOnlySlice<K, V>, key: K) {
+    fun <K : Any, V: Any> removeBySlice(slice: ReadOnlySlice<K, V>, key: K) {
         map.removeBySlice(slice, key)
     }
 
@@ -142,7 +146,7 @@ open class DelegatingBindingTrace(
         record(BindingContext.EXPRESSION_TYPE_INFO, expression, typeInfo)
     }
 
-    protected fun <K : Any, V> selfGet(slice: ReadOnlySlice<K, V>, key: K): V? {
+    protected fun <K : Any, V: Any> selfGet(slice: ReadOnlySlice<K, V>, key: K): V? {
         val value = map.get(slice, key)
         return if (slice is SetSlice<*>) {
             assert(value != null)
@@ -161,7 +165,7 @@ open class DelegatingBindingTrace(
 //    override fun getBindingContext(): BindingContext = bindingContext
 
 
-    override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
+    override fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K> {
         val keys = map.getKeys(slice)
         val fromParent = parentContext.getKeys(slice)
         if (keys.isEmpty()) return fromParent
@@ -175,7 +179,7 @@ open class DelegatingBindingTrace(
         return typeInfo?.type
     }
 
-    override fun <K : Any, V> record(slice: WritableSlice<K, V>, key: K, value: V) {
+    override fun <K : Any, V : Any> record(slice: WritableSlice<K, V>, key: K, value: V) {
         map.put(slice, key, value)
     }
 
@@ -183,7 +187,7 @@ open class DelegatingBindingTrace(
         record(slice, key, true)
     }
 
-    override fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V? =
+    override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? =
         selfGet(slice, key) ?: parentContext.get(slice, key)
 
 

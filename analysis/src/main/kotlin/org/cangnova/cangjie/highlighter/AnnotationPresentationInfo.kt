@@ -31,7 +31,6 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfoType
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionWithOptions
-import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixUpdater
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.SuppressableProblemGroup
 import com.intellij.codeInspection.util.IntentionFamilyName
@@ -196,16 +195,8 @@ class AnnotationPresentationInfo(
 
             if (fix == RegisterQuickFixesLaterIntentionAction) {
                 if (builder != null) {
-
-//                    element.reference?.let {
-
-                    //TODO 兼容性调整
-//                        UnresolvedReferenceQuickFixUpdater.getInstance(element.project)
-//                            .registerQuickFixesLater(it, builder)
-//
-//                        UnresolvedReferenceQuickFixProvider.registerReferenceFixes(it, builder)
-//                    }
-
+                    // TODO 兼容性调整：UnresolvedReferenceQuickFixUpdater 在新版本 IntelliJ Platform 中可能已移除
+                    // 暂时跳过此逻辑
                     continue
                 }
             }

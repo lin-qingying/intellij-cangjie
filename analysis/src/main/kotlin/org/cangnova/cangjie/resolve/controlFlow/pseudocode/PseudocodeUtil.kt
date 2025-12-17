@@ -63,18 +63,18 @@ object PseudocodeUtil {
                 get() = bindingContext
 
 
-            override fun <K : Any, V> record(slice: WritableSlice<K, V>, key: K, value: V) {
+            override fun <K : Any, V : Any> record(slice: WritableSlice<K, V>, key: K, value: V) {
             }
 
             override fun <K : Any> record(slice: WritableSlice<K, Boolean>, key: K) {
 
             }
 
-            override fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
+            override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? {
                 return bindingContext.get(slice, key)
             }
 
-            override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
+            override fun <K : Any, V : Any> getKeys(slice: WritableSlice<K, V>): Collection<K> {
                 return bindingContext.getKeys(slice)
             }
 
