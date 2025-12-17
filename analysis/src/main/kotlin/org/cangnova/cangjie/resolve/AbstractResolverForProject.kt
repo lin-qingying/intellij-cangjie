@@ -371,10 +371,10 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
      * 在新的 AnalysisContext 系统中，每个上下文都是独立的，不需要 flatten。
      * 直接将每个上下文映射到自身。
      */
-    @Suppress("UNCHECKED_CAST")
+
     private val contextToResolvableInfo: Map<M, M> =
         // 在新的 AnalysisContext 系统中，每个上下文都是独立的，不需要 flatten
-        modules.associateWith { it } as Map<M, M>
+        modules.associateWith { it }
 
     /**
      * 所有模块的集合
