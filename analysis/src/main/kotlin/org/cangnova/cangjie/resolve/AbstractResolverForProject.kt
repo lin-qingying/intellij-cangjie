@@ -381,7 +381,7 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
      *
      * 包含当前解析器管理的所有模块和委托解析器的所有模块。
      */
-    override val allModules: Collection<M> by lazy {
+    override val allModules: Set<M> by lazy {
         this.contextToResolvableInfo.keys + delegateResolver.allModules
     }
 

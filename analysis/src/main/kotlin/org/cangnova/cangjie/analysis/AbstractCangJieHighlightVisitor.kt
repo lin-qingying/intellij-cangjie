@@ -32,6 +32,7 @@ import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -75,12 +76,14 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
 
 
         try {
+            DumbService.getInstance(psiFile.project).runWhenSmart {
+
+                analyze(file, holder)
 
 
-            analyze(file, holder)
+                action.run()
+            }
 
-
-            action.run()
 
             attempt = 0
 

@@ -49,7 +49,7 @@ internal class RootKindMatcherImpl(private val project: Project) : RootKindMatch
         if (virtualFile !is VirtualFileWindow && fileIndex.isInSource(virtualFile)) {
             return filter.includeProjectSourceFiles
         }
-//
+
         if (cangjieExcludeLibrarySources) {
             return false
         }
@@ -57,33 +57,6 @@ internal class RootKindMatcherImpl(private val project: Project) : RootKindMatch
             filter.copy()
 
 
-//        val canContainClassFiles: Boolean
-//        val isBinary: Boolean
-//
-//        if (virtualFile.isDirectory) {
-//            canContainClassFiles = true
-//            isBinary = false
-//        } else {
-//            val nameSequence = virtualFile.nameSequence
-//            if (
-//                nameSequence.endsWith(CangJieFileType.DOT_DEFAULT_EXTENSION)
-//            ) {
-//                canContainClassFiles = false
-//                isBinary = false
-//            } else if (
-//                nameSequence.endsWith(CangJieClassFileType.DOT_DEFAULT_EXTENSION) ||
-//                nameSequence.endsWith(BuiltInSerializerProtocol.DOT_DEFAULT_EXTENSION) ||
-//                nameSequence.endsWith(MetadataPackageFragment.Companion.DOT_METADATA_FILE_EXTENSION)
-//            ) {
-//                canContainClassFiles = false
-//                isBinary = true
-//            } else {
-//                val fileType = FileTypeManager.getInstance().getFileTypeByFileName(virtualFile.nameSequence)
-//                // NOTE: the following is a workaround for cases when class files are under library source roots and source files are under class roots
-//                canContainClassFiles = fileType == ArchiveFileType.INSTANCE || virtualFile.isDirectory
-//                isBinary = fileType.isCangJieBinary
-//            }
-//        }
 
         if (correctedFilter.includeLibraryClassFiles/* && (isBinary || canContainClassFiles)*/) {
             if (fileIndex.isInLibraryClasses(virtualFile)) {

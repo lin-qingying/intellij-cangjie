@@ -505,8 +505,6 @@ abstract class ResolverForProject<M : AnalysisContext> {
         /** 特殊信息解析器名称标识（用于代码补全/高亮） */
         const val resolverForSpecialInfoName = "completion/highlighting in "
 
-        /** SDK 解析器名称标识 */
-        const val resolverForSdkName = "sdk"
     }
 }
 
