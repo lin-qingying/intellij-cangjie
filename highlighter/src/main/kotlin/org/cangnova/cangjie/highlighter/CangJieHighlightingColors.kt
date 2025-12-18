@@ -30,7 +30,7 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 
 object CangJieHighlightingColors {
     /*********************************关键字*********************************************************/
-    // 基本关键字的高亮，如class、fun、val等
+    // 基本关键字的高亮，如class、func、let等
     val KEYWORD: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD)
 

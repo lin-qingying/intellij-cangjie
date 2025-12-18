@@ -24,6 +24,8 @@
 
 package org.cangnova.cangjie.cjpm.project
 
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.cjpm.config.toml.CjpmTomlParser
 import org.cangnova.cangjie.cjpm.project.model.toml.DependencyConfig
@@ -45,6 +47,15 @@ class CjpmModuleImpl(
     val packageConfig: PackageConfig
 ) : CjModule {
 
+    /**
+     * UserData 存储委托
+     */
+    private val userDataHolder = UserDataHolderBase()
+
+    // 实现 UserDataHolder 接口
+    override fun <T> getUserData(key: Key<T>): T? = userDataHolder.getUserData(key)
+
+    override fun <T> putUserData(key: Key<T>, value: T?) = userDataHolder.putUserData(key, value)
 
     override val configFile: VirtualFile?
         get() = rootDir.findChild("cjpm.toml")

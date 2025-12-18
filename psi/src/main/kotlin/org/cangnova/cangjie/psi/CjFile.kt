@@ -289,6 +289,7 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
         error("Illegal stub for CjFile: type=${this.javaClass}, stub=${stub!!.javaClass} name=$name")
     }
 
+
     /**
      * 返回此文件的包指令。
      * 如果可用，则使用存根以提高性能。

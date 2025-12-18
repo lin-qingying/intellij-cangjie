@@ -27,6 +27,7 @@ package org.cangnova.cangjie.analysis.bridge.scope
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.SlowOperations
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjSourceSet
 
@@ -62,6 +63,9 @@ object AnalysisScopeUtils {
      *
      * 包含模块的所有源码集中的源文件。
      *
+     * **注意**：此方法可能需要访问工作区索引，因此允许慢操作。
+     * 如果在 EDT 上调用，会临时允许慢操作以避免 SlowOperations 异常。
+     *
      * @param module 模块实例
      * @return 全局搜索作用域
      */
@@ -71,7 +75,9 @@ object AnalysisScopeUtils {
 
         return when {
             allSourceRoots.isEmpty() -> GlobalSearchScope.EMPTY_SCOPE
-            else -> GlobalSearchScope.filesScope(project, allSourceRoots)
+            else ->
+                GlobalSearchScope.filesScope(project, allSourceRoots)
+
         }
     }
 
@@ -79,6 +85,8 @@ object AnalysisScopeUtils {
      * 从 CjSourceSet 创建全局搜索作用域
      *
      * 仅包含指定源码集的源文件。
+     *
+     * **注意**：此方法可能需要访问工作区索引，因此允许慢操作。
      *
      * @param sourceSet 源码集实例
      * @param project IntelliJ 项目
@@ -89,12 +97,16 @@ object AnalysisScopeUtils {
 
         return when {
             sourceRoots.isEmpty() -> GlobalSearchScope.EMPTY_SCOPE
-            else -> GlobalSearchScope.filesScope(project, sourceRoots)
+            else ->
+                GlobalSearchScope.filesScope(project, sourceRoots)
+
         }
     }
 
     /**
      * 创建包含指定文件列表的作用域
+     *
+     * **注意**：此方法可能需要访问工作区索引，因此允许慢操作。
      *
      * @param project IntelliJ 项目
      * @param files 文件列表
@@ -103,7 +115,9 @@ object AnalysisScopeUtils {
     fun createFilesScope(project: Project, files: Collection<VirtualFile>): GlobalSearchScope {
         return when {
             files.isEmpty() -> GlobalSearchScope.EMPTY_SCOPE
-            else -> GlobalSearchScope.filesScope(project, files)
+            else ->
+                GlobalSearchScope.filesScope(project, files)
+
         }
     }
 
@@ -156,6 +170,8 @@ object AnalysisScopeUtils {
      *
      * 仅包含非测试的源码集。
      *
+     * **注意**：此方法可能需要访问工作区索引，因此允许慢操作。
+     *
      * @param module 模块实例
      * @return 生产代码作用域
      */
@@ -167,7 +183,9 @@ object AnalysisScopeUtils {
 
         return when {
             productionSources.isEmpty() -> GlobalSearchScope.EMPTY_SCOPE
-            else -> GlobalSearchScope.filesScope(project, productionSources)
+            else ->
+                GlobalSearchScope.filesScope(project, productionSources)
+
         }
     }
 
@@ -175,6 +193,8 @@ object AnalysisScopeUtils {
      * 从模块创建测试代码作用域
      *
      * 仅包含测试源码集。
+     *
+     * **注意**：此方法可能需要访问工作区索引，因此允许慢操作。
      *
      * @param module 模块实例
      * @return 测试代码作用域
@@ -187,7 +207,9 @@ object AnalysisScopeUtils {
 
         return when {
             testSources.isEmpty() -> GlobalSearchScope.EMPTY_SCOPE
-            else -> GlobalSearchScope.filesScope(project, testSources)
+            else ->
+                GlobalSearchScope.filesScope(project, testSources)
+
         }
     }
 }

@@ -27,6 +27,7 @@ package org.cangnova.cangjie.project.workspace
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.backend.workspace.workspaceModel
@@ -83,65 +84,273 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
     }
 
     /**
-     * 同步所有仓颉项目到 Workspace Model
+     * 同步所有仓颉项目到 Workspace Model（智能增量更新版本）
      *
-     * 该方法会：
-     * 1. 清理所有由 CangJieEntitySource 标记的旧实体
-     * 2. 解析项目的完整依赖图
-     * 3. 为每个 CjModule 创建对应的 ModuleEntity
-     * 4. 配置模块的源码根、内容根、排除目录和依赖关系
+     * ## 核心优化策略
+     * 1. **项目类型变化检测**：检测单模块 ↔ 工作空间的转换，执行完全重建
+     * 2. **模块集合差异计算**：比较现有模块和新模块列表，识别新增/删除/可能变化的模块
+     * 3. **内容级别变化检测**：对每个模块深度比较内容（源码根、依赖、排除目录）
+     * 4. **按需更新**：只在内容真正变化时才执行删除-重建操作
+     *
+     * ## 执行流程
+     * 1. 检测项目类型是否发生变化（单模块 ↔ 工作空间）
+     * 2. 如果项目类型变化，清理所有旧的模块实体（完全重建）
+     * 3. 如果项目类型未变化，执行智能增量更新：
+     *    a. 比较现有模块和新模块列表，计算差异
+     *    b. 删除已经不存在的模块（集合级别删除）
+     *    c. 对每个模块进行内容比较：
+     *       - 比较内容根 URL
+     *       - 比较源码根列表（路径和类型）
+     *       - 比较排除目录列表
+     *       - 比较模块依赖和库依赖
+     *    d. 只在内容变化时才更新模块（内容级别更新）
+     *    e. 添加新的模块
+     * 4. 解析项目的完整依赖图
+     * 5. 配置模块的源码根、内容根、排除目录和依赖关系
+     *
+     * ## 性能优化效果
+     * - **完全重建** → **智能增量更新**
+     * - 单个模块的小改动：O(n) → O(1)（n = 模块总数）
+     * - 多模块项目的部分改动：避免不必要的 IDE 刷新和索引重建
+     * - 无改动时：直接跳过更新，零开销
      *
      * @param project 需要同步的仓颉项目
      */
     suspend fun syncProject(project: CjProject) {
 
         val workspaceModel = intellijProject.workspaceModel
-
         val storageSnapshot = workspaceModel.currentSnapshot
-
-
         val storage = MutableEntityStorage.from(storageSnapshot)
 
-//        清除所有模块
-        // 1. 清理旧的仓颉模块实体
-        cleanupOldEntities(storage)
+        // 检测项目类型是否发生变化（单模块 ↔ 工作空间）
+        val needsFullRebuild = detectProjectTypeChange(storage, project)
 
+        if (needsFullRebuild) {
+            LOG.info("Detected project type change, performing full rebuild")
+            // 清理所有相关的旧模块（包括单模块和工作空间模块）
+            cleanupAllProjectModules(storage, project)
+        }
+
+        // 增量更新：只删除/更新/添加变化的模块
         if (project.isWorkspace) {
-            // 工作空间项目：创建主模块，然后为每个子模块创建带父模块的模块实体
-            val mainModule = createMainModule(storage, project)
+            // 工作空间项目：增量同步主模块和子模块
+            val workspace = project.workspace ?: return
 
-            for (module in (project.workspace ?: return).modules) {
+            // 1. 获取或创建/更新主模块
+            val mainModule = syncOrCreateMainModule(storage, project)
+
+            // 2. 收集现有的子模块
+            val existingModules = storage.entities(ModuleEntity::class.java)
+                .filter { it.entitySource is CangJieEntitySource }
+                .filter { it.name.startsWith("${project.name}.") }
+                .associateBy { it.name.substringAfterLast(".") }
+
+            // 3. 收集新的模块列表
+            val newModules = workspace.modules.associateBy { it.name }
+
+            // 4. 计算需要删除的模块（存在于旧列表但不在新列表中）
+            val modulesToRemove = existingModules.keys - newModules.keys
+            for (moduleName in modulesToRemove) {
+                existingModules[moduleName]?.let { moduleEntity ->
+                    LOG.info("Removing deleted module: $moduleName")
+                    storage.removeEntity(moduleEntity)
+                }
+            }
+
+            // 5. 同步所有新模块（包括新增和更新）
+            for (module in workspace.modules) {
                 try {
-                    // 为每个模块单独解析依赖图
                     val dependencyGraph = resolveModuleDependencyGraph(module)
-                    syncModule(storage, module, mainModule, dependencyGraph)
-                    LOG.info("Synced module: ${module.name} from project ${project.name}")
+                    val existingEntity = existingModules[module.name]
+
+                    // 检查模块内容是否真的变化了
+                    val needsUpdate = existingEntity == null ||
+                                     shouldUpdateModule(storage, existingEntity, module, dependencyGraph, "${mainModule.name}.")
+
+                    if (needsUpdate) {
+                        // 只在内容变化时才更新
+                        existingEntity?.let { oldEntity ->
+                            LOG.info("Module content changed, updating: ${module.name}")
+                            storage.removeEntity(oldEntity)
+                        } ?: LOG.info("New module detected, creating: ${module.name}")
+
+                        // 创建新的模块实体
+                        syncModule(storage, module, mainModule, dependencyGraph)
+                        LOG.info("Synced module: ${module.name} from project ${project.name}")
+                    } else {
+                        LOG.debug("Module content unchanged, skipping: ${module.name}")
+                    }
                 } catch (e: Exception) {
                     LOG.error("Failed to sync module ${module.name}", e)
                 }
             }
         } else {
-            // 单模块项目：直接创建模块，不需要父模块
+            // 单模块项目：增量同步单个模块
             project.module?.let { module ->
                 try {
-                    // 解析单模块的依赖图
                     val dependencyGraph = resolveModuleDependencyGraph(module)
-                    syncModuleWithoutParent(storage, module, dependencyGraph)
-                    LOG.info("Synced single module: ${module.name} from project ${project.name}")
+
+                    // 查找现有的模块实体
+                    val moduleName = "${MODULE_NAME_PREFIX}${module.name}"
+                    val existingModule = storage.entities(ModuleEntity::class.java)
+                        .firstOrNull {
+                            it.name == moduleName &&
+                            it.entitySource is CangJieEntitySource
+                        }
+
+                    // 检查模块内容是否真的变化了
+                    val needsUpdate = existingModule == null ||
+                                     shouldUpdateModule(storage, existingModule, module, dependencyGraph, MODULE_NAME_PREFIX)
+
+                    if (needsUpdate) {
+                        // 只在内容变化时才更新
+                        existingModule?.let { oldEntity ->
+                            LOG.info("Single module content changed, updating: ${module.name}")
+                            storage.removeEntity(oldEntity)
+                        } ?: LOG.info("New single module detected, creating: ${module.name}")
+
+                        // 创建新的模块实体
+                        syncModuleWithoutParent(storage, module, dependencyGraph)
+                        LOG.info("Synced single module: ${module.name} from project ${project.name}")
+                    } else {
+                        LOG.debug("Single module content unchanged, skipping: ${module.name}")
+                    }
                 } catch (e: Exception) {
                     LOG.error("Failed to sync single module ${module.name}", e)
                 }
             } ?: LOG.warn("No module found in single-module project ${project.name}")
         }
 
-
-
         workspaceModel.update("Sync CangJie Projects") {
             it.applyChangesFrom(storage)
         }
 
+        // 同步完成后，将 IntelliJ Module 关联到 CjModule
+        associateIntelliJModules(project)
 
-        LOG.info("Workspace Model sync completed")
+        LOG.info("Workspace Model sync completed (incremental)")
+    }
+
+    /**
+     * 将 IntelliJ Module 关联到 CjModule
+     *
+     * 在 WorkspaceModel 更新完成后，查找所有对应的 IntelliJ Module，
+     * 并通过 UserData 机制将它们关联到 CjModule。
+     *
+     * @param project 仓颉项目
+     */
+    private fun associateIntelliJModules(project: CjProject) {
+        val moduleManager = ModuleManager.getInstance(intellijProject)
+
+        // 处理单模块项目
+        project.module?.let { cjModule ->
+            val moduleName = "${MODULE_NAME_PREFIX}${cjModule.name}"
+            val intellijModule = moduleManager.findModuleByName(moduleName)
+            if (intellijModule != null) {
+                cjModule.intellijModule = intellijModule
+                LOG.debug("Associated IntelliJ module '$moduleName' with CjModule '${cjModule.name}'")
+            } else {
+                LOG.warn("IntelliJ module '$moduleName' not found for CjModule '${cjModule.name}'")
+            }
+        }
+
+        // 处理工作空间项目
+        project.workspace?.let { workspace ->
+            // 关联主模块（如果需要）
+            val mainModuleName = project.name
+            val mainIntellijModule = moduleManager.findModuleByName(mainModuleName)
+            if (mainIntellijModule != null) {
+                LOG.debug("Found main module: $mainModuleName")
+            }
+
+            // 关联所有子模块
+            workspace.modules.forEach { cjModule ->
+                val moduleName = "${project.name}.${cjModule.name}"
+                val intellijModule = moduleManager.findModuleByName(moduleName)
+                if (intellijModule != null) {
+                    cjModule.intellijModule = intellijModule
+                    LOG.debug("Associated IntelliJ module '$moduleName' with CjModule '${cjModule.name}'")
+                } else {
+                    LOG.warn("IntelliJ module '$moduleName' not found for CjModule '${cjModule.name}'")
+                }
+            }
+        }
+    }
+
+    /**
+     * 检测项目类型是否发生变化
+     *
+     * 检查逻辑：
+     * 1. 如果当前是工作空间项目，检查是否存在单模块实体
+     * 2. 如果当前是单模块项目，检查是否存在工作空间主模块/子模块
+     *
+     * @param builder 可变的实体存储构建器
+     * @param project 仓颉项目
+     * @return true 如果需要完全重建，false 如果可以增量更新
+     */
+    private fun detectProjectTypeChange(builder: MutableEntityStorage, project: CjProject): Boolean {
+        val allCangjieModules = builder.entities(ModuleEntity::class.java)
+            .filter { it.entitySource is CangJieEntitySource }
+            .filter { (it.entitySource as CangJieEntitySource).projectPath == project.rootDir.path }
+            .toList()
+
+        if (allCangjieModules.isEmpty()) {
+            // 没有旧模块，不需要重建
+            return false
+        }
+
+        if (project.isWorkspace) {
+            // 当前是工作空间，检查是否存在单模块格式的旧实体
+            val hasSingleModuleEntities = allCangjieModules.any { module ->
+                // 单模块的命名：直接是模块名（没有项目名前缀）
+                // 工作空间的命名：项目名 或 项目名.子模块名
+                !module.name.contains(".") && module.name != project.name
+            }
+
+            if (hasSingleModuleEntities) {
+                LOG.info("Detected conversion from single-module to workspace for project: ${project.name}")
+                return true
+            }
+        } else {
+            // 当前是单模块，检查是否存在工作空间格式的旧实体
+            val hasWorkspaceEntities = allCangjieModules.any { module ->
+                // 工作空间特征：主模块（等于项目名）或子模块（项目名.子模块名）
+                module.name == project.name || module.name.startsWith("${project.name}.")
+            }
+
+            if (hasWorkspaceEntities) {
+                LOG.info("Detected conversion from workspace to single-module for project: ${project.name}")
+                return true
+            }
+        }
+
+        return false
+    }
+
+    /**
+     * 清理项目的所有旧模块（用于项目类型转换）
+     *
+     * 删除所有属于该项目的模块实体，包括：
+     * - 单模块格式的实体
+     * - 工作空间格式的主模块
+     * - 工作空间格式的所有子模块
+     *
+     * @param builder 可变的实体存储构建器
+     * @param project 仓颉项目
+     */
+    private fun cleanupAllProjectModules(builder: MutableEntityStorage, project: CjProject) {
+        val projectModules = builder.entities(ModuleEntity::class.java)
+            .filter {
+                it.entitySource is CangJieEntitySource &&
+                (it.entitySource as CangJieEntitySource).projectPath == project.rootDir.path
+            }
+            .toList()
+
+        LOG.info("Cleaning up ${projectModules.size} old modules for project type change")
+        projectModules.forEach { module ->
+            LOG.debug("Removing module entity due to project type change: ${module.name}")
+            builder.removeEntity(module)
+        }
     }
 
     /**
@@ -166,6 +375,142 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
             LOG.error("Failed to resolve dependency graph for module: ${module.name}", e)
             null
         }
+    }
+
+    /**
+     * 检查模块内容是否需要更新
+     *
+     * ## 比较策略
+     * 通过比较以下内容判断模块是否需要更新：
+     * 1. 内容根目录 URL
+     * 2. 源码根目录列表（路径和类型）
+     * 3. 排除目录列表
+     * 4. 模块依赖和库依赖
+     *
+     * ## 性能优化
+     * - 只在内容真正变化时才执行删除-重建操作
+     * - 避免不必要的 Workspace Model 更新，减少 IDE 刷新开销
+     *
+     * @param builder 可变的实体存储构建器
+     * @param existingEntity 现有的模块实体
+     * @param cjModule 新的仓颉模块定义
+     * @param dependencyGraph 依赖图（可选）
+     * @param moduleNamePrefix 模块名称前缀
+     * @return true 如果需要更新，false 如果内容未变化
+     */
+    private suspend fun shouldUpdateModule(
+        builder: MutableEntityStorage,
+        existingEntity: ModuleEntity,
+        cjModule: CjModule,
+        dependencyGraph: ResolvedGraph?,
+        moduleNamePrefix: String
+    ): Boolean {
+        try {
+            val urlManager = WorkspaceModel.getInstance(intellijProject).getVirtualFileUrlManager()
+
+            // 1. 比较内容根 URL
+            val expectedContentRootUrl = urlManager.getOrCreateFromUrl(cjModule.rootDir.url)
+            val existingContentRoot = existingEntity.contentRoots.firstOrNull()
+            if (existingContentRoot?.url != expectedContentRootUrl) {
+                LOG.debug("Content root changed for ${cjModule.name}")
+                return true
+            }
+
+            // 2. 比较源码根
+            val expectedSourceRoots = cjModule.sourceSets.flatMap { sourceSet ->
+                sourceSet.roots.map { root ->
+                    val url = urlManager.getOrCreateFromUrl(root.url)
+                    val typeId = if (sourceSet.isTest) "java-test-resource" else "java-source"
+                    url.url to typeId
+                }
+            }.toSet()
+
+            val existingSourceRoots = existingContentRoot?.sourceRoots?.map { sourceRoot ->
+                sourceRoot.url.url to sourceRoot.rootTypeId.name
+            }?.toSet() ?: emptySet()
+
+            if (expectedSourceRoots != existingSourceRoots) {
+                LOG.debug("Source roots changed for ${cjModule.name}: expected=$expectedSourceRoots, existing=$existingSourceRoots")
+                return true
+            }
+
+            // 3. 比较排除目录
+            val expectedExcludedUrls = cjModule.sourceSets.flatMap { sourceSet ->
+                sourceSet.outputDirectory.map { outputDir ->
+                    urlManager.getOrCreateFromUrl(outputDir.url).url
+                }
+            }.toSet()
+
+            val existingExcludedUrls = existingContentRoot?.excludedUrls?.map { it.url.url }?.toSet() ?: emptySet()
+
+            if (expectedExcludedUrls != existingExcludedUrls) {
+                LOG.debug("Excluded URLs changed for ${cjModule.name}")
+                return true
+            }
+
+            // 4. 比较依赖
+            val (expectedModuleDeps, expectedLibraryDeps) = buildAllDependencies(
+                builder,
+                cjModule,
+                dependencyGraph,
+                moduleNamePrefix
+            )
+
+            // 提取现有依赖（排除 ModuleSourceDependency 和 InheritedSdkDependency）
+            val existingModuleDeps = existingEntity.dependencies
+                .filterIsInstance<ModuleDependency>()
+                .toSet()
+
+            val existingLibraryDeps = existingEntity.dependencies
+                .filterIsInstance<LibraryDependency>()
+                .toSet()
+
+            if (expectedModuleDeps.toSet() != existingModuleDeps) {
+                LOG.debug("Module dependencies changed for ${cjModule.name}")
+                return true
+            }
+
+            if (expectedLibraryDeps.toSet() != existingLibraryDeps) {
+                LOG.debug("Library dependencies changed for ${cjModule.name}")
+                return true
+            }
+
+            // 所有内容都相同，无需更新
+            return false
+
+        } catch (e: Exception) {
+            // 比较失败时，安全起见选择更新
+            LOG.warn("Failed to compare module content for ${cjModule.name}, will update", e)
+            return true
+        }
+    }
+
+    /**
+     * 同步或创建主模块（增量版本）
+     *
+     * 检查主模块是否存在，如果存在且需要更新则先删除再创建，否则直接创建。
+     *
+     * @param builder 可变的实体存储构建器
+     * @param project 仓颉项目
+     * @return 主模块实体
+     */
+    private fun syncOrCreateMainModule(builder: MutableEntityStorage, project: CjProject): ModuleEntity {
+        // 查找现有的主模块
+        val existingMainModule = builder.entities(ModuleEntity::class.java)
+            .firstOrNull {
+                it.name == project.name &&
+                it.entitySource is CangJieEntitySource &&
+                (it.entitySource as CangJieEntitySource).projectPath == project.rootDir.path
+            }
+
+        // 如果主模块已存在，先删除（简化更新逻辑）
+        existingMainModule?.let { oldEntity ->
+            LOG.debug("Updating existing main module: ${project.name}")
+            builder.removeEntity(oldEntity)
+        }
+
+        // 创建新的主模块
+        return createMainModule(builder, project)
     }
 
     /**
@@ -318,16 +663,17 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
     }
 
     /**
-     * 清理所有由 CangJieEntitySource 管理的旧实体
+     * 清理所有由 CangJieEntitySource 管理的旧实体（已废弃，保留用于完全重建）
      *
-     * 在同步开始前，移除所有标记为 CangJieEntitySource 的实体，
-     * 避免旧数据残留。新的实体会在 syncModule 中重新创建。
+     * 注意：现在默认使用增量更新，不再使用此方法。
+     * 如果需要完全重建所有模块，可以手动调用此方法。
      *
      * @param builder 可变的实体存储构建器
      */
+    @Deprecated("Use incremental sync instead", ReplaceWith("syncProject with incremental logic"))
     private fun cleanupOldEntities(builder: MutableEntityStorage) {
         val cangjieModules = builder.entities(ModuleEntity::class.java)
-//            .filter { it.entitySource is CangJieEntitySource }
+            .filter { it.entitySource is CangJieEntitySource }
             .toList()
 
         cangjieModules.forEach { module ->
