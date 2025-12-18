@@ -108,7 +108,7 @@ class CjLibraryAnalysisContext(
     }
 
     override fun hashCode(): Int {
-        var result = dependency.hashCode()
+        var result =          contextId.hashCode()
         result = 31 * result + project.hashCode()
         return result
     }

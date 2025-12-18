@@ -222,7 +222,9 @@ class CjModuleAnalysisContext(
     }
 
     override fun hashCode(): Int {
-        return cjModule.hashCode()
+        var result =          contextId.hashCode()
+        result = 31 * result + project.hashCode()
+        return result
     }
 
     override fun toString(): String {
