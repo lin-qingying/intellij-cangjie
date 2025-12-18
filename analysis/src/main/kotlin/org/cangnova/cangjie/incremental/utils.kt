@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.incremental
 
-import org.cangnova.cangjie.descriptors.ClassDescriptor
+import org.cangnova.cangjie.descriptors.InheritableDescriptor
 import org.cangnova.cangjie.descriptors.PackageFragmentDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.LookupTracker
@@ -41,7 +41,7 @@ fun LookupTracker.record(from: LookupLocation, scopeOwner: PackageFragmentDescri
 
 // These methods are called many times, please pay attention to performance here
 
-fun LookupTracker.record(from: LookupLocation, scopeOwner: ClassDescriptor, name: Name) {
+fun LookupTracker.record(from: LookupLocation, scopeOwner: InheritableDescriptor, name: Name) {
     if (this === LookupTracker.DO_NOTHING) return
     val location = from.location ?: return
     val position = if (requiresPosition) location.position else Position.NO_POSITION
