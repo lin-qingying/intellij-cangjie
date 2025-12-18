@@ -199,8 +199,8 @@ class DeclarationsChecker(
     private fun checkModifiersAndAnnotationsInPackageDirective(file: CjFile) {
         val packageDirective = file.packageDirective ?: return
         packageDirective.modifierList ?: return
-        val annotations = packageDirective.annotations
-        for (annotationEntry in annotations.entries) {
+        val annotations = packageDirective.annotationEntries
+        for (annotationEntry in annotations) {
             val calleeExpression = annotationEntry.calleeExpression
             if (calleeExpression != null) {
                 calleeExpression.constructorReferenceExpression?.let { trace.report(UNRESOLVED_REFERENCE.on(it, it)) }

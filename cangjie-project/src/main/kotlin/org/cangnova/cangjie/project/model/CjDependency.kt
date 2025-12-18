@@ -388,6 +388,11 @@ sealed class DependencySource {
 
 /**
  * 扩展方法：从 CjDependency 提取依赖来源
+ *
+ * 将具体的依赖类型转换为统一的依赖来源表示。
+ *
+ * @receiver 依赖对象
+ * @return 对应的依赖来源
  */
 fun CjDependency.toDependencySource(): DependencySource {
     return when (this) {
@@ -399,6 +404,20 @@ fun CjDependency.toDependencySource(): DependencySource {
     }
 }
 
+/**
+ * 获取依赖的来源标识符
+ *
+ * 返回用于唯一标识依赖来源的 SourceId。
+ * 不同类型的依赖使用不同的标识符策略：
+ * - Git 依赖：使用 URL 和引用
+ * - Library 依赖：使用仓库地址
+ * - Path 依赖：使用文件路径
+ * - Stdlib 依赖：使用 Stdlib 标识
+ * - Binary 依赖：使用 .cjo 文件路径
+ *
+ * @receiver 依赖对象
+ * @return 来源标识符
+ */
 fun CjDependency.sourceId(): SourceId = when (this) {
     is CjDependency.Git -> SourceId.Git(this.url, this.ref.toString())
     is CjDependency.Library -> SourceId.Registry(this.registry ?: "https://repo.cangnova.org/repository/maven-public")

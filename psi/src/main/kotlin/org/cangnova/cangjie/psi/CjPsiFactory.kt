@@ -39,25 +39,101 @@ import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
 import org.jetbrains.annotations.NonNls
 
+/**
+ * 标记文件不需要分析
+ *
+ * 用于标识由 CjPsiFactory 创建的临时文件，这些文件不应被分析。
+ */
 var CjFile.doNotAnalyze: String? by UserDataProperty(Key.create("DO_NOT_ANALYZE"))
+
+/**
+ * 元素上下文
+ *
+ * 存储 PSI 元素的上下文信息，用于在特定上下文中创建元素。
+ */
 var CjFile.elementContext: PsiElement? by UserDataProperty(Key.create("ELEMENT_CONTEXT"))
 
+/**
+ * 不分析通知消息
+ */
 private const val DO_NOT_ANALYZE_NOTIFICATION = "This file was created by CjPsiFactory and should not be analyzed\n" +
     "Use createAnalyzableFile to create file that can be analyzed\n"
 
+/**
+ * 仓颉 PSI 元素工厂
+ *
+ * 用于创建各种仓颉语言的 PSI 元素（程序结构接口元素）。
+ * 这是一个核心工具类，提供了创建类、函数、表达式、类型等各种 PSI 元素的便捷方法。
+ *
+ * 主要功能：
+ * - 创建类、接口、枚举等声明
+ * - 创建函数、属性、参数等成员
+ * - 创建表达式、语句、注解等元素
+ * - 创建类型引用、导入语句等
+ * - 创建注释、标识符等基本元素
+ *
+ * 使用场景：
+ * - 代码重构：创建新的 PSI 元素替换旧元素
+ * - 代码生成：生成模板代码
+ * - 快速修复：创建修复代码的 PSI 元素
+ * - 代码分析：创建临时 PSI 元素进行测试
+ *
+ * 示例：
+ * ```kotlin
+ * val factory = CjPsiFactory(project)
+ *
+ * // 创建简单表达式
+ * val expr = factory.createExpression("1 + 2")
+ *
+ * // 创建函数
+ * val func = factory.createFunction("func foo() { }")
+ *
+ * // 创建类
+ * val clazz = factory.createClass("class MyClass { }")
+ * ```
+ *
+ * 重要提示：
+ * - 默认情况下，创建的文件会被标记为不分析（doNotAnalyze）
+ * - 如需创建可分析的文件，使用 createAnalyzableFile
+ * - 大多数方法接受文本参数，会解析文本创建对应的 PSI 元素
+ *
+ * @property project IntelliJ 项目实例
+ * @property markGenerated 是否标记生成的元素（默认 true）
+ * @property context 上下文元素，用于创建上下文相关的元素（可选）
+ * @property eventSystemEnabled 是否启用事件系统（默认 false）
+ */
 class CjPsiFactory private constructor(
     private val project: Project,
     private val markGenerated: Boolean,
     private val context: PsiElement?,
     private val eventSystemEnabled: Boolean,
 ) {
+    /**
+     * 构造器：创建默认的 PSI 工厂
+     *
+     * @param project IntelliJ 项目
+     * @param markGenerated 是否标记为生成的元素，默认 true
+     */
     @JvmOverloads
     constructor(project: Project, markGenerated: Boolean = true) :
         this(project, markGenerated, context = null, eventSystemEnabled = false)
 
+    /**
+     * 构造器：创建支持事件系统的 PSI 工厂
+     *
+     * @param project IntelliJ 项目
+     * @param markGenerated 是否标记为生成的元素，默认 true
+     * @param eventSystemEnabled 是否启用事件系统
+     */
     constructor(project: Project, markGenerated: Boolean = true, eventSystemEnabled: Boolean) :
         this(project, markGenerated, context = null, eventSystemEnabled = eventSystemEnabled)
 
+    /**
+     * 构造器：从现有元素创建 PSI 工厂
+     *
+     * @param element 上下文元素
+     * @param markGenerated 是否标记为生成的元素，默认 true
+     */
     @JvmOverloads
     constructor(element: CjElement, markGenerated: Boolean = true) : this(
         element.project,
@@ -66,21 +142,60 @@ class CjPsiFactory private constructor(
         eventSystemEnabled = false,
     )
 
+    /**
+     * 创建空的类体
+     *
+     * 示例：
+     * ```kotlin
+     * val body = factory.createEmptyClassBody()
+     * // 创建 class A{} 的类体部分
+     * ```
+     *
+     * @return 空的抽象类体
+     */
     fun createEmptyClassBody(): CjAbstractClassBody {
         return createClass("class A{}").body!!
     }
 
-    // the pair contains the first and the last elements of a range
+    /**
+     * 创建空白符和箭头
+     *
+     * 用于函数类型中的箭头符号及其周围的空白符。
+     *
+     * @return 包含第一个和最后一个元素的 Pair（空白符和箭头）
+     */
     fun createWhitespaceAndArrow(): Pair<PsiElement, PsiElement> {
         val functionType = createType("() -> Int").typeElement as CjFunctionType
         return Pair(functionType.findElementAt(2)!!, functionType.findElementAt(3)!!)
     }
+
+    /**
+     * 创建类型参数列表
+     *
+     * 示例：
+     * ```kotlin
+     * val typeArgs = factory.createTypeArguments("<Int, String>")
+     * // 创建类型参数列表 <Int, String>
+     * ```
+     *
+     * @param text 类型参数文本，包括尖括号
+     * @return 类型参数列表
+     */
     fun createTypeArguments(@NonNls text: String): CjTypeArgumentList {
         val property = createVariable("let x = foo$text()")
         return (property.initializer as CjCallExpression).typeArgumentList!!
     }
 
     companion object {
+        /**
+         * 创建上下文相关的 PSI 工厂
+         *
+         * 创建一个与特定上下文关联的工厂，用于创建上下文相关的 PSI 元素。
+         *
+         * @param context 上下文元素
+         * @param markGenerated 是否标记为生成的元素，默认 true
+         * @return 上下文相关的 PSI 工厂实例
+         */
         @JvmStatic
         @JvmOverloads
         fun contextual(context: PsiElement, markGenerated: Boolean = true): CjPsiFactory {
@@ -88,8 +203,17 @@ class CjPsiFactory private constructor(
         }
     }
 
-    // special hack used in ControlStructureTypingVisitor
-    // TODO: get rid of it
+    /**
+     * 将表达式包装在块表达式中
+     *
+     * 这是一个特殊的辅助方法，用于 ControlStructureTypingVisitor。
+     * 如果表达式已经是块表达式，则直接返回；否则将其包装在块中。
+     *
+     * TODO: 未来应移除此方法
+     *
+     * @param expression 要包装的表达式
+     * @return 块表达式
+     */
     fun wrapInABlockWrapper(expression: CjExpression): CjBlockExpression {
         if (expression is CjBlockExpression) {
             return expression
@@ -99,6 +223,15 @@ class CjPsiFactory private constructor(
         return BlockWrapper(block, expression)
     }
 
+    /**
+     * 创建属性声明
+     *
+     * @param name 属性名称
+     * @param type 属性类型，可为 null
+     * @param isMut 是否为可变属性
+     * @param initializer 初始化表达式，可为 null
+     * @return 属性声明
+     */
     fun createProperty(
         @NonNls name: String,
         @NonNls type: String?,
@@ -107,11 +240,25 @@ class CjPsiFactory private constructor(
     ): CjProperty {
         return createProperty(null, name, type, isMut, initializer)
     }
+
+    /**
+     * 创建注解
+     *
+     * @param text 注解文本
+     * @return 注解元素
+     */
     fun createAnnotations(text: String): CjAnnotations {
         val function = createFunction(" $text func foo() { }")
 
-        return function.annotations
+        return function.annotations!!
     }
+
+    /**
+     * 创建 match 表达式的分支
+     *
+     * @param entryText 分支文本
+     * @return match 分支元素
+     */
     fun createMatchEntry(@NonNls entryText: String): CjMatchEntry {
         val function = createFunction("func foo() { match(12) { $entryText } }")
         val matchEntry = PsiTreeUtil.findChildOfType(function, CjMatchEntry::class.java)
@@ -122,14 +269,40 @@ class CjPsiFactory private constructor(
         return matchEntry
     }
 
+    /**
+     * 创建属性声明（不带初始化器）
+     *
+     * @param name 属性名称
+     * @param type 属性类型，可为 null
+     * @param isMut 是否为可变属性
+     * @return 属性声明
+     */
     fun createProperty(@NonNls name: String, @NonNls type: String?, isMut: Boolean): CjProperty {
         return createProperty(name, type, isMut, null)
     }
 
+    /**
+     * 创建枚举模式
+     *
+     * TODO: 待实现
+     *
+     * @param text 枚举模式文本
+     * @return 枚举模式元素
+     */
     fun createEnumPattern(text: String): CjEnumPattern {
         TODO()
     }
 
+    /**
+     * 创建属性声明（完整版本）
+     *
+     * @param modifiers 修饰符，可为 null
+     * @param name 属性名称
+     * @param type 属性类型，可为 null
+     * @param isMut 是否为可变属性
+     * @param initializer 初始化表达式，可为 null
+     * @return 属性声明
+     */
     fun createProperty(
         @NonNls modifiers: String?,
         @NonNls name: String,

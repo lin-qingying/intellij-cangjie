@@ -75,10 +75,35 @@ interface CjModule : CjDependencyDeclarant, UserDataHolder {
     val dependencies: List<CjDependency>
         get() = emptyList()
 
-
+    /**
+     * 构建依赖列表
+     *
+     * 返回仅在构建时需要的依赖，这些依赖不会被传递给依赖此模块的其他模块。
+     *
+     * 示例：
+     * ```toml
+     * [build-dependencies]
+     * build-tool = "1.0.0"
+     * ```
+     *
+     * @return 构建依赖列表，默认为空
+     */
     val buildDependencies: List<CjDependency>
         get() = emptyList()
 
+    /**
+     * 测试依赖列表
+     *
+     * 返回仅在运行测试时需要的依赖。
+     *
+     * 示例：
+     * ```toml
+     * [test-dependencies]
+     * test-framework = "1.0.0"
+     * ```
+     *
+     * @return 测试依赖列表，默认为空
+     */
     val testDependencies: List<CjDependency>
         get() = emptyList()
 

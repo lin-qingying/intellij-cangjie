@@ -214,7 +214,7 @@ class FqNameUnsafe {
             { name: String -> guessByFirstCharacter(name) }
 
         fun isValid(qualifiedName: String?): Boolean {
-            // TODO: ���ڴ���ת���ַ�����Ч����''
+
             return qualifiedName != null && qualifiedName.indexOf('/') < 0 && qualifiedName.indexOf('*') < 0
         }
 

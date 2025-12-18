@@ -30,6 +30,9 @@ import java.lang.reflect.Type
 
 /**
  * 动态组件描述符 - 用于未知组件的占位符
+ *
+ * 当容器需要处理未知类型的组件时,使用此描述符作为占位符。
+ * 调用 [getValue] 会抛出 [UnsupportedOperationException] 异常。
  */
 object DynamicComponentDescriptor : ValueDescriptor {
     override fun getValue(): Any = throw UnsupportedOperationException()
@@ -40,6 +43,11 @@ object DynamicComponentDescriptor : ValueDescriptor {
 
 /**
  * 实例组件描述符 - 用于已存在的实例对象
+ *
+ * 此描述符包装一个已创建的实例对象,允许将其注册到容器中。
+ * 适用于需要向容器注册外部创建的对象的场景。
+ *
+ * @property instance 被包装的实例对象
  */
 open class InstanceComponentDescriptor(val instance: Any) : ComponentDescriptor {
 
@@ -55,6 +63,11 @@ open class InstanceComponentDescriptor(val instance: Any) : ComponentDescriptor 
 
 /**
  * 默认实例组件描述符
+ *
+ * 与 [InstanceComponentDescriptor] 功能相同,但在字符串表示中明确标识为"默认"实例。
+ * 用于区分默认提供的实例和自定义注册的实例。
+ *
+ * @param instance 被包装的实例对象
  */
 class DefaultInstanceComponentDescriptor(instance: Any) : InstanceComponentDescriptor(instance) {
     override fun toString() = "Default instance: ${instance.javaClass.simpleName}"

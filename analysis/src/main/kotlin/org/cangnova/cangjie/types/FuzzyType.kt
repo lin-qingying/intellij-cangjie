@@ -34,7 +34,13 @@ import org.cangnova.cangjie.types.checker.StrictEqualityTypeChecker
 import org.cangnova.cangjie.types.util.*
 
 /**
- * Replaces free parameters inside the type with corresponding type parameters of the class (when possible)
+ * 将模糊类型转换为展示类型
+ *
+ * 尽可能将类型中的自由类型参数替换为对应的类类型参数。
+ * 这用于在 IDE 中向用户展示更易理解的类型信息。
+ *
+ * @receiver 模糊类型
+ * @return 展示用的类型，如果没有自由参数则返回原始类型
  */
 fun FuzzyType.presentationType(): CangJieType {
     if (freeParameters.isEmpty()) return type
@@ -54,13 +60,38 @@ fun FuzzyType.presentationType(): CangJieType {
     return substitutor.substitute(type, Variance.INVARIANT)!!
 }
 
+/**
+ * 模糊类型
+ *
+ * 表示包含自由类型参数的类型，用于类型推导和匹配。
+ * 模糊类型在类型检查过程中支持灵活的子类型判定和类型替换。
+ *
+ * 主要用途：
+ * - 支持泛型类型的推导和匹配
+ * - 处理函数签名中的类型参数
+ * - 在重载解析中比较类型兼容性
+ *
+ * 核心功能：
+ * - [checkIsSubtypeOf]: 检查是否是另一个类型的子类型
+ * - [checkIsSuperTypeOf]: 检查是否是另一个类型的超类型
+ * - [presentationType]: 转换为用户可读的展示类型
+ *
+ * @property type 底层的仓颉类型
+ * @property freeParameters 自由类型参数集合
+ */
 class FuzzyType(val type: CangJieType, freeParameters: Collection<TypeParameterDescriptor>) {
 
+    /**
+     * 自由类型参数集合
+     *
+     * 包含在类型中实际使用的自由类型参数。
+     * 在初始化时会过滤掉未在类型中使用的参数。
+     */
     val freeParameters: Set<TypeParameterDescriptor>
 
     init {
         if (freeParameters.isNotEmpty()) {
-            // we allow to pass type parameters from another function with the same original in freeParameters
+            // 我们允许传递与原始函数相同但来自另一个函数的类型参数
             val usedTypeParameters = HashSet<TypeParameterDescriptor>().apply { addUsedTypeParameters(type) }
             if (usedTypeParameters.isNotEmpty()) {
                 val originalFreeParameters = freeParameters.map { it.toOriginal() }.toSet()
@@ -73,6 +104,13 @@ class FuzzyType(val type: CangJieType, freeParameters: Collection<TypeParameterD
         }
     }
 
+    /**
+     * 收集类型中使用的类型参数
+     *
+     * 递归遍历类型及其上界，收集所有使用的类型参数。
+     *
+     * @param type 要分析的类型
+     */
     private fun MutableSet<TypeParameterDescriptor>.addUsedTypeParameters(type: CangJieType) {
         val typeParameter = type.constructor.declarationDescriptor as? TypeParameterDescriptor
         if (typeParameter != null && add(typeParameter)) {
@@ -86,9 +124,25 @@ class FuzzyType(val type: CangJieType, freeParameters: Collection<TypeParameterD
         }
     }
 
+    /**
+     * 检查是否是另一个模糊类型的超类型
+     *
+     * 使用约束系统判定类型关系，如果成功返回类型替换器。
+     *
+     * @param otherType 另一个模糊类型
+     * @return 如果是超类型返回类型替换器，否则返回 null
+     */
     fun checkIsSuperTypeOf(otherType: FuzzyType): TypeSubstitutor? =
         matchedSubstitutor(otherType, MatchKind.IS_SUPERTYPE)
 
+    /**
+     * 获取类型参数的原始描述符
+     *
+     * 如果类型参数来自成员函数，返回原始函数中对应的类型参数。
+     *
+     * @receiver 类型参数描述符
+     * @return 原始类型参数描述符
+     */
     @Suppress("USELESS_ELVIS")
     private fun TypeParameterDescriptor.toOriginal(): TypeParameterDescriptor {
         val callableDescriptor = containingDeclaration as? CallableMemberDescriptor ?: return this
@@ -97,18 +151,62 @@ class FuzzyType(val type: CangJieType, freeParameters: Collection<TypeParameterD
         return typeParameters[index]
     }
 
+    /**
+     * 检查是否是普通类型的子类型
+     *
+     * @param otherType 另一个类型
+     * @return 如果是子类型返回类型替换器，否则返回 null
+     */
     fun checkIsSubtypeOf(otherType: CangJieType): TypeSubstitutor? =
         checkIsSubtypeOf(otherType.toFuzzyType(emptyList()))
 
+    /**
+     * 检查是否是另一个模糊类型的子类型
+     *
+     * @param otherType 另一个模糊类型
+     * @return 如果是子类型返回类型替换器，否则返回 null
+     */
     fun checkIsSubtypeOf(otherType: FuzzyType): TypeSubstitutor? = matchedSubstitutor(otherType, MatchKind.IS_SUBTYPE)
+
+    /**
+     * 匹配类型枚举
+     *
+     * 定义类型匹配的方向：
+     * - [IS_SUBTYPE]: 检查当前类型是否是另一个类型的子类型
+     * - [IS_SUPERTYPE]: 检查当前类型是否是另一个类型的超类型
+     */
     private enum class MatchKind {
         IS_SUBTYPE,
         IS_SUPERTYPE
     }
 
+    /**
+     * 检查是否是普通类型的超类型
+     *
+     * @param otherType 另一个类型
+     * @return 如果是超类型返回类型替换器，否则返回 null
+     */
     fun checkIsSuperTypeOf(otherType: CangJieType): TypeSubstitutor? =
         checkIsSuperTypeOf(otherType.toFuzzyType(emptyList()))
 
+    /**
+     * 匹配类型并返回替换器
+     *
+     * 使用约束系统进行类型匹配，处理自由类型参数的推导。
+     * 这是核心的类型匹配算法，支持泛型类型的灵活匹配。
+     *
+     * 算法步骤：
+     * 1. 处理错误类型和特殊情况（Unit 类型等）
+     * 2. 如果没有自由参数，直接检查继承关系
+     * 3. 创建约束系统并注册类型变量
+     * 4. 添加子类型约束
+     * 5. 求解约束系统
+     * 6. 验证替换结果的正确性
+     *
+     * @param otherType 另一个模糊类型
+     * @param matchKind 匹配类型（子类型或超类型）
+     * @return 如果匹配成功返回类型替换器，否则返回 null
+     */
     private fun matchedSubstitutor(otherType: FuzzyType, matchKind: MatchKind): TypeSubstitutor? {
         if (type.isError) return null
         if (otherType.type.isError) return null
@@ -154,8 +252,8 @@ class FuzzyType(val type: CangJieType, freeParameters: Collection<TypeParameterD
 
         if (constraintSystem.status.hasContradiction()) return null
 
-        // currently ConstraintSystem return successful status in case there are problems with nullability
-        // that's why we have to check subtyping manually
+        // 当前约束系统在可空性有问题时也返回成功状态
+        // 所以我们必须手动检查子类型关系
         val substitutor = constraintSystem.resultingSubstitutor
         val substitutedType = substitutor.substitute(type, Variance.INVARIANT) ?: return null
         if (substitutedType.isError) return TypeSubstitutor.Companion.EMPTY
@@ -184,9 +282,31 @@ class FuzzyType(val type: CangJieType, freeParameters: Collection<TypeParameterD
     }
 }
 
+/**
+ * 将普通类型转换为模糊类型
+ *
+ * @receiver 仓颉类型
+ * @param freeParameters 自由类型参数集合
+ * @return 模糊类型
+ */
 fun CangJieType.toFuzzyType(freeParameters: Collection<TypeParameterDescriptor>) = FuzzyType(this, freeParameters)
 
+/**
+ * 获取可调用对象的模糊返回类型
+ *
+ * @receiver 可调用描述符
+ * @return 模糊返回类型，如果没有返回类型则为 null
+ */
 fun CallableDescriptor.fuzzyReturnType() = returnType?.toFuzzyType(typeParameters)
+
+/**
+ * 检查模糊类型是否几乎是 "任意类型"
+ *
+ * 如果类型是单个自由类型参数且上界为 Any，则认为是 "几乎任意类型"。
+ *
+ * @receiver 模糊类型
+ * @return 如果是 "几乎任意类型" 返回 true，否则返回 false
+ */
 fun FuzzyType.isAlmostEverything(): Boolean {
     if (freeParameters.isEmpty()) return false
     val typeParameter = type.constructor.declarationDescriptor as? TypeParameterDescriptor ?: return false
@@ -194,5 +314,18 @@ fun FuzzyType.isAlmostEverything(): Boolean {
     return typeParameter.upperBounds.singleOrNull()?.isAny() ?: false
 }
 
+/**
+ * 将模糊类型转换为非可选类型
+ *
+ * @receiver 模糊类型
+ * @return 非可选的模糊类型
+ */
 fun FuzzyType.makeNonOption() = type.makeNonOption().toFuzzyType(freeParameters)
+
+/**
+ * 获取可调用对象的模糊扩展接收者类型
+ *
+ * @receiver 可调用描述符
+ * @return 模糊扩展接收者类型，如果没有扩展接收者则为 null
+ */
 fun CallableDescriptor.fuzzyExtensionReceiverType() = extensionReceiverParameter?.type?.toFuzzyType(typeParameters)

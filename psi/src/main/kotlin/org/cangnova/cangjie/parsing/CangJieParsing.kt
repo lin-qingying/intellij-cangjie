@@ -425,7 +425,7 @@ class CangJieParsing private constructor(
                 error(CangJieParsingBundle.message("parsing.error.expecting.keyword", "package"))
             }
 
-            // TODO 处理包名
+
             parsePackageName()
 
             firstEntry.drop()
@@ -445,7 +445,7 @@ class CangJieParsing private constructor(
                 BindFirstShebangWithWhitespaceOnly, null
             )
 
-            // TODO 仓颉0.53.4：包中必须有包名，但单文件可无
+            // TODO 仓颉包中必须有包名，但单文件可无
         }
 
         parseImportDirectives()
@@ -2695,7 +2695,7 @@ class CangJieParsing private constructor(
             typeParametersDeclared = parseTypeParameterList(TYPE_PARAMETER_GT_RECOVERY_SET)
         }
 
-        // TODO 继承
+
         if (at(LTCOLON)) {
             advance() // COLON
             parseDelegationSpecifierList()

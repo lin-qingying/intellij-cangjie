@@ -25,20 +25,57 @@
 package org.cangnova.cangjie.resolve.calls.model
 
 
+/**
+ * 已解析的调用参数
+ *
+ * 这是一个密封类，表示函数调用中参数解析的结果。
+ * 每个参数可能是以下三种类型之一：
+ * - [DefaultArgument]: 使用默认值的参数
+ * - [SimpleArgument]: 普通的单个参数
+ * - [VarargArgument]: 可变参数
+ *
+ * 该类用于在调用解析过程中跟踪每个参数的匹配情况。
+ */
 sealed class ResolvedCallArgument {
+    /**
+     * 参数列表
+     *
+     * 包含与此解析结果关联的所有调用参数。
+     */
     abstract val arguments: List<CangJieCallArgument>
 
+    /**
+     * 默认参数
+     *
+     * 表示使用参数的默认值，因此不需要传递实际参数。
+     * 该对象的 [arguments] 列表始终为空。
+     */
     object DefaultArgument : ResolvedCallArgument() {
         override val arguments: List<CangJieCallArgument>
             get() = emptyList()
 
     }
 
+    /**
+     * 简单参数
+     *
+     * 表示一个普通的单个参数，包含传递给函数的实际参数值。
+     *
+     * @property callArgument 实际传递的调用参数
+     */
     class SimpleArgument(val callArgument: CangJieCallArgument) : ResolvedCallArgument() {
         override val arguments: List<CangJieCallArgument>
             get() = listOf(callArgument)
 
     }
 
+    /**
+     * 可变参数
+     *
+     * 表示传递给可变参数（vararg）的一组参数。
+     * 可变参数允许传递零个或多个参数，这些参数会被组合成一个数组或列表。
+     *
+     * @property arguments 传递给可变参数的所有参数列表
+     */
     class VarargArgument(override val arguments: List<CangJieCallArgument>) : ResolvedCallArgument()
 }

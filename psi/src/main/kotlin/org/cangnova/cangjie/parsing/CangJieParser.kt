@@ -38,8 +38,9 @@ import org.cangnova.cangjie.parsing.AbstractCangJieParsing.ParsingContext
 import org.jetbrains.annotations.NotNull
 
 class CangJieParser(project: Project) : PsiParser {
+    @Deprecated("use Companion parse")
     override fun parse(root: IElementType, builder: PsiBuilder): ASTNode {
-        TODO()
+      error("use Companion parse")
     }
 
     companion object {

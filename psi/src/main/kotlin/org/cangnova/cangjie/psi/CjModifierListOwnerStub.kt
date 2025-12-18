@@ -39,11 +39,11 @@ open class CjModifierListOwnerStub<T : StubElement<*>> :
 
     constructor(stub: T, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
-    override val annotations: CjAnnotations
-        get() = findChildByType<CjAnnotations>(CjStubElementTypes.ANNOTATIONS)!!
+    override val annotations: CjAnnotations?
+        get() = findChildByType<CjAnnotations>(CjStubElementTypes.ANNOTATIONS)
 
     override val annotationEntries: List<CjAnnotation>
-        get() = annotations.entries
+        get() = annotations?.entries ?: emptyList()
 
     override val modifierList: CjModifierList?
         get() = getStubOrPsiChild(CjStubElementTypes.MODIFIER_LIST)

@@ -33,6 +33,15 @@ import java.nio.file.Paths
 
 /**
  * 获取保存的插件版本
+ *
+ * 从用户主目录下的 `.cangjie/version` 文件中读取保存的插件版本号。
+ *
+ * 使用场景：
+ * - 检查插件是否更新
+ * - 版本兼容性检查
+ * - 迁移数据或配置
+ *
+ * @return 保存的插件版本号，如果文件不存在或读取失败则返回 null
  */
 fun getSavePluginVersion(): String? {
 
@@ -44,11 +53,26 @@ fun getSavePluginVersion(): String? {
     }
 
 }
+
 /**
- * 将插件版本保存到LSPSERVERPATH
+ * 将插件版本保存到用户配置目录
+ *
+ * 将当前插件版本号保存到 `~/.cangjie/version` 文件中，
+ * 用于后续版本比较和兼容性检查。
+ *
+ * 该函数会：
+ * 1. 获取当前插件实例
+ * 2. 读取插件版本号
+ * 3. 将版本号写入配置文件
+ *
+ * 使用场景：
+ * - 插件首次安装或更新时保存版本信息
+ * - 用于后续的版本检查和数据迁移
+ *
+ * 注意：如果插件未安装或版本号为 null，则不会写入文件。
  */
 fun savePluginVersion() {
-    val plugin = PluginManagerCore.getPlugin(PluginId.getId("org.cangnova.cangjie"))
+    val plugin = PluginManagerCore.getPlugin(PluginId.getId("cn.cangnova.cangjie"))
     val version = plugin?.version
     if (version != null) {
         Files.write(Paths.get("${System.getProperty("user.home")}/.cangjie/version"), version.toString().toByteArray())

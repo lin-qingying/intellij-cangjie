@@ -23,6 +23,42 @@
  */
 package org.cangnova.cangjie
 
+/**
+ * 只读标记注解
+ *
+ * 该注解用于标记函数、属性、字段、参数或局部变量为只读的，
+ * 表明它们不应该被修改。
+ *
+ * 使用场景：
+ * - 标记不应修改的数据结构
+ * - 文档化只读约束
+ * - 配合静态分析工具检查只读约束
+ *
+ * 适用目标：
+ * - 函数：表明函数不修改外部状态
+ * - 属性 getter/setter：标记只读属性
+ * - 字段：标记不应修改的字段
+ * - 参数：标记不应修改的参数
+ * - 局部变量：标记不应修改的局部变量
+ *
+ * 示例：
+ * ```kotlin
+ * @ReadOnly
+ * fun process(data: List<String>) {
+ *     // 不修改 data
+ * }
+ *
+ * @ReadOnly
+ * val config: Config
+ *     get() = ...
+ *
+ * fun compute(@ReadOnly input: Data) {
+ *     // 不修改 input
+ * }
+ * ```
+ *
+ * 注意：这是一个文档化注解，编译器不会强制执行只读约束。
+ */
 @MustBeDocumented
 @Retention(AnnotationRetention.BINARY)
 @Target(

@@ -75,33 +75,67 @@ import org.cangnova.cangjie.types.expressions.ExpressionTypingVisitorDispatcher
 import org.cangnova.cangjie.types.isError
 import org.cangnova.cangjie.utils.PerformanceCounter.Companion.create
 
+/**
+ * 调用解析器
+ *
+ * 这是仓颉语言调用解析的核心类，负责解析各种类型的函数调用、构造器调用、操作符调用等。
+ * 它协调了重载解析、类型推断、候选筛选等多个解析阶段。
+ *
+ * 主要功能：
+ * - **函数调用解析**: 解析普通函数调用、扩展函数调用、操作符调用
+ * - **构造器解析**: 解析类构造器调用和委托调用
+ * - **重载解析**: 在多个候选中选择最匹配的函数
+ * - **类型推断**: 推断泛型类型参数和返回类型
+ * - **变量解析**: 解析变量引用和属性访问
+ *
+ * 解析流程：
+ * 1. 创建调用上下文 (BasicCallResolutionContext)
+ * 2. 收集候选描述符 (通过 scope 或显式提供)
+ * 3. 执行重载解析 (通过 NewResolutionOldInference 或 PSICallResolver)
+ * 4. 应用类型推断和约束求解
+ * 5. 返回解析结果 (OverloadResolutionResults)
+ *
+ * 依赖注入：
+ * - [expressionTypingServices]: 表达式类型服务
+ * - [syntheticScopes]: 合成作用域（用于扩展函数等）
+ * - [argumentTypeResolver]: 参数类型解析器
+ * - [newResolutionOldInference]: 旧版推断引擎
+ * - [psiCallResolver]: PSI 调用解析器（新版推断引擎）
+ * - [typeResolver]: 类型解析器
+ *
+ * 性能优化：
+ * - 使用性能计数器追踪解析耗时
+ * - 支持缓存解析结果
+ * - 使用临时追踪避免污染全局上下文
+ *
+ * @property builtIns 内置类型系统
+ * @property languageVersionSettings 语言版本配置
+ * @property dataFlowValueFactory 数据流值工厂
+ *
+ * @see BasicCallResolutionContext
+ * @see OverloadResolutionResults
+ * @see NewResolutionOldInference
+ * @see PSICallResolver
+ */
 class CallResolver(
     private val builtIns: CangJieBuiltIns,
     private val languageVersionSettings: LanguageVersionSettings,
     private val dataFlowValueFactory: DataFlowValueFactory
 ) {
+    @set:Inject
     private lateinit var expressionTypingServices: ExpressionTypingServices
+    @set:Inject
     private lateinit var syntheticScopes: SyntheticScopes
+    @set:Inject
     private lateinit var argumentTypeResolver: ArgumentTypeResolver
+    @set:Inject
     private lateinit var newResolutionOldInference: NewResolutionOldInference
+    @set:Inject
     private lateinit var psiCallResolver: PSICallResolver
-    private lateinit var typeResolver: TypeResolver
 
-    @Inject
-    fun setSyntheticScopes(syntheticScopes: SyntheticScopes) {
-        this.syntheticScopes = syntheticScopes
-    }
+    @set:Inject
+    lateinit var typeResolver: TypeResolver
 
-    @Inject
-    fun setPSICallResolver(psiCallResolver: PSICallResolver) {
-        this.psiCallResolver = psiCallResolver
-    }
-
-    // component dependency cycle
-    @Inject
-    fun setTypeResolver(typeResolver: TypeResolver) {
-        this.typeResolver = typeResolver
-    }
 
     /**
      * 计算任务并解析调用
@@ -134,6 +168,17 @@ class CallResolver(
         return OverloadResolutionResultsImpl.nameNotFound()
     }
 
+    /**
+     * 解析具有给定名称的函数调用
+     *
+     * 根据提供的函数名称解析调用。这是最常用的函数调用解析入口点之一。
+     *
+     * @param context 解析上下文，包含作用域、数据流信息等
+     * @param call 调用对象，包含调用表达式、参数等信息
+     * @param functionReference 函数引用表达式，用于追踪和报告
+     * @param name 要解析的函数名称
+     * @return 重载解析结果，包含所有匹配的候选和最终选择的描述符
+     */
     fun resolveCallWithGivenName(
         context: ResolutionContext<*>,
         call: Call,
@@ -148,6 +193,18 @@ class CallResolver(
         )
     }
 
+    /**
+     * 解析具有给定名称的函数调用（带自定义追踪策略）
+     *
+     * 与 [resolveCallWithGivenName] 类似，但允许自定义追踪策略。
+     * 追踪策略用于绑定调用和记录诊断信息。
+     *
+     * @param context 解析上下文
+     * @param call 调用对象
+     * @param name 函数名称
+     * @param tracing 追踪策略，用于绑定调用和记录错误
+     * @return 重载解析结果
+     */
     fun resolveCallWithGivenName(
         context: ResolutionContext<*>,
         call: Call,
@@ -164,6 +221,19 @@ class CallResolver(
         )
     }
 
+    /**
+     * 解析具有已知候选的函数调用
+     *
+     * 当已经知道候选函数时使用此方法进行解析。
+     * 通常用于二次解析或特殊场景。
+     *
+     * @param call 调用对象
+     * @param tracing 追踪策略
+     * @param context 解析上下文
+     * @param candidate 已知的候选描述符
+     * @param dataFlowInfoForArguments 参数的数据流信息（可选）
+     * @return 重载解析结果
+     */
     fun resolveCallWithKnownCandidate(
         call: Call,
         tracing: TracingStrategy,
@@ -210,6 +280,18 @@ class CallResolver(
         )
     }
 
+    /**
+     * 解析二元操作符调用
+     *
+     * 二元操作符（如 +, -, *, / 等）会被解析为对应的函数调用。
+     * 例如 `a + b` 会被解析为 `a.plus(b)` 的调用。
+     *
+     * @param context 表达式类型上下文
+     * @param receiver 接收者表达式（操作符左侧）
+     * @param binaryExpression 二元表达式
+     * @param name 操作符对应的函数名（如 plus, minus）
+     * @return 重载解析结果
+     */
     fun resolveBinaryCall(
         context: ExpressionTypingContext,
         receiver: ExpressionReceiver,
@@ -364,11 +446,6 @@ class CallResolver(
         )
     }
 
-    // component dependency cycle
-    @Inject
-    fun setExpressionTypingServices(expressionTypingServices: ExpressionTypingServices) {
-        this.expressionTypingServices = expressionTypingServices
-    }
 
     private fun resolveConstructorDelegationCall(
         context: BasicCallResolutionContext,
@@ -455,6 +532,21 @@ class CallResolver(
         )
     }
 
+    /**
+     * 解析枚举调用
+     *
+     * 解析枚举成员的访问和枚举构造器调用。
+     * 枚举调用具有特殊的解析语义，因为枚举成员可以是值或带构造器的类型。
+     *
+     * 处理两种场景：
+     * 1. 简单枚举成员访问：`Color.Red`
+     * 2. 带参数的枚举构造：`Color.Red(255)`
+     *
+     * @param tcache 临时追踪和缓存
+     * @param context 调用解析上下文
+     * @param kind 解析类型，默认为 EnumEntry
+     * @return 重载解析结果
+     */
     fun resolveEnumCall(
 
         tcache: TemporaryTraceAndCache,
@@ -580,6 +672,22 @@ class CallResolver(
 //        return OverloadResolutionResultsImpl.nameNotFound()
     }
 
+    /**
+     * 解析函数调用
+     *
+     * 这是函数调用解析的主要入口点，支持多种调用类型：
+     * - 普通函数调用：`foo(1, 2)`
+     * - 数组访问：`arr[0]` (解析为 get/set 操作符)
+     * - 构造器调用：`MyClass()`
+     * - 构造器委托调用：`this()` 或 `super()`
+     * - Lambda 调用：`{ x -> x + 1 }()`
+     * - invoke 调用：`obj(1, 2)` (调用 obj.invoke())
+     *
+     * 根据调用表达式的类型，分发到相应的解析逻辑。
+     *
+     * @param context 调用解析上下文
+     * @return 重载解析结果
+     */
     fun resolveFunctionCall(context: BasicCallResolutionContext): OverloadResolutionResults<out FunctionDescriptor> {
         checkCanceled()
 
@@ -671,6 +779,32 @@ class CallResolver(
         )
     }
 
+    /**
+     * 解析构造器委托调用
+     *
+     * 解析类构造器中的委托调用（this() 或 super()）。
+     * 这些调用必须出现在构造器的第一条语句。
+     *
+     * 示例：
+     * ```kotlin
+     * class MyClass {
+     *     init(x: Int) { /* ... */ }
+     *     init(s: String) : this(s.toInt()) { /* ... */ }  // this() 委托
+     * }
+     *
+     * class Child : Parent {
+     *     init(x: Int) : super(x) { /* ... */ }  // super() 委托
+     * }
+     * ```
+     *
+     * @param trace 绑定追踪
+     * @param scope 词法作用域
+     * @param dataFlowInfo 数据流信息
+     * @param constructorDescriptor 当前构造器描述符
+     * @param call 构造器委托调用表达式
+     * @param inferenceSession 类型推断会话（可选）
+     * @return 重载解析结果，如果没有委托调用则返回 null
+     */
     fun resolveConstructorDelegationCall(
         trace: BindingTrace, scope: LexicalScope, dataFlowInfo: DataFlowInfo,
         constructorDescriptor: ClassConstructorDescriptor,
@@ -754,6 +888,17 @@ class CallResolver(
         return resolveConstructorCall(context, functionReference, constructedType)
     }
 
+    /**
+     * 解析构造器调用
+     *
+     * 解析类型构造器的调用，如 `MyClass(arg1, arg2)`。
+     * 处理构造器的重载解析、类型参数推断等。
+     *
+     * @param context 调用解析上下文
+     * @param functionReference 构造器引用表达式
+     * @param constructedType 被构造的类型
+     * @return 重载解析结果
+     */
     fun resolveConstructorCall(
         context: BasicCallResolutionContext,
         functionReference: CjReferenceExpression,
@@ -854,11 +999,6 @@ class CallResolver(
         return doResolveCall(newContext, resolutionTask, tracing)
     }
 
-    // component dependency cycle
-    @Inject
-    fun setResolutionOldInference(newResolutionOldInference: NewResolutionOldInference) {
-        this.newResolutionOldInference = newResolutionOldInference
-    }
 
     private fun <D : CallableDescriptor> doResolveCall(
         context: BasicCallResolutionContext,
@@ -927,12 +1067,23 @@ class CallResolver(
         return result
     }
 
-    // component dependency cycle
-    @Inject
-    fun setArgumentTypeResolver(argumentTypeResolver: ArgumentTypeResolver) {
-        this.argumentTypeResolver = argumentTypeResolver
-    }
 
+
+    /**
+     * 解析简单变量引用
+     *
+     * 解析对变量、属性或参数的简单引用。
+     * 调用表达式必须是 [CjSimpleNameExpression]。
+     *
+     * 示例：
+     * ```kotlin
+     * val x = 10
+     * println(x)  // 解析 x 的引用
+     * ```
+     *
+     * @param context 调用解析上下文
+     * @return 重载解析结果，包含变量描述符
+     */
     fun resolveSimpleVariable(context: BasicCallResolutionContext): OverloadResolutionResults<VariableDescriptor> {
         val calleeExpression = context.call.calleeExpression
         assert(calleeExpression is CjSimpleNameExpression)
@@ -945,6 +1096,17 @@ class CallResolver(
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /**
+     * 解析任务
+     *
+     * 封装一次调用解析所需的任务信息。
+     * 包含解析类型、名称和候选列表。
+     *
+     * @param D 可调用描述符类型
+     * @property resolutionKind 解析类型（函数、变量、构造器等）
+     * @property name 要解析的名称，可为 null（用于给定候选的情况）
+     * @property givenCandidates 预先给定的候选列表，可为 null（用于按名称查找的情况）
+     */
     private class ResolutionTask<D : CallableDescriptor>(
         val resolutionKind: NewResolutionOldInference.ResolutionKind,
         val name: Name?,  //                ,

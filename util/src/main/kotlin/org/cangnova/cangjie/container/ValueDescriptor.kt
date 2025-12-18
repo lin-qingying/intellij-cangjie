@@ -24,6 +24,30 @@
 
 package org.cangnova.cangjie.container
 
+/**
+ * 值描述符接口
+ *
+ * 该接口定义了获取值的基本契约。
+ * 值描述符用于延迟计算和依赖注入系统中，提供统一的值访问接口。
+ *
+ * 使用场景：
+ * - 依赖注入容器中的组件描述
+ * - 延迟值计算
+ * - 代理和包装器模式
+ *
+ * 实现类：
+ * - [ComponentDescriptor]：组件描述符
+ * - [IterableDescriptor]：可迭代集合描述符
+ * - [SingletonDescriptor]：单例描述符
+ */
 interface ValueDescriptor {
+    /**
+     * 获取值
+     *
+     * 该方法返回描述符所代表的实际值。
+     * 具体的实现可能会执行延迟初始化、依赖解析等操作。
+     *
+     * @return 描述符所代表的值
+     */
     fun getValue(): Any
 }

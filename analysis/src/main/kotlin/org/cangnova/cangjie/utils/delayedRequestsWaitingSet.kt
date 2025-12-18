@@ -39,7 +39,6 @@ import java.util.LinkedHashSet
 
 
 interface DelayedRefactoringRequest
-//class ShorteningRequest(val pointer: SmartPsiElementPointer<CjElement>, val options: ShortenReferences.Options) : DelayedRefactoringRequest
 
 class ImportRequest(
     val elementToImportPointer: SmartPsiElementPointer<PsiElement>,
@@ -56,13 +55,8 @@ fun addDelayedImportRequest(elementToImport: PsiElement, file: CjFile) {
         file.createSmartPointer()
     )
 }
-//
-//fun CjElement.addToShorteningWaitSet(options: ShortenReferences.Options = ShortenReferences.Options.DEFAULT) {
-//    assert(ApplicationManager.getApplication()!!.isWriteAccessAllowed) { "Write access needed" }
-//    val project = project
-//    val elementPointer = SmartPointerManager.getInstance(project).createSmartPsiElementPointer(this)
-//    project.getOrCreateRefactoringRequests().add(ShorteningRequest(elementPointer, options))
-//}
+
+
 
 private fun Project.getOrCreateRefactoringRequests(): MutableSet<DelayedRefactoringRequest> {
     var requests = delayedRefactoringRequests
@@ -73,39 +67,3 @@ private fun Project.getOrCreateRefactoringRequests(): MutableSet<DelayedRefactor
 
     return requests
 }
-//fun performDelayedRefactoringRequests(project: Project) {
-//    project.delayedRefactoringRequests?.let { requests ->
-//        project.delayedRefactoringRequests = null
-//        PsiDocumentManager.getInstance(project).commitAllDocuments()
-//
-//        val shorteningRequests = ArrayList<ShorteningRequest>()
-//        val importRequests = ArrayList<ImportRequest>()
-//        requests.forEach {
-//            when (it) {
-//                is ShorteningRequest -> shorteningRequests += it
-//                is ImportRequest -> importRequests += it
-//            }
-//        }
-//
-//        val elementToOptions = shorteningRequests.mapNotNull { req -> req.pointer.element?.let { it to req.options } }.toMap()
-//        val elements = elementToOptions.keys
-//        //TODO: this is not correct because it should not shorten deep into the elements!
-//        ShortenReferences { elementToOptions[it] ?: ShortenReferences.Options.DEFAULT }.process(elements)
-//
-//        val importInsertHelper = ImportInsertHelper.getInstance(project)
-//
-//        for ((file, requestsForFile) in importRequests.groupBy { it.filePointer.element }) {
-//            if (file == null) continue
-//
-//            for (requestForFile in requestsForFile) {
-//                val elementToImport = requestForFile.elementToImportPointer.element?.unwrapped ?: continue
-//                val descriptorToImport = when (elementToImport) {
-//                    is CjDeclaration -> elementToImport.unsafeResolveToDescriptor(BodyResolveMode.PARTIAL)
-//
-//                    else -> null
-//                } ?: continue
-//                importInsertHelper.importDescriptor(file, descriptorToImport)
-//            }
-//        }
-//    }
-//}

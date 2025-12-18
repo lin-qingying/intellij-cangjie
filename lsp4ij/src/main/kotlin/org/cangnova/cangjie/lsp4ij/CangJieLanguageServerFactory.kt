@@ -41,7 +41,7 @@ import org.cangnova.cangjie.toolchain.api.CjSdk
 import org.eclipse.lsp4j.*
 import java.net.URI
 
-class CangJieLanguageServerFactory : LanguageServerFactory {
+internal class CangJieLanguageServerFactory : LanguageServerFactory {
     override fun createConnectionProvider(project: Project): StreamConnectionProvider {
         return CangJieOSProcessStreamConnectionProvider(project)
     }

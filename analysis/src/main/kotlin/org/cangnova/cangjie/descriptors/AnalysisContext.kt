@@ -26,6 +26,7 @@ package org.cangnova.cangjie.descriptors
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
+import org.cangnova.cangjie.psi.CjFile
 
 /**
  * 分析上下文接口
@@ -352,7 +353,7 @@ fun AnalysisContext.projectSourceModules(): List<AnalysisContext> {
  */
 class NotUnderContentRootModuleInfo(
     override val project: Project,
-    val file: org.cangnova.cangjie.psi.CjFile? = null
+    val file:  CjFile? = null
 ) : AnalysisContext {
     override val contextId: String = "NotUnderContentRoot"
 
@@ -360,7 +361,7 @@ class NotUnderContentRootModuleInfo(
         GlobalSearchScope.fileScope(project, it.virtualFile)
     } ?: GlobalSearchScope.EMPTY_SCOPE
 
-    override val dependencies: List<AnalysisContext> = emptyList()
+    override val dependencies: List<AnalysisContext> = listOf(this)
 
     override val isSourceContext: Boolean = false
 
