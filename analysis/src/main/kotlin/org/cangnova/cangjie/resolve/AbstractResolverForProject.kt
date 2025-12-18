@@ -497,6 +497,11 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
 
     private fun createModuleDescriptor(module: M): ModuleData {
 
+        // 在创建新模块之前，先移除旧的同名模块（支持模块刷新场景）
+        val moduleName = module.moduleName
+        if (projectDescriptor is org.cangnova.cangjie.descriptors.impl.ProjectDescriptorImpl) {
+            projectDescriptor.removeModule(moduleName)
+        }
 
         val moduleDescriptor = when {
             module.isLibraryContext -> LibraryModuleDescriptorImpl(

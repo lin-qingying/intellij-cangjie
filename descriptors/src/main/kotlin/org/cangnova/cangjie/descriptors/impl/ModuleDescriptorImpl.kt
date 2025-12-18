@@ -64,7 +64,9 @@ open class ModuleDescriptorImpl(
 
     init {
 
-        projectDescriptor.addModule(this)
+try{
+    projectDescriptor.addModule(this)
+}catch (e: Exception){}
         packageViewDescriptorFactory =
             getCapability(PackageViewDescriptorFactory.CAPABILITY) ?: PackageViewDescriptorFactory.Default
 
