@@ -24,45 +24,19 @@
 
 package org.cangnova.cangjie.project.service.impl
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.components.*
-import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker
-import com.intellij.openapi.fileTypes.FileTypeManager
-import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.RootsChangeRescanningInfo
-import com.intellij.openapi.project.ex.ProjectEx
-import com.intellij.openapi.roots.ex.ProjectRootManagerEx
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.EmptyRunnable
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.indexing.LightDirectoryIndex
-import org.cangnova.cangjie.lang.CangJieFileType
-import org.cangnova.cangjie.project.*
 import org.cangnova.cangjie.project.event.CjProjectEvent
-import org.cangnova.cangjie.project.event.CjProjectEventType
 import org.cangnova.cangjie.project.event.CjProjectListener
-import org.cangnova.cangjie.project.extension.CjProjectProvider
 import org.cangnova.cangjie.project.model.CjModule
-import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.model.roots
-import org.cangnova.cangjie.project.service.CjProjectBuildSystemService
 import org.cangnova.cangjie.project.service.CjProjectsService
-import org.cangnova.cangjie.project.service.CjProjectsService.Companion.CANGJIE_PROJECTS_REFRESH_TOPIC
-import org.cangnova.cangjie.project.service.GeneratedFilesHolder
-import org.cangnova.cangjie.project.task.CangJieSyncTask
-import org.cangnova.cangjie.project.workspace.CjWorkspaceModelSync
-import org.cangnova.cangjie.result.CjProcessResult
-import org.cangnova.cangjie.task.taskQueue
 import org.cangnova.cangjie.utils.*
-import org.jdom.Element
 import java.util.*
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionException
 
 
 /**
@@ -103,37 +77,54 @@ class CangJieModuleIndex(
 
     /**
      * 项目创建时的回调
+     *
+     * 在 EDT 线程上异步执行索引重建，避免在后台线程中执行写操作。
      */
     override fun projectCreated(event: CjProjectEvent) {
-        runWriteAction {
-            rebuildIndices()
-        }
+        scheduleIndexRebuild()
     }
 
     /**
      * 项目更新时的回调
+     *
+     * 在 EDT 线程上异步执行索引重建，避免在后台线程中执行写操作。
      */
     override fun projectUpdated(event: CjProjectEvent) {
-        runWriteAction {
-            rebuildIndices()
-        }
+        scheduleIndexRebuild()
     }
 
     /**
      * 项目删除时的回调
+     *
+     * 在 EDT 线程上异步执行索引重建，避免在后台线程中执行写操作。
      */
     override fun projectRemoved(event: CjProjectEvent) {
-        runWriteAction {
-            rebuildIndices()
-        }
+        scheduleIndexRebuild()
     }
 
     /**
      * 项目配置变更时的回调
+     *
+     * 在 EDT 线程上异步执行索引重建，避免在后台线程中执行写操作。
      */
     override fun projectConfigChanged(event: CjProjectEvent) {
-        runWriteAction {
-            rebuildIndices()
+        scheduleIndexRebuild()
+    }
+
+    /**
+     * 调度索引重建
+     *
+     * 将索引重建任务提交到 EDT 线程执行。
+     * 这是必要的，因为事件回调可能在后台线程中触发，
+     * 而 `runWriteAction` 必须在 EDT 线程上执行。
+     */
+    private fun scheduleIndexRebuild() {
+        ApplicationManager.getApplication().invokeLater {
+            if (!intellijProject.isDisposed) {
+                runWriteAction {
+                    rebuildIndices()
+                }
+            }
         }
     }
 
@@ -160,7 +151,7 @@ class CangJieModuleIndex(
      * 3. 索引模块根目录、源码目录和输出目录
      */
     private fun rebuildIndices() {
-        return
+
         checkWriteAccessAllowed()
 
         // 清理旧索引

@@ -107,10 +107,10 @@ interface CjProject {
      * 刷新项目模型
      *
      * 此方法用于在项目同步过程中执行刷新操作，当遇到错误时会抛出异常，
-     * 允许调用方（如 CangJieSyncTask）捕获并处理错误信息。
+     * 允许调用方（如 CangJieProjectSyncTask）捕获并处理错误信息。
      *
      * 建议在以下场景使用此方法：
-     * - 项目同步任务中 (CangJieSyncTask)
+     * - 项目同步任务中 (CangJieProjectSyncTask)
      * - 需要向用户显示具体错误信息的UI操作
      * - 批量项目处理中的错误处理
      * - 自动化脚本或CI/CD流程中的错误检测

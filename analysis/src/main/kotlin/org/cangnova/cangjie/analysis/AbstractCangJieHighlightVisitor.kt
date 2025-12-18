@@ -68,7 +68,7 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
         holder: HighlightInfoHolder,
         action: Runnable
     ): Boolean {
-
+return false
         val file = psiFile as? CjFile ?: return false
         val highlightingLevelManager = HighlightingLevelManager.getInstance(file.project)
         if (highlightingLevelManager.runEssentialHighlightingOnly(file)) {
@@ -77,13 +77,13 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
 
 
         try {
-            DumbService.getInstance(psiFile.project).runWhenSmart {
+//            DumbService.getInstance(psiFile.project).runWhenSmart {
 
                 analyze(file, holder)
 
 
                 action.run()
-            }
+//            }
 
 
             attempt = 0

@@ -37,12 +37,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.RootsChangeRescanningInfo
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.EmptyRunnable
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.util.indexing.LightDirectoryIndex
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.project.*
 import org.cangnova.cangjie.project.event.CjProjectEvent
@@ -51,19 +49,17 @@ import org.cangnova.cangjie.project.event.CjProjectListener
 import org.cangnova.cangjie.project.extension.CjProjectProvider
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjProject
-import org.cangnova.cangjie.project.model.roots
 import org.cangnova.cangjie.project.service.CjProjectBuildSystemService
 import org.cangnova.cangjie.project.service.CjProjectsService
 import org.cangnova.cangjie.project.service.CjProjectsService.Companion.CANGJIE_PROJECTS_REFRESH_TOPIC
 import org.cangnova.cangjie.project.service.GeneratedFilesHolder
 import org.cangnova.cangjie.project.service.ModifyProjectsOptions
-import org.cangnova.cangjie.project.task.CangJieSyncTask
+import org.cangnova.cangjie.project.task.CangJieProjectSyncTask
 import org.cangnova.cangjie.project.workspace.CjWorkspaceModelSync
 import org.cangnova.cangjie.result.CjProcessResult
 import org.cangnova.cangjie.task.taskQueue
 import org.cangnova.cangjie.utils.*
 import org.jdom.Element
-import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 
@@ -298,9 +294,6 @@ internal class CjProjectsServiceImpl(
     }
 
 
-
-
-
     /**
      * 项目模型修改的统一入口（异步版本）
      *
@@ -343,7 +336,6 @@ internal class CjProjectsServiceImpl(
                                     CangJieFileType.INSTANCE.defaultExtension
                                 )
                             }
-
 
 
                             // 发布项目更新通知
@@ -403,10 +395,10 @@ internal class CjProjectsServiceImpl(
     /**
      * 刷新项目
      *
-     * 使用 CangJieSyncTask 进行项目刷新，提供更好的进度显示和错误处理。
+     * 使用 CangJieProjectSyncTask 进行项目刷新，提供更好的进度显示和错误处理。
      * 该方法会触发完整的刷新流程，包括：
-     * 1. 提交 CangJieSyncTask 到后台队列
-     * 2. CangJieSyncTask 执行项目刷新和 Workspace Model 同步
+     * 1. 提交 CangJieProjectSyncTask 到后台队列
+     * 2. CangJieProjectSyncTask 执行项目刷新和 Workspace Model 同步
      * 3. 刷新完成后，通过 modifyProjectSync 更新服务中的 CjProject 对象
      * 4. 执行项目根目录更新（TOTAL_RESCAN）
      * 5. 发布项目更新事件
@@ -417,9 +409,9 @@ internal class CjProjectsServiceImpl(
         val startTime = System.currentTimeMillis()
         log.info("Refreshing project: ${cjProject.name}")
 
-        // 创建 CangJieSyncTask，在后台执行刷新和 Workspace Model 同步
-        val syncTask = CangJieSyncTask(intellijProject) { syncedProject ->
-            // CangJieSyncTask 已完成：
+        // 创建 CangJieProjectSyncTask，在后台执行刷新和 Workspace Model 同步
+        val syncTask = CangJieProjectSyncTask(intellijProject) { syncedProject ->
+            // CangJieProjectSyncTask 已完成：
             // 1. 项目数据刷新 (cjProject.refresh())
             // 2. Workspace Model 同步 (workspaceSync.syncProject())
 
@@ -439,13 +431,14 @@ internal class CjProjectsServiceImpl(
                         }
 
                         // 更新项目根目录 - TOTAL_RESCAN
-//                        runWithNonLightProject(intellijProject) {
-//                            ProjectRootManagerEx.getInstanceEx(intellijProject)
-//                                .makeRootsChange(
-//                                    EmptyRunnable.getInstance(),
-//                                    RootsChangeRescanningInfo.TOTAL_RESCAN
-//                                )
-//                        }
+                        runWithNonLightProject(intellijProject) {
+                            ProjectRootManagerEx.getInstanceEx(intellijProject)
+                                .makeRootsChange(
+                                    EmptyRunnable.getInstance(),
+                                    RootsChangeRescanningInfo.TOTAL_RESCAN
+
+                                )
+                        }
 
                         // 发布项目更新通知
                         intellijProject.messageBus.syncPublisher(CANGJIE_PROJECTS_TOPIC)

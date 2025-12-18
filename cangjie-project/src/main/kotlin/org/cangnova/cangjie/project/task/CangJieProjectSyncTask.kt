@@ -61,7 +61,7 @@ import javax.swing.JComponent
  *
  * @param project IntelliJ 项目实例
  */
-class CangJieSyncTask(
+class CangJieProjectSyncTask(
     project: Project,
 
 //    刷新完成回调
@@ -72,7 +72,7 @@ class CangJieSyncTask(
     CangJieTask {
 
     companion object {
-        private val LOG = logger<CangJieSyncTask>()
+        private val LOG = logger<CangJieProjectSyncTask>()
     }
 
     /**
@@ -81,7 +81,7 @@ class CangJieSyncTask(
      * @param indicator 进度指示器
      */
     override fun run(indicator: ProgressIndicator) {
-        LOG.info("CangJieSyncTask started")
+        LOG.info("CangJieProjectSyncTask started")
 
         // 设置进度指示器为不确定状态
         indicator.isIndeterminate = true
@@ -220,7 +220,7 @@ class CangJieSyncTask(
      * 是否等待智能模式
      */
     override val waitForSmartMode: Boolean
-        get() = true
+        get() = false
 
     /**
      * 进度条显示延迟
