@@ -28,6 +28,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.NlsContexts
 import java.lang.Exception
 @Suppress("NOTHING_TO_INLINE")
@@ -37,7 +38,20 @@ val isUnitTestMode: Boolean get() = ApplicationManager.getApplication().isUnitTe
 val isDispatchThread: Boolean get() = ApplicationManager.getApplication().isDispatchThread
 val isInternal: Boolean get() = ApplicationManager.getApplication().isInternal
 
-
+/**
+ * 在非轻量级项目上执行操作
+ * 轻量级项目通常用于单元测试，需要特殊处理
+ *
+ * @param project 当前项目实例
+ * @param action 要执行的操作
+ */
+inline fun runWithNonLightProject(project: Project, action: () -> Unit) {
+    if ((project as? ProjectEx)?.isLight != true) {
+        action()
+    } else {
+        check(isUnitTestMode)
+    }
+}
 fun <T> invokeAndWaitIfNeeded(modalityState: ModalityState? = null, runnable: () -> T): T {
     val app = ApplicationManager.getApplication()
     if (app.isDispatchThread) {

@@ -27,7 +27,6 @@ package org.cangnova.cangjie.analysis.bridge.scope
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.util.SlowOperations
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjSourceSet
 
@@ -63,21 +62,17 @@ object AnalysisScopeUtils {
      *
      * 包含模块的所有源码集中的源文件。
      *
-     * **注意**：此方法可能需要访问工作区索引，因此允许慢操作。
-     * 如果在 EDT 上调用，会临时允许慢操作以避免 SlowOperations 异常。
+     * 使用自定义的 CjModuleScope 实现，提供更精确的模块边界检查和更好的性能。
      *
      * @param module 模块实例
      * @return 全局搜索作用域
      */
     fun createModuleScope(module: CjModule): GlobalSearchScope {
-        val project = module.project.intellijProject
         val allSourceRoots = module.sourceSets.flatMap { it.sourceRoots }
 
         return when {
             allSourceRoots.isEmpty() -> GlobalSearchScope.EMPTY_SCOPE
-            else ->
-                GlobalSearchScope.filesScope(project, allSourceRoots)
-
+            else -> CjModuleScope(module, includeTests = true)
         }
     }
 
@@ -86,7 +81,7 @@ object AnalysisScopeUtils {
      *
      * 仅包含指定源码集的源文件。
      *
-     * **注意**：此方法可能需要访问工作区索引，因此允许慢操作。
+     * 使用自定义的 CjSourceSetScope 实现，提供更精确的作用域检查。
      *
      * @param sourceSet 源码集实例
      * @param project IntelliJ 项目
@@ -97,9 +92,11 @@ object AnalysisScopeUtils {
 
         return when {
             sourceRoots.isEmpty() -> GlobalSearchScope.EMPTY_SCOPE
-            else ->
-                GlobalSearchScope.filesScope(project, sourceRoots)
-
+            else -> CjSourceSetScope(
+                project = project,
+                sourceRoots = sourceRoots,
+                scopeName = "SourceSet: ${sourceSet.name}"
+            )
         }
     }
 
@@ -170,22 +167,19 @@ object AnalysisScopeUtils {
      *
      * 仅包含非测试的源码集。
      *
-     * **注意**：此方法可能需要访问工作区索引，因此允许慢操作。
+     * 使用自定义的 CjModuleScope 实现，自动过滤测试代码。
      *
      * @param module 模块实例
      * @return 生产代码作用域
      */
     fun createProductionScope(module: CjModule): GlobalSearchScope {
-        val project = module.project.intellijProject
         val productionSources = module.sourceSets
             .filterNot { it.isTest }
             .flatMap { it.sourceRoots }
 
         return when {
             productionSources.isEmpty() -> GlobalSearchScope.EMPTY_SCOPE
-            else ->
-                GlobalSearchScope.filesScope(project, productionSources)
-
+            else -> CjModuleScope(module, includeTests = false)
         }
     }
 
@@ -194,7 +188,7 @@ object AnalysisScopeUtils {
      *
      * 仅包含测试源码集。
      *
-     * **注意**：此方法可能需要访问工作区索引，因此允许慢操作。
+     * 使用自定义的 CjSourceSetScope 实现。
      *
      * @param module 模块实例
      * @return 测试代码作用域
@@ -207,9 +201,11 @@ object AnalysisScopeUtils {
 
         return when {
             testSources.isEmpty() -> GlobalSearchScope.EMPTY_SCOPE
-            else ->
-                GlobalSearchScope.filesScope(project, testSources)
-
+            else -> CjSourceSetScope(
+                project = project,
+                sourceRoots = testSources,
+                scopeName = "Test: ${module.name}"
+            )
         }
     }
 }

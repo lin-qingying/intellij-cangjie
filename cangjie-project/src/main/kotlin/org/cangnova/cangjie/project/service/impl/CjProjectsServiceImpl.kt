@@ -56,6 +56,7 @@ import org.cangnova.cangjie.project.service.CjProjectBuildSystemService
 import org.cangnova.cangjie.project.service.CjProjectsService
 import org.cangnova.cangjie.project.service.CjProjectsService.Companion.CANGJIE_PROJECTS_REFRESH_TOPIC
 import org.cangnova.cangjie.project.service.GeneratedFilesHolder
+import org.cangnova.cangjie.project.service.ModifyProjectsOptions
 import org.cangnova.cangjie.project.task.CangJieSyncTask
 import org.cangnova.cangjie.project.workspace.CjWorkspaceModelSync
 import org.cangnova.cangjie.result.CjProcessResult
@@ -108,14 +109,13 @@ val isNewProjectModelImportEnabled: Boolean
  * @see CjProjectsService
  * @see CangJieExternalSystemProjectAware
  */
-@Service(Service.Level.PROJECT)
 @State(
     name = "CangJieProjects", storages = [
         Storage(StoragePathMacros.WORKSPACE_FILE),
         Storage("misc.xml", deprecated = true)
     ]
 )
-class CjProjectsServiceImpl(
+internal class CjProjectsServiceImpl(
     override val intellijProject: Project
 ) : CjProjectsService, PersistentStateComponent<Element>, Disposable {
     /**
@@ -298,53 +298,7 @@ class CjProjectsServiceImpl(
     }
 
 
-    /**
-     * 项目更新选项
-     *
-     * @property lightweight 是否为轻量级更新（不触发完整的刷新事件和根目录变更）
-     * @property publishRefreshEvents 是否发布刷新状态事件（onRefreshStarted/onRefreshFinished）
-     * @property resetIndices 是否重置索引
-     * @property updateRoots 是否更新项目根目录
-     */
-    data class ModifyProjectsOptions(
-        val lightweight: Boolean = false,
-        val publishRefreshEvents: Boolean = true,
-        val resetIndices: Boolean = true,
-        val updateRoots: Boolean = true
-    ) {
-        companion object {
-            /**
-             * 默认选项：完整更新流程
-             */
-            val DEFAULT = ModifyProjectsOptions()
 
-            /**
-             * 轻量级选项：适用于单个项目的增删操作
-             * - 不发布刷新事件
-             * - 不更新项目根目录（避免触发大规模索引重建）
-             * - 仍然重置索引以保持一致性
-             */
-            val LIGHTWEIGHT = ModifyProjectsOptions(
-                lightweight = true,
-                publishRefreshEvents = false,
-                updateRoots = false
-            )
-
-            /**
-             * 初始化加载选项：适用于 loadState
-             * - 不发布刷新事件（避免在启动时触发不必要的通知）
-             * - 不更新根目录（启动后会单独刷新）
-             * - 不重置索引（延迟到刷新时）
-             * - 跳过文件类型关联和消息发布（避免阻塞服务初始化）
-             */
-            val LOAD_STATE = ModifyProjectsOptions(
-                lightweight = true,
-                publishRefreshEvents = false,
-                resetIndices = false,
-                updateRoots = false
-            )
-        }
-    }
 
 
     /**
@@ -485,13 +439,13 @@ class CjProjectsServiceImpl(
                         }
 
                         // 更新项目根目录 - TOTAL_RESCAN
-                        runWithNonLightProject(intellijProject) {
-                            ProjectRootManagerEx.getInstanceEx(intellijProject)
-                                .makeRootsChange(
-                                    EmptyRunnable.getInstance(),
-                                    RootsChangeRescanningInfo.TOTAL_RESCAN
-                                )
-                        }
+//                        runWithNonLightProject(intellijProject) {
+//                            ProjectRootManagerEx.getInstanceEx(intellijProject)
+//                                .makeRootsChange(
+//                                    EmptyRunnable.getInstance(),
+//                                    RootsChangeRescanningInfo.TOTAL_RESCAN
+//                                )
+//                        }
 
                         // 发布项目更新通知
                         intellijProject.messageBus.syncPublisher(CANGJIE_PROJECTS_TOPIC)
@@ -535,13 +489,6 @@ class CjProjectsServiceImpl(
         return providerCache.createProjectFromPhysicalFile(sdkId, intellijProject, owner, directory, projectType, name)
     }
 
-//    override fun createProjectFilesDirectly(
-//        directory: VirtualFile,
-//        projectType: String,
-//        name: String
-//    ): CjProcessResult<GeneratedFilesHolder> {
-//        return providerCache.createProjectFilesDirectly(intellijProject, directory, projectType, name)
-//    }
 
     /**
      * 发布项目事件
@@ -646,181 +593,8 @@ class CjProjectsServiceImpl(
 }
 
 
-/**
- * 在非轻量级项目上执行操作
- * 轻量级项目通常用于单元测试，需要特殊处理
- *
- * @param project 当前项目实例
- * @param action 要执行的操作
- */
-private inline fun runWithNonLightProject(project: Project, action: () -> Unit) {
-    if ((project as? ProjectEx)?.isLight != true) {
-        action()
-    } else {
-        check(isUnitTestMode)
-    }
-}
 
-/**
- * 仓颉模块索引
- *
- * 负责维护从 VirtualFile 到 CjModule 的快速映射，实现 O(1) 查找。
- * 该索引监听项目更新事件，自动重建索引以保持数据一致性。
- *
- * 设计思路：
- * - 为每个 CjProject 维护独立的 LightDirectoryIndex
- * - 索引模块的所有相关目录：模块根目录、源码目录、输出目录
- * - 使用 Optional 包装模块对象，以区分"未找到"和"无模块"两种情况
- * - 订阅 CANGJIE_PROJECTS_TOPIC，在项目更新时自动刷新索引
- *
- * @property intellijProject IntelliJ 项目实例
- * @property service 仓颉项目服务实例
- */
-class CangJieModuleIndex(
-    private val intellijProject: Project,
-    private val service: CjProjectsService
-) : CjProjectListener {
-    /**
-     * 模块索引
-     * 使用 Optional 包装以区分"未找到"和"无模块"两种情况
-     */
-    private var moduleIndex: LightDirectoryIndex<Optional<CjModule>>? = null
 
-    /**
-     * 索引生命周期管理器
-     */
-    private var indexDisposable: Disposable? = null
 
-    init {
-        // 订阅仓颉项目更新事件
-        intellijProject.messageBus.connect(intellijProject)
-            .subscribe(CjProjectListener.TOPIC, this)
-    }
-
-    /**
-     * 项目创建时的回调
-     */
-    override fun projectCreated(event: CjProjectEvent) {
-        runWriteAction {
-            rebuildIndices()
-        }
-    }
-
-    /**
-     * 项目更新时的回调
-     */
-    override fun projectUpdated(event: CjProjectEvent) {
-        runWriteAction {
-            rebuildIndices()
-        }
-    }
-
-    /**
-     * 项目删除时的回调
-     */
-    override fun projectRemoved(event: CjProjectEvent) {
-        runWriteAction {
-            rebuildIndices()
-        }
-    }
-
-    /**
-     * 项目配置变更时的回调
-     */
-    override fun projectConfigChanged(event: CjProjectEvent) {
-        runWriteAction {
-            rebuildIndices()
-        }
-    }
-
-    /**
-     * 为文件查找所属模块
-     *
-     * @param file 要查找的文件
-     * @return 文件所属的模块，如果不属于任何模块返回 null
-     */
-    fun findModuleForFile(file: VirtualFile): CjModule? {
-        checkReadAccessAllowed()
-
-        // 使用索引查找模块
-        return moduleIndex?.getInfoForFile(file)?.orElse(null)
-    }
-
-    /**
-     * 重建所有索引
-     *
-     * 该方法必须在写操作中调用，因为它会创建和注册 Disposable。
-     * 重建过程：
-     * 1. 清理旧的索引
-     * 2. 为项目的每个模块建立目录映射
-     * 3. 索引模块根目录、源码目录和输出目录
-     */
-    private fun rebuildIndices() {
-        checkWriteAccessAllowed()
-
-        // 清理旧索引
-        resetIndex()
-
-        // 创建新的 Disposable，用于管理索引生命周期
-        val disposable = Disposer.newDisposable("CangJieModuleIndexDisposable")
-        Disposer.register(intellijProject, disposable)
-
-        // 构建模块索引
-        val cjProject = service.cjProject
-        moduleIndex = LightDirectoryIndex(disposable, Optional.empty()) { index ->
-            // 先获取到局部变量，避免多次访问属性导致的竞态条件
-            val workspace = cjProject.workspace
-            val module = cjProject.module
-
-            if (workspace != null) {
-                // 遍历工作空间中的所有模块
-                for (workspaceModule in workspace.modules) {
-                    val moduleInfo = Optional.of(workspaceModule)
-
-                    // 索引模块根目录
-                    index.putInfo(workspaceModule.rootDir, moduleInfo)
-
-                    // 索引所有源码集的根目录
-                    for (sourceSet in workspaceModule.sourceSets) {
-                        for (root in sourceSet.roots) {
-                            index.putInfo(root, moduleInfo)
-                        }
-                    }
-
-                    // 索引所有目标的输出目录
-
-                }
-            } else if (module != null) {
-                val moduleInfo = Optional.of(module)
-
-                // 索引模块根目录
-                index.putInfo(module.rootDir, moduleInfo)
-
-                // 索引所有源码集的根目录
-                for (sourceSet in module.sourceSets) {
-                    for (root in sourceSet.roots) {
-                        index.putInfo(root, moduleInfo)
-                    }
-                }
-
-                // 索引所有目标的输出目录
-
-            }
-        }
-
-        indexDisposable = disposable
-    }
-
-    /**
-     * 清理索引
-     *
-     * 释放所有索引占用的资源。
-     */
-    private fun resetIndex() {
-        indexDisposable?.let { Disposer.dispose(it) }
-        indexDisposable = null
-        moduleIndex = null
-    }
-}
 
 
