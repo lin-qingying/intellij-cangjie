@@ -202,9 +202,9 @@ allprojects {
         plugin("org.jetbrains.intellij.platform")
         plugin("org.gradle.test-retry")
     }
-kotlin {
-    jvmToolchain(21)
-}
+    kotlin {
+        jvmToolchain(21)
+    }
     repositories {
         intellijPlatform {
             intellijDependencies()
@@ -371,8 +371,10 @@ project(":plugin") {
 
     dependencies {
         intellijPlatform {
+
             if (!isBuildPlugin()) {
-                plugins(psiViewerPlugin, indexViewPlugin, )
+
+                plugins(psiViewerPlugin, indexViewPlugin)
                 bundledPlugins(tomlPlugin, copyright, jsonPlugin)
             }
         }
@@ -438,9 +440,11 @@ project(":plugin") {
         }
 
         runIde {
+
             enabled = true
             dependsOn(mergePluginJarTask)
             jvmArgs(getIdeJvmArgs())
+
         }
 
         prepareSandbox {

@@ -26,6 +26,7 @@ package org.cangnova.cangjie.project.service.impl
 
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.*
 import com.intellij.openapi.diagnostic.logger
@@ -41,6 +42,7 @@ import com.intellij.openapi.util.EmptyRunnable
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import kotlinx.coroutines.*
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.project.*
 import org.cangnova.cangjie.project.event.CjProjectEvent
@@ -193,6 +195,26 @@ internal class CjProjectsServiceImpl(
 
     override var initialized: Boolean = false
 
+    /**
+     * 协程作用域
+     *
+     * 用于执行异步任务，如索引重建等。
+     * 使用 SupervisorJob 确保一个协程的失败不会影响其他协程。
+     * 作用域与服务生命周期绑定，在 dispose() 时取消所有协程。
+     */
+    private val coroutineScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    /**
+     * 刷新防抖动 Job
+     *
+     * 用于防止频繁刷新项目，当多次连续调用刷新时，只执行最后一次。
+     */
+    private var refreshJob: Job? = null
+
+    /**
+     * 刷新防抖动延迟（毫秒）
+     */
+    private val refreshDebounceMs = 300L
 
     /**
      * 当前仓颉项目的异步值持有者
@@ -205,7 +227,7 @@ internal class CjProjectsServiceImpl(
      *
      * 负责维护从 VirtualFile 到 CjModule 的快速映射
      */
-    private val moduleIndex = CangJieModuleIndex(intellijProject, this)
+    private val moduleIndex = CangJieModuleIndex(intellijProject, this, coroutineScope)
 
     /**
      * Workspace Model 同步器
@@ -258,39 +280,92 @@ internal class CjProjectsServiceImpl(
     }
 
 
+    /**
+     * 发现并初始化项目
+     *
+     * 异步执行项目发现和初始化，避免阻塞 UI 线程。
+     * 该方法会：
+     * 1. 在后台线程检查项目提供者是否可以处理指定目录
+     * 2. 在后台线程创建项目实例
+     * 3. 异步更新项目状态
+     * 4. 触发项目刷新和事件发布
+     *
+     * @param rootDir 项目根目录
+     */
     override fun discoverProject(rootDir: VirtualFile) {
-        // 获取项目提供者
-        val provider = providerCache
+        coroutineScope.launch {
+            val provider = providerCache
 
-        // 尝试使用提供者创建项目
-        if (provider.canHandle(rootDir)) {
-            log.info("Found project provider: ${provider.providerName} for $rootDir")
-            val newProject = provider.createProject(rootDir, intellijProject)
+            // 在后台线程检查和创建项目，避免阻塞 UI
+            val newProject = withContext(Dispatchers.IO) {
+                try {
+                    if (provider.canHandle(rootDir)) {
+                        log.info("Found project provider: ${provider.providerName} for $rootDir")
+                        provider.createProject(rootDir, intellijProject)
+                    } else {
+                        log.warn("No suitable project provider found for $rootDir")
+                        null
+                    }
+                } catch (e: Exception) {
+                    log.error("Failed to create project from $rootDir", e)
+                    null
+                }
+            }
+
             if (newProject != null) {
-                // 使用 modifyProjectSync 设置项目并触发相关事件
-                modifyProjectSync(ModifyProjectsOptions.DEFAULT) { newProject }
-                refreshProject()
-                log.info("Project initialized: ${newProject.name} at ${newProject.rootDir}")
+                // 使用异步版本更新项目，避免阻塞
+                modifyProjectAsync(ModifyProjectsOptions.DEFAULT) {
+                    CompletableFuture.completedFuture(newProject)
+                }.thenRun {
+                    refreshProject()
+                    log.info("Project initialized: ${newProject.name} at ${newProject.rootDir}")
 
-                // 发布项目创建事件
-                publishEvent(CjProjectEvent(newProject, CjProjectEventType.CREATED))
-                return
+                    // 发布项目创建事件
+                    publishEvent(CjProjectEvent(newProject, CjProjectEventType.CREATED))
+                }.exceptionally { throwable ->
+                    log.error("Failed to initialize project", throwable)
+                    null
+                }
             }
         }
-
-        log.warn("No suitable project provider found for $rootDir")
     }
 
+    /**
+     * 调度项目刷新（带防抖动）
+     *
+     * 取消之前的刷新任务，延迟执行新的刷新任务。
+     * 这样可以避免在短时间内多次刷新项目（例如连续添加/删除多个模块时）。
+     */
+    private fun scheduleRefresh() {
+        refreshJob?.cancel()
+        refreshJob = coroutineScope.launch {
+            delay(refreshDebounceMs)
+            refreshProject()
+        }
+    }
+
+    /**
+     * 添加模块
+     *
+     * 使用防抖动机制调度项目刷新，避免频繁刷新。
+     *
+     * @param module 要添加的模块
+     */
     override fun addModule(module: CjModule) {
-        log.info("Module added: ${module.name} at ${module.rootDir}, triggering project refresh")
-        // 在单项目模型中，添加模块意味着项目结构发生变化，需要刷新项目
-        refreshProject()
+        log.info("Module added: ${module.name} at ${module.rootDir}, scheduling project refresh")
+        scheduleRefresh()
     }
 
+    /**
+     * 移除模块
+     *
+     * 使用防抖动机制调度项目刷新，避免频繁刷新。
+     *
+     * @param module 要移除的模块
+     */
     override fun removeModule(module: CjModule) {
-        log.info("Module removed: ${module.name} at ${module.rootDir}, triggering project refresh")
-        // 在单项目模型中，移除模块意味着项目结构发生变化，需要刷新项目
-        refreshProject()
+        log.info("Module removed: ${module.name} at ${module.rootDir}, scheduling project refresh")
+        scheduleRefresh()
     }
 
 
@@ -411,6 +486,7 @@ internal class CjProjectsServiceImpl(
 
         // 创建 CangJieProjectSyncTask，在后台执行刷新和 Workspace Model 同步
         val syncTask = CangJieProjectSyncTask(intellijProject) { syncedProject ->
+            assertIsNonDispatchThread()
             // CangJieProjectSyncTask 已完成：
             // 1. 项目数据刷新 (cjProject.refresh())
             // 2. Workspace Model 同步 (workspaceSync.syncProject())
@@ -498,8 +574,20 @@ internal class CjProjectsServiceImpl(
         }
     }
 
+    /**
+     * 释放服务资源
+     *
+     * 在项目关闭时自动调用，负责：
+     * 1. 取消所有正在运行的协程
+     * 2. 清理防抖动刷新任务
+     */
     override fun dispose() {
+        // 取消防抖动刷新任务
+        refreshJob?.cancel()
+        refreshJob = null
 
+        // 取消所有正在运行的协程（包括项目发现、加载等）
+        coroutineScope.cancel()
     }
 
     override fun getState(): Element {
@@ -514,65 +602,87 @@ internal class CjProjectsServiceImpl(
 
     /**
      * 当没有状态加载时调用
-     * 这不仅在首次创建服务时调用，
-     * 也在之前保存的状态为空时调用
+     *
+     * 该方法在首次创建服务或之前保存的状态为空时调用。
+     * 使用协程延迟执行项目发现，避免阻塞 IDE 启动流程。
      */
     override fun noStateLoaded() {
+        initialized = true // 立即标记为已初始化，避免阻塞服务初始化
 
-
-        // 显示在 [org.cangnova.cangjie.notifications.MissingToolchainNotificationProvider]
-
-        initialized = true // 不需要锁定B/C的服务初始时间
-
-//应该使用该服务进行初始化，因为它存储了项目数据的一部分
+        // 应该使用该服务进行初始化，因为它存储了项目数据的一部分
         intellijProject.service<UserDisabledFeaturesHolder>()
 
-        // 初始化项目模型（仅在没有保存状态时执行）
-        discoverProject(intellijProject.baseDir)
+        // 延迟到后台执行项目发现，避免阻塞 IDE 启动
+        coroutineScope.launch {
+            // 延迟 200ms，让 IDE 先完成启动流程
+            delay(200)
+
+            if (!intellijProject.isDisposed) {
+                log.info("Starting delayed project discovery")
+                discoverProject(intellijProject.baseDir)
+            }
+        }
     }
 
+    /**
+     * 加载持久化状态
+     *
+     * 从保存的状态中恢复项目配置。为了避免阻塞 IDE 启动：
+     * 1. 立即标记服务为已初始化
+     * 2. 在后台协程中异步加载项目文件和创建项目
+     * 3. 延迟执行项目刷新，等 IDE 完全启动后再进行
+     *
+     * @param state 保存的状态元素
+     */
     override fun loadState(state: Element) {
+        // 立即标记为已初始化，避免阻塞其他服务的创建
+        initialized = true
+
         val projects = state.getChildren("project")
         val userDisabledFeaturesMap = intellijProject.service<UserDisabledFeaturesHolder>()
             .takeLoadedUserDisabledFeatures()
 
-        var loadedProject: CjProject? = null
-        for (projectElement in projects) {
-            val path = projectElement.getAttributeValue("PATH").toPath()
+        // 在后台协程中异步加载项目，避免阻塞 IDE 启动
+        coroutineScope.launch {
+            var loadedProject: CjProject? = null
 
-            val file = VirtualFileManager.getInstance().findFileByNioPath(path) ?: continue
-//            val userDisabledFeatures = userDisabledFeaturesMap[manifest] ?: UserDisabledFeatures.EMPTY
-            val newProject =
-                providerCache.createProject(file, intellijProject)
-            if (newProject != null) {
-                loadedProject = newProject
-                break // 单项目模型，只加载第一个
+            // 在 IO 线程执行文件查找和项目创建，避免阻塞主线程
+            for (projectElement in projects) {
+                val path = projectElement.getAttributeValue("PATH").toPath()
+
+                val file = withContext(Dispatchers.IO) {
+                    VirtualFileManager.getInstance().findFileByNioPath(path)
+                } ?: continue
+
+                val newProject = withContext(Dispatchers.IO) {
+                    providerCache.createProject(file, intellijProject)
+                }
+
+                if (newProject != null) {
+                    loadedProject = newProject
+                    break // 单项目模型，只加载第一个
+                }
             }
-        }
 
-        // 直接设置项目，跳过任何同步操作以避免阻塞服务初始化
-        if (loadedProject != null) {
-            this.project.updateSync { loadedProject }
+            // 直接设置项目，跳过任何同步操作以避免阻塞服务初始化
+            if (loadedProject != null) {
+                this@CjProjectsServiceImpl.project.updateSync { loadedProject }
 
-            // 发布项目打开事件
-            publishEvent(CjProjectEvent(loadedProject, CjProjectEventType.OPENED))
-        }
+                // 发布项目打开事件
+                publishEvent(CjProjectEvent(loadedProject, CjProjectEventType.OPENED))
+            }
 
-        // 延迟刷新到更合适的时机，避免在启动阶段进行重量级操作
-        val disableRefresh =
-            System.getProperty(CANGJIE_DISABLE_PROJECT_REFRESH_ON_CREATION, "false").toBooleanStrictOrNull()
-        if (disableRefresh != true && loadedProject != null) {
-            // 如果启用了新的项目模型导入，由 ExternalSystemProjectTracker 负责刷新
-            // 避免与 CangJieExternalSystemProjectAware 的自动刷新重复
-//            if (isNewProjectModelImportEnabled) {
-//                return
-//            }
+            // 延迟刷新到更合适的时机，避免在启动阶段进行重量级操作
+            val disableRefresh =
+                System.getProperty(CANGJIE_DISABLE_PROJECT_REFRESH_ON_CREATION, "false").toBooleanStrictOrNull()
+            if (disableRefresh != true && loadedProject != null) {
+                // 延迟 500ms，比 noStateLoaded 更长，让 IDE 完全启动后再刷新
+                delay(500)
 
-            // 在后台线程执行项目刷新，避免阻塞 EDT
-            if (intellijProject.isDisposed) return
-            // 再次检查，避免重复刷新
-            if (loadedProject.isValid) {
-                refreshProject()
+                // 在后台线程执行项目刷新，避免阻塞 EDT
+                if (!intellijProject.isDisposed && loadedProject.isValid) {
+                    refreshProject()
+                }
             }
         }
     }

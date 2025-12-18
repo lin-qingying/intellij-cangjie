@@ -30,13 +30,18 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.NlsContexts
+import com.intellij.util.application
 import java.lang.Exception
+
 @Suppress("NOTHING_TO_INLINE")
 inline fun isApplicationInternalMode(): Boolean = ApplicationManager.getApplication().isInternal
 
 val isUnitTestMode: Boolean get() = ApplicationManager.getApplication().isUnitTestMode
 val isDispatchThread: Boolean get() = ApplicationManager.getApplication().isDispatchThread
 val isInternal: Boolean get() = ApplicationManager.getApplication().isInternal
+fun assertIsNonDispatchThread() {
+    application.assertIsNonDispatchThread()
+}
 
 /**
  * 在非轻量级项目上执行操作
@@ -52,6 +57,7 @@ inline fun runWithNonLightProject(project: Project, action: () -> Unit) {
         check(isUnitTestMode)
     }
 }
+
 fun <T> invokeAndWaitIfNeeded(modalityState: ModalityState? = null, runnable: () -> T): T {
     val app = ApplicationManager.getApplication()
     if (app.isDispatchThread) {

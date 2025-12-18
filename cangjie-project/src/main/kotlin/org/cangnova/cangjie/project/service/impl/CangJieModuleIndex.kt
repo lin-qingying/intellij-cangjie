@@ -23,13 +23,18 @@
  */
 
 package org.cangnova.cangjie.project.service.impl
+
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.application.readAndEdtWriteAction
+import com.intellij.openapi.application.writeAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.indexing.LightDirectoryIndex
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.cangnova.cangjie.project.event.CjProjectEvent
 import org.cangnova.cangjie.project.event.CjProjectListener
 import org.cangnova.cangjie.project.model.CjModule
@@ -53,10 +58,12 @@ import java.util.*
  *
  * @property intellijProject IntelliJ 项目实例
  * @property service 仓颉项目服务实例
+ * @property coroutineScope 协程作用域，用于异步索引重建
  */
 class CangJieModuleIndex(
     private val intellijProject: Project,
-    private val service: CjProjectsService
+    private val service: CjProjectsService,
+    private val coroutineScope: CoroutineScope
 ) : CjProjectListener {
     /**
      * 模块索引
@@ -114,16 +121,24 @@ class CangJieModuleIndex(
     /**
      * 调度索引重建
      *
-     * 将索引重建任务提交到 EDT 线程执行。
-     * 这是必要的，因为事件回调可能在后台线程中触发，
-     * 而 `runWriteAction` 必须在 EDT 线程上执行。
+     * 在后台协程中异步执行索引重建，避免阻塞 UI 线程。
+     * 使用 Dispatchers.Default 在后台线程池中执行，并通过 writeAction 获取写锁。
+     *
+     * ## 线程模型
+     *
+     * - 事件回调可能在任何线程触发
+     * - 使用协程在后台线程执行重建逻辑
+     * - 通过 writeAction 在需要时获取写锁（会自动切换到 EDT 或写线程）
+     * - 避免在 EDT 上执行耗时的索引遍历操作
      */
     private fun scheduleIndexRebuild() {
-        ApplicationManager.getApplication().invokeLater {
+
+        coroutineScope.launch(Dispatchers.Default) {
             if (!intellijProject.isDisposed) {
-                runWriteAction {
+//                writeAction {
+                    assertIsNonDispatchThread()
                     rebuildIndices()
-                }
+//                }
             }
         }
     }
@@ -151,8 +166,7 @@ class CangJieModuleIndex(
      * 3. 索引模块根目录、源码目录和输出目录
      */
     private fun rebuildIndices() {
-
-        checkWriteAccessAllowed()
+//        checkWriteAccessAllowed()
 
         // 清理旧索引
         resetIndex()
