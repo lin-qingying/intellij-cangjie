@@ -30,13 +30,42 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 
-// 将字符串转换为Path对象
+/**
+ * 将字符串转换为 [Path] 对象。
+ * 使用 [Paths.get] 方法进行转换。
+ *
+ * @return 转换后的 Path 对象
+ * @throws InvalidPathException 如果字符串不是有效的路径
+ *
+ * 示例：
+ * ```kotlin
+ * val path = "/usr/local/bin".toPath()
+ * val winPath = "C:\\Program Files".toPath()
+ * ```
+ */
 fun String.toPath(): Path = Paths.get(this)
 
-// 将字符串转换为Path对象，如果转换失败则返回null
+/**
+ * 将字符串安全地转换为 [Path] 对象。
+ * 如果转换失败（例如路径格式不正确），则返回 null 而不是抛出异常。
+ *
+ * @return 转换后的 Path 对象，如果转换失败则返回 null
+ *
+ * 示例：
+ * ```kotlin
+ * val validPath = "/usr/local".toPathOrNull()  // 返回 Path 对象
+ * val invalidPath = "\0invalid".toPathOrNull() // 返回 null
+ * ```
+ */
 fun String.toPathOrNull(): Path? = pathOrNull(this::toPath)
 
-// 将字符串转换为Path对象，如果转换失败则记录日志并返回null
+/**
+ * 安全地执行路径转换操作。
+ * 捕获 [InvalidPathException] 异常并返回 null。
+ *
+ * @param block 执行路径转换的函数
+ * @return 转换后的 Path 对象，如果转换失败则返回 null
+ */
 private inline fun pathOrNull(block: () -> Path): Path? {
     return try {
         block()
@@ -46,5 +75,16 @@ private inline fun pathOrNull(block: () -> Path): Path? {
     }
 }
 
-// 获取VirtualFile对象的路径，并转换为Path对象
+/**
+ * 获取 [VirtualFile] 对象的文件系统路径，并转换为 [Path] 对象。
+ * 使用 [VirtualFile.path] 获取路径字符串，然后转换为 Path。
+ *
+ * @return VirtualFile 的文件系统路径对应的 Path 对象
+ *
+ * 示例：
+ * ```kotlin
+ * val virtualFile: VirtualFile = ...
+ * val path = virtualFile.pathAsPath
+ * ```
+ */
 val VirtualFile.pathAsPath: Path get() = Paths.get(path)

@@ -144,7 +144,7 @@ class CjModuleAnalysisContext(
             LOG.debug("Total dependencies collected for $contextId: ${result.size}")
         }
 
-        return result /*+ listOf(this)*/
+        return result + listOf(this)
     }
 
     /**

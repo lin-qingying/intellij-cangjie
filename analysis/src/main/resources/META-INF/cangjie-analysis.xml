@@ -139,7 +139,7 @@
 
         <applicationService
                 serviceInterface="org.cangnova.cangjie.analysis.decompiler.psi.CangJieBuiltInStubVersionOffsetProvider"
-                serviceImplementation="org.cangnova.cangjie.analysis.decompiler.psi.CangJieBuiltInStubVersionOffsetProvider"/>
+                serviceImplementation="org.cangnova.cangjie.analysis.decompiler.psi.IdeCangJieBuiltInStubVersionOffsetProvider"/>
 
         <applicationService
                 serviceInterface="org.cangnova.cangjie.references.CjReferenceResolutionHelper"
