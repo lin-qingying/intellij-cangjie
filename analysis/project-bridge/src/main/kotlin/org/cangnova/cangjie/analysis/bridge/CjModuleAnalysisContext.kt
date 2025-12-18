@@ -212,8 +212,10 @@ class CjModuleAnalysisContext(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
+
         if (other !is CjModuleAnalysisContext) return false
-        return cjModule == other.cjModule
+
+        return other.contextId == contextId
     }
 
     override fun hashCode(): Int {

@@ -102,7 +102,7 @@ class CjLibraryAnalysisContext(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is CjLibraryAnalysisContext) return false
-        return dependency == other.dependency && project == other.project
+        return contextId == other.contextId && project == other.project
     }
 
     override fun hashCode(): Int {

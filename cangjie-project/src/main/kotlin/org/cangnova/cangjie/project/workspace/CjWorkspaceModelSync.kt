@@ -190,24 +190,32 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                 try {
                     val dependencyGraph = resolveModuleDependencyGraph(module)
 
-                    // 查找现有的模块实体
+                    // 查找现有的模块实体（不限 entitySource 类型，优先使用仓颉插件创建的）
                     val moduleName = "${MODULE_NAME_PREFIX}${module.name}"
-                    val existingModule = storage.entities(ModuleEntity::class.java)
-                        .firstOrNull {
-                            it.name == moduleName &&
-                            it.entitySource is CangJieEntitySource
-                        }
+                    val existingModules = storage.entities(ModuleEntity::class.java)
+                        .filter { it.name == moduleName }
+                        .toList()
+
+                    // 优先选择仓颉插件创建的模块，用于检查是否需要更新
+                    val existingModule = existingModules.firstOrNull {
+                        it.entitySource is CangJieEntitySource
+                    } ?: existingModules.firstOrNull()
 
                     // 检查模块内容是否真的变化了
                     val needsUpdate = existingModule == null ||
                                      shouldUpdateModule(storage, existingModule, module, dependencyGraph, MODULE_NAME_PREFIX)
 
                     if (needsUpdate) {
-                        // 只在内容变化时才更新
-                        existingModule?.let { oldEntity ->
-                            LOG.info("Single module content changed, updating: ${module.name}")
-                            storage.removeEntity(oldEntity)
-                        } ?: LOG.info("New single module detected, creating: ${module.name}")
+                        // 只在内容变化时才更新 - 删除所有同名模块（避免 ID 冲突）
+                        if (existingModules.isNotEmpty()) {
+                            LOG.info("Single module content changed, removing ${existingModules.size} existing module(s): ${module.name}")
+                            existingModules.forEach { oldEntity ->
+                                LOG.debug("Removing module: name=${oldEntity.name}, entitySource=${oldEntity.entitySource}")
+                                storage.removeEntity(oldEntity)
+                            }
+                        } else {
+                            LOG.info("New single module detected, creating: ${module.name}")
+                        }
 
                         // 创建新的模块实体
                         syncModuleWithoutParent(storage, module, dependencyGraph)
@@ -425,9 +433,9 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                 }
             }.toSet()
 
-            val existingSourceRoots = existingContentRoot?.sourceRoots?.map { sourceRoot ->
+            val existingSourceRoots = existingContentRoot.sourceRoots.map { sourceRoot ->
                 sourceRoot.url.url to sourceRoot.rootTypeId.name
-            }?.toSet() ?: emptySet()
+            }.toSet()
 
             if (expectedSourceRoots != existingSourceRoots) {
                 LOG.debug("Source roots changed for ${cjModule.name}: expected=$expectedSourceRoots, existing=$existingSourceRoots")
@@ -441,7 +449,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                 }
             }.toSet()
 
-            val existingExcludedUrls = existingContentRoot?.excludedUrls?.map { it.url.url }?.toSet() ?: emptySet()
+            val existingExcludedUrls = existingContentRoot.excludedUrls.map { it.url.url }.toSet()
 
             if (expectedExcludedUrls != existingExcludedUrls) {
                 LOG.debug("Excluded URLs changed for ${cjModule.name}")
@@ -596,6 +604,19 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
         val moduleName = "${MODULE_NAME_PREFIX}${cjModule.name}"
         val contentRootUrl = urlManager.getOrCreateFromUrl(cjModule.rootDir.url)
 
+        // 检查并删除已存在的同名模块（无论 entitySource 类型），避免 SymbolicIdAlreadyExistsException
+        val existingModules = builder.entities(ModuleEntity::class.java)
+            .filter { it.name == moduleName }
+            .toList()
+
+        if (existingModules.isNotEmpty()) {
+            LOG.info("Found ${existingModules.size} existing module(s) with name '$moduleName', removing them before sync")
+            existingModules.forEach { existingModule ->
+                LOG.debug("Removing existing module: name=${existingModule.name}, entitySource=${existingModule.entitySource}")
+                builder.removeEntity(existingModule)
+            }
+        }
+
         // 构建依赖（分别获取模块依赖和库依赖）
         val (moduleDeps, libraryDeps) = buildAllDependencies(builder, cjModule, dependencyGraph)
 
@@ -712,6 +733,19 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
 
         // 创建模块名称（添加前缀避免冲突）
         val moduleName = "${parentModule.name}.${cjModule.name}"
+
+        // 检查并删除已存在的同名模块（无论 entitySource 类型），避免 SymbolicIdAlreadyExistsException
+        val existingModules = builder.entities(ModuleEntity::class.java)
+            .filter { it.name == moduleName }
+            .toList()
+
+        if (existingModules.isNotEmpty()) {
+            LOG.info("Found ${existingModules.size} existing module(s) with name '$moduleName', removing them before sync")
+            existingModules.forEach { existingModule ->
+                LOG.debug("Removing existing module: name=${existingModule.name}, entitySource=${existingModule.entitySource}")
+                builder.removeEntity(existingModule)
+            }
+        }
 
         // 准备 ContentRoot URL
         val contentRootUrl = urlManager.getOrCreateFromUrl(cjModule.rootDir.url)
