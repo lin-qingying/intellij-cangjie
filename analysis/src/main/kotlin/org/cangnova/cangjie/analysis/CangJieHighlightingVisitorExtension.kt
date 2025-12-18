@@ -40,6 +40,6 @@ abstract class CangJieHighlightingVisitorExtension {
     }
 
     companion object {
-        val EP_NAME = ExtensionPointName.create<CangJieHighlightingVisitorExtension>("cn.cangnova.cangjie.highlighterExtension")
+        val EP_NAME = ExtensionPointName.create<CangJieHighlightingVisitorExtension>("org.cangnova.cangjie.highlighterExtension")
     }
 }

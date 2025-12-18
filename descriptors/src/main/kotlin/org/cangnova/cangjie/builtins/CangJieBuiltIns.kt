@@ -612,7 +612,7 @@ open class CangJieBuiltIns(
             projectDescriptor,
             BUILTINS_MODULE_NAME,
             storageManager,
-            isBuiltInsModule = true
+
         )
         module.initialize(
             BuiltInsLoader.Instance.createPackageFragmentProvider(

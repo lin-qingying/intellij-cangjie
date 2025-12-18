@@ -359,6 +359,14 @@ object CangJieHighlightingColors {
 
     // 小于号和冒号组合的高亮
     val LT_COLON: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_LT_COLON")
+
+    val INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
+        "CANGJIE_INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION",
+         CangJieHighlightingColors.INSTANCE_PROPERTY
+    )
+    val DOUBLE_COLON: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_DOUBLE_COLON")
+    val EXCLEXCL: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_EXCLEXCL")
+
 }
 
 

@@ -29,6 +29,10 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 
 
 object CangJieHighlightInfoTypeSemanticNames {
+    val INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION: HighlightInfoType =
+         CangJieHighlightInfoTypeSemanticNames.createSymbolTypeInfo(
+            CangJieHighlightingColors.INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION
+        )
     // 关键字相关
     val KEYWORD: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.KEYWORD)
     val LET_KEYWORD: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.LET_KEYWORD)

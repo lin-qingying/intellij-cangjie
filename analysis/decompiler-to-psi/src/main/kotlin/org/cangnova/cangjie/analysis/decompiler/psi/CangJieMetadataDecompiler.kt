@@ -215,8 +215,16 @@ abstract class CangJieMetadataDecompiler<out V : BinaryVersion>(
      * 文件视图提供者负责管理反编译文件的 PSI 结构，
      * 使 IDE 能够像处理普通源文件一样处理反编译后的元数据文件。
      *
-     * 创建的 [CangJieDecompiledFileViewProvider] 会在需要时延迟生成反编译文本，
-     * 并创建对应的 [CjDecompiledFile] PSI 文件。
+     * 创建的 [CangJieDecompiledFileViewProvider] 会在需要时延迟生成反编译文本。
+     *
+     * ## 设计说明
+     *
+     * 本方法创建一个文本工厂函数，该工厂：
+     * 1. 读取并解析元数据文件
+     * 2. 生成反编译后的文本内容
+     * 3. 在反编译失败时返回错误提示文本
+     *
+     * 文本工厂保证永不返回 null 或空字符串，避免文档和 PSI 内容不一致的问题。
      *
      * @param file 元数据虚拟文件
      * @param manager PSI 管理器
@@ -224,15 +232,20 @@ abstract class CangJieMetadataDecompiler<out V : BinaryVersion>(
      * @return 用于管理反编译文件视图的提供者
      */
     override fun createFileViewProvider(file: VirtualFile, manager: PsiManager, physical: Boolean): FileViewProvider {
-        return CangJieDecompiledFileViewProvider(manager, file, physical) { project, provider ->
-            val virtualFile = provider.virtualFile
-            readFileSafely(project, virtualFile)?.let { fileWithMetadata ->
-                CjDecompiledFile(provider) {
-                    check(it == virtualFile) {
-                        "Unexpected file $it, expected ${virtualFile.fileType}"
-                    }
-                    buildDecompiledText(manager.project, fileWithMetadata)
-                }
+        return CangJieDecompiledFileViewProvider(manager, file, physical) { virtualFile ->
+            // 读取并反编译文件内容
+            val fileWithMetadata = readFileSafely(manager.project, virtualFile)
+            if (fileWithMetadata != null) {
+                // 成功读取元数据，生成反编译文本
+                val decompiledText = buildDecompiledText(manager.project, fileWithMetadata)
+                decompiledText.text
+            } else {
+                // 无法读取文件，返回错误提示文本
+                """
+                    // IntelliJ API Decompiler stub source generated from a class file
+                    // Unable to read metadata file: ${virtualFile.name}
+                    // The file may not exist or cannot be accessed.
+                """.trimIndent()
             }
         }
     }

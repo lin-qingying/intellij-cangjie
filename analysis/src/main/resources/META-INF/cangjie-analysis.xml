@@ -185,6 +185,11 @@
                 serviceInterface="org.cangnova.cangjie.resolve.CodeAnalyzerInitializer"
                 serviceImplementation="org.cangnova.cangjie.resolve.DummyCodeAnalyzerInitializer"/>
 
+        <lang.documentationProvider language="CangJie"
+                                    implementationClass="org.cangnova.cangjie.quickDoc.cdoc.CangJieDocumentationProvider"
+                                    order="first"/>
+
+
     </extensions>
 
     <!-- 诊断渲染器提供者注册 -->

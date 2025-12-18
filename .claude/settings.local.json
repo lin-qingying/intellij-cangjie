@@ -27,7 +27,9 @@
       "Bash(comm:*)",
       "Bash(chmod:*)",
       "Bash(bash scan_comments.sh:*)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "WebFetch(domain:github.com)",
+      "Read(//c/Users/lin17/.cangjie/sdks/cangjie-1.0.0/modules/windows_x86_64_llvm/std/**)"
     ],
     "deny": [],
     "ask": []

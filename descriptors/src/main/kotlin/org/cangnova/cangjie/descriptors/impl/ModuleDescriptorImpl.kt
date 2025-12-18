@@ -43,7 +43,6 @@ class ModuleDescriptorImpl(
     private val capabilities: Map<ModuleCapability<*>, Any?> = emptyMap(),
     override val stableName: Name? = null,
 
-    isBuiltInsModule: Boolean = false,
 
 
     ) : DeclarationDescriptorImpl(Annotations.EMPTY, moduleName),

@@ -32,6 +32,8 @@ import org.cangnova.cangjie.descriptors.ClassKind
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.DescriptorToSourceUtils
 import org.cangnova.cangjie.descriptors.FunctionDescriptor
+import org.cangnova.cangjie.descriptors.MemberDescriptor
+import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import org.cangnova.cangjie.descriptors.VariableDescriptor
 import org.cangnova.cangjie.diagnostics.Diagnostic
 import org.cangnova.cangjie.psi.CjCallExpression
@@ -45,6 +47,10 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.DeferredType
 import org.cangnova.cangjie.types.TypeConstructor
 import org.cangnova.cangjie.types.contains
+
+
+
+
 fun ClassDescriptor.getAllSuperclassesWithoutAny() =
     generateSequence(
         getSuperClassNotAny(),

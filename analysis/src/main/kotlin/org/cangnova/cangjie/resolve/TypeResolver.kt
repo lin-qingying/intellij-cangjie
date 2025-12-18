@@ -187,22 +187,21 @@ class TypeResolver(
      *  todo: find another way after release
      */
     private fun forceResolveTypeContents(type: CangJieType) {
-        type.annotations // force read type annotations
-//        if (type.isFlexible()) {
-//            forceResolveTypeContents(type.asFlexibleType().lowerBound)
-//            forceResolveTypeContents(type.asFlexibleType().upperBound)
-//        } else {
-        type.constructor // force read type constructor
+
+
         for (projection in type.arguments) {
 
             forceResolveTypeContents(projection.type)
 
         }
-//        }
+
     }
 
     fun resolveDescriptorForType(
-        scope: LexicalScope, userType: CjUserType, trace: BindingTrace, isDebuggerContext: Boolean
+        scope: LexicalScope,
+        userType: CjUserType,
+        trace: BindingTrace,
+        isDebuggerContext: Boolean
     ): QualifiedExpressionResolver.TypeQualifierResolutionResult {
         if (userType.qualifier != null) { // 必须解析限定符类型参数中的所有类型引用
             for (typeArgument in userType.qualifier!!.typeArguments) {
@@ -252,7 +251,7 @@ class TypeResolver(
         outerModifierList: CjModifierList?,
         typeElement: CjTypeElement?,
 
-    ): PossiblyBareType {
+        ): PossiblyBareType {
 
         fun resolveOptionType(): CangJieType {
             val classifier = c.scope.findFirstClassifierWithDeprecationStatus(
@@ -1176,7 +1175,7 @@ class TypeResolver(
         typeReference: CjTypeReference,
 
 
-    ): PossiblyBareType {
+        ): PossiblyBareType {
         if (c.useCache) {
             val cachedType = c.trace.bindingContext[BindingContext.TYPE, typeReference]
             if (cachedType != null) return type(cachedType)
@@ -1207,7 +1206,6 @@ class TypeResolver(
 
         return resolvePossiblyBareType(c, typeReference).actualType
     }
-
 
 
     fun resolveType(
@@ -1248,6 +1246,6 @@ class TypeResolver(
             ),
             typeReference,
 
-        )
+            )
     }
 }

@@ -30,23 +30,50 @@ import org.cangnova.cangjie.analysis.decompiler.psi.text.DecompiledText
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.utils.LockedClearableLazyValue
 
+/**
+ * 反编译的仓颉文件。
+ *
+ * 该类继承自 [CjFile]，用于表示从二进制元数据文件反编译后的仓颉源代码文件。
+ * 它提供了延迟加载的反编译文本，并在内容重新加载时清除缓存。
+ *
+ * @param provider 提供此文件视图的 [CangJieDecompiledFileViewProvider]
+ * @param buildDecompiledText 构建反编译文本的函数，接收虚拟文件作为参数
+ *
+ * @see CangJieDecompiledFileViewProvider
+ * @see DecompiledText
+ */
 open class CjDecompiledFile(
     private val provider: CangJieDecompiledFileViewProvider,
     buildDecompiledText: (VirtualFile) -> DecompiledText
 ) : CjFile(provider, true) {
 
+    /**
+     * 延迟加载的反编译文本。
+     *
+     * 使用 [LockedClearableLazyValue] 确保线程安全和可清除性。
+     */
     private val decompiledText = LockedClearableLazyValue(Any()) {
         buildDecompiledText(provider.virtualFile)
     }
 
+    /**
+     * 获取文件的文本内容。
+     *
+     * @return 反编译后的源代码文本
+     */
     override fun getText(): String? {
         return decompiledText.get().text
     }
 
+    /**
+     * 当内容重新加载时调用。
+     *
+     * 清除缓存的反编译文本，强制下次访问时重新生成。
+     */
     override fun onContentReload() {
         super.onContentReload()
 
-        provider.content.drop()
+        provider.decompiledText.drop()
         decompiledText.drop()
     }
 
