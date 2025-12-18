@@ -26,6 +26,7 @@ package org.cangnova.cangjie.descriptors
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
+import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjFile
 
 /**
@@ -138,6 +139,7 @@ interface AnalysisContext {
      * @return 上下文的唯一标识字符串
      */
     val contextId: String
+    val moduleName : Name
 
     /**
      * 所属 IntelliJ 项目
@@ -356,6 +358,8 @@ class NotUnderContentRootModuleInfo(
     val file:  CjFile? = null
 ) : AnalysisContext {
     override val contextId: String = "NotUnderContentRoot"
+    override val moduleName: Name
+        get() = Name.identifier("NotUnderContentRoot")
 
     override val scope: GlobalSearchScope = file?.let {
         GlobalSearchScope.fileScope(project, it.virtualFile)

@@ -55,6 +55,7 @@ import org.cangnova.cangjie.builtins.StandardNames.FqNames.uint8UFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.unitUFqName
 import org.cangnova.cangjie.builtins.StandardNames.RANGE
 import org.cangnova.cangjie.builtins.StandardNames.RESOURCE
+import org.cangnova.cangjie.builtins.StandardNames.STD_PACKAGE_NAME
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.impl.*
@@ -476,6 +477,16 @@ open class CangJieBuiltIns(
 
     val builtInsModule: ModuleDescriptorImpl
         get() = builtInsModuleProvider()
+
+
+    /**
+     * 获取标准库模块描述符
+     * @throws IllegalStateException 如果标准库模块尚未设置
+     */
+    val stdlibModule: ModuleDescriptor
+        get() = projectDescriptor.getModule(STD_PACKAGE_NAME)   ?: error("Stdlib module is not set yet. Call setStdlibModule() first.")
+
+
     val binaryOperatorRules: MutableMap<CjToken, List<BinaryOperatorRule>> = mutableMapOf()
 
     //    填充规则
@@ -607,19 +618,25 @@ open class CangJieBuiltIns(
     }
 
 
+    /**
+     * 创建内置类型模块（仅包含基本类型）
+     *
+     * 该模块只包含 cangjie 包下的基本类型（Int8, Bool, Unit 等）。
+     * 标准库类型（std.core, std.sync 等）由单独的 stdlibModule 提供。
+     */
     private fun createBuiltInsModuleInternal(isFallback: Boolean): ModuleDescriptorImpl {
         val module = ModuleDescriptorImpl(
             projectDescriptor,
             BUILTINS_MODULE_NAME,
+            BUILTINS_MODULE_NAME.asString(), // displayName
             storageManager,
 
         )
+        // 只加载基本类型，不包含标准库
         module.initialize(
-            BuiltInsLoader.Instance.createPackageFragmentProvider(
+            BuiltInsLoader.Instance.createBasicTypesPackageFragmentProvider(
                 storageManager,
-                module,
-                isFallback,
-                CjProjectSdkConfig.getInstance(projectDescriptor.project).getProjectSdk()
+                module
             )
         )
         module.setDependencies(module)
@@ -627,10 +644,10 @@ open class CangJieBuiltIns(
     }
 
 
-    val STD_SYNC_SCOPE get() = builtInsModule.getPackage(sync).memberScope
+    val STD_SYNC_SCOPE get() = stdlibModule.getPackage(sync).memberScope
 
-    val STD_CORE_SCOPE get() = builtInsModule.getPackage(core).memberScope
-    val STD_AST_SCOPE get() = builtInsModule.getPackage(ast).memberScope
+    val STD_CORE_SCOPE get() = stdlibModule.getPackage(core).memberScope
+    val STD_AST_SCOPE get() = stdlibModule.getPackage(ast).memberScope
 
     val BASIC_SCOPE get() = builtInsModule.getPackage(BASIC_PACKAGE_FQ_NAME).memberScope
     fun isBooleanOrSubtype(type: CangJieType): Boolean {

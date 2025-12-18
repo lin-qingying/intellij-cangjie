@@ -24,6 +24,8 @@
 
 package org.cangnova.cangjie.project.model
 
+import org.cangnova.cangjie.name.Name
+
 /**
  * 依赖声明者接口
  *
@@ -98,6 +100,8 @@ data class DependencyExclusion(
  *
  */
 sealed class CjDependency : CjDependencyDeclarant {
+    abstract val moduleName: Name
+
     /**
      * 依赖名称
      */
@@ -193,6 +197,8 @@ sealed class CjDependency : CjDependencyDeclarant {
         override val excludes: List<DependencyExclusion> = emptyList(),
         override val sourceModule: CjDependencyDeclarant
     ) : CjDependency() {
+        override val moduleName: Name = Name.identifier(rename ?: name)
+
         override fun toString(): String {
             val parts = mutableListOf<String>()
             parts.add("${group?.let { "$it:" } ?: ""}$name")
@@ -223,6 +229,7 @@ sealed class CjDependency : CjDependencyDeclarant {
         override val sourceModule: CjDependencyDeclarant
     ) : CjDependency() {
         override val group: String? = null
+        override val moduleName: Name = Name.identifier(rename ?: name)
 
         override fun toString(): String {
             return "$name (path=$path)"
@@ -248,6 +255,7 @@ sealed class CjDependency : CjDependencyDeclarant {
         override val sourceModule: CjDependencyDeclarant
     ) : CjDependency() {
         override val group: String? = null
+        override val moduleName: Name = Name.identifier(rename ?: name)
 
         override fun toString(): String {
             return "$name (git=$url, ref=$ref)"
@@ -258,11 +266,13 @@ sealed class CjDependency : CjDependencyDeclarant {
      * 系统依赖
      */
     data class Stdlib(
+
         override val name: String,
         override val versionReq: VersionRequirement,
         override val scope: CjDependencyScope = CjDependencyScope.PROVIDED,
-        override val sourceModule: CjDependencyDeclarant
+        override val sourceModule: CjDependencyDeclarant,
     ) : CjDependency() {
+        override val moduleName: Name = Name.identifier("std")
         override val group: String? = null
         override val features: List<String> = emptyList()
         override val defaultFeatures: Boolean = false
@@ -321,6 +331,7 @@ sealed class CjDependency : CjDependencyDeclarant {
         override val transitive: Boolean = false  // 二进制依赖不处理传递依赖
         override val rename: String? = null
         override val excludes: List<DependencyExclusion> = emptyList()
+        override val moduleName: Name = Name.identifier(name)
 
         override fun toString(): String {
             return "$name (binary=${cjoPath.fileName})"

@@ -91,13 +91,17 @@ package org.cangnova.cangjie.resolve
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
+import org.cangnova.cangjie.builtins.BuiltInsLoader
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
+import org.cangnova.cangjie.builtins.StandardNames.STD_PACKAGE_NAME
 import org.cangnova.cangjie.context.ProjectContext
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.impl.LibraryModuleDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.caches.ModuleContent
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
 import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
 
@@ -130,6 +134,7 @@ fun createModuleDescriptor(
     return ModuleDescriptorImpl(
         projectDescriptor,
         Name.identifier(moduleName),
+        moduleName, // displayName
         projectContext.storageManager,
         mapOf(AnalysisContextCapability to NotUnderContentRootModuleInfo(projectDescriptor.project))
     )
@@ -491,24 +496,31 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
     }
 
     private fun createModuleDescriptor(module: M): ModuleData {
-        val moduleDescriptor = ModuleDescriptorImpl(
-            projectDescriptor,
-            Name.identifier(module.contextId),
-            projectContext.storageManager,
-            mapOf(AnalysisContextCapability to module),
-            null // stableName
-            // isBuiltInsModule
-        )
+
+
+        val moduleDescriptor = when {
+            module.isLibraryContext -> LibraryModuleDescriptorImpl(
+                projectDescriptor,
+                module.moduleName,
+                module.contextId,
+
+                projectContext.storageManager,
+                mapOf(AnalysisContextCapability to module),
+                null
+            )
+
+            else -> ModuleDescriptorImpl(
+                projectDescriptor,
+                module.moduleName,
+                module.contextId,
+                projectContext.storageManager,
+                mapOf(AnalysisContextCapability to module),
+                null // stableName
+                // isBuiltInsModule
+            )
+        }
         contextByDescriptor[moduleDescriptor] = module
 
-        // 自动将模块注册到 ProjectDescriptor 中
-        // 这样可以通过 projectDescriptor.getModule() 获取模块
-        try {
-            projectDescriptor.addModule(moduleDescriptor)
-        } catch (e: IllegalArgumentException) {
-            // 模块已存在，忽略异常
-            // 这种情况可能发生在模块被重新创建时
-        }
 
         setupModuleDescriptor(module, moduleDescriptor)
         val modificationTracker =
@@ -528,11 +540,81 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
         )
 
         val content = modulesContent(module)
-        moduleDescriptor.initialize(
-            DelegatingPackageFragmentProvider(
-                this, moduleDescriptor, content,
-                packageOracleFactory.createOracle(module)
+
+        // 如果是LibraryModuleDescriptorImpl，尝试使用BuiltInsLoader加载
+        if (moduleDescriptor is LibraryModuleDescriptorImpl && module.isSourceContext == false) {
+            try {
+                // 尝试使用BuiltInsLoader加载二进制模块
+                // 这里需要根据模块类型选择不同的加载方式
+                if (module.moduleName == STD_PACKAGE_NAME) {
+                    val sdk = CjProjectSdkConfig.getInstance(projectContext.project).getProjectSdk()
+                    moduleDescriptor.initialize(
+                        BuiltInsLoader.Instance.createStdLibPackageFragmentProvider(
+                            projectContext.storageManager,
+                            moduleDescriptor,
+                            sdk
+                        )
+                    )
+                } else {
+                    moduleDescriptor.initialize(
+                        loadPackageFragmentProvider(
+                            moduleDescriptor,
+                            content,
+                            module
+                        )
+                    )
+                }
+
+
+            } catch (e: Exception) {
+                // 如果BuiltInsLoader失败，回退到DelegatingPackageFragmentProvider
+                moduleDescriptor.initialize(
+                    DelegatingPackageFragmentProvider(
+                        this, moduleDescriptor, content,
+                        packageOracleFactory.createOracle(module)
+                    )
+                )
+            }
+        } else {
+            // 源码模块使用DelegatingPackageFragmentProvider
+            moduleDescriptor.initialize(
+                DelegatingPackageFragmentProvider(
+                    this, moduleDescriptor, content,
+                    packageOracleFactory.createOracle(module)
+                )
             )
+        }
+    }
+
+    /**
+     * 为库模块加载包片段提供者
+     *
+     * 根据模块的依赖类型选择合适的PackageFragmentProvider：
+     * - Binary依赖：使用BuiltInsLoader加载.cjo文件
+     * - 其他类型：回退到DelegatingPackageFragmentProvider
+     *
+     * @param moduleDescriptor 模块描述符
+     * @param content 模块内容
+     * @param module 分析上下文
+     * @return PackageFragmentProvider
+     */
+    private fun loadPackageFragmentProvider(
+        moduleDescriptor: LibraryModuleDescriptorImpl,
+        content: ModuleContent<M>,
+        module: M
+    ): PackageFragmentProvider {
+        // TODO: 实现根据CjDependency类型选择PackageFragmentProvider
+        // 1. 从module中获取对应的CjDependency
+        // 2. 如果是CjDependency.Binary，获取.cjo文件路径
+        // 3. 调用BuiltInsLoader.Instance.createPackageFragmentProvider(storageManager, moduleDescriptor, cjoFiles)
+        // 4. 否则回退到DelegatingPackageFragmentProvider
+
+        // 暂时回退到DelegatingPackageFragmentProvider
+        return DelegatingPackageFragmentProvider(
+            this,
+            moduleDescriptor,
+            content,
+            packageOracleFactory.createOracle(module)
         )
     }
 
@@ -817,7 +899,8 @@ private object DiagnoseUnknownContextReporter {
     private fun errorInModulesResolverWithEmptyInfos(message: String) = CangJieExceptionWithAttachmentsImpl(message)
 
     /** 模块解析器错误 - 脚本依赖 */
-    private fun errorInModulesResolverWithScriptDependencies(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun errorInModulesResolverWithScriptDependencies(message: String) =
+        CangJieExceptionWithAttachmentsImpl(message)
 
     /** 模块解析器错误 - 库信息 */
     private fun errorInModulesResolverWithLibraryInfo(message: String) = CangJieExceptionWithAttachmentsImpl(message)

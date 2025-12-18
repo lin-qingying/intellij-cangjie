@@ -32,12 +32,13 @@ import org.cangnova.cangjie.psi.psiUtil.sure
 import org.cangnova.cangjie.storage.StorageManager
 
 
-class ModuleDescriptorImpl(
+open class ModuleDescriptorImpl(
     /**
      * 所属的仓颉项目
      */
     override val projectDescriptor: ProjectDescriptor,
     moduleName: Name,
+    displayName: String? = null,
     private val storageManager: StorageManager,
 
     private val capabilities: Map<ModuleCapability<*>, Any?> = emptyMap(),
@@ -48,6 +49,13 @@ class ModuleDescriptorImpl(
     ) : DeclarationDescriptorImpl(Annotations.EMPTY, moduleName),
     ModuleDescriptor {
 
+    /**
+     * 模块的显示名称
+     *
+     * 默认使用 moduleName.asString()，但可以通过构造函数参数覆盖。
+     */
+    override val displayName: String = displayName ?: moduleName.asString()
+
 
     private var packageFragmentProviderForModuleContent: PackageFragmentProvider? = null
     private var dependencies: ModuleDependencies? = null
@@ -56,7 +64,7 @@ class ModuleDescriptorImpl(
 
     init {
 
-
+        projectDescriptor.addModule(this)
         packageViewDescriptorFactory =
             getCapability(PackageViewDescriptorFactory.CAPABILITY) ?: PackageViewDescriptorFactory.Default
 

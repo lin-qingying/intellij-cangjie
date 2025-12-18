@@ -27,6 +27,7 @@ package org.cangnova.cangjie.analysis.bridge
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.descriptors.AnalysisContext
+import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.project.model.CjDependency
 
 /**
@@ -58,6 +59,7 @@ class CjLibraryAnalysisContext(
         is CjDependency.Binary -> "binary:${dependency.name}"
     }
 
+    override val moduleName: Name get() = dependency.moduleName
     /**
      * 库的文件作用域
      *

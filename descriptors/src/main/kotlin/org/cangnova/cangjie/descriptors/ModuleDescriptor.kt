@@ -100,6 +100,19 @@ interface ModuleDescriptor : DeclarationDescriptor{
      */
     val projectDescriptor: ProjectDescriptor
 
+    /**
+     * 模块的显示名称
+     *
+     * 用于 UI 显示、文档生成等场景。
+     * 与 [name] 属性不同，[displayName] 是人类可读的字符串，而 [name] 是内部标识符。
+     *
+     * 例如：
+     * - name: Name.special("<built-ins>"), displayName: "<built-ins>"
+     * - name: Name.identifier("std"), displayName: "std"
+     * - name: Name.identifier("myModule"), displayName: "My Module"
+     */
+    val displayName: String
+
     /** 模块是否有效 */
     val isValid: Boolean
 

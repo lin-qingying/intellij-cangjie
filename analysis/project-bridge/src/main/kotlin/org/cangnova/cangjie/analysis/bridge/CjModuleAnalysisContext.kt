@@ -31,6 +31,7 @@ import org.cangnova.cangjie.analysis.bridge.cache.CacheKeys
 import org.cangnova.cangjie.analysis.bridge.cache.cacheOnRootModifications
 import org.cangnova.cangjie.analysis.bridge.scope.AnalysisScopeUtils
 import org.cangnova.cangjie.descriptors.AnalysisContext
+import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjDependency
 
@@ -71,6 +72,8 @@ class CjModuleAnalysisContext(
      * 使用模块名称作为唯一标识。
      */
     override val contextId: String = cjModule.name
+    override val moduleName: Name
+        get() = Name.identifier(cjModule.name)
 
     /**
      * 所属 IntelliJ 项目

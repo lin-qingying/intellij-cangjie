@@ -42,51 +42,35 @@ import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.InputStream
 
-class BuiltInsResourceLoader {
-    private fun getInputStreamFromFile(path: String): InputStream? {
-        return try {
-            FileInputStream(path)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
 
-    fun loadResource(path: String): InputStream? {
-        // 使用文件系统读取
-        return getInputStreamFromFile(path)
-    }
-}
 
 class BuiltInsLoaderImpl : BuiltInsLoader {
     private val resourceLoader = BuiltInsResourceLoader()
 
-    override fun createPackageFragmentProvider(
+
+
+    override fun createBasicTypesPackageFragmentProvider(
         storageManager: StorageManager,
-        builtInsModule: ModuleDescriptor,
-        isFallback: Boolean,
+        builtInsModule: ModuleDescriptor
+    ): PackageFragmentProvider {
+        return createBasicPackageFragmentDescriptor(storageManager, builtInsModule)
+    }
+
+    override fun createStdLibPackageFragmentProvider(
+        storageManager: StorageManager,
+        stdlibModule: ModuleDescriptor,
         sdk: CjSdk?
     ): PackageFragmentProvider {
+        // 从 SDK 加载标准库的 .cjo 文件
+        val stdPackages = StandardNames.ALL_NAMES.filter { it != BASIC_PACKAGE_FQ_NAME }.toSet()
 
-        // 1. 基本类型提供者（单独处理）
-        val basicTypesProvider = createBasicPackageFragmentDescriptor(storageManager, builtInsModule)
-
-        val builtProvider = createBuiltInPackageFragmentProvider(
+        return createBuiltInPackageFragmentProvider(
             storageManager,
-            builtInsModule,
-            StandardNames.ALL_NAMES,
-            isFallback,
+            stdlibModule,
+            stdPackages,
             resourceLoader::loadResource,
             sdk
         )
-
-        // 3. 组合基本类型和其他包
-        return CompositePackageFragmentProvider(
-            listOf(basicTypesProvider, builtProvider),
-            "BuiltInsProvider"
-        )
-
-
     }
 
     private fun createBasicPackageFragmentDescriptor(
@@ -103,7 +87,6 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
         storageManager: StorageManager,
         module: ModuleDescriptor,
         packageFqNames: Set<FqName>,
-        isFallback: Boolean,
         loadResource: (String) -> InputStream?,
         sdk: CjSdk?
     ): PackageFragmentProvider {
@@ -124,7 +107,7 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
                     try {
                         val inputStream = loadResource(resourcePath)
                             ?: throw IllegalStateException("Resource not found in classpath: $resourcePath")
-                        BuiltInsPackageFragmentImpl.create(fqName, storageManager, module, inputStream, isFallback)
+                        BuiltInsPackageFragmentImpl.create(fqName, storageManager, module, inputStream,  )
                     } catch (_: FileNotFoundException) {
                         null
                     }

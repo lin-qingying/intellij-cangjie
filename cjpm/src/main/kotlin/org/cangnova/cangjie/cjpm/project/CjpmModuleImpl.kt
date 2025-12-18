@@ -31,6 +31,7 @@ import org.cangnova.cangjie.cjpm.config.toml.CjpmTomlParser
 import org.cangnova.cangjie.cjpm.project.model.toml.DependencyConfig
 import org.cangnova.cangjie.cjpm.project.model.toml.OutputType
 import org.cangnova.cangjie.cjpm.project.model.toml.PackageConfig
+import org.cangnova.cangjie.name.Name
 
 import org.cangnova.cangjie.project.model.*
 import kotlin.io.path.exists

@@ -57,4 +57,6 @@ object ErrorModuleDescriptor: ModuleDescriptor {
     override val annotations: Annotations
         get() = Annotations.EMPTY
     override val name: Name = stableName
+    override val displayName: String
+        get() = name.identifier
 }

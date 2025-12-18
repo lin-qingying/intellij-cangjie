@@ -22,10 +22,23 @@
  *
  */
 
-package org.cangnova.cangjie.builtins
+package org.cangnova.cangjie.serialization.deserialization.builtins
 
-import org.cangnova.cangjie.descriptors.PackageFragmentDescriptor
+import java.io.FileInputStream
+import java.io.InputStream
 
-interface BuiltInsPackageFragment : PackageFragmentDescriptor
-{
+class BuiltInsResourceLoader {
+    private fun getInputStreamFromFile(path: String): InputStream? {
+        return try {
+            FileInputStream(path)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    fun loadResource(path: String): InputStream? {
+        // 使用文件系统读取
+        return getInputStreamFromFile(path)
+    }
 }

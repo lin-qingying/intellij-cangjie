@@ -177,7 +177,7 @@ abstract class DeserializerForDecompilerBase(val directoryPackageFqName: FqName,
 
 
     private fun createDummyModule(name: String) =
-        ModuleDescriptorImpl(cangjieProjectDescriptor, Name.special("<$name>"), storageManager)
+        ModuleDescriptorImpl(cangjieProjectDescriptor, Name.special("<$name>"), "<$name>", storageManager)
 
     init {
         moduleDescriptor.initialize(packageFragmentProvider)
