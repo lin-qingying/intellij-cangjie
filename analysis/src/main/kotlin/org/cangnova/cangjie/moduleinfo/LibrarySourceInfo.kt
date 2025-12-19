@@ -212,10 +212,6 @@ data class LibrarySourceInfo(
      *
      * ## 特殊处理
      *
-     * Kotlin 标准库的 source.jar 可能包含多个源码集，如：
-     * - `.jar!/commonMain/*`
-     * - `.jar!/jvmMain/*`
-     * - `.jar!/jsMain/*`
      *
      * [CangJieSourceFilterScope.librarySources] 会正确处理这种多源码集结构。
      *

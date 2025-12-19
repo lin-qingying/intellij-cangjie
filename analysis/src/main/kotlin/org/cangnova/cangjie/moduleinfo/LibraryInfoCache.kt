@@ -41,19 +41,14 @@ import com.intellij.platform.workspace.jps.entities.LibraryEntity
 import com.intellij.platform.workspace.jps.entities.LibraryTableId
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.storage.EntityChange
-import com.intellij.platform.workspace.storage.EntityStorage
-import com.intellij.platform.workspace.storage.ExternalEntityMapping
 import com.intellij.platform.workspace.storage.VersionedStorageChange
 import com.intellij.platform.workspace.storage.WorkspaceEntity
 import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.util.PathUtil
 import com.intellij.util.concurrency.ThreadingAssertions
-import com.intellij.workspaceModel.ide.impl.legacyBridge.library.LibraryBridge
 import org.cangnova.cangjie.utils.addIfNotNull
 import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
 import org.cangnova.cangjie.utils.flattenTo
-import org.jetbrains.annotations.ApiStatus
-import org.jetbrains.annotations.ApiStatus.Obsolete
 
 /**
  * 库信息缓存服务
@@ -498,7 +493,7 @@ class LibraryInfoCache(project: Project) : Disposable {
 
             // 处理库实体的变更
             for (change in libraryChanges) {
-                val oldEntity = change.oldEntity?.takeIf { it.entitySource !is GlobalStorageEntitySource } ?: continue
+                val oldEntity = change.oldEntity?.takeIf { it.tableId !is LibraryTableId.GlobalLibraryTableId } ?: continue
                 // 通过库名查找对应的 Library 对象
                 val library = findLibraryByName(oldEntity.name)
                 if (library != null) {
@@ -669,5 +664,3 @@ private fun Map<OrderRootType, Array<String>>.rootEquals(another: LibraryEx): Bo
 }
 
 
-inline fun <reified T : WorkspaceEntity> VersionedStorageChange.getChanges(): List<EntityChange<T>> =
-    getChanges(T::class.java)

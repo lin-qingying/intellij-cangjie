@@ -23,9 +23,8 @@
  */
 
 package org.cangnova.cangjie.moduleinfo
+import com.intellij.openapi.module.Module
 
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.newvfs.NewVirtualFile
-import com.intellij.openapi.vfs.newvfs.NewVirtualFileSystem
-
-
+interface LibraryUsageIndex {
+    fun getDependentModules(libraryInfo: LibraryInfo): Sequence<Module>
+}

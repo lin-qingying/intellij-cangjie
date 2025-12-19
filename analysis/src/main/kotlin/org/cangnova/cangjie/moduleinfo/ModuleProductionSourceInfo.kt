@@ -37,7 +37,7 @@ data class ModuleProductionSourceInfo internal constructor(
     override val name: Name
         get() = Name.special("<production sources for module ${module.name}>")
 
-    override val stableName: Name by lazy { module.stableName }
+//    override val stableName: Name by lazy { module.stableName }
 
 
 

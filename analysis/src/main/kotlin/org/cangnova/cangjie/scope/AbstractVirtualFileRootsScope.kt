@@ -24,6 +24,7 @@
 package org.cangnova.cangjie.scope
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.roots.impl.ProjectFileIndexImpl
 import com.intellij.openapi.util.Comparing
@@ -32,7 +33,6 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.impl.VirtualFileEnumeration
 import com.intellij.psi.search.impl.VirtualFileEnumerationAware
-import it.unimi.dsi.fastutil.objects.Object2IntMap
 import org.jetbrains.annotations.ApiStatus
 
 /**
@@ -47,11 +47,12 @@ abstract class AbstractVirtualFileRootsScope(project: Project) : GlobalSearchSco
     @Volatile
     private var vfsModificationCount: Long = 0
 
+    protected val myProjectFileIndex: ProjectFileIndex = ProjectRootManager.getInstance(project).fileIndex
 
     /**
      * A map from [VirtualFile] roots to an integer which represents the position of the root in the classpath.
      */
-    protected abstract val roots: Object2IntMap<VirtualFile>
+    protected abstract val roots: Set<VirtualFile>
 
     protected abstract fun getFileRoot(file: VirtualFile): VirtualFile?
 
