@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.quickDoc.cdoc
+package org.cangnova.cangjie.quickDoc
 
 import com.google.common.html.HtmlEscapers
 import com.intellij.codeInsight.documentation.DocumentationManagerUtil
@@ -60,7 +60,6 @@ import org.cangnova.cangjie.quickDoc.cdoc.CDocRenderer.renderCDoc
 import org.cangnova.cangjie.quickDoc.cdoc.CangJieIdeDescriptorRenderer
 import org.cangnova.cangjie.quickDoc.cdoc.ClassifierNamePolicyEx
 import org.cangnova.cangjie.quickDoc.cdoc.findCDoc
-import org.cangnova.cangjie.quickDoc.CangJieCDocBundle
 import org.cangnova.cangjie.references.mainReference
 import org.cangnova.cangjie.references.resolveCDocLink
 import org.cangnova.cangjie.references.util.DescriptorToSourceUtilsIde
@@ -81,138 +80,7 @@ import org.cangnova.cangjie.utils.safeAs
 import org.jetbrains.annotations.Nls
 import java.util.function.Consumer
 
-/**
- * HTML 分类器名称策略。
- *
- * 该类为仓颉语言的类型分类器（类、接口、枚举等）提供 HTML 格式的名称渲染。
- * 主要功能是将类型名称转换为可点击的超链接，以支持快速导航。
- *
- * ## 特殊处理
- *
- * ### 内置类型
- * 对于基本的内置类型（如 Int8、Int16、Bool、Float32 等），不会生成超链接，
- * 直接返回纯文本名称，因为这些类型通常不需要导航到定义处。
- *
- * ### 非 Option 类型
- * 对于标记为非 Option 的类型，会在名称后附加 ` & Any` 标记。
- *
- * @property base 基础的分类器名称策略，用于获取原始名称
- *
- * @see ClassifierNamePolicyEx
- * @see isBoringBuiltinClass
- */
-class HtmlClassifierNamePolicy(val base: ClassifierNamePolicy) : ClassifierNamePolicyEx {
 
-    override fun renderClassifier(classifier: ClassifierDescriptor, renderer: DescriptorRenderer): String =
-        render(classifier, renderer, null)
-
-    override fun renderClassifierWithType(
-        classifier: ClassifierDescriptor,
-        renderer: DescriptorRenderer,
-        type: CangJieType
-    ): String =
-        render(classifier, renderer, type)
-
-    /**
-     * 渲染分类器名称为 HTML 格式。
-     *
-     * @param classifier 要渲染的分类器描述符
-     * @param renderer 描述符渲染器
-     * @param type 可选的类型信息，用于判断是否为非 Option 类型
-     * @return HTML 格式的分类器名称（可能包含超链接）
-     */
-    private fun render(classifier: ClassifierDescriptor, renderer: DescriptorRenderer, type: CangJieType?): String {
-
-        val name =
-            base.renderClassifier(classifier, renderer) + (type?.takeIf { it.isDefinitelyNonOptionType }
-                ?.let { " & Any" }
-                ?: "")
-
-        if (classifier.isBoringBuiltinClass())
-            return name
-        return buildString {
-            val ref = classifier.fqNameUnsafe.toString()
-            DocumentationManagerUtil.createHyperlink(this, ref, name, true)
-        }
-    }
-}
-
-/**
- * 不需要生成超链接的"无聊"内置类型集合。
- *
- * 这些基本类型在文档中以纯文本显示，不提供点击导航功能。
- */
-private val boringBuiltinClasses = setOf(
-    StandardNames.FqNames.unitUFqName,
-    StandardNames.FqNames.int8UFqName,
-    StandardNames.FqNames.int16UFqName,
-    StandardNames.FqNames.int32UFqName,
-    StandardNames.FqNames.int64UFqName,
-    StandardNames.FqNames.runeUFqName,
-    StandardNames.FqNames.boolUFqName,
-    StandardNames.FqNames.float16UFqName,
-
-    StandardNames.FqNames.float32UFqName,
-
-    StandardNames.FqNames.float64UFqName,
-
-
-    )
-
-/**
- * 判断分类器是否为"无聊"的内置类型。
- *
- * @receiver ClassifierDescriptor 分类器描述符
- * @return 如果是基本内置类型则返回 `true`
- */
-fun ClassifierDescriptor.isBoringBuiltinClass(): Boolean = DescriptorUtils.getFqName(this) in boringBuiltinClasses
-
-/**
- * 值参数处理器包装类。
- *
- * 该类包装了基础的值参数处理器，在渲染参数时添加额外的格式化逻辑，
- * 如在每个参数前添加换行和缩进，使参数列表更易读。
- *
- * @property base 基础的值参数处理器
- *
- * @see DescriptorRenderer.ValueParametersHandler
- */
-class WrapValueParameterHandler(val base: DescriptorRenderer.ValueParametersHandler) :
-    DescriptorRenderer.ValueParametersHandler {
-
-
-    override fun appendBeforeValueParameters(parameterCount: Int, builder: StringBuilder) {
-        base.appendBeforeValueParameters(parameterCount, builder)
-    }
-
-    override fun appendBeforeValueParameter(
-        parameter: ValueParameterDescriptor,
-        parameterIndex: Int,
-        parameterCount: Int,
-        builder: StringBuilder
-    ) {
-        builder.append("\n    ")
-        base.appendBeforeValueParameter(parameter, parameterIndex, parameterCount, builder)
-    }
-
-    override fun appendAfterValueParameter(
-        parameter: ValueParameterDescriptor,
-        parameterIndex: Int,
-        parameterCount: Int,
-        builder: StringBuilder
-    ) {
-        if (parameterIndex != parameterCount - 1) {
-            builder.append(",")
-        }
-    }
-
-    override fun appendAfterValueParameters(parameterCount: Int, builder: StringBuilder) {
-        if (parameterCount > 0) {
-            builder.appendLine()
-        }
-        base.appendAfterValueParameters(parameterCount, builder)
-    }
-}
 
 /**
  * 仓颉语言的文档提供者。
@@ -396,7 +264,7 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
      * @param comment 文档注释
      * @return 渲染后的 HTML 字符串；如果不是 CDoc 注释则返回 `null`
      *
-     * @see CDocRenderer.renderCDoc
+     * @see renderCDoc
      */
     @Nls
     override fun generateRenderedDoc(comment: PsiDocCommentBase): String? {

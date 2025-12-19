@@ -62,7 +62,7 @@ import kotlin.properties.ReadWriteProperty
  * 在生成文档时，某些类型需要特殊标记。例如，非 Option 类型可能需要显示 ` & Any` 后缀。
  *
  * @see ClassifierNamePolicy
- * @see HtmlClassifierNamePolicy
+ * @see org.cangnova.cangjie.quickDoc.HtmlClassifierNamePolicy
  */
 interface ClassifierNamePolicyEx : ClassifierNamePolicy {
 

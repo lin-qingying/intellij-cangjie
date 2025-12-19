@@ -30,6 +30,8 @@ import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.DefaultBuiltIns
 import org.cangnova.cangjie.builtins.StdlibTypes
 import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.types.error.ErrorClassDescriptor
+import org.cangnova.cangjie.types.error.ErrorModuleDescriptor
 
 
 /**
@@ -140,6 +142,7 @@ interface ProjectDescriptor : DeclarationDescriptor {
 
     companion object {
         val ERROR = object : ProjectDescriptor {
+            override val stdlibModule: ModuleDescriptor get() =    ErrorModuleDescriptor
             override val name: Name
                 get() = Name.ERROR_NAME
             override val builtIns: CangJieBuiltIns

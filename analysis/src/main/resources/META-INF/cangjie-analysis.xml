@@ -186,7 +186,7 @@
                 serviceImplementation="org.cangnova.cangjie.resolve.DummyCodeAnalyzerInitializer"/>
 
         <lang.documentationProvider language="CangJie"
-                                    implementationClass="org.cangnova.cangjie.quickDoc.cdoc.CangJieDocumentationProvider"
+                                    implementationClass="org.cangnova.cangjie.quickDoc.CangJieDocumentationProvider"
                                     order="first"/>
 
 
