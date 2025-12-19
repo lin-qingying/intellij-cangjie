@@ -53,7 +53,7 @@ import org.cangnova.cangjie.types.isAny
  * - **显示库 API 详情**: 在代码补全、悬浮文档中展示库函数签名
  * - **查找用法**: 在库代码中查找符号的使用位置
  */
-internal object ByDescriptorIndexer {
+  object ByDescriptorIndexer {
     private val LOG = Logger.getInstance(this::class.java)
 
     /**

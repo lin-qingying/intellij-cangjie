@@ -76,7 +76,11 @@ class CjReferenceResolutionHelperImpl : CjReferenceResolutionHelper {
         referencedDescriptor: DeclarationDescriptor,
         builtInsSearchScope: GlobalSearchScope?
     ): CjDeclaration? {
-        TODO("Not yet implemented")
+        return org.cangnova.cangjie.decompiler.navigation.findDecompiledDeclaration(
+            project,
+            referencedDescriptor,
+            builtInsSearchScope
+        )
     }
 
     override fun findPsiDeclarations(
@@ -85,12 +89,6 @@ class CjReferenceResolutionHelperImpl : CjReferenceResolutionHelper {
         resolveScope: GlobalSearchScope
     ): Collection<PsiElement> = declaration.findPsiDeclarations(project, resolveScope)
 
-//    override fun findDecompiledDeclaration(
-//        project: Project,
-//        referencedDescriptor: DeclarationDescriptor,
-//        builtInsSearchScope: GlobalSearchScope?
-//    ): CjDeclaration? =
-//        org.cangnova.cangjie.ide.decompiler.navigation.findDecompiledDeclaration(project, referencedDescriptor, builtInsSearchScope)
-//
+
 
 }

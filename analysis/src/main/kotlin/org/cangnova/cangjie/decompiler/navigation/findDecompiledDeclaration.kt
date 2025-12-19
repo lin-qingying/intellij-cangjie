@@ -28,19 +28,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.decompiler.psi.file.CjDecompiledFile
-import org.cangnova.cangjie.descriptors.ClassDescriptor
-import org.cangnova.cangjie.descriptors.DeclarationDescriptor
-import org.cangnova.cangjie.descriptors.FunctionDescriptor
-import org.cangnova.cangjie.descriptors.PackageFragmentDescriptor
-import org.cangnova.cangjie.descriptors.PackageViewDescriptor
-import org.cangnova.cangjie.descriptors.ParameterDescriptor
-import org.cangnova.cangjie.descriptors.PropertyDescriptor
-import org.cangnova.cangjie.descriptors.TypeAliasConstructorDescriptor
-import org.cangnova.cangjie.descriptors.TypeAliasDescriptor
-import org.cangnova.cangjie.descriptors.VariableDescriptor
+import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.binariesScope
 import org.cangnova.cangjie.projectStructure.CangJieSourceFilterScope
 import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.resolve.DescriptorUtils
+import org.cangnova.cangjie.resolve.DescriptorUtils.isLocal
 import org.cangnova.cangjie.resolve.fqNameSafe
 import org.cangnova.cangjie.stubindex.CangJieFullClassNameIndex
 import org.cangnova.cangjie.stubindex.CangJieTopLevelFunctionFqnNameIndex
@@ -48,29 +41,19 @@ import org.cangnova.cangjie.stubindex.CangJieTopLevelTypeAliasFqNameIndex
 import org.cangnova.cangjie.stubindex.CangJieTopLevelVariableFqnNameIndex
 import org.cangnova.cangjie.types.ErrorUtils
 
+
+
 /**
- * 在反编译代码中查找声明
+ * 在反编译代码中查找声明（传统版本，向后兼容）
  *
- * 该函数是引用解析的关键部分，用于在编译后的库文件中查找符号的声明。
- * 它通过 Stub 索引快速定位候选文件，然后使用 [ByDescriptorIndexer] 进行精确匹配。
- *
- * ## 查找策略
- *
- * 1. **验证 Descriptor 有效性**: 拒绝错误的、局部的、包级的 Descriptor
- * 2. **内置库特殊处理**: 使用提供的 `builtInsSearchScope` 或全局范围
- * 3. **使用 Stub 索引**: 根据 Descriptor 类型在索引中查找候选声明
- * 4. **精确匹配**: 在反编译文件中通过签名匹配找到真正的声明
- *
- * ## 使用场景
- *
- * - **跳转到定义**: 从引用跳转到库中的声明
- * - **显示文档**: 在悬浮窗口中展示库 API 的详细信息
- * - **代码补全**: 获取库函数/类的完整签名
+ * **注意**: 此版本使用全局搜索范围，性能较差。推荐使用接受 [AnalysisContext] 的重载版本。
  *
  * @param project 当前项目
  * @param referencedDescriptor 被引用的声明描述符
  * @param builtInsSearchScope 内置库的搜索范围（可选），如果为 null 则使用全局范围查找内置库
  * @return 反编译得到的 CangJie 声明，如果未找到则返回 null
+ *
+ * @see findDecompiledDeclaration(AnalysisContext, DeclarationDescriptor, GlobalSearchScope?)
  */
 fun findDecompiledDeclaration(
     project: Project,

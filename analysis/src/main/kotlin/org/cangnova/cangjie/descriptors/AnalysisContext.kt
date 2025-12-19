@@ -303,6 +303,65 @@ val AnalysisContext.isLibraryContext: Boolean
     get() = !isSourceContext
 
 /**
+ * 获取二进制文件作用域
+ *
+ * 返回包含编译后二进制文件（.cjo 文件）的搜索作用域。
+ *
+ * ## 行为说明
+ *
+ * - **库上下文** ([isLibraryContext] = true): 返回库的二进制文件作用域
+ *   - 如果是具体的库实现（如 CjLibraryAnalysisContext），返回优化的 LibraryWithoutSourceScope
+ *   - 否则返回通用的 scope
+ * - **源码上下文** ([isSourceContext] = true): 返回空作用域
+ *
+ * ## 使用场景
+ *
+ * - **符号解析**: 从编译后的元数据中加载符号信息
+ * - **依赖分析**: 分析依赖库的编译产物
+ * - **反编译导航**: 为反编译器提供精确的二进制文件查找范围（核心用途）
+ * - **类型检查**: 验证类型定义是否存在于依赖的二进制文件中
+ *
+ * ## 性能优化
+ *
+ * 对于库上下文，此属性返回专门优化的作用域（LibraryWithoutSourceScope），相比全局搜索：
+ * - 只搜索特定库的 .cjo 文件，避免扫描整个项目
+ * - 利用预计算的包名进行快速过滤
+ * - 显著提升 `findDecompiledDeclaration` 等导航功能的性能
+ *
+ * ## 与 scope 的区别
+ *
+ * - [scope]: 包含当前上下文的所有文件（源码或二进制，可能还包含其他）
+ * - [binariesScope]: 只包含编译后的二进制文件，专门用于反编译和导航
+ *
+ * ## 示例
+ *
+ * ```kotlin
+ * // 在反编译导航中使用
+ * fun findDecompiledDeclaration(
+ *     descriptor: DeclarationDescriptor,
+ *     context: AnalysisContext
+ * ): CjDeclaration? {
+ *     // 使用精确的 binariesScope 而非 GlobalSearchScope.allScope(project)
+ *     return findInScope(descriptor, context.binariesScope)
+ * }
+ *
+ * // 库上下文：返回优化的库二进制文件范围
+ * val libraryContext: AnalysisContext = getStdlibContext()
+ * val binaryScope = libraryContext.binariesScope  // LibraryWithoutSourceScope
+ *
+ * // 源码上下文：返回空范围
+ * val sourceContext: AnalysisContext = getProjectModuleContext()
+ * val emptyScope = sourceContext.binariesScope  // EMPTY_SCOPE
+ * ```
+ *
+ * @return 二进制文件的搜索作用域，源码上下文返回空作用域
+ * @see scope
+ * @see isLibraryContext
+ */
+val AnalysisContext.binariesScope: GlobalSearchScope
+    get() = if (isLibraryContext) scope else GlobalSearchScope.EMPTY_SCOPE
+
+/**
  * 获取项目源码模块
  *
  * 返回当前分析上下文对应的源码模块列表。这是从旧的 `ModuleInfo.projectSourceModules()` 迁移而来的兼容方法。
