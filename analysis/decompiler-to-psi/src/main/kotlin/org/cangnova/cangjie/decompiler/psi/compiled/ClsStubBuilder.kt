@@ -22,17 +22,21 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.psi
+package org.cangnova.cangjie.decompiler.psi.compiled
 
-import org.cangnova.cangjie.descriptors.ClassDescriptor
-import org.cangnova.cangjie.descriptors.DeclarationDescriptor
-import org.cangnova.cangjie.descriptors.EnumDescriptor
-import org.cangnova.cangjie.name.ClassId
-import org.cangnova.cangjie.name.FqName
+import com.intellij.psi.stubs.PsiFileStub
+import com.intellij.util.cls.ClsFormatException
+import com.intellij.util.indexing.FileContent
 
-interface ResolverForDecompiler {
-    fun resolveTopLevelClass(classId: ClassId): ClassDescriptor?
-    fun resolveTopLevelEnum(classId: ClassId): EnumDescriptor?
+abstract class ClsStubBuilder {
+    /**
+     * Non-zero positive number expected.
+     */
+    abstract val stubVersion: Int
 
-    fun resolveAllDeclarationsInPackage(packageFqName: FqName): List<DeclarationDescriptor>
+    /**
+     * May return `null` for inner or synthetic classes - i.e. those indexed as a part of their parent .class file.
+     */
+    @Throws(ClsFormatException::class)
+    abstract fun buildFileStub(fileContent: FileContent): PsiFileStub<*>?
 }

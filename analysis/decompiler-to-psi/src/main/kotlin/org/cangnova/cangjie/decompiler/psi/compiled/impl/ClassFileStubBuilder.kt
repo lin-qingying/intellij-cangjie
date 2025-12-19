@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.psi.compiled.impl
+package org.cangnova.cangjie.decompiler.psi.compiled.impl
 
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
@@ -31,7 +31,7 @@ import com.intellij.psi.stubs.BinaryFileStubBuilder
 import com.intellij.psi.stubs.Stub
 import com.intellij.util.cls.ClsFormatException
 import com.intellij.util.indexing.FileContent
-import org.cangnova.cangjie.analysis.decompiler.psi.compiled.ClassFileDecompilers
+import org.cangnova.cangjie.decompiler.psi.compiled.ClassFileDecompilers
 import java.util.function.Supplier
 import java.util.stream.Stream
 

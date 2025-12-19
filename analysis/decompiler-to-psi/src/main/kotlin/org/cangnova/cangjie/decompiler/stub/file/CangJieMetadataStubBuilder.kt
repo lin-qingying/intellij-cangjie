@@ -22,17 +22,19 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.stub.file
+package org.cangnova.cangjie.decompiler.stub.file
 
+import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.stubs.PsiFileStub
+import com.intellij.util.application
 import com.intellij.util.indexing.FileContent
-import org.cangnova.cangjie.analysis.decompiler.psi.compiled.ClsStubBuilder
-import org.cangnova.cangjie.analysis.decompiler.psi.compiled.impl.ClassFileStubBuilder
-import org.cangnova.cangjie.analysis.decompiler.stub.*
+import org.cangnova.cangjie.decompiler.psi.compiled.ClsStubBuilder
+import org.cangnova.cangjie.decompiler.psi.compiled.impl.ClassFileStubBuilder
+import org.cangnova.cangjie.decompiler.stub.*
 import org.cangnova.cangjie.metadata.SerializerExtensionFlatbuffers
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
@@ -50,7 +52,7 @@ open class CangJieMetadataStubBuilder(
     private val version: Int,
     private val fileType: FileType,
     private val serializerFlatbuffers: () -> SerializerExtensionFlatbuffers,
-    private val readFile: (Project?, VirtualFile, ByteArray) -> FileWithMetadata?
+    private val readFile: (Project, VirtualFile, ByteArray) -> FileWithMetadata?
 ) : ClsStubBuilder() {
 
     override val stubVersion: Int = ClassFileStubBuilder.STUB_VERSION + version
@@ -66,8 +68,9 @@ open class CangJieMetadataStubBuilder(
      * 安全读取文件，出错时返回 null
      */
     protected fun readFileSafely(file: VirtualFile, content: ByteArray): FileWithMetadata? {
+        val project = ProjectUtil.getActiveProject() ?: return null
         return try {
-            readFile(null, file, content)
+            readFile(project, file, content)
         } catch (e: Exception) {
             LOG.warn("Failed to read metadata file: ${file.path}", e)
             null

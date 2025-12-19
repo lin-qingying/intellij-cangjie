@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.psi.compiled
+package org.cangnova.cangjie.decompiler.psi.compiled
 
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.diagnostic.Logger

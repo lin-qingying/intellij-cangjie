@@ -22,11 +22,11 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.psi
+package org.cangnova.cangjie.decompiler.psi
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import org.cangnova.cangjie.analysis.decompiler.stub.file.CangJieMetadataStubBuilder
+import org.cangnova.cangjie.decompiler.stub.file.CangJieMetadataStubBuilder
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.lang.declarations.CangJieBuiltInFileType
 import org.cangnova.cangjie.metadata.builtins.BuiltInsBinaryVersion
@@ -41,18 +41,19 @@ import java.io.ByteArrayInputStream
 
 
 private val stubVersionForStubBuilderAndDecompiler: Int
-    get() = CangJieStubVersions.BUILTIN_STUB_VERSION + CangJieBuiltInStubVersionOffsetProvider.getVersionOffset()
+    get() = CangJieStubVersions.BUILTIN_STUB_VERSION + _root_ide_package_.org.cangnova.cangjie.decompiler.psi.CangJieBuiltInStubVersionOffsetProvider.getVersionOffset()
 
-internal class CangJieBuiltInDecompiler : CangJieMetadataDecompiler<BuiltInsBinaryVersion>(
-    CangJieBuiltInFileType,
-    { BuiltInSerializerFlatbuffers },
-    { BuiltInsBinaryVersion.INSTANCE },
-    { BuiltInsBinaryVersion.INVALID_VERSION },
-    stubVersionForStubBuilderAndDecompiler,
-) {
+internal class CangJieBuiltInDecompiler :
+    org.cangnova.cangjie.decompiler.psi.CangJieMetadataDecompiler<BuiltInsBinaryVersion>(
+        CangJieBuiltInFileType,
+        { BuiltInSerializerFlatbuffers },
+        { BuiltInsBinaryVersion.INSTANCE },
+        { BuiltInsBinaryVersion.INVALID_VERSION },
+        stubVersionForStubBuilderAndDecompiler,
+    ) {
     override val metadataStubBuilder: CangJieMetadataStubBuilder =
         CangJieBuiltInMetadataStubBuilder { project, file, bytes ->
-            if (project != null) readFileSafely(project, file, bytes) else null
+            readFileSafely(project, file, bytes)
         }
 
     override fun readFile(
@@ -60,11 +61,12 @@ internal class CangJieBuiltInDecompiler : CangJieMetadataDecompiler<BuiltInsBina
         bytes: ByteArray,
         file: VirtualFile
     ): CangJieMetadataStubBuilder.FileWithMetadata? {
-        return CangJieBuiltInDecompilationInterceptor.readFile(project, bytes, file) ?: BuiltInDefinitionFile.read(
+        return CangJieBuiltInDecompilationInterceptor.readFile(project, bytes, file)
+            ?: BuiltInDefinitionFile.read(
 
-            bytes,
-            file
-        )
+                bytes,
+                file
+            )
     }
 
 
@@ -136,7 +138,7 @@ class BuiltInDefinitionFile(
 }
 
 private class CangJieBuiltInMetadataStubBuilder(
-    readFile: (Project?, VirtualFile, ByteArray) -> FileWithMetadata?,
+    readFile: (Project, VirtualFile, ByteArray) -> FileWithMetadata?,
 ) : CangJieMetadataStubBuilder(
     stubVersionForStubBuilderAndDecompiler,
     CangJieBuiltInFileType,

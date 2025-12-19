@@ -22,12 +22,13 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.psi
+package org.cangnova.cangjie.decompiler.psi
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.application
 import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.builtins.StandardNames.ALL_NAMES
 import org.cangnova.cangjie.serialization.deserialization.BuiltInSerializerFlatbuffers
@@ -41,12 +42,12 @@ abstract class BuiltinsVirtualFileProvider {
     abstract fun createBuiltinsScope(project: Project): GlobalSearchScope
 
     companion object {
-        fun getInstance(project: Project): BuiltinsVirtualFileProvider =
-            IdeBuiltInsVirtualFileProviderImpl()
+        fun getInstance( ): BuiltinsVirtualFileProvider =
+            application.getService(BuiltinsVirtualFileProvider::class.java)
     }
 }
 
-abstract class BuiltinsVirtualFileProviderBaseImpl : BuiltinsVirtualFileProvider() {
+abstract class BuiltinsVirtualFileProviderBaseImpl : org.cangnova.cangjie.decompiler.psi.BuiltinsVirtualFileProvider() {
 
     private fun getBuiltInUrls(project: Project): Set<Path> {
 

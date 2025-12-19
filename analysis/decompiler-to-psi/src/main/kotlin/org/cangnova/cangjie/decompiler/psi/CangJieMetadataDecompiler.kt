@@ -22,22 +22,22 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.psi
+package org.cangnova.cangjie.decompiler.psi
 
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiManager
-import org.cangnova.cangjie.analysis.decompiler.psi.compiled.ClassFileDecompilers
-import org.cangnova.cangjie.analysis.decompiler.psi.compiled.ClsStubBuilder
-import org.cangnova.cangjie.analysis.decompiler.psi.file.CjDecompiledFile
-import org.cangnova.cangjie.analysis.decompiler.psi.text.DecompiledText
-import org.cangnova.cangjie.analysis.decompiler.psi.text.buildDecompiledText
-import org.cangnova.cangjie.analysis.decompiler.psi.text.createIncompatibleMetadataVersionDecompiledText
-import org.cangnova.cangjie.analysis.decompiler.psi.text.defaultDecompilerRendererOptions
+import org.cangnova.cangjie.decompiler.psi.compiled.ClassFileDecompilers
+import org.cangnova.cangjie.decompiler.psi.compiled.ClsStubBuilder
+import org.cangnova.cangjie.decompiler.psi.file.CjDecompiledFile
+import org.cangnova.cangjie.decompiler.psi.text.DecompiledText
+import org.cangnova.cangjie.decompiler.psi.text.buildDecompiledText
+import org.cangnova.cangjie.decompiler.psi.text.createIncompatibleMetadataVersionDecompiledText
+import org.cangnova.cangjie.decompiler.psi.text.defaultDecompilerRendererOptions
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
-import org.cangnova.cangjie.analysis.decompiler.stub.file.CangJieMetadataStubBuilder
+import org.cangnova.cangjie.decompiler.stub.file.CangJieMetadataStubBuilder
 import org.cangnova.cangjie.metadata.SerializerExtensionFlatbuffers
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.metadata.model.wrapper.EnumWrapper
@@ -122,7 +122,7 @@ abstract class CangJieMetadataDecompiler<out V : BinaryVersion>(
      */
     protected open val metadataStubBuilder: CangJieMetadataStubBuilder =
         CangJieMetadataStubBuilder(stubVersion, fileType, serializerFlatbuffers) { project, file, bytes ->
-            if (project != null) readFileSafely(project, file, bytes) else null
+            readFileSafely(project, file, bytes)
         }
 
     /**

@@ -46,9 +46,7 @@
 
 
 
-        <extensionPoint qualifiedName="org.cangnova.cangjie.classFileDecompiler"
-                        interface="org.cangnova.cangjie.psi.compiled.ClassFileDecompilers$Decompiler"
-                        dynamic="true"/>
+
 
         <extensionPoint qualifiedName="org.cangnova.cangjie.sdkDownload"
                         interface="org.cangnova.cangjie.ide.project.structure.download.SdkDownloadEp"/>

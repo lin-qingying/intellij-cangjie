@@ -22,20 +22,27 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.psi
+package org.cangnova.cangjie.decompiler.psi
 
-import com.intellij.openapi.diagnostic.Logger
-import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
-import org.cangnova.cangjie.descriptors.ClassDescriptor
-import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeConstructor
-import org.cangnova.cangjie.serialization.deserialization.ErrorReporter
+import com.intellij.lang.Language
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.FileViewProvider
+import com.intellij.psi.FileViewProviderFactory
+import com.intellij.psi.PsiManager
+import org.cangnova.cangjie.decompiler.psi.compiled.ClassFileDecompilers
 
-class LoggingErrorReporter(private val log: Logger) : ErrorReporter {
-    override fun reportIncompleteHierarchy(descriptor: ClassifierDescriptorWithTypeConstructor, unresolvedSuperClasses: List<String>) {
-        // This is absolutely fine for the decompiler
-    }
 
-    override fun reportCannotInferVisibility(descriptor: CallableMemberDescriptor) {
-        log.error("Could not infer visibility for $descriptor")
+internal class ClassFileViewProviderFactory : FileViewProviderFactory {
+    override fun createFileViewProvider(
+        file: VirtualFile,
+        language: Language?,
+        manager: PsiManager,
+        eventSystemEnabled: Boolean
+    ): FileViewProvider {
+        val decompiler  = ClassFileDecompilers.instance.find(
+            file,
+            ClassFileDecompilers.Full::class.java
+        )
+        return decompiler.createFileViewProvider(file, manager, eventSystemEnabled)
     }
 }

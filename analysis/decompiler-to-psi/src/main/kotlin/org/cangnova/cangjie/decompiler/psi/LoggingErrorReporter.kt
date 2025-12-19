@@ -22,21 +22,20 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.psi.compiled
+package org.cangnova.cangjie.decompiler.psi
 
-import com.intellij.psi.stubs.PsiFileStub
-import com.intellij.util.cls.ClsFormatException
-import com.intellij.util.indexing.FileContent
+import com.intellij.openapi.diagnostic.Logger
+import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
+import org.cangnova.cangjie.descriptors.ClassDescriptor
+import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeConstructor
+import org.cangnova.cangjie.serialization.deserialization.ErrorReporter
 
-abstract class ClsStubBuilder {
-    /**
-     * Non-zero positive number expected.
-     */
-    abstract val stubVersion: Int
+class LoggingErrorReporter(private val log: Logger) : ErrorReporter {
+    override fun reportIncompleteHierarchy(descriptor: ClassifierDescriptorWithTypeConstructor, unresolvedSuperClasses: List<String>) {
+        // This is absolutely fine for the decompiler
+    }
 
-    /**
-     * May return `null` for inner or synthetic classes - i.e. those indexed as a part of their parent .class file.
-     */
-    @Throws(ClsFormatException::class)
-    abstract fun buildFileStub(fileContent: FileContent): PsiFileStub<*>?
+    override fun reportCannotInferVisibility(descriptor: CallableMemberDescriptor) {
+        log.error("Could not infer visibility for $descriptor")
+    }
 }

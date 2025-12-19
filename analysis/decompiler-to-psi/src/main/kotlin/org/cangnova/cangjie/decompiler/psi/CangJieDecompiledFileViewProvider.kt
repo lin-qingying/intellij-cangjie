@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.psi
+package org.cangnova.cangjie.decompiler.psi
 
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
@@ -33,8 +33,8 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.SingleRootFileViewProvider
 import com.intellij.psi.impl.DebugUtil
 import com.intellij.psi.impl.source.PsiFileImpl
-import org.cangnova.cangjie.analysis.decompiler.psi.file.CjDecompiledFile
-import org.cangnova.cangjie.analysis.decompiler.psi.text.DecompiledText
+import org.cangnova.cangjie.decompiler.psi.file.CjDecompiledFile
+import org.cangnova.cangjie.decompiler.psi.text.DecompiledText
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.lang.CangJieLanguage
 import org.cangnova.cangjie.utils.LockedClearableLazyValue

@@ -23,7 +23,7 @@
  */
 
 
-package org.cangnova.cangjie.analysis.decompiler.psi.text
+package org.cangnova.cangjie.decompiler.psi.text
 
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 

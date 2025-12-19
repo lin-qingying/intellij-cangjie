@@ -26,7 +26,7 @@ package org.cangnova.cangjie.navigation
 
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
-import org.cangnova.cangjie.analysis.decompiler.psi.file.CjDecompiledFile
+import org.cangnova.cangjie.decompiler.psi.file.CjDecompiledFile
 import org.cangnova.cangjie.lang.declarations.CjDeclarationsFile
 import org.cangnova.cangjie.projectStructure.RootKindFilter
 import org.cangnova.cangjie.projectStructure.matches

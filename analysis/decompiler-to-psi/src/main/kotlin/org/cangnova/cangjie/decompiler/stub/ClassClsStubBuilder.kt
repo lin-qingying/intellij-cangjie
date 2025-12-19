@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.stub
+package org.cangnova.cangjie.decompiler.stub
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
@@ -35,6 +35,13 @@ import org.cangnova.cangjie.psi.stubs.impl.*
 
 /**
  * 类 Stub 构建器，用于从 Flatbuffers 元数据构建类相关的 Stub
+ *
+ * 该构建器负责为 class、interface、struct、enum 等类型声明创建 Stub。
+ * Stub 是 IntelliJ 平台用于快速索引和查找的轻量级 PSI 表示。
+ *
+ * @property parentStub 父 Stub 元素
+ * @property outerContext 外部构建上下文
+ * @property classDecl 类声明包装器
  */
 class ClassClsStubBuilder(
     private val parentStub: StubElement<out PsiElement>,
@@ -45,6 +52,11 @@ class ClassClsStubBuilder(
     private val shortName = classId.shortClassName
     private val isTopLevel = !classId.isNestedClass
 
+    /**
+     * 构建类 Stub
+     *
+     * @return 创建的类 Stub，如果类型不支持则返回 null
+     */
     fun build(): StubElement<out PsiElement>? {
         val classOrObjectStub = createClassOrObjectStubAndModifierListStub() ?: return null
 
@@ -65,6 +77,13 @@ class ClassClsStubBuilder(
         return classOrObjectStub
     }
 
+    /**
+     * 创建类或对象 Stub 以及修饰符列表 Stub
+     *
+     * 根据类的类型（class/interface/struct/enum）创建对应的 Stub 实现。
+     *
+     * @return 创建的 Stub，如果类型不支持则返回 null
+     */
     private fun createClassOrObjectStubAndModifierListStub(): StubElement<out PsiElement>? {
         val fqName = outerContext.containerFqName.child(shortName)
 
@@ -126,6 +145,12 @@ class ClassClsStubBuilder(
         return classOrObjectStub
     }
 
+    /**
+     * 创建类型参数列表 Stub
+     *
+     * @param classOrObjectStub 类或对象 Stub
+     * @return 包含类型参数的新上下文
+     */
     private fun createTypeParameterListStub(classOrObjectStub: StubElement<out PsiElement>): ClsStubBuilderContext {
         val typeParameters = classDecl.typeParameters
         if (typeParameters.isEmpty()) {
@@ -154,6 +179,12 @@ class ClassClsStubBuilder(
         return innerContext
     }
 
+    /**
+     * 创建父类型列表 Stub
+     *
+     * @param classOrObjectStub 类或对象 Stub
+     * @param context 构建上下文
+     */
     private fun createSuperTypeListStub(
         classOrObjectStub: StubElement<out PsiElement>,
         context: ClsStubBuilderContext
@@ -177,6 +208,15 @@ class ClassClsStubBuilder(
         }
     }
 
+    /**
+     * 创建类体 Stub
+     *
+     * 根据类的类型创建对应的类体（ClassBody/InterfaceBody/EnumBody），
+     * 并创建所有成员的 Stub（构造函数、函数、属性、变量、枚举项）。
+     *
+     * @param classOrObjectStub 类或对象 Stub
+     * @param context 构建上下文
+     */
     private fun createClassBodyStub(
         classOrObjectStub: StubElement<out PsiElement>,
         context: ClsStubBuilderContext
@@ -264,6 +304,11 @@ class ClassClsStubBuilder(
 
 /**
  * 构造函数 Stub 构建器
+ *
+ * @property parentStub 父 Stub 元素
+ * @property context 构建上下文
+ * @property constructor 构造函数包装器
+ * @property classDecl 类声明包装器
  */
 class ConstructorClsStubBuilder(
     private val parentStub: StubElement<out PsiElement>,
@@ -271,6 +316,11 @@ class ConstructorClsStubBuilder(
     private val constructor: ConstructorWrapper,
     private val classDecl: ClassDeclWrapper
 ) {
+    /**
+     * 构建构造函数 Stub
+     *
+     * 根据是否为主构造函数创建不同的 Stub 类型。
+     */
     fun build() {
         val name = classDecl.name.ref()
 
@@ -310,6 +360,12 @@ fun createClassStub(
 
 /**
  * 创建值参数列表 Stub
+ *
+ * 为函数或构造函数创建参数列表 Stub，包括参数名称、类型、默认值等信息。
+ *
+ * @param parent 父 Stub 元素
+ * @param context 构建上下文
+ * @param valueParameters 值参数包装器列表
  */
 fun createValueParameterListStub(
     parent: StubElement<out PsiElement>,

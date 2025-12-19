@@ -22,27 +22,6 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.psi
+package org.cangnova.cangjie.decompiler.psi.text
 
-import com.intellij.lang.Language
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.FileViewProvider
-import com.intellij.psi.FileViewProviderFactory
-import com.intellij.psi.PsiManager
-import org.cangnova.cangjie.analysis.decompiler.psi.compiled.ClassFileDecompilers
-
-
-internal class ClassFileViewProviderFactory : FileViewProviderFactory {
-    override fun createFileViewProvider(
-        file: VirtualFile,
-        language: Language?,
-        manager: PsiManager,
-        eventSystemEnabled: Boolean
-    ): FileViewProvider {
-        val decompiler  = ClassFileDecompilers.instance.find(
-            file,
-            ClassFileDecompilers.Full::class.java
-        )
-        return decompiler.createFileViewProvider(file, manager, eventSystemEnabled)
-    }
-}
+data class DecompiledText(val text: String)

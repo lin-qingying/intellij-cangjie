@@ -61,7 +61,7 @@ class CangJieFileStubImpl(
 
     override fun getType(): IStubFileElementType<CangJieFileStub> = CjFileElementType.INSTANCE
 
-    override fun toString(): String = "PsiJetFileStubImpl[" + "package=" + getPackageFqName().asString() + "]"
+    override fun toString(): String = "CangJieFileStubImpl[" + "package=" + getPackageFqName().asString() + "]"
 
 //    override fun getClasses(): Array<PsiClass> {
 //        return childrenStubs.filterIsInstance<PsiClassStub<*>>().map { it.psi }.toTypedArray()

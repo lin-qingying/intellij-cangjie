@@ -22,11 +22,11 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.psi.text
+package org.cangnova.cangjie.decompiler.psi.text
 
-import org.cangnova.cangjie.analysis.decompiler.stub.COMPILED_DEFAULT_INITIALIZER
-import org.cangnova.cangjie.analysis.decompiler.stub.COMPILED_DEFAULT_PARAMETER_VALUE
-import org.cangnova.cangjie.analysis.decompiler.stub.computeParameterName
+import org.cangnova.cangjie.decompiler.stub.COMPILED_DEFAULT_INITIALIZER
+import org.cangnova.cangjie.decompiler.stub.COMPILED_DEFAULT_PARAMETER_VALUE
+import org.cangnova.cangjie.decompiler.stub.computeParameterName
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.name.FqName

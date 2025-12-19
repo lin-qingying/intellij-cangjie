@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.stub
+package org.cangnova.cangjie.decompiler.stub
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement

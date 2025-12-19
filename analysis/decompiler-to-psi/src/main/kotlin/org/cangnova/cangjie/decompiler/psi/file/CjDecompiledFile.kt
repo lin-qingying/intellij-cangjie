@@ -22,11 +22,11 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.psi.file
+package org.cangnova.cangjie.decompiler.psi.file
 
 import com.intellij.openapi.vfs.VirtualFile
-import org.cangnova.cangjie.analysis.decompiler.psi.CangJieDecompiledFileViewProvider
-import org.cangnova.cangjie.analysis.decompiler.psi.text.DecompiledText
+import org.cangnova.cangjie.decompiler.psi.CangJieDecompiledFileViewProvider
+import org.cangnova.cangjie.decompiler.psi.text.DecompiledText
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.utils.LockedClearableLazyValue
 

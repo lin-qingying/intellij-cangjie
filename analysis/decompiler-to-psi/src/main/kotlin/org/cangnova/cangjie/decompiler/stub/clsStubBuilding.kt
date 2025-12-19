@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.analysis.decompiler.stub
+package org.cangnova.cangjie.decompiler.stub
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
@@ -71,10 +71,8 @@ fun createFileStub(packageFqName: FqName): CangJieFileStubImpl {
  * 设置文件 Stub 的包声明和导入列表
  */
 private fun setupFileStub(fileStub: CangJieFileStubImpl, packageFqName: FqName) {
-    val packageDirectiveStub = CangJiePlaceHolderStubImpl<CjPackageDirective>(
-        fileStub,
-        CjStubElementTypes.PACKAGE_DIRECTIVE
-    )
+    // 创建正确的 CangJiePackageDirectiveStub 实例，而不是使用占位符 Stub
+    val packageDirectiveStub = CangJiePackageDirectiveStubImpl(fileStub)
     createStubForPackageName(packageDirectiveStub, packageFqName)
     CangJiePlaceHolderStubImpl<CjImportList>(fileStub, CjStubElementTypes.IMPORT_LIST)
 }

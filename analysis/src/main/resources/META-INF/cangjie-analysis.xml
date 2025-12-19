@@ -95,6 +95,10 @@
         <extensionPoint qualifiedName="org.cangnova.cangjie.quickFixContributor"
                         interface="org.cangnova.cangjie.quickfix.QuickFixContributor"
                         dynamic="true"/>
+
+        <extensionPoint qualifiedName="org.cangnova.cangjie.classFileDecompiler"
+                        interface="org.cangnova.cangjie.decompiler.psi.compiled.ClassFileDecompilers$Decompiler"
+                        dynamic="true"/>
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -106,11 +110,11 @@
                      description="Suppress cangjie.Deprecated warning"
                      defaultValue="false"/>
         <projectService
-                serviceInterface="org.cangnova.cangjie.analysis.decompiler.psi.CangJieBuiltInDecompilationInterceptor"
-                serviceImplementation="org.cangnova.cangjie.analysis.decompiler.psi.IdeCangJieBuiltInDecompilationInterceptor"
+                serviceInterface="org.cangnova.cangjie.decompiler.psi.CangJieBuiltInDecompilationInterceptor"
+                serviceImplementation="org.cangnova.cangjie.decompiler.psi.IdeCangJieBuiltInDecompilationInterceptor"
         />
-        <applicationService serviceInterface="org.cangnova.cangjie.analysis.decompiler.psi.BuiltinsVirtualFileProvider"
-                        serviceImplementation="org.cangnova.cangjie.analysis.decompiler.psi.IdeBuiltInsVirtualFileProviderImpl"/>
+        <applicationService serviceInterface="org.cangnova.cangjie.decompiler.psi.BuiltinsVirtualFileProvider"
+                        serviceImplementation="org.cangnova.cangjie.decompiler.psi.IdeBuiltInsVirtualFileProviderImpl"/>
 
         <projectService
                 serviceInterface="org.cangnova.cangjie.highlighter.CangJieQuickFixProvider"
@@ -138,8 +142,8 @@
                 serviceImplementation="org.cangnova.cangjie.references.rename.CjReferenceMutateServiceBase"/>
 
         <applicationService
-                serviceInterface="org.cangnova.cangjie.analysis.decompiler.psi.CangJieBuiltInStubVersionOffsetProvider"
-                serviceImplementation="org.cangnova.cangjie.analysis.decompiler.psi.IdeCangJieBuiltInStubVersionOffsetProvider"/>
+                serviceInterface="org.cangnova.cangjie.decompiler.psi.CangJieBuiltInStubVersionOffsetProvider"
+                serviceImplementation="org.cangnova.cangjie.decompiler.psi.IdeCangJieBuiltInStubVersionOffsetProvider"/>
 
         <applicationService
                 serviceInterface="org.cangnova.cangjie.references.CjReferenceResolutionHelper"
@@ -189,11 +193,17 @@
                                     implementationClass="org.cangnova.cangjie.quickDoc.CangJieDocumentationProvider"
                                     order="first"/>
 
+        <filetype.stubBuilder filetype="cjo" implementationClass="org.cangnova.cangjie.decompiler.psi.compiled.impl.ClassFileStubBuilder"/>
+        <filetype.decompiler filetype="cjo" implementationClass="org.cangnova.cangjie.decompiler.psi.compiled.ClassFileDecompiler"/>
 
     </extensions>
 
     <!-- 诊断渲染器提供者注册 -->
     <extensions defaultExtensionNs="org.cangnova.cangjie">
+        <classFileDecompiler implementation="org.cangnova.cangjie.decompiler.psi.CangJieBuiltInDecompiler"/>
+
+
+
         <diagnosticRendererProvider
                 implementation="org.cangnova.cangjie.diagnostics.rendering.errors.ErrorRenderers"/>
         <diagnosticRendererProvider
