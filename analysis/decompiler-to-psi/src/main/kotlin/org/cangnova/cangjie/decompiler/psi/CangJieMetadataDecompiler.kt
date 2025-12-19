@@ -31,7 +31,6 @@ import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiManager
 import org.cangnova.cangjie.decompiler.psi.compiled.ClassFileDecompilers
 import org.cangnova.cangjie.decompiler.psi.compiled.ClsStubBuilder
-import org.cangnova.cangjie.decompiler.psi.file.CjDecompiledFile
 import org.cangnova.cangjie.decompiler.psi.text.DecompiledText
 import org.cangnova.cangjie.decompiler.psi.text.buildDecompiledText
 import org.cangnova.cangjie.decompiler.psi.text.createIncompatibleMetadataVersionDecompiledText
@@ -40,9 +39,7 @@ import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.decompiler.stub.file.CangJieMetadataStubBuilder
 import org.cangnova.cangjie.metadata.SerializerExtensionFlatbuffers
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
-import org.cangnova.cangjie.metadata.model.wrapper.EnumWrapper
 import org.cangnova.cangjie.renderer.DescriptorRenderer
-import org.cangnova.cangjie.utils.addIfNotNull
 import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 
@@ -200,7 +197,7 @@ abstract class CangJieMetadataDecompiler<out V : BinaryVersion>(
      * 子类必须实现此方法以提供具体的元数据解析逻辑。
      * 该方法负责将原始字节数据转换为结构化的文件元数据对象。
      *
-     * @param project 当前项目，用于访问项目级服务
+     * @param project 当前项目（可能为 null，在索引构建期间），用于访问项目级服务
      * @param bytes 文件的原始字节内容
      * @param file 源虚拟文件，用于获取文件路径等元信息
      * @return 解析后的文件元数据，如果解析失败则返回 `null`

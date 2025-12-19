@@ -531,7 +531,12 @@ fun CjElement.findElementOfAdditionalResolve(): CjElement? {
     }
 }
 
-
+tailrec fun CjTypeElement.unwrapOptional(): CjTypeElement? {
+    return when (this) {
+        is CjOptionType -> this.getInnerType()?.unwrapOptional()
+        else -> this
+    }
+}
 fun FqName.quoteIfNeeded(): FqName {
     return FqName(pathSegments().joinToString(".") { it.asString().quoteIfNeeded() })
 }

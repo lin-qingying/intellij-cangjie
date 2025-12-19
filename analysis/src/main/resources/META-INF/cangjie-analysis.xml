@@ -139,7 +139,7 @@
         <!-- 应用级服务 -->
         <applicationService
                 serviceInterface="org.cangnova.cangjie.references.CjReferenceMutateService"
-                serviceImplementation="org.cangnova.cangjie.references.rename.CjReferenceMutateServiceBase"/>
+                serviceImplementation="org.cangnova.cangjie.references.rename.CangJieReferenceMutateService"/>
 
         <applicationService
                 serviceInterface="org.cangnova.cangjie.decompiler.psi.CangJieBuiltInStubVersionOffsetProvider"

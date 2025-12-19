@@ -39,6 +39,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.lexer.cdoc.psi.impl.CDocLink
 import org.cangnova.cangjie.lexer.cdoc.psi.impl.CDocName
+import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.caches.safeAnalyze
 
@@ -68,6 +69,14 @@ class CjReferenceResolutionHelperImpl : CjReferenceResolutionHelper {
             cdocLink.getTagIfSubject(),
             element.getQualifiedName()
         )
+    }
+
+    override fun findDecompiledDeclaration(
+        project: Project,
+        referencedDescriptor: DeclarationDescriptor,
+        builtInsSearchScope: GlobalSearchScope?
+    ): CjDeclaration? {
+        TODO("Not yet implemented")
     }
 
     override fun findPsiDeclarations(

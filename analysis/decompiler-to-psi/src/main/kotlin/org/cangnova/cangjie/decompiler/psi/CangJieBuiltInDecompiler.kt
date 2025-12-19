@@ -44,7 +44,7 @@ private val stubVersionForStubBuilderAndDecompiler: Int
     get() = CangJieStubVersions.BUILTIN_STUB_VERSION + _root_ide_package_.org.cangnova.cangjie.decompiler.psi.CangJieBuiltInStubVersionOffsetProvider.getVersionOffset()
 
 internal class CangJieBuiltInDecompiler :
-    org.cangnova.cangjie.decompiler.psi.CangJieMetadataDecompiler<BuiltInsBinaryVersion>(
+    CangJieMetadataDecompiler<BuiltInsBinaryVersion>(
         CangJieBuiltInFileType,
         { BuiltInSerializerFlatbuffers },
         { BuiltInsBinaryVersion.INSTANCE },

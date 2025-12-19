@@ -85,6 +85,50 @@ open class CangJieBuiltIns(
         val DefaultBuiltIns: CangJieBuiltIns =
             CangJieBuiltIns(ProjectDescriptor.ERROR, LockBasedStorageManager("DefaultBuiltIns"))
 
+        /**
+         * 判断 Descriptor 是否来自内置库
+         *
+         * 内置库包括：
+         * - 基本类型模块（cangjie 包）：Int8, Bool, Unit 等
+         * - 标准库模块（std 包）：std.core, std.sync 等
+         *
+         * ## 判断逻辑
+         *
+         * 1. **模块检查**: 如果 Descriptor 所属的模块名称是 `<built-ins module>`，则为内置库
+         * 2. **包检查**: 如果 Descriptor 所在的包是 `cangjie` 或其子包，则为内置库
+         *
+         * ## 使用场景
+         *
+         * - **反编译查找**: 判断是否需要在内置库范围内查找声明
+         * - **可见性检查**: 内置库的某些类型有特殊的可见性规则
+         * - **类型推导**: 内置类型有特殊的类型推导规则
+         *
+         * ## 示例
+         *
+         * ```kotlin
+         * // 对于 Int8、Bool 等基本类型
+         * CangJieBuiltIns.isBuiltIn(int8Descriptor) // true
+         *
+         * // 对于 std.core.ArrayList 等标准库类型
+         * // 注意：这些不是 built-ins，而是标准库
+         * CangJieBuiltIns.isBuiltIn(arrayListDescriptor) // false (除非在 cangjie 包下)
+         * ```
+         *
+         * @param descriptor 要检查的 Descriptor
+         * @return 如果是内置库则返回 true，否则返回 false
+         */
+        @JvmStatic
+        fun isBuiltIn(descriptor: DeclarationDescriptor): Boolean {
+            // 1. 检查模块名称是否为内置模块
+            val module = DescriptorUtils.getContainingModule(descriptor)
+            if (module.name == BUILTINS_MODULE_NAME) {
+                return true
+            }
+
+            // 2. 检查是否在 cangjie 包或其子包下
+            // 这包括基本类型（cangjie.Int8, cangjie.Bool 等）
+            return isUnderCangJiePackage(descriptor)
+        }
 
         /**
          * @return true if the containing package of the descriptor is "cangjie" or any subpackage of "cangjie"

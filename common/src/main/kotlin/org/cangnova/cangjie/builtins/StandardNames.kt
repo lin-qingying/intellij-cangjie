@@ -718,6 +718,15 @@ object StandardNames {
         SERIALIZATION_PACKAGE_FQ_NAME,
     )
 
+    fun getFunctionClassId(parameterCount: Int): ClassId {
+        return ClassId(BASIC_PACKAGE_FQ_NAME, Name.identifier(
+            StandardNames.getFunctionName(
+                parameterCount
+            )
+        ))
+    }
+
+
     private fun namesToSetOf(): Set<FqName> {
         val set = mutableSetOf<FqName>()
         set.add(BASIC_PACKAGE_FQ_NAME)

@@ -24,13 +24,11 @@
 
 package org.cangnova.cangjie.decompiler.stub.file
 
-import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.stubs.PsiFileStub
-import com.intellij.util.application
 import com.intellij.util.indexing.FileContent
 import org.cangnova.cangjie.decompiler.psi.compiled.ClsStubBuilder
 import org.cangnova.cangjie.decompiler.psi.compiled.impl.ClassFileStubBuilder
@@ -64,19 +62,6 @@ open class CangJieMetadataStubBuilder(
         return file.extension == fileType.defaultExtension || file.fileType == fileType
     }
 
-    /**
-     * 安全读取文件，出错时返回 null
-     */
-    protected fun readFileSafely(file: VirtualFile, content: ByteArray): FileWithMetadata? {
-        val project = ProjectUtil.getActiveProject() ?: return null
-        return try {
-            readFile(project, file, content)
-        } catch (e: Exception) {
-            LOG.warn("Failed to read metadata file: ${file.path}", e)
-            null
-        }
-    }
-
     override fun buildFileStub(fileContent: FileContent): PsiFileStub<*>? {
         val virtualFile = fileContent.file
 
@@ -85,7 +70,14 @@ open class CangJieMetadataStubBuilder(
             return null
         }
 
-        val file = readFileSafely(virtualFile, fileContent.content) ?: return null
+        // 从 FileContent 获取 project，而不是使用 ProjectUtil.getActiveProject()
+        val project = fileContent.project
+        val file = try {
+            readFile(project, virtualFile, fileContent.content)
+        } catch (e: Exception) {
+            LOG.warn("Failed to read metadata file: ${virtualFile.path}", e)
+            null
+        } ?: return null
 
         return when (file) {
             is FileWithMetadata.Incompatible -> {
