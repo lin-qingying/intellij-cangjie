@@ -271,7 +271,7 @@ class CollectionLiteralResolver(
     ) {
         init {
 
-            val arrayType = module.builtIns.arrayType.replaceArgument(
+            val arrayType = module.builtIns.stdlibTypes.arrayType.replaceArgument(
                 returnType.arguments[0].type
             )
 
@@ -313,7 +313,7 @@ class CollectionLiteralResolver(
 
                 module.builtIns.storageManager
             )
-            val arrayType = module.builtIns.arrayType.replaceArgument(
+            val arrayType = module.builtIns.stdlibTypes.arrayType.replaceArgument(
                 t.defaultType
             )
 

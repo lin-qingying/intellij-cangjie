@@ -37,6 +37,7 @@ import org.cangnova.cangjie.name.FqNameUnsafe
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.BodiesResolveContext
+import org.cangnova.cangjie.resolve.qualified.hasClassValueDescriptor
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 
 @DefaultImplementation(impl = ConflictingOverloadsDispatcher.Default::class)

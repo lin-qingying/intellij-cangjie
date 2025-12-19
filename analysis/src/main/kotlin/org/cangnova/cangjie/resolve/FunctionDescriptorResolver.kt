@@ -384,7 +384,7 @@ class FunctionDescriptorResolver(
             typeResolver.resolveType(context.scope, function.typeReference!!, context.trace, true)
 
         } else {
-            builtIns.tokensType
+            builtIns.stdlibTypes.tokensType
 
         }
 

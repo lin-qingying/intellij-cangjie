@@ -358,8 +358,9 @@ open class CangJieBuiltIns(
 
     }
 
+    val stdlibTypes get() = projectDescriptor.stdlibTypes
 
-    val defaultBound: SimpleType get() = anyType
+    val defaultBound: SimpleType get() = stdlibTypes.anyType
 
     //    fun getNumberType(): SimpleType {
 //        return number.getDefaultType()
@@ -375,85 +376,14 @@ open class CangJieBuiltIns(
     }
 
 
-    fun getArrayType(
-        projectionType: Variance,
-        argument: CangJieType,
-        annotations: Annotations
-    ): SimpleType {
-        val types =
-            listOf(
-                TypeProjectionImpl(
-                    projectionType,
-                    argument
-                )
-            )
-        return CangJieTypeFactory.simpleNotNullType(
-            annotations.toDefaultAttributes(),
-            array,
-            types
-        )
-    }
-
-
     fun geOptionNothingType(): SimpleType {
         return nothingType.makeOptionAsSpecified(true)
     }
 
     fun isMemberOfAny(descriptor: DeclarationDescriptor): Boolean {
-        return descriptor.containingDeclaration === any
+        return descriptor.containingDeclaration === stdlibTypes.any
     }
 
-    fun getArrayType(
-
-        argument: CangJieType
-    ): SimpleType {
-        return getArrayType(
-            Variance.INVARIANT,
-            argument,
-            Annotations.EMPTY
-        )
-    }
-
-
-    private val myStdSyncBuiltInClassesByName = storageManager.createMemoizedFunction { name: Name ->
-        val classifier = STD_SYNC_SCOPE.getContributedClassifier(
-            name,
-            NoLookupLocation.FROM_BUILTINS
-        )
-        if (classifier == null) {
-            throw AssertionError("Built-in class " + BASIC_PACKAGE_FQ_NAME.child(name) + " is not found")
-        }
-        if (classifier !is ClassDescriptor) {
-            throw AssertionError("Must be a class descriptor $name, but was $classifier")
-        }
-        classifier
-    }
-    private val myStdAstBuiltInClassesByName = storageManager.createMemoizedFunction { name: Name ->
-        val classifier = STD_AST_SCOPE.getContributedClassifier(
-            name,
-            NoLookupLocation.FROM_BUILTINS
-        )
-        if (classifier == null) {
-            throw AssertionError("Built-in class " + BASIC_PACKAGE_FQ_NAME.child(name) + " is not found")
-        }
-        if (classifier !is ClassDescriptor) {
-            throw AssertionError("Must be a class descriptor $name, but was $classifier")
-        }
-        classifier
-    }
-    private val myStdCoreBuiltInClassesByName = storageManager.createMemoizedFunction { name: Name ->
-        val classifier = STD_CORE_SCOPE.getContributedClassifier(
-            name,
-            NoLookupLocation.FROM_BUILTINS
-        )
-        if (classifier == null) {
-            throw AssertionError("Built-in class " + BASIC_PACKAGE_FQ_NAME.child(name) + " is not found")
-        }
-        if (classifier !is ClassDescriptor) {
-            throw AssertionError("Must be a class descriptor $name, but was $classifier")
-        }
-        classifier
-    }
 
     private val myBasicClassesByName = storageManager.createMemoizedFunction { name: Name ->
         val classifier = BASIC_SCOPE.getContributedClassifier(
@@ -477,14 +407,6 @@ open class CangJieBuiltIns(
 
     val builtInsModule: ModuleDescriptorImpl
         get() = builtInsModuleProvider()
-
-
-    /**
-     * 获取标准库模块描述符
-     * @throws IllegalStateException 如果标准库模块尚未设置
-     */
-    val stdlibModule: ModuleDescriptor
-        get() = projectDescriptor.getModule(STD_PACKAGE_NAME)   ?: error("Stdlib module is not set yet. Call setStdlibModule() first.")
 
 
     val binaryOperatorRules: MutableMap<CjToken, List<BinaryOperatorRule>> = mutableMapOf()
@@ -631,7 +553,7 @@ open class CangJieBuiltIns(
             BUILTINS_MODULE_NAME.asString(), // displayName
             storageManager,
 
-        )
+            )
         // 只加载基本类型，不包含标准库
         module.initialize(
             BuiltInsLoader.Instance.createBasicTypesPackageFragmentProvider(
@@ -644,38 +566,14 @@ open class CangJieBuiltIns(
     }
 
 
-    val STD_SYNC_SCOPE get() = stdlibModule.getPackage(sync).memberScope
-
-    val STD_CORE_SCOPE get() = stdlibModule.getPackage(core).memberScope
-    val STD_AST_SCOPE get() = stdlibModule.getPackage(ast).memberScope
-
     val BASIC_SCOPE get() = builtInsModule.getPackage(BASIC_PACKAGE_FQ_NAME).memberScope
     fun isBooleanOrSubtype(type: CangJieType): Boolean {
         return CangJieTypeChecker.DEFAULT.isSubtypeOf(type, boolType)
     }
 
-    private fun getStdCoreClassByName(simpleName: Name): ClassDescriptor {
-        return myStdCoreBuiltInClassesByName.invoke(simpleName)
-    }
-
-    private fun getStdCoreClassByName(simpleName: String): ClassDescriptor {
-        return myStdCoreBuiltInClassesByName.invoke(Name.identifier(simpleName))
-    }
 
     private fun getBasicClassByName(simpleName: Name): ClassDescriptor {
         return myBasicClassesByName.invoke(simpleName)
-    }
-
-    private fun getStdSyncClassByName(simpleName: Name): ClassDescriptor {
-        return myStdSyncBuiltInClassesByName.invoke(simpleName)
-    }
-
-    private fun getStdSyncClassByName(simpleName: String): ClassDescriptor {
-        return myStdSyncBuiltInClassesByName.invoke(Name.identifier(simpleName))
-    }
-
-    private fun getStdAstClassByName(simpleName: String): ClassDescriptor {
-        return myStdAstBuiltInClassesByName.invoke(Name.identifier(simpleName))
     }
 
 
@@ -712,131 +610,7 @@ open class CangJieBuiltIns(
 
     val unitType get() = getBasicClassByName(StandardNames.UNIT).defaultType
 
-    //标准库
-    /*======================================core========================================================*/
-    val string: ClassDescriptor
-        get() = getStdCoreClassByName("Any")
-    val stringType: SimpleType
-        get() {
-            return string.defaultType
-        }
-    val ctype: ClassDescriptor
-        get() = getStdCoreClassByName("CType")
-    val ctypeType: SimpleType
-        get() {
-            return ctype.defaultType
-        }
 
-    val cpointer: ClassDescriptor
-        get() = getStdCoreClassByName("CPointer")
-    val cpointerType: SimpleType
-        get() {
-            return cpointer.defaultType
-        }
-
-    val throwable: ClassDescriptor
-        get() {
-            return getStdCoreClassByName("Throwable")
-        }
-    val throwableType: CangJieType
-        get() = throwable.defaultType
-
-    val cfunc: ClassDescriptor
-        get() = getStdCoreClassByName("CFunc")
-    val cfuncType: SimpleType
-        get() {
-            return cfunc.defaultType
-        }
-
-    val array: ClassDescriptor
-        get() = getStdCoreClassByName("Array")
-    val arrayType: SimpleType
-        get() {
-            return array.defaultType
-        }
-
-    //    标准库
-    val any: ClassDescriptor
-        get() {
-
-            return getStdCoreClassByName("Any")
-
-
-        }
-    val anyType: SimpleType
-        get() {
-            return any.defaultType
-        }
-    val `object`: ClassDescriptor
-        get() {
-            return getStdCoreClassByName("Object")
-
-
-        }
-    val objectType: CangJieType
-        get() {
-            return `object`.defaultType
-        }
-    val tokens: ClassDescriptor
-        get() {
-            return getStdAstClassByName("Tokens")
-
-        }
-    val tokensType: SimpleType
-        get() {
-            return tokens.defaultType
-
-        }
-
-    val range: ClassDescriptor
-        get() = getStdCoreClassByName(RANGE)
-    val rangeType: SimpleType
-        get() {
-            return range.defaultType
-        }
-
-    //sync
-    val reentrantMutex: ClassDescriptor
-        get() {
-            return getStdSyncClassByName("ReentrantMutex")
-
-
-        }
-    val reentrantMutexType: SimpleType
-        get() {
-            return reentrantMutex.defaultType
-
-        }
-    val resource: ClassDescriptor
-        get() {
-
-            return getStdCoreClassByName(RESOURCE)
-        }
-    val future: ClassDescriptor
-        get() = getStdSyncClassByName(FUTURE)
-    val futureType: SimpleType
-        get() {
-            return future.defaultType
-        }
-    val equatable: ClassDescriptor
-        get() = getStdCoreClassByName(EQUATABLE)
-    val equatableType: SimpleType
-        get() {
-            return equatable.defaultType
-        }
-    val comparable: ClassDescriptor
-        get() = getStdCoreClassByName(COMPARABLE)
-    val ccomparableType: SimpleType
-        get() {
-            return comparable.defaultType
-        }
-
-    val countable: ClassDescriptor
-        get() = getStdCoreClassByName(COUNTABLE)
-    val countableType: SimpleType
-        get() {
-            return countable.defaultType
-        }
 }
 
 enum class BinaryOperatorRuleResultType {

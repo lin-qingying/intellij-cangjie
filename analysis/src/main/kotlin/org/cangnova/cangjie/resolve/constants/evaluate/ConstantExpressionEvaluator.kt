@@ -409,8 +409,8 @@ private class ConstantExpressionEvaluatorVisitor(
 
             builtIns.runeType -> CompileTimeType.Rune
             builtIns.boolType -> CompileTimeType.Bool
-            builtIns.stringType -> CompileTimeType.String
-            builtIns.anyType -> CompileTimeType.Any
+            builtIns.stdlibTypes.stringType -> CompileTimeType.String
+            builtIns.stdlibTypes.anyType -> CompileTimeType.Any
             else -> null
         }
 
@@ -665,7 +665,7 @@ private class ConstantExpressionEvaluatorVisitor(
         ): TypedCompileTimeConstant<String>? {
             val expression = entry.expression ?: return null
 
-            return evaluate(expression, builtIns.stringType)?.let {
+            return evaluate(expression, builtIns.stdlibTypes.stringType)?.let {
                 createStringConstant(it)
             }
 

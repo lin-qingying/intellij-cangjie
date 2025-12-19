@@ -31,8 +31,8 @@ import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
-import org.cangnova.cangjie.resolve.hasClassValueDescriptor
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyClassMemberScope
+import org.cangnova.cangjie.resolve.qualified.hasClassValueDescriptor
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.cangnova.cangjie.types.CangJieType

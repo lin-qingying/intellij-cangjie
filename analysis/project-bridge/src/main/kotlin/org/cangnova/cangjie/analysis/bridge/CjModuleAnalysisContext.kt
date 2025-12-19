@@ -30,6 +30,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.analysis.bridge.cache.CacheKeys
 import org.cangnova.cangjie.analysis.bridge.cache.cacheOnRootModifications
 import org.cangnova.cangjie.analysis.bridge.scope.AnalysisScopeUtils
+import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.project.model.CjModule
@@ -103,8 +104,10 @@ class CjModuleAnalysisContext(
      * - CjDependency.Library：外部库依赖
      * - CjDependency.Path：本地路径依赖（通常是其他模块）
      * - CjDependency.Git：Git 仓库依赖
-     * - CjDependency.Stdlib：标准库依赖
+     * - CjDependency.Stdlib：标准库依赖（**自动过滤**，作为隐式依赖）
      * - CjDependency.Binary：二进制依赖
+     *
+     * **注意**：stdlib 依赖会被过滤掉，因为它作为隐式依赖由 LazyModuleDependencies 自动添加。
      *
      * **缓存策略**：使用 CachedValuesManager，当项目根目录修改时自动失效。
      */
@@ -116,7 +119,10 @@ class CjModuleAnalysisContext(
     /**
      * 收集模块的所有依赖
      *
-     * @return 依赖的上下文列表
+     * **重要**：stdlib 依赖会被过滤掉，不包含在返回的列表中。
+     * 因为 stdlib 作为隐式依赖由 LazyModuleDependencies 自动添加。
+     *
+     * @return 依赖的上下文列表（不包含 stdlib）
      */
     private fun collectDependencies(): List<AnalysisContext> {
         if (LOG.isDebugEnabled) {
@@ -128,8 +134,24 @@ class CjModuleAnalysisContext(
 
         for (dep in compileDeps) {
             try {
+                // 跳过 stdlib 依赖，因为它会作为隐式依赖自动添加
+                if (dep is CjDependency.Stdlib) {
+                    if (LOG.isDebugEnabled) {
+                        LOG.debug("  Skipping stdlib dependency (implicit)")
+                    }
+                    continue
+                }
+
                 val depContext = resolveDependencyToContext(dep)
                 if (depContext != null) {
+                    // 再次检查：如果解析后的上下文是 stdlib，也过滤掉
+                    if (depContext.moduleName == StandardNames.STD_PACKAGE_NAME) {
+                        if (LOG.isDebugEnabled) {
+                            LOG.debug("  Skipping stdlib context (implicit)")
+                        }
+                        continue
+                    }
+
                     result.add(depContext)
                     if (LOG.isDebugEnabled) {
                         LOG.debug("  Added dependency: ${depContext.contextId}")
@@ -144,7 +166,7 @@ class CjModuleAnalysisContext(
         }
 
         if (LOG.isDebugEnabled) {
-            LOG.debug("Total dependencies collected for $contextId: ${result.size}")
+            LOG.debug("Total dependencies collected for $contextId: ${result.size} (stdlib excluded)")
         }
 
         return result + listOf(this)

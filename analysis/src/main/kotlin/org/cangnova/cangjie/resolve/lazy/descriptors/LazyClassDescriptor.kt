@@ -338,7 +338,7 @@ open class LazyClassDescriptor(
         }
 
         val classOrObject = declarationProvider.ownerInfo!!.correspondingClass
-            ?: return listOf(c.moduleDescriptor.builtIns.anyType)
+            ?: return listOf(c.moduleDescriptor.builtIns.stdlibTypes.anyType)
 
         val allSupertypes = c.descriptorResolver.resolveSupertypes(
             scopeForClassHeaderResolution,

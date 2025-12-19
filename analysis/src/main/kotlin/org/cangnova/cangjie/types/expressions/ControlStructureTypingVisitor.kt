@@ -278,7 +278,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             .resolveLocalVariableDescriptor(context.scope, parameter, expression, context.trace)
         val parameterType = variableDescriptor.type
         checkTrySourceParameterType(parameter, parameterType, context)
-        val resourceType = components.builtIns.resource.defaultType
+        val resourceType = components.builtIns.stdlibTypes.resource.defaultType
         components.dataFlowAnalyzer.checkType(
             parameterType,
             parameter,
@@ -297,7 +297,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             .resolveLocalVariableDescriptor(context.scope, catchParameter, context.trace)
         val catchParameterType = variableDescriptor.type
         checkCatchParameterType(catchParameter, catchParameterType, context)
-        val throwableType = components.builtIns.throwable.defaultType
+        val throwableType = components.builtIns.stdlibTypes.throwable.defaultType
         components.dataFlowAnalyzer.checkType(
             catchParameterType,
             catchParameter,
@@ -313,7 +313,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         val thrownExpression = expression.thrownExpression
         if (thrownExpression != null) {
             val throwableType =
-                components.builtIns.throwableType
+                components.builtIns.stdlibTypes.throwableType
             facade.getTypeInfo(
                 thrownExpression,
                 context.replaceExpectedType(throwableType)
@@ -739,7 +739,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         }
 
         return createTypeInfo(
-            facade.components.builtIns.tokensType
+            facade.components.builtIns.stdlibTypes.tokensType
         )
     }
 

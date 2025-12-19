@@ -117,7 +117,7 @@ fun TypeConstructor.supertypesWithAny(): Collection<CangJieType> {
     val noSuperClass = supertypes.map { it.constructor.declarationDescriptor as? ClassDescriptor }.all {
         it == null || it.kind == ClassKind.INTERFACE
     }
-    return if (noSuperClass) supertypes + builtIns.anyType else supertypes
+    return if (noSuperClass) supertypes + builtIns.stdlibTypes.anyType else supertypes
 }
 /** If a literal of this class can be used as a value, returns the type of this value */
 val ClassDescriptor.classValueType: CangJieType?

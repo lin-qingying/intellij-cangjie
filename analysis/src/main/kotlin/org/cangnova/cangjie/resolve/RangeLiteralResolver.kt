@@ -109,7 +109,7 @@ class RangeLiteralResolver(
                 module.builtIns.storageManager
             )
 
-            val rangeType = module.builtIns.rangeType
+            val rangeType = module.builtIns.stdlibTypes.rangeType
 
 
             initialize(
@@ -263,9 +263,9 @@ class RangeLiteralResolver(
 //            Countable<T> & Comparable<T> & Equatable<T>
 
 
-                add(module.builtIns.countableType.replaceArgument())
-                add(module.builtIns.ccomparableType.replaceArgument())
-                add(module.builtIns.equatableType.replaceArgument())
+                add(module.builtIns.stdlibTypes.countableType.replaceArgument())
+                add(module.builtIns.stdlibTypes.comparableType.replaceArgument())
+                add(module.builtIns.stdlibTypes.equatableType.replaceArgument())
             }
 
         override fun resolveUpperBounds(): List<CangJieType> {

@@ -42,11 +42,12 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorConventions
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.LazyExplicitImportScope
-import org.cangnova.cangjie.resolve.QualifiedExpressionResolver
-import org.cangnova.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
+import org.cangnova.cangjie.resolve.qualified. QualifierPart
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
+import org.cangnova.cangjie.resolve.qualified.ExpressionQualifierPart
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.ImportingScope
 import org.cangnova.cangjie.resolve.scopes.concat
@@ -685,19 +686,19 @@ fun CjImportInfo.ImportContent.asQualifierPartList(): List<QualifierPart> =
     }
 
 
-fun CjExpression.asQualifierPartList(doubleColonLHS: Boolean = false): List<QualifiedExpressionResolver.ExpressionQualifierPart> {
-    val result = SmartList<QualifiedExpressionResolver.ExpressionQualifierPart>()
+fun CjExpression.asQualifierPartList(doubleColonLHS: Boolean = false): List< ExpressionQualifierPart> {
+    val result = SmartList< ExpressionQualifierPart>()
 
     fun addQualifierPart(expression: CjExpression?): Boolean {
         if (expression is CjSimpleNameExpression) {
-            result.add(QualifiedExpressionResolver.ExpressionQualifierPart(expression))
+            result.add( ExpressionQualifierPart(expression))
             return true
         }
         if (doubleColonLHS && expression is CjCallExpression && expression.isWithoutValueArguments) {
             val simpleName = expression.calleeExpression
             if (simpleName is CjSimpleNameExpression) {
                 result.add(
-                    QualifiedExpressionResolver.ExpressionQualifierPart(
+                    ExpressionQualifierPart(
                         simpleName.referencedNameAsName,
                         simpleName,
                         expression.typeArgumentList

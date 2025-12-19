@@ -22,23 +22,41 @@
  *
  */
 
-package org.cangnova.cangjie.resolve
+package org.cangnova.cangjie.resolve.qualified
 
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.diagnostics.infos.errors.EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE
 import org.cangnova.cangjie.diagnostics.infos.errors.EXPRESSION_EXPECTED_PACKAGE_FOUND
 import org.cangnova.cangjie.diagnostics.infos.errors.TYPE_PARAMETER_IS_NOT_AN_EXPRESSION
 import org.cangnova.cangjie.diagnostics.infos.errors.TYPE_PARAMETER_ON_LHS_OF_DOT
+import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.classValueTypeDescriptor
 import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 
 
+
+/**
+ * 将限定符解析为表达式中的接收器
+ *
+ * 在限定表达式（如 `a.b.c`）中，将限定符部分（`a.b`）解析为接收器，
+ * 用于后续的成员访问或方法调用。
+ *
+ * 特殊处理：
+ * - 类型参数限定符：报告错误，类型参数不能出现在点号左侧
+ *
+ * @param qualifier 限定符接收器（包、类、类型别名等）
+ * @param selector 选择器描述符（成员、构造器等），可能为 null
+ * @param context 表达式类型推导上下文
+ * @return 解析后的声明描述符
+ */
 fun resolveQualifierAsReceiverInExpression(
     qualifier: Qualifier, selector: DeclarationDescriptor?, context: ExpressionTypingContext
 ): DeclarationDescriptor {
     val referenceTarget = resolveQualifierReferenceTarget(qualifier, selector, context)
 
+    // 类型参数不能作为接收器（如 T.foo() 是非法的）
     if (referenceTarget is TypeParameterDescriptor) {
         context.trace.report(TYPE_PARAMETER_ON_LHS_OF_DOT.on(qualifier.referenceExpression, referenceTarget))
     }
@@ -46,12 +64,29 @@ fun resolveQualifierAsReceiverInExpression(
     return referenceTarget
 }
 
+/**
+ * 将限定符解析为独立表达式
+ *
+ * 当限定符本身作为一个完整的表达式出现时（如 `MyClass`），
+ * 需要检查其是否可以作为值使用。
+ *
+ * 错误检查：
+ * - 类型别名：如果不是对象类型，报告需要成员或构造器
+ * - 类型参数：报告类型参数不能作为表达式
+ * - 普通类：如果没有类值描述符（非对象/枚举），报告错误
+ * - 包：报告期望表达式但找到了包
+ *
+ * @param qualifier 限定符接收器
+ * @param context 表达式类型推导上下文
+ * @return 解析后的声明描述符
+ */
 fun resolveQualifierAsStandaloneExpression(
     qualifier: QualifierReceiver, context: ExpressionTypingContext
 ): DeclarationDescriptor {
     val referenceTarget = resolveQualifierReferenceTarget(qualifier, null, context)
 
     when (referenceTarget) {
+        // 类型别名作为独立表达式
         is TypeAliasDescriptor -> {
             referenceTarget.classDescriptor?.let { classDescriptor ->
                 if (!classDescriptor.kind.isObject) {
@@ -65,11 +100,14 @@ fun resolveQualifierAsStandaloneExpression(
             }
         }
 
+        // 类型参数不能作为表达式
         is TypeParameterDescriptor -> {
             context.trace.report(TYPE_PARAMETER_IS_NOT_AN_EXPRESSION.on(qualifier.expression, referenceTarget))
         }
 
+        // 普通类作为独立表达式
         is ClassDescriptor -> {
+            // 如果不是对象类型且没有类值描述符，报告错误
             if (!context.config.isDotEnumGetType && !referenceTarget.hasClassValueDescriptor) {
                 context.trace.report(
                     EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(
@@ -80,6 +118,7 @@ fun resolveQualifierAsStandaloneExpression(
             }
         }
 
+        // 包不能作为表达式
         is PackageViewDescriptor -> {
             context.trace.report(EXPRESSION_EXPECTED_PACKAGE_FOUND.on(qualifier.expression))
         }
@@ -88,17 +127,43 @@ fun resolveQualifierAsStandaloneExpression(
     return referenceTarget
 }
 
+/**
+ * 扩展属性：检查类是否有类值描述符
+ *
+ * 类值描述符表示类本身可以作为值使用（如对象、枚举）。
+ */
 val ClassDescriptor.hasClassValueDescriptor: Boolean get() = classValueDescriptor != null
 
+/**
+ * 解析限定符的引用目标
+ *
+ * 根据限定符类型和选择器，确定限定符最终引用的描述符。
+ * 这是限定表达式解析的核心逻辑。
+ *
+ * 解析逻辑：
+ * 1. 类型参数限定符：直接返回类型参数描述符
+ * 2. 包限定符 + 包成员：返回包描述符
+ * 3. 类限定符 + 可调用成员：
+ *    - 如果类有可调用接收器描述符（对象/伴生对象）
+ *    - 记录隐式引用并返回类值类型描述符
+ * 4. 其他情况：返回限定符自身的描述符
+ *
+ * @param qualifier 限定符接收器
+ * @param selector 选择器描述符，null 表示限定符本身是完整表达式
+ * @param context 表达式类型推导上下文
+ * @return 引用目标描述符
+ */
 private fun resolveQualifierReferenceTarget(
     qualifier: QualifierReceiver,
     selector: DeclarationDescriptor?,
     context: ExpressionTypingContext
 ): DeclarationDescriptor {
+    // 类型参数限定符直接返回
     if (qualifier is TypeParameterQualifier) {
         return qualifier.descriptor
     }
 
+    // 确定选择器的容器（构造器的容器需要向上查找两级）
     val selectorContainer = when (selector) {
         is ConstructorDescriptor ->
             selector.containingDeclaration.containingDeclaration
@@ -107,6 +172,7 @@ private fun resolveQualifierReferenceTarget(
             selector?.containingDeclaration
     }
 
+    // 如果是包限定符且选择器也在同一个包中，返回包描述符
     if (qualifier is PackageQualifier &&
         (selectorContainer is PackageFragmentDescriptor || selectorContainer is PackageViewDescriptor) &&
         DescriptorUtils.getFqName(qualifier.descriptor) == DescriptorUtils.getFqName(selectorContainer)
@@ -114,24 +180,28 @@ private fun resolveQualifierReferenceTarget(
         return qualifier.descriptor
     }
 
-    // TODO make decisions about short reference to companion object somewhere else
+    // TODO 在其他地方决定伴生对象的短引用
     if (qualifier is ClassifierQualifier) {
         val classifier = qualifier.descriptor
+        // 检查选择器是否为可调用的成员（有接收器参数）
         val selectorIsCallable = selector is CallableDescriptor &&
                 (selector.dispatchReceiverParameter != null || selector.extensionReceiverParameter != null)
-        // TODO simplify this code.
-        // Given a class qualifier in expression position,
-        // it should provide a proper REFERENCE_TARGET (with type),
-        // and, in case of implicit companion object reference, SHORT_REFERENCE_TO_COMPANION_OBJECT.
+
+        // TODO 简化此代码
+        // 当类限定符出现在表达式位置时，
+        // 应该提供正确的 REFERENCE_TARGET（带类型），
+        // 并在隐式伴生对象引用的情况下提供 SHORT_REFERENCE_TO_COMPANION_OBJECT。
         val receiverClassifierDescriptor = classifier.getCallableReceiverDescriptorRetainingTypeAliasReference()
         if (selectorIsCallable && receiverClassifierDescriptor != null) {
             val classValueTypeDescriptor = classifier.classValueTypeDescriptor!!
+            // 记录引用目标和类型
             context.trace.record(
                 BindingContext.REFERENCE_TARGET,
                 qualifier.referenceExpression,
                 receiverClassifierDescriptor
             )
             context.trace.recordType(qualifier.expression, classValueTypeDescriptor.defaultType)
+            // 如果有伴生对象，记录短引用（已注释）
 //            if (classifier.hasCompanionObject) {
 //                context.trace.record(BindingContext.SHORT_REFERENCE_TO_COMPANION_OBJECT, qualifier.referenceExpression, classifier)
 //            }
@@ -142,16 +212,35 @@ private fun resolveQualifierReferenceTarget(
     return qualifier.descriptor
 }
 
+/**
+ * 扩展属性：获取类的类值描述符
+ *
+ * 类值描述符表示类本身可以作为值使用的描述符。
+ * 例如：对象类型、枚举类型。
+ *
+ * TODO 这里需要实现具体的逻辑，目前简单返回自身
+ */
 val ClassDescriptor.classValueDescriptor: ClassDescriptor?
     get() =
-//        TODO 这里需要实现具体的逻辑
+        // TODO 这里需要实现具体的逻辑
         this
 
+/**
+ * 获取保留类型别名引用的可调用接收器描述符
+ *
+ * 对于类型别名，在某些情况下需要保留类型别名的引用而不是直接展开到底层类型。
+ * 这对于错误消息和 IDE 功能很重要。
+ *
+ * @return 可调用接收器描述符，如果不适用则返回 null
+ */
 private fun ClassifierDescriptor.getCallableReceiverDescriptorRetainingTypeAliasReference(): DeclarationDescriptor? =
     when (this) {
+        // 普通类：返回其类值描述符
         is ClassDescriptor -> classValueDescriptor
 
+        // 类型别名：保留类型别名引用
         is TypeAliasDescriptor ->
+            // TODO 如果底层类有类值描述符，创建假的可调用描述符
 //            if (classDescriptor?.classValueDescriptor != null)
 //                FakeCallableDescriptorForTypeAliasObject(this)
 //            else

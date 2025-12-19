@@ -1301,7 +1301,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             contextWithExpectedType.expectedType
         )
         return components.dataFlowAnalyzer.checkType(
-            visitor.typeInfo.replaceType(components.builtIns.stringType),
+            visitor.typeInfo.replaceType(components.builtIns.stdlibTypes.stringType),
             expression,
 
             contextWithExpectedType
@@ -1848,7 +1848,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             if (isPossiblyAmbiguousUnqualifiedSuper(expression, supertypes)) {
                 val supertypesResolvedFromContextWithEqualsMigration =
                     resolveUnqualifiedSuperFromExpressionContext(
-                        expression, supertypes, components.builtIns.anyType
+                        expression, supertypes, components.builtIns.stdlibTypes.anyType
                     )
                 val supertypesResolvedFromContext = supertypesResolvedFromContextWithEqualsMigration.first
                 if (supertypesResolvedFromContextWithEqualsMigration.second) {
@@ -1860,14 +1860,14 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                 } else if (supertypesResolvedFromContext.isEmpty()) {
                     // No supertype found, either with concrete or abstract members.
                     // Resolve to 'Any' (this will cause diagnostics for unresolved member reference).
-                    result = components.builtIns.anyType
+                    result = components.builtIns.stdlibTypes.anyType
                 } else {
                     context.trace.report(AMBIGUOUS_SUPER.on(expression))
                 }
             } else {
                 // supertypes may be empty when all the supertypes are error types (are not resolved, for example)
                 val type = if (supertypes.isEmpty())
-                    components.builtIns.anyType
+                    components.builtIns.stdlibTypes.anyType
                 else
                     supertypes.iterator().next()
                 result = substitutor.substitute(type, Variance.INVARIANT)
@@ -1902,7 +1902,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         val blockExpression = expression.blockExpression ?: return noTypeInfo(data.dataFlowInfo)
 
 
-        val newContext = data.replaceExpectedType(facade.components.builtIns.reentrantMutexType)
+        val newContext = data.replaceExpectedType(facade.components.builtIns.stdlibTypes.reentrantMutexType)
 
         expression.expression?.let { facade.getTypeInfo(it, newContext) }
 

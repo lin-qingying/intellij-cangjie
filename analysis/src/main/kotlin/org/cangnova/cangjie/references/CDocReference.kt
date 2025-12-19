@@ -47,6 +47,7 @@ import org.cangnova.cangjie.resolve.*
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.caches.CangJieCacheService
 import org.cangnova.cangjie.resolve.calls.util.CallType
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.source.PsiSourceElement
 import org.cangnova.cangjie.utils.Printer

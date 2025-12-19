@@ -189,5 +189,5 @@ abstract class DeserializerForDecompilerBase(val directoryPackageFqName: FqName,
 class ResolveEverythingToCangJieAnyLocalClassifierResolver(private val builtIns: CangJieBuiltIns) :
     LocalClassifierTypeSettings {
     override val replacementTypeForLocalClassifiers: SimpleType
-        get() = builtIns.anyType
+        get() = builtIns.stdlibTypes.anyType
 }

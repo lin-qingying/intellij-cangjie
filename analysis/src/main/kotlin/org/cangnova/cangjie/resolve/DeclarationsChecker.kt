@@ -315,12 +315,12 @@ class DeclarationsChecker(
 //检查返回值类型，检查参数数量，检查参数类型
 
         val returnType = macroDeclaration.returnType
-        if (returnType == null || !CangJieTypeChecker.DEFAULT.equalTypes(returnType, builtins.tokensType)) {
+        if (returnType == null || !CangJieTypeChecker.DEFAULT.equalTypes(returnType, builtins.stdlibTypes.tokensType)) {
             trace.report(
                 INVALID_MACRO_TYPE.on(
                     macro.typeReference ?: macro.colon ?: macro,
                     "return",
-                    builtins.tokensType
+                    builtins.stdlibTypes.tokensType
                 )
             )
         }
@@ -334,12 +334,12 @@ class DeclarationsChecker(
 
         macro.valueParameters.forEachIndexed { index, valueParameter ->
             if (index < valueParameters.size) {
-                if (!CangJieTypeChecker.DEFAULT.equalTypes(valueParameters[index].type, builtins.tokensType)) {
+                if (!CangJieTypeChecker.DEFAULT.equalTypes(valueParameters[index].type, builtins.stdlibTypes.tokensType)) {
                     trace.report(
                         INVALID_MACRO_TYPE.on(
                             valueParameter,
                             "parameter",
-                            builtins.tokensType
+                            builtins.stdlibTypes.tokensType
                         )
                     )
                 }

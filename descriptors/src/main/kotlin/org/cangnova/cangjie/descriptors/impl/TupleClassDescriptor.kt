@@ -83,7 +83,7 @@ class TupleClassDescriptor(
 
 
         override fun computeSupertypes(): Collection<CangJieType> {
-            return listOf(builtIns.anyType)
+            return listOf(builtIns.stdlibTypes.anyType)
         }
 
         override val parameters: List<TypeParameterDescriptor>

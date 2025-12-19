@@ -249,7 +249,7 @@ object UnitTypeConversions : ParameterTypeConversion {
             expectedParameterType.getContextReceiverTypesFromFunctionType(),
             expectedParameterType.getValueParameterTypesFromFunctionType().map { it.type },
             parameterNames = null,
-            candidate.callComponents.builtIns.anyType,
+            candidate.callComponents.builtIns.stdlibTypes.anyType,
 
             )
 

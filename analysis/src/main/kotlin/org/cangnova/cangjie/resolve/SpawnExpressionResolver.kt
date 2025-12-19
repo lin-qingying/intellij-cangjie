@@ -199,7 +199,7 @@ class SpawnExpressionResolver(
                 module.builtIns.storageManager
             )
 
-            val futureType = module.builtIns.futureType
+            val futureType = module.builtIns.stdlibTypes.futureType
             initialize(
                 null, null, listOf(),
 

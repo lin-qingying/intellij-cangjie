@@ -175,7 +175,7 @@ class FunctionReturnResolver(
         CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE
     ) {
         init {
-            val arrayType = module.builtIns.arrayType
+            val arrayType = module.builtIns.stdlibTypes.arrayType
 
             val t = ReturnOfTypeParameterDescriptor.createWithDefaultBound(
                 this,

@@ -256,7 +256,7 @@ class DynamicCallableDescriptors(private val storageManager: StorageManager, bui
 
                 arg.getSpreadElement() != null -> {
                     hasSpreadOperator = true
-                    outType = owner.builtIns.getArrayType(dynamicType)
+                    outType = owner.builtIns.stdlibTypes.getArrayType(dynamicType)
                     varargElementType = dynamicType
                 }
 

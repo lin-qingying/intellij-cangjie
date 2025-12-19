@@ -187,3 +187,5 @@ interface ModuleDescriptor : DeclarationDescriptor{
      */
     fun <T> getCapability(capability: ModuleCapability<T>): T?
 }
+
+val ModuleDescriptor.stdlibTypes get() = projectDescriptor.stdlibTypes

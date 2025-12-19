@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.DefaultBuiltIns
+import org.cangnova.cangjie.builtins.StdlibTypes
 import org.cangnova.cangjie.name.Name
 
 
@@ -80,8 +81,21 @@ interface ProjectDescriptor : DeclarationDescriptor {
     /**
      * 项目的 BuiltIns，基于 SDK 创建
      * 整个项目共享同一个 BuiltIns 实例
+     *
+     * 仅包含编译器内置类型（Int8, Bool, Unit 等）
      */
     val builtIns: CangJieBuiltIns
+
+    /**
+     * 标准库类型访问器
+     *
+     * 提供对标准库（std.*）类型的访问，如 Any, String, Array 等。
+     * 与 builtIns 分离，确保编译器内置类型和标准库类型的职责分离。
+     *
+     * 注意: 访问此属性前，需要确保标准库模块已创建。
+     */
+    val stdlibTypes: StdlibTypes
+
     /**
      * 关联的 IntelliJ 项目实例
      * 用于集成 IDE 功能，如文件系统访问、索引服务等
@@ -128,6 +142,8 @@ interface ProjectDescriptor : DeclarationDescriptor {
                 get() = Name.ERROR_NAME
             override val builtIns: CangJieBuiltIns
                 get() = DefaultBuiltIns
+            override val stdlibTypes: StdlibTypes
+                get() = throw UnsupportedOperationException("ERROR ProjectDescriptor does not have stdlibTypes")
             override val project: Project
                 get() = ProjectManager.getInstance().defaultProject
             override val modules: List<ModuleDescriptor>

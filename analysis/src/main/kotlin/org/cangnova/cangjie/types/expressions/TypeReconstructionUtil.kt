@@ -75,7 +75,7 @@ object TypeReconstructionUtil {
         var subjectType: CangJieType? = subjectType
         if (subjectType == null) {
             // Recovery: let's reconstruct as if we were casting from Any, to get some type there
-            subjectType = builtIns.anyType
+            subjectType = builtIns.stdlibTypes.anyType
         }
         val reconstructionResult: TypeReconstructionResult =
             possiblyBareTarget.reconstruct(subjectType)

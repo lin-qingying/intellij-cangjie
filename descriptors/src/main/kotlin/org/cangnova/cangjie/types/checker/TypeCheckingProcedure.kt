@@ -370,7 +370,7 @@ class TypeCheckingProcedure(private val constraints: TypeCheckingProcedureCallba
 
 
         private fun getOutType(parameter: TypeParameterDescriptor, argument: TypeProjection): CangJieType {
-            return parameter.builtIns.anyType
+            return parameter.builtIns.stdlibTypes.anyType
         }
     }
 }

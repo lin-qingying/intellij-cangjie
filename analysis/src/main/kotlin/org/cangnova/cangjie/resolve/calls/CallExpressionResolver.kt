@@ -52,6 +52,9 @@ import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValue
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import org.cangnova.cangjie.resolve.calls.util.*
 import org.cangnova.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
+import org.cangnova.cangjie.resolve.qualified.resolveQualifierAsReceiverInExpression
+import org.cangnova.cangjie.resolve.qualified.resolveQualifierAsStandaloneExpression
 import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ErrorUtils

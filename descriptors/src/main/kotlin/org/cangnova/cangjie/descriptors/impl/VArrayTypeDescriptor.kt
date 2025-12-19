@@ -56,7 +56,7 @@ class VArrayTypeDescriptor(
 ) : ClassDescriptorImpl(
     containingDeclaration,
     Name.identifier("VArray"),
-    Modality.FINAL, ClassKind.CLASS, listOf(builtIns.anyType), SourceElement.NO_SOURCE, false, storageManager
+    Modality.FINAL, ClassKind.CLASS, listOf(builtIns.stdlibTypes.anyType), SourceElement.NO_SOURCE, false, storageManager
 ) {
     private val memberScope = VArrayClassScope(storageManager, this)
 

@@ -44,7 +44,6 @@ import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.descriptors.analysisContext
 import org.cangnova.cangjie.psi.psiUtil.parentsWithSelf
 import org.cangnova.cangjie.resolve.CangJieResolveScopeEnlarger
-import org.cangnova.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 import org.cangnova.cangjie.resolve.ResolutionFacade
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.caches.getResolutionFacade
@@ -52,6 +51,7 @@ import org.cangnova.cangjie.resolve.frontendService
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.resolve.lazy.FileScopeProvider
 import org.cangnova.cangjie.resolve.module
+import org.cangnova.cangjie.resolve.qualified.QualifierPart
 import org.cangnova.cangjie.resolve.scopes.util.parentsWithSelf
 import org.cangnova.cangjie.types.error.ErrorClassDescriptor
 import org.cangnova.cangjie.types.error.ErrorEntity

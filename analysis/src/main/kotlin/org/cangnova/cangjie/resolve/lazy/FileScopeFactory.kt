@@ -93,6 +93,7 @@ import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjImportInfo
 import org.cangnova.cangjie.resolve.PlatformDependentAnalyzerServices
 import org.cangnova.cangjie.resolve.extensions.ExtraImportsProviderExtension
+import org.cangnova.cangjie.resolve.isReexport
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.source.CangJieSourceElement
 import org.cangnova.cangjie.storage.getValue
@@ -676,15 +677,20 @@ class FileScopeFactory(
         val excludedNames = aliasImportNames.mapNotNull { if (it.parent() == packageName) it.shortName() else null }
 
 
-        //        TODO 没有什么实现思路，导入树结构应该重构
+        /**
+         * 获取当前包中所有需要处理的重导出导入
+         *
+         * 从包索引中获取当前包的所有导入指令，然后过滤出重导出的部分。
+         * 重导出是指带有 internal/protected/public 修饰符的导入语句。
+         *
+         * 注意：此处获取的是当前包中的重导出，用于在同一包的其他文件中访问。
+         */
         private val imports: Collection<CjImportDirectiveItem> = runReadAction {
-//            CangJieImportFqNameForPackageNameIndex.getReexport(
-//                packageFragment.fqName.asString(),
-//                project,
-//                GlobalSearchScope.allScope(project)
-//            )
-//            TODO()
-            emptyList()
+            CangJieImportFqNameForPackageNameIndex[
+                packageFragment.fqName.asString(),
+                project,
+                GlobalSearchScope.allScope(project)
+            ].filter { it.isReexport }
         }
 
         private val explicitImportResolver =

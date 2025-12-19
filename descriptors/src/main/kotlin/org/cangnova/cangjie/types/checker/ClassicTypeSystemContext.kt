@@ -514,7 +514,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
     override fun anyType(): SimpleTypeMarker {
-        return builtIns.anyType
+        return builtIns.stdlibTypes.anyType
     }
 
 

@@ -162,8 +162,9 @@ class CjAnalysisContextProvider : AnalysisContextProvider {
             val moduleContext = getOrCreateContextForModule(module)
             allContexts.add(moduleContext)
 
-            // 添加模块的所有依赖上下文（包括 stdlib）
+            // 添加模块的所有依赖上下文（去除 stdlib）
             for (dependency in module.dependencies) {
+                if(dependency is CjDependency.Stdlib) continue
                 val dependencyContext = getOrCreateContextForDependency(project, dependency)
                 // 使用 Set 去重，避免重复添加相同的依赖
                 if (dependencyContext !in allContexts) {

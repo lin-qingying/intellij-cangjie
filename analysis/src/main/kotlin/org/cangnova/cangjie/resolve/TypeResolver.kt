@@ -39,6 +39,7 @@ import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.codeFragmentUtil.suppressDiagnosticsInDebugMode
 import org.cangnova.cangjie.psi.debugtext.getDebugText
 import org.cangnova.cangjie.psi.psiUtil.getNextSiblingIgnoringWhitespaceAndComments
 import org.cangnova.cangjie.psi.psiUtil.getPrevSiblingIgnoringWhitespaceAndComments
@@ -49,6 +50,10 @@ import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.recordScope
 import org.cangnova.cangjie.resolve.calls.NewCommonSuperTypeCalculator.commonSuperType
+import org.cangnova.cangjie.resolve.qualified.ExpressionQualifierPart
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
+import org.cangnova.cangjie.resolve.qualified.TypeQualifierResolutionResult
+
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.source.CangJieSourceElement
 import org.cangnova.cangjie.resolve.source.getPsi
@@ -202,7 +207,7 @@ class TypeResolver(
         userType: CjUserType,
         trace: BindingTrace,
         isDebuggerContext: Boolean
-    ): QualifiedExpressionResolver.TypeQualifierResolutionResult {
+    ):  TypeQualifierResolutionResult {
         if (userType.qualifier != null) { // 必须解析限定符类型参数中的所有类型引用
             for (typeArgument in userType.qualifier!!.typeArguments) {
                 typeArgument.typeReference?.let {
@@ -212,7 +217,7 @@ class TypeResolver(
             }
         }
 
-        return qualifiedExpressionResolver.resolveDescriptorForType(userType, scope, trace, isDebuggerContext).apply {
+        return  resolveDescriptorForType( scope,userType, trace, isDebuggerContext).apply {
 //            if (classifierDescriptor != null) {
 //                PlatformClassesMappedToCangJieChecker.reportPlatformClassMappedToCangJie(
 //                    platformToCangJieClassMapper, trace, userType, classifierDescriptor
@@ -668,7 +673,7 @@ class TypeResolver(
     private fun collectArgumentsForClassifierTypeConstructor(
         c: TypeResolutionContext,
         classifierDescriptor: ClassifierDescriptorWithTypeParameters,
-        qualifierParts: List<QualifiedExpressionResolver.ExpressionQualifierPart>
+        qualifierParts: List<ExpressionQualifierPart>
     ): Pair<List<CjTypeProjection>, List<TypeProjection>?>? {
         val classifierDescriptorChain = classifierDescriptor.classifierDescriptorsFromInnerToOuter()
         val reversedQualifierParts = qualifierParts.asReversed()
@@ -833,7 +838,7 @@ class TypeResolver(
         annotations: Annotations,
         descriptor: TypeAliasDescriptor,
         type: CjElement,
-        qualifierResolutionResult: QualifiedExpressionResolver.TypeQualifierResolutionResult
+        qualifierResolutionResult: TypeQualifierResolutionResult
     ): PossiblyBareType {
         val typeConstructor = descriptor.typeConstructor
         val projectionFromAllQualifierParts = qualifierResolutionResult.allProjections
@@ -904,7 +909,7 @@ class TypeResolver(
     fun resolveTypeForClassifier(
         c: TypeResolutionContext,
         descriptor: ClassifierDescriptor,
-        qualifierResolutionResult: QualifiedExpressionResolver.TypeQualifierResolutionResult,
+        qualifierResolutionResult:  TypeQualifierResolutionResult,
         element: CjElement,
         annotations: Annotations
     ): PossiblyBareType {
@@ -1025,7 +1030,7 @@ class TypeResolver(
     fun resolveTypeForClass(
         c: TypeResolutionContext, annotations: Annotations,
         classDescriptor: ClassDescriptor, element: CjElement,
-        qualifierResolutionResult: QualifiedExpressionResolver.TypeQualifierResolutionResult
+        qualifierResolutionResult:  TypeQualifierResolutionResult
     ): PossiblyBareType {
         val typeConstructor = classDescriptor.typeConstructor
 

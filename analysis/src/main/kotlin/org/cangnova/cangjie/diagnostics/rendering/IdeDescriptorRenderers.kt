@@ -98,7 +98,7 @@ object IdeDescriptorRenderers {
 
         val builtIns = type.builtIns
 
-        return builtIns.anyType
+        return builtIns.stdlibTypes.anyType
     }
 
     @JvmField

@@ -32,6 +32,8 @@ import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
+import org.cangnova.cangjie.resolve.qualified.QualifierPosition
+import org.cangnova.cangjie.resolve.qualified.isVisible
 import org.cangnova.cangjie.resolve.scopes.BaseImportingScope
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScope

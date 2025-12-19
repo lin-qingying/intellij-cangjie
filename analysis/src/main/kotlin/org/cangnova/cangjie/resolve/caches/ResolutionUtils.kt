@@ -43,6 +43,7 @@ import org.cangnova.cangjie.resolve.calls.util.getResolvedCall
 import org.cangnova.cangjie.resolve.calls.util.safeAnalyze
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.resolve.lazy.NoDescriptorForDeclarationException
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.utils.actionUnderSafeAnalyzeBlock
 import org.cangnova.cangjie.utils.returnIfNoDescriptorForDeclarationException

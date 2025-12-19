@@ -25,11 +25,15 @@
 package org.cangnova.cangjie.descriptors.impl
 
 import com.intellij.openapi.project.Project
+import org.cangnova.cangjie.builtins.BuiltInsLoader
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
+import org.cangnova.cangjie.builtins.StandardNames.STD_PACKAGE_NAME
+import org.cangnova.cangjie.builtins.StdlibTypes
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
+import org.cangnova.cangjie.storage.NotNullLazyValue
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -68,9 +72,99 @@ class ProjectDescriptorImpl(
 
     /**
      * 全局唯一的 BuiltIns 实例，基于 SDK 创建
+     *
+     * 仅包含编译器内置类型（Int8, Bool, Unit 等）
      */
     override val builtIns: CangJieBuiltIns by lazy {
         CangJieBuiltIns(this, storageManager)
+    }
+
+    /**
+     * 标准库模块懒加载提供者
+     *
+     * 使用 StorageManager.createLazyValue 确保线程安全和单次初始化。
+     */
+    private val stdlibModuleProvider: NotNullLazyValue<LibraryModuleDescriptorImpl> =
+        storageManager.createLazyValue {
+            createStdlibModule()
+        }
+
+    /**
+     * 获取标准库模块
+     *
+     * 注意: 此属性会触发 stdlib 模块的创建。
+     * 第一次访问时，会:
+     * 1. 创建 LibraryModuleDescriptorImpl
+     * 2. 设置依赖为 [builtInsModule]
+     * 3. 从 SDK 加载 .cjo 文件
+     * 4. 添加到 moduleMap
+     */
+    val stdlibModule: LibraryModuleDescriptorImpl
+        get() = stdlibModuleProvider()
+
+    /**
+     * 标准库类型访问器
+     *
+     * 提供对标准库（std.*）类型的访问。
+     * 依赖于 stdlibModule，因此访问前会自动创建 stdlib 模块。
+     */
+    override val stdlibTypes: StdlibTypes by lazy {
+        StdlibTypes.create(stdlibModule, storageManager)
+    }
+
+    init {
+        // 确保 stdlib 模块在 ProjectDescriptor 初始化时就创建
+        // 这样可以避免懒加载带来的时序问题
+        val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk()
+        if (sdk != null) {
+            try {
+                // 触发 stdlib 模块创建
+                stdlibModuleProvider()
+            } catch (e: Exception) {
+                // 如果创建失败（如 SDK 配置错误），记录但不中断初始化
+                // stdlib 会在后续首次访问时再次尝试创建
+                System.err.println("Warning: Failed to create stdlib module during ProjectDescriptor initialization: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * 创建标准库模块
+     *
+     * 此方法仅在第一次访问 stdlibModule 时调用一次（通过 StorageManager 保证）。
+     *
+     * @return 标准库模块描述符
+     * @throws IllegalStateException 如果 SDK 未配置
+     */
+    private fun createStdlibModule(): LibraryModuleDescriptorImpl {
+        val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk()
+            ?: error("Cannot create stdlib module: SDK not configured for project '$projectName'")
+
+        val stdlibModule = LibraryModuleDescriptorImpl(
+            projectDescriptor = this,
+            moduleName = STD_PACKAGE_NAME,
+            displayName = "stdlib",
+            storageManager = storageManager,
+            capabilities = emptyMap(),
+            stableName = STD_PACKAGE_NAME
+        )
+
+        // 设置依赖: stdlib 依赖 builtInsModule
+        stdlibModule.setDependencies(stdlibModule, builtIns.builtInsModule)
+
+        // 从 SDK 加载标准库
+        stdlibModule.initialize(
+            BuiltInsLoader.Instance.createStdLibPackageFragmentProvider(
+                storageManager,
+                stdlibModule,
+                sdk
+            )
+        )
+
+        // 添加到模块映射（如果已存在则覆盖）
+        moduleMap[STD_PACKAGE_NAME] = stdlibModule
+
+        return stdlibModule
     }
 
     override val modules: List<ModuleDescriptor>
@@ -159,7 +253,7 @@ class ProjectDescriptorImpl(
         visitor: DeclarationDescriptorVisitor<R, D>,
         data: D
     ): R? {
- return null
+        return null
     }
 
     override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {

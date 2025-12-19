@@ -256,6 +256,36 @@ val MODULE_PACKAGE_CANNOT_BE_IMPORTED: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
+ * 模块名不能在表达式中使用
+ *
+ * 在仓颉语言中，模块名（如 std）只能在导入语句中使用，不能在限定表达式中使用。
+ * 例如：std.core.String() 是非法的，应该先 import std.core，然后使用 core.String()
+ */
+@JvmField
+val MODULE_CANNOT_BE_USED_IN_EXPRESSION: DiagnosticFactory1<CjSimpleNameExpression, Name> =
+    DiagnosticFactory1.create(Severity.ERROR)
+
+/**
+ * 模块名不能作为类型使用
+ *
+ * 在仓颉语言中，模块名不能出现在类型位置的限定表达式中。
+ * 例如：let x: std.core.String 是非法的
+ */
+@JvmField
+val MODULE_CANNOT_BE_USED_AS_TYPE: DiagnosticFactory1<CjSimpleNameExpression, Name> =
+    DiagnosticFactory1.create(Severity.ERROR)
+
+/**
+ * 包不能被重导出
+ *
+ * 在仓颉语言中，只有具体的声明可以被重导出，包本身不能被重导出。
+ * 例如：public import std.core 是非法的
+ */
+@JvmField
+val PACKAGE_CANNOT_BE_REEXPORTED: DiagnosticFactory2<CjImportDirectiveItem, FqName, DescriptorVisibility> =
+    DiagnosticFactory2.create(Severity.ERROR)
+
+/**
  * 不能导入
  */
 @JvmField

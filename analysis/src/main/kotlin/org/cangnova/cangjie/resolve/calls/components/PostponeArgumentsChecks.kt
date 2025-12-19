@@ -118,7 +118,7 @@ private fun extractLambdaInfoFromFunctionalType(
     val receiverFromExpected = argumentAsFunctionExpression?.receiverType == null && expectedReceiver != null
 
     fun UnwrappedType?.orExpected(index: Int) =
-        this ?: expectedParameters.getOrNull(index)?.type?.unwrap() ?: expectedType.builtIns.anyType
+        this ?: expectedParameters.getOrNull(index)?.type?.unwrap() ?: expectedType.builtIns.stdlibTypes.anyType
 
     // Extracting parameters and receiver type, taking into account the actual lambda definition and expected lambda type
     val (parameters, receiver) = when {
@@ -144,7 +144,7 @@ private fun extractLambdaInfoFromFunctionalType(
             (parametersTypes?.mapIndexed { index, type ->
                 type ?: run {
                     expectedParameters.getOrNull(index)?.type?.unwrap()
-                } ?: expectedType.builtIns.anyType
+                } ?: expectedType.builtIns.stdlibTypes.anyType
             } ?: expectedParameters.map { it.type.unwrap() }) to expectedReceiver?.unwrap()
         }
 

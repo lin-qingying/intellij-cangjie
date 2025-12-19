@@ -67,7 +67,7 @@ class CloneableClassScope(
                 emptyList(),
                 emptyList(),
                 emptyList(),
-                containingClass.builtIns.anyType,
+                containingClass.builtIns.stdlibTypes.anyType,
                 Modality.OPEN,
                 DescriptorVisibilities.PROTECTED
             )
@@ -89,7 +89,7 @@ class CangJieBuiltInClassDescriptorFactory(
     private val cloneable by storageManager.createLazyValue {
         ClassDescriptorImpl(
             computeContainingDeclaration(moduleDescriptor),
-            CLONEABLE_NAME, Modality.ABSTRACT, ClassKind.INTERFACE, listOf(moduleDescriptor.builtIns.anyType),
+            CLONEABLE_NAME, Modality.ABSTRACT, ClassKind.INTERFACE, listOf(moduleDescriptor.builtIns.stdlibTypes.anyType),
             SourceElement.NO_SOURCE, false, storageManager
         ).apply {
             initialize(CloneableClassScope(storageManager, this), emptyList(), null, emptyList())

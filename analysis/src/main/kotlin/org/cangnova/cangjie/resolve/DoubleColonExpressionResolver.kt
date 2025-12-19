@@ -51,7 +51,9 @@ import org.cangnova.cangjie.types.expressions.DataFlowAnalyzer
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 import org.cangnova.cangjie.types.expressions.ExpressionTypingServices
 import jakarta.inject.Inject
+import org.cangnova.cangjie.psi.codeFragmentUtil.suppressDiagnosticsInDebugMode
 import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
 import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
 import org.cangnova.cangjie.types.expressions.CangJieTypeInfo
 

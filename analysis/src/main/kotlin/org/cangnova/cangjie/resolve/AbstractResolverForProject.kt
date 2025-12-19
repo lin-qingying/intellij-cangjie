@@ -460,10 +460,33 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
 
     private fun createModuleDescriptor(module: M): ModuleData {
 
+        // 特殊处理：如果是 stdlib 模块且 ProjectDescriptorImpl 中已提前创建，则直接使用
+        if (module.moduleName == STD_PACKAGE_NAME && projectDescriptor is ProjectDescriptorImpl) {
+            try {
+                val existingStdlibModule = projectDescriptor.stdlibModule
+                // 检查是否已经在 contextByDescriptor 中注册
+                if (existingStdlibModule !in contextByDescriptor) {
+                    contextByDescriptor[existingStdlibModule] = module
+                }
+
+                val modificationTracker =
+                    (module as? TrackableAnalysisContext)?.createModificationTracker() ?: fallbackModificationTracker
+
+                return ModuleData(existingStdlibModule, modificationTracker)
+            } catch (e: Exception) {
+                // 如果获取失败（如 SDK 未配置），继续正常创建流程
+                System.err.println("Warning: Failed to use pre-created stdlib module, creating new one: ${e.message}")
+            }
+        }
+
         // 在创建新模块之前，先移除旧的同名模块（支持模块刷新场景）
+        // 注意：对于 stdlib，如果上面的逻辑成功，不会执行到这里
         val moduleName = module.moduleName
         if (projectDescriptor is ProjectDescriptorImpl) {
-            projectDescriptor.removeModule(moduleName)
+            // 不要移除 stdlib 模块，因为它已经在 ProjectDescriptorImpl.init 中创建
+            if (moduleName != STD_PACKAGE_NAME) {
+                projectDescriptor.removeModule(moduleName)
+            }
         }
 
         val moduleDescriptor = when {
@@ -500,6 +523,20 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
 
     private fun setupModuleDescriptor(module: M, moduleDescriptor: ModuleDescriptorImpl) {
         checkValid()
+
+        // 特殊处理：如果 moduleDescriptor 是从 ProjectDescriptorImpl 复用的 stdlib，跳过初始化
+        // 因为它已经在 ProjectDescriptorImpl.createStdlibModule() 中完成了初始化
+        if (module.moduleName == STD_PACKAGE_NAME
+            && projectDescriptor is ProjectDescriptorImpl
+            && moduleDescriptor === projectDescriptor.stdlibModule
+        ) {
+
+            // stdlib 已经初始化，只需要设置依赖即可
+            // 注意：这里不调用 setDependencies，因为 stdlib 的依赖已经在创建时设置
+            // （stdlib 依赖 builtInsModule）
+            return
+        }
+
         moduleDescriptor.setDependencies(
             LazyModuleDependencies(
                 projectContext.storageManager,
@@ -511,49 +548,14 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
 
         val content = modulesContent(module)
 
-        // 如果是LibraryModuleDescriptorImpl，尝试使用BuiltInsLoader加载
-        if (moduleDescriptor is LibraryModuleDescriptorImpl && module.isSourceContext == false) {
-            try {
-                // 尝试使用BuiltInsLoader加载二进制模块
-                // 这里需要根据模块类型选择不同的加载方式
-                if (module.moduleName == STD_PACKAGE_NAME) {
-                    val sdk = CjProjectSdkConfig.getInstance(projectContext.project).getProjectSdk()
-                    moduleDescriptor.initialize(
-                        BuiltInsLoader.Instance.createStdLibPackageFragmentProvider(
-                            projectContext.storageManager,
-                            moduleDescriptor,
-                            sdk
-                        )
-                    )
-                } else {
-                    moduleDescriptor.initialize(
-                        loadPackageFragmentProvider(
-                            moduleDescriptor,
-                            content,
-                            module
-                        )
-                    )
-                }
-
-
-            } catch (e: Exception) {
-                // 如果BuiltInsLoader失败，回退到DelegatingPackageFragmentProvider
-                moduleDescriptor.initialize(
-                    DelegatingPackageFragmentProvider(
-                        this, moduleDescriptor, content,
-                        packageOracleFactory.createOracle(module)
-                    )
-                )
-            }
-        } else {
-            // 源码模块使用DelegatingPackageFragmentProvider
-            moduleDescriptor.initialize(
-                DelegatingPackageFragmentProvider(
-                    this, moduleDescriptor, content,
-                    packageOracleFactory.createOracle(module)
-                )
+        // 源码模块使用DelegatingPackageFragmentProvider
+        moduleDescriptor.initialize(
+            DelegatingPackageFragmentProvider(
+                this, moduleDescriptor, content,
+                packageOracleFactory.createOracle(module)
             )
-        }
+        )
+
     }
 
     /**

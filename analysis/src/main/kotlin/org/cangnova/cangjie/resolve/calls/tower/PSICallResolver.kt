@@ -72,6 +72,7 @@ import org.cangnova.cangjie.resolve.calls.util.*
 import org.cangnova.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
 import org.cangnova.cangjie.resolve.lazy.ForceResolveUtil
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.resolve.source.getPsi

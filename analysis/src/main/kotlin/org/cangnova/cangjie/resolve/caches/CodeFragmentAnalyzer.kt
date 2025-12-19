@@ -34,6 +34,7 @@ import org.cangnova.cangjie.descriptors.ClassDescriptorWithResolutionScopes
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.codeFragmentUtil.suppressDiagnosticsInDebugMode
 import org.cangnova.cangjie.psi.psiUtil.getParentOfType
 import org.cangnova.cangjie.psi.psiUtil.getParentOfTypes3
 import org.cangnova.cangjie.psi.psiUtil.lastBlockStatementOrThis
@@ -46,6 +47,7 @@ import org.cangnova.cangjie.resolve.binding.getDataFlowInfoAfter
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.resolve.lazy.ResolveSession
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeUtils

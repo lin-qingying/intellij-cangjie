@@ -265,10 +265,10 @@ class DescriptorResolver(
 
         if (classDescriptor.kind == ClassKind.CLASS) {
             if (fromString("std/core/Object").equals(classId)) {
-                return builtIns.anyType
+                return builtIns.stdlibTypes.anyType
             }
             if (supertypes.isEmpty()) {
-                return builtIns.objectType
+                return builtIns.stdlibTypes.objectType
             }
 
             for (supertype in supertypes) {
@@ -276,7 +276,7 @@ class DescriptorResolver(
                     return null
                 }
             }
-            return builtIns.objectType
+            return builtIns.stdlibTypes.objectType
         }
 
         //        if (classDescriptor.getKind() == ClassKind.ENUM_ENTRY) {
@@ -288,7 +288,7 @@ class DescriptorResolver(
 //当没有父类时，返回any接口
 // TODO 注：当获取超类型时，并且为可扩展的类型，考虑到扩展接口，需按情况去除any接口，以保证类型推导正常
         if (supertypes.isEmpty()) {
-            return builtIns.anyType
+            return builtIns.stdlibTypes.anyType
         }
         return null
     }

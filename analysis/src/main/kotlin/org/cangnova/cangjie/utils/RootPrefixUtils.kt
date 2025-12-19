@@ -30,7 +30,7 @@ import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjImportDirectiveItem
 import org.cangnova.cangjie.psi.CjPackageDirective
 import org.cangnova.cangjie.psi.psiUtil.getParentOfTypes2
-import org.cangnova.cangjie.resolve.QualifiedExpressionResolver
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
 
 // 判断FqName是否可以添加根前缀
 fun FqName.canAddRootPrefix(): Boolean {

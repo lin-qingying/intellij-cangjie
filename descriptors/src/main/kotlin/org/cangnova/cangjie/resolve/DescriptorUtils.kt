@@ -35,6 +35,7 @@ import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.*
 import org.cangnova.cangjie.psi.CjDeclarationStub
+import org.cangnova.cangjie.psi.CjImportDirectiveItem
 import org.cangnova.cangjie.resolve.DescriptorUtils.getContainingModule
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScope
@@ -384,7 +385,7 @@ object DescriptorUtils {
 
         val builtIns: CangJieBuiltIns = variable.builtIns
         return CangJieBuiltIns.isPrimitiveType(type) ||
-                CangJieTypeChecker.DEFAULT.equalTypes(builtIns.anyType, type) ||
+                CangJieTypeChecker.DEFAULT.equalTypes(builtIns.stdlibTypes.anyType, type) ||
                 UnsignedTypes.isUnsignedType(type)
     }
 
@@ -643,7 +644,7 @@ object DescriptorUtils {
                 return type
             }
         }
-        return classDescriptor.builtIns.anyType
+        return classDescriptor.builtIns.stdlibTypes.anyType
     }
 
     /**
@@ -1039,7 +1040,7 @@ fun DeclarationDescriptor.unwrapIfTypeAlias(): DeclarationDescriptor? =
  * 获取超类或Any
  * 如果类有非Any的超类则返回该超类,否则返回Any
  */
-fun ClassDescriptor.getSuperClassOrAny(): ClassDescriptor = getSuperClassNotAny() ?: builtIns.any
+fun ClassDescriptor.getSuperClassOrAny(): ClassDescriptor = getSuperClassNotAny() ?: builtIns.stdlibTypes.any
 
 /**
  * 获取非Any的超类
@@ -1083,6 +1084,36 @@ val <T : StubElement<*>>CjDeclarationStub<T>.modifierVisibility: DescriptorVisib
         if (hasModifier(CjTokens.PUBLIC_KEYWORD)) return DescriptorVisibilities.PUBLIC
         return DescriptorVisibilities.PUBLIC
     }
+
+/**
+ * 获取导入语句的可见性
+ *
+ * 仓颉语言导入语句可见性规则：
+ * - private（默认）: 仅当前文件内可访问，不重导出
+ * - internal: 当前包及子包可访问
+ * - protected: 当前模块内可访问
+ * - public: 外部可访问（重导出）
+ *
+ * 注意：与普通声明不同，导入语句默认为 PRIVATE
+ */
+val CjImportDirectiveItem.importVisibility: DescriptorVisibility
+    get() {
+        if (hasModifier(CjTokens.PRIVATE_KEYWORD)) return DescriptorVisibilities.PRIVATE
+        if (hasModifier(CjTokens.INTERNAL_KEYWORD)) return DescriptorVisibilities.INTERNAL
+        if (hasModifier(CjTokens.PROTECTED_KEYWORD)) return DescriptorVisibilities.PROTECTED
+        if (hasModifier(CjTokens.PUBLIC_KEYWORD)) return DescriptorVisibilities.PUBLIC
+        // 导入语句默认为 PRIVATE（不重导出）
+        return DescriptorVisibilities.PRIVATE
+    }
+
+/**
+ * 判断导入语句是否为重导出
+ *
+ * 如果导入语句带有 internal/protected/public 修饰符，则为重导出。
+ * private 导入（包括默认无修饰符）不是重导出。
+ */
+val CjImportDirectiveItem.isReexport: Boolean
+    get() = importVisibility != DescriptorVisibilities.PRIVATE
 
 /**
  * 获取表示的类描述符

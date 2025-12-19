@@ -41,6 +41,7 @@ import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.lazy.*
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
 import org.cangnova.cangjie.stubindex.CangJieExactPackagesIndex
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 
