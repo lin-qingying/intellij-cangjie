@@ -22,50 +22,29 @@
  *
  */
 
-package org.cangnova.cangjie.messages
+package org.cangnova.cangjie.moduleinfo
 
+import org.cangnova.cangjie.messages.AbstractCangJieBundle
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
 
-
 @NonNls
-const val CORE_BUNDLE = "messages.CangJieBundle"
+const val BUNDLE_MODULE_INFO = "messages.CangJieModuleInfoBundle"
 
-@NonNls
-const val BUNDLE_IDE = "messages.CangJieIdeBundle"
-
-object CangJieBundle : AbstractCangJieBundle(CORE_BUNDLE) {
+object CangJieModuleInfoBundle : AbstractCangJieBundle(BUNDLE_MODULE_INFO) {
     @Nls
     @JvmStatic
-    fun message(@NonNls @PropertyKey(resourceBundle = CORE_BUNDLE) key: String, vararg params: Any): String =
+    fun message(@NonNls @PropertyKey(resourceBundle = BUNDLE_MODULE_INFO) key: String, vararg params: Any): String =
         getMessage(key, *params)
 
     @Nls
     @JvmStatic
-    fun htmlMessage(@NonNls @PropertyKey(resourceBundle = CORE_BUNDLE) key: String, vararg params: Any): String =
+    fun htmlMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE_MODULE_INFO) key: String, vararg params: Any): String =
         getMessage(key, *params).withHtml()
 
     @Nls
     @JvmStatic
-    fun lazyMessage(@PropertyKey(resourceBundle = CORE_BUNDLE) key: String, vararg params: Any): () -> String =
+    fun lazyMessage(@PropertyKey(resourceBundle = BUNDLE_MODULE_INFO) key: String, vararg params: Any): () -> String =
         { getMessage(key, *params) }
 }
-
-object CangJieIdeBundle : AbstractCangJieBundle(BUNDLE_IDE) {
-    @Nls
-    @JvmStatic
-    fun message(@NonNls @PropertyKey(resourceBundle = BUNDLE_IDE) key: String, vararg params: Any): String =
-        getMessage(key, *params)
-
-    @Nls
-    @JvmStatic
-    fun htmlMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE_IDE) key: String, vararg params: Any): String =
-        getMessage(key, *params).withHtml()
-
-    @Nls
-    @JvmStatic
-    fun lazyMessage(@PropertyKey(resourceBundle = BUNDLE_IDE) key: String, vararg params: Any): () -> String =
-        { getMessage(key, *params) }
-}
-

@@ -27,7 +27,12 @@ package org.cangnova.cangjie.utils
 import java.lang.reflect.Modifier
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-
+fun <T, C : MutableCollection<in T>> Iterable<Iterable<T>>.flattenTo(c: C): C {
+    for (element in this) {
+        c.addAll(element)
+    }
+    return c
+}
 inline fun <T> Iterable<T>.sumByLong(selector: (T) -> Long): Long {
     var sum: Long = 0
     for (element in this) {

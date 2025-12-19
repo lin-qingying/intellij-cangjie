@@ -135,6 +135,13 @@ class CangJieSourceFilterScope private constructor(
         @JvmStatic
         fun projectFiles(delegate: GlobalSearchScope, project: Project) =
             create(delegate, project, RootKindFilter.Companion.projectFiles.copy())
+        @JvmStatic
+        fun librarySources(delegate: GlobalSearchScope, project: Project) =
+            create(
+                delegate,
+                project,
+                RootKindFilter.librarySources
+            )
 
         @JvmStatic
         fun projectSourcesAndLibraryClasses(delegate: GlobalSearchScope, project: Project) =

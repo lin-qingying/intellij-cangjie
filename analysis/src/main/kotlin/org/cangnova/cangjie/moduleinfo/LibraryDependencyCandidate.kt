@@ -22,8 +22,22 @@
  *
  */
 
-package org.cangnova.cangjie.ide.project.structure.scope
+package org.cangnova.cangjie.moduleinfo
 
-import com.intellij.openapi.module.impl.scopes.LibraryScopeBase
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
+sealed class LibraryDependencyCandidate {
+    abstract val libraries: List<LibraryInfo>
+
+    companion object {
+        fun fromLibraryOrNull(libraryInfos: List<LibraryInfo>): LibraryDependencyCandidate? {
+            val libraryInfo = libraryInfos.firstOrNull() ?: return null
+            return    DefaultLibraryDependencyCandidate(
+                libraries = libraryInfos
+            )
+
+        }
+    }
+}
+
+data class DefaultLibraryDependencyCandidate(
+    override val libraries: List<LibraryInfo>
+) : LibraryDependencyCandidate()
