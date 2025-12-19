@@ -43,7 +43,7 @@ import java.io.ByteArrayInputStream
 private val stubVersionForStubBuilderAndDecompiler: Int
     get() = CangJieStubVersions.BUILTIN_STUB_VERSION + CangJieBuiltInStubVersionOffsetProvider.getVersionOffset()
 
-class CangJieBuiltInDecompiler : CangJieMetadataDecompiler<BuiltInsBinaryVersion>(
+internal class CangJieBuiltInDecompiler : CangJieMetadataDecompiler<BuiltInsBinaryVersion>(
     CangJieBuiltInFileType,
     { BuiltInSerializerFlatbuffers },
     { BuiltInsBinaryVersion.INSTANCE },
@@ -51,7 +51,9 @@ class CangJieBuiltInDecompiler : CangJieMetadataDecompiler<BuiltInsBinaryVersion
     stubVersionForStubBuilderAndDecompiler,
 ) {
     override val metadataStubBuilder: CangJieMetadataStubBuilder =
-        CangJieBuiltInMetadataStubBuilder(::readFileSafely)
+        CangJieBuiltInMetadataStubBuilder { project, file, bytes ->
+            if (project != null) readFileSafely(project, file, bytes) else null
+        }
 
     override fun readFile(
         project: Project,
@@ -134,7 +136,7 @@ class BuiltInDefinitionFile(
 }
 
 private class CangJieBuiltInMetadataStubBuilder(
-    readFile: (Project, VirtualFile, ByteArray) -> FileWithMetadata?,
+    readFile: (Project?, VirtualFile, ByteArray) -> FileWithMetadata?,
 ) : CangJieMetadataStubBuilder(
     stubVersionForStubBuilderAndDecompiler,
     CangJieBuiltInFileType,

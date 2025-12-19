@@ -29,6 +29,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiManager
+import org.cangnova.cangjie.analysis.decompiler.psi.compiled.ClassFileDecompilers
+import org.cangnova.cangjie.analysis.decompiler.psi.compiled.ClsStubBuilder
 import org.cangnova.cangjie.analysis.decompiler.psi.file.CjDecompiledFile
 import org.cangnova.cangjie.analysis.decompiler.psi.text.DecompiledText
 import org.cangnova.cangjie.analysis.decompiler.psi.text.buildDecompiledText
@@ -39,8 +41,6 @@ import org.cangnova.cangjie.analysis.decompiler.stub.file.CangJieMetadataStubBui
 import org.cangnova.cangjie.metadata.SerializerExtensionFlatbuffers
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.metadata.model.wrapper.EnumWrapper
-import org.cangnova.cangjie.psi.compiled.ClassFileDecompilers
-import org.cangnova.cangjie.psi.compiled.ClsStubBuilder
 import org.cangnova.cangjie.renderer.DescriptorRenderer
 import org.cangnova.cangjie.utils.addIfNotNull
 import org.jetbrains.annotations.TestOnly
@@ -49,7 +49,7 @@ import java.io.IOException
 /**
  * 仓颉语言元数据反编译器的抽象基类。
  *
- * 该类负责将仓颉编译后的二进制元数据文件（如 `.cjm` 文件）反编译为可读的 PSI 结构，
+ * 该类负责将仓颉编译后的二进制元数据文件（如 `.cjo` 文件）反编译为可读的 PSI 结构，
  * 使 IDE 能够提供代码导航、补全、查找引用等功能。
  *
  * ## 核心职责
@@ -121,7 +121,9 @@ abstract class CangJieMetadataDecompiler<out V : BinaryVersion>(
      * 子类可以覆盖此属性以提供自定义的 Stub 构建逻辑。
      */
     protected open val metadataStubBuilder: CangJieMetadataStubBuilder =
-        CangJieMetadataStubBuilder(stubVersion, fileType, serializerFlatbuffers, ::readFileSafely)
+        CangJieMetadataStubBuilder(stubVersion, fileType, serializerFlatbuffers) { project, file, bytes ->
+            if (project != null) readFileSafely(project, file, bytes) else null
+        }
 
     /**
      * 判断该反编译器是否能处理指定的虚拟文件。

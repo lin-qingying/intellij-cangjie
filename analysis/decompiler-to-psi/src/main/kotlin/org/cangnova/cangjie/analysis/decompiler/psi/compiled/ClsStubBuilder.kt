@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.psi.compiled
+package org.cangnova.cangjie.analysis.decompiler.psi.compiled
 
 import com.intellij.psi.stubs.PsiFileStub
 import com.intellij.util.cls.ClsFormatException

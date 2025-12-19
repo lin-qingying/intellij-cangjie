@@ -24,53 +24,164 @@
 
 package org.cangnova.cangjie.analysis.decompiler.stub.file
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.stubs.PsiFileStub
 import com.intellij.util.indexing.FileContent
-import org.cangnova.cangjie.descriptors.SourceElement
+import org.cangnova.cangjie.analysis.decompiler.psi.compiled.ClsStubBuilder
+import org.cangnova.cangjie.analysis.decompiler.psi.compiled.impl.ClassFileStubBuilder
+import org.cangnova.cangjie.analysis.decompiler.stub.*
 import org.cangnova.cangjie.metadata.SerializerExtensionFlatbuffers
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
-import org.cangnova.cangjie.psi.compiled.ClsStubBuilder
-import org.cangnova.cangjie.psi.compiled.impl.ClassFileStubBuilder
 import org.cangnova.cangjie.serialization.deserialization.BLACK_LIST
+import org.cangnova.cangjie.serialization.deserialization.FlatBuffersBasedClassDataFinder
 
 /**
  * 从 CangJie 的"元数据文件"中构建 PSI Stub，用于 IDE 在没有源码时进行代码结构索引、导航与反编译查看。
+ *
+ * 该构建器基于 Flatbuffers 序列化格式，解析仓颉编译器生成的元数据文件，
+ * 并为 IDE 构建轻量级的 Stub 索引结构，支持快速的符号查找和代码导航。
  */
 open class CangJieMetadataStubBuilder(
     private val version: Int,
     private val fileType: FileType,
     private val serializerFlatbuffers: () -> SerializerExtensionFlatbuffers,
-    private val readFile: (Project, VirtualFile, ByteArray) -> FileWithMetadata?
+    private val readFile: (Project?, VirtualFile, ByteArray) -> FileWithMetadata?
 ) : ClsStubBuilder() {
 
     override val stubVersion: Int = ClassFileStubBuilder.STUB_VERSION + version
-    override fun buildFileStub(fileContent: FileContent): PsiFileStub<*>? {
 
-        return null;
+    /**
+     * 检查文件类型是否被支持
+     */
+    protected fun isSupported(file: VirtualFile): Boolean {
+        return file.extension == fileType.defaultExtension || file.fileType == fileType
     }
-    protected open fun createCallableSource(file:  FileWithMetadata.Compatible, filename: String): SourceElement? = null
 
+    /**
+     * 安全读取文件，出错时返回 null
+     */
+    protected fun readFileSafely(file: VirtualFile, content: ByteArray): FileWithMetadata? {
+        return try {
+            readFile(null, file, content)
+        } catch (e: Exception) {
+            LOG.warn("Failed to read metadata file: ${file.path}", e)
+            null
+        }
+    }
 
+    override fun buildFileStub(fileContent: FileContent): PsiFileStub<*>? {
+        val virtualFile = fileContent.file
+
+        if (!isSupported(virtualFile)) {
+            LOG.warn("Unexpected file type: ${virtualFile.path}")
+            return null
+        }
+
+        val file = readFileSafely(virtualFile, fileContent.content) ?: return null
+
+        return when (file) {
+            is FileWithMetadata.Incompatible -> {
+                createIncompatibleAbiVersionFileStub()
+            }
+
+            is FileWithMetadata.Compatible -> {
+                buildCompatibleFileStub(file, virtualFile)
+            }
+        }
+    }
+
+    /**
+     * 构建兼容版本的文件 Stub
+     */
+    private fun buildCompatibleFileStub(
+        file: FileWithMetadata.Compatible,
+        virtualFile: VirtualFile
+    ): PsiFileStub<*> {
+        val packageWrapper = file.`package`
+        val packageFqName = file.packageFqName
+
+        // 创建组件
+        val components = ClsStubBuilderComponents(
+            classDataFinder = FlatBuffersBasedClassDataFinder(
+                packageWrapper,
+                file.version
+            ),
+            virtualFileForDebug = virtualFile,
+            declTable = packageWrapper.declTable,
+            typeTable = packageWrapper.typeTable
+        )
+
+        // 创建上下文
+        val context = components.createContext(packageFqName, packageWrapper.typeTable)
+
+        // 创建文件 Stub
+        val fileStub = createFileStub(packageFqName)
+
+        // 创建包容器
+        val protoContainer = ProtoContainer.Package(packageFqName, packageWrapper.typeTable)
+
+        // 创建顶层函数和变量 Stubs
+        createPackageDeclarationsStubs(
+            fileStub,
+            context,
+            protoContainer,
+            packageWrapper.functions,
+            packageWrapper.variables
+        )
+
+        // 创建类声明 Stubs
+        for (classDecl in file.classesToDecompile) {
+            createClassStub(fileStub, classDecl, context)
+        }
+
+        // 创建扩展声明 Stubs
+        for (extend in packageWrapper.extends) {
+            ExtendClsStubBuilder(fileStub, context, extend).build()
+        }
+
+        // 创建类型别名 Stubs
+        for (typeAlias in packageWrapper.typeAliass) {
+            TypeAliasClsStubBuilder(fileStub, context, typeAlias).build()
+        }
+
+        return fileStub
+    }
+
+    /**
+     * 用于保存从元数据文件读取的信息
+     */
     sealed class FileWithMetadata {
+        /**
+         * 不兼容的元数据版本
+         */
         class Incompatible(val version: BinaryVersion) : FileWithMetadata()
+
+        /**
+         * 兼容的元数据，包含包信息和版本
+         */
         open class Compatible(
             val `package`: PackageWrapper,
             val version: BinaryVersion,
-            serializerProtocol: SerializerExtensionFlatbuffers
+            val serializerProtocol: SerializerExtensionFlatbuffers
         ) : FileWithMetadata() {
             val packageFqName = `package`.packageName
 
+            /**
+             * 需要反编译的类列表，过滤掉嵌套类和黑名单中的类
+             */
             open val classesToDecompile: List<ClassDeclWrapper> =
                 `package`.allClassDecls.filter { decl ->
-
                     !decl.classId.isNestedClass && decl.classId !in BLACK_LIST
                 }
         }
     }
 
+    companion object {
+        private val LOG = Logger.getInstance(CangJieMetadataStubBuilder::class.java)
+    }
 }

@@ -51,12 +51,12 @@
 <!--                  implementationClass="org.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType"/>-->
 
 
-        <filetype.decompiler filetype="cjo" implementationClass="org.cangnova.cangjie.psi.compiled.ClassFileDecompiler"/>
+        <filetype.decompiler filetype="cjo" implementationClass="org.cangnova.cangjie.analysis.decompiler.psi.compiled.ClassFileDecompiler"/>
         <fileType name="cjo" fieldName="INSTANCE" extensions="cjo"
                   implementationClass="org.cangnova.cangjie.lang.declarations.CangJieBuiltInFileType"/>
 
 
-        <fileType.fileViewProviderFactory filetype="cjo" implementationClass="org.cangnova.cangjie.psi.ClassFileViewProviderFactory"/>
+        <fileType.fileViewProviderFactory filetype="cjo" implementationClass="org.cangnova.cangjie.analysis.decompiler.psi.ClassFileViewProviderFactory"/>
 
 
 <!--        <fileTypeFactory implementation="org.cangnova.cangjie.macro.file.MacroCallFileTypeFactory"/>-->

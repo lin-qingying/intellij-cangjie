@@ -22,10 +22,8 @@
  *
  */
 
-package org.cangnova.cangjie.psi.compiled.impl
+package org.cangnova.cangjie.analysis.decompiler.psi.compiled.impl
 
-import org.cangnova.cangjie.psi.compiled.ClassFileDecompilers
-import org.cangnova.cangjie.psi.compiled.ClassFileDecompilers.Full
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileFilter
@@ -33,10 +31,11 @@ import com.intellij.psi.stubs.BinaryFileStubBuilder
 import com.intellij.psi.stubs.Stub
 import com.intellij.util.cls.ClsFormatException
 import com.intellij.util.indexing.FileContent
+import org.cangnova.cangjie.analysis.decompiler.psi.compiled.ClassFileDecompilers
 import java.util.function.Supplier
 import java.util.stream.Stream
 
-class ClassFileStubBuilder : BinaryFileStubBuilder.CompositeBinaryFileStubBuilder<Full> {
+class ClassFileStubBuilder : BinaryFileStubBuilder.CompositeBinaryFileStubBuilder<ClassFileDecompilers.Full> {
     override fun getFileFilter(): VirtualFileFilter {
         return VirtualFileFilter.ALL // any file of file type that this builder is registered for
     }
@@ -45,26 +44,26 @@ class ClassFileStubBuilder : BinaryFileStubBuilder.CompositeBinaryFileStubBuilde
         return true
     }
 
-    override fun getAllSubBuilders(): Stream<Full?> {
-        return ClassFileDecompilers.instance.EP_NAME.extensionList.stream().filter { d -> d is Full }
-            .map { d -> d as Full }
+    override fun getAllSubBuilders(): Stream<ClassFileDecompilers.Full?> {
+        return ClassFileDecompilers.instance.EP_NAME.extensionList.stream().filter { d -> d is ClassFileDecompilers.Full }
+            .map { d -> d as ClassFileDecompilers.Full }
     }
 
-    override fun getSubBuilder(fileContent: FileContent): Full? {
+    override fun getSubBuilder(fileContent: FileContent): ClassFileDecompilers.Full? {
         return fileContent.file
             .computeWithPreloadedContentHint(
                 fileContent.content,
-                Supplier { ClassFileDecompilers.instance.find(fileContent.file, Full::class.java) },
+                Supplier { ClassFileDecompilers.instance.find(fileContent.file, ClassFileDecompilers.Full::class.java) },
             )
     }
 
-    override fun getSubBuilderVersion(decompiler: Full?): String {
+    override fun getSubBuilderVersion(decompiler: ClassFileDecompilers.Full?): String {
         if (decompiler == null) return "default"
         val version: Int = decompiler.stubBuilder.stubVersion
         return decompiler::class.java.name + ":" + version
     }
 
-    override fun buildStubTree(fileContent: FileContent, decompiler: Full?): Stub? {
+    override fun buildStubTree(fileContent: FileContent, decompiler: ClassFileDecompilers.Full?): Stub? {
         if (decompiler == null) return null
         return fileContent.file.computeWithPreloadedContentHint(
             fileContent.content,

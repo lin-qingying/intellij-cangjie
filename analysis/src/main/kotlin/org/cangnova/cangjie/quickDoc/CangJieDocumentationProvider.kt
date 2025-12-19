@@ -40,6 +40,7 @@ import com.intellij.psi.PsiDocCommentBase
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.FrontendInternals
 import org.cangnova.cangjie.builtins.StandardNames
@@ -830,10 +831,10 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
             }
 
             if (element is CjVArrayType) {
-                return "值数组"
+                return CangJieCDocBundle.message("quick.doc.type.varray")
             }
             if (element is CjBasicType) {
-                return "基本类型"
+                return CangJieCDocBundle.message("quick.doc.type.basic")
             }
             if (element is CjTypeReference) {
                 val declaration = element.parent

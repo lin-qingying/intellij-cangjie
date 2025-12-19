@@ -32,7 +32,8 @@
       "Read(//c/Users/lin17/.cangjie/sdks/cangjie-1.0.0/modules/windows_x86_64_llvm/std/**)",
       "Bash(git mv:*)",
       "Bash(git rm:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(./gradlew:*)"
     ],
     "deny": [],
     "ask": []

@@ -22,17 +22,17 @@
  *
  */
 
-package org.cangnova.cangjie.psi
+package org.cangnova.cangjie.analysis.decompiler.psi
 
 import com.intellij.lang.Language
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.FileViewProviderFactory
 import com.intellij.psi.PsiManager
-import org.cangnova.cangjie.psi.compiled.ClassFileDecompilers
+import org.cangnova.cangjie.analysis.decompiler.psi.compiled.ClassFileDecompilers
 
 
-class ClassFileViewProviderFactory : FileViewProviderFactory {
+internal class ClassFileViewProviderFactory : FileViewProviderFactory {
     override fun createFileViewProvider(
         file: VirtualFile,
         language: Language?,
