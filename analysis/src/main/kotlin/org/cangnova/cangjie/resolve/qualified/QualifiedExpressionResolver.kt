@@ -25,8 +25,8 @@
 package org.cangnova.cangjie.resolve.qualified
 
 
+
 import com.intellij.codeInsight.completion.CompletionUtilCore
-import com.intellij.openapi.util.Key
 import com.intellij.psi.impl.source.DummyHolder
 import com.intellij.util.SmartList
 import jakarta.inject.Inject
@@ -35,7 +35,6 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.impl.LazyPackageViewDescriptorImpl
 import org.cangnova.cangjie.diagnostics.infos.errors.*
 import org.cangnova.cangjie.incremental.CangJieLookupLocation
-import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
@@ -68,24 +67,59 @@ import org.cangnova.cangjie.utils.CallOnceFunction
 /**
  * 限定表达式解析器
  *
- * 核心职责：
- * 1. 将限定名称（如 a.b.c）解析为包、类或类型别名描述符
- * 2. 处理导入语句（import）中的限定名称解析
- * 3. 解析类型引用（UserType）中的限定名称
- * 4. 解析表达式中的限定符，确定接收器类型
- * 5. 执行可见性检查，确保符号在当前上下文中可访问
+ * 负责将限定名称（如 `a.b.c`）解析为对应的描述符（包、类、类型别名等）。
+ * 这是仓颉语言语义分析的核心组件之一。
  *
- * 解析策略：
- * - 对于表达式位置：值（变量/函数）优先于类型（类/包）
- * - 对于类型位置：只解析类型（类、接口、类型别名）
- * - 对于导入位置：解析包、类和类型别名
+ * ## 核心职责
  *
- * 特殊处理：
- * - IDE 模式：支持 _root_ide_package_ 前缀以避免歧义
- * - 调试模式：支持在调试器上下文中的符号解析
- * - 可见性：根据位置（导入/类型/表达式）应用不同的可见性规则
+ * 1. **包声明解析**：验证包路径的有效性
+ * 2. **导入解析**：将导入语句转换为导入作用域
+ * 3. **类型解析**：将类型引用解析为类型描述符
+ * 4. **表达式解析**：解析表达式中的限定符
+ * 5. **可见性检查**：确保符号在当前上下文中可访问
+ *
+ * ## 解析策略
+ *
+ * 不同位置应用不同的解析策略：
+ *
+ * | 位置 | 策略 | 示例 |
+ * |------|------|------|
+ * | 包声明 | 只验证路径 | `package com.example` |
+ * | 导入 | 解析包/类/类型别名 | `import std.core.String` |
+ * | 类型 | 只解析类型 | `var x: String` |
+ * | 表达式 | 值优先于类型 | `Foo.bar()` |
+ *
+ * ## 特殊处理
+ *
+ * ### IDE 模式
+ * 支持 `_root_ide_package_` 前缀以避免命名冲突：
+ * ```kotlin
+ * // a 是变量名，与包名冲突
+ * a.A()  // 错误
+ * _root_ide_package_.a.A()  // 正确
+ * ```
+ *
+ * ### 模块名限制
+ * 模块名（如 `std`）只能在导入语句中使用，不能在表达式或类型位置使用：
+ * ```kotlin
+ * import std.core.String  // 正确
+ * var x: std.core.String  // 错误：模块名不能用作类型限定符
+ * std.core.String()       // 错误：模块名不能在表达式中使用
+ * ```
+ *
+ * ### 重导出限制
+ * 包不能被重导出，只有具体的声明（类、函数等）可以被重导出：
+ * ```kotlin
+ * public import std.core       // 错误：包不能被重导出
+ * public import std.core.String // 正确
+ * ```
  *
  * @param languageVersionSettings 语言版本设置，用于控制语言特性和可见性检查
+ *
+ * @see QualifierPosition 解析位置枚举
+ * @see QualifierPart 限定符部分
+ * @see TypeQualifierResolutionResult 类型解析结果
+ * @see QualifiedExpressionResolveResult 表达式解析结果
  */
 class QualifiedExpressionResolver(
     val languageVersionSettings: LanguageVersionSettings
@@ -641,20 +675,7 @@ class QualifiedExpressionResolver(
                 null
 
 
-//报告不应该导入自己
-//        if (packageFragmentForCheck != null) {
-//            val packageFqname = importDirective.importedFqName
-//
-//            if (importDirective is CjImportDirectiveItem) {
-//                if (packageFqname == packageFragmentForCheck.fqName) {
-//
-//                    trace.report(SELF_IMPORT_NOT_ALLOWED.on(importDirective, packageFqname))
-//
-//                    return null
-//                }
-//            }
-//
-//        }
+
 
         if (importDirective.isAllUnder) {
             val packageOrClassDescriptor = resolveToPackageOrClass(
@@ -1551,7 +1572,7 @@ class QualifiedExpressionResolver(
 
         val primaryImportingScope = processReferenceInContextOf(moduleDescriptor)
 
-//
+
         val resolutionAnchor = moduleDescriptor.getResolutionAnchorIfAny() ?: return primaryImportingScope
         val anchorImportingScope = processReferenceInContextOf(resolutionAnchor) ?: return primaryImportingScope
         if (primaryImportingScope == null) return anchorImportingScope

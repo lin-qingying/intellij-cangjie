@@ -24,6 +24,54 @@
 
 package org.cangnova.cangjie.resolve.lazy
 
+/**
+ * 懒加载导入作用域模块
+ *
+ * 本文件实现了仓颉语言的懒加载导入解析系统，用于处理 import 语句的符号解析。
+ *
+ * ## 核心概念
+ *
+ * ### 导入解析的懒加载策略
+ *
+ * 为了提高 IDE 性能，导入解析采用懒加载策略：
+ * - 只有在实际需要时才解析导入的符号
+ * - 使用 [StorageManager] 缓存解析结果，避免重复计算
+ * - 支持增量解析，只解析变化的部分
+ *
+ * ### 导入类型
+ *
+ * 系统支持两种导入类型：
+ * - **显式导入** (Explicit Import): `import foo.bar.Baz` - 导入单个符号
+ * - **全通配导入** (All-Under Import): `import foo.bar.*` - 导入包下所有符号
+ *
+ * ### 可见性过滤
+ *
+ * [LazyImportScope.FilteringKind] 定义了三种过滤模式：
+ * - `ALL`: 返回所有导入的符号
+ * - `VISIBLE_CLASSES`: 只返回可见的类（用于正常解析）
+ * - `INVISIBLE_CLASSES`: 只返回不可见的类（用于错误诊断）
+ *
+ * ### 组件关系
+ *
+ * ```
+ * LazyImportScope (作用域接口)
+ *   └── LazyImportResolver (解析器)
+ *         └── IndexedImports (导入索引)
+ *               └── CjImportInfo (导入信息)
+ * ```
+ *
+ * ## 主要类
+ *
+ * - [ImportForceResolver]: 强制解析接口，用于触发懒加载解析
+ * - [ImportResolutionComponents]: 解析所需的组件集合
+ * - [IndexedImports]: 导入索引，支持按名称快速查找
+ * - [LazyImportResolver]: 懒加载导入解析器
+ * - [LazyImportScope]: 懒加载导入作用域
+ *
+ * @see FileScopeFactory 作用域工厂，使用本模块创建文件作用域
+ * @see QualifiedExpressionResolver 限定表达式解析器，处理导入路径解析
+ */
+
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.ImmutableListMultimap
 import com.google.common.collect.ListMultimap
@@ -58,11 +106,44 @@ import org.cangnova.cangjie.types.expressions.isWithoutValueArguments
 import org.cangnova.cangjie.utils.Printer
 import org.cangnova.cangjie.utils.flatMapToNullable
 
+/**
+ * 导入强制解析接口
+ *
+ * 提供强制触发懒加载导入解析的能力。
+ * 通常在需要确保所有导入都已解析时使用，例如：
+ * - 代码分析完成时
+ * - 构建索引时
+ * - 执行重构操作前
+ */
 interface ImportForceResolver {
+    /**
+     * 强制解析所有非默认导入
+     *
+     * 遍历所有用户编写的 import 语句并触发解析。
+     * 不包括编译器自动添加的默认导入（如标准库）。
+     */
     fun forceResolveNonDefaultImports()
+
+    /**
+     * 强制解析指定的导入指令
+     *
+     * @param importDirective 要解析的导入指令
+     */
     fun forceResolveImport(importDirective: CjImportDirectiveItem)
 }
 
+/**
+ * 导入解析组件集合
+ *
+ * 封装了导入解析过程中需要的所有组件和配置。
+ * 作为依赖注入容器使用，避免在方法间传递大量参数。
+ *
+ * @property storageManager 存储管理器，用于缓存和懒加载计算
+ * @property qualifiedExpressionResolver 限定表达式解析器，解析导入路径
+ * @property moduleDescriptor 当前模块描述符，提供模块上下文
+ * @property languageVersionSettings 语言版本设置，控制语言特性
+ * @property deprecationResolver 废弃解析器，处理废弃声明
+ */
 class ImportResolutionComponents(
     val storageManager: StorageManager,
     val qualifiedExpressionResolver: QualifiedExpressionResolver,
@@ -73,9 +154,31 @@ class ImportResolutionComponents(
 //    val optimizingOptions: OptimizingOptions,
 )
 
+/**
+ * 创建全通配导入的索引
+ *
+ * 从导入集合中过滤出所有 `import xxx.*` 形式的导入，
+ * 并创建相应的索引结构。
+ *
+ * @param imports 导入信息集合
+ * @return 全通配导入的索引
+ */
 inline fun <reified I : CjImportInfo> makeAllUnderImportsIndexed(imports: Collection<I>): IndexedImports<I> =
     IndexedImports(imports.filter { it.isAllUnder }.toTypedArray())
 
+/**
+ * 显式导入索引
+ *
+ * 为显式导入（非全通配导入）提供按名称索引的快速查找能力。
+ * 使用 [ImmutableListMultimap] 存储名称到导入指令的映射。
+ *
+ * 例如：
+ * - `import foo.Bar` -> 名称 "Bar" 映射到该导入
+ * - `import foo.Baz as Qux` -> 名称 "Qux" 映射到该导入
+ *
+ * @param imports 导入指令数组
+ * @param storageManager 存储管理器，用于懒加载索引构建
+ */
 class ExplicitImportsIndexed<I : CjImportInfo>(
     imports: Array<I>,
     storageManager: StorageManager
@@ -95,16 +198,75 @@ class ExplicitImportsIndexed<I : CjImportInfo>(
     override fun importsForName(name: Name) = nameToDirectives().get(name)
 }
 
+/**
+ * 导入索引基类
+ *
+ * 提供导入指令的基本索引功能。默认实现返回所有导入指令，
+ * 子类（如 [ExplicitImportsIndexed]）可以覆盖以提供更高效的按名称查找。
+ *
+ * @param imports 导入指令数组
+ */
 open class IndexedImports<I : CjImportInfo>(val imports: Array<I>) {
+    /**
+     * 获取与指定名称相关的导入
+     *
+     * 默认返回所有导入。子类可以覆盖此方法以提供按名称过滤的结果。
+     *
+     * @param name 要查找的名称
+     * @return 相关的导入指令
+     */
     open fun importsForName(name: Name): Iterable<I> = imports.asIterable()
 }
 
+/**
+ * 创建显式导入的索引
+ *
+ * 从导入集合中过滤出所有非全通配导入（即 `import foo.Bar` 形式），
+ * 并创建支持按名称快速查找的索引。
+ *
+ * @param imports 导入信息集合
+ * @param storageManager 存储管理器
+ * @return 显式导入的索引
+ */
 inline fun <reified I : CjImportInfo> makeExplicitImportsIndexed(
     imports: Collection<I>,
     storageManager: StorageManager
 ): IndexedImports<I> =
     ExplicitImportsIndexed(imports.filter { !it.isAllUnder }.toTypedArray(), storageManager)
 
+/**
+ * 懒加载导入解析器
+ *
+ * 负责按需解析导入语句，将导入路径转换为 [ImportingScope]。
+ * 使用缓存机制避免重复解析，提高性能。
+ *
+ * ## 工作原理
+ *
+ * 1. 接收导入指令集合和索引
+ * 2. 当需要解析符号时，通过 [getImportScope] 获取导入作用域
+ * 3. 使用 [QualifiedExpressionResolver.processImportReference] 解析导入路径
+ * 4. 将解析结果缓存在 [importedScopesProvider] 中
+ *
+ * ## 使用示例
+ *
+ * ```kotlin
+ * val resolver = LazyImportResolver(components, indexedImports, excludedNames, trace, fragment)
+ *
+ * // 查找导入的类
+ * val classifiers = resolver.collectFromImports(name) { scope ->
+ *     scope.getContributedClassifier(name, location)
+ * }
+ * ```
+ *
+ * @param components 导入解析组件
+ * @param indexedImports 已索引的导入
+ * @param excludedImportNames 要排除的导入名称（避免循环导入）
+ * @param traceForImportResolve 绑定追踪器，记录解析结果
+ * @param packageFragment 包片段描述符，用于可见性检查
+ *
+ * @see LazyImportScope 使用此解析器的作用域
+ * @see QualifiedExpressionResolver.processImportReference 实际的导入解析逻辑
+ */
 open class LazyImportResolver<I : CjImportInfo>(
     internal val components: ImportResolutionComponents,
     val indexedImports: IndexedImports<I>,
@@ -112,11 +274,23 @@ open class LazyImportResolver<I : CjImportInfo>(
     val traceForImportResolve: BindingTrace,
     val packageFragment: PackageFragmentDescriptor?
 ) {
+    /**
+     * 所有导入名称的集合（懒加载）
+     *
+     * 用于快速判断某个名称是否可能被导入。
+     * 如果为 null，表示无法确定（某些导入可能是全通配的）。
+     */
     val allNames: Set<Name>? by components.storageManager.createNullableLazyValue {
         indexedImports.imports.asIterable()
             .flatMapToNullable(ObjectOpenHashSet()) { getImportScope(it).computeImportedNames() }
     }
 
+    /**
+     * 导入作用域提供者（缓存）
+     *
+     * 使用备忘录模式缓存已解析的导入作用域。
+     * 每个导入指令只会被解析一次，后续访问直接返回缓存结果。
+     */
     private val importedScopesProvider = with(components) {
         storageManager.createMemoizedFunctionWithNullableValues { directive: CjImportInfo ->
 
@@ -127,6 +301,15 @@ open class LazyImportResolver<I : CjImportInfo>(
         }
     }
 
+    /**
+     * 记录名称查找
+     *
+     * 用于增量编译，记录对某个名称的查找请求。
+     * 当相关的导入发生变化时，可以触发重新编译。
+     *
+     * @param name 查找的名称
+     * @param location 查找位置
+     */
     fun recordLookup(name: Name, location: LookupLocation) {
         if (allNames == null) return
         for (it in indexedImports.importsForName(name)) {
@@ -137,6 +320,15 @@ open class LazyImportResolver<I : CjImportInfo>(
         }
     }
 
+    /**
+     * 判断是否肯定不包含指定名称
+     *
+     * 这是一个优化方法，用于快速排除不可能匹配的情况。
+     * 如果返回 true，则可以跳过对该名称的详细解析。
+     *
+     * @param name 要检查的名称
+     * @return 如果肯定不包含该名称返回 true，否则返回 false
+     */
     fun definitelyDoesNotContainName(name: Name): Boolean {
         // Calculation of all names is undesirable for cases when the scope doesn't live long and is big enough.
         // In such cases we often do the same work twice - first time for computing definitelyDoesNotContainName
@@ -150,6 +342,16 @@ open class LazyImportResolver<I : CjImportInfo>(
         return false
     }
 
+    /**
+     * 从导入中收集描述符
+     *
+     * 遍历与指定名称相关的所有导入，使用选择器函数从每个导入作用域中
+     * 提取描述符，然后合并结果。
+     *
+     * @param name 要查找的名称
+     * @param descriptorsSelector 从导入作用域中选择描述符的函数
+     * @return 收集到的描述符集合
+     */
     fun <D : DeclarationDescriptor> collectFromImports(
         name: Name,
         descriptorsSelector: (ImportingScope) -> Collection<D>
@@ -164,6 +366,15 @@ open class LazyImportResolver<I : CjImportInfo>(
             descriptors.orEmpty()
         }
 
+    /**
+     * 获取导入的作用域
+     *
+     * 根据导入指令获取或创建相应的导入作用域。
+     * 结果会被缓存，同一导入指令多次调用会返回相同的作用域。
+     *
+     * @param directive 导入指令
+     * @return 导入作用域，如果解析失败返回 [ImportingScope.Empty]
+     */
     fun getImportScope(directive: CjImportInfo): ImportingScope {
         return importedScopesProvider(directive) ?: ImportingScope.Empty
     }
@@ -679,6 +890,15 @@ class LazyImportScope(
 }
 
 
+/**
+ * 将导入内容转换为限定符部分列表
+ *
+ * 根据导入内容的类型，提取出路径的各个部分。
+ * - 对于基于表达式的导入，解析 PSI 表达式
+ * - 对于基于 FqName 的导入，直接分割路径
+ *
+ * @return 限定符部分列表
+ */
 fun CjImportInfo.ImportContent.asQualifierPartList(): List<QualifierPart> =
     when (this) {
         is CjImportInfo.ImportContent.ExpressionBased -> expression.asQualifierPartList()
@@ -686,6 +906,15 @@ fun CjImportInfo.ImportContent.asQualifierPartList(): List<QualifierPart> =
     }
 
 
+/**
+ * 将表达式转换为限定符部分列表
+ *
+ * 递归遍历限定表达式，提取出所有的名称部分。
+ * 例如：`a.b.c` -> [ExpressionQualifierPart(a), ExpressionQualifierPart(b), ExpressionQualifierPart(c)]
+ *
+ * @param doubleColonLHS 是否是双冒号左侧（用于可调用引用）
+ * @return 限定符部分列表
+ */
 fun CjExpression.asQualifierPartList(doubleColonLHS: Boolean = false): List< ExpressionQualifierPart> {
     val result = SmartList< ExpressionQualifierPart>()
 

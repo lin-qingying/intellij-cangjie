@@ -217,7 +217,7 @@ class TypeResolver(
             }
         }
 
-        return  resolveDescriptorForType( scope,userType, trace, isDebuggerContext).apply {
+        return  qualifiedExpressionResolver.resolveDescriptorForType( userType, scope,trace, isDebuggerContext).apply {
 //            if (classifierDescriptor != null) {
 //                PlatformClassesMappedToCangJieChecker.reportPlatformClassMappedToCangJie(
 //                    platformToCangJieClassMapper, trace, userType, classifierDescriptor
