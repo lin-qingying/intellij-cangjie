@@ -181,37 +181,6 @@ interface ModuleSourceInfo :TrackableModuleInfo,  IdeaModuleInfo {
      */
       val module: Module
 
-    /**
-     * 预期此模块的模块列表（多平台支持）
-     *
-     * 返回预期此模块提供实现的源码模块列表。
-     * 这是 [ModuleInfo.expectedBy] 的类型细化版本，返回 [ModuleSourceInfo] 列表。
-     *
-     * ## 多平台编译
-     *
-     * - **Common 模块**: `expectedBy = []` （不提供任何实现）
-     * - **Platform 模块**: `expectedBy = [commonModule]` （提供 common 的实现）
-     *
-     * ## 示例
-     *
-     * ```kotlin
-     * // Common 模块
-     * class CommonModuleInfo : ModuleSourceInfo {
-     *     override val expectedBy: List<ModuleSourceInfo> = emptyList()
-     * }
-     *
-     * // JVM 模块（实现 common 模块）
-     * class JvmModuleInfo(
-     *     private val commonModule: CommonModuleInfo
-     * ) : ModuleSourceInfo {
-     *     override val expectedBy: List<ModuleSourceInfo> = listOf(commonModule)
-     * }
-     * ```
-     *
-     * @return 预期此模块的源码模块列表
-     * @see ModuleInfo.expectedBy
-     */
-    override val expectedBy: List<ModuleSourceInfo>
 
     /**
      * 显示名称

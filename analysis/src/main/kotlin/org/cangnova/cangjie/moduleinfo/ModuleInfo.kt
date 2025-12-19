@@ -146,33 +146,6 @@ interface ModuleInfo : AnalysisContextBase{
      */
     override val dependencies: List<ModuleInfo>
 
-    /**
-     * 预期模块列表（多平台支持）
-     *
-     * 返回预期此模块提供实现的模块列表。用于支持 Kotlin 的 expect/actual 机制。
-     *
-     * ## 多平台编译
-     *
-     * - **Common 模块**: expectedBy = [] （不提供任何实现）
-     * - **Platform 模块**: expectedBy = [commonModule] （提供 common 的实现）
-     *
-     * ## 示例
-     *
-     * ```kotlin
-     * // Common 模块
-     * expect class Platform
-     *
-     * // JVM 模块
-     * actual class Platform {
-     *     actual fun name() = "JVM"
-     * }
-     *
-     * // JVM ModuleInfo 的 expectedBy 应该返回 [commonModule]
-     * ```
-     *
-     * @return 预期此模块的模块列表，默认为空
-     */
-    val expectedBy: List<ModuleInfo> get() = emptyList()
 
     /**
      * 平台相关的分析服务

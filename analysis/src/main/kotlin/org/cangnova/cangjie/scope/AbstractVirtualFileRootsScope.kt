@@ -50,9 +50,11 @@ abstract class AbstractVirtualFileRootsScope(project: Project) : GlobalSearchSco
     protected val myProjectFileIndex: ProjectFileIndex = ProjectRootManager.getInstance(project).fileIndex
 
     /**
-     * A map from [VirtualFile] roots to an integer which represents the position of the root in the classpath.
+     * 虚拟文件根目录列表
+     *
+     * 列表中的顺序表示根目录在 classpath 中的位置，位置靠前的根目录优先级更高。
      */
-    protected abstract val roots: Set<VirtualFile>
+    protected abstract val roots: List<VirtualFile>
 
     protected abstract fun getFileRoot(file: VirtualFile): VirtualFile?
 
@@ -61,7 +63,7 @@ abstract class AbstractVirtualFileRootsScope(project: Project) : GlobalSearchSco
         // modules. The check in `ModuleWithDependenciesScope` is actually a remnant of a failed experiment, so omitting the check here is
         // fine.
         val root = getFileRoot(file) ?: return false
-        return roots.containsKey(root)
+        return root in roots
     }
 
     override fun compare(file1: VirtualFile, file2: VirtualFile): Int {
@@ -73,11 +75,11 @@ abstract class AbstractVirtualFileRootsScope(project: Project) : GlobalSearchSco
         if (r2 == null) return 1
 
         val roots = roots
-        val i1 = roots.getInt(r1)
-        val i2 = roots.getInt(r2)
-        if (i1 == 0 && i2 == 0) return 0
-        if (i1 > 0 && i2 > 0) return i2 - i1
-        return if (i1 > 0) 1 else -1
+        val i1 = roots.indexOf(r1)
+        val i2 = roots.indexOf(r2)
+        if (i1 == -1 && i2 == -1) return 0
+        if (i1 >= 0 && i2 >= 0) return i1 - i2
+        return if (i1 >= 0) -1 else 1
     }
 
 
