@@ -99,7 +99,7 @@ class ProjectDescriptorImpl(
      * 3. 从 SDK 加载 .cjo 文件
      * 4. 添加到 moduleMap
      */
-    val stdlibModule: LibraryModuleDescriptorImpl
+    override val stdlibModule: LibraryModuleDescriptorImpl
         get() = stdlibModuleProvider()
 
     /**

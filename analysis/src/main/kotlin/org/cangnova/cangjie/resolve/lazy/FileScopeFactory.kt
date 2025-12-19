@@ -77,9 +77,7 @@ package org.cangnova.cangjie.resolve.lazy
  * @see LazyImportResolver
  */
 
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
-import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
@@ -93,7 +91,6 @@ import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjImportInfo
 import org.cangnova.cangjie.resolve.PlatformDependentAnalyzerServices
 import org.cangnova.cangjie.resolve.extensions.ExtraImportsProviderExtension
-import org.cangnova.cangjie.resolve.isReexport
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.source.CangJieSourceElement
 import org.cangnova.cangjie.storage.getValue
@@ -102,7 +99,6 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.cangnova.cangjie.psi.ImportPath
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.TemporaryBindingTrace
-import org.cangnova.cangjie.stubindex.CangJieImportFqNameForPackageNameIndex
 
 /**
  * 文件作用域容器
@@ -570,7 +566,6 @@ class FileScopeFactory(
             )
 
             scope = currentPackageScope(
-                file.project,
                 packageView,
                 packageFragment,
                 aliasImportNames,
@@ -604,13 +599,9 @@ class FileScopeFactory(
             scope = SubpackagesImportingScope(scope, components.moduleDescriptor, FqName.ROOT)
 
             scope = currentPackageScope(
-                file.project,
-
                 packageView,
                 packageFragment,
-
                 aliasImportNames,
-
                 dummyContainerDescriptor,
                 FilteringKind.VISIBLE_CLASSES,
                 scope
@@ -633,7 +624,6 @@ class FileScopeFactory(
 
 
     private fun currentPackageScope(
-        project: Project,
         packageView: PackageViewDescriptor,
         packageFragment: PackageFragmentDescriptor,
         aliasImportNames: Collection<FqName>,
@@ -641,15 +631,7 @@ class FileScopeFactory(
         filteringKind: FilteringKind,
         parentScope: ImportingScope
     ): ImportingScope {
-//        val scope = packageView.memberScope
-//        val names by lazy(LazyThreadSafetyMode.PUBLICATION) { scope.computeAllNames()?.let(::ObjectOpenHashSet) }
-//        val packageName = packageView.fqName
-//        val excludedNames = aliasImportNames.mapNotNull { if (it.parent() == packageName) it.shortName() else null }
-//
-//
-
         return CurrentPackageScope(
-            project = project,
             packageView,
             packageFragment,
             aliasImportNames,
@@ -658,11 +640,23 @@ class FileScopeFactory(
             parentScope,
             components.languageVersionSettings
         )
-
     }
 
+    /**
+     * 当前包作用域
+     *
+     * 只负责当前包自身成员的访问，不处理重导出逻辑。
+     * 重导出逻辑由 [PackageReexportScope] 在单独的作用域层处理。
+     *
+     * ## 职责
+     *
+     * - 提供当前包中声明的类型、函数、变量等的访问
+     * - 根据可见性规则过滤成员
+     * - 处理别名导入导致的名称排除
+     *
+     * @see PackageReexportScope 处理重导出声明的作用域
+     */
     inner class CurrentPackageScope(
-        val project: Project,
         val packageView: PackageViewDescriptor,
         val packageFragment: PackageFragmentDescriptor,
         val aliasImportNames: Collection<FqName>,
@@ -676,112 +670,13 @@ class FileScopeFactory(
         val packageName = packageView.fqName
         val excludedNames = aliasImportNames.mapNotNull { if (it.parent() == packageName) it.shortName() else null }
 
-
-        /**
-         * 获取当前包中所有需要处理的重导出导入
-         *
-         * 从包索引中获取当前包的所有导入指令，然后过滤出重导出的部分。
-         * 重导出是指带有 internal/protected/public 修饰符的导入语句。
-         *
-         * 注意：此处获取的是当前包中的重导出，用于在同一包的其他文件中访问。
-         */
-        private val imports: Collection<CjImportDirectiveItem> = runReadAction {
-            CangJieImportFqNameForPackageNameIndex[
-                packageFragment.fqName.asString(),
-                project,
-                GlobalSearchScope.allScope(project)
-            ].filter { it.isReexport }
-        }
-
-        private val explicitImportResolver =
-            createImportResolver(
-                makeExplicitImportsIndexed(imports, components.storageManager),
-                bindingTrace, aliasImportNames, packageFragment
-            )
-        private val allUnderImportResolver = createImportResolver(
-            makeAllUnderImportsIndexed(imports),
-            bindingTrace,
-            aliasImportNames,
-            packageFragment
-        )
-
         override val parent: ImportingScope = parentScope
 
         override fun getContributedPackage(name: Name): Nothing? = null
 
-        private fun getClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
-
-            return explicitImportResolver.getClassifiers(name, location) + allUnderImportResolver.getClassifiers(
-                name,
-                location
-            )
-        }
-
-        private fun getClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
-
-            return explicitImportResolver.getClassifier(name, location) ?: allUnderImportResolver.getClassifier(
-                name,
-                location
-            )
-        }
-
-        private fun LazyImportResolver<*>.getClassifiers(
-            name: Name,
-            location: LookupLocation
-        ): List<ClassifierDescriptor> =
-            components.storageManager.compute {
-                val imports = indexedImports.importsForName(name)
-
-                val targetList = mutableListOf<ClassifierDescriptor>()
-                for (directive in imports) {
-                    targetList.addAll(getImportScope(directive).getContributedClassifiers(name, location))
-
-                }
-
-                targetList
-            }
-
-        private fun LazyImportResolver<*>.getClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
-            components.storageManager.compute {
-                val imports = indexedImports.importsForName(name)
-
-                var target: ClassifierDescriptor? = null
-                for (directive in imports) {
-                    val descriptor = getImportScope(directive).getContributedClassifier(name, location)
-                    if (descriptor !is ClassDescriptor && descriptor !is TypeAliasDescriptor /*|| !isClassifierVisible(
-                            descriptor
-                        )*/
-                    )
-                        continue /* type parameters can't be imported */
-                    if (target != null && target != descriptor) {
-//                    if (isCangJieOrJvmThrowsAmbiguity(
-//                            descriptor,
-//                            target
-//                        ) || isCangJieOrNativeThrowsAmbiguity(descriptor, target)
-//                    ) {
-////                        if (descriptor.isCangJieThrows()) {
-////                            target = descriptor
-////                        }
-//                    } else {
-                        return@compute null // ambiguity
-//                    }
-                    } else {
-                        target = descriptor
-                    }
-                }
-
-                target
-            }
-
         override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
             if (name in excludedNames) return null
-            val classifier = scope.getContributedClassifier(name, location) ?:
-            /*   如在当前包查找不到，在重导出语句中查找 (重导出语句不管什么访问修饰，都可以在本包访问)*/
-            getClassifier(
-                name,
-                location
-            ) ?: return null
-
+            val classifier = scope.getContributedClassifier(name, location) ?: return null
 
             val visible = DescriptorVisibilityUtils.isVisibleIgnoringReceiver(
                 classifier as DeclarationDescriptorWithVisibility,
@@ -792,14 +687,8 @@ class FileScopeFactory(
         }
 
         override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
-            val list = scope.getContributedClassifiers(name, location)
-            /*   如在当前包查找不到，在重导出语句中查找 (重导出语句不管什么访问修饰，都可以在本包访问)*/
-            val list2 = getClassifiers(
-                name,
-                location
-            )
-
-            return list + list2
+            if (name in excludedNames) return emptyList()
+            return scope.getContributedClassifiers(name, location)
         }
 
 

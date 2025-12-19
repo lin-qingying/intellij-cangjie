@@ -48,8 +48,27 @@ package org.cangnova.cangjie.resolve
  * 3. 当查询时，在父描述符的作用域中查找声明
  * 4. 如果使用了别名，只响应别名的查询
  *
+ * ## 重导出机制说明
+ *
+ * 仓颉语言支持重导出（reexport），允许将导入的符号以指定的可见性重新导出：
+ * ```cangjie
+ * public import std.core.String    // 重导出为 public
+ * internal import std.io.File      // 重导出为 internal
+ * import std.math.sqrt             // 默认 private，不重导出
+ * ```
+ *
+ * **重导出的实现分层**：
+ *
+ * | 组件 | 职责 |
+ * |------|------|
+ * | [LazyExplicitImportScope] | 单个导入的符号解析（不处理重导出可见性） |
+ * | [PackageReexportScope] | 包级别重导出声明的聚合和可见性检查 |
+ * | [CjImportDirectiveItem.isReexport] | 判断导入是否为重导出 |
+ * | [CjImportDirectiveItem.importVisibility] | 获取导入的可见性修饰符 |
+ *
  * @see AllUnderImportScope 全通配导入作用域
  * @see LazyImportScope 懒加载导入作用域
+ * @see PackageReexportScope 包级重导出作用域
  */
 
 import com.intellij.util.SmartList
@@ -130,14 +149,22 @@ class LazyExplicitImportScope(
     private val packageFragmentForVisibilityCheck: PackageFragmentDescriptor?,
     private val declaredName: Name,
     private val aliasName: Name,
-    private val storeReferences: CallOnceFunction<Collection<DeclarationDescriptor>, Unit>
+    private val storeReferences: CallOnceFunction<Collection<DeclarationDescriptor>, Unit>,
+    /**
+     * 重导出作用域，用于查找包中被重导出的声明
+     *
+     * 当从包中导入单个声明时（如 `import pkg.a.Foo`），如果 `Foo` 不是 `pkg.a` 的直接成员，
+     * 而是 `pkg.a` 重导出的声明（如 `public import other.Foo`），则需要在此作用域中查找。
+     */
+    private val reexportScope: MemberScope? = null
 ) : BaseImportingScope(null) {
 
     /**
      * 获取导入的分类器（类、接口、类型别名等）
      *
      * 只有当查询的名称与 [aliasName] 匹配时才返回结果。
-     * 在父描述符（包或类）的作用域中查找 [declaredName] 对应的分类器。
+     * 首先在父描述符（包或类）的作用域中查找 [declaredName] 对应的分类器，
+     * 如果没找到，则在重导出作用域中查找。
      *
      * @param name 要查找的名称
      * @param location 查找位置
@@ -146,7 +173,8 @@ class LazyExplicitImportScope(
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         if (name != aliasName) return null
 
-        return when (packageOrClassDescriptor) {
+        // 首先在包/类的成员作用域中查找
+        val result = when (packageOrClassDescriptor) {
             is PackageViewDescriptor -> packageOrClassDescriptor.memberScope.getContributedClassifier(
                 declaredName,
                 location
@@ -159,6 +187,13 @@ class LazyExplicitImportScope(
 
             else -> throw IllegalStateException("Should be class or package: $packageOrClassDescriptor")
         }
+
+        // 如果在成员作用域中没找到，尝试在重导出作用域中查找
+        if (result == null && reexportScope != null) {
+            return reexportScope.getContributedClassifier(declaredName, location)
+        }
+
+        return result
     }
 
     /**
@@ -291,11 +326,13 @@ class LazyExplicitImportScope(
         if (kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK)) {
             descriptors.addAll(getContributedVariables(aliasName, NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS))
         }
-        if (kindFilter.acceptsKinds(DescriptorKindFilter.REEXPORT_MASK)) {
-            // 重导出功能暂未实现
-            // 重导出允许将导入的符号以不同的可见性重新导出
-            // 例如：public import std.core.String
-        }
+        // 注意：REEXPORT_MASK 在此作用域中不处理
+        // 原因：LazyExplicitImportScope 只负责单个导入的符号解析，
+        // 不持有导入指令的可见性修饰符信息。
+        // 重导出功能由 PackageReexportScope 在包级别统一处理：
+        // - 它收集包中所有带有 public/internal/protected 修饰符的导入
+        // - 通过 CjImportDirectiveItem.isReexport 判断是否为重导出
+        // - 根据访问位置检查可见性并提供重导出的声明
         if (kindFilter.acceptsKinds(DescriptorKindFilter.PACKAGES_MASK)) {
             getContributedPackage(aliasName)?.let {
                 descriptors.add(it)
@@ -377,6 +414,7 @@ class LazyExplicitImportScope(
      *
      * 该函数用于收集给定作用域中所有可见的可调用成员描述符（如函数或属性描述符）
      * 它根据[packageOrClassDescriptor]的类型（包或类描述符）来决定使用哪种作用域进行查找
+     * 同时也会从重导出作用域中查找被重导出的声明
      *
      * @param location 查找位置，用于调试信息
      * @param getDescriptors 一个高阶函数，用于从成员作用域中获取描述符集合
@@ -406,6 +444,11 @@ class LazyExplicitImportScope(
 
             // 如果既不是包描述符也不是类描述符，则抛出异常
             else -> throw IllegalStateException("Should be class or package: $packageOrClassDescriptor")
+        }
+
+        // 如果在成员作用域中没找到，尝试从重导出作用域中查找
+        if (descriptors.isEmpty() && reexportScope != null) {
+            descriptors.addAll(reexportScope.getDescriptors(declaredName, location))
         }
 
         // 返回所有收集到的描述符，经过可见性过滤

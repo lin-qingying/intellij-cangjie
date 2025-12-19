@@ -57,6 +57,7 @@ import org.cangnova.cangjie.resolve.importVisibility
 import org.cangnova.cangjie.resolve.isReexport
 import org.cangnova.cangjie.resolve.module
 import org.cangnova.cangjie.resolve.scopes.*
+import org.cangnova.cangjie.resolve.scopes.PackageReexportScope
 import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.resolve.source.CangJieSourceElement
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
@@ -125,12 +126,9 @@ class QualifiedExpressionResolver(
     val languageVersionSettings: LanguageVersionSettings
 
 ) {
+    @set:Inject
     private lateinit var typeResolver: TypeResolver
 
-    @Inject
-    fun setTypeResolver(typeResolver: TypeResolver) {
-        this.typeResolver = typeResolver
-    }
 
     companion object {
         /**
@@ -693,8 +691,18 @@ class QualifiedExpressionResolver(
                 return null
             }
 
+            // 如果是包导入，创建重导出作用域
+            val reexportScope = if (packageOrClassDescriptor is PackageViewDescriptor && importDirective is CjImportDirectiveItem) {
+                val project = importDirective.getContainingCjFile().project
+                PackageReexportScope(
+                    packageFqName = packageOrClassDescriptor.fqName,
+                    project = project,
+                    moduleDescriptor = moduleDescriptor,
+                    fromPackage = packageFragmentForCheck
+                )
+            } else null
 
-            return AllUnderImportScope.create(packageOrClassDescriptor, excludedImportNames)
+            return AllUnderImportScope.create(packageOrClassDescriptor, excludedImportNames, reexportScope)
         } else {
             return processSingleImport(
                 moduleDescriptor,
@@ -740,7 +748,16 @@ class QualifiedExpressionResolver(
             (resolvedDescriptor as? TypeAliasDescriptor)?.let { it.classDescriptor ?: return null }
                 ?: resolvedDescriptor
 
-
+        // 如果是从包中导入，创建重导出作用域用于查找被重导出的声明
+        val reexportScope = if (packageOrClassDescriptor is PackageViewDescriptor && importDirective is CjImportDirectiveItem) {
+            val project = importDirective.getContainingCjFile().project
+            PackageReexportScope(
+                packageFqName = packageOrClassDescriptor.fqName,
+                project = project,
+                moduleDescriptor = moduleDescriptor,
+                fromPackage = packageFragmentForVisibilityCheck
+            )
+        } else null
 
         return LazyExplicitImportScope(
             languageVersionSettings,
@@ -774,7 +791,8 @@ class QualifiedExpressionResolver(
 //                        lastPart
 //                    )
 //                }
-            }
+            },
+            reexportScope = reexportScope
         )
     }
 

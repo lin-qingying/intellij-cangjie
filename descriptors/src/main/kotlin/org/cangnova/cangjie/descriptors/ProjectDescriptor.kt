@@ -74,6 +74,8 @@ import org.cangnova.cangjie.name.Name
  */
 interface ProjectDescriptor : DeclarationDescriptor {
 
+    val stdlibModule: ModuleDescriptor
+
     /**
      * 项目名称
      */

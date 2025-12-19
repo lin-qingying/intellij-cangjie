@@ -519,7 +519,6 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
         return ModuleData(moduleDescriptor, modificationTracker)
     }
 
-    fun Collection<M>.stdlib() = firstOrNull { it.moduleName == STD_PACKAGE_NAME }
 
     private fun setupModuleDescriptor(module: M, moduleDescriptor: ModuleDescriptorImpl) {
         checkValid()
@@ -541,8 +540,9 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
             LazyModuleDependencies(
                 projectContext.storageManager,
                 module,
-                allModules.stdlib(),
+              null,
                 this
+                ,instantiatedDependencies = listOf(projectDescriptor.stdlibModule)
             )
         )
 

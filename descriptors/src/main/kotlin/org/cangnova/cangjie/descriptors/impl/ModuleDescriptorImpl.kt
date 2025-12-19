@@ -45,7 +45,6 @@ open class ModuleDescriptorImpl(
     override val stableName: Name? = null,
 
 
-
     ) : DeclarationDescriptorImpl(Annotations.EMPTY, moduleName),
     ModuleDescriptor {
 
@@ -64,9 +63,10 @@ open class ModuleDescriptorImpl(
 
     init {
 
-try{
-    projectDescriptor.addModule(this)
-}catch (e: Exception){}
+        try {
+            projectDescriptor.addModule(this)
+        } catch (e: Exception) {
+        }
         packageViewDescriptorFactory =
             getCapability(PackageViewDescriptorFactory.CAPABILITY) ?: PackageViewDescriptorFactory.Default
 

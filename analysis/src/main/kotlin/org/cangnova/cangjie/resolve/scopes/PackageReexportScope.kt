@@ -51,15 +51,36 @@ import org.cangnova.cangjie.utils.Printer
  * import foo.*  // 可以访问到 foo 重导出的 String
  * ```
  *
- * 此作用域负责：
+ * ## 支持的重导出类型
+ *
+ * - **分类器**: 类、接口、枚举、类型别名
+ * - **函数**: 顶层函数
+ * - **变量**: 顶层变量
+ * - **属性**: 顶层属性
+ * - **宏**: 宏定义
+ *
+ * ## 可见性规则
+ *
+ * | 修饰符 | 可见范围 |
+ * |--------|----------|
+ * | public | 任何位置 |
+ * | protected | 同一模块内 |
+ * | internal | 同一包及子包 |
+ * | private | 仅同一文件（不是重导出）|
+ *
+ * ## 此作用域负责
+ *
  * 1. 收集包中所有文件的重导出声明
  * 2. 根据访问位置检查可见性
- * 3. 提供类型、函数、变量的查找方法
+ * 3. 提供类型、函数、变量、属性、宏的查找方法
  *
  * @property packageFqName 包的完全限定名
  * @property project IntelliJ 项目
  * @property moduleDescriptor 模块描述符
  * @property fromPackage 访问来源的包（用于可见性检查）
+ *
+ * @see ReexportedDeclaration 重导出声明的包装类
+ * @see LazyExplicitImportScope 显式导入作用域（不处理重导出可见性）
  */
 class PackageReexportScope(
     private val packageFqName: FqName,
@@ -192,6 +213,40 @@ class PackageReexportScope(
             )
         }
 
+        // 查找属性
+        targetPackage.memberScope.getContributedPropertys(
+            importedName,
+            NoLookupLocation.FROM_REEXPORT
+        ).forEach { property ->
+            descriptors.add(
+                ReexportedDeclaration(
+                    originalDescriptor = property,
+                    visibility = visibility,
+                    sourceFile = sourceFile,
+                    sourcePackage = sourcePackage,
+                    importDirective = importDirective,
+                    aliasName = aliasName
+                )
+            )
+        }
+
+        // 查找宏
+        targetPackage.memberScope.getContributedMacros(
+            importedName,
+            NoLookupLocation.FROM_REEXPORT
+        ).forEach { macro ->
+            descriptors.add(
+                ReexportedDeclaration(
+                    originalDescriptor = macro,
+                    visibility = visibility,
+                    sourceFile = sourceFile,
+                    sourcePackage = sourcePackage,
+                    importDirective = importDirective,
+                    aliasName = aliasName
+                )
+            )
+        }
+
         return descriptors
     }
 
@@ -228,6 +283,16 @@ class PackageReexportScope(
             .mapNotNull { it.originalDescriptor as? VariableDescriptor }
     }
 
+    override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
+        return getVisibleReexports(name)
+            .mapNotNull { it.originalDescriptor as? PropertyDescriptor }
+    }
+
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<org.cangnova.cangjie.descriptors.macro.MacroDescriptor> {
+        return getVisibleReexports(name)
+            .mapNotNull { it.originalDescriptor as? org.cangnova.cangjie.descriptors.macro.MacroDescriptor }
+    }
+
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
@@ -244,6 +309,8 @@ class PackageReexportScope(
                     kindFilter.acceptsKinds(DescriptorKindFilter.CLASSIFIERS_MASK) && descriptor is ClassifierDescriptor -> true
                     kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK) && descriptor is FunctionDescriptor -> true
                     kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK) && descriptor is VariableDescriptor -> true
+                    kindFilter.acceptsKinds(DescriptorKindFilter.PROPERTYS_MASK) && descriptor is PropertyDescriptor -> true
+//                    kindFilter.acceptsKinds(DescriptorKindFilter.MACROS_MASK) && descriptor is org.cangnova.cangjie.descriptors.macro.MacroDescriptor -> true
                     else -> false
                 }
             }
@@ -271,4 +338,12 @@ class PackageReexportScope(
             .map { it.key }
             .toSet()
     }
+
+    override val propertyNames: Set<Name>
+        get() {
+            return reexportedDeclarations.entries
+                .filter { (_, decls) -> decls.any { it.originalDescriptor is PropertyDescriptor } }
+                .map { it.key }
+                .toSet()
+        }
 }

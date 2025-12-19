@@ -580,7 +580,9 @@ class LazyPackageViewDescriptorImpl(
             ChainedMemberScope.create("package view scope for $fqName in ${module.name}", scopes)
         }
     }
+
     override val fragments: List<PackageFragmentDescriptor> by storageManager.createLazyValue {
+
         module.packageFragmentProvider.packageFragments(fqName)
     }
 

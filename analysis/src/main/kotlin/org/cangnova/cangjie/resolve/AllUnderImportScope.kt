@@ -33,11 +33,34 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.utils.Printer
 
+/**
+ * 全通配导入作用域
+ *
+ * 处理 `import foo.bar.*` 形式的导入，提供对包或类中所有符号的访问。
+ *
+ * ## 支持的导入目标
+ *
+ * - **包**: `import std.core.*` - 导入包中的所有声明
+ * - **类**: `import MyClass.*` - 导入类的静态成员
+ *
+ * ## 重导出支持
+ *
+ * 当导入一个包时，该包的重导出声明也会被包含。
+ * 例如，如果 `foo` 包有 `public import std.core.String`，
+ * 那么 `import foo.*` 也能访问到 `String`。
+ *
+ * @property scope1 主作用域（包的成员作用域或类的静态作用域）
+ * @property scope2 次作用域（类的实例成员作用域，仅对类有效）
+ * @property reexportScope 重导出作用域（仅对包有效）
+ *
+ * @see PackageReexportScope 重导出作用域的实现
+ */
 class AllUnderImportScope private constructor(
     descriptor: DeclarationDescriptor,
     excludedImportNames: Collection<FqName>,
     private val scope1: MemberScope,
-    private val scope2: MemberScope?
+    private val scope2: MemberScope?,
+    private val reexportScope: MemberScope? = null
 ) : BaseImportingScope(null) {
     private val excludedNames = if (excludedImportNames.isEmpty()) { // optimization
         emptySet()
@@ -64,23 +87,25 @@ class AllUnderImportScope private constructor(
             scope.getContributedDescriptors(noPackagesKindFilter, nameFilterToUse)
                 .filterTo(result) { it !is PackageViewDescriptor }
         }
+        // 添加重导出的描述符
+        reexportScope?.getContributedDescriptors(noPackagesKindFilter, nameFilterToUse)
+            ?.filterTo(result) { it !is PackageViewDescriptor }
         return result
     }
 
     override fun computeImportedNames(): Set<Name>? {
         val names1 = scope1.computeAllNames()
+        val names2 = scope2?.computeAllNames()
+        val reexportNames = reexportScope?.computeAllNames()
+
         return when {
-            scope2 == null -> names1
             names1 == null -> null
+            scope2 == null && reexportScope == null -> names1
             else -> {
-                val names2 = scope2.computeAllNames()
-                when {
-                    names2 == null -> null
-                    names1.isEmpty() -> names2
-                    else -> names1.toMutableSet().also {
-                        it.addAll(names2)
-                    }
-                }
+                val result = names1.toMutableSet()
+                names2?.let { result.addAll(it) }
+                reexportNames?.let { result.addAll(it) }
+                result
             }
         }
     }
@@ -90,14 +115,22 @@ class AllUnderImportScope private constructor(
         if (name in excludedNames) return emptyList()
         val classifier1 = scope1.getContributedClassifiers(name, location)
         val classifier2 = scope2?.getContributedClassifiers(name, location)
-        return classifier1 + (classifier2 ?: emptyList())
+        val reexportClassifier = reexportScope?.getContributedClassifiers(name, location)
+        return classifier1 + (classifier2 ?: emptyList()) + (reexportClassifier ?: emptyList())
     }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         if (name in excludedNames) return null
         val classifier1 = scope1.getContributedClassifier(name, location)
         val classifier2 = scope2?.getContributedClassifier(name, location)
-        return if (classifier1 != null && classifier2 != null) null else (classifier1 ?: classifier2)
+        val reexportClassifier = reexportScope?.getContributedClassifier(name, location)
+
+        val nonNullClassifiers = listOfNotNull(classifier1, classifier2, reexportClassifier)
+        return when {
+            nonNullClassifiers.isEmpty() -> null
+            nonNullClassifiers.size == 1 -> nonNullClassifiers.first()
+            else -> null // ambiguity
+        }
     }
 
 
@@ -106,25 +139,36 @@ class AllUnderImportScope private constructor(
         location: LookupLocation
     ): Collection<@JvmWildcard VariableDescriptor> {
         if (name in excludedNames) return emptyList()
-        return flatMapScopes(scope1, scope2) { it.getContributedVariables(name, location) }
+        val result = flatMapScopes(scope1, scope2) { it.getContributedVariables(name, location) }
+        val reexportResult = reexportScope?.getContributedVariables(name, location) ?: emptyList()
+        return result + reexportResult
     }
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> {
         if (name in excludedNames) return emptyList()
-        return flatMapScopes(scope1, scope2) { it.getContributedFunctions(name, location) }
+        val result = flatMapScopes(scope1, scope2) { it.getContributedFunctions(name, location) }
+        val reexportResult = reexportScope?.getContributedFunctions(name, location) ?: emptyList()
+        return result + reexportResult
     }
 
     override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
         if (name in excludedNames) return emptyList()
+        val result = flatMapScopes(scope1, scope2) { it.getContributedMacros(name, location) }
+        val reexportResult = reexportScope?.getContributedMacros(name, location) ?: emptyList()
+        return result + reexportResult
+    }
 
-        return flatMapScopes(scope1, scope2) { it.getContributedMacros(name, location) }
-
-
+    override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
+        if (name in excludedNames) return emptyList()
+        val result = flatMapScopes(scope1, scope2) { it.getContributedPropertys(name, location) }
+        val reexportResult = reexportScope?.getContributedPropertys(name, location) ?: emptyList()
+        return result + reexportResult
     }
 
     override fun recordLookup(name: Name, location: LookupLocation) {
         scope1.recordLookup(name, location)
         scope2?.recordLookup(name, location)
+        reexportScope?.recordLookup(name, location)
     }
 
     override fun printStructure(p: Printer) {
@@ -133,7 +177,30 @@ class AllUnderImportScope private constructor(
 
 
     companion object {
+        /**
+         * 创建全通配导入作用域
+         *
+         * @param descriptor 导入目标（包或类）
+         * @param excludedImportNames 要排除的导入名称
+         * @return 导入作用域
+         */
         fun create(descriptor: DeclarationDescriptor, excludedImportNames: Collection<FqName>): ImportingScope {
+            return create(descriptor, excludedImportNames, reexportScope = null)
+        }
+
+        /**
+         * 创建包含重导出支持的全通配导入作用域
+         *
+         * @param descriptor 导入目标（包或类）
+         * @param excludedImportNames 要排除的导入名称
+         * @param reexportScope 重导出作用域，用于访问包重导出的声明
+         * @return 导入作用域
+         */
+        fun create(
+            descriptor: DeclarationDescriptor,
+            excludedImportNames: Collection<FqName>,
+            reexportScope: MemberScope?
+        ): ImportingScope {
             val scope1 =
                 if (descriptor is ClassDescriptor) {
                     descriptor.staticScope
@@ -149,10 +216,23 @@ class AllUnderImportScope private constructor(
                     descriptor.unsubstitutedMemberScope.takeIf { it !== MemberScope.Empty }
                 } else null
 
+            // 只有从包全量导入时才考虑重导出（import foo.*）
+            // 从类全量导入（import MyClass.*）不涉及重导出机制
+            val effectiveReexportScope = if (descriptor is PackageViewDescriptor) reexportScope else null
+
             return if (scope1 === MemberScope.Empty) {
-                if (scope2 == null || scope2 === MemberScope.Empty) ImportingScope.Empty
-                else AllUnderImportScope(descriptor, excludedImportNames, scope2, null)
-            } else AllUnderImportScope(descriptor, excludedImportNames, scope1, scope2)
+                if (scope2 == null || scope2 === MemberScope.Empty) {
+                    if (effectiveReexportScope == null || effectiveReexportScope === MemberScope.Empty) {
+                        ImportingScope.Empty
+                    } else {
+                        AllUnderImportScope(descriptor, excludedImportNames, effectiveReexportScope, null, null)
+                    }
+                } else {
+                    AllUnderImportScope(descriptor, excludedImportNames, scope2, null, effectiveReexportScope)
+                }
+            } else {
+                AllUnderImportScope(descriptor, excludedImportNames, scope1, scope2, effectiveReexportScope)
+            }
         }
     }
 }

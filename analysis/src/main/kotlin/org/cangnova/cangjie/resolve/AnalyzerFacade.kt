@@ -1126,6 +1126,7 @@ internal class IDELanguageSettingsProvider : LanguageSettingsProvider {
  * @param module 当前模块的分析上下文
  * @param firstDependency 第一个依赖（通常是 SDK），可为 null
  * @param resolverForProject 项目解析器，用于获取依赖的模块描述符
+ * @param instantiatedDependencies 已实例化的依赖模块描述符列表，用于跨模块解析场景
  *
  * @see ModuleDependencies
  * @see AbstractResolverForProject
@@ -1136,7 +1137,22 @@ class LazyModuleDependencies<M : AnalysisContext>(
     storageManager: StorageManager,
     private val module: M,
     firstDependency: M?,
-    private val resolverForProject: AbstractResolverForProject<M>
+    private val resolverForProject: AbstractResolverForProject<M>,
+    /**
+     * 已经实例化的依赖模块描述符
+     *
+     * 用于跨模块解析场景，当依赖模块（如 std）已经被实例化时，
+     * 可以直接使用这些描述符，而不是通过 [resolverForProject] 重新创建。
+     *
+     * 这解决了 [resolverForProject.descriptorForModule] 返回的
+     * [ModuleDescriptorImpl] 其 module 属性指向调用者模块而非实际模块的问题。
+     *
+     * 使用场景：
+     * - 当导入 `std.core.String` 时，需要 std 模块的 [ModuleDescriptor]
+     * - 通过此参数传入已实例化的 std 模块描述符
+     * - 避免 `getPackage("std.core")` 返回错误的模块引用
+     */
+    private val instantiatedDependencies: List<ModuleDescriptor> = emptyList()
 ) : ModuleDependencies {
     companion object {
         /**
@@ -1172,12 +1188,25 @@ class LazyModuleDependencies<M : AnalysisContext>(
      *
      * **重要**: 依赖列表包含模块自身（放在第一个位置）
      * 这样模块可以通过统一的 packageFragmentProvider 访问自己定义的类型。
+     *
+     * **依赖来源**:
+     * 1. firstDependency（通常是 SDK）
+     * 2. instantiatedDependencies（已实例化的跨模块依赖）
+     * 3. module.dependencies 中的其他依赖（通过 resolverForProject 解析）
      */
     private val dependencies = storageManager.createLazyValue {
         val moduleDescriptors = mutableSetOf<ModuleDescriptorImpl>()
         firstDependency?.let {
             module.assertModuleDependencyIsCorrect(it)
             moduleDescriptors.add(resolverForProject.descriptorForModule(it))
+        }
+
+        // 添加已实例化的依赖（跨模块依赖）
+        for (instantiated in instantiatedDependencies) {
+            module.assertModuleDependencyIsCorrect(instantiated)
+            if (instantiated is ModuleDescriptorImpl) {
+                moduleDescriptors.add(instantiated)
+            }
         }
 
         // 处理所有依赖
