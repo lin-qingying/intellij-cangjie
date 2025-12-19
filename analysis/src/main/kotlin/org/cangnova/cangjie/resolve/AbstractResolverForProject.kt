@@ -98,6 +98,7 @@ import org.cangnova.cangjie.context.ProjectContext
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.impl.LibraryModuleDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
+import org.cangnova.cangjie.descriptors.impl.ProjectDescriptorImpl
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.caches.ModuleContent
@@ -105,40 +106,6 @@ import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
 import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
 
-/**
- * 创建模块描述符
- *
- * 这是一个便捷函数，用于创建基本的模块描述符。
- * 创建的描述符带有 [NotUnderContentRootModuleInfo] 能力，
- * 表示该模块不在项目的内容根目录下（例如库模块）。
- *
- * ## 使用场景
- *
- * - 为外部库创建模块描述符
- * - 创建临时/虚拟模块用于特殊分析场景
- * - 测试环境中创建简单的模块描述符
- *
- * @param projectDescriptor 项目描述符，表示整个项目
- * @param moduleName 模块名称
- * @param projectContext 项目上下文，提供存储管理器等基础设施
- * @return 创建的模块描述符
- *
- * @see ModuleDescriptorImpl
- * @see NotUnderContentRootModuleInfo
- */
-fun createModuleDescriptor(
-    projectDescriptor: ProjectDescriptor,
-    moduleName: String,
-    projectContext: ProjectContext
-): ModuleDescriptor {
-    return ModuleDescriptorImpl(
-        projectDescriptor,
-        Name.identifier(moduleName),
-        moduleName, // displayName
-        projectContext.storageManager,
-        mapOf(AnalysisContextCapability to NotUnderContentRootModuleInfo(projectDescriptor.project))
-    )
-}
 
 /**
  * 项目解析器抽象基类
@@ -378,7 +345,6 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
      */
 
     private val contextToResolvableInfo: Map<M, M> =
-        // 在新的 AnalysisContext 系统中，每个上下文都是独立的，不需要 flatten
         modules.associateWith { it }
 
     /**
@@ -484,9 +450,6 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
             oldDescriptor.isValid = false
             contextByDescriptor.remove(oldDescriptor)
             resolverByModuleDescriptor.remove(oldDescriptor)
-            // ModuleDescriptorListener 不再可用，直接跳过
-            // projectContext.project.messageBus.syncPublisher(ModuleDescriptorListener.Companion.TOPIC)
-            //     .moduleDescriptorInvalidated(oldDescriptor)
         }
 
         val moduleData = createModuleDescriptor(module)
@@ -499,7 +462,7 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
 
         // 在创建新模块之前，先移除旧的同名模块（支持模块刷新场景）
         val moduleName = module.moduleName
-        if (projectDescriptor is org.cangnova.cangjie.descriptors.impl.ProjectDescriptorImpl) {
+        if (projectDescriptor is ProjectDescriptorImpl) {
             projectDescriptor.removeModule(moduleName)
         }
 
@@ -533,13 +496,15 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
         return ModuleData(moduleDescriptor, modificationTracker)
     }
 
+    fun Collection<M>.stdlib() = firstOrNull { it.moduleName == STD_PACKAGE_NAME }
+
     private fun setupModuleDescriptor(module: M, moduleDescriptor: ModuleDescriptorImpl) {
         checkValid()
         moduleDescriptor.setDependencies(
             LazyModuleDependencies(
                 projectContext.storageManager,
                 module,
-                /*  sdkDependency(module)*/null,
+                allModules.stdlib(),
                 this
             )
         )
@@ -1005,7 +970,7 @@ private class DelegatingPackageFragmentProvider<M : AnalysisContext>(
     }
 
     /**
-     * 收集指定包的所有片段（优化版本）
+     * 收集指定包的所有片段
      *
      * 相比 [getPackageFragments]，此方法将结果添加到现有集合中，
      * 避免创建临时列表。
@@ -1081,3 +1046,5 @@ private class DelegatingPackageFragmentProvider<M : AnalysisContext>(
         return "DelegatingProvider for $module in ${resolverForProject.name}"
     }
 }
+
+
