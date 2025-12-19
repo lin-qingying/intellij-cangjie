@@ -176,10 +176,6 @@ data class ModuleTestSourceInfo internal constructor(
  * 扩展属性，返回通过配置指定为对当前模块可见的其他模块列表。
  * 仓颉语言当前不使用 facet 配置，因此返回空列表。
  *
- * ## 在 Kotlin 中的用途
- *
- * 在 Kotlin 多平台项目中，此属性用于指定哪些模块的 internal 声明对当前模块可见。
- * 仓颉语言暂不需要此功能。
  *
  * @return 额外可见的模块列表（当前为空）
  */
