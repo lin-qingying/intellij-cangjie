@@ -27,6 +27,7 @@ import com.intellij.openapi.module.Module
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer.isDisposed
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.NlsSafe
 import com.intellij.serviceContainer.AlreadyDisposedException
 import org.cangnova.cangjie.descriptors.ModuleOrigin
@@ -269,7 +270,9 @@ interface ModuleSourceInfo :TrackableModuleInfo,  IdeaModuleInfo {
     override fun checkValidity() {
         module.checkValidity()
     }
-
+    override fun createModificationTracker(): ModificationTracker {
+        return CangJieModificationTrackerProvider.getInstance(module.project).createModuleModificationTracker(module)
+    }
 }
 
 /**

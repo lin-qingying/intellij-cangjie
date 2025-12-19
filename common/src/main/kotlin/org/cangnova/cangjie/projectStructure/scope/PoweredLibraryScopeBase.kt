@@ -27,8 +27,6 @@ package org.cangnova.cangjie.projectStructure.scope
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.impl.scopes.LibraryScopeBase
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.OrderRootType
-import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.NewVirtualFile
 import com.intellij.openapi.vfs.newvfs.NewVirtualFileSystem
@@ -208,7 +206,7 @@ interface CombinableSourceAndClassRootsScope {
      *
      * @return 根目录到索引位置的映射
      */
-    val roots: Set<VirtualFile>
+    val roots: List<VirtualFile>
 
     /**
      * 相关的模块集合

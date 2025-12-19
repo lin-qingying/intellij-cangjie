@@ -30,7 +30,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.roots.libraries.Library
-import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.NewVirtualFileSystem
 import com.intellij.psi.search.GlobalSearchScope
@@ -472,7 +471,7 @@ class LibraryWithoutSourceScope(
      *
      * @return 从虚拟文件到索引位置的映射
      */
-    override val roots: Set<VirtualFile> get() = classes.toSet()
+    override val roots: List<VirtualFile> get() = classes.toSet()
 
     /**
      * 相关模块集合

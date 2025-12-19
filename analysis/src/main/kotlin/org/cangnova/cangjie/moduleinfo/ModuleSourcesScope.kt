@@ -26,43 +26,111 @@ package org.cangnova.cangjie.moduleinfo
 
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.workspaceModel.core.fileIndex.WorkspaceFileKind
-import com.intellij.workspaceModel.core.fileIndex.WorkspaceFileSetWithCustomData
-import com.intellij.workspaceModel.core.fileIndex.impl.ModuleOrLibrarySourceRootData
-import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexEx.getFileInfo
-import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileInternalInfo
 import org.cangnova.cangjie.projectStructure.scope.CombinableSourceAndClassRootsScope
 import org.cangnova.cangjie.scope.AbstractVirtualFileRootsScope
 import org.jetbrains.jps.model.java.JavaResourceRootType
 
+/**
+ * 模块源码作用域
+ *
+ * 该类表示模块的源码搜索范围，可以是生产源码或测试源码。
+ * 它可以与其他作用域组合成 CombinedSourceAndClassRootsScope。
+ *
+ * ## 设计目的
+ *
+ * [ModuleSourcesScope] 为模块源码提供精确的搜索范围：
+ * 1. **源码类型区分**: 区分生产源码和测试源码
+ * 2. **根目录管理**: 管理模块的源码根目录列表
+ * 3. **文件查找**: 高效判断文件是否在作用域内
+ * 4. **可组合性**: 支持与其他作用域组合
+ *
+ * ## 使用场景
+ *
+ * ### 创建生产源码作用域
+ * ```kotlin
+ * val productionScope = ModuleSourcesScope.production(module)
+ * ```
+ *
+ * ### 创建测试源码作用域
+ * ```kotlin
+ * val testScope = ModuleSourcesScope.tests(module)
+ * ```
+ *
+ * @param module 模块对象
+ * @param sourceRootKind 源码根类型（生产或测试）
+ *
+ * @see AbstractVirtualFileRootsScope
+ * @see CombinableSourceAndClassRootsScope
+ */
 class ModuleSourcesScope(
     private val module: Module,
     private val sourceRootKind: SourceRootKind,
 ) : AbstractVirtualFileRootsScope(module.project), CombinableSourceAndClassRootsScope {
+
     /**
-     * The kind of source roots covered by the [ModuleSourcesScope].
+     * 源码根类型枚举
+     *
+     * 定义 [ModuleSourcesScope] 包含的源码根类型。
      */
     enum class SourceRootKind {
+        /** 生产源码 */
         PRODUCTION,
+
+        /** 测试源码 */
         TESTS,
     }
 
-    override val roots: Set<VirtualFile> = calculateRootsSet(module, sourceRootKind)
+    /**
+     * 源码根目录列表
+     *
+     * 从模块配置中计算得出的源码根目录列表。
+     * 根据 [sourceRootKind] 过滤生产或测试源码。
+     */
+    override val roots: List<VirtualFile> = calculateRootsSet(module, sourceRootKind)
 
     /**
-     * Checks if this scope is empty (has no source roots).
+     * 检查作用域是否为空
+     *
+     * @return 如果模块没有源码根目录则返回 true
      */
     fun isEmpty(): Boolean = roots.isEmpty()
 
+    /**
+     * 包含的模块集合
+     *
+     * @return 只包含当前模块
+     */
     override val modules: Set<Module> get() = setOf(module)
 
+    /**
+     * 是否包含库类根目录
+     *
+     * @return false，源码作用域不包含库类
+     */
     override val includesLibraryClassRoots: Boolean get() = false
 
+    /**
+     * 是否包含库源码根目录
+     *
+     * @return false，源码作用域不包含库源码
+     */
     override val includesLibrarySourceRoots: Boolean get() = false
 
-    override fun getFileRoot(file: VirtualFile): VirtualFile? = myProjectFileIndex.getModuleSourceOrLibraryClassesRoot(file)
+    /**
+     * 获取文件的根目录
+     *
+     * 对于源码文件，返回其所属的源码根目录。
+     *
+     * ## 实现说明
+     *
+     * 使用稳定的公共 API `getSourceRootForFile` 替代内部 API `getModuleSourceOrLibraryClassesRoot`。
+     * 因为 [ModuleSourcesScope] 只包含源码根目录，所以只需要获取源码根即可。
+     *
+     * @param file 要查询的文件
+     * @return 文件所属的源码根目录，如果文件不在任何源码根目录下则返回 null
+     */
+    override fun getFileRoot(file: VirtualFile): VirtualFile? = myProjectFileIndex.getSourceRootForFile(file)
 
     override fun isSearchInModuleContent(aModule: Module): Boolean = aModule == module
 
@@ -89,8 +157,8 @@ class ModuleSourcesScope(
             ModuleSourcesScope(module, SourceRootKind.TESTS)
     }
 }
-private fun calculateRootsSet(module: Module, sourceRootKind: ModuleSourcesScope.SourceRootKind): LinkedHashSet<VirtualFile> {
-    val roots = LinkedHashSet<VirtualFile>()
+private fun calculateRootsSet(module: Module, sourceRootKind: ModuleSourcesScope.SourceRootKind): ArrayList<VirtualFile> {
+    val roots = ArrayList<VirtualFile>()
     val moduleRootManager = ModuleRootManager.getInstance(module)
 
     for (contentEntry in moduleRootManager.contentEntries) {
