@@ -24,12 +24,14 @@
 
 package org.cangnova.cangjie.moduleinfo
 
+import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.TestModuleProperties
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.SmartList
 import org.cangnova.cangjie.cache.cacheByClassInvalidatingOnRootModifications
 import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.resolve.CangJieResolveScopeEnlarger
 import org.cangnova.cangjie.utils.addIfNotNull
 
 data class ModuleTestSourceInfo internal constructor(
@@ -45,7 +47,7 @@ data class ModuleTestSourceInfo internal constructor(
     override val stableName: Name by lazy { module.stableName }
 
     override val contentScope: GlobalSearchScope
-        get() = KotlinResolveScopeEnlarger.enlargeScope(module.kotlinTestSourceScope, module, isTestScope = true)
+        get() = CangJieResolveScopeEnlarger.enlargeScope(module.kotlinTestSourceScope, module, isTestScope = true)
 
     private val Module.kotlinTestSourceScope: GlobalSearchScope
         get() = ModuleSourcesScope.tests(module)
@@ -60,7 +62,6 @@ data class ModuleTestSourceInfo internal constructor(
                 list.addIfNotNull(it.productionSourceInfo)
             }
 
-            list.addAll(list.closure { it.expectedBy })
             list.addAll(module.additionalVisibleModules.mapNotNull { additionalVisibleModule ->
                 additionalVisibleModule.productionSourceInfo ?:
                 // we should consider `testFixture` as an additional visible module for test sources
@@ -75,3 +76,14 @@ data class ModuleTestSourceInfo internal constructor(
 
 
 }
+
+val Module.additionalVisibleModules: List<Module>
+    get() = cacheInvalidatingOnRootModifications cache@{
+        val facetSettings = facetSettings ?: return@cache emptyList()
+
+        val modulesByLinkedKey = project.service<ModulesByLinkedKeyCache>()
+
+        facetSettings.additionalVisibleModuleNames.mapNotNull { moduleName ->
+            modulesByLinkedKey[moduleName]
+        }
+    }
