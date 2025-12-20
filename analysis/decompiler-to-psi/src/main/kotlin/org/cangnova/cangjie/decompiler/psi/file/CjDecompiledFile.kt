@@ -133,7 +133,6 @@ private object CompiledStubBuilder : StubBuilder {
 
             val text = """
                 // Could not decompile the file: $cause
-                // Please report an issue: https://kotl.in/issue
             """.trimIndent()
 
             CangJieFileStubImpl.forInvalid(text)

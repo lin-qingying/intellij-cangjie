@@ -75,6 +75,9 @@ class FunctionClsStubBuilder(
         createValueParameterListStub(functionStub, innerContext, functionWrapper.valueParameters)
 
         TypeClsStubBuilder(functionStub, innerContext).createTypeReferenceStub(functionWrapper.returnType)
+
+        // 创建 where 子句（类型约束列表）
+        createTypeConstraintListStub(functionStub, innerContext)
     }
 
     private fun createTypeParameterListStub(functionStub: CangJieFunctionStubImpl): ClsStubBuilderContext {
@@ -91,17 +94,40 @@ class FunctionClsStubBuilder(
         val innerContext = outerContext.child(typeParameters)
 
         for (typeParam in typeParameters) {
-            val typeParamStub = CangJieTypeParameterStubImpl(typeParamListStub, typeParam.name.ref())
-
-            val uppers = typeParam.uppers
-            if (uppers.isNotEmpty()) {
-                for (upper in uppers) {
-                    TypeClsStubBuilder(typeParamStub, innerContext).createTypeReferenceStub(upper)
-                }
-            }
+            // 只创建类型参数名称，不包含 bounds（bounds 放在 where 子句中）
+            CangJieTypeParameterStubImpl(typeParamListStub, typeParam.name.ref())
         }
 
         return innerContext
+    }
+
+    private fun createTypeConstraintListStub(functionStub: CangJieFunctionStubImpl, context: ClsStubBuilderContext) {
+        val typeParameters = functionWrapper.typeParameters
+        val constraintsToCreate = mutableListOf<Pair<Name, TypeWrapper>>()
+
+        for (typeParam in typeParameters) {
+            for (upper in typeParam.uppers) {
+                constraintsToCreate.add(Pair(typeParam.name, upper))
+            }
+        }
+
+        if (constraintsToCreate.isEmpty()) return
+
+        val constraintListStub = CangJiePlaceHolderStubImpl<CjTypeConstraintList>(
+            functionStub,
+            CjStubElementTypes.TYPE_CONSTRAINT_LIST
+        )
+
+        for ((paramName, upperBound) in constraintsToCreate) {
+            val constraintStub = CangJiePlaceHolderStubImpl<CjTypeConstraint>(
+                constraintListStub,
+                CjStubElementTypes.TYPE_CONSTRAINT
+            )
+            // 创建类型参数名称引用
+            CangJieNameReferenceExpressionStubImpl(constraintStub, paramName.ref(), false)
+            // 创建 bound 类型引用
+            TypeClsStubBuilder(constraintStub, context).createTypeReferenceStub(upperBound)
+        }
     }
 }
 

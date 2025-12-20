@@ -47,7 +47,6 @@ import com.intellij.lang.ASTNode
  * 示例：
  * ```
  * let x: Int = 42        // Int 是基本类型
- * let y: String = "hi"   // String 是基本类型
  * let z: Bool = true     // Bool 是基本类型
  * ```
  */
@@ -92,7 +91,7 @@ class CjBasicType : CjElementImplStub<CangJieBasicTypeStub>, CjTypeElement {
      *
      * 优先从 Stub 中获取（性能更好），如果 Stub 不可用则从文本中获取。
      *
-     * @return 类型名称，如 "Int"、"String"、"Bool" 等
+     * @return 类型名称，如 "Int"、"Bool" 等
      */
     override fun getName(): String {
         return stub?.basicType ?: text
