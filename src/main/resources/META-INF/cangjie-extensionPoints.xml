@@ -28,7 +28,6 @@
 
 
 
-
         <!--        Cjpm 运行配置-->
         <!--        <extensionPoint qualifiedName="org.cangnova.cangjie.runConfigurationExtension"-->
         <!--                        interface="org.cangnova.cangjie.ide.run.cjpm.runconfig.CjpmCommandConfigurationExtension"-->

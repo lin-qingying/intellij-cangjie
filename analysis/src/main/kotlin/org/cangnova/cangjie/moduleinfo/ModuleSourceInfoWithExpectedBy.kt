@@ -25,8 +25,7 @@
 package org.cangnova.cangjie.moduleinfo
 
 import org.cangnova.cangjie.cache.cacheByClassInvalidatingOnRootModifications
-import org.cangnova.cangjie.utils.SourceCangJieRootType
-import org.cangnova.cangjie.utils.TestSourceCangJieRootType
+import org.cangnova.cangjie.config.CangJieSourceRootTypes
 
 /**
  * 带 expectedBy 支持的模块源码信息基类
@@ -106,16 +105,15 @@ sealed class ModuleSourceInfoWithExpectedBy(private val forProduction: Boolean) 
      *
      * @return 模块依赖列表
      * @see ModuleDependencyCollector
-     * @see SourceCangJieRootType
-     * @see TestSourceCangJieRootType
+     * @see CangJieSourceRootTypes
      */
     override val dependencies: List<IdeaModuleInfo>
         get() = module.cacheByClassInvalidatingOnRootModifications(this::class.java) {
-            val sourceRootType = if (forProduction) SourceCangJieRootType else TestSourceCangJieRootType
+            val rootTypeId = CangJieSourceRootTypes.getSourceRootTypeId(forTests = !forProduction)
             ModuleDependencyCollector.getInstance(module.project)
                 .collectModuleDependencies(
                     module = module,
-                    sourceRootType = sourceRootType,
+                    rootTypeId = rootTypeId,
                     includeExportedDependencies = true
                 )
                 .toList()

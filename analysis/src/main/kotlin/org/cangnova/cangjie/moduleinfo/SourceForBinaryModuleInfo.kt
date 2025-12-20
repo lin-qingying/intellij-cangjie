@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.moduleinfo
 
 import com.intellij.psi.search.GlobalSearchScope
-import org.cangnova.cangjie.descriptors.ModuleOrigin
+
 
 /**
  * 二进制模块对应的源码模块信息接口

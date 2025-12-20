@@ -30,7 +30,6 @@ import com.intellij.openapi.util.Disposer.isDisposed
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.NlsSafe
 import com.intellij.serviceContainer.AlreadyDisposedException
-import org.cangnova.cangjie.descriptors.ModuleOrigin
 import org.cangnova.cangjie.resolve.PlatformDependentAnalyzerServices
 import org.cangnova.cangjie.resolve.PlatformDependentAnalyzerServicesImpl
 

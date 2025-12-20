@@ -26,6 +26,14 @@
 <ide-plugin>
     <!-- 扩展点定义 -->
     <extensionPoints>
+        <!-- 模块信息提供者扩展 -->
+        <extensionPoint
+                qualifiedName="org.cangnova.cangjie.moduleInfoProviderExtension"
+                interface="org.cangnova.cangjie.moduleinfo.provider.ModuleInfoProviderExtension"
+                area="IDEA_PROJECT"
+                dynamic="true"/>
+
+
         <!-- 分析上下文提供者扩展点 -->
         <extensionPoint qualifiedName="org.cangnova.cangjie.analysisContextProvider"
                         interface="org.cangnova.cangjie.descriptors.AnalysisContextProvider"
@@ -99,13 +107,44 @@
         <extensionPoint qualifiedName="org.cangnova.cangjie.classFileDecompiler"
                         interface="org.cangnova.cangjie.decompiler.psi.compiled.ClassFileDecompilers$Decompiler"
                         dynamic="true"/>
+
+        <!-- 解析范围扩展器扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.resolveScopeEnlarger"
+                        interface="org.cangnova.cangjie.resolve.CangJieResolveScopeEnlarger"
+                        dynamic="true"/>
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
 
+        <!-- 模块信息提供者服务 -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.moduleinfo.provider.ModuleInfoProvider"
+                serviceImplementation="org.cangnova.cangjie.moduleinfo.provider.ModuleInfoProvider"/>
+
+        <!-- 库信息缓存服务 -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.moduleinfo.cache.LibraryInfoCache"
+                serviceImplementation="org.cangnova.cangjie.moduleinfo.cache.LibraryInfoCache"/>
+        <!-- 模块信息缓存服务 -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.moduleinfo.cache.IdeaModelInfosCache"
+                serviceImplementation="org.cangnova.cangjie.moduleinfo.cache.FineGrainedIdeaModelInfosCache"/>
+
+        <!-- 模块修改追踪服务 -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.moduleinfo.util.ModuleModificationTracker"
+                serviceImplementation="org.cangnova.cangjie.moduleinfo.util.ModuleModificationTracker"/>
+
         <!-- 诊断系统初始化启动活动 -->
         <postStartupActivity implementation="org.cangnova.cangjie.diagnostics.DiagnosticInitializerStartupActivity"/>
 
+        <!-- Registry keys for cache configuration -->
+        <registryKey key="cangjie.caches.fine.grained.entity.validation"
+                     description="Enable validation checks for fine-grained entity caches"
+                     defaultValue="false"/>
+        <registryKey key="cangjie.caches.fine.grained.throttling.timeout.ms"
+                     description="Throttling timeout in milliseconds for fine-grained cache invalidation"
+                     defaultValue="0"/>
         <registryKey key="cangjie.highlighting.suppress.deprecated"
                      description="Suppress cangjie.Deprecated warning"
                      defaultValue="false"/>
@@ -176,11 +215,6 @@
         <projectService
                 serviceInterface="org.cangnova.cangjie.references.ReadWriteAccessChecker"
                 serviceImplementation="org.cangnova.cangjie.references.ReadWriteAccessCheckerDescriptorsImpl"/>
-        <!--        解析范围-->
-        <extensionPoint qualifiedName="org.cangnova.cangjie.resolveScopeEnlarger"
-                        dynamic="true"
-                        interface="org.cangnova.cangjie.resolve.CangJieResolveScopeEnlarger"/>
-
 
         <projectService
                 serviceInterface="org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService"

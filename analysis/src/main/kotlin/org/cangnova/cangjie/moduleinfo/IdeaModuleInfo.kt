@@ -27,7 +27,6 @@ package org.cangnova.cangjie.moduleinfo
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.descriptors.ModuleCapability
-import org.cangnova.cangjie.descriptors.ModuleOrigin
 import org.cangnova.cangjie.toolchain.api.CjSdk
 import org.cangnova.cangjie.utils.firstIsInstanceOrNull
 
@@ -240,7 +239,7 @@ interface IdeaModuleInfo : ModuleInfo {
      * @return IntelliJ 项目实例
      * @see Project
      */
-    override val project: Project
+      val project: Project
 
     /**
      * 模块能力映射

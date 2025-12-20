@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.moduleinfo
+package org.cangnova.cangjie.moduleinfo.cache
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
@@ -39,16 +39,19 @@ import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.concurrency.annotations.RequiresReadLock
+import org.cangnova.cangjie.moduleinfo.LibraryInfo
+import org.cangnova.cangjie.moduleinfo.checkValidity
 import org.cangnova.cangjie.utils.safeAs
 import org.jetbrains.annotations.TestOnly
-import kotlin.sequences.forEach
+import kotlin.collections.forEach
+import kotlin.collections.toMap
 
 interface LibraryDependenciesCache {
     companion object {
         fun getInstance(project: Project): LibraryDependenciesCache = project.service()
     }
 
-    fun getLibraryDependencies(library: LibraryInfo): LibraryDependencies
+    fun getLibraryDependencies(library: org.cangnova.cangjie.moduleinfo.LibraryInfo): LibraryDependencies
 
     /**
      * 库依赖信息
@@ -59,13 +62,13 @@ interface LibraryDependenciesCache {
      * @param libraries 包含自身在内的所有库依赖列表
      */
     class LibraryDependencies(
-        val library: LibraryInfo,
-        val libraries: List<LibraryInfo>,
+        val library: org.cangnova.cangjie.moduleinfo.LibraryInfo,
+        val libraries: List<org.cangnova.cangjie.moduleinfo.LibraryInfo>,
     ) {
         /**
          * 不包含自身的库依赖列表
          */
-        val librariesWithoutSelf: List<LibraryInfo> by lazy { libraries - library }
+        val librariesWithoutSelf: List<org.cangnova.cangjie.moduleinfo.LibraryInfo> by lazy { libraries - library }
 
         /**
          * 检查所有库的有效性
@@ -96,12 +99,12 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
         Disposer.register(this, moduleDependenciesCache)
     }
 
-    override fun getLibraryDependencies(library: LibraryInfo): LibraryDependenciesCache.LibraryDependencies = cache[library]
+    override fun getLibraryDependencies(library: org.cangnova.cangjie.moduleinfo.LibraryInfo): LibraryDependenciesCache.LibraryDependencies = cache[library]
 
     override fun dispose() = Unit
 
     @TestOnly
-    fun getCacheContentForTests(): Map<LibraryInfo, LibraryDependenciesCache.LibraryDependencies> {
+    fun getCacheContentForTests(): Map<org.cangnova.cangjie.moduleinfo.LibraryInfo, LibraryDependenciesCache.LibraryDependencies> {
         return cache.getCacheContentForTests().toMap()
     }
 
@@ -111,7 +114,7 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
      * @param libraryInfo 要计算依赖的库信息
      * @return 库依赖信息
      */
-    private fun computeLibrariesAndSdksUsedWith(libraryInfo: LibraryInfo): LibraryDependenciesCache.LibraryDependencies {
+    private fun computeLibrariesAndSdksUsedWith(libraryInfo: org.cangnova.cangjie.moduleinfo.LibraryInfo): LibraryDependenciesCache.LibraryDependencies {
         val libraryDependencyCandidatesAndSdkInfos = computeLibrariesUsedWithNoFilter(libraryInfo)
 
         val libraries = libraryDependencyCandidatesAndSdkInfos.libraryDependencyCandidates.flatMap { it.libraries }
@@ -128,10 +131,10 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
      * @param libraryInfo 要计算依赖的库信息
      * @return 库依赖候选项和 SDK 信息
      */
-    private fun computeLibrariesUsedWithNoFilter(libraryInfo: LibraryInfo): LibraryDependencyCandidatesInfos {
+    private fun computeLibrariesUsedWithNoFilter(libraryInfo: org.cangnova.cangjie.moduleinfo.LibraryInfo): LibraryDependencyCandidatesInfos {
         val libraryDependencyCandidatesAndSdkInfos = LibraryDependencyCandidatesInfosBuilder()
 
-        val modulesLibraryIsUsedIn = project.service<LibraryUsageIndex>().getDependentModules(libraryInfo)
+        val modulesLibraryIsUsedIn = project.service<org.cangnova.cangjie.moduleinfo.LibraryUsageIndex>().getDependentModules(libraryInfo)
 
         for (module in modulesLibraryIsUsedIn) {
             checkCanceled()
@@ -150,26 +153,26 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
      */
     private inner class LibraryDependenciesInnerCache :
         SynchronizedFineGrainedEntityCache<LibraryInfo, LibraryDependenciesCache.LibraryDependencies>(project, doSelfInitialization = false, cleanOnLowMemory = true),
-        LibraryInfoListener,
+        org.cangnova.cangjie.moduleinfo.LibraryInfoListener,
         ModuleRootListener {
 
         override fun subscribe() {
             val connection = project.messageBus.connect(this)
-            connection.subscribe(LibraryInfoListener.TOPIC, this)
+            connection.subscribe(_root_ide_package_.org.cangnova.cangjie.moduleinfo.LibraryInfoListener.Companion.TOPIC, this)
             connection.subscribe(ModuleRootListener.TOPIC, this)
         }
 
-        override fun libraryInfosRemoved(libraryInfos: Collection<LibraryInfo>) {
+        override fun libraryInfosRemoved(libraryInfos: Collection<org.cangnova.cangjie.moduleinfo.LibraryInfo>) {
             fun LibraryDependenciesCache.LibraryDependencies.haveOutdatedLibraries() =
                 libraries.any { it in libraryInfos }
 
             invalidateEntries({ k, v -> k in libraryInfos || v.haveOutdatedLibraries() })
         }
 
-        override fun calculate(key: LibraryInfo): LibraryDependenciesCache.LibraryDependencies =
+        override fun calculate(key: org.cangnova.cangjie.moduleinfo.LibraryInfo): LibraryDependenciesCache.LibraryDependencies =
             computeLibrariesAndSdksUsedWith(key)
 
-        override fun checkKeyValidity(key: LibraryInfo) {
+        override fun checkKeyValidity(key: org.cangnova.cangjie.moduleinfo.LibraryInfo) {
             key.checkValidity()
         }
 
@@ -195,12 +198,12 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
      */
     private inner class ModuleDependenciesCache :
         SynchronizedFineGrainedEntityCache<Module, LibraryDependencyCandidatesInfos>(project, doSelfInitialization = false),
-        LibraryInfoListener,
+        org.cangnova.cangjie.moduleinfo.LibraryInfoListener,
         ModuleRootListener {
 
         override fun subscribe() {
             val connection = project.messageBus.connect(this)
-            connection.subscribe(LibraryInfoListener.TOPIC, this)
+            connection.subscribe(_root_ide_package_.org.cangnova.cangjie.moduleinfo.LibraryInfoListener.Companion.TOPIC, this)
             connection.subscribe(ModuleRootListener.TOPIC, this)
         }
 
@@ -311,7 +314,7 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
                     override fun visitLibraryOrderEntry(libraryOrderEntry: LibraryOrderEntry, value: Unit) {
                         checkCanceled()
                         val libraryEx = libraryOrderEntry.library.safeAs<LibraryEx>()?.takeUnless { it.isDisposed } ?: return
-                        val candidate = LibraryDependencyCandidate.fromLibraryOrNull(infoCache[libraryEx]) ?: return
+                        val candidate = _root_ide_package_.org.cangnova.cangjie.moduleinfo.LibraryDependencyCandidate.Companion.fromLibraryOrNull(infoCache[libraryEx]) ?: return
                         libraryDependencyCandidatesAndSdkInfos += candidate
                     }
                 }, Unit)
@@ -413,7 +416,7 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
             invalidate(writeAccessRequired = true)
         }
 
-        override fun libraryInfosRemoved(libraryInfos: Collection<LibraryInfo>) {
+        override fun libraryInfosRemoved(libraryInfos: Collection<org.cangnova.cangjie.moduleinfo.LibraryInfo>) {
             val infos = libraryInfos.toHashSet()
             invalidateEntries(
                 { _, v ->
@@ -428,17 +431,17 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
 
 
 private open class LibraryDependencyCandidatesInfos(
-    open val libraryDependencyCandidates: Collection<LibraryDependencyCandidate>,
+    open val libraryDependencyCandidates: Collection<org.cangnova.cangjie.moduleinfo.LibraryDependencyCandidate>,
 ) {
     override fun toString(): String {
         return "[${Integer.toHexString(System.identityHashCode(this))}] libraryDependencyCandidates: ${
-            libraryDependencyCandidates.map { it.libraries.map(LibraryInfo::name) }
+            libraryDependencyCandidates.map { it.libraries.map(_root_ide_package_.org.cangnova.cangjie.moduleinfo.LibraryInfo::name) }
         } "
     }
 }
 
 private class LibraryDependencyCandidatesInfosBuilder(
-    override val libraryDependencyCandidates: MutableSet<LibraryDependencyCandidate> = linkedSetOf(),
+    override val libraryDependencyCandidates: MutableSet<org.cangnova.cangjie.moduleinfo.LibraryDependencyCandidate> = linkedSetOf(),
 ): LibraryDependencyCandidatesInfos(libraryDependencyCandidates) {
     operator fun plusAssign(other: LibraryDependencyCandidatesInfosBuilder) {
         libraryDependencyCandidates += other.libraryDependencyCandidates
@@ -448,7 +451,7 @@ private class LibraryDependencyCandidatesInfosBuilder(
         libraryDependencyCandidates += other.libraryDependencyCandidates
     }
 
-    operator fun plusAssign(libraryDependencyCandidate: LibraryDependencyCandidate) {
+    operator fun plusAssign(libraryDependencyCandidate: org.cangnova.cangjie.moduleinfo.LibraryDependencyCandidate) {
         libraryDependencyCandidates += libraryDependencyCandidate
     }
 
@@ -459,7 +462,7 @@ private class LibraryDependencyCandidatesInfosBuilder(
 
     override fun toString(): String {
         return "builder [${Integer.toHexString(System.identityHashCode(this))}] libraryDependencyCandidates: ${
-            libraryDependencyCandidates.map { it.libraries.map(LibraryInfo::name) }
+            libraryDependencyCandidates.map { it.libraries.map(_root_ide_package_.org.cangnova.cangjie.moduleinfo.LibraryInfo::name) }
         }  "
     }
 }

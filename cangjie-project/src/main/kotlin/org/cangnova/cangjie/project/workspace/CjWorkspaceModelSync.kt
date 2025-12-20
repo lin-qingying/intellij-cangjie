@@ -29,14 +29,20 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.workspace.jps.entities.*
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.MutableEntityStorage
+import com.intellij.platform.workspace.storage.SymbolicEntityId
 import com.intellij.platform.workspace.storage.url.VirtualFileUrl
+import com.intellij.psi.PsiFile
+import org.cangnova.cangjie.config.CangJieSourceRootTypes
+import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.project.model.*
 import org.cangnova.cangjie.project.service.CjDependencyService
+import org.cangnova.cangjie.psi.NotNullableUserDataProperty
 import java.io.File
 
 /**
@@ -428,7 +434,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
             val expectedSourceRoots = cjModule.sourceSets.flatMap { sourceSet ->
                 sourceSet.roots.map { root ->
                     val url = urlManager.getOrCreateFromUrl(root.url)
-                    val typeId = if (sourceSet.isTest) "java-test-resource" else "java-source"
+                    val typeId = if (sourceSet.isTest)  CangJieSourceRootTypes.TEST else CangJieSourceRootTypes.SOURCE
                     url.url to typeId
                 }
             }.toSet()
@@ -640,9 +646,9 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                         for (sourceRoot in sourceSet.roots) {
                             val sourceRootUrl = urlManager.getOrCreateFromUrl(sourceRoot.url)
                             val rootType = if (sourceSet.isTest) {
-                                SourceRootTypeId("java-test-resource")
+                                SourceRootTypeId(CangJieSourceRootTypes.TEST)
                             } else {
-                                SourceRootTypeId("java-source")
+                                SourceRootTypeId(CangJieSourceRootTypes.SOURCE)
                             }
 
                             sourceRootBuilders.add(
@@ -780,9 +786,9 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                         for (sourceRoot in sourceSet.roots) {
                             val sourceRootUrl = urlManager.getOrCreateFromUrl(sourceRoot.url)
                             val rootType = if (sourceSet.isTest) {
-                                SourceRootTypeId("java-test-resource")
+                                SourceRootTypeId(CangJieSourceRootTypes.TEST)
                             } else {
-                                SourceRootTypeId("java-source")
+                                SourceRootTypeId(CangJieSourceRootTypes.SOURCE)
                             }
 
                             sourceRootBuilders.add(
@@ -893,11 +899,14 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
 
                 if (resolvedPackage is CjPackage.Path) {
                     // 创建 LibraryEntity 和 LibraryDependency
+                    // 计算完整的模块名称（用于 ModuleLibraryTableId）
+                    val fullModuleName = "$moduleNamePrefix${cjModule.name}"
                     val libraryDependency = createLibraryDependency(
                         builder,
                         pathDep,
                         resolvedPackage,
-                        entitySource
+                        entitySource,
+                        fullModuleName
                     )
                     if (libraryDependency != null) {
                         libraryDeps.add(libraryDependency)
@@ -910,7 +919,9 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
         }
 
         // 2. 处理外部库依赖（Library, Git, Stdlib）
-        val externalLibs = buildLibraryDependencies(builder, cjModule, dependencyGraph, entitySource)
+        // 计算完整的模块名称（用于 ModuleLibraryTableId）
+        val fullModuleName = "$moduleNamePrefix${cjModule.name}"
+        val externalLibs = buildLibraryDependencies(builder, cjModule, dependencyGraph, entitySource, fullModuleName)
         libraryDeps.addAll(externalLibs)
 
         return Pair(moduleDeps, libraryDeps)
@@ -928,18 +939,20 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
      * @param cjModule 仓颉模块
      * @param dependencyGraph 依赖图（可选）
      * @param entitySource 实体源
+     * @param moduleName 当前模块名称（用于创建 ModuleLibraryTableId）
      * @return LibraryDependency 列表
      */
     private suspend fun buildLibraryDependencies(
         builder: MutableEntityStorage,
         cjModule: CjModule,
         dependencyGraph: ResolvedGraph?,
-        entitySource: EntitySource
+        entitySource: EntitySource,
+        moduleName: String
     ): List<LibraryDependency> {
         return if (dependencyGraph != null) {
-            buildLibraryDependenciesFromGraph(builder, cjModule, dependencyGraph, entitySource)
+            buildLibraryDependenciesFromGraph(builder, cjModule, dependencyGraph, entitySource, moduleName)
         } else {
-            buildLibraryDependenciesLegacy(builder, cjModule, entitySource)
+            buildLibraryDependenciesLegacy(builder, cjModule, entitySource, moduleName)
         }
     }
 
@@ -952,7 +965,8 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
         builder: MutableEntityStorage,
         cjModule: CjModule,
         dependencyGraph: ResolvedGraph,
-        entitySource: EntitySource
+        entitySource: EntitySource,
+        moduleName: String
     ): List<LibraryDependency> {
         val dependencies = mutableListOf<LibraryDependency>()
 
@@ -986,7 +1000,8 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                     builder,
                     directDep?.declaration ?: createDefaultDependency(depPackage, cjModule),
                     depPackage,
-                    entitySource
+                    entitySource,
+                    moduleName
                 )
 
                 if (libraryDependency != null) {
@@ -1075,7 +1090,8 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
     private suspend fun buildLibraryDependenciesLegacy(
         builder: MutableEntityStorage,
         cjModule: CjModule,
-        entitySource: EntitySource
+        entitySource: EntitySource,
+        moduleName: String
     ): List<LibraryDependency> {
         LOG.warn("Using legacy dependency resolution (no dependency graph available)")
         val dependencies = mutableListOf<LibraryDependency>()
@@ -1099,7 +1115,8 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                         builder,
                         dependency,
                         resolved,
-                        entitySource
+                        entitySource,
+                        moduleName
                     )
 
                     if (libraryDependency != null) {
@@ -1123,31 +1140,47 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
      *
      * 根据已解析的依赖信息创建 LibraryEntity 和 LibraryDependency。
      *
+     * ## LibraryTableId 选择策略
+     * - Stdlib 依赖：使用 ProjectLibraryTableId（项目级库，所有模块共享）
+     * - 其他依赖（Git, Path, Binary 等）：使用 ModuleLibraryTableId（模块级库）
+     *
      * @param builder 可变的实体存储构建器
      * @param dependency 原始依赖
      * @param resolved 已解析的依赖
      * @param entitySource 实体源
+     * @param moduleName 当前模块名称（用于创建 ModuleLibraryTableId）
      * @return LibraryDependency 或 null（如果创建失败）
      */
     private fun createLibraryDependency(
         builder: MutableEntityStorage,
         dependency: CjDependency,
         resolved: CjPackage,
-        entitySource: EntitySource
+        entitySource: EntitySource,
+        moduleName: String
     ): LibraryDependency? {
         val urlManager = WorkspaceModel.getInstance(intellijProject).getVirtualFileUrlManager()
 
         // 生成库的唯一名称
         val libraryName = resolved.id.toString()
 
+        // 根据依赖类型选择 LibraryTableId
+        // - Stdlib 使用 ProjectLibraryTableId（项目级库，所有模块共享）
+        // - 其他依赖使用 ModuleLibraryTableId（模块级库）
+        val isStdlib = resolved is CjPackage.Stdlib
+        val libraryTableId: LibraryTableId = if (isStdlib) {
+            LibraryTableId.ProjectLibraryTableId
+        } else {
+            LibraryTableId.ModuleLibraryTableId(ModuleId(moduleName))
+        }
+
         // 检查库是否已存在
         val existingLibrary = builder.entities(LibraryEntity::class.java)
-            .firstOrNull { it.name == libraryName }
+            .firstOrNull { it.name == libraryName && it.tableId == libraryTableId }
 
         if (existingLibrary != null) {
             // 库已存在，直接创建依赖引用
             return LibraryDependency(
-                library = LibraryId(libraryName, LibraryTableId.ProjectLibraryTableId),
+                library = LibraryId(libraryName, libraryTableId),
                 exported = false,
                 scope = mapDependencyScope(dependency.scope)
             )
@@ -1242,17 +1275,17 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
         builder.addEntity(
             LibraryEntity(
                 name = libraryName,
-                tableId = LibraryTableId.ProjectLibraryTableId,
+                tableId = libraryTableId,
                 roots = classesRoots + sourcesRoots + javadocRoots,
                 entitySource = entitySource
             )
         )
 
-        LOG.info("Created library entity: $libraryName with ${classesRoots.size} classes, ${sourcesRoots.size} sources, ${javadocRoots.size} docs")
+        LOG.info("Created library entity: $libraryName (tableId=${if (isStdlib) "Project" else "Module:$moduleName"}) with ${classesRoots.size} classes, ${sourcesRoots.size} sources, ${javadocRoots.size} docs")
 
         // 返回库依赖
         return LibraryDependency(
-            library = LibraryId(libraryName, LibraryTableId.ProjectLibraryTableId),
+            library = LibraryId(libraryName, libraryTableId),
             exported = false,
             scope = mapDependencyScope(dependency.scope)
         )
@@ -1367,3 +1400,6 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
 
 
 }
+
+val LIBRARY_ID_MODULENAME  = Key<Name>("libraryId.moduleName")
+

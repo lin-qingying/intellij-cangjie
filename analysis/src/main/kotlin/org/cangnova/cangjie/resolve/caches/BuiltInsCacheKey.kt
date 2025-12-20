@@ -24,7 +24,8 @@
 
 package org.cangnova.cangjie.resolve.caches
 
-import org.cangnova.cangjie.descriptors.AnalysisContext
+
+import org.cangnova.cangjie.moduleinfo.ModuleInfo
 
 interface BuiltInsCacheKey {
     object DefaultBuiltInsKey : BuiltInsCacheKey
@@ -54,7 +55,7 @@ interface BuiltInsCacheKey {
  * @see BuiltInsCacheKey
  * @see AnalysisContext
  */
-class CangJieModuleBuiltInsKey(private val context: AnalysisContext) : BuiltInsCacheKey {
+class CangJieModuleBuiltInsKey(private val context: ModuleInfo) : BuiltInsCacheKey {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is CangJieModuleBuiltInsKey) return false
@@ -71,7 +72,7 @@ class CangJieModuleBuiltInsKey(private val context: AnalysisContext) : BuiltInsC
 }
 
 private var _builtinsKey: CangJieModuleBuiltInsKey? = null
-fun AnalysisContext.getKeyForBuiltIns(): BuiltInsCacheKey {
+fun ModuleInfo.getKeyForBuiltIns(): BuiltInsCacheKey {
 //    if (_builtinsKey == null) {
 //        _builtinsKey = CangJieModuleBuiltInsKey(this)
 //    }

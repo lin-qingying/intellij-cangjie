@@ -27,7 +27,6 @@ package org.cangnova.cangjie.resolve.caches
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.context.ProjectContext
 import org.cangnova.cangjie.context.withModule
-import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.ProjectDescriptor
 import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
@@ -45,6 +44,8 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.search.GlobalSearchScope
+import org.cangnova.cangjie.moduleinfo.IdeaModuleInfo
+import org.cangnova.cangjie.moduleinfo.ModuleInfo
 import java.util.*
 
 /**
@@ -88,7 +89,7 @@ import java.util.*
  * @param syntheticFiles 模块包含的合成文件集合
  * @param moduleContentScope 模块的全局搜索作用域
  */
-data class ModuleContent<out M : AnalysisContext>(
+data class ModuleContent<out M : ModuleInfo>(
     val context: M,
     val syntheticFiles: Collection<CjFile>,
     val moduleContentScope: GlobalSearchScope
@@ -239,12 +240,12 @@ class IdeaResolverForProject(
     debugName: String,
     projectContext: ProjectContext,
     projectDescriptor: ProjectDescriptor,
-    modules: Collection<AnalysisContext>,
-    private val syntheticFilesByModule: Map<AnalysisContext, Collection<CjFile>>,
-    delegateResolver: ResolverForProject<AnalysisContext>,
+    modules: Collection<IdeaModuleInfo>,
+    private val syntheticFilesByModule: Map<IdeaModuleInfo, Collection<CjFile>>,
+    delegateResolver: ResolverForProject<IdeaModuleInfo>,
     fallbackModificationTracker: ModificationTracker? = null,
 
-    ) : AbstractResolverForProject<AnalysisContext>(
+    ) : AbstractResolverForProject<IdeaModuleInfo>(
 
     debugName,
     projectContext,
@@ -284,7 +285,7 @@ class IdeaResolverForProject(
      * @param context 模块的分析上下文
      * @return 模块解析器工厂实例
      */
-    private fun getResolverForModuleFactory(context: AnalysisContext): ResolverForModuleFactory {
+    private fun getResolverForModuleFactory(context: ModuleInfo): ResolverForModuleFactory {
 
 
         return CangJieResolverForModuleFactory()
@@ -314,8 +315,8 @@ class IdeaResolverForProject(
      * @param module 目标模块的分析上下文
      * @return 模块内容，包含上下文、合成文件和作用域
      */
-    override fun modulesContent(module: AnalysisContext): ModuleContent<AnalysisContext> =
-        ModuleContent(module, syntheticFilesByModule[module] ?: emptyList(), module.scope)
+    override fun modulesContent(module: IdeaModuleInfo): ModuleContent<IdeaModuleInfo> =
+        ModuleContent(module, syntheticFilesByModule[module] ?: emptyList(), module.contentScope)
 
     /**
      * 创建模块解析器
@@ -425,10 +426,10 @@ class IdeaResolverForProject(
      * @see CangJieResolverForModuleFactory
      * @see LanguageSettingsProvider
      */
-    override fun createResolverForModule(descriptor: ModuleDescriptor, context: AnalysisContext): ResolverForModule {
+    override fun createResolverForModule(descriptor: ModuleDescriptor, context: IdeaModuleInfo): ResolverForModule {
         // 1. 构建模块内容：包含分析上下文、合成文件和搜索作用域
         val moduleContent =
-            ModuleContent(context, syntheticFilesByModule[context] ?: listOf(), context.scope)
+            ModuleContent(context, syntheticFilesByModule[context] ?: listOf(), context.contentScope)
 
         val project = projectContext.project
 

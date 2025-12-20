@@ -42,7 +42,7 @@ import com.intellij.workspaceModel.ide.legacyBridge.findLibraryEntity
  * 1. **统一实现**: 所有库都使用这个统一的实现类
  * 2. **工作空间集成**: 关联到 IntelliJ 工作空间模型，支持增量同步
  * 3. **实体源跟踪**: 记录库的来源（项目、模块、外部等）
- * 4. **缓存支持**: 通过 [LibraryInfoCache] 进行缓存和去重
+ * 4. **缓存支持**: 通过 [org.cangnova.cangjie.moduleinfo.cache.LibraryInfoCache] 进行缓存和去重
  *
  * ## 核心特性
  *
@@ -52,7 +52,7 @@ import com.intellij.workspaceModel.ide.legacyBridge.findLibraryEntity
  * - 支持增量更新和智能缓存失效
  *
  * ### 2. 内部构造函数
- * - 构造函数被标记为 `internal`，只能通过 [LibraryInfoCache] 创建
+ * - 构造函数被标记为 `internal`，只能通过 [org.cangnova.cangjie.moduleinfo.cache.LibraryInfoCache] 创建
  * - 确保所有库信息都经过缓存，避免重复实例
  *
  * ## 使用场景
@@ -129,7 +129,7 @@ import com.intellij.workspaceModel.ide.legacyBridge.findLibraryEntity
  * @param library IntelliJ 库对象（LibraryEx）
  *
  * @see LibraryInfo
- * @see LibraryInfoCache
+ * @see org.cangnova.cangjie.moduleinfo.cache.LibraryInfoCache
  * @see IdeaModuleInfo
  * @see BinaryModuleInfo
  */

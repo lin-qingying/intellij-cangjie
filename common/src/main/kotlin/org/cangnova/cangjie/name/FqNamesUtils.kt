@@ -29,3 +29,14 @@ fun FqName.parentOrNull(): FqName? = if (this.isRoot) null else parent()
 
 fun FqName.isOneSegmentFQN(): Boolean = !isRoot && parent().isRoot
 fun FqName.isChildOf(packageName: FqName): Boolean = parentOrNull() == packageName
+
+fun FqName.isSubpackageOf(packageName: FqName): Boolean {
+    return when {
+        this == packageName -> true
+        packageName.isRoot -> true
+        else -> org.cangnova.cangjie.name.isSubpackageOf(this.asString(), packageName.asString())
+    }
+}
+private fun isSubpackageOf(subpackageNameStr: String, packageNameStr: String): Boolean {
+    return subpackageNameStr.startsWith(packageNameStr) && subpackageNameStr[packageNameStr.length] == '.'
+}

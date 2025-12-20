@@ -26,13 +26,13 @@ package org.cangnova.cangjie.resolve.caches
 
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
-import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
+import org.cangnova.cangjie.moduleinfo.IdeaModuleInfo
 import org.cangnova.cangjie.resolve.scopes.optimization.OptimizingOptions
 
 
 interface ResolveOptimizingOptionsProvider {
-    fun getOptimizingOptions(project: Project, descriptor: ModuleDescriptor, context: AnalysisContext): OptimizingOptions?
+    fun getOptimizingOptions(project: Project, descriptor: ModuleDescriptor, context: IdeaModuleInfo): OptimizingOptions?
 
     companion object {
         val EP_NAME =
@@ -41,7 +41,7 @@ interface ResolveOptimizingOptionsProvider {
         fun getOptimizingOptions(
             project: Project,
             descriptor: ModuleDescriptor,
-            context: AnalysisContext
+            context: IdeaModuleInfo
         ): OptimizingOptions? {
             return EP_NAME.extensions.firstNotNullOfOrNull { extension ->
                 extension.getOptimizingOptions(project, descriptor, context)

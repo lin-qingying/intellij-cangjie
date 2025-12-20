@@ -107,9 +107,10 @@ include("debugger:common")
 
 include("analysis")
 include("analysis:decompiler-to-psi")
-include("analysis:project-bridge")
+
 
 include("analysis:diagnostics")
 
 include("psi:stubindex")
 include("highlighter")
+include("chir")

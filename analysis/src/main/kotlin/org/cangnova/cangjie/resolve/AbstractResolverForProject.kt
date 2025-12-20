@@ -89,20 +89,21 @@ package org.cangnova.cangjie.resolve
  */
 
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.util.ModificationTracker
-import org.cangnova.cangjie.builtins.BuiltInsLoader
-import org.cangnova.cangjie.builtins.CangJieBuiltIns
+import com.intellij.platform.workspace.jps.entities.LibraryId
+import com.intellij.workspaceModel.ide.impl.legacyBridge.library.LibraryBridge
 import org.cangnova.cangjie.builtins.StandardNames.STD_PACKAGE_NAME
 import org.cangnova.cangjie.context.ProjectContext
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.descriptors.impl.LibraryModuleDescriptorImpl
+import org.cangnova.cangjie.descriptors.impl.StdlibModuleDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.ProjectDescriptorImpl
+import org.cangnova.cangjie.moduleinfo.LibraryInfo
+import org.cangnova.cangjie.moduleinfo.ModuleInfo
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.caches.ModuleContent
-import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
 import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
 
@@ -190,7 +191,7 @@ import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
  *
  * ## 错误处理
  *
- * - 如果请求未知的上下文，会调用 [diagnoseUnknownContext] 生成详细的错误报告
+ * - 如果请求未知的上下文，会调用 [diagnoseUnknownModuleInfo] 生成详细的错误报告
  * - 如果解析器已被释放，会抛出 [InvalidResolverException]
  *
  * @see ResolverForProject
@@ -199,7 +200,7 @@ import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
  * @see ResolverForModule
  * @see Disposable
  */
-abstract class AbstractResolverForProject<M : AnalysisContext>(
+abstract class AbstractResolverForProject<M : ModuleInfo>(
 
     private val debugName: String,
     protected val projectContext: ProjectContext,
@@ -376,7 +377,9 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
      * @param contexts 未知的上下文列表
      * @throws CangJieExceptionWithAttachmentsImpl 带有诊断信息的异常
      */
-    override fun diagnoseUnknownContext(contexts: List<AnalysisContext>): Nothing {
+
+
+    override fun diagnoseUnknownModuleInfo(contexts: List<ModuleInfo>): Nothing {
         DiagnoseUnknownContextReporter.report(name, contexts, allModules)
 
     }
@@ -442,7 +445,7 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
      * @return true 如果上下文有效
      */
     private fun isCorrectContext(context: M): Boolean =
-        ((context as? DerivedAnalysisContext)?.originalContext ?: context) in allModules
+        ((context as? DerivedModuleInfo)?.originalModuleInfo ?: context) in allModules
 
     private fun recreateModuleDescriptor(module: M): ModuleData {
         val oldDescriptor = descriptorByModule[module]?.moduleDescriptor
@@ -458,19 +461,26 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
         return moduleData
     }
 
+    protected open fun getAdditionalCapabilities(): Map<ModuleCapability<*>, Any?> = emptyMap()
+
     private fun createModuleDescriptor(module: M): ModuleData {
 
         // 特殊处理：如果是 stdlib 模块且 ProjectDescriptorImpl 中已提前创建，则直接使用
-        if (module.moduleName == STD_PACKAGE_NAME && projectDescriptor is ProjectDescriptorImpl) {
+        if (((module as? LibraryInfo)?.library?.isStdlib() == true || module.name == STD_PACKAGE_NAME) && projectDescriptor is ProjectDescriptorImpl) {
             try {
                 val existingStdlibModule = projectDescriptor.stdlibModule
                 // 检查是否已经在 contextByDescriptor 中注册
                 if (existingStdlibModule !in contextByDescriptor) {
+                    //                将module中的模块能力补全到existingStdlibModule
+                    module.capabilities.forEach {
+                        existingStdlibModule.addCapability(it.key, it.value)
+                    }
                     contextByDescriptor[existingStdlibModule] = module
                 }
 
+
                 val modificationTracker =
-                    (module as? TrackableAnalysisContext)?.createModificationTracker() ?: fallbackModificationTracker
+                    (module as? TrackableModuleInfo)?.createModificationTracker() ?: fallbackModificationTracker
 
                 return ModuleData(existingStdlibModule, modificationTracker)
             } catch (e: Exception) {
@@ -481,7 +491,7 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
 
         // 在创建新模块之前，先移除旧的同名模块（支持模块刷新场景）
         // 注意：对于 stdlib，如果上面的逻辑成功，不会执行到这里
-        val moduleName = module.moduleName
+        val moduleName = module.name
         if (projectDescriptor is ProjectDescriptorImpl) {
             // 不要移除 stdlib 模块，因为它已经在 ProjectDescriptorImpl.init 中创建
             if (moduleName != STD_PACKAGE_NAME) {
@@ -489,33 +499,21 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
             }
         }
 
-        val moduleDescriptor = when {
-            module.isLibraryContext -> LibraryModuleDescriptorImpl(
-                projectDescriptor,
-                module.moduleName,
-                module.contextId,
-
-                projectContext.storageManager,
-                mapOf(AnalysisContextCapability to module),
-                null
-            )
-
-            else -> ModuleDescriptorImpl(
-                projectDescriptor,
-                module.moduleName,
-                module.contextId,
-                projectContext.storageManager,
-                mapOf(AnalysisContextCapability to module),
-                null // stableName
-                // isBuiltInsModule
-            )
-        }
+        val moduleDescriptor = ModuleDescriptorImpl(
+            projectDescriptor,
+            module.name,
+            module.displayedName,
+            projectContext.storageManager,
+            module.capabilities + getAdditionalCapabilities(),
+            null // stableName
+            // isBuiltInsModule
+        )
         contextByDescriptor[moduleDescriptor] = module
 
 
         setupModuleDescriptor(module, moduleDescriptor)
         val modificationTracker =
-            (module as? TrackableAnalysisContext)?.createModificationTracker() ?: fallbackModificationTracker
+            (module as? TrackableModuleInfo)?.createModificationTracker() ?: fallbackModificationTracker
         return ModuleData(moduleDescriptor, modificationTracker)
     }
 
@@ -525,7 +523,7 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
 
         // 特殊处理：如果 moduleDescriptor 是从 ProjectDescriptorImpl 复用的 stdlib，跳过初始化
         // 因为它已经在 ProjectDescriptorImpl.createStdlibModule() 中完成了初始化
-        if (module.moduleName == STD_PACKAGE_NAME
+        if (module.name == STD_PACKAGE_NAME
             && projectDescriptor is ProjectDescriptorImpl
             && moduleDescriptor === projectDescriptor.stdlibModule
         ) {
@@ -540,9 +538,9 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
             LazyModuleDependencies(
                 projectContext.storageManager,
                 module,
-              null,
-                this
-                ,instantiatedDependencies = listOf(projectDescriptor.stdlibModule)
+                null,
+                this,
+                instantiatedDependencies = listOf(projectDescriptor.stdlibModule)
             )
         )
 
@@ -571,7 +569,7 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
      * @return PackageFragmentProvider
      */
     private fun loadPackageFragmentProvider(
-        moduleDescriptor: LibraryModuleDescriptorImpl,
+        moduleDescriptor: StdlibModuleDescriptorImpl,
         content: ModuleContent<M>,
         module: M
     ): PackageFragmentProvider {
@@ -594,7 +592,7 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
      * 检查模块上下文是否正确
      *
      * 验证请求的上下文是否在此解析器管理的模块列表中。
-     * 如果上下文不在 [allModules] 中，会调用 [diagnoseUnknownContext] 生成详细的错误报告。
+     * 如果上下文不在 [allModules] 中，会调用 [diagnoseUnknownModuleInfo] 生成详细的错误报告。
      *
      * ## 调用时机
      *
@@ -604,7 +602,7 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
      *
      * ## 错误场景
      *
-     * 当此方法检测到无效上下文时，会触发 [diagnoseUnknownContext]，导致异常：
+     * 当此方法检测到无效上下文时，会触发 [diagnoseUnknownModuleInfo]，导致异常：
      * ```
      * CangJieExceptionWithAttachmentsImpl:
      *   Resolver for 'completion/highlighting in ...' does not know how to resolve
@@ -623,7 +621,7 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
      *   ↓
      * isCorrectContext(context)?
      *   ↓ (false - 上下文无效)
-     * diagnoseUnknownContext(listOf(context))
+     * diagnoseUnknownModuleInfo(listOf(context))
      *   ↓
      * DiagnoseUnknownContextReporter.report()
      *   ↓
@@ -656,12 +654,12 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
      * @throws CangJieExceptionWithAttachmentsImpl 如果上下文不在 [allModules] 中
      *
      * @see isCorrectContext
-     * @see diagnoseUnknownContext
+     * @see diagnoseUnknownModuleInfo
      * @see DiagnoseUnknownContextReporter
      */
     private fun checkModuleIsCorrect(context: M) {
         if (!isCorrectContext(context)) {
-            diagnoseUnknownContext(listOf(context))
+            diagnoseUnknownModuleInfo(listOf(context))
         }
     }
 
@@ -673,7 +671,7 @@ abstract class AbstractResolverForProject<M : AnalysisContext>(
 
     private fun doGetDescriptorForModule(module: M): ModuleDescriptorImpl {
         val moduleFromThisResolver =
-            module.takeIf { it is DerivedAnalysisContext && it.originalContext in contextToResolvableInfo }
+            module.takeIf { it is DerivedModuleInfo && it.originalModuleInfo in contextToResolvableInfo }
                 ?: contextToResolvableInfo[module]
                 ?: return delegateResolver.descriptorForModule(module) as ModuleDescriptorImpl
 
@@ -799,7 +797,7 @@ class InvalidResolverException(message: String) : IllegalStateException(message)
  *
  * ```kotlin
  * // 当请求未知上下文时自动调用
- * override fun diagnoseUnknownContext(contexts: List<AnalysisContext>): Nothing {
+ * override fun diagnoseUnknownModuleInfo(contexts: List<AnalysisContext>): Nothing {
  *     DiagnoseUnknownContextReporter.report(name, contexts, allModules)
  * }
  * ```
@@ -818,7 +816,7 @@ private object DiagnoseUnknownContextReporter {
      * @param allModules 解析器管理的所有模块
      * @throws CangJieExceptionWithAttachmentsImpl 带诊断信息的异常
      */
-    fun report(name: String, contexts: List<AnalysisContext>, allModules: Collection<AnalysisContext>): Nothing {
+    fun report(name: String, contexts: List<ModuleInfo>, allModules: Collection<ModuleInfo>): Nothing {
         val message = "$name does not know how to resolve"
         val error = when {
 
@@ -943,7 +941,7 @@ private object DiagnoseUnknownContextReporter {
  * @see PackageOracle
  * @see AbstractResolverForProject
  */
-private class DelegatingPackageFragmentProvider<M : AnalysisContext>(
+private class DelegatingPackageFragmentProvider<M : ModuleInfo>(
     private val resolverForProject: AbstractResolverForProject<M>,
     private val module: ModuleDescriptor,
     moduleContent: ModuleContent<M>,
@@ -1050,3 +1048,10 @@ private class DelegatingPackageFragmentProvider<M : AnalysisContext>(
 }
 
 
+fun LibraryEx.isStdlib(): Boolean {
+    return (this as? LibraryBridge)?.libraryId?.isStdlib() ?: false
+}
+
+fun LibraryId.isStdlib(): Boolean {
+    return this.name.endsWith("@stdlib")
+}

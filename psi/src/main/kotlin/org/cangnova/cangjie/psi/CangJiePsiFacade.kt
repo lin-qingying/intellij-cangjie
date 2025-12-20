@@ -35,11 +35,13 @@ import org.cangnova.cangjie.psi.packgae.CangJiePackage
 
 abstract class CangJiePsiFacade {
 
-    fun findPackage(fqName: String): CangJiePackage? {
-        return findPackage(FqName(fqName))
+    fun findPackage(fqName: String,searchScope: GlobalSearchScope): CangJiePackage? {
+        return findPackage(FqName(fqName),searchScope)
     }
 
-    abstract fun findPackage(fqName: FqName): CangJiePackage?
+    abstract fun findPackage(fqName: FqName,searchScope: GlobalSearchScope): CangJiePackage?
+    abstract fun findPackage(fqName: FqName ): CangJiePackage?
+    abstract fun findPackage(fqName: String ): CangJiePackage?
 
     abstract fun processPackageDirectories(
         psiPackage: CangJiePackage,

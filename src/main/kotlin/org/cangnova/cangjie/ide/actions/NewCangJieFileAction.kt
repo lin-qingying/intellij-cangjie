@@ -62,7 +62,6 @@ import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjNamedDeclaration
 import org.cangnova.cangjie.psi.psiUtil.startOffset
 import org.cangnova.cangjie.utils.toCamelCase
-import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes
 import java.util.*
 
 
@@ -342,9 +341,8 @@ internal fun createCangJieFileFromTemplate(name: String, template: FileTemplate,
     // 获取项目的服务，并在禁用智能模式下执行操作
     val service = DumbService.getInstance(dir.project)
     return service.computeWithAlternativeResolveEnabled<PsiFile?, Throwable> {
-        // 调整目录并创建文件
-        val adjustedDir = CreateTemplateInPackageAction.adjustDirectory(targetDir, JavaModuleSourceRootTypes.SOURCES)
-        val psiFile = createCangJieFileFromTemplate(adjustedDir, className, template)
+        // 直接使用目标目录创建文件（仓颉项目不需要 Java 源根类型调整）
+        val psiFile = createCangJieFileFromTemplate(targetDir, className, template)
         // 如果创建的是仓颉文件，并且包含单个类声明，则根据文件名添加抽象修饰符
         if (psiFile is CjFile) {
             val singleClass = psiFile.declarations.singleOrNull() as? CjClass

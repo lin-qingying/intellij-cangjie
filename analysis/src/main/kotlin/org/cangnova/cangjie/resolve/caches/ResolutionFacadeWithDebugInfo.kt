@@ -33,10 +33,12 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
 import org.cangnova.cangjie.FrontendInternals
-import org.cangnova.cangjie.descriptors.AnalysisContext
+
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.diagnostics.DiagnosticSink
+import org.cangnova.cangjie.moduleinfo.IdeaModuleInfo
+import org.cangnova.cangjie.moduleinfo.ModuleInfo
 import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjFile
@@ -52,7 +54,7 @@ private class ResolutionFacadeWithDebugInfo(
     private val delegate: ResolutionFacade,
     private val creationPlace: CreationPlace
 ) : ResolutionFacade, ResolutionFacadeModuleDescriptorProvider {
-    override fun findModuleDescriptor(ideaModuleInfo: AnalysisContext): ModuleDescriptor {
+    override fun findModuleDescriptor(ideaModuleInfo: IdeaModuleInfo): ModuleDescriptor {
         return delegate.findModuleDescriptor(ideaModuleInfo)
     }
 
@@ -156,7 +158,7 @@ private class ResolutionFacadeWithDebugInfo(
 //        }
 //    }
 
-    override fun getResolverForProject(): ResolverForProject<out AnalysisContext> {
+    override fun getResolverForProject(): ResolverForProject<out ModuleInfo> {
         return delegate.getResolverForProject()
     }
 //
@@ -206,7 +208,7 @@ private class CangJieIdeaResolutionException(
 
 private class CreationPlace(
     private val elements: Collection<CjElement>,
-    private val context: AnalysisContext?,
+    private val context: ModuleInfo?,
 //    private val settings: PlatformAnalysisSettings?
 ) {
     fun description() = buildString {
@@ -302,7 +304,7 @@ private fun <T> ifIndexReady(body: () -> T): IndexResult<T>? = try {
 
 internal fun ResolutionFacade.createdFor(
     files: Collection<CjFile>,
-    context: AnalysisContext?,
+    context: ModuleInfo?,
 //    settings: PlatformAnalysisSettings
 ): ResolutionFacade {
     return ResolutionFacadeWithDebugInfo(this, CreationPlace(files, context/*, settings*/))

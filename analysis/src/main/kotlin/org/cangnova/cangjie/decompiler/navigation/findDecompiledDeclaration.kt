@@ -29,18 +29,21 @@ import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.decompiler.psi.file.CjDecompiledFile
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.descriptors.binariesScope
+import org.cangnova.cangjie.moduleinfo.BinaryModuleInfo
+import org.cangnova.cangjie.moduleinfo.ModuleInfo
+import org.cangnova.cangjie.moduleinfo.util.binariesScope
+
 import org.cangnova.cangjie.projectStructure.CangJieSourceFilterScope
 import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.DescriptorUtils.isLocal
 import org.cangnova.cangjie.resolve.fqNameSafe
+import org.cangnova.cangjie.resolve.module
 import org.cangnova.cangjie.stubindex.CangJieFullClassNameIndex
 import org.cangnova.cangjie.stubindex.CangJieTopLevelFunctionFqnNameIndex
 import org.cangnova.cangjie.stubindex.CangJieTopLevelTypeAliasFqNameIndex
 import org.cangnova.cangjie.stubindex.CangJieTopLevelVariableFqnNameIndex
 import org.cangnova.cangjie.types.ErrorUtils
-
 
 
 /**
@@ -65,6 +68,12 @@ fun findDecompiledDeclaration(
     if (isLocal(referencedDescriptor)) return null
     if (referencedDescriptor is PackageFragmentDescriptor || referencedDescriptor is PackageViewDescriptor) return null
 
+
+    val binaryInfo = referencedDescriptor.module.getCapability(ModuleInfo.Capability) as? BinaryModuleInfo
+
+    binaryInfo?.binariesScope?.let {
+        return findInScope(referencedDescriptor, it)
+    }
     // 2. 处理内置库
     if (CangJieBuiltIns.isBuiltIn(referencedDescriptor)) {
         // 内置库模块不包含其来源信息
@@ -158,8 +167,16 @@ private fun findCandidateDeclarationsInIndex(
     // 2. 查找顶层声明
     // 向上查找直到找到顶层的属性、函数或类型别名
     val topLevelDeclaration =
-        DescriptorUtils.getParentOfType(referencedDescriptor, PropertyDescriptor::class.java, false) as DeclarationDescriptor?
-            ?: DescriptorUtils.getParentOfType(referencedDescriptor, TypeAliasConstructorDescriptor::class.java, false)?.typeAliasDescriptor
+        DescriptorUtils.getParentOfType(
+            referencedDescriptor,
+            PropertyDescriptor::class.java,
+            false
+        ) as DeclarationDescriptor?
+            ?: DescriptorUtils.getParentOfType(
+                referencedDescriptor,
+                TypeAliasConstructorDescriptor::class.java,
+                false
+            )?.typeAliasDescriptor
             ?: DescriptorUtils.getParentOfType(referencedDescriptor, FunctionDescriptor::class.java, false)
             ?: DescriptorUtils.getParentOfType(referencedDescriptor, TypeAliasDescriptor::class.java, false)
             ?: return emptyList()

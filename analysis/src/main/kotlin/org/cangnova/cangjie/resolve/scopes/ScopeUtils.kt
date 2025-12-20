@@ -34,6 +34,9 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
+import org.cangnova.cangjie.moduleinfo.ModuleSourceInfo
+import org.cangnova.cangjie.moduleinfo.SourceForBinaryModuleInfo
+import org.cangnova.cangjie.moduleinfo.provider.moduleInfo
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.projectStructure.CangJieSourceFilterScope
@@ -41,7 +44,6 @@ import org.cangnova.cangjie.psi.CjAbstractClassBody
 import org.cangnova.cangjie.psi.CjCodeFragment
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjFile
-import org.cangnova.cangjie.descriptors.analysisContext
 import org.cangnova.cangjie.psi.psiUtil.parentsWithSelf
 import org.cangnova.cangjie.resolve.CangJieResolveScopeEnlarger
 import org.cangnova.cangjie.resolve.ResolutionFacade
@@ -670,20 +672,19 @@ fun getResolveScope(file: CjFile): GlobalSearchScope {
     if (file is CjCodeFragment) {
         val contextScope = file.getContextContainingFile()?.resolveScope
         if (contextScope != null) {
-            return when {
-               !file.analysisContext.isSourceContext ->
-                    CangJieSourceFilterScope.libraryClasses(contextScope, file.project)
-                else ->
-                    CangJieSourceFilterScope.projectSourcesAndLibraryClasses(contextScope, file.project)
+            return when (file.moduleInfo) {
+                is SourceForBinaryModuleInfo ->CangJieSourceFilterScope.libraryClasses(contextScope, file.project)
+                else -> CangJieSourceFilterScope.projectSourcesAndLibraryClasses(contextScope, file.project)
             }
+
         }
     }
-
-    return when {
-        file.analysisContext.isSourceContext -> {
+    return when (file.moduleInfo) {
+        is ModuleSourceInfo -> {
             val projectScope = CangJieSourceFilterScope.projectFiles(file.resolveScope, file.project)
-            CangJieResolveScopeEnlarger.enlargeScope(projectScope, file)
+           CangJieResolveScopeEnlarger.Companion.enlargeScope(projectScope, file)
         }
+
         else -> GlobalSearchScope.EMPTY_SCOPE
     }
 }

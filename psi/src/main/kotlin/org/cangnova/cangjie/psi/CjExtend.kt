@@ -51,6 +51,8 @@ class CjExtend : CjTypeStatement {
 //        get() = super.fqName
 
     override fun getName(): String? {
+        // 优先从 stub 获取名称，避免触发 AST 加载
+        _stub?.getName()?.let { return it }
         return getExtendName()
     }
 

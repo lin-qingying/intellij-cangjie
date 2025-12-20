@@ -133,7 +133,7 @@ object CangJiePostfixTemplateInfo {
      * In tests only one expression should be suggested, so in case there are many of them, save relevant items.
      */
     var PsiFile.suggestedExpressions: List<String> by NotNullableUserDataProperty(
-        Key("KOTLIN_POSTFIX_TEMPLATE_EXPRESSIONS"),
+        Key("CANGJIE_POSTFIX_TEMPLATE_EXPRESSIONS"),
         defaultValue = emptyList(),
     )
 }

@@ -30,10 +30,12 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
-import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.descriptors.PackageMemberDeclarationProvider
 import org.cangnova.cangjie.descriptors.data.CjClassLikeInfo
-import org.cangnova.cangjie.descriptors.projectSourceModules
+import org.cangnova.cangjie.moduleinfo.IdeaModuleInfo
+import org.cangnova.cangjie.moduleinfo.ModuleInfo
+import org.cangnova.cangjie.moduleinfo.ModuleSourceInfo
+import org.cangnova.cangjie.moduleinfo.util.projectSourceModules
 import org.cangnova.cangjie.resolve.caches.PerModulePackageCacheService
 import org.cangnova.cangjie.resolve.lazy.declarations.AbstractDeclarationProviderFactory
 import org.cangnova.cangjie.resolve.lazy.declarations.CombinedPackageMemberDeclarationProvider
@@ -48,7 +50,7 @@ class PluginDeclarationProviderFactory(
     private val indexedFilesScope: GlobalSearchScope,
     private val storageManager: StorageManager,
     private val nonIndexedFiles: Collection<CjFile>,
-    private val context: AnalysisContext
+    private val context: ModuleInfo
 
 ) : AbstractDeclarationProviderFactory(storageManager) {
 
@@ -61,9 +63,9 @@ class PluginDeclarationProviderFactory(
     private fun stubBasedPackageExists(name: FqName): Boolean {
 //return PerModulePackageCacheService.getInstance(project).packageExists(name, moduleInfo)
 
-        return context.projectSourceModules()
-            .any { PerModulePackageCacheService.getInstance(project).packageExists(name, it) }
-
+        return (context as? IdeaModuleInfo)?.projectSourceModules()
+            ?.any { PerModulePackageCacheService.getInstance(project).packageExists(name, it) }
+            ?: false
     }
 
     private fun diagnoseMissingPackageFragmentPartialPackageIndexCorruption(message: String): Nothing {
@@ -114,24 +116,22 @@ class PluginDeclarationProviderFactory(
 
     private val onCreationDebugInfo = debugInfo()
     override fun diagnoseMissingPackageFragment(fqName: FqName, file: CjFile?) {
-        // 检查是否为源码上下文
-        val isSourceContext = context.isSourceContext
+        val moduleSourceInfo = context as? ModuleSourceInfo
 
         val packageExists = CangJiePackageIndexUtils.packageExists(fqName, indexedFilesScope)
         val spiPackageExists = CangJiePackageIndexUtils.packageExists(fqName, project)
         val oldPackageExists = oldPackageExists(fqName)
-        val cachedPackageExists = if (isSourceContext) {
-            context.projectSourceModules()
-                .firstOrNull()
-                ?.let { project.service<PerModulePackageCacheService>().packageExists(fqName, it) }
-        } else null
-//        val moduleModificationCount = context.createModificationTracker()?.modificationCount
+        val cachedPackageExists =
+            moduleSourceInfo?.let { project.service<PerModulePackageCacheService>().packageExists(fqName, it) }
+
+        val moduleModificationCount = moduleSourceInfo?.createModificationTracker()?.modificationCount
+
 
         val common = """
                 packageExists = $packageExists, cachedPackageExists = $cachedPackageExists,
                 oldPackageExists = $oldPackageExists,
                 SPI.packageExists = $spiPackageExists,
-                context = ${context.contextId}
+                context = ${context.name}
 
             """.trimIndent()
 //        moduleModificationCount = $moduleModificationCount

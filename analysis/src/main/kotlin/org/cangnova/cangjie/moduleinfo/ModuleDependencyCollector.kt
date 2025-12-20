@@ -31,10 +31,9 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.roots.*
-import org.cangnova.cangjie.utils.CangJieSourceRootType
-import org.cangnova.cangjie.utils.SourceCangJieRootType
-import org.cangnova.cangjie.utils.TestSourceCangJieRootType
-import org.jetbrains.jps.model.module.JpsModuleSourceRootType
+import org.cangnova.cangjie.config.CangJieSourceRootTypes
+import org.cangnova.cangjie.moduleinfo.cache.LibraryInfoCache
+import org.jetbrains.jps.model.module.UnknownSourceRootType
 
 /**
  * 模块依赖收集器
@@ -56,7 +55,7 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType
  * val collector = ModuleDependencyCollector.getInstance(project)
  * val dependencies = collector.collectModuleDependencies(
  *     module = module,
- *     sourceRootType = SourceCangJieRootType,
+ *     rootTypeId = CangJieSourceRootTypes.SOURCE,
  *     includeExportedDependencies = true
  * )
  * ```
@@ -111,34 +110,35 @@ class ModuleDependencyCollector(private val project: Project) {
      *
      * ## 生产/测试区分
      *
-     * - **生产源码** (`SourceCangJieRootType`): 只收集生产依赖
-     * - **测试源码** (`TestSourceCangJieRootType`): 收集生产 + 测试依赖
+     * - **生产源码** (`CangJieSourceRootTypes.SOURCE`): 只收集生产依赖
+     * - **测试源码** (`CangJieSourceRootTypes.TEST`): 收集生产 + 测试依赖
      *
      * @param module 要收集依赖的模块
-     * @param sourceRootType 源码根类型（生产或测试）
+     * @param rootTypeId 源码根类型标识符（生产或测试）
      * @param includeExportedDependencies 是否包含导出的传递依赖
      * @param collectionMode 收集模式，默认收集未被忽略的依赖
      * @return 依赖的 ModuleInfo 集合
      *
-     * @see CangJieSourceRootType
+     * @see CangJieSourceRootTypes
      * @see IdeaModuleInfo
      */
     fun collectModuleDependencies(
         module: Module,
-        sourceRootType: CangJieSourceRootType,
+        rootTypeId: String,
         includeExportedDependencies: Boolean,
         collectionMode: CollectionMode = CollectionMode.COLLECT_NON_IGNORED,
     ): Collection<IdeaModuleInfo> {
         val debugInfo = if (LOG.isDebugEnabled) ArrayList<String>() else null
+        val isForTests = CangJieSourceRootTypes.isTestSource(rootTypeId)
 
-        val orderEnumerator = getOrderEnumerator(module, sourceRootType, includeExportedDependencies)
+        val orderEnumerator = getOrderEnumerator(module, isForTests, includeExportedDependencies)
 
         val result = LinkedHashSet<IdeaModuleInfo>()
 
         orderEnumerator.forEach { orderEntry ->
-            if (isApplicable(orderEntry, sourceRootType)) {
+            if (isApplicable(orderEntry, isForTests)) {
                 debugInfo?.add("Add entry ${orderEntry.presentableName}")
-                for (moduleInfo in collectModuleDependenciesForOrderEntry(orderEntry, sourceRootType)) {
+                for (moduleInfo in collectModuleDependenciesForOrderEntry(orderEntry, isForTests)) {
                     debugInfo?.add("Add module ${moduleInfo.displayedName}")
                     result.add(moduleInfo)
                 }
@@ -152,7 +152,7 @@ class ModuleDependencyCollector(private val project: Project) {
         if (debugInfo != null) {
             val debugString = buildString {
                 appendLine("Building dependency list for module ${module.name}")
-                appendLine("isForTests = ${sourceRootType == TestSourceCangJieRootType}")
+                appendLine("isForTests = $isForTests")
                 debugInfo.joinTo(this, separator = "; ", prefix = "[", postfix = "]")
             }
             LOG.debug(debugString)
@@ -167,13 +167,13 @@ class ModuleDependencyCollector(private val project: Project) {
      * 根据源码类型和配置创建合适的依赖枚举器。
      *
      * @param module 模块
-     * @param sourceRootType 源码根类型
+     * @param isForTests 是否为测试源码
      * @param includeExportedDependencies 是否包含导出的依赖
      * @return 依赖顺序枚举器
      */
     private fun getOrderEnumerator(
         module: Module,
-        sourceRootType: CangJieSourceRootType,
+        isForTests: Boolean,
         includeExportedDependencies: Boolean,
     ): OrderEnumerator {
         val rootManager = ModuleRootManager.getInstance(module)
@@ -184,7 +184,7 @@ class ModuleDependencyCollector(private val project: Project) {
         }
 
         // 对于生产源码，只包含生产依赖
-        if (sourceRootType == SourceCangJieRootType) {
+        if (!isForTests) {
             dependencyEnumerator.productionOnly()
         }
 
@@ -197,16 +197,16 @@ class ModuleDependencyCollector(private val project: Project) {
      * 检查依赖项是否有效，以及作用域是否匹配。
      *
      * @param orderEntry 依赖项
-     * @param sourceRootType 源码根类型
+     * @param isForTests 是否为测试源码
      * @return 如果依赖项适用则返回 true
      */
-    private fun isApplicable(orderEntry: OrderEntry, sourceRootType: CangJieSourceRootType): Boolean {
+    private fun isApplicable(orderEntry: OrderEntry, isForTests: Boolean): Boolean {
         if (!orderEntry.isValid) {
             return false
         }
 
         return orderEntry !is ExportableOrderEntry
-                || sourceRootType == TestSourceCangJieRootType
+                || isForTests
                 || orderEntry is ModuleOrderEntry && orderEntry.isProductionOnTestDependency
                 || orderEntry.scope.isForProductionCompile
     }
@@ -223,12 +223,12 @@ class ModuleDependencyCollector(private val project: Project) {
      * - **LibraryOrderEntry**: 依赖的库
      *
      * @param orderEntry 依赖项
-     * @param sourceRootType 源码根类型
+     * @param isForTests 是否为测试源码
      * @return ModuleInfo 列表
      */
     private fun collectModuleDependenciesForOrderEntry(
         orderEntry: OrderEntry,
-        sourceRootType: CangJieSourceRootType
+        isForTests: Boolean
     ): List<IdeaModuleInfo> {
         /**
          * 获取模块的源码信息列表
@@ -238,7 +238,7 @@ class ModuleDependencyCollector(private val project: Project) {
          * - 生产源码：只返回生产源码信息
          */
         fun Module.toInfos() = sourceModuleInfos.filter {
-            sourceRootType == TestSourceCangJieRootType || it is ModuleProductionSourceInfo
+            isForTests || it is ModuleProductionSourceInfo
         }
 
         return when (orderEntry) {
@@ -250,7 +250,7 @@ class ModuleDependencyCollector(private val project: Project) {
             is ModuleOrderEntry -> {
                 // 依赖的其他模块
                 val module = orderEntry.module ?: return emptyList()
-                if (sourceRootType == SourceCangJieRootType && orderEntry.isProductionOnTestDependency) {
+                if (!isForTests && orderEntry.isProductionOnTestDependency) {
                     // 生产源码依赖测试源码的特殊情况
                     listOfNotNull(module.testSourceInfo)
                 } else {
@@ -282,7 +282,7 @@ class ModuleDependencyCollector(private val project: Project) {
  */
 val Module.productionSourceInfo: ModuleProductionSourceInfo?
     get() {
-        val hasProductionRoots = hasRootsOfType(setOf(SourceCangJieRootType))
+        val hasProductionRoots = hasRootsOfType(CangJieSourceRootTypes.SOURCE)
         return if (hasProductionRoots) ModuleProductionSourceInfo(this) else null
     }
 
@@ -297,7 +297,7 @@ val Module.productionSourceInfo: ModuleProductionSourceInfo?
  */
 val Module.testSourceInfo: ModuleTestSourceInfo?
     get() {
-        val hasTestRoots = hasRootsOfType(setOf(TestSourceCangJieRootType))
+        val hasTestRoots = hasRootsOfType(CangJieSourceRootTypes.TEST)
         return if (hasTestRoots) ModuleTestSourceInfo(this) else null
     }
 
@@ -316,10 +316,14 @@ val Module.sourceModuleInfos: List<ModuleSourceInfo>
  * 检查模块是否包含指定类型的根目录
  *
  * 私有辅助函数，用于判断模块是否有特定类型的源码根目录。
+ * 使用 CangJieSourceRootTypes.findTypeById 将 rootTypeId 转换为 JpsModuleSourceRootType 进行比较。
  *
- * @param rootTypes 要检查的根目录类型集合
+ * @param rootTypeId 要检查的根目录类型标识符
  * @return 如果模块包含指定类型的根目录则返回 true
  */
-private fun Module.hasRootsOfType(rootTypes: Set<JpsModuleSourceRootType<*>>): Boolean {
-    return rootManager.contentEntries.any { it.getSourceFolders(rootTypes).isNotEmpty() }
+private fun Module.hasRootsOfType(rootTypeId: String): Boolean {
+    val targetType = CangJieSourceRootTypes.findTypeById(rootTypeId) ?: return false
+    return rootManager.contentEntries.any { contentEntry ->
+        contentEntry.sourceFolders.any { it.rootType === targetType || (it.rootType as? UnknownSourceRootType)?.unknownTypeId == rootTypeId }
+    }
 }

@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.resolve
 
-import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.config.LanguageVersionSettingsImpl
@@ -37,8 +36,9 @@ import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.resolve.caches.ModuleContent
 import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.DefaultBuiltIns
+import org.cangnova.cangjie.moduleinfo.ModuleInfo
 
-class ResolverForSingleModuleProject<M : AnalysisContext>(
+class ResolverForSingleModuleProject<M : ModuleInfo>(
     debugName: String,
     projectContext: ProjectContext,
     projectDescriptor: ProjectDescriptor,
@@ -65,7 +65,7 @@ class ResolverForSingleModuleProject<M : AnalysisContext>(
         knownDependencyModuleDescriptors.forEach { (module, descriptor) ->
             descriptorByModule[module] = ModuleData(
                 descriptor as ModuleDescriptorImpl,
-                (module as? TrackableAnalysisContext)?.createModificationTracker() ?: fallbackModificationTracker
+                (module as? TrackableModuleInfo)?.createModificationTracker() ?: fallbackModificationTracker
             )
         }
     }

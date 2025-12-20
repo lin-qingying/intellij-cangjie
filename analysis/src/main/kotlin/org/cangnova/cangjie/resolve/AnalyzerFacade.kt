@@ -40,7 +40,7 @@ package org.cangnova.cangjie.resolve
  * - **特殊上下文**: 用于代码补全、语法高亮等临时场景
  *
  * 分析上下文的扩展类型：
- * - [TrackableAnalysisContext]: 可追踪修改的上下文，用于增量分析
+ * - [TrackableModuleInfo]: 可追踪修改的上下文，用于增量分析
  * - [DerivedAnalysisContext]: 派生上下文，基于原始上下文提供不同视图
  *
  * ### 解析器层次结构
@@ -122,7 +122,6 @@ import org.cangnova.cangjie.config.LanguageVersionSettingsImpl
 import org.cangnova.cangjie.container.ComponentProvider
 import org.cangnova.cangjie.container.get
 import org.cangnova.cangjie.context.ModuleContext
-import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.descriptors.ModuleCapability
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.PackageFragmentProvider
@@ -130,6 +129,7 @@ import org.cangnova.cangjie.descriptors.impl.CompositePackageFragmentProvider
 import org.cangnova.cangjie.descriptors.impl.ModuleDependencies
 import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import org.cangnova.cangjie.frontend.createContainerForLazyResolve
+import org.cangnova.cangjie.moduleinfo.ModuleInfo
 import org.cangnova.cangjie.resolve.LazyModuleDependencies.Companion.assertModuleDependencyIsCorrect
 import org.cangnova.cangjie.resolve.caches.ModuleContent
 import org.cangnova.cangjie.resolve.calls.util.languageVersionSettings
@@ -154,7 +154,7 @@ import org.cangnova.cangjie.storage.StorageManager
  * ## 实现示例
  *
  * ```kotlin
- * class MyModuleContext : TrackableAnalysisContext {
+ * class MyModuleContext : TrackableModuleInfo {
  *     override fun createModificationTracker(): ModificationTracker {
  *         return ModificationTracker {
  *             // 返回当前修改计数，例如文件的修改时间戳
@@ -182,7 +182,7 @@ import org.cangnova.cangjie.storage.StorageManager
  * @see ModificationTracker
  * @see AbstractResolverForProject.ModuleData
  */
-interface TrackableAnalysisContext : AnalysisContext {
+interface TrackableModuleInfo : ModuleInfo {
     /**
      * 创建修改追踪器
      *
@@ -249,13 +249,13 @@ interface TrackableAnalysisContext : AnalysisContext {
  * @see AbstractResolverForProject.isCorrectContext
  * @see LazyModuleDependencies
  */
-interface DerivedAnalysisContext : AnalysisContext {
+interface DerivedModuleInfo : ModuleInfo {
     /**
      * 原始的分析上下文
      *
      * 派生上下文基于此原始上下文创建，通常共享同一个模块描述符。
      */
-    val originalContext: AnalysisContext
+    val originalModuleInfo: ModuleInfo
 }
 
 /**
@@ -331,7 +331,7 @@ class ResolverForModule(
  *
  * - `tryGetResolverForModule()`: 返回 null
  * - `resolverForModuleDescriptor()`: 抛出异常
- * - `descriptorForModule()`: 调用 `diagnoseUnknownContext()` 并抛出异常
+ * - `descriptorForModule()`: 调用 `diagnoseUnknownModuleInfo()` 并抛出异常
  * - `allModules`: 返回空列表
  *
  * @param M 分析上下文类型
@@ -339,7 +339,7 @@ class ResolverForModule(
  * @see ResolverForProject
  * @see AbstractResolverForProject
  */
-class EmptyResolverForProject<M : AnalysisContext> : ResolverForProject<M>() {
+class EmptyResolverForProject<M : ModuleInfo> : ResolverForProject<M>() {
     override val name: String
         get() = "Empty resolver"
 
@@ -347,9 +347,9 @@ class EmptyResolverForProject<M : AnalysisContext> : ResolverForProject<M>() {
     override fun resolverForModuleDescriptor(descriptor: ModuleDescriptor): ResolverForModule =
         throw IllegalStateException("$descriptor is not contained in this resolver")
 
-    override fun descriptorForModule(context: M) = diagnoseUnknownContext(listOf(context))
+    override fun descriptorForModule(context: M) = diagnoseUnknownModuleInfo(listOf(context))
     override val allModules: Collection<M> = listOf()
-    override fun diagnoseUnknownContext(contexts: List<AnalysisContext>) =
+    override fun diagnoseUnknownModuleInfo(contexts: List<ModuleInfo>) =
         throw IllegalStateException("Should not be called for $contexts")
 }
 
@@ -431,7 +431,7 @@ class EmptyResolverForProject<M : AnalysisContext> : ResolverForProject<M>() {
  * @see AnalysisContext
  * @see ModuleDescriptor
  */
-abstract class ResolverForProject<M : AnalysisContext> {
+abstract class ResolverForProject<M : ModuleInfo> {
     /**
      * 此解析器管理的所有模块上下文
      */
@@ -481,7 +481,7 @@ abstract class ResolverForProject<M : AnalysisContext> {
      * @param contexts 未知的上下文列表
      * @throws CangJieExceptionWithAttachmentsImpl 带诊断信息的异常
      */
-    abstract fun diagnoseUnknownContext(contexts: List<AnalysisContext>): Nothing
+    abstract fun diagnoseUnknownModuleInfo(contexts: List<ModuleInfo>): Nothing
 
     override fun toString() = name
 
@@ -566,7 +566,7 @@ interface ResolverForModuleComputationTracker {
      *
      * @param context 已创建解析器的分析上下文
      */
-    fun onResolverComputed(context: AnalysisContext)
+    fun onResolverComputed(context: ModuleInfo)
 
     companion object {
         /**
@@ -680,7 +680,7 @@ abstract class ResolverForModuleFactory {
      * @param absentDescriptorHandlerClass 缺失描述符处理器类（可选）
      * @return 模块解析器
      */
-    open fun <M : AnalysisContext> createResolverForModule(
+    open fun <M : ModuleInfo> createResolverForModule(
         moduleDescriptor: ModuleDescriptorImpl,
         moduleContext: ModuleContext,
         moduleContent: ModuleContent<M>,
@@ -711,7 +711,7 @@ abstract class ResolverForModuleFactory {
         "Left only for compatibility, please use full version",
         ReplaceWith("createResolverForModule(moduleDescriptor, moduleContext, moduleContent, resolverForProject, languageVersionSettings, sealedInheritorsProvider, null, null)")
     )
-    open fun <M : AnalysisContext> createResolverForModule(
+    open fun <M : ModuleInfo> createResolverForModule(
         moduleDescriptor: ModuleDescriptorImpl,
         moduleContext: ModuleContext,
         moduleContent: ModuleContent<M>,
@@ -740,7 +740,7 @@ abstract class ResolverForModuleFactory {
         "Left only for compatibility, please use full version",
         ReplaceWith("createResolverForModule(moduleDescriptor, moduleContext, moduleContent, resolverForProject, languageVersionSettings, sealedInheritorsProvider, null, null)")
     )
-    open fun <M : AnalysisContext> createResolverForModule(
+    open fun <M : ModuleInfo> createResolverForModule(
         moduleDescriptor: ModuleDescriptorImpl,
         moduleContext: ModuleContext,
         moduleContent: ModuleContent<M>,
@@ -852,7 +852,7 @@ abstract class ResolverForModuleFactory {
  * @see createContainerForLazyResolve
  */
 class CangJieResolverForModuleFactory : ResolverForModuleFactory() {
-    override fun <M : AnalysisContext> createResolverForModule(
+    override fun <M : ModuleInfo> createResolverForModule(
         moduleDescriptor: ModuleDescriptorImpl,
         moduleContext: ModuleContext,
         moduleContent: ModuleContent<M>,
@@ -959,7 +959,7 @@ interface LanguageSettingsProvider {
      * @return 语言版本设置
      */
     fun getLanguageVersionSettings(
-        context: AnalysisContext,
+        context: ModuleInfo,
         project: Project
     ): LanguageVersionSettings
 
@@ -970,7 +970,7 @@ interface LanguageSettingsProvider {
          */
         object Default : LanguageSettingsProvider {
             override fun getLanguageVersionSettings(
-                context: AnalysisContext,
+                context: ModuleInfo,
                 project: Project
             ) = LanguageVersionSettingsImpl.DEFAULT
 
@@ -1024,7 +1024,7 @@ interface LanguageSettingsProvider {
 internal class IDELanguageSettingsProvider : LanguageSettingsProvider {
 
     override fun getLanguageVersionSettings(
-        context: AnalysisContext,
+        context: ModuleInfo,
         project: Project
     ): LanguageVersionSettings {
         return when (context) {
@@ -1133,7 +1133,7 @@ internal class IDELanguageSettingsProvider : LanguageSettingsProvider {
  * @see DerivedAnalysisContext
  * @see StorageManager
  */
-class LazyModuleDependencies<M : AnalysisContext>(
+class LazyModuleDependencies<M : ModuleInfo>(
     storageManager: StorageManager,
     private val module: M,
     firstDependency: M?,
@@ -1161,8 +1161,9 @@ class LazyModuleDependencies<M : AnalysisContext>(
          * @receiver 当前模块的分析上下文
          * @param dependency 依赖的模块描述符
          */
-        private fun AnalysisContext.assertModuleDependencyIsCorrect(dependency: ModuleDescriptor) {
-            assertModuleDependencyIsCorrect(dependency.getCapability(AnalysisContextCapability) ?: return)
+        private fun ModuleInfo.assertModuleDependencyIsCorrect(dependency: ModuleDescriptor) {
+            assertModuleDependencyIsCorrect(dependency.getCapability(ModuleInfo.Capability) ?: return)
+
         }
 
         /**
@@ -1174,8 +1175,8 @@ class LazyModuleDependencies<M : AnalysisContext>(
          * @param dependency 依赖的分析上下文
          * @throws AssertionError 如果普通上下文试图引用派生上下文
          */
-        private fun AnalysisContext.assertModuleDependencyIsCorrect(dependency: AnalysisContext) {
-            assert(dependency !is DerivedAnalysisContext || this is DerivedAnalysisContext) {
+        private fun ModuleInfo.assertModuleDependencyIsCorrect(dependency: ModuleInfo) {
+            assert(dependency !is DerivedModuleInfo || this is DerivedModuleInfo) {
                 "Derived analysis contexts may not be referenced from regular ones"
             }
         }
@@ -1253,96 +1254,3 @@ class LazyModuleDependencies<M : AnalysisContext>(
         get() = emptySet()
 }
 
-/**
- * AnalysisContext 的 ModuleDescriptor 能力键
- *
- * 用于在 [ModuleDescriptor] 中存储和检索关联的 [AnalysisContext]。
- *
- * ## 模块能力系统
- *
- * IntelliJ Platform 的模块描述符支持"能力"（Capability）机制，
- * 允许将任意数据附加到模块描述符上。这类似于 Map<Key, Value> 的概念。
- *
- * ## 使用场景
- *
- * ### 1. 从模块描述符获取分析上下文
- *
- * ```kotlin
- * val moduleDescriptor: ModuleDescriptor = ...
- * val context = moduleDescriptor.getCapability(AnalysisContextCapability)
- * if (context != null) {
- *     // 使用上下文信息
- *     println("Context ID: ${context.contextId}")
- * }
- * ```
- *
- * ### 2. 创建模块描述符时附加上下文
- *
- * ```kotlin
- * val moduleDescriptor = ModuleDescriptorImpl(
- *     projectDescriptor,
- *     Name.identifier(moduleName),
- *     storageManager,
- *     mapOf(AnalysisContextCapability to myContext)  // ← 附加能力
- * )
- * ```
- *
- * ### 3. 验证依赖关系
- *
- * 在 [LazyModuleDependencies] 中，通过能力键获取依赖的上下文并验证：
- * ```kotlin
- * val dependencyContext = dependency.getCapability(AnalysisContextCapability)
- * if (dependencyContext != null) {
- *     assertModuleDependencyIsCorrect(dependencyContext)
- * }
- * ```
- *
- * ## 为什么需要这个能力？
- *
- * [ModuleDescriptor] 是分析引擎的内部表示，而 [AnalysisContext] 是外部的逻辑概念。
- * 通过能力机制，我们可以在两者之间建立双向关联：
- *
- * ```
- * AnalysisContext ←→ ModuleDescriptor
- *
- * Context → Descriptor:  ResolverForProject.descriptorForModule(context)
- * Descriptor → Context:  descriptor.getCapability(AnalysisContextCapability)
- * ```
- *
- * 这种双向关联在以下场景中非常有用：
- * - 错误报告时需要找到对应的上下文
- * - 依赖关系验证需要获取依赖的上下文类型
- * - 调试工具需要展示上下文信息
- *
- * ## 类型信息
- *
- * `ModuleCapability<AnalysisContext>` 是一个类型安全的键：
- * - 键的类型是 `String`（"AnalysisContext"）
- * - 值的类型是 `AnalysisContext`
- * - `getCapability()` 返回 `AnalysisContext?`
- *
- * ## 示例：完整工作流
- *
- * ```kotlin
- * // 1. 创建上下文
- * val context = CjModuleAnalysisContext(...)
- *
- * // 2. 创建描述符并附加上下文
- * val descriptor = ModuleDescriptorImpl(
- *     projectDescriptor,
- *     Name.identifier("myModule"),
- *     storageManager,
- *     mapOf(AnalysisContextCapability to context)
- * )
- *
- * // 3. 稍后从描述符获取上下文
- * val retrievedContext = descriptor.getCapability(AnalysisContextCapability)
- * assert(retrievedContext == context)
- * ```
- *
- * @see ModuleDescriptor
- * @see AnalysisContext
- * @see ModuleCapability
- * @see LazyModuleDependencies
- */
-val AnalysisContextCapability = ModuleCapability<AnalysisContext>("AnalysisContext")

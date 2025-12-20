@@ -43,6 +43,7 @@ import org.cangnova.cangjie.context.withProject
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.frontend.createContainerForBodyResolve
+import org.cangnova.cangjie.moduleinfo.ModuleInfo
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.findElementOfAdditionalResolve
@@ -64,7 +65,6 @@ import org.cangnova.cangjie.resolve.lazy.*
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode.*
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyClassDescriptorBase
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
-import org.cangnova.cangjie.resolve.AnalysisContextCapability
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 import org.cangnova.cangjie.utils.isUnitTestMode
 import org.jetbrains.annotations.TestOnly
@@ -96,10 +96,10 @@ class ResolveElementCache(
         resolveSession.exceptionTracker,
         ProjectRootModificationTracker.getInstance(project),
         // 对于源码上下文，添加代码块修改追踪器
-        resolveSession.moduleDescriptor.getCapability(AnalysisContextCapability)?.let { context ->
-            if (context.isSourceContext) {
+        resolveSession.moduleDescriptor.getCapability(ModuleInfo.Capability)?.let { context ->
+
                 CangJieCodeBlockModificationListener.getInstance(project).cangjieOutOfCodeBlockTracker
-            } else null
+
         }
     ).toTypedArray()
     val traceSize get() = resolveSession.trace.size

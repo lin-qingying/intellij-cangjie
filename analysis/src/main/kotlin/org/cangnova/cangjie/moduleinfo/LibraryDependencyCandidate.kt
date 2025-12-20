@@ -111,7 +111,7 @@ package org.cangnova.cangjie.moduleinfo
  *
  * @see LibraryInfo
  * @see DefaultLibraryDependencyCandidate
- * @see LibraryDependenciesCache
+ * @see org.cangnova.cangjie.moduleinfo.cache.LibraryDependenciesCache
  */
 sealed class LibraryDependencyCandidate {
     /**

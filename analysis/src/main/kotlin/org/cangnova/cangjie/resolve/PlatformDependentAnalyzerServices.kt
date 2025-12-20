@@ -26,7 +26,7 @@ package org.cangnova.cangjie.resolve
 
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.container.StorageComponentContainer
-import org.cangnova.cangjie.descriptors.DependencyOnBuiltIns
+import org.cangnova.cangjie.moduleinfo.DependencyOnBuiltIns
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.ImportPath
 import org.cangnova.cangjie.storage.LockBasedStorageManager

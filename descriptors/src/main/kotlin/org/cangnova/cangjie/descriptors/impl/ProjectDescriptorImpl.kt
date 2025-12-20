@@ -84,7 +84,7 @@ class ProjectDescriptorImpl(
      *
      * 使用 StorageManager.createLazyValue 确保线程安全和单次初始化。
      */
-    private val stdlibModuleProvider: NotNullLazyValue<LibraryModuleDescriptorImpl> =
+    private val stdlibModuleProvider: NotNullLazyValue<StdlibModuleDescriptorImpl> =
         storageManager.createLazyValue {
             createStdlibModule()
         }
@@ -94,12 +94,12 @@ class ProjectDescriptorImpl(
      *
      * 注意: 此属性会触发 stdlib 模块的创建。
      * 第一次访问时，会:
-     * 1. 创建 LibraryModuleDescriptorImpl
+     * 1. 创建 StdlibModuleDescriptorImpl
      * 2. 设置依赖为 [builtInsModule]
      * 3. 从 SDK 加载 .cjo 文件
      * 4. 添加到 moduleMap
      */
-    override val stdlibModule: LibraryModuleDescriptorImpl
+    override val stdlibModule: StdlibModuleDescriptorImpl
         get() = stdlibModuleProvider()
 
     /**
@@ -136,11 +136,11 @@ class ProjectDescriptorImpl(
      * @return 标准库模块描述符
      * @throws IllegalStateException 如果 SDK 未配置
      */
-    private fun createStdlibModule(): LibraryModuleDescriptorImpl {
+    private fun createStdlibModule(): StdlibModuleDescriptorImpl {
         val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk()
             ?: error("Cannot create stdlib module: SDK not configured for project '$projectName'")
 
-        val stdlibModule = LibraryModuleDescriptorImpl(
+        val stdlibModule = StdlibModuleDescriptorImpl(
             projectDescriptor = this,
             moduleName = STD_PACKAGE_NAME,
             displayName = "stdlib",

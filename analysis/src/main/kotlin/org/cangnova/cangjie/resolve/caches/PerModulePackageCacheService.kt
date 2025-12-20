@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.resolve.caches
 
-import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjPackageDirective
@@ -60,9 +59,10 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.containers.CollectionFactory
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.indexing.DumbModeAccessType
-import org.cangnova.cangjie.descriptors.AnalysisContextProvider
-import org.cangnova.cangjie.descriptors.analysisContext
-import org.cangnova.cangjie.descriptors.analysisContextProvider
+import org.cangnova.cangjie.moduleinfo.ModuleSourceInfo
+import org.cangnova.cangjie.moduleinfo.provider.ModuleInfoProvider
+import org.cangnova.cangjie.moduleinfo.provider.firstOrNull
+import org.cangnova.cangjie.moduleinfo.provider.moduleInfoOrNull
 import org.cangnova.cangjie.resolve.caches.PerModulePackageCacheService.Companion.DEBUG_LOG_ENABLE_PerModulePackageCache
 import org.cangnova.cangjie.stubindex.CangJiePackageIndexUtils
 import org.cangnova.cangjie.utils.isCangJieFileType
@@ -144,7 +144,7 @@ class PerModulePackageCacheService(private val project: Project) : Disposable {
     private val pendingVFileChanges: MutableSet<VFileEvent> = mutableSetOf()
     private val pendingCjFileChanges: MutableSet<CjFile> = mutableSetOf()
     private val cacheInstance =
-        AtomicReference<ConcurrentMap<Module, ConcurrentMap<AnalysisContext, ConcurrentMap<FqName, Boolean>>>>()
+        AtomicReference<ConcurrentMap<Module, ConcurrentMap<ModuleSourceInfo, ConcurrentMap<FqName, Boolean>>>>()
     private val useStrongMapForCaching = Registry.`is`("cangjie.cache.packages.strong.map", false)
     private val implicitPackagePrefixCache = ImplicitPackagePrefixCache(project)
 
@@ -157,10 +157,10 @@ class PerModulePackageCacheService(private val project: Project) : Disposable {
         clear()
     }
 
-    private fun cache(): ConcurrentMap<Module, ConcurrentMap<AnalysisContext, ConcurrentMap<FqName, Boolean>>> {
+    private fun cache(): ConcurrentMap<Module, ConcurrentMap<ModuleSourceInfo, ConcurrentMap<FqName, Boolean>>> {
         cacheInstance.get()?.let { return it }
         val map =
-            ContainerUtil.createConcurrentWeakMap<Module, ConcurrentMap<AnalysisContext, ConcurrentMap<FqName, Boolean>>>()
+            ContainerUtil.createConcurrentWeakMap<Module, ConcurrentMap<ModuleSourceInfo, ConcurrentMap<FqName, Boolean>>>()
         return if (cacheInstance.compareAndSet(null, map)) {
             map
         } else {
@@ -210,13 +210,12 @@ class PerModulePackageCacheService(private val project: Project) : Disposable {
                         }
                     }
                 } else {
-                    val provider = AnalysisContextProvider.getInstance(project)
-                    val infoByVirtualFile = provider.getContextForFile(project, vfile)
-                    if (infoByVirtualFile == null) {
-                        LOG.debugIfEnabled(project) { "Skip $vfile as it has no AnalysisContext" }
+                    val infoByVirtualFile = ModuleInfoProvider.getInstance(project).firstOrNull(vfile)
+                    if (infoByVirtualFile == null || infoByVirtualFile !is ModuleSourceInfo) {
+                        PerModulePackageCacheService.Companion.LOG.debugIfEnabled(project) { "Skip $vfile as it has mismatched ModuleInfo=$infoByVirtualFile" }
                     }
-                    if (infoByVirtualFile != null && infoByVirtualFile.isSourceContext) {
-                        invalidateCacheForAnalysisContext(infoByVirtualFile)
+                    (infoByVirtualFile as? ModuleSourceInfo)?.let {
+                        invalidateCacheForModuleSourceInfo(it)
                     }
                 }
 
@@ -230,69 +229,48 @@ class PerModulePackageCacheService(private val project: Project) : Disposable {
                     }
                     return@processPending
                 }
-                val analysisContext = file.analysisContext
-                if (  analysisContext.isSourceContext) {
-                    invalidateCacheForAnalysisContext(analysisContext)
-                } /*else if (analysisContext == null) {
-                    LOG.debugIfEnabled(project) { "Skip $file as it has no AnalysisContext" }
-                }*/
+                val nullableModuleInfo = file.moduleInfoOrNull
+                (nullableModuleInfo as? ModuleSourceInfo)?.let { invalidateCacheForModuleSourceInfo(it) }
+
+                if (nullableModuleInfo == null || nullableModuleInfo !is ModuleSourceInfo) {
+                    PerModulePackageCacheService.Companion.LOG.debugIfEnabled(project) { "Skip $file as it has mismatched ModuleInfo=$nullableModuleInfo" }
+                }
                 implicitPackagePrefixCache.update(file)
             }
         }
     }
-
-    private fun invalidateCacheForAnalysisContext(context: AnalysisContext) {
-        LOG.debugIfEnabled(project) { "Invalidated cache for $context" }
-        val cache = cacheInstance.get() ?: return
-        // 遍历所有模块的缓存并清除该上下文相关的条目
-        for ((_, perContextData) in cache) {
-            val dataForContext = perContextData[context] ?: continue
-            dataForContext.clear()
-        }
+    private fun invalidateCacheForModuleSourceInfo(moduleSourceInfo: ModuleSourceInfo) {
+       LOG.debugIfEnabled(project) { "Invalidated cache for $moduleSourceInfo" }
+        val cache = cacheInstance.get()
+        val perSourceInfoData = cache?.get(moduleSourceInfo.module) ?: return
+        val dataForSourceInfo = perSourceInfoData[moduleSourceInfo] ?: return
+        dataForSourceInfo.clear()
     }
 
-    fun packageExists(packageFqName: FqName, context: AnalysisContext): Boolean {
-        if (!context.isSourceContext) {
-            // 非源码上下文不使用缓存
-            return CangJiePackageIndexUtils.packageExists(packageFqName, context.scope)
-        }
+
+    fun packageExists(packageFqName: FqName, moduleInfo: ModuleSourceInfo): Boolean {
+        val module = moduleInfo.module
+
 
         checkPendingChanges()
 
-        // 尝试从上下文中获取模块信息
-        val module = context.scope.project?.let { proj ->
-            proj.modules.firstOrNull { mod ->
-                // 简单的模块匹配逻辑
-                context.scope.isSearchInModuleContent(mod)
-            }
-        }
 
-        if (module == null) {
-            // 无法确定模块，直接查询
-            return try {
-                CangJiePackageIndexUtils.packageExists(packageFqName, context.scope)
-            } catch (e: IndexNotReadyException) {
-                DumbModeAccessType.RELIABLE_DATA_ONLY.ignoreDumbMode(ThrowableComputable {
-                    CangJiePackageIndexUtils.packageExists(packageFqName, context.scope)
-                })
-            }
-        }
 
         val perContextCache = cache().getOrPut(module) {
             if (useStrongMapForCaching) ConcurrentHashMap() else CollectionFactory.createConcurrentSoftMap()
         }
-        val cacheForCurrentContext = perContextCache.getOrPut(context) {
+        val cacheForCurrentContext = perContextCache.getOrPut(moduleInfo) {
             if (useStrongMapForCaching) ConcurrentHashMap() else CollectionFactory.createConcurrentSoftMap()
         }
         return try {
             cacheForCurrentContext.getOrPut(packageFqName) {
-                val packageExists = CangJiePackageIndexUtils.packageExists(packageFqName, context.scope)
-                LOG.debugIfEnabled(project) { "Computed cache value for $packageFqName in $context is $packageExists" }
+                val packageExists = CangJiePackageIndexUtils.packageExists(packageFqName, moduleInfo.contentScope)
+                LOG.debugIfEnabled(project) { "Computed cache value for $packageFqName in $moduleInfo is $packageExists" }
                 packageExists
             }
         } catch (e: IndexNotReadyException) {
             DumbModeAccessType.RELIABLE_DATA_ONLY.ignoreDumbMode(ThrowableComputable {
-                CangJiePackageIndexUtils.packageExists(packageFqName, context.scope)
+                CangJiePackageIndexUtils.packageExists(packageFqName, moduleInfo.contentScope)
             })
         }
     }

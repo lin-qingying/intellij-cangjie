@@ -33,6 +33,7 @@ import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.workspaceModel.ide.legacyBridge.findLibraryEntity
+import org.cangnova.cangjie.moduleinfo.cache.LibraryInfoCache
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.projectStructure.CangJieSourceFilterScope
 import org.cangnova.cangjie.projectStructure.scope.PoweredLibraryScopeBase
@@ -240,7 +241,7 @@ data class LibrarySourceInfo(
      * 可以访问此模块 internal 声明的模块列表
      *
      * 继承自二进制模块的内部可见性设置。
-     * 通过 [LibraryInfoCache] 缓存查找结果以提升性能。
+     * 通过 [org.cangnova.cangjie.moduleinfo.cache.LibraryInfoCache] 缓存查找结果以提升性能。
      *
      * ## 为什么继承？
      *
@@ -248,7 +249,7 @@ data class LibrarySourceInfo(
      * 因此它们的内部可见性设置应该一致。
      *
      * @return 可以访问 internal 声明的模块集合
-     * @see LibraryInfoCache
+     * @see org.cangnova.cangjie.moduleinfo.cache.LibraryInfoCache
      */
     override fun modulesWhoseInternalsAreVisible(): Collection<ModuleInfo> {
         return LibraryInfoCache.getInstance(project)[library]

@@ -99,6 +99,5 @@
     <xi:include href="/META-INF/cangjie-dependency.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <xi:include href="/META-INF/cangjie-analysis.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/META-INF/cangjie-project-bridge.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 </idea-plugin>

@@ -38,11 +38,13 @@ import com.intellij.psi.util.CachedValuesManager
 import org.cangnova.cangjie.ExceptionTracker
 import org.cangnova.cangjie.context.GlobalContext
 import org.cangnova.cangjie.context.GlobalContextImpl
-import org.cangnova.cangjie.descriptors.AnalysisContext
-import org.cangnova.cangjie.descriptors.AnalysisContextProvider
-import org.cangnova.cangjie.descriptors.NotUnderContentRootModuleInfo
-import org.cangnova.cangjie.descriptors.analysisContext
-import org.cangnova.cangjie.descriptors.isLibraryContext
+import org.cangnova.cangjie.moduleinfo.IdeaModuleInfo
+import org.cangnova.cangjie.moduleinfo.LibraryInfo
+import org.cangnova.cangjie.moduleinfo.LibrarySourceInfo
+import org.cangnova.cangjie.moduleinfo.ModuleSourceInfo
+import org.cangnova.cangjie.moduleinfo.NotUnderContentRootModuleInfo
+import org.cangnova.cangjie.moduleinfo.provider.moduleInfo
+import org.cangnova.cangjie.moduleinfo.util.getDependentModules
 import org.cangnova.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import org.cangnova.cangjie.projectStructure.RootKindFilter
 import org.cangnova.cangjie.projectStructure.matches
@@ -215,66 +217,36 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
      */
     private inner class GlobalFacade {
         private val context = GlobalContext("cangjie", project)
+        private val moduleFilters = GlobalFacadeModuleFilters(project)
 
-        /**
-         * 获取所有分析上下文（包括模块和依赖）
-         *
-         * 从 AnalysisContextProvider 获取项目中的所有上下文，包括：
-         * - 源码模块上下文
-         * - 库依赖上下文（包括 stdlib）
-         * - 其他类型的上下文
-         *
-         * 这个列表会被传递给 ProjectResolutionFacade，最终填充到 AbstractResolverForProject.allModules 中。
-         */
-        private val allAnalysisContexts: Collection<AnalysisContext> by lazy {
-            AnalysisContextProvider.getInstance(project).getAllContexts(project)
-        }
+        // 为 resolver 名称添加项目名称后缀，便于调试和追踪
+        private val librariesResolverName = "$resolverForLibrariesName [${project.name}]"
+        private val modulesResolverName = "$resolverForModulesName [${project.name}]"
 
-        /**
-         * 库解析器调试名称，包含具体的库依赖信息
-         */
-        private val librariesResolverDebugName: String by lazy {
-            val libraryContexts = allAnalysisContexts.filter { it.isLibraryContext }
-            val libraryNames = libraryContexts.joinToString(", ") { it.contextId }
-            "$resolverForLibrariesName [${libraryContexts.size} libraries: $libraryNames]"
-        }
-
-        /**
-         * 模块解析器调试名称，包含具体的模块和库信息
-         */
-        private val modulesResolverDebugName: String by lazy {
-            val sourceContexts = allAnalysisContexts.filter { it.isSourceContext }
-            val libraryContexts = allAnalysisContexts.filter { it.isLibraryContext }
-            val sourceNames = sourceContexts.joinToString(", ") { it.contextId }
-            val libraryNames = libraryContexts.joinToString(", ") { it.contextId }
-            "$resolverForModulesName [${sourceContexts.size} modules: $sourceNames | ${libraryContexts.size} libraries: $libraryNames]"
-        }
-
-        private val librariesContext = context.contextWithCompositeExceptionTracker(project, librariesResolverDebugName)
+        private val librariesContext = context.contextWithCompositeExceptionTracker(project, librariesResolverName)
 
         val facadeForLibraries = ProjectResolutionFacade(
-            "facadeForLibraries", librariesResolverDebugName,
+            "facadeForLibraries", librariesResolverName,
             project, context,
             reuseDataFrom = null,
-            moduleFilter = { it.isLibraryContext },
+            moduleFilter = moduleFilters::libraryFacadeFilter,
+
             invalidateOnOOCB = false,
             dependencies = listOf(
                 ProjectRootModificationTracker.getInstance(project)
             ),
-            allModules = allAnalysisContexts  // ✅ 传入所有上下文（包括 stdlib）
         )
 
         private val modulesContext =
-            librariesContext.contextWithCompositeExceptionTracker(project, modulesResolverDebugName)
+            librariesContext.contextWithCompositeExceptionTracker(project, modulesResolverName)
 
         val facadeForModules = ProjectResolutionFacade(
-            "facadeForModules", modulesResolverDebugName,
+            "facadeForModules", modulesResolverName,
             project, modulesContext,
             reuseDataFrom = facadeForLibraries,
             moduleFilter = { true },
             dependencies = listOf(ProjectRootModificationTracker.getInstance(project)),
             invalidateOnOOCB = true,
-            allModules = allAnalysisContexts  // ✅ 传入所有上下文（包括 stdlib）
         )
     }
 
@@ -295,17 +267,18 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
      * 3. 如果是普通项目文件，使用标准的模块 Facade（通过 getResolutionFacadeByModuleInfo）
      */
     private fun getFacadeToAnalyzeFile(file: CjFile, settings: PlatformAnalysisSettings): ResolutionFacade {
-        val analysisContext = file.analysisContext
-        val specialFile = filterNotInProjectSource(file, analysisContext)
+        val moduleInfo = file.moduleInfo
+
+        val specialFile = filterNotInProjectSource(file, moduleInfo)
 
         if (specialFile != null) {
             val specialFiles = setOf(specialFile)
             val projectFacade = getFacadeForSpecialFiles(specialFiles, settings)
-            return ModuleResolutionFacadeImpl(projectFacade, analysisContext).createdFor(specialFiles, analysisContext)
+            return ModuleResolutionFacadeImpl(projectFacade, moduleInfo).createdFor(specialFiles, moduleInfo)
         }
-        return getResolutionFacadeByModuleInfo(analysisContext /*, settings*/).createdFor(
+        return getResolutionFacadeByModuleInfo(moduleInfo /*, settings*/).createdFor(
             emptyList(),
-            analysisContext/*, settings*/
+            moduleInfo/*, settings*/
         )
 
     }
@@ -320,7 +293,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
      * @param context 分析上下文（通常对应一个源码模块或库模块）
      * @return 包装后的模块 ResolutionFacade
      */
-    override fun getResolutionFacadeByModuleInfo(context: AnalysisContext): ResolutionFacade {
+    override fun getResolutionFacadeByModuleInfo(context: IdeaModuleInfo): ResolutionFacade {
 //        val settings = moduleInfo.platformSettings(platform)
         val projectFacade = facadeForModules(/*settings*/)
 
@@ -372,7 +345,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
      *
      * 批量版本的 filterNotInProjectSource
      */
-    private fun Collection<CjFile>.filterNotInProjectSource(context: AnalysisContext): Set<CjFile> =
+    private fun Collection<CjFile>.filterNotInProjectSource(context: IdeaModuleInfo): Set<CjFile> =
         mapNotNullTo(mutableSetOf()) { filterNotInProjectSource(it, context) }
 
     /**
@@ -391,7 +364,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
      *
      * @return 如果文件不在项目源码中，返回该文件；否则返回 null
      */
-    private fun filterNotInProjectSource(file: CjFile, context: AnalysisContext): CjFile? {
+    private fun filterNotInProjectSource(file: CjFile, context: IdeaModuleInfo): CjFile? {
         val fileToAnalyze = when (file) {
             is CjCodeFragment -> file.getContextFile()
             else -> file
@@ -402,7 +375,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
         }
 
         val isInProjectSource = RootKindFilter.projectSources.matches(fileToAnalyze)
-                && context.scope.contains(fileToAnalyze)
+                && context.contentScope.contains(fileToAnalyze)
 
         return if (!isInProjectSource) fileToAnalyze else null
     }
@@ -436,7 +409,8 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
     }
 
     private fun getFacadeToAnalyzeFiles(files: Collection<CjFile>/*, settings: PlatformAnalysisSettings*/): ResolutionFacade {
-        val moduleInfo = files.first().analysisContext
+        val moduleInfo = files.first().moduleInfo
+
         val specialFiles = files.filterNotInProjectSource(moduleInfo)
 
 
@@ -498,7 +472,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
         explicitSettings: PlatformAnalysisSettings? = null
     ): ProjectResolutionFacade {
         // 假设所有文件来自同一个模块（如果不是，这里会抛出异常）
-        val specialContext = files.map { it.analysisContext }.toSet().single()
+        val specialModuleInfo = files.map { it.moduleInfo }.toSet().single()
 
         /**
          * 为合成文件缓存创建依赖追踪器
@@ -520,14 +494,14 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
         } else ModificationTracker { files.sumByLong { it.modificationStamp } }
 
         val resolverDebugName =
-            "$resolverForSpecialInfoName $specialContext for files ${files.joinToString { it.name }} "
+            "$resolverForSpecialInfoName $specialModuleInfo for files ${files.joinToString { it.name }} "
 
         fun makeProjectResolutionFacade(
             debugName: String,
             globalContext: GlobalContextImpl,
             reuseDataFrom: ProjectResolutionFacade? = null,
-            moduleFilter: (AnalysisContext) -> Boolean = { true },
-            allModules: Collection<AnalysisContext>? = null
+            moduleFilter: (IdeaModuleInfo) -> Boolean = { true },
+            allModules: Collection<IdeaModuleInfo>? = null
         ): ProjectResolutionFacade {
             return ProjectResolutionFacade(
                 debugName,
@@ -569,50 +543,34 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
          *    - 记录警告日志便于排查问题
          */
         return when {
-            !specialContext.isSourceContext || specialContext is NotUnderContentRootModuleInfo -> {
-                val librariesFacade = librariesFacade()
-                val debugName = "facadeForSpecialContext (Library or NotUnderContentRoot)"
-                val globalContext =
-                    librariesFacade.globalContext.contextWithCompositeExceptionTracker(project, debugName)
-                makeProjectResolutionFacade(
-                    debugName,
-                    globalContext,
-                    reuseDataFrom = librariesFacade,
-                    moduleFilter = { it == specialContext }
-                )
-            }
-
-            specialContext.isSourceContext -> {
-                // 获取依赖模块：当前上下文及其所有依赖
-                val dependentModules = listOf(specialContext) + specialContext.dependencies
-                val modulesFacade = facadeForModules()
+            specialModuleInfo is ModuleSourceInfo -> {
+                val dependentModules = specialModuleInfo.getDependentModules()
+                val modulesFacade = facadeForModules( )
                 val globalContext =
                     modulesFacade.globalContext.contextWithCompositeExceptionTracker(
                         project,
-                        "facadeForSpecialContext (SourceContext)"
+                        "facadeForSpecialModuleInfo (ModuleSourceInfo)"
                     )
                 makeProjectResolutionFacade(
-                    "facadeForSpecialContext (SourceContext)",
+                    "facadeForSpecialModuleInfo (ModuleSourceInfo)",
                     globalContext,
                     reuseDataFrom = modulesFacade,
                     moduleFilter = { it in dependentModules }
                 )
             }
 
-            specialContext.isLibraryContext -> {
-                //NOTE: this code should not be called for sdk or library classes
-                // currently the only known scenario is when we cannot determine that file is a library source
-                // (file under both classes and sources root)
-                LOG.warn("Creating cache with synthetic files ($files) in classes of library $specialContext")
-                val globalContext =
-                    GlobalContext("facadeForSpecialContext for file under both classes and root", project)
+            specialModuleInfo is LibrarySourceInfo || specialModuleInfo is NotUnderContentRootModuleInfo -> {
+                val librariesFacade = librariesFacade( )
+                val debugName = "facadeForSpecialModuleInfo (LibrarySourceInfo or NotUnderContentRootModuleInfo)"
+                val globalContext = librariesFacade.globalContext.contextWithCompositeExceptionTracker(project, debugName)
                 makeProjectResolutionFacade(
-                    "facadeForSpecialContext for file under both classes and root",
-                    globalContext
+                    debugName,
+                    globalContext,
+                    reuseDataFrom = librariesFacade,
+                    moduleFilter = { it == specialModuleInfo }
                 )
             }
-
-            else -> throw IllegalStateException("Unknown AnalysisContext ${specialContext.javaClass}")
+            else -> throw IllegalStateException("Unknown AnalysisContext ${specialModuleInfo.javaClass}")
         }
     }
 
@@ -668,21 +626,23 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
  * 未来可能用于细粒度控制 Facade 包含哪些模块，优化内存和性能。
  */
 internal interface ModuleFilters {
-    fun sdkFacadeFilter(module: AnalysisContext): Boolean
-    fun libraryFacadeFilter(module: AnalysisContext): Boolean
-    fun moduleFacadeFilter(module: AnalysisContext): Boolean
+    fun sdkFacadeFilter(module: IdeaModuleInfo): Boolean
+    fun libraryFacadeFilter(module: IdeaModuleInfo): Boolean
+    fun moduleFacadeFilter(module: IdeaModuleInfo): Boolean
+}private object ClassLoaderBuiltInsModuleFilters :  ModuleFilters {
+    override fun sdkFacadeFilter(module: IdeaModuleInfo): Boolean = false
+    override fun libraryFacadeFilter(module: IdeaModuleInfo): Boolean = module is LibraryInfo
+    override fun moduleFacadeFilter(module: IdeaModuleInfo): Boolean = !module.isLibraryClasses()
 }
 
-//internal class GlobalFacadeModuleFilters(project: Project) : ModuleFilters {
-//    private val impl = when (IdeBuiltInsLoadingState.state) {
-//        IdeBuiltInsLoadingState.IdeBuiltInsLoading.FROM_CLASSLOADER -> ClassLoaderBuiltInsModuleFilters
-//        IdeBuiltInsLoadingState.IdeBuiltInsLoading.FROM_DEPENDENCIES_JVM -> DependencyBuiltinsModuleFilters(project)
-//    }
-//
-//    override fun sdkFacadeFilter(module: AnalysisContext): Boolean = impl.sdkFacadeFilter(module)
-//    override fun libraryFacadeFilter(module: AnalysisContext): Boolean = impl.libraryFacadeFilter(module)
-//    override fun moduleFacadeFilter(module: AnalysisContext): Boolean = impl.moduleFacadeFilter(module)
-//}
+
+internal class GlobalFacadeModuleFilters(project: Project) : ModuleFilters {
+    private val impl = ClassLoaderBuiltInsModuleFilters
+
+    override fun sdkFacadeFilter(module: IdeaModuleInfo): Boolean = impl.sdkFacadeFilter(module)
+    override fun libraryFacadeFilter(module: IdeaModuleInfo): Boolean = impl.libraryFacadeFilter(module)
+    override fun moduleFacadeFilter(module: IdeaModuleInfo): Boolean = impl.moduleFacadeFilter(module)
+}
 /**
  * 为 GlobalContext 添加组合异常追踪器
  *
@@ -791,3 +751,6 @@ private class CompositeExceptionTracker(val delegate: ExceptionTracker) : Except
  */
 private val FILE_OUT_OF_BLOCK_MODIFICATION_COUNT = Key<Long>("FILE_OUT_OF_BLOCK_MODIFICATION_COUNT")
 val CjFile.outOfBlockModificationCount: Long by NotNullableUserDataProperty(FILE_OUT_OF_BLOCK_MODIFICATION_COUNT, 0)
+
+
+fun IdeaModuleInfo.isLibraryClasses() = /*this is SdkInfo ||*/ this is LibraryInfo

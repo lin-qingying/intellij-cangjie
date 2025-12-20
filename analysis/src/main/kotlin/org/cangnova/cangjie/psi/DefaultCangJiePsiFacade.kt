@@ -56,11 +56,19 @@ class DefaultCangJiePsiFacade(val project: Project) : CangJiePsiFacade() {
         return true
     }
 
+    override fun findPackage(fqName: String): CangJiePackage? {
+        return this.findPackage(FqName.fromString(fqName))
+    }
 
     override fun findPackage(fqName: FqName): CangJiePackage? {
         val allScope = GlobalSearchScope.allScope(project)
-        return if (CangJiePackageIndexUtils.packageExists(fqName, allScope)) {
-            CangJiePackageImpl(psiManager, fqName, allScope)
+        return this.findPackage(fqName, allScope)
+    }
+
+    override fun findPackage(fqName: FqName, searchScope: GlobalSearchScope): CangJiePackage? {
+
+        return if (CangJiePackageIndexUtils.packageExists(fqName, searchScope)) {
+            CangJiePackageImpl(psiManager, fqName, searchScope)
         } else null
 
     }

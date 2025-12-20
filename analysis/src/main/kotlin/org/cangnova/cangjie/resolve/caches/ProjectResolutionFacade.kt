@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.resolve.caches
 
-import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -37,13 +36,14 @@ import org.cangnova.cangjie.cache.trackers.CangJieCodeBlockModificationListener
 import org.cangnova.cangjie.context.GlobalContextImpl
 import org.cangnova.cangjie.context.withProject
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
-import org.cangnova.cangjie.descriptors.AnalysisContext
-import org.cangnova.cangjie.descriptors.AnalysisContextProvider
 import org.cangnova.cangjie.descriptors.CjProjectDescriptorService
-import org.cangnova.cangjie.descriptors.NotUnderContentRootModuleInfo
-import org.cangnova.cangjie.descriptors.analysisContext
-import org.cangnova.cangjie.descriptors.analysisContextProvider
 import org.cangnova.cangjie.diagnostics.DiagnosticSink
+import org.cangnova.cangjie.moduleinfo.IdeaModuleInfo
+import org.cangnova.cangjie.moduleinfo.NotUnderContentRootModuleInfo
+import org.cangnova.cangjie.moduleinfo.cache.checkValidity
+import org.cangnova.cangjie.moduleinfo.provider.ModuleInfoProvider
+import org.cangnova.cangjie.moduleinfo.provider.moduleInfo
+import org.cangnova.cangjie.moduleinfo.util.getModuleInfosFromIdeaModel
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.resolve.AnalysisResult
@@ -54,6 +54,7 @@ import org.cangnova.cangjie.resolve.ResolverForModule
 import org.cangnova.cangjie.resolve.ResolverForProject
 import org.cangnova.cangjie.storage.CancellableSimpleLock
 import org.cangnova.cangjie.storage.guarded
+import org.cangnova.cangjie.utils.firstIsInstanceOrNull
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 
@@ -344,11 +345,11 @@ class ProjectResolutionFacade(
     val project: Project,
     val globalContext: GlobalContextImpl,
     val reuseDataFrom: ProjectResolutionFacade?,
-    val moduleFilter: (AnalysisContext) -> Boolean,
+    val moduleFilter: (IdeaModuleInfo) -> Boolean,
     dependencies: List<Any>,
     private val invalidateOnOOCB: Boolean,
     val syntheticFiles: Collection<CjFile> = listOf(),
-    val allModules: Collection<AnalysisContext>? = null  // null 意味着从 AnalysisContextProvider 获取
+    val allModules: Collection<IdeaModuleInfo>? = null  // null 意味着从 AnalysisContextProvider 获取
 ) {
 
     /**
@@ -393,7 +394,7 @@ class ProjectResolutionFacade(
     )
     private val analysisResultsLock = ReentrantLock()
     private val resolverForProjectDependencies = dependencies + globalContext.exceptionTracker
-    private val cachedResolverForProject: ResolverForProject<AnalysisContext>
+    private val cachedResolverForProject: ResolverForProject<IdeaModuleInfo>
         get() = globalContext.storageManager.compute { cachedValue.value }
 
     private val analysisResultsSimpleLock = CancellableSimpleLock(
@@ -411,49 +412,48 @@ class ProjectResolutionFacade(
      *
      * @return ResolverForProject<AnalysisContext> 实例，用于解析模块信息
      */
-    private fun computeModuleResolverProvider(): ResolverForProject<AnalysisContext> {
+    private fun computeModuleResolverProvider(): ResolverForProject<IdeaModuleInfo> {
         // 获取项目描述符
         val projectDescriptor = CjProjectDescriptorService.getInstance(project).projectDescriptor
 
         // 初始化代理解析器，如果没有重用的数据，则使用空解析器
-        val delegateResolverForProject: ResolverForProject<AnalysisContext> =
+        val delegateResolverForProject: ResolverForProject<IdeaModuleInfo> =
             reuseDataFrom?.cachedResolverForProject ?: EmptyResolverForProject()
 
-        // 获取所有模块信息，如果allModules为空，则使用空集合
-        val allModuleInfos = (allModules ?: emptySet()).toMutableSet()
+        val allModuleInfos = (allModules ?: getModuleInfosFromIdeaModel(project))
+            .toMutableSet().also {
+                it.checkValidity {
+                    ("allModules".takeIf { allModules != null }
+                        ?: "getModuleInfosFromIdeaModel(project )") + toString()
+                }
+            }
 
-        // 将合成文件按分析上下文分组，以便后续处理
-        val syntheticFilesByContext = syntheticFiles.groupBy { it.analysisContext }
-        // 获取合成文件对应的分析上下文
-        val syntheticFilesContexts = syntheticFilesByContext.keys.filterNotNull()
-        // 将合成文件对应的分析上下文添加到所有模块信息中
-        allModuleInfos.addAll(syntheticFilesContexts)
+        val syntheticFilesByModule = syntheticFiles.groupBy { it.moduleInfo }
+        val syntheticFilesModules = syntheticFilesByModule.keys
+        allModuleInfos.addAll(syntheticFilesModules)
+
+
 
         // 根据模块过滤条件过滤解析的模块
         val resolvedModules = allModuleInfos.filter(moduleFilter)
         // 解析模块及其依赖关系
-        val resolvedModulesWithDependencies = resolvedModules /*+
-            listOfNotNull(ScriptDependenciesInfo.ForProject.createIfRequired(project, resolvedModules))*/
-
+        val resolvedModulesWithDependencies = resolvedModules
         // 返回模块解析器实例
         return IdeaResolverForProject(
             resolverDebugName,
             globalContext.withProject(project),
             projectDescriptor,
             resolvedModulesWithDependencies,
-            syntheticFilesByContext,
+            syntheticFilesByModule,
             delegateResolverForProject,
-            /*      if (invalidateOnOOCB)*/
-            CangJieModificationTrackerService.getInstance(project).outOfBlockModificationTracker /*else JavaLibraryModificationTracker.getInstance(
-            project
-        ),*/
-//        settings
+            CangJieModificationTrackerService.getInstance(project).outOfBlockModificationTracker
+
         )
     }
 
 
-    internal fun getResolverForProject(): ResolverForProject<AnalysisContext> = cachedResolverForProject
-    internal fun resolverForModuleInfo(context: AnalysisContext) = cachedResolverForProject.resolverForModule(context)
+    internal fun getResolverForProject(): ResolverForProject<IdeaModuleInfo> = cachedResolverForProject
+    internal fun resolverForModuleInfo(context: IdeaModuleInfo) = cachedResolverForProject.resolverForModule(context)
 
 
     private val analysisResults = CachedValuesManager.getManager(project).createCachedValue(
@@ -464,7 +464,7 @@ class ProjectResolutionFacade(
                 private val lock = ReentrantLock()
 
                 override fun createValue(file: CjFile): PerFileAnalysisCache {
-                    val fileContext = file.analysisContext
+                    val fileContext = file.moduleInfo
                     val componentProvider = if (fileContext != null) {
                         resolverForProject.resolverForModule(fileContext).componentProvider
                     } else {
@@ -507,7 +507,7 @@ class ProjectResolutionFacade(
         }, false
     )
 
-    internal fun findModuleDescriptor(ideaModuleInfo: AnalysisContext): ModuleDescriptor {
+    internal fun findModuleDescriptor(ideaModuleInfo: IdeaModuleInfo): ModuleDescriptor {
         return cachedResolverForProject.descriptorForModule(ideaModuleInfo)
     }
 
@@ -524,13 +524,8 @@ class ProjectResolutionFacade(
             return AnalysisResult.internalError(bindingContext, it.error)
         }
 
-        //TODO: (module refactoring) several elements are passed here in debugger
-        val firstElementContext = elements.first().analysisContext
-        return if (firstElementContext != null) {
-            AnalysisResult.success(bindingContext, findModuleDescriptor(firstElementContext))
-        } else {
-            AnalysisResult.internalError(bindingContext, IllegalStateException("No AnalysisContext for elements"))
-        }
+        return AnalysisResult.success(bindingContext, findModuleDescriptor(elements.first().moduleInfo))
+
 
     }
 
@@ -547,13 +542,8 @@ class ProjectResolutionFacade(
             return AnalysisResult.internalError(bindingContext, it.error)
         }
 
-        //TODO: (module refactoring) several elements are passed here in debugger
-        val elementContext = element.analysisContext
-        return if (elementContext != null) {
-            AnalysisResult.success(bindingContext, findModuleDescriptor(elementContext))
-        } else {
-            AnalysisResult.internalError(bindingContext, IllegalStateException("No AnalysisContext for element"))
-        }
+        return AnalysisResult.success(bindingContext, findModuleDescriptor(element.moduleInfo))
+
     }
 
     private fun analysisResultForElement(
@@ -592,32 +582,34 @@ class ProjectResolutionFacade(
     }
 
     internal fun resolverForElement(element: PsiElement): ResolverForModule {
-        val moduleInfos = mutableSetOf<AnalysisContext>()
+        val moduleInfos = mutableSetOf<IdeaModuleInfo>()
 
         // 尝试从文件获取上下文
         val containingFile = element.containingFile
-        val elementContext = if (containingFile != null) {
-            val provider = AnalysisContextProvider.getInstance(element.project)
-            provider.getContextForFile(containingFile)
-        } else {
-            null
-        }
+        val elementModuleInfos = ModuleInfoProvider.getInstance(element.project).collect(
+            element,
+            config =  ModuleInfoProvider.Configuration.Default,
+        )
 
-        // 如果找到上下文，尝试获取对应的 resolver
-        if (elementContext != null) {
-            val resolver = cachedResolverForProject.tryGetResolverForModule(elementContext)
-            if (resolver != null) {
-                return resolver
-            } else {
-                moduleInfos += listOf(elementContext)
+        for (result in elementModuleInfos) {
+            val moduleInfo = result.getOrNull()
+            if (moduleInfo != null) {
+                val resolver = cachedResolverForProject.tryGetResolverForModule(moduleInfo)
+                if (resolver != null) {
+                    return resolver
+                } else {
+                    moduleInfos += moduleInfo
+                }
             }
-        } else {
-            LOG.warn("Could not find AnalysisContext for element: ${element::class.java}")
-        }
 
+            val error = result.exceptionOrNull()
+            if (error != null) {
+                LOG.warn("Could not find correct module information", error)
+            }
+        }
         val cjFile = containingFile as? CjFile
         return cachedResolverForProject.tryGetResolverForModule(NotUnderContentRootModuleInfo(project, cjFile))
-            ?: cachedResolverForProject.diagnoseUnknownContext(moduleInfos.toList())
+            ?: cachedResolverForProject.diagnoseUnknownModuleInfo(moduleInfos.toList())
     }
 
     companion object {

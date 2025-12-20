@@ -22,24 +22,9 @@
  *
  */
 
-/**
- * Analysis Project Bridge 模块
- *
- * 此模块作为 analysis 和 cangjie-project 之间的桥接层，
- * 负责将项目模型（CjModule、CjProject 等）适配为分析上下文（AnalysisContext）。
- *
- * 依赖关系：
- * - analysis：提供 AnalysisContext 接口
- * - cangjie-project：提供 CjModule、CjProject 等项目模型
- */
+package org.cangnova.cangjie.chir
 
-dependencies {
-    // 核心依赖：分析接口和项目模型
-    api(project(":analysis"))
-    api(project(":cangjie-project"))
+class ChirElement {
 
-    // 基础设施依赖
-    implementation(project(":util"))
-    implementation(project(":common"))
-    implementation(project(":psi"))
+    val source:CjSourceElement?
 }

@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.utils
 
 import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.moduleinfo.util.isUnderCangJieSourceRootTypes
 import org.cangnova.cangjie.resolve.lazy.NoDescriptorForDeclarationException
 
 /**

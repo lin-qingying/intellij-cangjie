@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.moduleinfo
+package org.cangnova.cangjie.moduleinfo.cache
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
@@ -39,6 +39,7 @@ import com.intellij.util.concurrency.annotations.RequiresWriteLock
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.collections.iterator
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 abstract class FineGrainedEntityCache<Key : Any, Value : Any>(

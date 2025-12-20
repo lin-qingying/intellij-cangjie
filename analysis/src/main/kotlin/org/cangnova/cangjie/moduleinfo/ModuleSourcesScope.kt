@@ -29,7 +29,6 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.projectStructure.scope.CombinableSourceAndClassRootsScope
 import org.cangnova.cangjie.scope.AbstractVirtualFileRootsScope
-import org.jetbrains.jps.model.java.JavaResourceRootType
 
 /**
  * 模块源码作用域
@@ -266,11 +265,11 @@ private fun calculateRootsSet(module: Module, sourceRootKind: ModuleSourcesScope
         contentEntry
             .sourceFolders
             .filter { sourceFolder ->
-                when {
-                    sourceFolder.rootType is JavaResourceRootType -> false
-                    sourceRootKind == ModuleSourcesScope.SourceRootKind.PRODUCTION -> !sourceFolder.isTestSource
-                    sourceRootKind == ModuleSourcesScope.SourceRootKind.TESTS -> sourceFolder.isTestSource
-                    else -> false
+                // 根据源根类型过滤
+                // 注意：仓颉项目使用自己的源根类型，不需要特别排除 Java 资源类型
+                when (sourceRootKind) {
+                    ModuleSourcesScope.SourceRootKind.PRODUCTION -> !sourceFolder.isTestSource
+                    ModuleSourcesScope.SourceRootKind.TESTS -> sourceFolder.isTestSource
                 }
             }
             .mapNotNullTo(roots) { it.file }

@@ -24,11 +24,18 @@
 
 package org.cangnova.cangjie.resolve
 
-import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.name.FqName
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.psi.search.GlobalSearchScope
+import org.cangnova.cangjie.moduleinfo.IdeaModuleInfo
+import org.cangnova.cangjie.moduleinfo.ModuleInfo
+import org.cangnova.cangjie.moduleinfo.ModuleOrigin
+import org.cangnova.cangjie.moduleinfo.ModuleSourceInfo
+import org.cangnova.cangjie.moduleinfo.util.projectSourceModules
+import org.cangnova.cangjie.name.isSubpackageOf
+import org.cangnova.cangjie.psi.CangJiePsiFacade
 import org.cangnova.cangjie.resolve.caches.PerModulePackageCacheService
 
 
@@ -41,36 +48,51 @@ interface PackageOracle {
 }
 
 interface PackageOracleFactory {
-    fun createOracle(context: AnalysisContext): PackageOracle
+    fun createOracle(context: ModuleInfo): PackageOracle
 
     object OptimisticFactory : PackageOracleFactory {
-        override fun createOracle(context: AnalysisContext) = PackageOracle.Optimistic
+        override fun createOracle(context: ModuleInfo) = PackageOracle.Optimistic
     }
 }
 
 @Service(Service.Level.PROJECT)
 class IdePackageOracleFactory(val project: Project) : PackageOracleFactory {
-    override fun createOracle(context: AnalysisContext): PackageOracle {
-        // 只为源码上下文创建详细的 Oracle
-        return if (context.isSourceContext) {
-            CangJieSourceFilesOracle(context, project)
-        } else {
-            // 对于库和其他类型，使用乐观策略
-            PackageOracle.Optimistic
+    override fun createOracle(context: ModuleInfo): PackageOracle {
+        if (context !is IdeaModuleInfo) return PackageOracle.Optimistic
+
+        return when (context.moduleOrigin) {
+            ModuleOrigin.LIBRARY -> PackagesOracle(context, project)
+            ModuleOrigin.MODULE -> SourceOracle(context, project)
+            ModuleOrigin.OTHER -> PackageOracle.Optimistic
         }
     }
 
+    private class SourceOracle(moduleInfo: IdeaModuleInfo, project: Project) : PackageOracle {
+        private val packagesOracle = PackagesOracle(moduleInfo, project)
+        private val sourceOracle = CangJieSourceFilesOracle(moduleInfo, project)
+
+        override fun packageExists(fqName: FqName): Boolean =
+            packagesOracle.packageExists(fqName)
+                    || sourceOracle.packageExists(fqName)
+        /*  || fqName.isSubpackageOf(ANDROID_SYNTHETIC_PACKAGE_PREFIX)*/
+    }
+
+    private class PackagesOracle(moduleInfo: IdeaModuleInfo, project: Project) : PackageOracle {
+        private val scope: GlobalSearchScope = moduleInfo.contentScope
+        private val facade: CangJiePsiFacade =CangJiePsiFacade.getInstance(project)
+
+        override fun packageExists(fqName: FqName): Boolean = facade.findPackage(fqName, scope) != null
+    }
 
     private class CangJieSourceFilesOracle(
-        private val context: AnalysisContext,
+        private val context: IdeaModuleInfo,
         private val project: Project
     ) : PackageOracle {
         private val cacheService: PerModulePackageCacheService = project.service()
+        private val sourceModules: List<ModuleSourceInfo> = context.projectSourceModules()
 
         override fun packageExists(fqName: FqName): Boolean {
-            // 在当前上下文及其依赖中查找包
-            // TODO: 可能需要递归查找依赖
-            return cacheService.packageExists(fqName, context)
+            return sourceModules.any { cacheService.packageExists(fqName, it) }
         }
     }
 

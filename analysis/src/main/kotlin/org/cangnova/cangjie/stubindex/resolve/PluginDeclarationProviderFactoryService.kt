@@ -26,7 +26,7 @@ package org.cangnova.cangjie.stubindex.resolve
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
-import org.cangnova.cangjie.descriptors.AnalysisContext
+import org.cangnova.cangjie.moduleinfo.ModuleInfo
 import org.cangnova.cangjie.projectStructure.CangJieSourceFilterScope
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactory
@@ -40,7 +40,7 @@ class PluginDeclarationProviderFactoryService : DeclarationProviderFactoryServic
         storageManager: StorageManager,
         syntheticFiles: Collection<CjFile>,
         filesScope: GlobalSearchScope,
-        context: AnalysisContext
+        context: ModuleInfo
     ): DeclarationProviderFactory {
 
 

@@ -35,7 +35,7 @@ import com.intellij.openapi.vfs.newvfs.NewVirtualFileSystem
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.util.PathUtil
-import org.cangnova.cangjie.descriptors.ModuleOrigin
+import org.cangnova.cangjie.moduleinfo.cache.LibraryDependenciesCache
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.projectStructure.scope.CombinableSourceAndClassRootsScope
 import org.cangnova.cangjie.projectStructure.scope.PoweredLibraryScopeBase
@@ -261,10 +261,10 @@ abstract class LibraryInfo internal constructor(
      * 1. 库自身（第一个元素）
      * 2. 库的所有依赖库
      *
-     * 依赖信息从 [LibraryDependenciesCache] 中获取并缓存。
+     * 依赖信息从 [org.cangnova.cangjie.moduleinfo.cache.LibraryDependenciesCache] 中获取并缓存。
      *
      * @return 包含自身和所有依赖的列表
-     * @see LibraryDependenciesCache
+     * @see org.cangnova.cangjie.moduleinfo.cache.LibraryDependenciesCache
      */
     override val dependencies : List<IdeaModuleInfo> get()  {
         val dependencies = LibraryDependenciesCache.getInstance(project).getLibraryDependencies(this)

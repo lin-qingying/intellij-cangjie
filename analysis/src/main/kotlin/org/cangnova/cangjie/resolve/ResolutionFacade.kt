@@ -35,7 +35,7 @@ import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.FrontendInternals
-import org.cangnova.cangjie.descriptors.AnalysisContext
+import org.cangnova.cangjie.moduleinfo.ModuleInfo
 import org.cangnova.cangjie.resolve.binding.BindingContext
 
 inline fun <reified T : Any> ResolutionFacade.ideService(): T = this.getIdeService(T::class.java)
@@ -72,7 +72,7 @@ interface ResolutionFacade {
     // get service for the module defined by PsiElement/ModuleDescriptor passed as parameter
     @FrontendInternals
     fun <T : Any> getFrontendService(element: PsiElement, serviceClass: Class<T>): T
-    fun getResolverForProject(): ResolverForProject<out AnalysisContext>
+    fun getResolverForProject(): ResolverForProject<out ModuleInfo>
 
 }
 

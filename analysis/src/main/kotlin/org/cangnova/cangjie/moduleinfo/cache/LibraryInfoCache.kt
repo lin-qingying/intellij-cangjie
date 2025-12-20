@@ -22,11 +22,13 @@
  *
  */
 
-package org.cangnova.cangjie.moduleinfo
+package org.cangnova.cangjie.moduleinfo.cache
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.OrderRootType
@@ -36,16 +38,32 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.newvfs.NewVirtualFileSystem
 import com.intellij.platform.workspace.jps.entities.LibraryDependency
 import com.intellij.platform.workspace.jps.entities.LibraryEntity
 import com.intellij.platform.workspace.jps.entities.LibraryTableId
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
-import com.intellij.platform.workspace.storage.EntityChange
 import com.intellij.platform.workspace.storage.VersionedStorageChange
-import com.intellij.platform.workspace.storage.WorkspaceEntity
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.util.PathUtil
 import com.intellij.util.concurrency.ThreadingAssertions
+import org.cangnova.cangjie.moduleinfo.LibraryInfo
+import org.cangnova.cangjie.moduleinfo.LibraryInfoImpl
+import org.cangnova.cangjie.moduleinfo.LibraryInfoListener
+import org.cangnova.cangjie.moduleinfo.cache.LibraryDependenciesCache
+import org.cangnova.cangjie.moduleinfo.checkValidity
+import org.cangnova.cangjie.moduleinfo.getChanges
+import org.cangnova.cangjie.moduleinfo.rootEquals
+import org.cangnova.cangjie.moduleinfo.urlsByType
+import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.projectStructure.scope.CombinableSourceAndClassRootsScope
+import org.cangnova.cangjie.projectStructure.scope.PoweredLibraryScopeBase
+import org.cangnova.cangjie.projectStructure.scope.calculateEntriesVirtualFileSystems
+import org.cangnova.cangjie.projectStructure.scope.calculateTopPackageNames
+import org.cangnova.cangjie.resolve.PlatformDependentAnalyzerServices
+import org.cangnova.cangjie.resolve.PlatformDependentAnalyzerServicesImpl
 import org.cangnova.cangjie.utils.addIfNotNull
 import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
 import org.cangnova.cangjie.utils.flattenTo
@@ -53,7 +71,7 @@ import org.cangnova.cangjie.utils.flattenTo
 /**
  * 库信息缓存服务
  *
- * 该服务用于缓存和管理项目中所有库的 [LibraryInfo] 对象。
+ * 该服务用于缓存和管理项目中所有库的 [org.cangnova.cangjie.moduleinfo.LibraryInfo] 对象。
  * 它负责：
  * 1. 缓存库信息以避免重复计算
  * 2. 去重相同内容的库（基于根目录）
@@ -67,8 +85,8 @@ import org.cangnova.cangjie.utils.flattenTo
  * - **线程安全**: 使用读写锁保护缓存访问
  *
  * @param project 当前项目实例
- * @see LibraryInfo
- * @see LibraryInfoImpl
+ * @see org.cangnova.cangjie.moduleinfo.LibraryInfo
+ * @see org.cangnova.cangjie.moduleinfo.LibraryInfoImpl
  */
 @Service(Service.Level.PROJECT)
 
@@ -287,7 +305,7 @@ class LibraryInfoCache(project: Project) : Disposable {
          * 检查库键的有效性
          *
          * @param key 要检查的库对象
-         * @throws AlreadyDisposedException 如果库已被释放
+         * @throws com.intellij.serviceContainer.AlreadyDisposedException 如果库已被释放
          */
         override fun checkKeyValidity(key: LibraryEx) {
             key.checkValidity()
@@ -403,7 +421,7 @@ class LibraryInfoCache(project: Project) : Disposable {
          * 检查库信息列表中的所有库是否有效。
          *
          * @param value 库信息列表
-         * @throws AlreadyDisposedException 如果任何库已被释放
+         * @throws com.intellij.serviceContainer.AlreadyDisposedException 如果任何库已被释放
          */
         override fun checkValueValidity(value: List<LibraryInfo>) {
             value.forEach(LibraryInfo::checkValidity)
@@ -429,7 +447,7 @@ class LibraryInfoCache(project: Project) : Disposable {
          * @param value 新添加的库信息列表
          */
         override fun postProcessNewValue(key: LibraryEx, value: List<LibraryInfo>) {
-            project.messageBus.syncPublisher(LibraryInfoListener.TOPIC).libraryInfosAdded(value)
+            project.messageBus.syncPublisher(LibraryInfoListener.Companion.TOPIC).libraryInfosAdded(value)
         }
 
         /**
@@ -525,7 +543,7 @@ class LibraryInfoCache(project: Project) : Disposable {
 
                 if (droppedLibraryInfos.isNotEmpty()) {
                     removedLibraryInfoTracker.incModificationCount()
-                    project.messageBus.syncPublisher(LibraryInfoListener.TOPIC).libraryInfosRemoved(droppedLibraryInfos)
+                    project.messageBus.syncPublisher(LibraryInfoListener.Companion.TOPIC).libraryInfosRemoved(droppedLibraryInfos)
                 }
             }
         }

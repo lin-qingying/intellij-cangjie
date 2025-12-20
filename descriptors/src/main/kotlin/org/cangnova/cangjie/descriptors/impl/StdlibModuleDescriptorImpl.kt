@@ -71,7 +71,7 @@ import org.cangnova.cangjie.storage.StorageManager
  * @see org.cangnova.cangjie.builtins.BuiltInsLoader
  * @see org.cangnova.cangjie.resolve.DelegatingPackageFragmentProvider
  */
-class LibraryModuleDescriptorImpl(
+class StdlibModuleDescriptorImpl(
     projectDescriptor: ProjectDescriptor,
     moduleName: Name,
     displayName: String? = null,
@@ -85,4 +85,20 @@ class LibraryModuleDescriptorImpl(
     storageManager,
     capabilities,
     stableName
-)
+){
+    // 必须在父类构造函数调用后立即初始化，不能用延迟初始化
+    // 因为父类 init 块会调用 getCapability()
+    private var _capabilities: MutableMap<ModuleCapability<*>, Any?>? = null
+
+    fun addCapability(capability: ModuleCapability<*>, value: Any?) {
+        if (_capabilities == null) {
+            _capabilities = mutableMapOf()
+        }
+        _capabilities!![capability] = value
+    }
+
+    override fun <T> getCapability(capability: ModuleCapability<T>): T? {
+        // 安全检查：父类构造函数执行时 _capabilities 可能还未初始化
+        return super.getCapability(capability) ?: _capabilities?.get(capability) as? T
+    }
+}

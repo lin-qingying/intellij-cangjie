@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.resolve
 
 import com.intellij.openapi.progress.impl.CancellationCheck.Companion.runWithCancellationCheck
-import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.container.get
 import org.cangnova.cangjie.container.getService
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
@@ -43,11 +42,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.FrontendInternals
+import org.cangnova.cangjie.moduleinfo.IdeaModuleInfo
 import org.cangnova.cangjie.resolve.binding.BindingContext
 
 class ModuleResolutionFacadeImpl(
     private val projectFacade: ProjectResolutionFacade,
-    private val context: AnalysisContext
+    private val context: IdeaModuleInfo
 ) : ResolutionFacade, ResolutionFacadeModuleDescriptorProvider {
     override val moduleDescriptor: ModuleDescriptor
         get() = findModuleDescriptor(context)
@@ -57,7 +57,7 @@ class ModuleResolutionFacadeImpl(
     @FrontendInternals
     override fun <T : Any> getFrontendService(serviceClass: Class<T>): T = getFrontendService(context, serviceClass)
 
-    private fun <T : Any> getFrontendService(ideaModuleInfo: AnalysisContext, serviceClass: Class<T>): T {
+    private fun <T : Any> getFrontendService(ideaModuleInfo: IdeaModuleInfo, serviceClass: Class<T>): T {
         return projectFacade.resolverForModuleInfo(ideaModuleInfo).componentProvider.getService(serviceClass)
     }
 
@@ -65,8 +65,8 @@ class ModuleResolutionFacadeImpl(
         return projectFacade.resolverForModuleInfo(context).componentProvider.create(serviceClass)
     }
 
-    override fun findModuleDescriptor(ideaModuleInfo: AnalysisContext) = projectFacade.findModuleDescriptor(ideaModuleInfo)
-    override fun getResolverForProject(): ResolverForProject<AnalysisContext> {
+    override fun findModuleDescriptor(ideaModuleInfo: IdeaModuleInfo) = projectFacade.findModuleDescriptor(ideaModuleInfo)
+    override fun getResolverForProject(): ResolverForProject<IdeaModuleInfo> {
         return projectFacade.getResolverForProject()
     }
 
@@ -179,7 +179,7 @@ class ModuleResolutionFacadeImpl(
 }
 
 
-fun ResolutionFacade.findModuleDescriptor(ideaModuleInfo: AnalysisContext): ModuleDescriptor {
+fun ResolutionFacade.findModuleDescriptor(ideaModuleInfo: IdeaModuleInfo): ModuleDescriptor {
     return (this as ResolutionFacadeModuleDescriptorProvider).findModuleDescriptor(ideaModuleInfo)
 }
 
