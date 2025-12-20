@@ -90,57 +90,12 @@ class CangJieDecompiledFileViewProvider(
         text
     }
 
-    /**
-     * 标记此 ViewProvider 是否代表物理二进制文件。
-     *
-     * 返回 false 以告诉平台这不是一个需要直接读取的二进制文件，
-     * 而是应该使用 getContents() 获取内容。
-     */
-    override fun supportsIncrementalReparse(rootLanguage: com.intellij.lang.Language): Boolean = false
-
-    /**
-     * 检查此 ViewProvider 是否是物理的。
-     *
-     * 对于反编译文件，虽然底层是物理二进制文件，但我们返回 false
-     * 以避免 IDE 尝试将二进制内容作为文档处理。
-     * 这确保了 PSI 和文档使用相同的反编译文本。
-     */
-    override fun isPhysical(): Boolean = false
-
-    /**
-     * 检查是否应该为此文件创建事件系统。
-     *
-     * 返回 false 因为反编译文件是只读的，不需要监听变更事件。
-     */
-    override fun isEventSystemEnabled(): Boolean = false
 
 
 
-    /**
-     * 构建默认的错误提示文本。
-     *
-     * 当反编译失败或返回空内容时使用此文本，确保文档和 PSI 都有内容。
-     */
-    private fun buildDefaultErrorText(): String {
-        return """
-            // IntelliJ API Decompiler stub source generated from a class file
-            // Unable to decompile: ${virtualFile.name}
-            // The file may be corrupted or use an incompatible format.
-        """.trimIndent()
-    }
 
-    /**
-     * 构建包含异常信息的错误提示文本。
-     *
-     * @param exception 反编译过程中抛出的异常
-     */
-    private fun buildErrorText(exception: Exception): String {
-        return """
-            // IntelliJ API Decompiler stub source generated from a class file
-            // Decompilation failed: ${virtualFile.name}
-            // Error: ${exception.message ?: exception.javaClass.simpleName}
-        """.trimIndent()
-    }
+
+
 
     /**
      * 创建反编译后的 PSI 文件。

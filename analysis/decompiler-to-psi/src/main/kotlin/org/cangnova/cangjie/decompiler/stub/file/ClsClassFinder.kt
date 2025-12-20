@@ -27,12 +27,11 @@ package org.cangnova.cangjie.decompiler.stub.file
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.indexing.FileContent
-import org.cangnova.cangjie.lang.CangJieMetadataFileType
+import org.cangnova.cangjie.lang.declarations.CangJieBuiltInFileType
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.utils.exceptions.rethrowIntellijPlatformExceptionIfNeeded
 
 /**
  * 用于查找和判断仓颉编译文件类型的工具类。
@@ -46,28 +45,7 @@ object ClsClassFinder {
 
     private val LOG = Logger.getInstance(ClsClassFinder::class.java)
 
-    /**
-     * 查找多文件类的所有部分。
-     *
-     * @param file 多文件类的主文件
-     * @param classId 类的标识符
-     * @param partNames 部分文件的名称列表
-     * @return 找到的二进制类列表
-     */
-    fun findMultifileClassParts(
-        file: VirtualFile,
-        classId: ClassId,
-        partNames: List<String>
-    ): List<CangJieBinaryClass> {
-        val packageFqName = classId.packageFqName
-        val parent = file.parent ?: return emptyList()
-        val partsFinder = DirectoryBasedClassFinder(parent, packageFqName)
 
-        return partNames.mapNotNull { partName ->
-            val partClassId = ClassId(packageFqName, Name.identifier(partName.substringAfterLast('/')))
-            partsFinder.findCangJieClass(partClassId, BinaryVersion.INSTANCE)
-        }
-    }
 
     /**
      * 检查文件是否为内部编译的仓颉文件。
@@ -99,7 +77,6 @@ object ClsClassFinder {
         val isNestedClass = try {
             isNestedClassFile(file, fileContent)
         } catch (exception: Exception) {
-            rethrowIntellijPlatformExceptionIfNeeded(exception)
             LOG.debug("Error checking nested class: ${file.path}", exception)
             return false
         }
@@ -282,8 +259,8 @@ class ClsCangJieBinaryClassCache private constructor() {
      * @return 如果是仓颉编译文件返回 true
      */
     fun isCangJieCompiledFile(file: VirtualFile, fileContent: ByteArray? = null): Boolean {
-        return file.extension == CangJieMetadataFileType.defaultExtension ||
-                file.fileType == CangJieMetadataFileType
+        return file.extension == CangJieBuiltInFileType.defaultExtension ||
+                file.fileType == CangJieBuiltInFileType
     }
 
     /**

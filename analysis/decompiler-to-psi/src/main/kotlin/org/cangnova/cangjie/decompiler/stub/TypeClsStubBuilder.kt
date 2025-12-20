@@ -112,9 +112,8 @@ class TypeClsStubBuilder(
      * 创建基本类型 Stub
      */
     private fun createBasicTypeStub(parent: StubElement<out PsiElement>, kind: FbTypeKind) {
-        val typeName = getPrimitiveTypeName(kind)
-        CangJiePlaceHolderStubImpl<CjBasicType>(parent, CjStubElementTypes.BASIC_TYPE)
-        // 基本类型不需要额外的子 stub
+        val typeName = getPrimitiveTypeName(kind) ?: return
+        CangJieBasicTypeStubImpl(parent, typeName)
     }
 
     /**

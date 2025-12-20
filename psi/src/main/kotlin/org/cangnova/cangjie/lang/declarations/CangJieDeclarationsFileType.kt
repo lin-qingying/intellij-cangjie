@@ -31,7 +31,7 @@ import com.intellij.openapi.vfs.VirtualFile
 
 import javax.swing.Icon
 
-
+@Deprecated("")
 object CangJieDeclarationsFileType : CangJieFileType() {
       val EXTENSION: String = "cjd"
 

@@ -28,10 +28,25 @@ import org.cangnova.cangjie.container.DefaultImplementation
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
 
-
-
+/**
+ * 仓颉类型准备器（旧版）
+ *
+ * 用于在类型检查前对类型进行预处理和转换。
+ * 此类已被 CangJieTypePreparator 替代，保留用于兼容性。
+ *
+ * 主要功能：
+ * - 转换捕获类型
+ * - 处理交集类型
+ * - 处理整数值类型
+ * - 保留类型增强信息
+ */
 @DefaultImplementation(impl = CangJiePreparator.Default::class)
 abstract class CangJiePreparator : AbstractTypePreparator() {
+    /**
+     * 将简单类型转换为新的类型表示
+     *
+     * 目前大部分转换逻辑已注释，直接返回原类型
+     */
     private fun transformToNewType(type: SimpleType): SimpleType {
 //        when (val constructor = type.constructor) {
         // Type itself can be just SimpleTypeImpl, not CapturedType.
@@ -71,6 +86,11 @@ abstract class CangJiePreparator : AbstractTypePreparator() {
         return type
     }
 
+    /**
+     * 准备类型用于类型检查
+     *
+     * 对简单类型和灵活类型分别进行转换，并保留类型增强信息
+     */
     override fun prepareType(type: CangJieTypeMarker): UnwrappedType {
         require(type is CangJieType)
         val unwrappedType = type.unwrap()
@@ -88,19 +108,42 @@ abstract class CangJiePreparator : AbstractTypePreparator() {
         }.inheritEnhancement(unwrappedType, ::prepareType)
     }
 
+    /** 默认实现 */
     object Default : CangJiePreparator()
 }
 
+/**
+ * 仓颉类型准备器
+ *
+ * 在类型检查前对类型进行预处理和标准化。
+ * 这是类型检查流程中的重要一环，确保所有类型都处于一致的状态。
+ *
+ * 主要处理：
+ * 1. 捕获类型的转换（FOR_SUBTYPING 状态）
+ * 2. 整数值类型到交集类型的转换
+ * 3. 可选类型的交集类型处理
+ * 4. 保留类型增强信息（nullability annotations 等）
+ *
+ * 注意：大部分转换逻辑当前已注释，可能在未来启用
+ */
 @DefaultImplementation(impl = CangJieTypePreparator.Default::class)
 abstract class CangJieTypePreparator : AbstractTypePreparator() {
+    /**
+     * 将简单类型转换为新的类型表示
+     *
+     * 注释部分包含以下转换逻辑（当前未启用）：
+     * - 捕获类型构造器转换为新的捕获类型
+     * - 整数值类型构造器转换为交集类型
+     * - 可选的交集类型的特殊处理
+     */
     private fun transformToNewType(type: SimpleType): SimpleType {
 //        when (val constructor = type.constructor) {
-            // Type itself can be just SimpleTypeImpl, not CapturedType.
+            // 类型本身可能只是 SimpleTypeImpl，而不是 CapturedType
 //            is CapturedTypeConstructorImpl -> {
 //                val lowerType =
 //                    constructor.projection.takeIf { it.projectionKind == Variance.IN_VARIANCE }?.type?.unwrap()
 //
-//                // it is incorrect calculate this type directly because of recursive star projections
+//                // 由于递归星投影，直接计算此类型是不正确的
 //                if (constructor.newTypeConstructor == null) {
 //                    constructor.newTypeConstructor =
 //                        NewCapturedTypeConstructor(constructor.projection, constructor.supertypes.map { it.unwrap() })
@@ -138,6 +181,18 @@ abstract class CangJieTypePreparator : AbstractTypePreparator() {
         return type
     }
 
+    /**
+     * 准备类型用于类型检查
+     *
+     * 处理流程：
+     * 1. 解包类型（移除别名等包装）
+     * 2. 根据类型种类（简单类型或灵活类型）进行转换
+     * 3. 对于灵活类型，分别转换上下界
+     * 4. 继承原类型的增强信息（如 nullability annotations）
+     *
+     * @param type 要准备的类型
+     * @return 准备好的未包装类型
+     */
     override fun prepareType(type: CangJieTypeMarker): UnwrappedType {
         require(type is CangJieType)
         val unwrappedType = type.unwrap()
@@ -146,6 +201,7 @@ abstract class CangJieTypePreparator : AbstractTypePreparator() {
             is FlexibleType -> {
                 val newLower = transformToNewType(unwrappedType.lowerBound)
                 val newUpper = transformToNewType(unwrappedType.upperBound)
+                // 只有在转换后的类型与原类型不同时才创建新的灵活类型
                 if (newLower !== unwrappedType.lowerBound || newUpper !== unwrappedType.upperBound) {
                     CangJieTypeFactory.flexibleType(newLower, newUpper)
                 } else {
@@ -155,5 +211,6 @@ abstract class CangJieTypePreparator : AbstractTypePreparator() {
         }.inheritEnhancement(unwrappedType, ::prepareType)
     }
 
+    /** 默认的类型准备器实现 */
     object Default : CangJieTypePreparator()
 }

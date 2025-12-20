@@ -105,7 +105,6 @@ interface CangJieBasicTypeStub : StubElement<CjBasicType> {
 
 interface CangJieUserTypeStub : StubElement<CjUserType>
 interface CangJieTupleTypeStub : StubElement<CjTupleType>
-// interface CangJieBasicTypeStub : StubElement<CjBasicType>
 
 interface CangJieClassifierStub {
     fun getClassId(): ClassId?

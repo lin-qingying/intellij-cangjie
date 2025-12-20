@@ -28,7 +28,7 @@ object CangJieStubVersions {
 
     const val SOURCE_STUB_VERSION = 159
 
-    private const val BINARY_STUB_VERSION = 95
+    private const val BINARY_STUB_VERSION = 96
 
     const val CLASSFILE_STUB_VERSION = BINARY_STUB_VERSION + 0
 

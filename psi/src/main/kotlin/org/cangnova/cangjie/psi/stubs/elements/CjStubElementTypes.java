@@ -42,7 +42,6 @@ public interface CjStubElementTypes {
     //    CjBackingFieldElementType BACKING_FIELD = new CjBackingFieldElementType("BACKING_FIELD");
     CjTypeAliasElementType TYPEALIAS = new CjTypeAliasElementType("TYPEALIAS");
 
-    //    CjObjectElementType OBJECT_DECLARATION = new CjObjectElementType("OBJECT_DECLARATION");
     CjPlaceHolderStubElementType<CjClassInitializer> CLASS_INITIALIZER =
             new CjPlaceHolderStubElementType<>("CLASS_INITIALIZER", CjClassInitializer.class);
     CjEndSecondaryConstructorElementType END_SECONDARY_CONSTRUCTOR =
@@ -102,8 +101,7 @@ public interface CjStubElementTypes {
 
     CjPlaceHolderStubElementType<CjVArrayType> VARRAY_TYPE =
             new CjPlaceHolderStubElementType<>("VARRAY_TYPE", CjVArrayType.class);
-    CjPlaceHolderStubElementType<CjBasicType> BASIC_TYPE =
-            new CjPlaceHolderStubElementType<>("BASIC_TYPE", CjBasicType.class);
+    CjBasicTypeElementType BASIC_TYPE = new CjBasicTypeElementType("BASIC_TYPE");
 
     CjPlaceHolderStubElementType<CjThisType> THIS_TYPE =
             new CjPlaceHolderStubElementType<>("THIS_TYPE", CjThisType.class);
