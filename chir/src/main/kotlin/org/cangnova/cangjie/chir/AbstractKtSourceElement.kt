@@ -28,7 +28,7 @@ import com.intellij.lang.LighterASTNode
 import com.intellij.psi.tree.IElementType
 import com.intellij.util.diff.FlyweightCapableTreeStructure
 
-sealed class KtSourceElement : AbstractCjSourceElement() {
+sealed class CjSourceElement : AbstractCjSourceElement() {
     abstract val elementType: IElementType?
     abstract val lighterASTNode: LighterASTNode
     abstract val treeStructure: FlyweightCapableTreeStructure<LighterASTNode>

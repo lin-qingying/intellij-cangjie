@@ -24,11 +24,8 @@
 
 package org.cangnova.cangjie.chir
 
-interface ChirElement {
+interface ChirExpression : ChirElement {
 
-    val source:CjSourceElement?
-
-    fun <R, D> accept(visitor: ChirVisitor<R, D>, data: D): R =
-        visitor.visitElement(this, data)
+    override fun <R, D> accept(visitor: ChirVisitor<R, D>, data: D): R =
+        visitor.visitExpression(this, data)
 }
-

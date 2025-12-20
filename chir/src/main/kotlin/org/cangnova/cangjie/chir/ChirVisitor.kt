@@ -24,11 +24,12 @@
 
 package org.cangnova.cangjie.chir
 
-interface ChirElement {
+abstract class ChirVisitor<out R, in D>  {
+     abstract fun visitElement(element:  ChirElement, data: D) :R
 
-    val source:CjSourceElement?
+     open fun visitExpression(expression: ChirExpression, data: D): R =
+          visitElement(expression, data)
 
-    fun <R, D> accept(visitor: ChirVisitor<R, D>, data: D): R =
-        visitor.visitElement(this, data)
+     open fun visitDeclaration(declaration: ChirDeclaration, data: D): R =
+          visitElement(declaration, data)
 }
-

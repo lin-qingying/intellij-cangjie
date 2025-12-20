@@ -24,11 +24,13 @@
 
 package org.cangnova.cangjie.chir
 
-interface ChirElement {
+/**
+ * 表示 CHIR 中的声明元素。
+ *
+ * 声明包括类、接口、函数、变量等定义性元素。
+ */
+interface ChirDeclaration : ChirElement {
 
-    val source:CjSourceElement?
-
-    fun <R, D> accept(visitor: ChirVisitor<R, D>, data: D): R =
-        visitor.visitElement(this, data)
+    override fun <R, D> accept(visitor: ChirVisitor<R, D>, data: D): R =
+        visitor.visitDeclaration(this, data)
 }
-
