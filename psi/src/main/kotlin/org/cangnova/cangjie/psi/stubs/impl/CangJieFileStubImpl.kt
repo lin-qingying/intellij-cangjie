@@ -23,77 +23,149 @@
  */
 
 package org.cangnova.cangjie.psi.stubs.impl
-import org.cangnova.cangjie.name.*
 
+import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.PsiFileStubImpl
+import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.tree.IStubFileElementType
+import org.cangnova.cangjie.name.FqName
+import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.stubs.CangJieFileStub
+import org.cangnova.cangjie.psi.stubs.CangJieFileStubKind
+import org.cangnova.cangjie.psi.stubs.CangJieStubElement
 import org.cangnova.cangjie.psi.stubs.elements.CjFileElementType
-import com.intellij.psi.stubs.PsiFileStubImpl
-import com.intellij.psi.tree.IStubFileElementType
+import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
 
+/**
+ * 仓颉文件 Stub 的实现类。
+ *
+ * 通过 [CangJieFileStubKind] 来区分不同类型的文件 Stub。
+ *
+ * @param file 关联的 PSI 文件，可以为 null（在索引构建期间）
+ * @param kind 文件 Stub 的类型
+ */
 class CangJieFileStubImpl(
-    CjFile: CjFile?,
-    private val packageName: String,
+    file: CjFile?,
+    override val kind: CangJieFileStubKind,
+) : PsiFileStubImpl<CjFile>(file), CangJieFileStub {
 
-    private val facadeFqNameString: String?,
-    val partSimpleName: String?,
-    val facadePartSimpleNames: List<String>?,
-) : PsiFileStubImpl<CjFile>(CjFile), CangJieFileStub {
-
-    constructor(CjFile: CjFile?, packageName: String) : this(
-        CjFile,
-        packageName,
-
-        facadeFqNameString = null,
-        partSimpleName = null,
-        facadePartSimpleNames = null,
+    /**
+     * 兼容旧构造函数：仅指定包名的普通文件。
+     */
+    constructor(file: CjFile?, packageName: String) : this(
+        file = file,
+        kind = CangJieFileStubKindImpl.File(FqName(packageName)),
     )
 
     private fun String.relativeToPackage() = getPackageFqName().child(Name.identifier(this))
 
+    /**
+     * 获取 part 文件的完全限定名。
+     */
     val partFqName: FqName?
-        get() = partSimpleName?.relativeToPackage()
+        get() = when (val k = kind) {
+            is CangJieFileStubKind.WithPackage.Facade.Simple -> k.partSimpleName.relativeToPackage()
+            else -> null
+        }
 
+    /**
+     * 获取 part 文件的简单名。
+     */
+    val partSimpleName: String?
+        get() = (kind as? CangJieFileStubKind.WithPackage.Facade.Simple)?.partSimpleName
+
+    /**
+     * 获取 Facade 的完全限定名。
+     */
     val facadeFqName: FqName?
-        get() = facadeFqNameString?.let(::FqName)
+        get() = (kind as? CangJieFileStubKind.WithPackage.Facade)?.facadeFqName
 
-    override fun getPackageFqName(): FqName = FqName(packageName)
+    /**
+     * 获取多文件类的 part 简单名列表。
+     */
+    val facadePartSimpleNames: List<String>?
+        get() = (kind as? CangJieFileStubKind.WithPackage.Facade.MultifileClass)?.facadePartSimpleNames
+
+    override fun getPackageFqName(): FqName = when (val k = kind) {
+        is CangJieFileStubKind.WithPackage -> k.packageFqName
+        is CangJieFileStubKind.Invalid -> FqName.ROOT
+    }
 
     override fun getType(): IStubFileElementType<CangJieFileStub> = CjFileElementType.INSTANCE
 
-    override fun toString(): String = "CangJieFileStubImpl[" + "package=" + getPackageFqName().asString() + "]"
-
-//    override fun getClasses(): Array<PsiClass> {
-//        return childrenStubs.filterIsInstance<PsiClassStub<*>>().map { it.psi }.toTypedArray()
-//    }
+    override fun toString(): String = "CangJieFileStubImpl[$kind]"
+    override fun copyInto(newParent: StubElement<*>?): CangJieFileStubImpl = CangJieFileStubImpl(
+        file = null, // no psi should be copied
+        kind = kind,
+    )
 
     companion object {
+        /**
+         * 创建普通源文件的 Stub。
+         */
         fun forFile(packageFqName: FqName): CangJieFileStubImpl = CangJieFileStubImpl(
-            CjFile = null,
-            packageName = packageFqName.asString(),
-            facadeFqNameString = null,
-            partSimpleName = null,
-            facadePartSimpleNames = null,
-
+            file = null,
+            kind = CangJieFileStubKindImpl.File(packageFqName),
         )
 
+        /**
+         * 创建 Facade 文件的 Stub。
+         */
         fun forFileFacadeStub(facadeFqName: FqName): CangJieFileStubImpl = CangJieFileStubImpl(
-            CjFile = null,
-            packageName = facadeFqName.parent().asString(),
-            facadeFqNameString = facadeFqName.asString(),
-            partSimpleName = facadeFqName.shortName().asString(),
-            facadePartSimpleNames = null,
-
+            file = null,
+            kind = CangJieFileStubKindImpl.Facade(
+                packageFqName = facadeFqName.parent(),
+                facadeFqName = facadeFqName,
+            ),
         )
 
-        fun forMultifileClassStub(packageFqName: FqName, facadeFqName: FqName, partNames: List<String>?): CangJieFileStubImpl =
-            CangJieFileStubImpl(
-                CjFile = null,
-                packageName = packageFqName.asString(),
-                facadeFqNameString = facadeFqName.asString(),
-                partSimpleName = null,
-                facadePartSimpleNames = partNames,
+        /**
+         * 创建无效文件的 Stub（解析失败等情况）。
+         */
+        fun forInvalid(errorMessage: String): CangJieFileStubImpl = CangJieFileStubImpl(
+            file = null,
+            kind = CangJieFileStubKindImpl.Invalid(errorMessage),
+        )
 
-            )
+        /**
+         * 创建多文件类 Facade 的 Stub。
+         */
+        fun forMultifileClassStub(
+            packageFqName: FqName,
+            facadeFqName: FqName,
+            partNames: List<String>?
+        ): CangJieFileStubImpl = CangJieFileStubImpl(
+            file = null,
+            kind = CangJieFileStubKindImpl.MultifileClass(
+                packageFqName = packageFqName,
+                facadeFqName = facadeFqName,
+                facadePartSimpleNames = partNames ?: emptyList(),
+            ),
+        )
     }
 }
+private fun <T : PsiElement> copyStubRecursively(
+    originalStub: StubElement<T>,
+    newParentStub: StubElement<*>?,
+): StubElement<*> {
+    require(originalStub is CangJieStubElement<*>) {
+        "${CangJieStubElement::class.simpleName} is expected, but ${originalStub::class.simpleName} is found"
+    }
+
+    val stubCopy = originalStub.copyInto(newParentStub)
+    checkWithAttachment(
+        originalStub::class == stubCopy::class,
+        { "${originalStub::class.simpleName} is expected, but ${stubCopy::class.simpleName} is found" },
+    )
+
+    for (originalChild in originalStub.childrenStubs) {
+       copyStubRecursively(originalStub = originalChild, newParentStub = stubCopy)
+    }
+
+    return stubCopy
+}
+fun CangJieFileStubImpl.deepCopy(): CangJieFileStubImpl = copyStubRecursively(
+    originalStub = this,
+    newParentStub = null,
+) as CangJieFileStubImpl

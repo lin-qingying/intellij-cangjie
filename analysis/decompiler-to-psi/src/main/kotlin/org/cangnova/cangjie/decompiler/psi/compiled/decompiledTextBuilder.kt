@@ -22,17 +22,5 @@
  *
  */
 
-package org.cangnova.cangjie.psi.stubs
+package org.cangnova.cangjie.decompiler.psi.compiled
 
-object CangJieStubVersions {
-
-    const val SOURCE_STUB_VERSION = 159
-
-    private const val BINARY_STUB_VERSION = 95
-
-    const val CLASSFILE_STUB_VERSION = BINARY_STUB_VERSION + 0
-
-    const val BUILTIN_STUB_VERSION = BINARY_STUB_VERSION + 4
-
-
-}

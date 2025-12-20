@@ -56,14 +56,18 @@ interface CangJieConstantExpressionStub : StubElement<CjConstantExpression> {
     fun kind(): ConstantValueKind
     fun value(): String
 }
-
-interface CangJieFilesStub {
-    fun getPackageFqName(): FqName
+interface CangJieStubElement<T : CjElement> : StubElement<T> {
+    /** Returns a copy of this stub with the parent set to [newParent] */
+    fun copyInto(newParent: StubElement<*>?):CangJieStubElement<T>
 }
 
 
-interface CangJieFileStub : PsiFileStub<CjFile>, CangJieFilesStub
+interface CangJieFileStub : PsiFileStub<CjFile>,CangJieStubElement<CjFile>
+{
+    fun getPackageFqName(): FqName
 
+    val kind: CangJieFileStubKind
+}
 /**
  * CangJiePlaceHolderStub接口定义了一个通用的占位符 Stub 元素
  * 它继承自StubElement，用于表示CangJie解析树中的占位符节点

@@ -34,6 +34,7 @@ import org.cangnova.cangjie.psi.stubs.*
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import org.cangnova.cangjie.psi.stubs.elements.StubIndexService
 import org.cangnova.cangjie.psi.stubs.impl.CangJieFileStubImpl
+import org.cangnova.cangjie.psi.stubs.impl.CangJieFileStubKindImpl
 import com.intellij.psi.stubs.IndexSink
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
@@ -163,31 +164,15 @@ internal class IdeStubIndexService : StubIndexService() {
     }
 
     override fun createFileStub(file: CjFile): CangJieFileStub {
-        val packageFqName: String = file.packageFqNameByTree.asString()
-
-
-        return CangJieFileStubImpl(file, packageFqName ?: "", null, null, null)
+        val packageFqName = file.packageFqNameByTree
+        return CangJieFileStubImpl(file, CangJieFileStubKindImpl.File(packageFqName))
     }
 
     @Throws(IOException::class)
     override fun serializeFileStub(
         stub: CangJieFileStub, dataStream: StubOutputStream
     ) {
-        val fileStub: CangJieFileStubImpl = stub as CangJieFileStubImpl
-        dataStream.writeName(fileStub.getPackageFqName().asString())
-
-        val facadeFqName: FqName? = fileStub.facadeFqName
-        dataStream.writeName(facadeFqName?.asString())
-        dataStream.writeName(fileStub.partSimpleName)
-        val facadePartNames = fileStub.facadePartSimpleNames
-        if (facadePartNames == null) {
-            dataStream.writeInt(0)
-        } else {
-            dataStream.writeInt(facadePartNames.size)
-            for (partName in facadePartNames) {
-                dataStream.writeName(partName)
-            }
-        }
+        CangJieFileStubKindImpl.serialize(stub.kind, dataStream)
     }
 
     override fun indexMainFunction(stub: CangJieFunctionStub, sink: IndexSink) {
@@ -319,19 +304,8 @@ internal class IdeStubIndexService : StubIndexService() {
 
     @Throws(IOException::class)
     override fun deserializeFileStub(dataStream: StubInputStream): CangJieFileStub {
-        val packageFqNameAsString: String? = dataStream.readNameString()
-        checkNotNull(packageFqNameAsString) { "Can't read package fqname from stream" }
-
-
-        val facadeString: String? = dataStream.readNameString()
-        val partSimpleName: String? = dataStream.readNameString()
-        val numPartNames: Int = dataStream.readInt()
-        val facadePartNames: MutableList<String> = ArrayList<String>()
-        for (i in 0..<numPartNames) {
-            val partNameRef: String? = dataStream.readNameString()
-            partNameRef?.let { facadePartNames.add(it) }
-        }
-        return CangJieFileStubImpl(null, packageFqNameAsString, facadeString, partSimpleName, facadePartNames)
+        val kind = CangJieFileStubKindImpl.deserialize(dataStream)
+        return CangJieFileStubImpl(null, kind)
     }
 
     companion object {

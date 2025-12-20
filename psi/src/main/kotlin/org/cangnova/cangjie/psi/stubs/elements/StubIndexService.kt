@@ -31,6 +31,7 @@ import com.intellij.psi.stubs.StubOutputStream
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.stubs.*
 import org.cangnova.cangjie.psi.stubs.impl.CangJieFileStubImpl
+import org.cangnova.cangjie.psi.stubs.impl.CangJieFileStubKindImpl
 import java.io.IOException
 
 open class StubIndexService protected constructor() {
@@ -89,14 +90,13 @@ open class StubIndexService protected constructor() {
 
     @Throws(IOException::class)
     open fun serializeFileStub(stub: CangJieFileStub, dataStream: StubOutputStream) {
-        dataStream.writeName(stub.getPackageFqName().asString())
+        CangJieFileStubKindImpl.serialize(stub.kind, dataStream)
     }
 
     @Throws(IOException::class)
     open fun deserializeFileStub(dataStream: StubInputStream): CangJieFileStub {
-        val packageFqNameAsString = dataStream.readName()
-
-        return CangJieFileStubImpl(null, packageFqNameAsString!!.string)
+        val kind = CangJieFileStubKindImpl.deserialize(dataStream)
+        return CangJieFileStubImpl(null, kind)
     }
 
     companion object {

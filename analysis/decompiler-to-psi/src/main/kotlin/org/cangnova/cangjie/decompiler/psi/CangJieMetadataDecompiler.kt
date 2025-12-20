@@ -31,6 +31,7 @@ import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiManager
 import org.cangnova.cangjie.decompiler.psi.compiled.ClassFileDecompilers
 import org.cangnova.cangjie.decompiler.psi.compiled.ClsStubBuilder
+import org.cangnova.cangjie.decompiler.psi.file.CjDecompiledFile
 import org.cangnova.cangjie.decompiler.psi.text.DecompiledText
 import org.cangnova.cangjie.decompiler.psi.text.buildDecompiledText
 import org.cangnova.cangjie.decompiler.psi.text.createIncompatibleMetadataVersionDecompiledText
@@ -231,22 +232,21 @@ abstract class CangJieMetadataDecompiler<out V : BinaryVersion>(
      * @return 用于管理反编译文件视图的提供者
      */
     override fun createFileViewProvider(file: VirtualFile, manager: PsiManager, physical: Boolean): FileViewProvider {
-        return CangJieDecompiledFileViewProvider(manager, file, physical) { virtualFile ->
-            // 读取并反编译文件内容
+        return CangJieDecompiledFileViewProvider(manager, file, physical) {
+            val virtualFile = it.virtualFile
+
+            // 直接读取并反编译，CangJieDecompiledFileViewProvider 内部已有缓存
             val fileWithMetadata = readFileSafely(manager.project, virtualFile)
-            if (fileWithMetadata != null) {
-                // 成功读取元数据，生成反编译文本
-                val decompiledText = buildDecompiledText(manager.project, fileWithMetadata)
-                decompiledText.text
-            } else {
-                // 无法读取文件，返回错误提示文本
-                """
-                    // IntelliJ API Decompiler stub source generated from a class file
-                    // Unable to read metadata file: ${virtualFile.name}
-                    // The file may not exist or cannot be accessed.
-                """.trimIndent()
-            }
+            CjDecompiledFile( it)
         }
+    }
+
+    private fun buildErrorText(virtualFile: VirtualFile): String {
+        return """
+            // IntelliJ API Decompiler stub source generated from a class file
+            // Unable to read metadata file: ${virtualFile.name}
+            // The file may not exist or cannot be accessed.
+        """.trimIndent()
     }
 
     /**

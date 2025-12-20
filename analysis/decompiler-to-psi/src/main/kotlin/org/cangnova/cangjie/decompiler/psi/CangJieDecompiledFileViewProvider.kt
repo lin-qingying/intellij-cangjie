@@ -76,43 +76,45 @@ class CangJieDecompiledFileViewProvider(
     manager: PsiManager,
     file: VirtualFile,
     physical: Boolean,
-    private val textFactory: (VirtualFile) -> String
+    private val factory: (CangJieDecompiledFileViewProvider) -> CjDecompiledFile?
 ) : SingleRootFileViewProvider(manager, file, physical, CangJieLanguage) {
 
-    /**
-     * 延迟加载的反编译文本内容。
-     *
-     * 使用 [LockedClearableLazyValue] 实现线程安全的延迟初始化和可清除特性。
-     *
-     * ## 初始化过程
-     *
-     * 1. 调用 [textFactory] 生成反编译文本
-     * 2. 如果生成失败或返回空内容，使用默认错误提示文本
-     * 3. 缓存生成的文本供后续使用
-     *
-     * ## 设计说明
-     *
-     * 此属性是文档内容和 PSI 内容的**唯一数据源**。通过确保此值永不为空或 null，
-     * 可以避免 IntelliJ 报告"file/doc text length different"错误。
-     *
-     * 该设计遵循 IntelliJ 平台的要求：`ClassFileDecompilers.Full.createFileViewProvider`
-     * 会被调用两次 - 一次用于获取文档文本（通过 getContents），一次用于创建 PSI 文件。
-     * 两次调用必须返回相同的内容。
-     */
-    val decompiledText: LockedClearableLazyValue<String> = LockedClearableLazyValue(Any()) {
-        try {
-            val text = textFactory(virtualFile)
-            if (text.isEmpty()) {
-                // 如果反编译返回空文本，使用默认错误信息
-                buildDefaultErrorText()
-            } else {
-                text
-            }
-        } catch (e: Exception) {
-            // 如果反编译过程抛出异常，返回包含错误信息的文本
-            buildErrorText(e)
+    val content: LockedClearableLazyValue<String> = LockedClearableLazyValue(Any()) {
+        val psiFile = createFile(manager.project, file, CangJieFileType.INSTANCE)
+        val text = psiFile?.text ?: ""
+
+        DebugUtil.performPsiModification<PsiInvalidElementAccessException>("Invalidating throw-away copy of file that was used for getting text") {
+            (psiFile as? PsiFileImpl)?.markInvalidated()
         }
+
+        text
     }
+
+    /**
+     * 标记此 ViewProvider 是否代表物理二进制文件。
+     *
+     * 返回 false 以告诉平台这不是一个需要直接读取的二进制文件，
+     * 而是应该使用 getContents() 获取内容。
+     */
+    override fun supportsIncrementalReparse(rootLanguage: com.intellij.lang.Language): Boolean = false
+
+    /**
+     * 检查此 ViewProvider 是否是物理的。
+     *
+     * 对于反编译文件，虽然底层是物理二进制文件，但我们返回 false
+     * 以避免 IDE 尝试将二进制内容作为文档处理。
+     * 这确保了 PSI 和文档使用相同的反编译文本。
+     */
+    override fun isPhysical(): Boolean = false
+
+    /**
+     * 检查是否应该为此文件创建事件系统。
+     *
+     * 返回 false 因为反编译文件是只读的，不需要监听变更事件。
+     */
+    override fun isEventSystemEnabled(): Boolean = false
+
+
 
     /**
      * 构建默认的错误提示文本。
@@ -151,21 +153,10 @@ class CangJieDecompiledFileViewProvider(
      * @param fileType 文件类型（此参数被忽略，始终使用仓颉文件类型）
      * @return 反编译后的 PSI 文件，始终返回非 null 值
      */
-    override fun createFile(project: Project, file: VirtualFile, fileType: FileType): PsiFile {
-        // 直接使用反编译文本创建 PSI 文件，而不是通过 factory 创建
-        // 这确保了文档内容和 PSI 内容使用相同的数据源
-        return CjDecompiledFile(this) {
-            check(it == virtualFile) {
-                "Unexpected file $it, expected $virtualFile"
-            }
-            // 返回一个简单的 DecompiledText，只包含文本内容
 
-            DecompiledText(decompiledText.get())
-
-
-        }
+    override fun createFile(project: Project, file: VirtualFile, fileType: FileType): PsiFile? {
+        return factory(this)
     }
-
     /**
      * 创建视图提供者的副本。
      *
@@ -175,7 +166,7 @@ class CangJieDecompiledFileViewProvider(
      * @param copy 副本对应的虚拟文件
      * @return 新的视图提供者实例
      */
-    override fun createCopy(copy: VirtualFile) = CangJieDecompiledFileViewProvider(manager, copy, false, textFactory)
+    override fun createCopy(copy: VirtualFile) = CangJieDecompiledFileViewProvider(manager, copy, false, factory)
 
     /**
      * 获取文件内容。
@@ -185,5 +176,5 @@ class CangJieDecompiledFileViewProvider(
      *
      * @return 反编译后的源代码文本（非空）
      */
-    override fun getContents(): CharSequence = decompiledText.get()
+    override fun getContents(): CharSequence = content.get()
 }

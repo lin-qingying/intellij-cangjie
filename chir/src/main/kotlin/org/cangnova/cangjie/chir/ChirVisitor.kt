@@ -32,4 +32,7 @@ abstract class ChirVisitor<out R, in D>  {
 
      open fun visitDeclaration(declaration: ChirDeclaration, data: D): R =
           visitElement(declaration, data)
+
+     open fun visitAnnotation(annotation: ChirAnnotation, data: D): R =
+          visitElement(annotation, data)
 }
