@@ -244,16 +244,13 @@
     <extensions defaultExtensionNs="org.cangnova.cangjie">
         <classFileDecompiler implementation="org.cangnova.cangjie.decompiler.psi.CangJieBuiltInDecompiler"/>
 
+        <!-- 默认诊断渲染器（纯文本格式） -->
+        <diagnosticRendererProvider
+                implementation="org.cangnova.cangjie.diagnostics.rendering.DefaultRenderers"/>
 
-
+        <!-- IDE 诊断渲染器（HTML 富文本格式） -->
         <diagnosticRendererProvider
-                implementation="org.cangnova.cangjie.diagnostics.rendering.errors.ErrorRenderers"/>
-        <diagnosticRendererProvider
-                implementation="org.cangnova.cangjie.diagnostics.rendering.warnings.WarningRenderers"/>
-        <diagnosticRendererProvider
-                implementation="org.cangnova.cangjie.diagnostics.rendering.deprecation.DeprecationRenderers"/>
-        <diagnosticRendererProvider
-                implementation="org.cangnova.cangjie.diagnostics.rendering.infos.InfoRenderers"/>
+                implementation="org.cangnova.cangjie.diagnostics.rendering.IdeRenderers"/>
     </extensions>
 
 </ide-plugin>

@@ -35,7 +35,7 @@ import org.jetbrains.annotations.PropertyKey
 @NonNls
 private const val BUNDLE = "messages.CangJieDiagnosisBundle"
 
-object CangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE) {
+object CangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle {
     @Nls
     @JvmStatic
     fun message(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =
@@ -60,4 +60,11 @@ object CangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE) {
     @JvmStatic
     fun htmlMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =
         getMessage(key, *params).withHtml()
+
+    // 实现 MessageBundle 接口
+    @Nls
+    override fun getMessage(@NonNls key: String): String = super<AbstractCangJieBundle>.getMessage(key)
+
+    @Nls
+    override fun getMessage(@NonNls factory: DiagnosticFactory<*>): String = getMessage(factory.name)
 }

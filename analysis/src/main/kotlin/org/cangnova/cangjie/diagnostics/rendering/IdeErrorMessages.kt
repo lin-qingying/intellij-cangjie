@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.diagnostics.rendering
 
 import org.cangnova.cangjie.diagnostics.Diagnostic
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * IDE 错误消息渲染器
@@ -36,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * - **HTML 富文本**: 支持表格、列表、样式等
  * - **增强可读性**: 使用格式化布局展示复杂错误（如类型不匹配）
- * - **回退机制**: 未配置 IDE 特定渲染器时，回退到 [DefaultErrorMessages]
+ * - **自动回退**: IDE 渲染器找不到时，自动回退到 [DefaultErrorMessages]
  *
  * ## 使用场景
  *
@@ -69,116 +68,23 @@ import java.util.concurrent.ConcurrentHashMap
  * </ul>
  * ```
  *
- * ## 扩展方式
- *
- * ### 1. 通过注册表配置 IDE 特定渲染器
- *
- * ```kotlin
- * IdeErrorMessages.configureIdeRenderers {
- *     register(Errors.TYPE_MISMATCH) { diagnostic ->
- *         \"\"\"
- *         <table>
- *         <tr><td>Expected:</td><td><b>${diagnostic.a}</b></td></tr>
- *         <tr><td>Actual:</td><td><b>${diagnostic.b}</b></td></tr>
- *         </table>
- *         \"\"\".trimIndent()
- *     }
- * }
- * ```
- *
- * ### 2. 通过 DiagnosticRendererProvider 扩展点
- *
- * ```xml
- * <extensions defaultExtensionNs="org.cangnova.cangjie">
- *   <diagnosticRendererProvider implementation="...IdeRendererProvider"/>
- * </extensions>
- * ```
- *
  * @see DefaultErrorMessages 基础文本渲染器
  * @see DiagnosticRendererRegistry 渲染器注册中心
  */
-object IdeErrorMessages : DiagnosticMessageRenderer {
-
-    /**
-     * IDE 特定的渲染器映射
-     *
-     * 存储为 IDE 场景优化的富文本渲染器。
-     * 如果诊断在此映射中没有对应的渲染器，会回退到 DefaultErrorMessages。
-     */
-    private val ideSpecificRenderers = ConcurrentHashMap<String, (Diagnostic) -> String>()
+object IdeErrorMessages {
 
     /**
      * 渲染诊断消息为 IDE 友好的格式
      *
      * ## 渲染优先级
      *
-     * 1. IDE 特定渲染器（此对象注册的富文本渲染器）
-     * 2. [DefaultErrorMessages] 的纯文本渲染
+     * 1. IDE 特定渲染器（使用 [IDECangJieDiagnosisBundle]）
+     * 2. 自动回退到默认渲染器（使用 [CangJieDiagnosisBundle]）
      *
      * @param diagnostic 诊断对象
-     * @param context 渲染上下文（建议使用 [MessageRenderingContext.IDE]）
      * @return HTML 格式的错误消息，或纯文本回退消息
      */
-    override fun render(diagnostic: Diagnostic, context: MessageRenderingContext): String {
-        // 1. 查找 IDE 特定的渲染器
-        val factoryName = diagnostic.factory.name
-        ideSpecificRenderers[factoryName]?.let { renderer ->
-            return renderer(diagnostic)
-        }
-
-        // 2. 回退到 DefaultErrorMessages
-        return DefaultErrorMessages.render(diagnostic, context)
-    }
-
-    /**
-     * 便捷方法：直接渲染为 IDE 格式
-     */
-    fun render(diagnostic: Diagnostic): String = render(diagnostic, MessageRenderingContext.IDE)
-
-    /**
-     * 配置 IDE 特定的渲染器
-     *
-     * @param block 配置块
-     */
-    fun configureIdeRenderers(block: IdeRendererConfiguration.() -> Unit) {
-        val config = IdeRendererConfiguration()
-        config.block()
-        config.applyTo(this)
-    }
-
-    /**
-     * 注册 IDE 特定的渲染器
-     *
-     * @param factoryName 诊断工厂名称
-     * @param renderer 渲染函数
-     */
-    internal fun registerIdeRenderer(factoryName: String, renderer: (Diagnostic) -> String) {
-        ideSpecificRenderers[factoryName] = renderer
-    }
-
-    /**
-     * IDE 渲染器配置 DSL
-     */
-    class IdeRendererConfiguration {
-        private val renderers = mutableMapOf<String, (Diagnostic) -> String>()
-
-        /**
-         * 注册 IDE 特定渲染器
-         *
-         * @param factoryName 诊断工厂名称
-         * @param renderer 渲染函数，应返回 HTML 格式的消息
-         */
-        fun register(factoryName: String, renderer: (Diagnostic) -> String) {
-            renderers[factoryName] = renderer
-        }
-
-        /**
-         * 应用配置到 IdeErrorMessages
-         */
-        internal fun applyTo(messages: IdeErrorMessages) {
-            renderers.forEach { (name, renderer) ->
-                messages.registerIdeRenderer(name, renderer)
-            }
-        }
+    fun render(diagnostic: Diagnostic): String {
+        return DiagnosticRendererRegistry.render(diagnostic, DiagnosticRendererRegistry.IDE)
     }
 }

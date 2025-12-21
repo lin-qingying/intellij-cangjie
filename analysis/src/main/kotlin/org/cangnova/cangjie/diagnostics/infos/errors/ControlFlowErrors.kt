@@ -36,7 +36,11 @@ import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.expressions.match.Pattern
+import kotlin.reflect.KProperty
 
+fun <T : PsiElement> create0(severity: Severity) = object {
+    operator fun getValue(thisRef: DiagnosticFactory0<T>, property: KProperty<*>) =  DiagnosticFactory0.create<T>(severity)
+}
 
 // ========================================
 // Match 表达式相关错误
@@ -45,91 +49,89 @@ import org.cangnova.cangjie.types.expressions.match.Pattern
 /**
  * match 中条件无参数时使用逗号
  */
-@JvmField
 val COMMA_IN_MATCH_CONDITION_WITHOUT_ARGUMENT: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)
-
-/**
+ /**
  * 非枚举条目值
  */
-@JvmField
+
 val NOT_ENUM_ENTRY_VALUE: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 非枚举 match
  */
-@JvmField
+
 val NOT_ENUM_MATCH: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 枚举构造函数不匹配
  */
-@JvmField
+
 val ENUM_CONSTRUCTOR_MISMATCH: DiagnosticFactory1<PsiElement, Int> =
     DiagnosticFactory1.create(Severity.ERROR)
 
 /**
  * match 中缺少 else
  */
-@JvmField
+
 val NO_ELSE_IN_MATCH: DiagnosticFactory1<CjMatchExpression, List<MatchMissingCase>> =
     DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.MATCH_EXPRESSION)
 
 /**
  * 按模式 match 中缺少 else
  */
-@JvmField
+
 val NO_ELSE_IN_MATCH_BY_PATTERN: DiagnosticFactory1<CjMatchExpression, List<Pattern>> =
     DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.MATCH_EXPRESSION)
 
 /**
  * 无 else 的 match 需要预期类型
  */
-@JvmField
+
 val EXPECT_TYPE_IN_MATCH_WITHOUT_ELSE: DiagnosticFactory1<CjMatchExpression, String> =
     DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.MATCH_EXPRESSION)
 
 /**
  * 变量引入冲突
  */
-@JvmField
+
 val VARIABLE_INTRODUCTION_CONFLICT: DiagnosticFactory0<CjCasePattern> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 非枚举参数构造函数
  */
-@JvmField
+
 val NOT_ENUM_PARAMETER_CONSTRUCTOR: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 枚举条目构造函数必需
  */
-@JvmField
+
 val ENUM_ENTRY_CONSTRUCTOR_REQUIER: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * let 表达式无类型模式
  */
-@JvmField
+
 val LET_EXPRESSION_NO_TYPE_PATTERN: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 不可反驳的 for-in 模式错误
  */
-@JvmField
+
 val IRREFUTABLE_PATTERN_FOR_IN_ERROR: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 不可反驳的模式错误
  */
-@JvmField
+
 val IRREFUTABLE_PATTERN_ERROR: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)
 
@@ -140,63 +142,63 @@ val IRREFUTABLE_PATTERN_ERROR: DiagnosticFactory0<PsiElement> =
 /**
  * super 不是表达式
  */
-@JvmField
+
 val SUPER_IS_NOT_AN_EXPRESSION: DiagnosticFactory1<CjSuperExpression, String> =
     DiagnosticFactory1.create(Severity.ERROR)
 
 /**
  * super 不可用
  */
-@JvmField
+
 val SUPER_NOT_AVAILABLE: DiagnosticFactory0<CjSuperExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 不是超类型
  */
-@JvmField
+
 val NOT_A_SUPERTYPE: DiagnosticFactory0<CjTypeReference> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 限定超类型被其他超类型扩展
  */
-@JvmField
+
 val QUALIFIED_SUPERTYPE_EXTENDED_BY_OTHER_SUPERTYPE: DiagnosticFactory1<CjTypeReference, CangJieType> =
     DiagnosticFactory1.create(Severity.ERROR)
 
 /**
  * 模糊的 super
  */
-@JvmField
+
 val AMBIGUOUS_SUPER: DiagnosticFactory0<CjSuperExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 从接口无法访问超类
  */
-@JvmField
+
 val SUPERCLASS_NOT_ACCESSIBLE_FROM_INTERFACE: DiagnosticFactory0<CjSuperExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 没有 this
  */
-@JvmField
+
 val NO_THIS: DiagnosticFactory0<CjThisExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 无效的 this 类型
  */
-@JvmField
+
 val INVALID_THIS_TYPE: DiagnosticFactory0<CjThisType> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 无效的 this 类型（内联）
  */
-@JvmField
+
 val INLETID_THIS_TYPE: DiagnosticFactory0<CjThisType> =
     DiagnosticFactory0.create(Severity.ERROR)
 
@@ -207,42 +209,42 @@ val INLETID_THIS_TYPE: DiagnosticFactory0<CjThisType> =
 /**
  * 缺少迭代器
  */
-@JvmField
+
 val ITERATOR_MISSING: DiagnosticFactory0<CjExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 迭代器模糊
  */
-@JvmField
-val ITERATOR_AMBIGUITY: DiagnosticFactory1<PsiElement, Collection<out ResolvedCall<*>>> =
+
+val ITERATOR_AMBIGUITY: DiagnosticFactory1<PsiElement, Collection<  ResolvedCall<*>>> =
     DiagnosticFactory1.create(Severity.ERROR)
 
 /**
  * 可空类型上的迭代器
  */
-@JvmField
+
 val ITERATOR_ON_NULLABLE: DiagnosticFactory0<CjExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 缺少组件函数
  */
-@JvmField
+
 val COMPONENT_FUNCTION_MISSING: DiagnosticFactory2<CjExpression, Name, CangJieType> =
     DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DEFAULT)
 
 /**
  * 组件函数模糊
  */
-@JvmField
-val COMPONENT_FUNCTION_AMBIGUITY: DiagnosticFactory2<CjExpression, Name, Collection<out ResolvedCall<*>>> =
+
+val COMPONENT_FUNCTION_AMBIGUITY: DiagnosticFactory2<CjExpression, Name, Collection<  ResolvedCall<*>>> =
     DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DEFAULT)
 
 /**
  * 可空类型上的组件函数
  */
-@JvmField
+
 val COMPONENT_FUNCTION_ON_NULLABLE: DiagnosticFactory1<CjExpression, Name> =
     DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.DEFAULT)
 
@@ -253,27 +255,27 @@ val COMPONENT_FUNCTION_ON_NULLABLE: DiagnosticFactory1<CjExpression, Name> =
 /**
  * 模糊的标签
  */
-@JvmField
+
 val AMBIGUOUS_LABEL: DiagnosticFactory0<CjSimpleNameExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 不是循环标签
  */
-@JvmField
+
 val NOT_A_LOOP_LABEL: DiagnosticFactory1<CjExpressionWithLabel, String> =
     DiagnosticFactory1.create(Severity.ERROR)
 
 /**
  * break/continue 在循环外
  */
-@JvmField
+
 val BREAK_OR_CONTINUE_OUTSIDE_A_LOOP: DiagnosticFactory0<CjExpressionWithLabel> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * break/continue 在 when 中
  */
-@JvmField
+
 val BREAK_OR_CONTINUE_IN_WHEN: DiagnosticFactory0<CjExpressionWithLabel> =
     DiagnosticFactory0.create(Severity.ERROR)

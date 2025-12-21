@@ -42,50 +42,20 @@ import org.cangnova.cangjie.diagnostics.Diagnostic
  * 1. 命令行编译器输出 (cjc)
  * 2. 构建系统日志 (Gradle, Maven)
  * 3. CI/CD 管道输出
- * 4. 问题工具窗口 (作为 PROBLEMS_VIEW 上下文的回退)
- *
- * ## 扩展点
- *
- * 如需为特定平台或模块添加自定义渲染逻辑，可以：
- * 1. 通过 [DiagnosticRendererRegistry.configure] 注册特定诊断的渲染器
- * 2. 在国际化 Bundle 中定义消息模板
+ * 4. 问题工具窗口 (作为 IDE 渲染的回退)
  *
  * @see IdeErrorMessages IDE 富文本渲染器
  * @see DiagnosticRendererRegistry 渲染器注册中心
  */
-object DefaultErrorMessages : DiagnosticMessageRenderer {
+object DefaultErrorMessages {
 
     /**
      * 渲染诊断消息为纯文本格式
      *
      * @param diagnostic 诊断对象
-     * @param context 渲染上下文（对此渲染器无影响，始终输出纯文本）
      * @return 纯文本错误消息
      */
-    override fun render(diagnostic: Diagnostic, context: MessageRenderingContext): String {
-        // 优先使用注册表中的渲染器
-        val renderer = DiagnosticRendererRegistry.getRenderer(diagnostic.factory)
-        if (renderer != null) {
-            @Suppress("UNCHECKED_CAST")
-            val typedRenderer = renderer as DiagnosticRenderer<Any>
-            @Suppress("UNCHECKED_CAST")
-            return typedRenderer.render(diagnostic as Any)
-        }
-
-        // 回退到工厂的默认渲染器
-        diagnostic.factory.defaultRenderer?.let {
-            @Suppress("UNCHECKED_CAST")
-            val typedRenderer = it as DiagnosticRenderer<Any>
-            @Suppress("UNCHECKED_CAST")
-            return typedRenderer.render(diagnostic as Any)
-        }
-
-        // 最终回退：显式错误
-        return "${diagnostic.factory.name} (error: could not render message)"
+    fun render(diagnostic: Diagnostic): String {
+        return DiagnosticRendererRegistry.render(diagnostic, DiagnosticRendererRegistry.DEFAULT)
     }
-
-    /**
-     * 便捷方法：直接渲染为默认格式
-     */
-    fun render(diagnostic: Diagnostic): String = render(diagnostic, MessageRenderingContext.COMPILER)
 }

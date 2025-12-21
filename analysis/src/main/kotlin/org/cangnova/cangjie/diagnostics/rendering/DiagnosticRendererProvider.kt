@@ -32,13 +32,43 @@ import com.intellij.openapi.extensions.ExtensionPointName
  * 实现此接口以注册诊断渲染器配置。
  * 所有实现类会通过扩展点自动加载并调用其 [register] 方法。
  *
+ * ## 可扩展架构
+ *
+ * 通过 [DiagnosticRendererRegistry.configure] 可以注册任意类型的渲染器：
+ * - **DEFAULT**：默认渲染器（纯文本格式）
+ * - **IDE**：IDE渲染器（HTML富文本格式）
+ * - **自定义类型**：可以注册任意类型的渲染器
+ *
+ * 扩展渲染器找不到时会自动回退到默认渲染器。
+ *
  * ## 使用示例
  *
  * ```kotlin
  * class ErrorRenderers : DiagnosticRendererProvider {
  *     override fun register() {
- *         DiagnosticRendererRegistry.configure {
- *             // 配置错误渲染器
+ *         // 注册默认渲染器
+ *         DiagnosticRendererRegistry.configureDefault {
+ *             register(INVALID_BINARY_OPERATOR) {
+ *                 message { CangJieDiagnosisBundle.rawMessage(it) }
+ *                 parameterExtractor { diagnostic ->
+ *                     arrayOf(diagnostic.operatorString, diagnostic.leftType, diagnostic.rightType)
+ *                 }
+ *             }
+ *         }
+ *
+ *         // 注册IDE渲染器
+ *         DiagnosticRendererRegistry.configureIde {
+ *             register(INVALID_BINARY_OPERATOR) {
+ *                 message { IDECangJieDiagnosisBundle.rawMessage(it) }
+ *                 parameterExtractor { diagnostic ->
+ *                     arrayOf(diagnostic.operatorString, diagnostic.leftType, diagnostic.rightType)
+ *                 }
+ *             }
+ *         }
+ *
+ *         // 注册自定义类型渲染器（可选）
+ *         DiagnosticRendererRegistry.configure("web", MyWebBundle) {
+ *             register(SOME_DIAGNOSTIC) { ... }
  *         }
  *     }
  * }
@@ -55,7 +85,11 @@ interface DiagnosticRendererProvider {
     /**
      * 注册诊断渲染器
      *
-     * 在此方法中调用 [DiagnosticRendererRegistry.configure] 来配置渲染器。
+     * 在此方法中调用 [DiagnosticRendererRegistry.configureDefault]、
+     * [DiagnosticRendererRegistry.configureIde] 或
+     * [DiagnosticRendererRegistry.configure] 来配置渲染器。
+     *
+     * 如果没有需要特殊处理的诊断，可以保持空实现。
      */
     fun register()
 

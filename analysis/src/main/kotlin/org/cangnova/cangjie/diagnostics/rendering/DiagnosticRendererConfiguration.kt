@@ -35,27 +35,39 @@ import org.cangnova.cangjie.diagnostics.*
  * ## 使用示例
  *
  * ```kotlin
- * DiagnosticRendererRegistry.configure {
- *     // 简单配置
+ * // 配置默认渲染器
+ * DiagnosticRendererRegistry.configureDefault {
  *     register(SOME_DIAGNOSTIC) {
  *         message { CangJieDiagnosisBundle.rawMessage(it) }
  *         renderers(RENDER_TYPE, STRING)
  *     }
+ * }
  *
- *     // 复杂配置（自定义参数提取）
+ * // 配置 IDE 渲染器
+ * DiagnosticRendererRegistry.configureIde {
+ *     register(SOME_DIAGNOSTIC) {
+ *         message { IDECangJieDiagnosisBundle.rawMessage(it) }
+ *         renderers(RENDER_TYPE, STRING)
+ *     }
+ * }
+ *
+ * // 复杂配置（自定义参数提取）
+ * DiagnosticRendererRegistry.configureDefault {
  *     register(COMPLEX_DIAGNOSTIC) {
  *         message { "Custom message: {0}, {1}" }
  *         parameterExtractor { diagnostic ->
- *             arrayOf(
- *                 diagnostic.someField,
- *                 diagnostic.otherField
- *             )
+ *             arrayOf(diagnostic.someField, diagnostic.otherField)
  *         }
  *     }
  * }
  * ```
  */
-class DiagnosticRendererConfiguration {
+class DiagnosticRendererConfiguration(
+    /**
+     * 消息Bundle
+     */
+    private val bundle: MessageBundle
+) {
     private val registrations = mutableListOf<Registration<*>>()
 
     /**
@@ -65,7 +77,7 @@ class DiagnosticRendererConfiguration {
         factory: DiagnosticFactory0<E>,
         configure: RendererBuilder0<E>.() -> Unit
     ) {
-        val builder = RendererBuilder0(factory)
+        val builder = RendererBuilder0(factory, bundle)
         builder.configure()
         registrations.add(Registration(factory, builder.build()))
     }
@@ -77,7 +89,7 @@ class DiagnosticRendererConfiguration {
         factory: DiagnosticFactory1<E, A>,
         configure: RendererBuilder1<E, A>.() -> Unit
     ) {
-        val builder = RendererBuilder1(factory)
+        val builder = RendererBuilder1(factory, bundle)
         builder.configure()
         registrations.add(Registration(factory, builder.build()))
     }
@@ -89,7 +101,7 @@ class DiagnosticRendererConfiguration {
         factory: DiagnosticFactory2<E, A, B>,
         configure: RendererBuilder2<E, A, B>.() -> Unit
     ) {
-        val builder = RendererBuilder2(factory)
+        val builder = RendererBuilder2(factory, bundle)
         builder.configure()
         registrations.add(Registration(factory, builder.build()))
     }
@@ -101,7 +113,7 @@ class DiagnosticRendererConfiguration {
         factory: DiagnosticFactory3<E, A, B, C>,
         configure: RendererBuilder3<E, A, B, C>.() -> Unit
     ) {
-        val builder = RendererBuilder3(factory)
+        val builder = RendererBuilder3(factory, bundle)
         builder.configure()
         registrations.add(Registration(factory, builder.build()))
     }
@@ -113,17 +125,17 @@ class DiagnosticRendererConfiguration {
         factory: DiagnosticFactory4<E, A, B, C, D>,
         configure: RendererBuilder4<E, A, B, C, D>.() -> Unit
     ) {
-        val builder = RendererBuilder4(factory)
+        val builder = RendererBuilder4(factory, bundle)
         builder.configure()
         registrations.add(Registration(factory, builder.build()))
     }
 
     /**
-     * 应用配置到注册中心
+     * 应用配置到渲染器映射
      */
-    internal fun applyTo(registry: DiagnosticRendererRegistry) {
+    internal fun applyTo(renderers: MutableMap<DiagnosticFactory<*>, DiagnosticRenderer<*>>) {
         for (registration in registrations) {
-            registration.applyTo(registry)
+            registration.applyTo(renderers)
         }
     }
 
@@ -131,8 +143,8 @@ class DiagnosticRendererConfiguration {
         val factory: DiagnosticFactory<D>,
         val renderer: DiagnosticRenderer<D>
     ) {
-        fun applyTo(registry: DiagnosticRendererRegistry) {
-            registry.register(factory, renderer)
+        fun applyTo(renderers: MutableMap<DiagnosticFactory<*>, DiagnosticRenderer<*>>) {
+            renderers[factory] = renderer
         }
     }
 }
@@ -141,7 +153,8 @@ class DiagnosticRendererConfiguration {
  * 渲染器构建器基类
  */
 sealed class RendererBuilder<D : UnboundDiagnostic, F : DiagnosticFactory<D>>(
-    protected val factory: F
+    protected val factory: F,
+    protected val defaultBundle: MessageBundle
 ) {
     protected var messageProvider: ((F) -> String)? = null
 
@@ -160,7 +173,7 @@ sealed class RendererBuilder<D : UnboundDiagnostic, F : DiagnosticFactory<D>>(
     }
 
     protected fun getMessageProvider(): () -> String {
-        val provider = messageProvider ?: { CangJieDiagnosisBundle.rawMessage(factory.name) }
+        val provider = messageProvider ?: { defaultBundle.getMessage(factory.name) }
         return { provider(factory) }
     }
 
@@ -171,8 +184,9 @@ sealed class RendererBuilder<D : UnboundDiagnostic, F : DiagnosticFactory<D>>(
  * 无参数诊断渲染器构建器
  */
 class RendererBuilder0<E : PsiElement>(
-    factory: DiagnosticFactory0<E>
-) : RendererBuilder<SimpleDiagnostic<E>, DiagnosticFactory0<E>>(factory) {
+    factory: DiagnosticFactory0<E>,
+    defaultBundle: MessageBundle
+) : RendererBuilder<SimpleDiagnostic<E>, DiagnosticFactory0<E>>(factory, defaultBundle) {
 
     override fun build(): DiagnosticRenderer<SimpleDiagnostic<E>> {
         return SimpleDiagnosticRenderer(getMessageProvider())
@@ -183,8 +197,9 @@ class RendererBuilder0<E : PsiElement>(
  * 单参数诊断渲染器构建器
  */
 class RendererBuilder1<E : PsiElement, A : Any>(
-    factory: DiagnosticFactory1<E, A>
-) : RendererBuilder<DiagnosticWithParameters1<E, A>, DiagnosticFactory1<E, A>>(factory) {
+    factory: DiagnosticFactory1<E, A>,
+    defaultBundle: MessageBundle
+) : RendererBuilder<DiagnosticWithParameters1<E, A>, DiagnosticFactory1<E, A>>(factory, defaultBundle) {
 
     private var rendererA: DiagnosticParameterRenderer<A>? = null
     private var parameterExtractor: ((DiagnosticWithParameters1<E, A>) -> Array<Any?>)? = null
@@ -219,8 +234,9 @@ class RendererBuilder1<E : PsiElement, A : Any>(
  * 双参数诊断渲染器构建器
  */
 class RendererBuilder2<E : PsiElement, A : Any, B : Any>(
-    factory: DiagnosticFactory2<E, A, B>
-) : RendererBuilder<DiagnosticWithParameters2<E, A, B>, DiagnosticFactory2<E, A, B>>(factory) {
+    factory: DiagnosticFactory2<E, A, B>,
+    defaultBundle: MessageBundle
+) : RendererBuilder<DiagnosticWithParameters2<E, A, B>, DiagnosticFactory2<E, A, B>>(factory, defaultBundle) {
 
     private var rendererA: DiagnosticParameterRenderer<A>? = null
     private var rendererB: DiagnosticParameterRenderer<B>? = null
@@ -261,8 +277,9 @@ class RendererBuilder2<E : PsiElement, A : Any, B : Any>(
  * 三参数诊断渲染器构建器
  */
 class RendererBuilder3<E : PsiElement, A : Any, B : Any, C : Any>(
-    factory: DiagnosticFactory3<E, A, B, C>
-) : RendererBuilder<DiagnosticWithParameters3<E, A, B, C>, DiagnosticFactory3<E, A, B, C>>(factory) {
+    factory: DiagnosticFactory3<E, A, B, C>,
+    defaultBundle: MessageBundle
+) : RendererBuilder<DiagnosticWithParameters3<E, A, B, C>, DiagnosticFactory3<E, A, B, C>>(factory, defaultBundle) {
 
     private var rendererA: DiagnosticParameterRenderer<A>? = null
     private var rendererB: DiagnosticParameterRenderer<B>? = null
@@ -307,8 +324,9 @@ class RendererBuilder3<E : PsiElement, A : Any, B : Any, C : Any>(
  * 四参数诊断渲染器构建器
  */
 class RendererBuilder4<E : PsiElement, A : Any, B : Any, C : Any, D : Any>(
-    factory: DiagnosticFactory4<E, A, B, C, D>
-) : RendererBuilder<DiagnosticWithParameters4<E, A, B, C, D>, DiagnosticFactory4<E, A, B, C, D>>(factory) {
+    factory: DiagnosticFactory4<E, A, B, C, D>,
+    defaultBundle: MessageBundle
+) : RendererBuilder<DiagnosticWithParameters4<E, A, B, C, D>, DiagnosticFactory4<E, A, B, C, D>>(factory, defaultBundle) {
 
     private var rendererA: DiagnosticParameterRenderer<A>? = null
     private var rendererB: DiagnosticParameterRenderer<B>? = null
