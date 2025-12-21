@@ -114,7 +114,7 @@ val isNewProjectModelImportEnabled: Boolean
     ]
 )
 internal class CjProjectsServiceImpl(
-    override val intellijProject: Project,    @Suppress("UNUSED_PARAMETER") private val cs: CoroutineScope
+    override val intellijProject: Project, @Suppress("UNUSED_PARAMETER") private val cs: CoroutineScope
 ) : CjProjectsService, PersistentStateComponent<Element>, Disposable {
     /**
      * 项目提供者缓存
@@ -506,13 +506,11 @@ internal class CjProjectsServiceImpl(
                         }
 
 
-
                         // 发布项目更新通知
                         intellijProject.messageBus.syncPublisher(CANGJIE_PROJECTS_TOPIC)
                             .cangjieProjectsUpdated(this, listOf(syncedProject))
 
                         initialized = true
-
 
 
                         // 更新项目根目录 - TOTAL_RESCAN
@@ -553,34 +551,28 @@ internal class CjProjectsServiceImpl(
      */
     private fun requestStubIndexRebuild() {
         // 在协程中异步执行索引重建请求
-//        cs.launch {
-//
-//
-//            try {
-//                // 延迟 100ms，确保 initialized 标志已经生效
-//                delay(100)
-//
-//                // 切换到 EDT 线程执行索引重建
-//                withContext(Dispatchers.EDT) {
-                    invokeAndWaitIfNeeded {
-                        runWriteAction {
-                            runWithNonLightProject(intellijProject){
-                                val rootManager = ProjectRootManagerEx.getInstanceEx(intellijProject)
-                                rootManager.makeRootsChange(
-                                    EmptyRunnable.getInstance(),
-                                    RootsChangeRescanningInfo.TOTAL_RESCAN
-                                )
-                            }
 
-                        }
+        try {
+
+
+            // invokeAndWaitIfNeeded 会自动处理 EDT 线程切换
+            // 不需要 withContext(Dispatchers.EDT)，避免嵌套调度
+            invokeAndWaitIfNeeded {
+                runWriteAction {
+                    runWithNonLightProject(intellijProject) {
+                        val rootManager = ProjectRootManagerEx.getInstanceEx(intellijProject)
+                        rootManager.makeRootsChange(
+                            EmptyRunnable.getInstance(),
+                            RootsChangeRescanningInfo.TOTAL_RESCAN
+                        )
                     }
+                }
+            }
 
-                    log.info("Stub index rebuild requested after workspace initialization")
-//                }
-//            } catch (e: Exception) {
-//                log.error("Failed to request stub index rebuild", e)
-//            }
-//        }
+            log.info("Stub index rebuild requested after workspace initialization")
+        } catch (e: Exception) {
+            log.error("Failed to request stub index rebuild", e)
+        }
     }
 
 
