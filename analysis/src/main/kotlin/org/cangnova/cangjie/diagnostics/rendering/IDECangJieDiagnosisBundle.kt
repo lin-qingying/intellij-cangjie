@@ -149,7 +149,7 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
     @Nls
     override fun getMessage(@NonNls key: String): String {
         return try {
-            getMessage(key)
+         super< AbstractCangJieBundle>.   getMessage(key)
         } catch (e: Exception) {
             // 回退到默认 Bundle
             CangJieDiagnosisBundle.getMessage(key)
