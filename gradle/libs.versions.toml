@@ -9,6 +9,7 @@
 [versions]
 # Kotlin 相关版本
 kotlin = "2.2.0"
+ksp = "2.3.4"
 kotlinx-serialization = "1.8.0"
 kotlinx-coroutines = "1.7.3"
 
@@ -39,6 +40,9 @@ toml4j = "0.7.3"
 jakarta-inject = "2.0.1"
 reflections = "0.10.2"
 mockk = "1.13.8"
+
+# 代码生成工具
+kotlinpoet = "1.16.0"
 
 # IntelliJ 插件版本
 lsp4ij-plugin = "0.19.0"
@@ -85,11 +89,17 @@ reflections = { module = "org.reflections:reflections", version.ref = "reflectio
 # 测试工具
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
+# KSP 和代码生成
+ksp-symbol-processing-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
+kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
+kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
+
 [plugins]
 # Gradle 插件
 saliman-properties = { id = "net.saliman.properties", version.ref = "saliman-properties" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 intellij-changelog = { id = "org.jetbrains.changelog", version.ref = "intellij-changelog" }
 gradle-test-retry = { id = "org.gradle.test-retry", version.ref = "gradle-test-retry" }
 
@@ -99,3 +109,4 @@ jackson = ["jackson-dataformat-toml", "jackson-module-kotlin"]
 kotlinx-coroutines = ["kotlinx-coroutines-core", "kotlinx-coroutines-jdk8"]
 protobuf = ["protobuf-java", "protobuf-kotlin"]
 junit = ["junit4", "junit-jupiter-api"]
+kotlinpoet = ["kotlinpoet", "kotlinpoet-ksp"]

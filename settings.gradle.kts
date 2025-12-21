@@ -112,6 +112,9 @@ include("analysis:decompiler-to-psi")
 
 include("analysis:diagnostics")
 
+// KSP 处理器模块（用于生成诊断工厂初始化代码）
+include("ksp-processors:diagnostic")
+
 include("psi:stubindex")
 include("highlighter")
 include("chir")

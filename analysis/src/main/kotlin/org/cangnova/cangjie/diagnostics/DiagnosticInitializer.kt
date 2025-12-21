@@ -24,33 +24,34 @@
 
 package org.cangnova.cangjie.diagnostics
 
-import org.cangnova.cangjie.diagnostics.rendering.DiagnosticRenderer
-import org.cangnova.cangjie.diagnostics.rendering.DiagnosticRendererRegistry
-import org.reflections.Reflections
-import org.reflections.scanners.Scanners
-import org.reflections.util.ConfigurationBuilder
-import java.lang.reflect.Modifier
+import com.intellij.openapi.diagnostic.logger
+import org.cangnova.cangjie.diagnostics.generated.initializeAllDiagnostics
+import org.cangnova.cangjie.diagnostics.generated.getDiagnosticFactoryCount
 
 /**
- * 诊断工厂初始化器
+ * 诊断工厂初始化器（KSP 版本）
  *
- * 负责自动初始化所有诊断工厂的名称和渲染器。
- * 通过反射机制扫描所有带有 [DiagnosticHolder] 注解的类，并为每个诊断工厂设置其名称。
+ * 使用编译期代码生成替代运行时反射，提供更好的性能和可靠性。
  *
- * ## 延迟初始化
+ * ## 工作原理
  *
- * 为避免在类加载时（静态初始化阶段）依赖服务，本初始化器采用延迟初始化策略：
- * - 不在 `init` 块中进行初始化
- * - 通过 [org.cangnova.cangjie.diagnostics.DiagnosticInitializerStartupActivity]
- *   在项目启动后显式调用 [ensureInitialized]
- * - 避免 IntelliJ 平台的 "Class initialization must not depend on services" 错误
+ * 1. **编译期**：KSP 处理器扫描所有带 `@DiagnosticHolder` 注解的文件
+ * 2. **代码生成**：自动生成 `initializeAllDiagnostics()` 函数
+ * 3. **运行期**：直接调用生成的初始化函数
  *
+ * ## 优势
+ *
+ * - ✅ 无运行时反射开销
+ * - ✅ 类型安全，编译期错误检测
+ * - ✅ 不受类加载顺序影响
+ * - ✅ 生成代码可查看和调试
+ * - ✅ 完整的 IDE 支持
+ *
+ * @see org.cangnova.cangjie.diagnostics.generated.initializeAllDiagnostics
  * @see DiagnosticInitializerStartupActivity
  */
 object DiagnosticInitializer {
-    private const val WARNING = "_WARNING"
-    private const val ERROR = "_ERROR"
-    private const val BASE_PACKAGE = "org.cangnova.cangjie.diagnostics"
+    private val LOG = logger<DiagnosticInitializer>()
 
     @Volatile
     private var initialized = false
@@ -58,7 +59,7 @@ object DiagnosticInitializer {
     /**
      * 确保诊断系统已初始化
      *
-     * 扫描所有带有 [DiagnosticHolder] 注解的类，为每个诊断工厂设置名称和渲染器。
+     * 调用 KSP 生成的初始化函数，为所有 DiagnosticFactory 设置名称。
      *
      * 此方法是线程安全的，可以被多次调用（后续调用会立即返回）。
      * 通常由 [DiagnosticInitializerStartupActivity] 在项目启动时调用。
@@ -69,73 +70,46 @@ object DiagnosticInitializer {
         synchronized(this) {
             if (initialized) return
 
-            // 扫描所有带有 DiagnosticHolder 注解的类
-            val reflections = Reflections(
-                ConfigurationBuilder()
-                    .forPackages(BASE_PACKAGE)
-                    .setScanners(Scanners.TypesAnnotated)
-            )
+            try {
+                val startTime = System.currentTimeMillis()
 
-            val annotatedClasses = reflections.getTypesAnnotatedWith(DiagnosticHolder::class.java)
+                // 调用 KSP 生成的初始化函数
+                // 该函数在编译期由 DiagnosticProcessor 自动生成
+                initializeAllDiagnostics()
 
-            // 初始化每个带注解的类
-            for (clazz in annotatedClasses) {
-                val annotation = clazz.getAnnotation(DiagnosticHolder::class.java)
-                if (annotation != null) {
-                    initializeFactoryNames(clazz)
-                }
-            }
+                val duration = System.currentTimeMillis() - startTime
+                val count = getDiagnosticFactoryCount()
 
-            initialized = true
-        }
-    }
-
-    /**
-     * 初始化工厂名称
-     *
-     * 扫描指定类的所有静态字段，为每个 [DiagnosticFactory] 设置名称和渲染器。
-     *
-     * @param aClass 要扫描的类
-     */
-    private fun initializeFactoryNames(aClass: Class<*>) {
-        for (field in aClass.fields) {
-            if (Modifier.isStatic(field.modifiers)) {
-                try {
-                    when (val value = field.get(null)) {
-                        is DiagnosticFactory<*> -> {
-                            initializeNameAndRenderer(field.name, value)
-                        }
-
-                        is DiagnosticFactoryForDeprecation<*, *, *> -> {
-                            initializeNameAndRenderer(
-                                field.name + ERROR,
-                                value.errorFactory
-                            )
-                            initializeNameAndRenderer(
-                                field.name + WARNING,
-                                value.warningFactory
-                            )
-                        }
-                    }
-                } catch (e: IllegalAccessException) {
-                    throw IllegalStateException(e)
-                }
+                LOG.info("✓ Initialized $count diagnostic factories in ${duration}ms (KSP-generated)")
+                initialized = true
+            } catch (e: NoSuchMethodError) {
+                LOG.error(
+                    "KSP 生成的初始化函数未找到。请运行 './gradlew :analysis:kspKotlin' 生成代码",
+                    e
+                )
+                throw IllegalStateException(
+                    "诊断工厂初始化代码未生成。请运行 Gradle 构建以生成 KSP 代码。",
+                    e
+                )
+            } catch (e: Exception) {
+                LOG.error("Failed to initialize diagnostic factories", e)
+                throw e
             }
         }
     }
 
     /**
-     * 初始化单个工厂的名称和渲染器
-     *
-     * 从 DiagnosticRendererRegistry 获取渲染器并设置为工厂的默认渲染器
+     * 检查是否已初始化
      */
-    @Suppress("UNCHECKED_CAST")
-    private fun initializeNameAndRenderer(
-        name: String,
-        factory: DiagnosticFactory<*>
-    ) {
-        factory.initializeName(name)
-        // 从新系统获取渲染器
-        factory.defaultRenderer = DiagnosticRendererRegistry.getRenderer(factory) as? DiagnosticRenderer<Any>
+    fun isInitialized(): Boolean = initialized
+
+    /**
+     * 重置初始化状态（仅用于测试）
+     */
+    @Deprecated("仅用于测试，生产代码请勿使用")
+    fun resetForTesting() {
+        synchronized(this) {
+            initialized = false
+        }
     }
 }

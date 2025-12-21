@@ -22,6 +22,9 @@
  *
  */
 
+plugins {
+    alias(libs.plugins.ksp)
+}
 
 dependencies {
     testImplementation(platform(libs.junit.bom))
@@ -44,5 +47,24 @@ dependencies {
     implementation(project(":psi:stubindex"))
 
     api(project(":analysis:decompiler-to-psi"))
+
+    // KSP 处理器用于生成诊断工厂初始化代码
+    ksp(project(":ksp-processors:diagnostic"))
+}
+
+// 配置 KSP 生成的源码目录
+kotlin {
+    sourceSets.main {
+        kotlin.srcDir("build/generated/ksp/main/kotlin")
+    }
+}
+
+// 确保编译前执行 KSP 代码生成
+tasks.named("compileKotlin") {
+    dependsOn("kspKotlin")
+}
+
+tasks.named("compileTestKotlin") {
+    dependsOn("kspTestKotlin")
 }
 
