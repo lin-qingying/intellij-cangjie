@@ -248,7 +248,7 @@ class PSICallResolver(
             val calleeExpression = callForVariable.baseCall.psiCall.calleeExpression as? CjReferenceExpression
                 ?: error("Unexpected call : ${callForVariable.baseCall.psiCall}")
 
-            val temporaryTrace = TemporaryBindingTrace.create(context.trace, "Context for resolve candidate")
+            val temporaryTrace = TemporaryBindingTrace.create(context.trace, "Context for resolveName candidate")
 
             val type = variable.resolvedCall.freshReturnType!!
             val variableReceiver = ExpressionReceiver.create(calleeExpression, type, temporaryTrace.bindingContext)
@@ -1219,7 +1219,7 @@ class PSICallResolver(
     }
 
     private fun clearCacheForApproximationResults() {
-        // Mostly, we approximate captured or some other internal types that don't live longer than resolve for a call,
+        // Mostly, we approximate captured or some other internal types that don't live longer than resolveName for a call,
         // so it's quite useless to preserve cache for longer time
 //        typeApproximator.clearCache()
     }
@@ -1236,7 +1236,7 @@ class PSICallResolver(
 //        }
 //    }
 //    private fun clearCacheForApproximationResults() {
-//        // Mostly, we approximate captured or some other internal types that don't live longer than resolve for a call,
+//        // Mostly, we approximate captured or some other internal types that don't live longer than resolveName for a call,
 //        // so it's quite useless to preserve cache for longer time
 //        typeApproximator.clearCache()
 //    }

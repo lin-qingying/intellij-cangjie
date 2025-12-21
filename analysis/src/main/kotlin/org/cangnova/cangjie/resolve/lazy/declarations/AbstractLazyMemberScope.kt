@@ -199,7 +199,7 @@ protected constructor(
 
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
         recordLookup(name, location)
-        // NB we should resolve type alias descriptors even if a class descriptor with corresponding name is present
+        // NB we should resolveName type alias descriptors even if a class descriptor with corresponding name is present
         val classes = classDescriptors(name)
         val typeAliases = typeAliasDescriptors(name)
 
@@ -213,7 +213,7 @@ protected constructor(
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         recordLookup(name, location)
-        // NB we should resolve type alias descriptors even if a class descriptor with corresponding name is present
+        // NB we should resolveName type alias descriptors even if a class descriptor with corresponding name is present
         val classes = classDescriptors(name)
         val typeAliases = typeAliasDescriptors(name)
         // See getFirstClassifierDiscriminateHeaders()

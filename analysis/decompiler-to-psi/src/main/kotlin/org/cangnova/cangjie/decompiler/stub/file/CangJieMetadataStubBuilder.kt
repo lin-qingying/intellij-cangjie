@@ -24,12 +24,14 @@
 
 package org.cangnova.cangjie.decompiler.stub.file
 
+import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.stubs.PsiFileStub
 import com.intellij.util.indexing.FileContent
+import org.cangnova.cangjie.cjo.CjoPackageService
 import org.cangnova.cangjie.decompiler.psi.compiled.ClsStubBuilder
 import org.cangnova.cangjie.decompiler.psi.compiled.impl.ClassFileStubBuilder
 import org.cangnova.cangjie.decompiler.stub.*
@@ -50,7 +52,7 @@ open class CangJieMetadataStubBuilder(
     private val version: Int,
     private val fileType: FileType,
     private val serializerFlatbuffers: () -> SerializerExtensionFlatbuffers,
-    private val readFile: (Project, VirtualFile, ByteArray) -> FileWithMetadata?
+    private val readFile: ( VirtualFile, ByteArray) -> FileWithMetadata?
 ) : ClsStubBuilder() {
 
     override val stubVersion: Int = ClassFileStubBuilder.STUB_VERSION + version
@@ -70,10 +72,12 @@ open class CangJieMetadataStubBuilder(
             return null
         }
 
-        // 从 FileContent 获取 project，而不是使用 ProjectUtil.getActiveProject()
+        // 从 FileContent 获取 project
         val project = fileContent.project
+
+        // 从 FileContent 获取 project，而不是使用 ProjectUtil.getActiveProject()
         val file = try {
-            readFile(project, virtualFile, fileContent.content)
+            readFile(  virtualFile, fileContent.content)
         } catch (e: Exception) {
             LOG.warn("Failed to read metadata file: ${virtualFile.path}", e)
             null
@@ -85,7 +89,7 @@ open class CangJieMetadataStubBuilder(
             }
 
             is FileWithMetadata.Compatible -> {
-                buildCompatibleFileStub(file, virtualFile)
+                buildCompatibleFileStub(file, virtualFile, project)
             }
         }
     }
@@ -95,20 +99,29 @@ open class CangJieMetadataStubBuilder(
      */
     private fun buildCompatibleFileStub(
         file: FileWithMetadata.Compatible,
-        virtualFile: VirtualFile
+        virtualFile: VirtualFile,
+        project: Project
     ): PsiFileStub<*> {
         val packageWrapper = file.`package`
         val packageFqName = file.packageFqName
 
+        // 获取包服务
+        val packageService = CjoPackageService.getInstance(project)
+
+
+
         // 创建组件
         val components = ClsStubBuilderComponents(
+            project = project,
             classDataFinder = FlatBuffersBasedClassDataFinder(
                 packageWrapper,
                 file.version
             ),
             virtualFileForDebug = virtualFile,
             declTable = packageWrapper.declTable,
-            typeTable = packageWrapper.typeTable
+            typeTable = packageWrapper.typeTable,
+            packageWrapper = packageWrapper,
+            packageService = packageService
         )
 
         // 创建上下文
@@ -118,13 +131,13 @@ open class CangJieMetadataStubBuilder(
         val fileStub = createFileStub(packageFqName)
 
         // 创建包容器
-        val protoContainer = ProtoContainer.Package(packageFqName, packageWrapper.typeTable)
+        val metadataContainer = MetadataContainer.Package(packageFqName, packageWrapper.typeTable)
 
         // 创建顶层函数和变量 Stubs
         createPackageDeclarationsStubs(
             fileStub,
             context,
-            protoContainer,
+            metadataContainer,
             packageWrapper.functions,
             packageWrapper.variables
         )

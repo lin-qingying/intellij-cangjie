@@ -24,14 +24,14 @@
 
 package org.cangnova.cangjie.psi
 
-import org.cangnova.cangjie.psi.stubs.CangJieFunctionStub
+import org.cangnova.cangjie.psi.stubs.CangJieMacroStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 
-class CjMacroDeclaration : CjFunctionImpl {
+class CjMacroDeclaration : CjFunctionImpl<CangJieMacroStub, CjMacroDeclaration> {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJieFunctionStub) : super(stub, CjStubElementTypes.MACRO)
+    constructor(stub: CangJieMacroStub) : super(stub, CjStubElementTypes.MACRO)
 
 //    override val isStatic: Boolean
 //        get() = false

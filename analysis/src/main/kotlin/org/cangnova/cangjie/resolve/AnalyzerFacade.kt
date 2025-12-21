@@ -537,7 +537,7 @@ abstract class ResolverForProject<M : ModuleInfo> {
  * 通过 IntelliJ Platform 的组件系统注册：
  * ```xml
  * <projectService
- *     serviceInterface="org.cangnova.cangjie.resolve.ResolverForModuleComputationTracker"
+ *     serviceInterface="org.cangnova.cangjie.resolveName.ResolverForModuleComputationTracker"
  *     serviceImplementation="com.example.MyResolverTracker"/>
  * ```
  *
@@ -1014,8 +1014,8 @@ interface LanguageSettingsProvider {
  * 在 `cangjie-analysis.xml` 中注册：
  * ```xml
  * <projectService
- *     serviceInterface="org.cangnova.cangjie.resolve.LanguageSettingsProvider"
- *     serviceImplementation="org.cangnova.cangjie.resolve.IDELanguageSettingsProvider"/>
+ *     serviceInterface="org.cangnova.cangjie.resolveName.LanguageSettingsProvider"
+ *     serviceImplementation="org.cangnova.cangjie.resolveName.IDELanguageSettingsProvider"/>
  * ```
  *
  * @see LanguageSettingsProvider

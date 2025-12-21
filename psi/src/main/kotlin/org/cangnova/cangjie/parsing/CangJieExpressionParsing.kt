@@ -2991,12 +2991,12 @@ open class CangJieExpressionParsing(
                             error("Expecting '{' ")
                         }
 
-                        declType = CLASS_MAIN_INIT
+                        declType = PRIMARY_CONSTRUCTOR
                     }
                 }
             } else if (at(IDENTIFIER) && lookahead(1) === LPAR) {
                 cangJieParsing.parsePrimaryInitFunc()
-                declType = CLASS_MAIN_INIT
+                declType = PRIMARY_CONSTRUCTOR
             }
         }
 
@@ -3035,7 +3035,7 @@ open class CangJieExpressionParsing(
             PROP_KEYWORD_Id -> cangJieParsing.parseProperty(detector = modifiterDetector)
             INIT_KEYWORD_Id -> {
                 cangJieParsing.parseInitFunc()
-                CLASS_INIT
+                SECONDARY_CONSTRUCTOR
             }
 
             else -> null

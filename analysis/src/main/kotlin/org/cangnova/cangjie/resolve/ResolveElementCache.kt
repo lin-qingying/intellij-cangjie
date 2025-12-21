@@ -181,7 +181,7 @@ class ResolveElementCache(
             if (elementOfAdditionalResolve != null) {
                 if (elementOfAdditionalResolve is CjParameter) {
                     throw AssertionError(
-                        "ResolveElementCache: Element of additional resolve should not be CjParameter: " +
+                        "ResolveElementCache: Element of additional resolveName should not be CjParameter: " +
                                 "${elementOfAdditionalResolve.text} for context element ${contextElements.firstOrNull()?.text}"
                     )
                 }
@@ -279,7 +279,7 @@ class ResolveElementCache(
         val bindingContext = if (elementOfAdditionalResolve != null) {
             if (elementOfAdditionalResolve is CjParameter) {
                 throw AssertionError(
-                    "ResolveElementCache: Element of additional resolve should not be CjParameter: " +
+                    "ResolveElementCache: Element of additional resolveName should not be CjParameter: " +
                             "${elementOfAdditionalResolve.text} for context element ${element.text}"
                 )
             }
@@ -301,7 +301,7 @@ class ResolveElementCache(
     }
 
     private val forcedFullResolveOnHighlighting =
-        Registry.`is`("cangjie.resolve.force.full.resolve.on.highlighting", true)
+        Registry.`is`("cangjie.resolveName.force.full.resolveName.on.highlighting", true)
 
     /**
      * 执行元素的附加解析。
@@ -928,7 +928,7 @@ class ResolveElementCache(
         return resolveSession.storageManager.createSafeTrace(
             BindingTraceForBodyResolve(
                 resolveSession.bindingContext,
-                AnalyzingUtils.formDebugNameForBindingTrace("trace to resolve element", resolveElement),
+                AnalyzingUtils.formDebugNameForBindingTrace("trace to resolveName element", resolveElement),
                 filter
             )
         )

@@ -153,11 +153,11 @@ import org.cangnova.cangjie.types.isFunctionTypeOrSubtype
 //    }
 //
 //    private fun needCompatibilityResolveForSAM(candidate: ResolutionCandidate, typeToConvert: UnwrappedType): Boolean {
-//        // fun interfaces is a new feature with a new modifier, so no compatibility resolve is needed
+//        // fun interfaces is a new feature with a new modifier, so no compatibility resolveName is needed
 //        val descriptor = typeToConvert.constructor.declarationDescriptor
 //        if (descriptor is ClassDescriptor && descriptor.isFun) return false
 //
-//        // now conversions for CangJie candidates are possible, so we have to perform compatibility resolve
+//        // now conversions for CangJie candidates are possible, so we have to perform compatibility resolveName
 //        return !candidate.callComponents.samConversionOracle.isJavaApplicableCandidate(candidate.resolvedCall.descriptor)
 //    }
 //

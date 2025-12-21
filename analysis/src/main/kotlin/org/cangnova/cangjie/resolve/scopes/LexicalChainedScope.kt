@@ -41,7 +41,7 @@ class LexicalChainedScope private constructor(
     // NB. Here can be very special subtypes of MemberScope (e.g., DeprecatedMemberScope).
     // Please, do not leak them outside of LexicalChainedScope, because other parts of compiler are not ready to work with them
     private val memberScopes: Array<MemberScope>,
-    @Deprecated("This value is temporary hack for resolve -- don't use it!")
+    @Deprecated("This value is temporary hack for resolveName -- don't use it!")
     val isStaticScope: Boolean = false
 ) : LexicalScope {
     override val parent = parent.takeSnapshot()

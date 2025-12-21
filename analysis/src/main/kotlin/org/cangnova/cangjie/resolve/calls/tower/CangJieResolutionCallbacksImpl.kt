@@ -186,7 +186,7 @@ class CangJieResolutionCallbacksImpl(
 
         val builtIns = outerCallContext.scope.ownerDescriptor.builtIns
 
-        // We have to refine receiverType because resolve inside lambda needs proper scope from receiver,
+        // We have to refine receiverType because resolveName inside lambda needs proper scope from receiver,
         // and for implicit receivers there are no expression which type would've been refined in ExpTypingVisitor
         // Relevant test: multiplatformTypeRefinement/lambdas
         //
@@ -237,7 +237,7 @@ class CangJieResolutionCallbacksImpl(
             }
 
         val temporaryTrace = if (builderInferenceSession != null)
-            TemporaryBindingTrace.create(trace, "Trace to resolve builder inference lambda: $lambdaArgument")
+            TemporaryBindingTrace.create(trace, "Trace to resolveName builder inference lambda: $lambdaArgument")
         else
             null
 

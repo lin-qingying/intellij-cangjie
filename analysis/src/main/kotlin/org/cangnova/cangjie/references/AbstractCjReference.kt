@@ -53,7 +53,7 @@ import org.cangnova.cangjie.resolve.binding.BindingContext
 //    element: T
 //) : PsiPolyVariantReferenceBase<T>(element),
 //    CjReference {
-//    override fun resolve(): CjElement? = super.resolve() as? CjElement
+//    override fun resolveName(): CjElement? = super.resolveName() as? CjElement
 //
 //
 //    override fun multiResolve(incompleteCode: Boolean): Array<out ResolveResult> =

@@ -85,7 +85,7 @@ private fun resolveParamLink(
 }
 
 fun getParamDescriptors(fromDescriptor: DeclarationDescriptor): List<DeclarationDescriptor> {
-    // TODO resolve parameters of functions passed as parameters
+    // TODO resolveName parameters of functions passed as parameters
     when (fromDescriptor) {
         is CallableDescriptor -> {
             return fromDescriptor.valueParameters + fromDescriptor.typeParameters
@@ -273,7 +273,7 @@ fun getCDocLinkMemberScope(descriptor: DeclarationDescriptor, contextScope: Lexi
 
         is ClassDescriptor -> {
             ChainedMemberScope.create(
-                "Member scope for CDoc resolve", listOfNotNull(
+                "Member scope for CDoc resolveName", listOfNotNull(
                     descriptor.unsubstitutedMemberScope,
                     descriptor.staticScope,
                     null,

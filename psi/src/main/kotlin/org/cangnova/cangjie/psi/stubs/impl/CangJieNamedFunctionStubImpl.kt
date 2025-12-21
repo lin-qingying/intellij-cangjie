@@ -24,16 +24,19 @@
 
 package org.cangnova.cangjie.psi.stubs.impl
 
-import org.cangnova.cangjie.psi.CjFunctionImpl
-import org.cangnova.cangjie.psi.stubs.CangJieFunctionForExtendStub
-import org.cangnova.cangjie.psi.stubs.CangJieFunctionStub
+import org.cangnova.cangjie.psi.CjNamedFunction
+import org.cangnova.cangjie.psi.CjMainFunction
+import org.cangnova.cangjie.psi.CjMacroDeclaration
+import org.cangnova.cangjie.psi.stubs.CangJieNamedFunctionStub
+import org.cangnova.cangjie.psi.stubs.CangJieMainFunctionStub
+import org.cangnova.cangjie.psi.stubs.CangJieMacroStub
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 import org.cangnova.cangjie.name.*
 
-class CangJieFunctionStubImpl(
+class CangJieNamedFunctionStubImpl(
     parent: StubElement<out PsiElement>?,
     element: IStubElementType<*, *>,
     private val nameRef: StringRef?,
@@ -44,7 +47,7 @@ class CangJieFunctionStubImpl(
     private val hasBody: Boolean,
     private val hasTypeParameterListBeforeFunctionName: Boolean,
     val origin: CangJieStubOrigin?,
-) : CangJieStubBaseImpl<CjFunctionImpl>(parent, element), CangJieFunctionStub {
+) : CangJieStubBaseImpl<CjNamedFunction>(parent, element), CangJieNamedFunctionStub {
     init {
         if (isTopLevel && fqName == null) {
             throw IllegalArgumentException("fqName shouldn't be null for top level functions")
@@ -63,7 +66,25 @@ class CangJieFunctionStubImpl(
     companion object
 }
 
-class CangJieFunctionForExtendStubImpl(
+class CangJieMainFunctionStubImpl(
+    parent: StubElement<out PsiElement>?,
+    element: IStubElementType<*, *>,
+    private val nameRef: StringRef?,
+
+    private val fqName: FqName?,
+
+    val origin: CangJieStubOrigin?,
+) : CangJieStubBaseImpl<CjMainFunction>(parent, element), CangJieMainFunctionStub {
+
+
+    override fun getFqName() = fqName
+
+    override fun getName() = StringRef.toString(nameRef)
+    override fun isTopLevel() = true
+    override fun isExtension() = false
+}
+
+class CangJieMacroStubImpl(
     parent: StubElement<out PsiElement>?,
     element: IStubElementType<*, *>,
     private val nameRef: StringRef?,
@@ -74,7 +95,7 @@ class CangJieFunctionForExtendStubImpl(
     private val hasBody: Boolean,
     private val hasTypeParameterListBeforeFunctionName: Boolean,
     val origin: CangJieStubOrigin?,
-) : CangJieStubBaseImpl<CjFunctionImpl>(parent, element), CangJieFunctionForExtendStub {
+) : CangJieStubBaseImpl<CjMacroDeclaration>(parent, element), CangJieMacroStub {
     init {
         if (isTopLevel && fqName == null) {
             throw IllegalArgumentException("fqName shouldn't be null for top level functions")
@@ -89,6 +110,4 @@ class CangJieFunctionForExtendStubImpl(
     override fun hasBlockBody() = hasBlockBody
     override fun hasBody() = hasBody
     override fun hasTypeParameterListBeforeFunctionName() = hasTypeParameterListBeforeFunctionName
-
-    companion object
 }

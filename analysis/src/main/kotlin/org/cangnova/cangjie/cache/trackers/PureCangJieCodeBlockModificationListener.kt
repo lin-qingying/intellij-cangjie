@@ -329,7 +329,7 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
                 is CjFunction -> {
                     // 对于函数，如果其有块体，则进一步检查元素是否在块体中
                     if (blockDeclaration.hasBlockBody()) {
-                        if(blockDeclaration is CjFunctionImpl){
+                        if(blockDeclaration is CjFunctionImpl<*, *>){
                             if(blockDeclaration.isInferReturnType) return null
                         }
                         return blockDeclaration.bodyExpression

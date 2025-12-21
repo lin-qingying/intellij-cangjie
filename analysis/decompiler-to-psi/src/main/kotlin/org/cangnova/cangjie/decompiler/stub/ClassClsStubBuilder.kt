@@ -66,10 +66,10 @@ class ClassClsStubBuilder(
         val classBodyContext = typeParameterContext.child(
             emptyList(),
             classDecl.name,
-            protoContainer = ProtoContainer.Class(
+            metadataContainer = MetadataContainer.Class(
                 classDecl,
                 outerContext.typeTable,
-                outerContext.protoContainer as? ProtoContainer.Class
+                outerContext.metadataContainer as? MetadataContainer.Class
             )
         )
         createClassBodyStub(classOrObjectStub, classBodyContext)
@@ -274,14 +274,14 @@ class ClassClsStubBuilder(
         createDeclarationsStubs(
             classBodyStub,
             context,
-            context.protoContainer!!,
+            context.metadataContainer!!,
             classDecl.functions,
             classDecl.propertys
         )
 
         // 创建成员变量 Stubs
         for (variable in classDecl.variables) {
-            VariableClsStubBuilder(classBodyStub, context, context.protoContainer!!, variable).build()
+            VariableClsStubBuilder(classBodyStub, context, context.metadataContainer, variable).build()
         }
 
         // 如果是枚举，创建枚举项 Stubs
@@ -329,7 +329,7 @@ class ClassClsStubBuilder(
     }
 
     private fun extractTypeName(typeWrapper: TypeWrapper): org.cangnova.cangjie.name.Name? {
-        return TypeClsStubBuilder.extractTypeName(typeWrapper)
+        return TypeClsStubBuilder.extractTypeName(typeWrapper, outerContext)
     }
 }
 
@@ -415,8 +415,9 @@ fun createValueParameterListStub(
             null,
             paramName.ref(),
             isMutable = false,
-            hasValOrVar = param.isMemberParam,
-            hasDefaultValue = param.declaresDefaultValue
+            hasLetOrVar = param.isMemberParam,
+            hasDefaultValue = param.declaresDefaultValue,
+            isNamed = param.isNamedParam
         )
 
         TypeClsStubBuilder(paramStub, context).createTypeReferenceStub(param.type)

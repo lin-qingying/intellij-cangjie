@@ -949,7 +949,7 @@ class DescriptorResolver(
 
         val parameterName = if (destructuringDeclaration == null) {
             // NB: let/var for parameter is only allowed in primary constructors where single underscore names are still prohibited.
-            // The problem with val/var is that when lazy resolve try to find their descriptor, it searches through the member scope
+            // The problem with val/var is that when lazy resolveName try to find their descriptor, it searches through the member scope
             // of containing class where, it can not find a descriptor with special name.
             // Thus, to preserve behavior, we don't use a special name for val/var.
             if (!valueParameter.hasLetOrVar() && valueParameter.isSingleUnderscore)

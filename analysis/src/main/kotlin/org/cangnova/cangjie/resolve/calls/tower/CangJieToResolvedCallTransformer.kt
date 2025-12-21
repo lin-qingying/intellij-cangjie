@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.resolve.calls.tower
 
-//import org.cangnova.cangjie.resolve.calls.smartcasts.SmartCastManager
+//import org.cangnova.cangjie.resolveName.calls.smartcasts.SmartCastManager
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.CallableDescriptor

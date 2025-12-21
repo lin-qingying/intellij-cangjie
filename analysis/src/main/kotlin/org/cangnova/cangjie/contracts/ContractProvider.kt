@@ -38,7 +38,7 @@ abstract class AbstractContractProvider : ContractProvider {
 
 /**
  * Such contract providers are used where we can be sure about contract presence and don't need
- * additional resolve (e.g., for deserialized declarations)
+ * additional resolveName (e.g., for deserialized declarations)
  */
 //class ContractProviderImpl(private val contractDescription: ContractDescription) : AbstractContractProvider() {
 //    override fun getContractDescription(): ContractDescription = contractDescription
@@ -80,7 +80,7 @@ interface ContractDescriptionElement {
  * 'computation', which guarantees to initialize this field.
  *
  * Such contract providers are present only for source-based declarations, where we need additional
- * resolve (force-resolve of the body) to get ContractDescription
+ * resolveName (force-resolveName of the body) to get ContractDescription
  */
 //class LazyContractProvider(private val storageManager: StorageManager, private val computation: () -> Any?) : AbstractContractProvider() {
 //    @Volatile

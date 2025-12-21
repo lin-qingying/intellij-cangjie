@@ -100,4 +100,8 @@
 
     <xi:include href="/META-INF/cangjie-analysis.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
+    <!-- 引入元数据服务相关配置
+         包含 CJO 包元数据服务等 -->
+    <xi:include href="/META-INF/cangjie-metadata.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
 </idea-plugin>

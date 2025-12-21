@@ -114,7 +114,7 @@ val isNewProjectModelImportEnabled: Boolean
     ]
 )
 internal class CjProjectsServiceImpl(
-    override val intellijProject: Project
+    override val intellijProject: Project,    @Suppress("UNUSED_PARAMETER") private val cs: CoroutineScope
 ) : CjProjectsService, PersistentStateComponent<Element>, Disposable {
     /**
      * 项目提供者缓存
@@ -196,15 +196,6 @@ internal class CjProjectsServiceImpl(
     override var initialized: Boolean = false
 
     /**
-     * 协程作用域
-     *
-     * 用于执行异步任务，如索引重建等。
-     * 使用 SupervisorJob 确保一个协程的失败不会影响其他协程。
-     * 作用域与服务生命周期绑定，在 dispose() 时取消所有协程。
-     */
-    private val coroutineScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-
-    /**
      * 刷新防抖动 Job
      *
      * 用于防止频繁刷新项目，当多次连续调用刷新时，只执行最后一次。
@@ -227,7 +218,7 @@ internal class CjProjectsServiceImpl(
      *
      * 负责维护从 VirtualFile 到 CjModule 的快速映射
      */
-    private val moduleIndex = CangJieModuleIndex(intellijProject, this, coroutineScope)
+    private val moduleIndex = CangJieModuleIndex(intellijProject, this, cs)
 
     /**
      * Workspace Model 同步器
@@ -293,7 +284,7 @@ internal class CjProjectsServiceImpl(
      * @param rootDir 项目根目录
      */
     override fun discoverProject(rootDir: VirtualFile) {
-        coroutineScope.launch {
+        cs.launch {
             val provider = providerCache
 
             // 在后台线程检查和创建项目，避免阻塞 UI
@@ -338,7 +329,7 @@ internal class CjProjectsServiceImpl(
      */
     private fun scheduleRefresh() {
         refreshJob?.cancel()
-        refreshJob = coroutineScope.launch {
+        refreshJob = cs.launch {
             delay(refreshDebounceMs)
             refreshProject()
         }
@@ -419,12 +410,20 @@ internal class CjProjectsServiceImpl(
 
 
                             initialized = true
+
+                            // 触发文件索引重建，以便为延迟构建的 stub 重新索引
+                            requestStubIndexRebuild()
                         }
                     }
 
                 } else {
                     // 在 LOAD_STATE 模式下，仅设置初始化标志
                     initialized = true
+                    invokeAndWaitIfNeeded {
+                        // 同样需要触发索引重建
+                        requestStubIndexRebuild()
+                    }
+
                 }
                 proj
             }.whenComplete { proj, err ->
@@ -506,21 +505,25 @@ internal class CjProjectsServiceImpl(
                             )
                         }
 
-                        // 更新项目根目录 - TOTAL_RESCAN
-                        runWithNonLightProject(intellijProject) {
-                            ProjectRootManagerEx.getInstanceEx(intellijProject)
-                                .makeRootsChange(
-                                    EmptyRunnable.getInstance(),
-                                    RootsChangeRescanningInfo.TOTAL_RESCAN
 
-                                )
-                        }
 
                         // 发布项目更新通知
                         intellijProject.messageBus.syncPublisher(CANGJIE_PROJECTS_TOPIC)
                             .cangjieProjectsUpdated(this, listOf(syncedProject))
 
                         initialized = true
+
+
+
+                        // 更新项目根目录 - TOTAL_RESCAN
+//                        runWithNonLightProject(intellijProject) {
+//                            ProjectRootManagerEx.getInstanceEx(intellijProject)
+//                                .makeRootsChange(
+//                                    EmptyRunnable.getInstance(),
+//                                    RootsChangeRescanningInfo.TOTAL_RESCAN
+//
+//                                )
+//                        }
                     }
                 }
 
@@ -540,6 +543,44 @@ internal class CjProjectsServiceImpl(
 
         // 提交刷新任务到后台队列
         intellijProject.taskQueue.run(syncTask)
+    }
+
+    /**
+     * 触发 stub 索引重建
+     *
+     * 在工作空间模型同步完成后调用，重新索引之前延迟构建的 stub。
+     * 使用协程异步执行，避免阻塞主线程。
+     */
+    private fun requestStubIndexRebuild() {
+        // 在协程中异步执行索引重建请求
+//        cs.launch {
+//
+//
+//            try {
+//                // 延迟 100ms，确保 initialized 标志已经生效
+//                delay(100)
+//
+//                // 切换到 EDT 线程执行索引重建
+//                withContext(Dispatchers.EDT) {
+                    invokeAndWaitIfNeeded {
+                        runWriteAction {
+                            runWithNonLightProject(intellijProject){
+                                val rootManager = ProjectRootManagerEx.getInstanceEx(intellijProject)
+                                rootManager.makeRootsChange(
+                                    EmptyRunnable.getInstance(),
+                                    RootsChangeRescanningInfo.TOTAL_RESCAN
+                                )
+                            }
+
+                        }
+                    }
+
+                    log.info("Stub index rebuild requested after workspace initialization")
+//                }
+//            } catch (e: Exception) {
+//                log.error("Failed to request stub index rebuild", e)
+//            }
+//        }
     }
 
 
@@ -587,7 +628,7 @@ internal class CjProjectsServiceImpl(
         refreshJob = null
 
         // 取消所有正在运行的协程（包括项目发现、加载等）
-        coroutineScope.cancel()
+        cs.cancel()
     }
 
     override fun getState(): Element {
@@ -613,7 +654,7 @@ internal class CjProjectsServiceImpl(
         intellijProject.service<UserDisabledFeaturesHolder>()
 
         // 延迟到后台执行项目发现，避免阻塞 IDE 启动
-        coroutineScope.launch {
+        cs.launch {
             // 延迟 200ms，让 IDE 先完成启动流程
             delay(200)
 
@@ -643,7 +684,7 @@ internal class CjProjectsServiceImpl(
             .takeLoadedUserDisabledFeatures()
 
         // 在后台协程中异步加载项目，避免阻塞 IDE 启动
-        coroutineScope.launch {
+        cs.launch {
             var loadedProject: CjProject? = null
 
             // 在 IO 线程执行文件查找和项目创建，避免阻塞主线程

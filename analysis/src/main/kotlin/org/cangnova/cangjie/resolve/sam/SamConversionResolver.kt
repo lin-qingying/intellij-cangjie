@@ -82,9 +82,9 @@ class SamConversionResolverImpl(
 
 fun getSingleAbstractMethodOrNull(klass: ClassDescriptor): FunctionDescriptor? {
     // NB: this check MUST BE at start. Please do not touch until following to-do is resolved
-    // Otherwise android data binding can cause resolve re-entrance
+    // Otherwise android data binding can cause resolveName re-entrance
 
-    // TODO: prevent resolve re-entrance on architecture level, or (alternatively) ask data binding owners not to do it
+    // TODO: prevent resolveName re-entrance on architecture level, or (alternatively) ask data binding owners not to do it
     if (klass.fqNameSafe.asString().endsWith(".databinding.DataBindingComponent")) return null
 
     if (klass.isDefinitelyNotSamInterface) return null

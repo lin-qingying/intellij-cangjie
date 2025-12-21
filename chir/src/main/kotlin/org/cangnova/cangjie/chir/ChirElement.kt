@@ -24,10 +24,58 @@
 
 package org.cangnova.cangjie.chir
 
+/**
+ * CHIR (CangJie Hierarchical Intermediate Representation) 元素的根接口。
+ *
+ * CHIR 是仓颉语言的分层中间表示层，用于在编译过程中表示抽象语法结构。
+ * 所有 CHIR 元素（表达式、声明、注解等）都实现此接口。
+ *
+ * ## 设计说明
+ * - 使用访问者模式 ([ChirVisitor]) 进行遍历和处理
+ * - 每个元素都可以关联到源代码位置 ([source])
+ * - 支持类型安全的树结构遍历
+ *
+ * ## 层次结构
+ * ```
+ * ChirElement (根接口)
+ *   ├── ChirExpression (表达式)
+ *   ├── ChirDeclaration (声明)
+ *   └── ChirAnnotation (注解)
+ * ```
+ *
+ * @see ChirVisitor 访问者模式实现
+ * @see ChirExpression 表达式接口
+ * @see ChirDeclaration 声明接口
+ * @see ChirAnnotation 注解接口
+ */
 interface ChirElement {
 
-    val source:CjSourceElement?
+    /**
+     * 关联的源代码元素信息。
+     *
+     * 提供此 CHIR 元素在源代码中的位置信息，用于：
+     * - 错误报告和诊断信息定位
+     * - IDE 功能（如导航、高亮）
+     * - 调试器断点设置
+     *
+     * @return 源元素信息，如果元素是合成的（编译器生成的）则可能为 null
+     */
+    val source: CjSourceElement?
 
+    /**
+     * 接受访问者访问此元素。
+     *
+     * 这是访问者模式的标准实现，允许在不修改元素类的情况下添加新的操作。
+     * 默认实现将调用委托给 [ChirVisitor.visitElement]。
+     *
+     * @param R 访问者返回类型
+     * @param D 传递给访问者的数据类型
+     * @param visitor 访问此元素的访问者
+     * @param data 传递给访问者的上下文数据
+     * @return 访问者处理此元素后的结果
+     *
+     * @see ChirVisitor
+     */
     fun <R, D> accept(visitor: ChirVisitor<R, D>, data: D): R =
         visitor.visitElement(this, data)
 }

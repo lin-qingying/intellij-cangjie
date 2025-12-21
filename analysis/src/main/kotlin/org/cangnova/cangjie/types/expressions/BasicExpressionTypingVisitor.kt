@@ -460,7 +460,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         } else {
             CallMaker.makeArraySetCall(receiver, arrayAccessExpression, rightHandSide!!, Call.CallType.ARRAY_SET_METHOD)
         }
-        val ftrace = TemporaryBindingTrace.create(oldContext.trace, "resolve array access special method")
+        val ftrace = TemporaryBindingTrace.create(oldContext.trace, "resolveName array access special method")
         val functionContext = context.replaceBindingTrace(ftrace)
         val functionResults = components.callResolver.resolveCallWithGivenName(
             functionContext,

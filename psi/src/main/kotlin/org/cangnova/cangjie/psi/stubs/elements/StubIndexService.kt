@@ -54,13 +54,14 @@ open class StubIndexService protected constructor() {
 
     open fun indexExtend(stub: CangJieExtendStub, sink: IndexSink) {
     }
-    open fun indexMacroFunction(stub: CangJieFunctionStub, sink: IndexSink) {
+
+    open fun indexMacroFunction(stub: CangJieMacroStub, sink: IndexSink) {
     }
 
-    open fun indexFunction(stub: CangJieFunctionStub, sink: IndexSink) {
+    open fun indexFunction(stub: CangJieNamedFunctionStub, sink: IndexSink) {
     }
 
-    open fun indexMainFunction(stub: CangJieFunctionStub, sink: IndexSink) {
+    open fun indexMainFunction(stub: CangJieMainFunctionStub, sink: IndexSink) {
     }
 
     open fun indexTypeAlias(stub: CangJieTypeAliasStub, sink: IndexSink) {

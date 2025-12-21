@@ -71,7 +71,7 @@ class NewConstraintSystemImpl(
     }
 
     /*
-        * If remove spread operator then call `checkState` will resolve to itself
+        * If remove spread operator then call `checkState` will resolveName to itself
         *   instead of fun checkState(vararg allowedState: State)
         */
     private fun checkState(a: State) {

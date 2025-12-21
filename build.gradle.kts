@@ -509,6 +509,7 @@ project(":") {
         api(project(":analysis:decompiler-to-psi"))
 
         implementation(project(":cangjie-project"))
+        implementation(project(":metadata:cjo"))
 
         // 第三方依赖
         implementation(libs.jansi)

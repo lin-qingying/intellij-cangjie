@@ -30,7 +30,7 @@
 //import org.cangnova.cangjie.descriptors.BindingTrace
 //import org.cangnova.cangjie.descriptors.ModuleDescriptor
 //import org.cangnova.cangjie.psi.CjVisitor
-//import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
+//import org.cangnova.cangjie.resolveName.calls.smartcasts.DataFlowValueFactory
 //
 //
 ///**

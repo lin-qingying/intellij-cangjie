@@ -41,7 +41,6 @@ import org.cangnova.cangjie.decompiler.stub.file.CangJieMetadataStubBuilder
 import org.cangnova.cangjie.metadata.SerializerExtensionFlatbuffers
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.renderer.DescriptorRenderer
-import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 
 /**
@@ -119,8 +118,8 @@ abstract class CangJieMetadataDecompiler<out V : BinaryVersion>(
      * 子类可以覆盖此属性以提供自定义的 Stub 构建逻辑。
      */
     protected open val metadataStubBuilder: CangJieMetadataStubBuilder =
-        CangJieMetadataStubBuilder(stubVersion, fileType, serializerFlatbuffers) { project, file, bytes ->
-            readFileSafely(project, file, bytes)
+        CangJieMetadataStubBuilder(stubVersion, fileType, serializerFlatbuffers) { file, bytes ->
+            readFileSafely(file, bytes)
         }
 
     /**
@@ -161,14 +160,14 @@ abstract class CangJieMetadataDecompiler<out V : BinaryVersion>(
      * @return 解析后的文件元数据，如果文件无效或读取失败则返回 `null`
      */
     protected fun readFileSafely(
-        project: Project,
+
         file: VirtualFile,
         content: ByteArray? = null
     ): CangJieMetadataStubBuilder.FileWithMetadata? {
         if (!file.isValid) return null
 
         return try {
-            readFile(project, content ?: file.contentsToByteArray(false), file)
+            readFile(content ?: file.contentsToByteArray(false), file)
         } catch (e: IOException) {
             // 这里需要捕获异常，因为有时会收到指向不存在的 JAR 条目的 VirtualFile 实例。
             // 这些文件在 isValid() 检查时返回 true，但尝试读取其内容时会抛出 FileNotFoundException。
@@ -189,8 +188,8 @@ abstract class CangJieMetadataDecompiler<out V : BinaryVersion>(
      * @param file 要读取的虚拟文件
      * @return 解析后的文件元数据
      */
-    @TestOnly
-    fun readFile(project: Project, file: VirtualFile) = readFileSafely(project, file)
+
+    fun readFile(file: VirtualFile) = readFileSafely(file)
 
     /**
      * 从字节数组读取并解析元数据文件。
@@ -204,7 +203,7 @@ abstract class CangJieMetadataDecompiler<out V : BinaryVersion>(
      * @return 解析后的文件元数据，如果解析失败则返回 `null`
      */
     abstract fun readFile(
-        project: Project,
+
         bytes: ByteArray,
         file: VirtualFile
     ): CangJieMetadataStubBuilder.FileWithMetadata?
@@ -236,8 +235,8 @@ abstract class CangJieMetadataDecompiler<out V : BinaryVersion>(
             val virtualFile = it.virtualFile
 
             // 直接读取并反编译，CangJieDecompiledFileViewProvider 内部已有缓存
-            val fileWithMetadata = readFileSafely(manager.project, virtualFile)
-            CjDecompiledFile( it)
+            val fileWithMetadata = readFileSafely(virtualFile)
+            CjDecompiledFile(it)
         }
     }
 

@@ -463,7 +463,7 @@ data class SdkItem(
         return installDir
 //        val packageToBinCangJiePrefix = packageToBinCangJiePrefix
 //        if (packageToBinCangJiePrefix.isBlank()) return installDir
-//        return installDir.resolve(packageToBinCangJiePrefix)
+//        return installDir.resolveName(packageToBinCangJiePrefix)
     }
 
     fun writeMarkerFile(file: Path) {

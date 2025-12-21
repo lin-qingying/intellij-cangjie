@@ -175,7 +175,7 @@ class LazyTopDownAnalyzer(
                 }
 
                 override fun visitExtend(cjExtend: CjExtend) {
-                    TODO("实现扩展")
+//                    TODO("实现扩展")
                 }
 
                 override fun visitClass(cclass: CjClass) {

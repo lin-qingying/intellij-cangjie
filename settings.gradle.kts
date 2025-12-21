@@ -82,6 +82,7 @@ include("test-common")
 
 include("descriptors:deserialization")
 include("metadata")
+include("metadata:cjo")
 
 
 

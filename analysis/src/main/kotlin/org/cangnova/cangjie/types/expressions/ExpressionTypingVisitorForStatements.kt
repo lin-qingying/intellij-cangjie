@@ -580,7 +580,7 @@ class ExpressionTypingVisitorForStatements(
         // 使用临时跟踪以便在需要时解析数组 set 方法
         val temporary = TemporaryTraceAndCache.create(
             contextWithExpectedType,
-            "trace to resolve array set method for binary expression",
+            "trace to resolveName array set method for binary expression",
             expression
         )
         val context = contextWithExpectedType

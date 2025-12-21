@@ -642,8 +642,4 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
     open fun visitMainFunction(cjMainFunction: CjMainFunction, data: D): R? {
         return visitDeclaration(cjMainFunction, data)
     }
-
-    open fun visitClassInitFunction(cjClassInit: CjClassInit, data: D): R? {
-        return visitDeclaration(cjClassInit, data)
-    }
 } 

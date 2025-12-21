@@ -231,7 +231,7 @@ class ArgumentTypeResolver //        this.functionPlaceholders = functionPlaceho
 //        }
         if (isCollectionLiteralInsideAnnotation(expression, context)) {
             // We assume that there is only one candidate resolver for annotation call
-            // And to resolve collection literal correctly, we need mapping of argument to parameter to get expected type and
+            // And to resolveName collection literal correctly, we need mapping of argument to parameter to get expected type and
             // to choose corresponding call (i.e arrayOf/intArrayOf...)
             val newContext: ResolutionContext<*> = context.replaceContextDependency(ContextDependency.INDEPENDENT)
             return expressionTypingServices!!.getTypeInfo(expression, newContext)

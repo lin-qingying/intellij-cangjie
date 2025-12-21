@@ -34,9 +34,9 @@ class ResolveInDispatchThreadException(message: String? = null) :
     IllegalThreadStateException(message ?: RESOLVE_IN_DISPATCH_THREAD_ERROR_MESSAGE)
 
 /**
- * Temporary allow resolve in dispatch thread.
+ * Temporary allow resolveName in dispatch thread.
  *
- * All resolve should be banned from the UI thread. This method is needed for the transition period to document
+ * All resolveName should be banned from the UI thread. This method is needed for the transition period to document
  * places that are not fixed yet.
  */
 fun <T> allowResolveInDispatchThread(runnable: () -> T): T {
@@ -74,7 +74,7 @@ object ResolveInDispatchThreadManager {
 
             throw ResolveInDispatchThreadException()
         } else {
-            if (!Registry.`is`("cangjie.dispatch.thread.resolve.check", false)) return
+            if (!Registry.`is`("cangjie.dispatch.thread.resolveName.check", false)) return
 
             LOG.error(RESOLVE_IN_DISPATCH_THREAD_ERROR_MESSAGE)
         }

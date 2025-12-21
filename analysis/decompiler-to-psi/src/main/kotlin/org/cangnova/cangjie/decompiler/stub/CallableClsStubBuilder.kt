@@ -26,7 +26,6 @@ package org.cangnova.cangjie.decompiler.stub
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
-import com.intellij.util.io.StringRef
 import org.cangnova.cangjie.descriptors.Modality
 import org.cangnova.cangjie.metadata.model.wrapper.*
 import org.cangnova.cangjie.name.Name
@@ -37,50 +36,21 @@ import org.cangnova.cangjie.psi.stubs.impl.*
 const val COMPILED_DEFAULT_INITIALIZER = "COMPILED_CODE"
 
 /**
- * 函数 Stub 构建器
+ * 函数 Stub 构建器基类
  */
-class FunctionClsStubBuilder(
-    private val parentStub: StubElement<out PsiElement>,
-    private val outerContext: ClsStubBuilderContext,
-    private val protoContainer: ProtoContainer,
-    private val functionWrapper: FunctionWrapper
+sealed class BaseFunctionClsStubBuilder(
+    protected val parentStub: StubElement<out PsiElement>,
+    protected val outerContext: ClsStubBuilderContext,
+    protected val metadataContainer: MetadataContainer,
+    protected val functionWrapper: FunctionWrapper
 ) {
-    private val isTopLevel = protoContainer is ProtoContainer.Package
+    protected val isTopLevel = metadataContainer is MetadataContainer.Package
 
-    fun build() {
-        val funcName = functionWrapper.name
-        val fqName = if (isTopLevel) outerContext.containerFqName.child(funcName) else null
+    abstract fun build()
 
-        val functionStub = CangJieFunctionStubImpl(
-            parentStub,
-            CjStubElementTypes.FUNCTION,
-            funcName.ref(),
-            isTopLevel,
-            fqName,
-            isExtension = false,
-            hasBlockBody = true,
-            hasBody = functionWrapper.modality != Modality.ABSTRACT,
-            hasTypeParameterListBeforeFunctionName = functionWrapper.typeParameters.isNotEmpty(),
-            origin = null
-        )
-
-        createModifierListStubForDeclaration(
-            functionStub,
-            functionWrapper.visibility,
-            functionWrapper.modality
-        )
-
-        val innerContext = createTypeParameterListStub(functionStub)
-
-        createValueParameterListStub(functionStub, innerContext, functionWrapper.valueParameters)
-
-        TypeClsStubBuilder(functionStub, innerContext).createTypeReferenceStub(functionWrapper.returnType)
-
-        // 创建 where 子句（类型约束列表）
-        createTypeConstraintListStub(functionStub, innerContext)
-    }
-
-    private fun createTypeParameterListStub(functionStub: CangJieFunctionStubImpl): ClsStubBuilderContext {
+    protected fun createTypeParameterListStub(
+        functionStub: CangJieStubBaseImpl<*>
+    ): ClsStubBuilderContext {
         val typeParameters = functionWrapper.typeParameters
         if (typeParameters.isEmpty()) {
             return outerContext
@@ -101,7 +71,10 @@ class FunctionClsStubBuilder(
         return innerContext
     }
 
-    private fun createTypeConstraintListStub(functionStub: CangJieFunctionStubImpl, context: ClsStubBuilderContext) {
+    protected fun createTypeConstraintListStub(
+        functionStub: CangJieStubBaseImpl<*>,
+        context: ClsStubBuilderContext
+    ) {
         val typeParameters = functionWrapper.typeParameters
         val constraintsToCreate = mutableListOf<Pair<Name, TypeWrapper>>()
 
@@ -132,15 +105,135 @@ class FunctionClsStubBuilder(
 }
 
 /**
+ * 普通函数 Stub 构建器
+ */
+class FunctionClsStubBuilder(
+    parentStub: StubElement<out PsiElement>,
+    outerContext: ClsStubBuilderContext,
+    metadataContainer: MetadataContainer,
+    functionWrapper: FunctionWrapper
+) : BaseFunctionClsStubBuilder(parentStub, outerContext, metadataContainer, functionWrapper) {
+
+    override fun build() {
+        val funcName = functionWrapper.name
+        val fqName = if (isTopLevel) outerContext.containerFqName.child(funcName) else null
+
+        val functionStub = CangJieNamedFunctionStubImpl(
+            parentStub,
+            CjStubElementTypes.FUNCTION,
+            funcName.ref(),
+            isTopLevel,
+            fqName,
+            isExtension = false,
+            hasBlockBody = true,
+            hasBody = functionWrapper.modality != Modality.ABSTRACT,
+            hasTypeParameterListBeforeFunctionName = functionWrapper.typeParameters.isNotEmpty(),
+            origin = null
+        )
+
+        createModifierListStubForDeclaration(
+            functionStub,
+            functionWrapper.visibility,
+            functionWrapper.modality
+        )
+
+        val innerContext = createTypeParameterListStub(functionStub)
+
+        createValueParameterListStub(functionStub, innerContext, functionWrapper.valueParameters)
+
+        TypeClsStubBuilder(functionStub, innerContext).createTypeReferenceStub(functionWrapper.returnType)
+
+        // 创建 where 子句（类型约束列表）
+        createTypeConstraintListStub(functionStub, innerContext)
+    }
+}
+
+/**
+ * Main 函数 Stub 构建器
+ */
+class MainFunctionClsStubBuilder(
+    parentStub: StubElement<out PsiElement>,
+    outerContext: ClsStubBuilderContext,
+    metadataContainer: MetadataContainer,
+    functionWrapper: FunctionWrapper
+) : BaseFunctionClsStubBuilder(parentStub, outerContext, metadataContainer, functionWrapper) {
+
+    override fun build() {
+        val funcName = functionWrapper.name
+        val fqName = if (isTopLevel) outerContext.containerFqName.child(funcName) else null
+
+        val mainFunctionStub = CangJieMainFunctionStubImpl(
+            parentStub,
+            CjStubElementTypes.MAIN_FUNC,
+            funcName.ref(),
+            fqName,
+            origin = null
+        )
+
+        createModifierListStubForDeclaration(
+            mainFunctionStub,
+            functionWrapper.visibility,
+            functionWrapper.modality
+        )
+
+        createValueParameterListStub(mainFunctionStub, outerContext, functionWrapper.valueParameters)
+    }
+}
+
+/**
+ * Macro Stub 构建器
+ */
+class MacroClsStubBuilder(
+    parentStub: StubElement<out PsiElement>,
+    outerContext: ClsStubBuilderContext,
+    metadataContainer: MetadataContainer,
+    functionWrapper: FunctionWrapper
+) : BaseFunctionClsStubBuilder(parentStub, outerContext, metadataContainer, functionWrapper) {
+
+    override fun build() {
+        val macroName = functionWrapper.name
+        val fqName = if (isTopLevel) outerContext.containerFqName.child(macroName) else null
+
+        val macroStub = CangJieMacroStubImpl(
+            parentStub,
+            CjStubElementTypes.MACRO,
+            macroName.ref(),
+            isTopLevel,
+            fqName,
+            isExtension = false,
+            hasBlockBody = true,
+            hasBody = true,
+            hasTypeParameterListBeforeFunctionName = functionWrapper.typeParameters.isNotEmpty(),
+            origin = null
+        )
+
+        createModifierListStubForDeclaration(
+            macroStub,
+            functionWrapper.visibility,
+            functionWrapper.modality
+        )
+
+        val innerContext = createTypeParameterListStub(macroStub)
+
+        createValueParameterListStub(macroStub, innerContext, functionWrapper.valueParameters)
+
+        TypeClsStubBuilder(macroStub, innerContext).createTypeReferenceStub(functionWrapper.returnType)
+
+        // 创建 where 子句（类型约束列表）
+        createTypeConstraintListStub(macroStub, innerContext)
+    }
+}
+
+/**
  * 属性 Stub 构建器
  */
 class PropertyClsStubBuilder(
     private val parentStub: StubElement<out PsiElement>,
     private val outerContext: ClsStubBuilderContext,
-    private val protoContainer: ProtoContainer,
+    private val metadataContainer: MetadataContainer,
     private val propertyWrapper: PropertyWrapper
 ) {
-    private val isTopLevel = protoContainer is ProtoContainer.Package
+    private val isTopLevel = metadataContainer is MetadataContainer.Package
 
     fun build() {
         val propertyName = propertyWrapper.name
@@ -178,10 +271,10 @@ class PropertyClsStubBuilder(
 class VariableClsStubBuilder(
     private val parentStub: StubElement<out PsiElement>,
     private val outerContext: ClsStubBuilderContext,
-    private val protoContainer: ProtoContainer,
+    private val metadataContainer: MetadataContainer,
     private val variableWrapper: VariableWrapper
 ) {
-    private val isTopLevel = protoContainer is ProtoContainer.Package
+    private val isTopLevel = metadataContainer is MetadataContainer.Package
 
     fun build() {
         val varName = variableWrapper.name
@@ -222,7 +315,7 @@ class ExtendClsStubBuilder(
         val fqName = extendWrapper.packageFqName.child(extendName)
 
         val superTypeRefs = extendWrapper.superTypes
-            .mapNotNull { TypeClsStubBuilder.extractTypeName(it) }
+            .mapNotNull { TypeClsStubBuilder.extractTypeName(it, outerContext) }
             .map { it.ref() }
             .toTypedArray()
 
@@ -279,19 +372,39 @@ class ExtendClsStubBuilder(
         )
 
         // 创建扩展函数 Stubs
-        val protoContainer = ProtoContainer.Package(extendWrapper.packageFqName, outerContext.typeTable)
+        val metadataContainer = MetadataContainer.Package(extendWrapper.packageFqName, outerContext.typeTable)
         for (function in extendWrapper.functions) {
-            FunctionClsStubBuilder(classBody, innerContext, protoContainer, function).build()
+            val builder = when {
+                function.isMainEntry -> MainFunctionClsStubBuilder(
+                    classBody,
+                    innerContext,
+                    metadataContainer,
+                    function
+                )
+                function.isMacro -> MacroClsStubBuilder(
+                    classBody,
+                    innerContext,
+                    metadataContainer,
+                    function
+                )
+                else -> FunctionClsStubBuilder(
+                    classBody,
+                    innerContext,
+                    metadataContainer,
+                    function
+                )
+            }
+            builder.build()
         }
 
         // 创建扩展属性 Stubs
         for (property in extendWrapper.propertys) {
-            PropertyClsStubBuilder(classBody, innerContext, protoContainer, property).build()
+            PropertyClsStubBuilder(classBody, innerContext, metadataContainer, property).build()
         }
 
         // 创建扩展变量 Stubs
         for (variable in extendWrapper.variables) {
-            VariableClsStubBuilder(classBody, innerContext, protoContainer, variable).build()
+            VariableClsStubBuilder(classBody, innerContext, metadataContainer, variable).build()
         }
     }
 }

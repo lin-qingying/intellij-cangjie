@@ -142,7 +142,7 @@ class ModuleResolutionFacadeImpl(
 
 
     companion object {
-        private val usePerFileAnalysisCache = Registry.`is`("cangjie.resolve.cache.uses.perfile.cache", true)
+        private val usePerFileAnalysisCache = Registry.`is`("cangjie.resolveName.cache.uses.perfile.cache", true)
     }
 
     //    @FrontendInternals

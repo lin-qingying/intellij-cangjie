@@ -38,7 +38,7 @@ class TrivialConstraintTypeInferenceOracle private constructor(context: TypeSyst
     constructor(context: TypeSystemInferenceExtensionContextDelegate) : this(context as TypeSystemInferenceExtensionContext)
 
     // The idea is to add knowledge that constraint `Nothing(?) <: T` is quite useless and
-    // it's totally fine to go and resolve postponed argument without fixation T to Nothing(?).
+    // it's totally fine to go and resolveName postponed argument without fixation T to Nothing(?).
     // In other words, constraint `Nothing(?) <: T` is *not* proper
     fun isNotInterestingConstraint(constraint: Constraint): Boolean {
         return constraint.kind == ConstraintKind.LOWER && constraint.type.typeConstructor().isNothingConstructor()

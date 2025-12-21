@@ -415,7 +415,7 @@ class BodyResolver(
     private fun resolvePrimaryConstructorParameters(c: BodiesResolveContext) {
         for ((constructor, descriptor) in c.primaryConstructors) {
             val declaringScope = c.getDeclaringScope(constructor)
-            requireNotNull(declaringScope) { "Declaring scope should be registered before body resolve" }
+            requireNotNull(declaringScope) { "Declaring scope should be registered before body resolveName" }
 
             resolvePrimaryConstructorBody(
                 c.outerDataFlowInfo,
@@ -438,7 +438,7 @@ class BodyResolver(
     private fun resolveEndSecondaryConstructors(c: BodiesResolveContext) {
         for ((constructor, descriptor) in c.endSecondaryConstructors) {
             val declaringScope = c.getDeclaringScope(constructor)
-            requireNotNull(declaringScope) { "Declaring scope should be registered before body resolve" }
+            requireNotNull(declaringScope) { "Declaring scope should be registered before body resolveName" }
 
             resolveEndSecondaryConstructorBody(
                 c.outerDataFlowInfo,
@@ -454,7 +454,7 @@ class BodyResolver(
     private fun resolveSecondaryConstructors(c: BodiesResolveContext) {
         for ((constructor, descriptor) in c.secondaryConstructors) {
             val declaringScope = c.getDeclaringScope(constructor)
-            requireNotNull(declaringScope) { "Declaring scope should be registered before body resolve" }
+            requireNotNull(declaringScope) { "Declaring scope should be registered before body resolveName" }
 
             resolveSecondaryConstructorBody(
                 c.outerDataFlowInfo,

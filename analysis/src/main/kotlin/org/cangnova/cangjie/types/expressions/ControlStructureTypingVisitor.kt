@@ -794,7 +794,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                     context.trace.report(RETURN_NOT_ALLOWED.on(expression))
                     resultType = createErrorType(ErrorTypeKind.RETURN_NOT_ALLOWED)
                 }
-                if ((containingFunInfo.second as? CjFunctionImpl)?.isInferReturnType != true) {
+                if ((containingFunInfo.second as? CjFunctionImpl<*, *>)?.isInferReturnType != true) {
 
                     expectedType = getFunctionExpectedReturnType(
                         containingFunctionDescriptor,

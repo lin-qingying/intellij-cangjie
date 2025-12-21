@@ -125,6 +125,14 @@
         <projectService
                 serviceInterface="org.cangnova.cangjie.moduleinfo.cache.LibraryInfoCache"
                 serviceImplementation="org.cangnova.cangjie.moduleinfo.cache.LibraryInfoCache"/>
+        <!-- 库依赖缓存服务 -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.moduleinfo.cache.LibraryDependenciesCache"
+                serviceImplementation="org.cangnova.cangjie.moduleinfo.cache.LibraryDependenciesCacheImpl"/>
+        <!-- 库使用索引服务 -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.moduleinfo.LibraryUsageIndex"
+                serviceImplementation="org.cangnova.cangjie.moduleinfo.LibraryUsageIndexImpl"/>
         <!-- 模块信息缓存服务 -->
         <projectService
                 serviceInterface="org.cangnova.cangjie.moduleinfo.cache.IdeaModelInfosCache"
@@ -148,7 +156,7 @@
         <registryKey key="cangjie.highlighting.suppress.deprecated"
                      description="Suppress cangjie.Deprecated warning"
                      defaultValue="false"/>
-        <projectService
+        <applicationService
                 serviceInterface="org.cangnova.cangjie.decompiler.psi.CangJieBuiltInDecompilationInterceptor"
                 serviceImplementation="org.cangnova.cangjie.decompiler.psi.IdeCangJieBuiltInDecompilationInterceptor"
         />

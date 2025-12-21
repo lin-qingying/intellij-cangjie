@@ -123,7 +123,7 @@ class CangJieMetadataDeserializerForDecompiler(
                     "metadata_version" to metadataVersion.toString()
                 )
             )
-            LOG.error("Failed to resolve declarations in package $packageFqName", e)
+            LOG.error("Failed to resolveName declarations in package $packageFqName", e)
             return emptyList()
         }
     }

@@ -295,7 +295,7 @@ class FileScopeFactory(
         aliasImportNames: Collection<FqName>,
     ): DefaultImportResolvers {
         val tempTrace =
-            TemporaryBindingTrace.create(bindingTrace, "Transient trace for default imports lazy resolve", false)
+            TemporaryBindingTrace.create(bindingTrace, "Transient trace for default imports lazy resolveName", false)
         val allImplicitImports = defaultImports concat extraImports/* concat enumDefualtImports*/
 
         val defaultImportsFiltered = if (aliasImportNames.isEmpty()) { // optimization

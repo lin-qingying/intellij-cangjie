@@ -56,7 +56,7 @@ abstract class CjSimpleReference<T : CjReferenceExpression>(expression: T) : Abs
 //
 //    override fun getElement(): CjElement
 //
-//    override fun resolve(): CjElement?
+//    override fun resolveName(): CjElement?
 //
 //    fun multiResolve(): List<CjElement>
 //}
@@ -72,7 +72,7 @@ fun CjReference.resolveToDescriptors(bindingContext: BindingContext): Collection
 //    return when (this) {
 //        is CjReference -> resolveToDescriptors(bindingContext)
 ////        is CjDefaultAnnotationArgumentReference -> {
-////            when (val declaration = resolve()) {
+////            when (val declaration = resolveName()) {
 ////                is CjDeclaration -> {
 ////                    val descriptor = bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration]
 ////                    // passed bindingContext may not contain information about declarations from other modules

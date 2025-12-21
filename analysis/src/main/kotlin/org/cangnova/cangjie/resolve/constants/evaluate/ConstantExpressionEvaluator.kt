@@ -190,7 +190,7 @@ private class ConstantExpressionEvaluatorVisitor(
 //                return null
 //            }
 
-            // If constant is `Array` and its argument is some generic type, then we must wait for full resolve and only when we can record value
+            // If constant is `Array` and its argument is some generic type, then we must wait for full resolveName and only when we can record value
             if (compileTimeConstant is TypedCompileTimeConstant && compileTimeConstant.type.isGenericArrayOfTypeParameter()) {
                 return compileTimeConstant
             }

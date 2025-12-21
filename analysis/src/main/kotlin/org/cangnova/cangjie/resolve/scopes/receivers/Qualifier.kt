@@ -474,9 +474,9 @@ class TypeAliasQualifier(
 
     /**
      * We cannot use [org.cangnova.cangjie.descriptors.ClassDescriptor.getUnsubstitutedMemberScope] directly,
-     * because we do not allow complete resolve through type aliases yet .
+     * because we do not allow complete resolveName through type aliases yet .
      *
-     * However, we want to allow to resolve and autocomplete enum constants even through type aliases;
+     * However, we want to allow to resolveName and autocomplete enum constants even through type aliases;
      * that's why we use [org.cangnova.cangjie.descriptors.ClassDescriptor.getUnsubstitutedMemberScope],
      * but filter only enum entries.
      */

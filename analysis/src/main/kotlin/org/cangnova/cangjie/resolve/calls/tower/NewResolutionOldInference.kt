@@ -284,7 +284,7 @@ class NewResolutionOldInference(
         candidates: Collection<OldResolutionCandidate<D>>
     ): OverloadResolutionResultsImpl<D> {
         val resolvedCandidates = candidates.map { candidate ->
-            val candidateTrace = TemporaryBindingTrace.create(basicCallContext.trace, "Context for resolve candidate")
+            val candidateTrace = TemporaryBindingTrace.create(basicCallContext.trace, "Context for resolveName candidate")
             val resolvedCall =
                 ResolvedCallImpl.create(candidate, candidateTrace, tracing, basicCallContext.dataFlowInfoForArguments)
 
@@ -483,7 +483,7 @@ class NewResolutionOldInference(
             extensionReceiver: ReceiverValueWithSmartCastInfo?
         ): MyCandidate {
 
-            val candidateTrace = TemporaryBindingTrace.create(basicCallContext.trace, "Context for resolve candidate")
+            val candidateTrace = TemporaryBindingTrace.create(basicCallContext.trace, "Context for resolveName candidate")
             val candidateCall = ResolvedCallImpl(
                 basicCallContext.call,
                 towerCandidate.descriptor,

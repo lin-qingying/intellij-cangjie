@@ -175,7 +175,7 @@ internal class IdeStubIndexService : StubIndexService() {
         CangJieFileStubKindImpl.serialize(stub.kind, dataStream)
     }
 
-    override fun indexMainFunction(stub: CangJieFunctionStub, sink: IndexSink) {
+    override fun indexMainFunction(stub: CangJieMainFunctionStub, sink: IndexSink) {
         if (stub.isTopLevel()) {
             // can have special fq name in case of syntactically incorrect function with no name
             val fqName: FqName? = stub.getFqName()
@@ -188,7 +188,7 @@ internal class IdeStubIndexService : StubIndexService() {
         indexInternals(stub, sink)
     }
 
-    override fun indexMacroFunction(stub: CangJieFunctionStub, sink: IndexSink) {
+    override fun indexMacroFunction(stub: CangJieMacroStub, sink: IndexSink) {
         val name: String? = stub.name
         if (name != null) {
             sink.occurrence(CangJieMacroDeclarationShortNameIndex.indexKey, name)
@@ -206,7 +206,7 @@ internal class IdeStubIndexService : StubIndexService() {
         }
     }
 
-    override fun indexFunction(stub: CangJieFunctionStub, sink: IndexSink) {
+    override fun indexFunction(stub: CangJieNamedFunctionStub, sink: IndexSink) {
         val name: String? = stub.name
         if (name != null) {
             sink.occurrence(CangJieFunctionShortNameIndex.indexKey, name)

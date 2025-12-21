@@ -415,7 +415,7 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
         general.regularExpressions = regularExpressionsCapabilities
         val markdownCapabilities = MarkdownCapabilities()
         markdownCapabilities.parser = "marked"
-        markdownCapabilities.version = "1.1.0"
+        markdownCapabilities.version = "1.2.0"
         general.markdown = markdownCapabilities
         capabilities.general = general
         val notebookDocument = NotebookDocumentClientCapabilities()

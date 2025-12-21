@@ -116,8 +116,8 @@
 
     <projectListeners>
         <!--        监听索引损坏-->
-        <!--        <listener class="org.cangnova.cangjie.ide.stubindex.resolve.CangJieRepairIdeAfterCorruptionNotification"-->
-        <!--                  topic="org.cangnova.cangjie.ide.stubindex.resolve.CangJieCorruptedIndexListener"-->
+        <!--        <listener class="org.cangnova.cangjie.ide.stubindex.resolveName.CangJieRepairIdeAfterCorruptionNotification"-->
+        <!--                  topic="org.cangnova.cangjie.ide.stubindex.resolveName.CangJieCorruptedIndexListener"-->
         <!--                  activeInHeadlessMode="false"-->
         <!--                  activeInTestMode="false"/>-->
 

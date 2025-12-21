@@ -259,7 +259,7 @@ class ResolvedLambdaAtom(
     override val expectedType: UnwrappedType?
 ) : PostponedResolvedAtom() {
     /**
-     * [resultArgumentsInfo] can be null only if lambda was analyzed in process of resolve
+     * [resultArgumentsInfo] can be null only if lambda was analyzed in process of resolveName
      *   ambiguity by lambda return type
      * There is a contract that [resultArgumentsInfo] will be not null for unwrapped lambda atom
      *   (see [unwrap])

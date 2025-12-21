@@ -104,7 +104,7 @@ class CallExpressionResolver(
 
 
         val temporaryForFunction = TemporaryTraceAndCache.create(
-            context, "trace to resolve as function call", callExpression
+            context, "trace to resolveName as function call", callExpression
         )
 //        函数是一级公民
         val (resolveResult, resolvedCall) = getResolvedCallForFunction(
@@ -161,7 +161,7 @@ class CallExpressionResolver(
         val calleeExpression = callExpression.calleeExpression
         if (calleeExpression is CjSimpleNameExpression && callExpression.typeArgumentList == null) {
             val temporaryForVariable = TemporaryTraceAndCache.create(
-                context, "trace to resolve as variable with 'invoke' call", callExpression
+                context, "trace to resolveName as variable with 'invoke' call", callExpression
             )
             val (notNothing, type) = getVariableType(
                 calleeExpression, receiver, callOperationNode,
@@ -225,7 +225,7 @@ class CallExpressionResolver(
         context: ExpressionTypingContext
     ): Pair<Boolean, CangJieType?> {
         val temporaryForVariable = TemporaryTraceAndCache.create(
-            context, "trace to resolve as local variable or property", nameExpression
+            context, "trace to resolveName as local variable or property", nameExpression
         )
         val call = CallMaker.makePropertyCall(receiver, callOperationNode, nameExpression)
         val contextForVariable = BasicCallResolutionContext.create(
@@ -302,7 +302,7 @@ class CallExpressionResolver(
     ): CangJieTypeInfo {
 
         val temporaryForVariable = TemporaryTraceAndCache.create(
-            context, "trace to resolve as variable", nameExpression
+            context, "trace to resolveName as variable", nameExpression
         )
         val (notNothing, type) = getVariableType(
             nameExpression, receiver, callOperationNode,
@@ -318,7 +318,7 @@ class CallExpressionResolver(
 
 
         val temporaryForFunction = TemporaryTraceAndCache.create(
-            context, "trace to resolve as function", nameExpression
+            context, "trace to resolveName as function", nameExpression
         )
         val newContext = context.replaceTraceAndCache(temporaryForFunction)
         val (resolveResult, resolvedCall) = getResolvedCallForFunction(
@@ -336,7 +336,7 @@ class CallExpressionResolver(
 
 
         val temporaryForQualifier =
-            TemporaryTraceAndCache.create(context, "trace to resolve as qualifier", nameExpression)
+            TemporaryTraceAndCache.create(context, "trace to resolveName as qualifier", nameExpression)
         val contextForQualifier = context.replaceTraceAndCache(temporaryForQualifier)
         qualifiedExpressionResolver.resolveNameExpressionAsQualifierForDiagnostics(
             nameExpression,
@@ -362,7 +362,7 @@ class CallExpressionResolver(
     private fun CjQualifiedExpression.elementChain(context: ExpressionTypingContext) =
         qualifiedExpressionResolver.resolveQualifierInExpressionAndUnroll(this, context) { nameExpression ->
             val temporaryTraceAndCache =
-                TemporaryTraceAndCache.create(context, "trace to resolve as local variable or property", nameExpression)
+                TemporaryTraceAndCache.create(context, "trace to resolveName as local variable or property", nameExpression)
             val resolutionResult = resolveSimpleName(context, nameExpression, temporaryTraceAndCache)
 
             if (resolutionResult.isSingleResult && resolutionResult.resultingDescriptor is FakeCallableDescriptorForObject) {

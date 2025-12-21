@@ -26,7 +26,7 @@
 //
 //import org.cangnova.cangjie.contracts.model.ESExpressionVisitor
 //import org.cangnova.cangjie.contracts.model.ESValue
-//import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
+//import org.cangnova.cangjie.resolveName.scopes.receivers.ReceiverValue
 //import java.util.*
 //interface ESReceiver : ESValue {
 //    val receiverValue: ReceiverValue

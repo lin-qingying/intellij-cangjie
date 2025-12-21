@@ -56,18 +56,19 @@ interface CangJieConstantExpressionStub : StubElement<CjConstantExpression> {
     fun kind(): ConstantValueKind
     fun value(): String
 }
+
 interface CangJieStubElement<T : CjElement> : StubElement<T> {
     /** Returns a copy of this stub with the parent set to [newParent] */
-    fun copyInto(newParent: StubElement<*>?):CangJieStubElement<T>
+    fun copyInto(newParent: StubElement<*>?): CangJieStubElement<T>
 }
 
 
-interface CangJieFileStub : PsiFileStub<CjFile>,CangJieStubElement<CjFile>
-{
+interface CangJieFileStub : PsiFileStub<CjFile>, CangJieStubElement<CjFile> {
     fun getPackageFqName(): FqName
 
     val kind: CangJieFileStubKind
 }
+
 /**
  * CangJiePlaceHolderStub接口定义了一个通用的占位符 Stub 元素
  * 它继承自StubElement，用于表示CangJie解析树中的占位符节点
@@ -111,7 +112,7 @@ interface CangJieClassifierStub {
 }
 
 interface CangJieTypeAliasStub : CangJieClassifierStub, CangJieStubWithFqName<CjTypeAlias> {
-//    fun isTopLevel(): Boolean
+
 }
 
 interface CangJieVariableStub : CangJieCallableStubBase<CjVariable> {
@@ -182,11 +183,11 @@ interface CangJieParameterStub : CangJieParameterStubBase<CjParameter> {
     fun isMutable(): Boolean
     fun hasValOrVar(): Boolean
     fun hasDefaultValue(): Boolean
+    fun isNamed(): Boolean
 }
 
 interface CangJieClassStub : CangJieTypeStatementStub<CjClass> {
-//    fun isInterface(): Boolean
-//    fun isEnumEntry(): Boolean
+
 }
 
 interface CangJieStructStub : CangJieTypeStatementStub<CjStruct>
@@ -197,24 +198,19 @@ interface CangJieEnumStub : CangJieTypeStatementStub<CjEnum>
 interface CangJieEnumEntryStub : CangJieTypeStatementStub<CjEnumEntry> {
     val fqNameByPackage: FqName?
 }
+
 interface CangJieScriptStub : CangJieStubWithFqName<CjScript> {
     override fun getFqName(): FqName
 }
 
 interface CangJieExtendStub : CangJieTypeStatementStub<CjExtend> {
 
-//    fun getClassId(): ClassId?
 }
 
-// interface CangJieExtendStub : StubElement<CjExtend>{
-//    fun getSuperNames(): List<String>
-//    fun getFqName(): FqName?
-// //    fun getClassId(): ClassId?
-// }
+
 interface CangJieTypeStatementStub<T : CjTypeStatement> : CangJieClassifierStub, CangJieStubWithFqName<T> {
     fun isLocal(): Boolean
     fun getSuperNames(): List<String>
-//    fun isTopLevel(): Boolean
 }
 
 interface CangJieConstructorStub<T : CjConstructor<T>> :
@@ -226,37 +222,44 @@ interface CangJieConstructorStub<T : CjConstructor<T>> :
 interface CangJieImportAliasStub : StubElement<CjImportAlias> {
     fun getName(): String?
 }
-// interface CangJieFunctionStub : CangJieCallableStubBase<CjNamedFunction> {
-//    fun hasBlockBody(): Boolean
-//    fun hasBody(): Boolean
-//    fun hasTypeParameterListBeforeFunctionName(): Boolean
-//    fun mayHaveContract(): Boolean
-// }
 
-interface CangJieFunctionForExtendStub : CangJieFunctionStub
 
-interface CangJieFunctionStub : CangJieCallableStubBase<CjFunctionImpl> {
+interface CangJieFunctionStub<F : CjFunction> : CangJieCallableStubBase<F> {
     fun hasBlockBody(): Boolean
     fun hasBody(): Boolean
     fun hasTypeParameterListBeforeFunctionName(): Boolean
 }
 
+interface CangJieNamedFunctionStub : CangJieFunctionStub<CjNamedFunction>
+
+interface CangJieMainFunctionStub : CangJieFunctionStub<CjMainFunction> {
+    override fun hasBlockBody(): Boolean {
+        return true
+    }
+
+    override fun hasBody(): Boolean {
+        return true
+    }
+
+    override fun hasTypeParameterListBeforeFunctionName(): Boolean {
+        return false
+    }
+}
+
+interface CangJieMacroStub : CangJieFunctionStub<CjMacroDeclaration>
+
+
 interface CangJieForeignDirectiveStub : StubElement<CjForeignDirective>
 
-// }
+
 interface CangJiePackageDirectiveStub : StubElement<CjPackageDirective>
 
-// interface CangJieImportStub<T : PsiElement> : StubElement<T> {
-//    fun getPackageFqName(): FqName?
-//
-//
-//    fun getModifierVisibility(): DescriptorVisibility
-// }
 
 interface CangJieImportDirectiveStub : StubElement<CjImportDirective> {
 
     fun getPackageFqName(): FqName?
 }
+
 interface CangJieImportDirectiveItemStub : StubElement<CjImportDirectiveItem> {
     fun isAllUnder(): Boolean
     fun getImportedFqName(): FqName?
@@ -269,7 +272,6 @@ interface CangJieTypeProjectionStub : StubElement<CjTypeProjection> {
     fun getProjectionKind(): CjProjectionKind
 }
 
-// interface CangJieMainFunctionStub : CangJieFunctionStub
 interface CangJiePlaceHolderWithTextStub<T : CjElement> : CangJiePlaceHolderStub<T> {
     fun text(): String
 }

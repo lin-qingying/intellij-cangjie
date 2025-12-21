@@ -512,7 +512,7 @@ class ExpressionTypingServices(
 
         val target = expression.returnTarget
 
-        if (expression.parent is CjFunction && target is CjFunctionImpl && target.isInferReturnType) {
+        if (expression.parent is CjFunction && target is CjFunctionImpl<*, *> && target.isInferReturnType) {
             val returns = context.trace[BindingContext.RETURN_TARGET, target]
 
             val types = returns?.mapNotNull {

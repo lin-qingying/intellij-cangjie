@@ -28,6 +28,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.application
 import org.cangnova.cangjie.decompiler.psi.BuiltinsVirtualFileProvider
 import org.cangnova.cangjie.decompiler.stub.file.CangJieMetadataStubBuilder
 
@@ -54,23 +55,24 @@ internal class IdeCangJieBuiltInStubVersionOffsetProvider :
 }
 
 interface CangJieBuiltInDecompilationInterceptor {
-    fun readFile(bytes: ByteArray, file: VirtualFile):  CangJieMetadataStubBuilder.FileWithMetadata?
+    fun readFile(bytes: ByteArray, file: VirtualFile): CangJieMetadataStubBuilder.FileWithMetadata?
 
     companion object {
         fun readFile(
-            project: Project,
+
             bytes: ByteArray,
             file: VirtualFile
-        ):  CangJieMetadataStubBuilder.FileWithMetadata? =
-            project.service<CangJieBuiltInDecompilationInterceptor>().readFile(bytes, file)
+        ): CangJieMetadataStubBuilder.FileWithMetadata? =
+            application.service<CangJieBuiltInDecompilationInterceptor>().readFile(bytes, file)
 
     }
 }
-internal class IdeCangJieBuiltInDecompilationInterceptor(private val project: Project) :
+
+internal class IdeCangJieBuiltInDecompilationInterceptor() :
     CangJieBuiltInDecompilationInterceptor {
-    override fun readFile(bytes: ByteArray, file: VirtualFile):  CangJieMetadataStubBuilder.FileWithMetadata? {
-        if (file in  BuiltinsVirtualFileProvider.getInstance().getBuiltinVirtualFiles(project))
-            return  BuiltInDefinitionFile.read(bytes, file, filterOutClassesExistingAsClassFiles = false)
-        else return null
+    override fun readFile(bytes: ByteArray, file: VirtualFile): CangJieMetadataStubBuilder.FileWithMetadata? {
+//        if (file in BuiltinsVirtualFileProvider.getInstance().getBuiltinVirtualFiles(project))
+        return BuiltInDefinitionFile.read(bytes, file, filterOutClassesExistingAsClassFiles = false)
+//        else return null
     }
 }

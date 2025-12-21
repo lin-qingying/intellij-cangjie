@@ -723,7 +723,7 @@ class CallResolver(
             is CjConstructorDelegationReferenceExpression -> {
                 val delegationCall = context.call.callElement as CjConstructorDelegationCall
                 val container = context.scope.ownerDescriptor
-                assert(container is ConstructorDescriptor) { "Trying to resolve KtConstructorDelegationCall not in constructor. scope.ownerDescriptor = $container" }
+                assert(container is ConstructorDescriptor) { "Trying to resolveName KtConstructorDelegationCall not in constructor. scope.ownerDescriptor = $container" }
                 return resolveConstructorDelegationCall(
                     context,
                     delegationCall,
@@ -815,7 +815,7 @@ class CallResolver(
             return null
         }
 
-        // Method returns `null` when there is nothing to resolve in trivial cases like `null` call expression or
+        // Method returns `null` when there is nothing to resolveName in trivial cases like `null` call expression or
         // when super call should be conventional enum constructor and super call should be empty
         val context = BasicCallResolutionContext.create(
             trace, scope,
@@ -990,7 +990,7 @@ class CallResolver(
         }
 
         // 创建一个临时的追踪对象，用于记录解析调用过程中的信息
-        val traceToResolveCall = TemporaryBindingTrace.create(context.trace, "trace to resolve call", call)
+        val traceToResolveCall = TemporaryBindingTrace.create(context.trace, "trace to resolveName call", call)
 
         // 使用临时追踪对象替换原有的上下文对象
         val newContext = context.replaceBindingTrace(traceToResolveCall)
@@ -1115,7 +1115,7 @@ class CallResolver(
 
     companion object {
         private val callResolvePerfCounter =
-            create("Call resolve", ExpressionTypingVisitorDispatcher.typeInfoPerfCounter)
+            create("Call resolveName", ExpressionTypingVisitorDispatcher.typeInfoPerfCounter)
 
         private fun prepareCandidatesAndContextForConstructorCall(
             superType: CangJieType,

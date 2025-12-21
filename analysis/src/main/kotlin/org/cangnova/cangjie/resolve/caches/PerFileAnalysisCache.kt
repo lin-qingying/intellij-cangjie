@@ -328,7 +328,7 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
                     for (inBlockModification in inBlockModifications) {
 
 //                        对于需要推断的方法，进行全量分析
-                        if (inBlockModification is CjFunctionImpl && inBlockModification.isInferReturnType) {
+                        if (inBlockModification is CjFunctionImpl<*, *> && inBlockModification.isInferReturnType) {
                             return DelegateAnalysisResult(performAnalyze(inBlockModification, callback))
 //                            return null
                         }

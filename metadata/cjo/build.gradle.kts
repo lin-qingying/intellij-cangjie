@@ -22,24 +22,13 @@
  *
  */
 
-package org.cangnova.cangjie.psi
-
-import org.cangnova.cangjie.psi.stubs.CangJieFunctionStub
-import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
-import com.intellij.lang.ASTNode
-import com.intellij.psi.stubs.IStubElementType
-
-class CjClassInit : CjFunctionImpl {
-
-    constructor(node: ASTNode) : super(node)
-
-//
-    constructor(stub: CangJieFunctionStub) : super(stub, CjStubElementTypes.CLASS_INIT)
-
-//
-    constructor(stub: CangJieFunctionStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
-
-    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D): R? {
-        return visitor.visitClassInitFunction(this, data)
-    }
+/**
+ * CJO 服务模块
+ *
+ * 提供 CJO 文件（仓颉编译后元数据）的统一加载、解析和缓存服务。
+ * 作为 metadata 模块的子模块，依赖 metadata 模块的 Flatbuffers 解析能力。
+ */
+dependencies {
+    implementation(project(":common"))
+    implementation(project(":metadata"))
 }

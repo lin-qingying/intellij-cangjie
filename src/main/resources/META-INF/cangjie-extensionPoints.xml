@@ -26,6 +26,10 @@
 
     <extensionPoints>
 
+        <!-- CJO 文件提供者扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.cjoProvider"
+                        interface="org.cangnova.cangjie.cjo.CjoProvider"
+                        dynamic="true"/>
 
 
         <!--        Cjpm 运行配置-->

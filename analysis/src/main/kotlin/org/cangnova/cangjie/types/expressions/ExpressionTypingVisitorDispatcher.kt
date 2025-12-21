@@ -241,7 +241,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
 
                 //                }
 //                try {
-//                    // Here we have to resolve some types, so the following exception is possible
+//                    // Here we have to resolveName some types, so the following exception is possible
 //                    // Example: val a = ::a, fun foo() = ::foo
 //                    recordTypeInfo(expression, result);
 //                }
@@ -324,7 +324,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
 
                 //                }
 //                try {
-//                    // Here we have to resolve some types, so the following exception is possible
+//                    // Here we have to resolveName some types, so the following exception is possible
 //                    // Example: val a = ::a, fun foo() = ::foo
 //                    recordTypeInfo(expression, result);
 //                }

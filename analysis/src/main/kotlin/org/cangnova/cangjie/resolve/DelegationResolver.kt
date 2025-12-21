@@ -55,7 +55,7 @@ class DelegationResolver<T : CallableMemberDescriptor> private constructor(
 //                continue
 //            }
 //            val typeReference = delegationSpecifier.typeReference ?: continue
-//            val delegatedInterfaceType = typeResolver.resolve(typeReference)
+//            val delegatedInterfaceType = typeResolver.resolveName(typeReference)
 //            if (delegatedInterfaceType == null || delegatedInterfaceType.isError) {
 //                continue
 //            }

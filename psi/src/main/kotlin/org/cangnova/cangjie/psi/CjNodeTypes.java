@@ -124,9 +124,6 @@ public interface CjNodeTypes {
     IElementType DESTRUCTURING_DECLARATION = new CjNodeType("DESTRUCTURING_DECLARATION", CjDestructuringDeclaration.class);
 //    IElementType CLASS_INITIALIZER = CjStubElementTypes.CLASS_INITIALIZER;
 
-    IElementType CLASS_INIT = CjStubElementTypes.CLASS_INIT;
-    IElementType CLASS_TILDE_INIT = CjStubElementTypes.CLASS_TILDE_INIT;
-    IElementType CLASS_MAIN_INIT = CjStubElementTypes.CLASS_MAIN_INIT;
     IElementType REFERENCE_EXPRESSION = CjStubElementTypes.REFERENCE_EXPRESSION;
     IElementType TYPE_PARAMETER_LIST = CjStubElementTypes.TYPE_PARAMETER_LIST;
     IElementType TYPE_CONSTRAINT_LIST = CjStubElementTypes.TYPE_CONSTRAINT_LIST;

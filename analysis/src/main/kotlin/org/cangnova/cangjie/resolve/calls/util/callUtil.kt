@@ -240,11 +240,11 @@ fun <C : ResolutionContext<C>> Call.hasUnresolvedArguments(context: ResolutionCo
 //import org.cangnova.cangjie.descriptors.CallableDescriptor
 //import org.cangnova.cangjie.psi.*
 //import org.cangnova.cangjie.psi.psiUtil.getCalleeExpressionIfAny
-//import org.cangnova.cangjie.resolve.BindingContext
-//import org.cangnova.cangjie.resolve.BindingContext.CALL
-//import org.cangnova.cangjie.resolve.BindingContext.RESOLVED_CALL
+//import org.cangnova.cangjie.resolveName.BindingContext
+//import org.cangnova.cangjie.resolveName.BindingContext.CALL
+//import org.cangnova.cangjie.resolveName.BindingContext.RESOLVED_CALL
 //
-//import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
+//import org.cangnova.cangjie.resolveName.calls.model.ResolvedCall
 //
 //fun CjElement?.getResolvedCall(context: BindingContext): ResolvedCall<out CallableDescriptor>? {
 //    return this?.getCall(context)?.getResolvedCall(context)

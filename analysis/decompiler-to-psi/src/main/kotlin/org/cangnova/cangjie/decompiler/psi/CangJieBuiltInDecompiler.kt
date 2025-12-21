@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.decompiler.psi
 
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.decompiler.stub.file.CangJieMetadataStubBuilder
 import org.cangnova.cangjie.lang.CangJieFileType
@@ -108,8 +107,8 @@ internal class CangJieBuiltInDecompiler :
      * 通过 `readFileSafely` 安全地读取文件内容，捕获并处理可能的解析错误。
      */
     override val metadataStubBuilder: CangJieMetadataStubBuilder =
-        CangJieBuiltInMetadataStubBuilder { project, file, bytes ->
-            readFileSafely(project, file, bytes)
+        CangJieBuiltInMetadataStubBuilder {    file, bytes ->
+            readFileSafely(  file, bytes)
         }
 
     /**
@@ -138,11 +137,10 @@ internal class CangJieBuiltInDecompiler :
      * @return 解析后的文件元数据，如果解析失败则返回 null
      */
     override fun readFile(
-        project: Project,
         bytes: ByteArray,
         file: VirtualFile
     ): CangJieMetadataStubBuilder.FileWithMetadata? {
-        return CangJieBuiltInDecompilationInterceptor.readFile(project, bytes, file)
+        return CangJieBuiltInDecompilationInterceptor.readFile(  bytes, file)
             ?: BuiltInDefinitionFile.read(
                 bytes,
                 file
@@ -206,6 +204,7 @@ class BuiltInDefinitionFile(
      */
     private val filterOutClassesExistingAsClassFiles: Boolean = true,
 ) : CangJieMetadataStubBuilder.FileWithMetadata.Compatible(`package`, version, BuiltInSerializerFlatbuffers) {
+
     /**
      * 需要反编译的类列表
      *
@@ -346,12 +345,12 @@ class BuiltInDefinitionFile(
 
             // 检查是否有任何需要反编译的声明
             // 如果所有声明列表都为空，则跳过该文件
-            if (result.classesToDecompile.isEmpty() &&
-                `package`.typeAliass.isEmpty() && `package`.functions.isEmpty() && `package`.variables.isEmpty()
-            ) {
-                // 没有任何声明需要反编译：应该跳过该文件
-                return null
-            }
+//            if (result.classesToDecompile.isEmpty() &&
+//                `package`.typeAliass.isEmpty() && `package`.functions.isEmpty() && `package`.variables.isEmpty()
+//            ) {
+//                // 没有任何声明需要反编译：应该跳过该文件
+//                return null
+//            }
 
             return result
         }
@@ -383,7 +382,7 @@ class BuiltInDefinitionFile(
  * @param readFile 读取文件的函数，接受项目、虚拟文件和字节数组，返回文件元数据
  */
 private class CangJieBuiltInMetadataStubBuilder(
-    readFile: (Project, VirtualFile, ByteArray) -> FileWithMetadata?,
+    readFile: ( VirtualFile, ByteArray) -> FileWithMetadata?,
 ) : CangJieMetadataStubBuilder(
     stubVersionForStubBuilderAndDecompiler,
     CangJieBuiltInFileType,

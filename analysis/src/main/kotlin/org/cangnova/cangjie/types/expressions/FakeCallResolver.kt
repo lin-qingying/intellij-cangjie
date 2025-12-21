@@ -108,7 +108,7 @@ class FakeCallResolver(
         callKind: FakeCallKind,
         valueArguments: List<CjExpression>
     ): OverloadResolutionResults<FunctionDescriptor> {
-        val fakeTrace = TemporaryBindingTrace.create(context.trace, "trace to resolve fake call for", name)
+        val fakeTrace = TemporaryBindingTrace.create(context.trace, "trace to resolveName fake call for", name)
         val fakeBindingTrace = context.replaceBindingTrace(fakeTrace)
 
         var reportIsMissingError = false

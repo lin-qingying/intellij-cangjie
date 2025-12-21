@@ -65,7 +65,7 @@ interface NewConstraintSystem {
  * Or, if we'd consider the second component it would be {Xv=E, Yv=F}
  *
  * And all existing and future constraints might work differently depending on which option we've chosen.
- * Thus, ideally we need to create two versions of the constraint system and try to resolve each of them.
+ * Thus, ideally we need to create two versions of the constraint system and try to resolveName each of them.
  * But that lead to exponential complexity, so we only use some set of heuristics for that
  *
  * Lately, we call such situation a "fork point" and each of the options a "fork point branch"

@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.serialization.deserialization
 
+import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.descriptors.ClassifierDescriptor
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.TypeAliasDescriptor
@@ -32,7 +33,9 @@ import org.cangnova.cangjie.metadata.PackageIndex
 import org.cangnova.cangjie.metadata.PackageIndex.CURRENT_PKG_INDEX
 import org.cangnova.cangjie.metadata.PackageIndex.INVALID_PACKAGE_INDEX
 import org.cangnova.cangjie.metadata.model.fb.FbFullId
+import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.TypeAliasWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.toClassDeclWrapper
 import org.cangnova.cangjie.name.FqName
 

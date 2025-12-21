@@ -518,7 +518,7 @@ class ControlStructureTypingUtils(
 
 
         return object :
-            ThrowingOnErrorTracingStrategy("resolve $constructionName as a call") {
+            ThrowingOnErrorTracingStrategy("resolveName $constructionName as a call") {
             override fun <D : CallableDescriptor> bindReference(
                 trace: BindingTrace,
                 resolvedCall: ResolvedCall<D>

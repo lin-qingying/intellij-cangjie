@@ -220,15 +220,36 @@ fun createStubForTypeName(
 fun createDeclarationsStubs(
     parentStub: StubElement<out PsiElement>,
     outerContext: ClsStubBuilderContext,
-    protoContainer: ProtoContainer,
+    metadataContainer: MetadataContainer,
     functionWrappers: List<FunctionWrapper>,
     propertyWrappers: List<PropertyWrapper>,
 ) {
     for (propertyWrapper in propertyWrappers) {
-        PropertyClsStubBuilder(parentStub, outerContext, protoContainer, propertyWrapper).build()
+        PropertyClsStubBuilder(parentStub, outerContext, metadataContainer, propertyWrapper).build()
     }
     for (functionWrapper in functionWrappers) {
-        FunctionClsStubBuilder(parentStub, outerContext, protoContainer, functionWrapper).build()
+        // 根据函数类型创建相应的 stub builder
+        val builder = when {
+            functionWrapper.isMainEntry -> MainFunctionClsStubBuilder(
+                parentStub,
+                outerContext,
+                metadataContainer,
+                functionWrapper
+            )
+            functionWrapper.isMacro -> MacroClsStubBuilder(
+                parentStub,
+                outerContext,
+                metadataContainer,
+                functionWrapper
+            )
+            else -> FunctionClsStubBuilder(
+                parentStub,
+                outerContext,
+                metadataContainer,
+                functionWrapper
+            )
+        }
+        builder.build()
     }
 }
 
@@ -238,14 +259,35 @@ fun createDeclarationsStubs(
 fun createPackageDeclarationsStubs(
     parentStub: StubElement<out PsiElement>,
     outerContext: ClsStubBuilderContext,
-    protoContainer: ProtoContainer.Package,
+    metadataContainer: MetadataContainer.Package,
     functionWrappers: List<FunctionWrapper>,
     variableWrappers: List<VariableWrapper>
 ) {
     for (functionWrapper in functionWrappers) {
-        FunctionClsStubBuilder(parentStub, outerContext, protoContainer, functionWrapper).build()
+        // 根据函数类型创建相应的 stub builder
+        val builder = when {
+            functionWrapper.isMainEntry -> MainFunctionClsStubBuilder(
+                parentStub,
+                outerContext,
+                metadataContainer,
+                functionWrapper
+            )
+            functionWrapper.isMacro -> MacroClsStubBuilder(
+                parentStub,
+                outerContext,
+                metadataContainer,
+                functionWrapper
+            )
+            else -> FunctionClsStubBuilder(
+                parentStub,
+                outerContext,
+                metadataContainer,
+                functionWrapper
+            )
+        }
+        builder.build()
     }
     for (variableWrapper in variableWrappers) {
-        VariableClsStubBuilder(parentStub, outerContext, protoContainer, variableWrapper).build()
+        VariableClsStubBuilder(parentStub, outerContext, metadataContainer, variableWrapper).build()
     }
 }

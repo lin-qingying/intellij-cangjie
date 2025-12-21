@@ -185,7 +185,7 @@ class TypeResolver(
      *  class A: List<A.B> {
      *    class B
      *  }
-     *  Here when we resolve class B, we should resolve supertype for A and we shouldn't start resolve for class B,
+     *  Here when we resolveName class B, we should resolveName supertype for A and we shouldn't start resolveName for class B,
      *  otherwise it would be a cycle.
      *  Now there is no cycle here because member scope for A is very clever and can get lazy descriptor for class B without resolving it.
      *
@@ -1117,7 +1117,7 @@ class TypeResolver(
      * For cases like:
      * func <E> foo() {
      *  class Local<F>
-     *  let x: Local<Int> <-- resolve this type
+     *  let x: Local<Int> <-- resolveName this type
      * }
      *
      * type constructor for `Local` captures type parameter E from containing outer function

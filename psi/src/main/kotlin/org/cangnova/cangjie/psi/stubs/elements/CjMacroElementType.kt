@@ -26,9 +26,9 @@ package org.cangnova.cangjie.psi.stubs.elements
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjMacroDeclaration
 import org.cangnova.cangjie.psi.psiUtil.safeFqNameForLazyResolve
-import org.cangnova.cangjie.psi.stubs.CangJieFunctionStub
+import org.cangnova.cangjie.psi.stubs.CangJieMacroStub
 import org.cangnova.cangjie.psi.stubs.elements.StubIndexService.Companion.getInstance
-import org.cangnova.cangjie.psi.stubs.impl.CangJieFunctionStubImpl
+import org.cangnova.cangjie.psi.stubs.impl.CangJieMacroStubImpl
 import org.cangnova.cangjie.psi.stubs.impl.CangJieStubOrigin.Companion.deserialize
 import org.cangnova.cangjie.psi.stubs.impl.CangJieStubOrigin.Companion.serialize
 import com.intellij.psi.PsiElement
@@ -42,18 +42,18 @@ import java.io.IOException
 import org.cangnova.cangjie.name.*
 
 class CjMacroElementType(debugName: @NonNls String) :
-    CjStubElementType<CangJieFunctionStub, CjMacroDeclaration>(
+    CjStubElementType<CangJieMacroStub, CjMacroDeclaration>(
         debugName,
         CjMacroDeclaration::class.java,
-        CangJieFunctionStub::class.java,
+        CangJieMacroStub::class.java,
     ) {
-    override fun createStub(psi: CjMacroDeclaration, parentStub: StubElement<out PsiElement?>): CangJieFunctionStub {
+    override fun createStub(psi: CjMacroDeclaration, parentStub: StubElement<out PsiElement?>): CangJieMacroStub {
         val isTopLevel = psi.parent is CjFile
         val isExtension = psi.receiverTypeReference != null
         val fqName = psi.safeFqNameForLazyResolve()
         val hasBlockBody = psi.hasBlockBody()
         val hasBody = psi.hasBody()
-        return CangJieFunctionStubImpl(
+        return CangJieMacroStubImpl(
             parentStub, CjStubElementTypes.MACRO, StringRef.fromString(psi.name), isTopLevel, fqName,
             isExtension, hasBlockBody, hasBody, psi.hasTypeParameterListBeforeFunctionName(),
 
@@ -62,7 +62,7 @@ class CjMacroElementType(debugName: @NonNls String) :
     }
 
     @Throws(IOException::class)
-    override fun serialize(stub: CangJieFunctionStub, dataStream: StubOutputStream) {
+    override fun serialize(stub: CangJieMacroStub, dataStream: StubOutputStream) {
         dataStream.writeName(stub.name)
         dataStream.writeBoolean(stub.isTopLevel())
 
@@ -75,17 +75,17 @@ class CjMacroElementType(debugName: @NonNls String) :
         dataStream.writeBoolean(stub.hasTypeParameterListBeforeFunctionName())
         //        bool haveContract = stub.mayHaveContract();
 //        dataStream.writeBoolean(haveContract);
-        if (stub is CangJieFunctionStubImpl) {
+        if (stub is CangJieMacroStubImpl) {
             serialize(stub.origin, dataStream)
         }
     }
 
-    override fun indexStub(stub: CangJieFunctionStub, sink: IndexSink) {
+    override fun indexStub(stub: CangJieMacroStub, sink: IndexSink) {
         getInstance().indexMacroFunction(stub, sink)
     }
 
     @Throws(IOException::class)
-    override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieFunctionStub {
+    override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieMacroStub {
         val name = dataStream.readName()
         val isTopLevel = dataStream.readBoolean()
 
@@ -97,7 +97,7 @@ class CjMacroElementType(debugName: @NonNls String) :
         val hasBody = dataStream.readBoolean()
         val hasTypeParameterListBeforeFunctionName = dataStream.readBoolean()
         //        bool mayHaveContract = dataStream.readBoolean();
-        return CangJieFunctionStubImpl(
+        return CangJieMacroStubImpl(
             parentStub, CjStubElementTypes.MACRO, name, isTopLevel, fqName, isExtension, hasBlockBody, hasBody,
             hasTypeParameterListBeforeFunctionName,
             deserialize(dataStream),

@@ -252,7 +252,7 @@ class PostponedArgumentInputTypesResolver(
              * because more exact type can't appear from constraints in full mode (anonymous functions have fully explicit declaration).
              * It can be so for lambdas: for instance, an extension function type can appear in full mode (it may not be known in partial mode).
              *
-             * TODO: investigate why we can't do it for anonymous functions in full mode always (see `diagnostics/tests/resolve/resolveWithSpecifiedFunctionLiteralWithId.kt`)
+             * TODO: investigate why we can't do it for anonymous functions in full mode always (see `diagnostics/tests/resolveName/resolveWithSpecifiedFunctionLiteralWithId.kt`)
              */
             if (completionMode == ConstraintSystemCompletionMode.PARTIAL && !argument.isFunctionExpression())
                 return@any false

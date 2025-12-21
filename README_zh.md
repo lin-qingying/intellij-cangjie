@@ -135,13 +135,15 @@
 <br>
 
 
-|  ID   | 金额  |
-|  ----  |-----|
-| [@daitougege](https://gitee.com/daitougege)  | 101 |
-| [@laditor](https://gitee.com/laditor)  | 10 |
-|[@brack_45](https://gitee.com/brack_45) | 50|
-|[支付宝 ]**亮 | 50|
-|[@zx2289](https://gitee.com/zx2289)| 101|
-
+| ID                                          | 金额  |
+|---------------------------------------------|-----|
+| [@daitougege](https://gitee.com/daitougege) | 101 |
+| [@laditor](https://gitee.com/laditor)       | 10  |
+| [@brack_45](https://gitee.com/brack_45)     | 50  |
+| [支付宝 ]**亮                                   | 50  |
+| [@zx2289](https://gitee.com/zx2289)         | 101 |
+| [微信] windhc                                 | 50  |
+<br>
+感谢所有的捐赠者
 <br>
 感谢您的支持！

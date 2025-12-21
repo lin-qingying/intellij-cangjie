@@ -392,8 +392,8 @@ class BuilderInferenceSession(
     }
 
     /*
-  * It's used only for `+=` resolve to clear calls info before the second analysis of right side.
-  * TODO: remove it after moving `+=` resolve into OR mechanism
+  * It's used only for `+=` resolveName to clear calls info before the second analysis of right side.
+  * TODO: remove it after moving `+=` resolveName into OR mechanism
   */
     fun clearCallsInfoByContainingElement(containingElement: CjElement) {
         commonCalls.removeIf remove@{ callInfo ->

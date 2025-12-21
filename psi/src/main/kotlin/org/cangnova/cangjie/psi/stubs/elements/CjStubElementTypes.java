@@ -44,12 +44,7 @@ public interface CjStubElementTypes {
 
     CjPlaceHolderStubElementType<CjClassInitializer> CLASS_INITIALIZER =
             new CjPlaceHolderStubElementType<>("CLASS_INITIALIZER", CjClassInitializer.class);
-    CjEndSecondaryConstructorElementType END_SECONDARY_CONSTRUCTOR =
-            new CjEndSecondaryConstructorElementType("END_SECONDARY_CONSTRUCTOR");
-    CjSecondaryConstructorElementType SECONDARY_CONSTRUCTOR =
-            new CjSecondaryConstructorElementType("SECONDARY_CONSTRUCTOR");
-    CjPrimaryConstructorElementType PRIMARY_CONSTRUCTOR =
-            new CjPrimaryConstructorElementType("PRIMARY_CONSTRUCTOR");
+
     CjCatchParameterElementType CATCH_PARAMETER = new CjCatchParameterElementType("CATCH_PARAMETER");
     CjParameterElementType VALUE_PARAMETER = new CjParameterElementType("VALUE_PARAMETER");
     CjPlaceHolderStubElementType<CjParameterList> VALUE_PARAMETER_LIST =
@@ -216,9 +211,12 @@ public interface CjStubElementTypes {
 
 
     CjMainFunctionElementType MAIN_FUNC = new CjMainFunctionElementType("MAIN_FUNC");
-    CjClassInitElementType CLASS_INIT = new CjClassInitElementType("CLASS_INIT");
-    CjClassInitElementType CLASS_MAIN_INIT = new CjClassInitElementType("CLASS_MAIN_INIT");
-    CjClassInitElementType CLASS_TILDE_INIT = new CjClassInitElementType("CLASS_TILDE_INIT");
 
+    CjEndSecondaryConstructorElementType END_SECONDARY_CONSTRUCTOR =
+            new CjEndSecondaryConstructorElementType("END_SECONDARY_CONSTRUCTOR");
+    CjSecondaryConstructorElementType SECONDARY_CONSTRUCTOR =
+            new CjSecondaryConstructorElementType("SECONDARY_CONSTRUCTOR");
+    CjPrimaryConstructorElementType PRIMARY_CONSTRUCTOR =
+            new CjPrimaryConstructorElementType("PRIMARY_CONSTRUCTOR");
 
 }

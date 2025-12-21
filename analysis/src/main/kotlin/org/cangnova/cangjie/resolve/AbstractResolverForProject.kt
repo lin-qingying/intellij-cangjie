@@ -605,7 +605,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
      * 当此方法检测到无效上下文时，会触发 [diagnoseUnknownModuleInfo]，导致异常：
      * ```
      * CangJieExceptionWithAttachmentsImpl:
-     *   Resolver for 'completion/highlighting in ...' does not know how to resolve
+     *   Resolver for 'completion/highlighting in ...' does not know how to resolveName
      * ```
      *
      * 常见原因：
@@ -639,7 +639,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
      * // 错误情况
      * val unknownContext = SomeOtherContext()
      * checkModuleIsCorrect(unknownContext)  // 抛出异常
-     * // CangJieExceptionWithAttachmentsImpl: ... does not know how to resolve
+     * // CangJieExceptionWithAttachmentsImpl: ... does not know how to resolveName
      * ```
      *
      * ## 调试建议
@@ -817,7 +817,7 @@ private object DiagnoseUnknownContextReporter {
      * @throws CangJieExceptionWithAttachmentsImpl 带诊断信息的异常
      */
     fun report(name: String, contexts: List<ModuleInfo>, allModules: Collection<ModuleInfo>): Nothing {
-        val message = "$name does not know how to resolve"
+        val message = "$name does not know how to resolveName"
         val error = when {
 
             name.contains(ResolverForProject.resolverForLibrariesName) -> errorInLibrariesResolver(message)

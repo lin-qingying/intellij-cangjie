@@ -24,7 +24,9 @@
 
 package org.cangnova.cangjie.decompiler.stub
 
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import org.cangnova.cangjie.cjo.CjoPackageService
 import org.cangnova.cangjie.descriptors.ClassKind
 import org.cangnova.cangjie.metadata.deserialization.DeclTable
 import org.cangnova.cangjie.metadata.deserialization.TypeTable
@@ -38,16 +40,22 @@ import org.cangnova.cangjie.serialization.deserialization.ClassDataFinder
 /**
  * Stub 构建器组件，用于存储构建 Stub 所需的各种组件和服务
  *
+ * @property project 项目实例，用于访问项目级服务
  * @property classDataFinder 类数据查找器，用于查找类的元数据
  * @property virtualFileForDebug 用于调试的虚拟文件
  * @property declTable 声明表，存储所有声明的元数据
  * @property typeTable 类型表，存储所有类型的元数据
+ * @property packageWrapper 包装器，包含导入包信息等，用于 FullId 解析
+ * @property packageService 包服务，用于跨包查找
  */
 class ClsStubBuilderComponents(
+    val project: Project,
     val classDataFinder: ClassDataFinder,
     val virtualFileForDebug: VirtualFile,
     val declTable: DeclTable,
-    val typeTable: TypeTable
+    val typeTable: TypeTable,
+    val packageWrapper: org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper,
+    val packageService: CjoPackageService
 ) {
     /**
      * 创建 Stub 构建上下文
@@ -64,7 +72,7 @@ class ClsStubBuilderComponents(
         packageFqName,
         EmptyTypeParameters,
         typeTable,
-        protoContainer = null
+        metadataContainer = null
     )
 }
 
@@ -121,22 +129,23 @@ class TypeParametersImpl(
  * @property containerFqName 当前容器的完全限定名
  * @property typeParameters 类型参数管理器
  * @property typeTable 类型表
- * @property protoContainer Proto 容器（包或类）
+ * @property metadataContainer 元数据容器（包或类）
  */
 class ClsStubBuilderContext(
     val components: ClsStubBuilderComponents,
     val containerFqName: FqName,
     val typeParameters: TypeParameters,
     val typeTable: TypeTable,
-    val protoContainer: ProtoContainer?
+    val metadataContainer: MetadataContainer?
 )
 
 /**
- * Proto 容器，表示类或包的容器
+ * 元数据容器，表示类或包的容器
  *
  * 用于在 Stub 构建过程中跟踪当前正在处理的声明所在的容器。
+ * 包含从二进制元数据中反序列化的容器信息。
  */
-sealed class ProtoContainer {
+sealed class MetadataContainer {
     /**
      * 容器的完全限定名
      */
@@ -151,7 +160,7 @@ sealed class ProtoContainer {
     class Package(
         override val fqName: FqName,
         val typeTable: TypeTable
-    ) : ProtoContainer()
+    ) : MetadataContainer()
 
     /**
      * 类容器
@@ -164,7 +173,7 @@ sealed class ProtoContainer {
         val classDecl: ClassDeclWrapper,
         val typeTable: TypeTable,
         val outerClass: Class?
-    ) : ProtoContainer() {
+    ) : MetadataContainer() {
         override val fqName: FqName = classDecl.classId.asSingleFqName()
         val classId: ClassId = classDecl.classId
         val kind: ClassKind = classDecl.kind
@@ -179,18 +188,18 @@ sealed class ProtoContainer {
  * @param typeParameterList 类型参数列表
  * @param name 子容器的名称（如果有）
  * @param typeTable 类型表
- * @param protoContainer Proto 容器
+ * @param metadataContainer 元数据容器
  * @return 新的 Stub 构建上下文
  */
 internal fun ClsStubBuilderContext.child(
     typeParameterList: List<TypeParameterWrapper>,
     name: Name? = null,
     typeTable: TypeTable = this.typeTable,
-    protoContainer: ProtoContainer? = this.protoContainer
+    metadataContainer: MetadataContainer? = this.metadataContainer
 ): ClsStubBuilderContext = ClsStubBuilderContext(
     this.components,
     if (name != null) this.containerFqName.child(name) else this.containerFqName,
     this.typeParameters.child(typeParameterList),
     typeTable,
-    protoContainer
+    metadataContainer
 )

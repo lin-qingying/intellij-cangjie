@@ -546,7 +546,7 @@ class CangJieConstraintSystemCompleter(
             }
 
             /*
-             * Hack for completing error candidates in delegate resolve
+             * Hack for completing error candidates in delegate resolveName
              */
             if (this is StubResolvedAtom && typeVariable in notFixedTypeVariables) {
                 result += typeVariable

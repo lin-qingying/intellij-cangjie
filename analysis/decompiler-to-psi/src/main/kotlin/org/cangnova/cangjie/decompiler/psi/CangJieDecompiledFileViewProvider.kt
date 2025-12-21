@@ -28,15 +28,14 @@ import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiInvalidElementAccessException
 import com.intellij.psi.PsiManager
 import com.intellij.psi.SingleRootFileViewProvider
-import com.intellij.psi.impl.DebugUtil
-import com.intellij.psi.impl.source.PsiFileImpl
 import org.cangnova.cangjie.decompiler.psi.file.CjDecompiledFile
 import org.cangnova.cangjie.decompiler.psi.text.DecompiledText
+import org.cangnova.cangjie.decompiler.psi.text.buildDecompiledText
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.lang.CangJieLanguage
+import org.cangnova.cangjie.psi.stubs.impl.CangJieFileStubImpl
 import org.cangnova.cangjie.utils.LockedClearableLazyValue
 
 /**
@@ -79,15 +78,32 @@ class CangJieDecompiledFileViewProvider(
     private val factory: (CangJieDecompiledFileViewProvider) -> CjDecompiledFile?
 ) : SingleRootFileViewProvider(manager, file, physical, CangJieLanguage) {
 
-    val content: LockedClearableLazyValue<String> = LockedClearableLazyValue(Any()) {
-        val psiFile = createFile(manager.project, file, CangJieFileType.INSTANCE)
-        val text = psiFile?.text ?: ""
-
-        DebugUtil.performPsiModification<PsiInvalidElementAccessException>("Invalidating throw-away copy of file that was used for getting text") {
-            (psiFile as? PsiFileImpl)?.markInvalidated()
+    /**
+     * 延迟加载的反编译文本。
+     *
+     * 通过直接从虚拟文件读取 stub 并构建反编译文本，避免创建临时 PSI 文件。
+     * 这确保了文档内容和 PSI 内容使用相同的数据源，避免同步问题。
+     */
+    val decompiledText: LockedClearableLazyValue<DecompiledText> = LockedClearableLazyValue(Any()) {
+        try {
+            val stub = CjDecompiledFile.readOrBuildCompiledStub(virtualFile, manager.project)
+            buildDecompiledText(stub)
+        } catch (e: Exception) {
+            DecompiledText(
+                """
+                // Could not decompile the file: ${e.message}
+                """.trimIndent()
+            )
         }
+    }
 
-        text
+    /**
+     * 文本内容的快速访问。
+     *
+     * 提供对反编译文本字符串的直接访问。
+     */
+    val content: LockedClearableLazyValue<String> = LockedClearableLazyValue(Any()) {
+        decompiledText.get().text
     }
 
 

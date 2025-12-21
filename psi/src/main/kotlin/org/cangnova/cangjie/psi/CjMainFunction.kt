@@ -24,15 +24,16 @@
 
 package org.cangnova.cangjie.psi
 
-import org.cangnova.cangjie.psi.stubs.CangJieFunctionStub
+import org.cangnova.cangjie.psi.stubs.CangJieNamedFunctionStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.stubs.IStubElementType
+import org.cangnova.cangjie.psi.stubs.CangJieMainFunctionStub
 
-class CjMainFunction : CjFunctionImpl {
-    constructor(stub: CangJieFunctionStub) : super(stub, CjStubElementTypes.MAIN_FUNC)
+class CjMainFunction : CjFunctionImpl<CangJieMainFunctionStub, CjMainFunction> {
+    constructor(stub: CangJieMainFunctionStub) : super(stub, CjStubElementTypes.MAIN_FUNC)
     constructor(node: ASTNode) : super(node)
-    constructor(stub: CangJieFunctionStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
+    constructor(stub: CangJieMainFunctionStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitMainFunction(this, data)

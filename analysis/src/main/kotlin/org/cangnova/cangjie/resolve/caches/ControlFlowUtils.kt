@@ -36,7 +36,7 @@ import org.cangnova.cangjie.resolve.lazy.ResolveSession
 
 fun analyzeControlFlow(resolveSession: ResolveSession, resolveElement: CjElement, trace: BindingTrace) {
     val controlFlowTrace = DelegatingBindingTrace(
-        trace.bindingContext, "Element control flow resolve", resolveElement, allowSliceRewrite = true
+        trace.bindingContext, "Element control flow resolveName", resolveElement, allowSliceRewrite = true
     )
     ControlFlowInformationProviderImpl(
         resolveElement,

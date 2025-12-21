@@ -32,6 +32,7 @@ import com.intellij.psi.stubs.Stub
 import com.intellij.util.cls.ClsFormatException
 import com.intellij.util.indexing.FileContent
 import org.cangnova.cangjie.decompiler.psi.compiled.ClassFileDecompilers
+import org.cangnova.cangjie.project.service.CjProjectsService
 import java.util.function.Supplier
 import java.util.stream.Stream
 
@@ -65,6 +66,21 @@ class ClassFileStubBuilder : BinaryFileStubBuilder.CompositeBinaryFileStubBuilde
 
     override fun buildStubTree(fileContent: FileContent, decompiler: ClassFileDecompilers.Full?): Stub? {
         if (decompiler == null) return null
+
+        // 延迟 stub 构建，直到工作空间模型同步完成
+        // 这样可以确保 CjoPackageService 能够正确解析跨包引用
+        val project = fileContent.project
+        if (project != null) {
+            val projectsService = project.getServiceIfCreated( CjProjectsService::class.java)
+            if (projectsService != null && !projectsService.initialized) {
+                // 工作空间模型未同步完成，延迟 stub 构建
+                if (LOG.isDebugEnabled) {
+                    LOG.debug("Workspace not initialized, delaying stub build for: ${fileContent.fileName}")
+                }
+                return null
+            }
+        }
+
         return fileContent.file.computeWithPreloadedContentHint(
             fileContent.content,
             Supplier {

@@ -48,7 +48,7 @@ class ForLoopConventionsChecker(
     fun checkIterableConvention(loopRange: ExpressionReceiver, context: ExpressionTypingContext): CangJieType? {
         val loopRangeExpression = loopRange.expression
 
-        // Make a fake call loopRange.iterator(), and try to resolve it
+        // Make a fake call loopRange.iterator(), and try to resolveName it
         val iteratorResolutionResults = fakeCallResolver.resolveFakeCall(
             context, loopRange, OperatorNameConventions.ITERATOR, loopRangeExpression,
             loopRangeExpression, FakeCallKind.ITERATOR, emptyList()

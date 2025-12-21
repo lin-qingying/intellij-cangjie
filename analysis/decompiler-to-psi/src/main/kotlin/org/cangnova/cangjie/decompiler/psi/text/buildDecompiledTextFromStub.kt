@@ -92,6 +92,8 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 typeStatement.typeParameterList?.accept(explicitThis, Unit)
                 withPrefix(" ") { typeStatement.primaryConstructor?.accept(explicitThis, Unit) }
                 withPrefix(" <: ") { typeStatement.getSuperTypeList()?.accept(explicitThis, Unit) }
+
+                // 渲染 where 子句（如果存在）
                 withPrefix(" ") { typeStatement.typeConstraintList?.accept(explicitThis, Unit) }
 
                 appendLine(" {")
@@ -106,12 +108,23 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 append('}')
             }
 
+            override fun visitTypeConstraintList(list: CjTypeConstraintList, data: Unit): Unit? {
+                append("where ")
+                printCollection(list.constraints, separator = ", ") {
+                    it.accept(explicitThis, Unit)
+                }
+                return null
+            }
+
             override fun visitEnum(cenum: CjEnum, data: Unit): Unit? {
                 withSuffix(" ") { cenum.modifierList?.accept(explicitThis, Unit) }
                 append("enum")
                 withPrefix(" ") { append(cenum.name?.quoteIfNeeded()) }
                 cenum.typeParameterList?.accept(explicitThis, Unit)
                 withPrefix(" <: ") { cenum.getSuperTypeList()?.accept(explicitThis, Unit) }
+
+                // 渲染 where 子句（如果存在）
+                withPrefix(" ") { cenum.typeConstraintList?.accept(explicitThis, Unit) }
 
                 appendLine(" {")
                 withIndent {
@@ -148,6 +161,8 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 append("extend")
                 withPrefix(" ") { cjExtend.receiverTypeReceiver?.accept(explicitThis, Unit) }
                 withPrefix(" <: ") { cjExtend.getSuperTypeList()?.accept(explicitThis, Unit) }
+
+                // 渲染 where 子句（如果存在）
                 withPrefix(" ") { cjExtend.typeConstraintList?.accept(explicitThis, Unit) }
 
                 appendLine(" {")
@@ -170,7 +185,10 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 function.typeParameterList?.accept(explicitThis, Unit)
                 function.valueParameterList?.accept(explicitThis, Unit)
                 withPrefix(": ") { function.typeReference?.accept(explicitThis, Unit) }
+
+                // 渲染 where 子句（如果存在）
                 withPrefix(" ") { function.typeConstraintList?.accept(explicitThis, Unit) }
+
                 printFunctionBody(function)
                 return null
             }
@@ -262,7 +280,8 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
             override fun visitTypeParameter(parameter: CjTypeParameter, data: Unit): Unit? {
                 withSuffix(" ") { parameter.modifierList?.accept(explicitThis, Unit) }
                 append(parameter.name?.quoteIfNeeded())
-                withPrefix(" <: ") { parameter.extendsBound?.accept(explicitThis, Unit) }
+            // 注意：类型约束应该在 where 子句中处理，不在类型参数列表中
+                // extendsBound 会通过 typeConstraintList 来渲染
                 return null
             }
 
@@ -283,6 +302,10 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
             override fun visitParameter(cjParameter: CjParameter, data: Unit): Unit? {
                 withSuffix(" ") { cjParameter.modifierList?.accept(explicitThis, Unit) }
                 append(cjParameter.name?.quoteIfNeeded())
+                // 如果是命名参数，添加 ! 标记
+                if (cjParameter.isNamed) {
+                    append("!")
+                }
                 append(": ")
                 cjParameter.typeReference?.accept(explicitThis, Unit)
                 if (cjParameter.hasDefaultValue()) {
@@ -365,13 +388,6 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 return null
             }
 
-            override fun visitTypeConstraintList(list: CjTypeConstraintList, data: Unit): Unit? {
-                append("where ")
-                printCollection(list.constraints, separator = ", ") {
-                    it.accept(explicitThis, Unit)
-                }
-                return null
-            }
 
             override fun visitTypeConstraint(constraint: CjTypeConstraint, data: Unit): Unit? {
                 constraint.subjectTypeParameterName?.accept(explicitThis, Unit)

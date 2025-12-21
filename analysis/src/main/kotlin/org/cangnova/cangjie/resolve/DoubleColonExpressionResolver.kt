@@ -194,7 +194,7 @@ class DoubleColonExpressionResolver(
         val expression = doubleColonExpression.receiverExpression ?: return null
 
 
-        val traceAndCache = TemporaryTraceAndCache.create(context, "resolve '::' LHS", doubleColonExpression)
+        val traceAndCache = TemporaryTraceAndCache.create(context, "resolveName '::' LHS", doubleColonExpression)
         val c = context
             .replaceTraceAndCache(traceAndCache)
             .replaceExpectedType(NO_EXPECTED_TYPE)
@@ -421,7 +421,7 @@ class DoubleColonExpressionResolver(
         val newExpression = expression.buildNewExpressionForReservedGenericPropertyCallChainResolution() ?: return null
 
         val temporaryTraceAndCache =
-            TemporaryTraceAndCache.create(c, "resolve reserved generic property call chain in '::' LHS", newExpression)
+            TemporaryTraceAndCache.create(c, "resolveName reserved generic property call chain in '::' LHS", newExpression)
         val contextForCallChainResolution =
             c.replaceTraceAndCache(temporaryTraceAndCache)
                 .replaceExpectedType(NO_EXPECTED_TYPE)
