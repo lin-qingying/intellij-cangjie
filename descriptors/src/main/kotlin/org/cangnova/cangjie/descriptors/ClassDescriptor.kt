@@ -47,9 +47,11 @@ import org.cangnova.cangjie.types.SimpleType
  * - 成员解析和访问控制
  * - 继承层次分析
  * - 泛型实例化
+ *
+ * @see ClassAndEnumDescriptor
+ * @see EnumDescriptor
  */
-interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, InheritableDescriptor, HasScopeDescriptor,
-    ClassOrPackageFragmentDescriptor, DeclarationDescriptorWithVisibility,ClassifierDescriptorWithTypeConstructor {
+interface ClassDescriptor : ClassAndEnumDescriptor {
 
     /**
      * 类的 this 接收者参数描述符，用于表示类的接收者类型。

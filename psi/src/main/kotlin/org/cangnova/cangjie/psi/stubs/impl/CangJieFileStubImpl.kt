@@ -60,32 +60,6 @@ class CangJieFileStubImpl(
 
     private fun String.relativeToPackage() = getPackageFqName().child(Name.identifier(this))
 
-    /**
-     * 获取 part 文件的完全限定名。
-     */
-    val partFqName: FqName?
-        get() = when (val k = kind) {
-            is CangJieFileStubKind.WithPackage.Facade.Simple -> k.partSimpleName.relativeToPackage()
-            else -> null
-        }
-
-    /**
-     * 获取 part 文件的简单名。
-     */
-    val partSimpleName: String?
-        get() = (kind as? CangJieFileStubKind.WithPackage.Facade.Simple)?.partSimpleName
-
-    /**
-     * 获取 Facade 的完全限定名。
-     */
-    val facadeFqName: FqName?
-        get() = (kind as? CangJieFileStubKind.WithPackage.Facade)?.facadeFqName
-
-    /**
-     * 获取多文件类的 part 简单名列表。
-     */
-    val facadePartSimpleNames: List<String>?
-        get() = (kind as? CangJieFileStubKind.WithPackage.Facade.MultifileClass)?.facadePartSimpleNames
 
     override fun getPackageFqName(): FqName = when (val k = kind) {
         is CangJieFileStubKind.WithPackage -> k.packageFqName

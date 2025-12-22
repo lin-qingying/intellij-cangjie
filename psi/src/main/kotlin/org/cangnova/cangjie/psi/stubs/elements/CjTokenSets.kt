@@ -29,7 +29,7 @@ object CjTokenSets {
     val SUPER_TYPE_LIST_ENTRIES: TokenSet =
         TokenSet.create(CjStubElementTypes.SUPER_TYPE_CALL_ENTRY, CjStubElementTypes.SUPER_TYPE_ENTRY)
     val DECLARATION_TYPES: TokenSet = TokenSet.create(
-        CjStubElementTypes.CLASS,
+        CjStubElementTypes.CLASS, CjStubElementTypes.INTERFACE,
         CjStubElementTypes.FUNCTION, CjStubElementTypes.VARIABLE, CjStubElementTypes.STRUCT,
         CjStubElementTypes.TYPEALIAS, CjStubElementTypes.CLASS_INITIALIZER,
         CjStubElementTypes.SECONDARY_CONSTRUCTOR, CjStubElementTypes.ENUM, CjStubElementTypes.EXTEND,

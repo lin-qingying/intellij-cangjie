@@ -50,7 +50,7 @@ interface CangJieBuiltInStubVersionOffsetProvider {
 internal class IdeCangJieBuiltInStubVersionOffsetProvider :
     org.cangnova.cangjie.decompiler.psi.CangJieBuiltInStubVersionOffsetProvider {
     override fun getVersionOffset(): Int {
-        return 0
+        return 1
     }
 }
 

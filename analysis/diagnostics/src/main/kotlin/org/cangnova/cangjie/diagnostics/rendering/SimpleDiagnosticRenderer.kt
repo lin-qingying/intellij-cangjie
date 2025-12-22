@@ -30,10 +30,7 @@ class SimpleDiagnosticRenderer(private val message: () -> String) :
     DiagnosticRenderer<Diagnostic> {
     override fun render(diagnostic: Diagnostic): String {
 
-//        val str = CangJieDiagnosisBundle.rawMessage(diagnostic.factory.name)
-//        if(str == "!${diagnostic.factory.name}!"){
-//            return message
-//        }
+
 
         return message()
     }

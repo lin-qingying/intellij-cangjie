@@ -71,6 +71,7 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
      */
     @Volatile
     private var pathCached: String? = null
+    open val customStubBuilder: StubBuilder? get() = null
 
     /**
      * 缓存标志，指示此文件是否有顶级可调用元素。

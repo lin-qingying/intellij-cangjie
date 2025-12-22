@@ -937,6 +937,7 @@ class TypeResolver(
                     )
                 )
             }
+            is EnumDescriptor -> resolveTypeForEnum(c, annotations, descriptor, element, qualifierResolutionResult)
 
             is ClassDescriptor -> resolveTypeForClass(c, annotations, descriptor, element, qualifierResolutionResult)
             is TypeAliasDescriptor -> resolveTypeForTypeAlias(
@@ -1026,10 +1027,24 @@ class TypeResolver(
 
 
     }
-
-    fun resolveTypeForClass(
+    /**
+     * 为类或枚举类型解析类型
+     *
+     * 统一处理类和枚举的类型解析逻辑，因为它们具有相同的特性：
+     * - 类型构造器和类型参数
+     * - 类型参数绑定和边界检查
+     * - 支持泛型实例化
+     *
+     * @param c 类型解析上下文
+     * @param annotations 注解
+     * @param classDescriptor 类或枚举描述符
+     * @param element PSI 元素
+     * @param qualifierResolutionResult 限定符解析结果
+     * @return 可能为 Bare 类型的类型
+     */
+    private fun resolveTypeForClassOrEnum(
         c: TypeResolutionContext, annotations: Annotations,
-        classDescriptor: ClassDescriptor, element: CjElement,
+        classDescriptor: ClassAndEnumDescriptor, element: CjElement,
         qualifierResolutionResult:  TypeQualifierResolutionResult
     ): PossiblyBareType {
         val typeConstructor = classDescriptor.typeConstructor
@@ -1076,10 +1091,6 @@ class TypeResolver(
                 arguments
             )
 
-        // We create flexible types by convention here
-        // This is not intended to be used in normal users' environments, only for tests and debugger etc
-//        typeTransformerForTests.transformType(resultingType)?.let { return type(it) }
-
         if (shouldCheckBounds(c, resultingType)) {
             val substitutor = TypeSubstitutor.create(resultingType)
             for (i in parameters.indices) {
@@ -1094,12 +1105,40 @@ class TypeResolver(
             }
         }
 
-//        if (resultingType.isArrayOfNothing()) {
-//            c.trace.report(UNSUPPORTED.on(element, "Array<Nothing> is illegal"))
-//        }
-
         return type(resultingType)
     }
+
+    /**
+     * 为枚举类型解析类型
+     *
+     * @param c 类型解析上下文
+     * @param annotations 注解
+     * @param classDescriptor 枚举描述符
+     * @param element PSI 元素
+     * @param qualifierResolutionResult 限定符解析结果
+     * @return 可能为 Bare 类型的类型
+     */
+    fun resolveTypeForEnum(
+        c: TypeResolutionContext, annotations: Annotations,
+        classDescriptor: EnumDescriptor, element: CjElement,
+        qualifierResolutionResult:  TypeQualifierResolutionResult
+    ): PossiblyBareType = resolveTypeForClassOrEnum(c, annotations, classDescriptor, element, qualifierResolutionResult)
+
+    /**
+     * 为类类型解析类型
+     *
+     * @param c 类型解析上下文
+     * @param annotations 注解
+     * @param classDescriptor 类描述符
+     * @param element PSI 元素
+     * @param qualifierResolutionResult 限定符解析结果
+     * @return 可能为 Bare 类型的类型
+     */
+    fun resolveTypeForClass(
+        c: TypeResolutionContext, annotations: Annotations,
+        classDescriptor: ClassDescriptor, element: CjElement,
+        qualifierResolutionResult:  TypeQualifierResolutionResult
+    ): PossiblyBareType = resolveTypeForClassOrEnum(c, annotations, classDescriptor, element, qualifierResolutionResult)
 
     private fun buildFinalArgumentList(
         argumentsFromUserType: List<TypeProjection>,

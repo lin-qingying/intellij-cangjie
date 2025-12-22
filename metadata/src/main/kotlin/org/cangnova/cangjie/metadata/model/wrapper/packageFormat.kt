@@ -538,6 +538,9 @@ class PropertyWrapper(
 
     val isConst = info.isConst
 
+    val isOverride = original.attributePack.testAttr(Attribute.OVERRIDE)
+    val isRedef = original.attributePack.testAttr(Attribute.REDEF)
+
     val returnType = typeTable.get(original.type).let { TypeWrapper(it, declTable, typeTable) }
     val getter = info.getter?.let {
         declTable.get(it).let {

@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.types
 
+import org.cangnova.cangjie.descriptors.ClassAndEnumDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.HasScopeDescriptor
 import org.cangnova.cangjie.descriptors.TypeAliasDescriptor
@@ -77,26 +78,26 @@ object CangJieTypeFactory {
     /**
      * 创建非空的简单类型
      *
-     * 使用类描述符创建非Option的简单类型。
+     * 使用类或枚举描述符创建非Option的简单类型。
      *
      * 示例：
      * ```kotlin
      * val attributes = TypeAttributes.Empty
-     * val descriptor: ClassDescriptor = ...
+     * val descriptor: ClassAndEnumDescriptor = ...
      * val arguments = listOf(...)
      * val simpleType = CangJieTypeFactory.simpleNotNullType(attributes, descriptor, arguments)
      * // 创建非Option的简单类型
      * ```
      *
      * @param attributes 类型属性
-     * @param descriptor 类描述符
+     * @param descriptor 类或枚举描述符
      * @param arguments 类型参数列表
      * @return 非空的简单类型
      */
     @JvmStatic
     fun simpleNotNullType(
         attributes: TypeAttributes,
-        descriptor: ClassDescriptor,
+        descriptor: ClassAndEnumDescriptor,
         arguments: List<TypeProjection>
     ): SimpleType = simpleType(attributes, descriptor.typeConstructor, arguments, option = false)
 

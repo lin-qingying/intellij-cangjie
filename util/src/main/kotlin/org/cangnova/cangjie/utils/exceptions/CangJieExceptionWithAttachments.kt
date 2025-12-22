@@ -28,6 +28,8 @@ import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments.Com
 import com.intellij.openapi.diagnostic.Attachment
 import com.intellij.openapi.diagnostic.ExceptionWithAttachments
 import java.nio.charset.StandardCharsets
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 interface CangJieExceptionWithAttachments : ExceptionWithAttachments {
     val mutableAttachments: MutableList<Attachment>
@@ -85,5 +87,21 @@ open class CangJieIllegalArgumentExceptionWithAttachments : IllegalArgumentExcep
 
     constructor(message: String?, cause: Throwable?) : super(message, cause) {
         withAttachmentsFrom(cause)
+    }
+}
+
+@OptIn(ExperimentalContracts::class)
+inline fun requireWithAttachment(
+    condition: Boolean,
+    message: () -> String,
+    attachmentName: String = "info.txt",
+    buildAttachment: ExceptionAttachmentBuilder.() -> Unit = {},
+) {
+    contract { returns() implies (condition) }
+
+    if (!condition) {
+        val exception = CangJieIllegalArgumentExceptionWithAttachments(message())
+        exception.buildAttachment(attachmentName) { buildAttachment() }
+        throw exception
     }
 }

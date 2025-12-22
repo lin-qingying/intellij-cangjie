@@ -67,9 +67,11 @@ import org.cangnova.cangjie.types.TypeSubstitution
  *     ...  // 非穷尽性枚举
  * }
  * ```
+ *
+ * @see ClassAndEnumDescriptor
+ * @see ClassDescriptor
  */
-interface EnumDescriptor : ClassifierDescriptorWithTypeParameters, InheritableDescriptor, HasScopeDescriptor,
-     ClassOrPackageFragmentDescriptor, DeclarationDescriptorWithVisibility ,ClassifierDescriptorWithTypeConstructor {
+interface EnumDescriptor : ClassAndEnumDescriptor {
     override val original: EnumDescriptor
 
 

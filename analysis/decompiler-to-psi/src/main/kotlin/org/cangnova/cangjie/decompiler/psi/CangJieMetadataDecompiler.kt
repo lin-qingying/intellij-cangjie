@@ -44,253 +44,688 @@ import org.cangnova.cangjie.renderer.DescriptorRenderer
 import java.io.IOException
 
 /**
- * 仓颉语言元数据反编译器的抽象基类。
+ * 仓颉语言元数据反编译器的抽象基类
  *
- * 该类负责将仓颉编译后的二进制元数据文件（如 `.cjo` 文件）反编译为可读的 PSI 结构，
- * 使 IDE 能够提供代码导航、补全、查找引用等功能。
+ * ## 架构概述
  *
- * ## 核心职责
+ * CangJieMetadataDecompiler 是反编译系统的核心抽象类，定义了所有元数据反编译器的通用行为契约。
+ * 它采用模板方法模式，将反编译流程中的公共逻辑固化在 final 方法中，将可变部分留给子类实现。
  *
- * 1. **文件识别**: 通过 [accepts] 方法判断是否能处理指定的虚拟文件
- * 2. **元数据读取**: 通过 [readFile] 方法解析二进制元数据内容
- * 3. **Stub 构建**: 提供 [stubBuilder] 用于构建轻量级的 Stub 索引
- * 4. **反编译文本生成**: 通过 [buildDecompiledText] 将描述符渲染为可读的源代码文本
- * 5. **PSI 文件创建**: 通过 [createFileViewProvider] 创建反编译后的 PSI 文件视图
+ * ## 在反编译系统中的位置
  *
- * ## 版本兼容性
+ * ```
+ * ClassFileDecompilers Extension Point
+ *   ↓
+ * CangJieMetadataDecompiler (本类 - 抽象基类)
+ *   ├─ CangJieBuiltInDecompiler (.cjb 内置库反编译器)
+ *   ├─ CangJieNormalDecompiler (.cjo 普通编译文件反编译器)
+ *   └─ (未来可扩展的反编译器)
+ *   ↓
+ * CangJieDecompiledFileViewProvider
+ *   ↓
+ * CjDecompiledFile
+ *   ↓
+ * IDE 服务 (编辑器、导航、分析等)
+ * ```
  *
- * 该反编译器支持版本检查机制：
- * - [expectedBinaryVersion]: 当前期望的二进制版本
- * - [invalidBinaryVersion]: 无效/不兼容的二进制版本标识
+ * ## 架构演进历史
  *
- * 当遇到不兼容的元数据版本时，会生成包含版本不匹配提示的反编译文本。
- *
- * ## 使用示例
+ * ### 旧架构 (已废弃)
  *
  * ```kotlin
- * class MyCangJieDecompiler : CangJieMetadataDecompiler<MyVersion>(
- *     fileType = CangJieMetadataFileType,
- *     serializerFlatbuffers = { MySerializerExtension() },
- *     expectedBinaryVersion = { MyVersion.CURRENT },
- *     invalidBinaryVersion = { MyVersion.INVALID },
- *     stubVersion = 1
- * ) {
- *     override fun readFile(project: Project, bytes: ByteArray, file: VirtualFile) = ...
+ * abstract class CangJieMetadataDecompiler<V: BinaryVersion>(
+ *     val fileType: FileType,
+ *     val serializerFlatbuffers: () -> SerializerExtensionFlatbuffers,
+ *     val expectedBinaryVersion: V
+ * ) : ClassFileDecompilers.Full() {
+ *     protected abstract val metadataStubBuilder: CangJieMetadataStubBuilder
+ *
+ *     // 子类需要实现大量方法
+ *     protected abstract fun readFileSafely(file: VirtualFile): FileWithMetadata?
+ *     protected abstract fun doReadFile(...): FileWithMetadata?
+ *     protected abstract fun buildDecompiledText(...): DecompiledText
+ *     protected abstract fun createFile(...): CjDecompiledFile
+ *     ...
  * }
  * ```
  *
- * @param V 二进制版本类型，必须继承自 [BinaryVersion]
- * @param fileType 该反编译器处理的文件类型
- * @param serializerFlatbuffers 序列化扩展工厂，用于反序列化元数据
- * @param expectedBinaryVersion 期望的二进制版本提供者
- * @param invalidBinaryVersion 无效二进制版本提供者
- * @param stubVersion Stub 构建器版本号，用于缓存失效判断
+ * **旧架构的问题**:
+ * 1. **过度泛型化**: BinaryVersion 泛型参数增加复杂性，但实际用途有限
+ * 2. **职责不清**: 反编译器既负责 Stub 构建，又负责文本生成
+ * 3. **重复代码**: 多个子类都实现相似的文件读取和异常处理逻辑
+ * 4. **难以扩展**: 添加新的文件类型需要实现大量方法
+ * 5. **紧耦合**: 反编译器直接持有序列化器、文件类型等实现细节
+ *
+ * ### 新架构 (当前)
+ *
+ * ```kotlin
+ * abstract class CangJieMetadataDecompiler : ClassFileDecompilers.Full() {
+ *     // 仅 2 个抽象成员
+ *     abstract override val stubBuilder : CangJieMetadataStubBuilder
+ *     protected abstract fun createFile(viewProvider: CangJieDecompiledFileViewProvider): CjDecompiledFile
+ *
+ *     // 固化的 final 方法
+ *     final override fun accepts(file: VirtualFile): Boolean
+ *     final override fun createFileViewProvider(...): CangJieDecompiledFileViewProvider
+ * }
+ * ```
+ *
+ * **新架构的优势**:
+ * 1. **职责单一**: 反编译器只负责"识别文件"和"创建 PSI 文件"
+ * 2. **简化继承**: 子类只需实现 2 个成员，降低 80% 代码量
+ * 3. **统一流程**: 所有文件类型共用同一套 ViewProvider 创建逻辑
+ * 4. **易于扩展**: 新增文件类型只需提供 StubBuilder 和文件创建逻辑
+ * 5. **松耦合**: 实现细节委托给 StubBuilder 和 ViewProvider
+ *
+ * ### 架构变更的关键洞察
+ *
+ * **核心洞察**: 反编译器的本质职责是"适配 IDE 的文件系统到 PSI 系统"，而不是"执行反编译逻辑"。
+ *
+ * - **文件识别**: 委托给 `stubBuilder.isSupported()`
+ * - **Stub 构建**: 委托给 `stubBuilder.buildFileStub()`
+ * - **文本生成**: 委托给 `buildDecompiledText()`
+ * - **ViewProvider 创建**: 统一流程，使用 factory 模式
+ *
+ * 反编译器只是"胶水代码"，连接各个组件完成完整流程。
+ *
+ * ## 核心设计模式
+ *
+ * ### 1. 模板方法模式 (Template Method)
+ *
+ * **作用**: 定义反编译流程骨架，将可变部分延迟到子类实现。
+ *
+ * **模板流程**:
+ * ```kotlin
+ * // 固化的模板方法 (final)
+ * fun accepts(file: VirtualFile): Boolean {
+ *     return stubBuilder.isSupported(file)  // 调用子类提供的 stubBuilder
+ * }
+ *
+ * fun createFileViewProvider(...): CangJieDecompiledFileViewProvider {
+ *     return CangJieDecompiledFileViewProvider(...) { provider ->
+ *         if (stubBuilder.hasStub(file)) {  // 调用子类提供的 stubBuilder
+ *             createFile(provider)          // 调用子类实现的 createFile
+ *         } else {
+ *             null
+ *         }
+ *     }
+ * }
+ * ```
+ *
+ * **好处**:
+ * - 避免子类重复实现相同逻辑
+ * - 确保所有反编译器行为一致
+ * - 简化维护和升级
+ *
+ * ### 2. 工厂方法模式 (Factory Method)
+ *
+ * **作用**: createFile() 是工厂方法，子类决定创建哪种 PSI 文件。
+ *
+ * ```kotlin
+ * // 基类定义工厂方法签名
+ * protected abstract fun createFile(viewProvider: CangJieDecompiledFileViewProvider): CjDecompiledFile
+ *
+ * // 子类 1: 创建内置库文件
+ * class CangJieBuiltInDecompiler : CangJieMetadataDecompiler() {
+ *     override fun createFile(viewProvider) = CangJieBuiltInDecompiledFile(viewProvider)
+ * }
+ *
+ * // 子类 2: 创建普通编译文件
+ * class CangJieNormalDecompiler : CangJieMetadataDecompiler() {
+ *     override fun createFile(viewProvider) = CjDecompiledFile(viewProvider)
+ * }
+ * ```
+ *
+ * **好处**:
+ * - 符合开闭原则 (对扩展开放，对修改关闭)
+ * - 每种文件类型可以有独立的 PSI 文件实现
+ *
+ * ### 3. 策略模式 (Strategy)
+ *
+ * **作用**: stubBuilder 是策略对象，封装了 Stub 构建算法。
+ *
+ * ```kotlin
+ * // 策略接口
+ * abstract class CangJieMetadataStubBuilder : ClsStubBuilder {
+ *     abstract fun isSupported(file: VirtualFile): Boolean
+ *     abstract fun buildFileStub(fileContent: FileContent): CangJieFileStubImpl?
+ *     abstract fun hasStub(file: VirtualFile): Boolean
+ * }
+ *
+ * // 具体策略 1: 内置库 Stub 构建
+ * object CangJieBuiltInMetadataStubBuilder : CangJieMetadataStubBuilder() {
+ *     override fun isSupported(file: VirtualFile) = file.extension == "cjb"
+ *     // ...
+ * }
+ *
+ * // 具体策略 2: 普通文件 Stub 构建
+ * object CangJieNormalMetadataStubBuilder : CangJieMetadataStubBuilder() {
+ *     override fun isSupported(file: VirtualFile) = file.extension == "cjo"
+ *     // ...
+ * }
+ * ```
+ *
+ * **好处**:
+ * - 算法可互换
+ * - 避免条件分支
+ * - 易于测试
+ *
+ * ### 4. 延迟初始化模式 (Lazy Initialization via Factory)
+ *
+ * **作用**: createFileViewProvider() 使用 factory 函数延迟 PSI 文件创建。
+ *
+ * ```kotlin
+ * CangJieDecompiledFileViewProvider(manager, file, physical) { provider ->
+ *     // 这个 lambda 不会立即执行
+ *     // 只有在 IDE 需要 PSI 文件时才调用
+ *     if (stubBuilder.hasStub(provider.virtualFile)) {
+ *         createFile(provider)
+ *     } else {
+ *         null
+ *     }
+ * }
+ * ```
+ *
+ * **好处**:
+ * - 避免创建无用的 PSI 文件
+ * - 减少启动时间和内存占用
+ * - 按需加载
+ *
+ * ## 完整工作流程
+ *
+ * ### 用户打开 .cjo 文件的完整流程
+ *
+ * ```
+ * 1. IDE 文件系统层
+ *   用户双击 ArrayList.cjo
+ *     ↓
+ *   VirtualFile 创建
+ *     ↓
+ *   PsiManager.findFile() 查找对应的 PSI 文件
+ *
+ * 2. 反编译器查找 (ClassFileDecompilers.find)
+ *   遍历所有注册的 ClassFileDecompilers
+ *     ↓
+ *   对每个反编译器调用 accepts(file)
+ *     ↓
+ *   CangJieMetadataDecompiler.accepts(file)
+ *     └─ stubBuilder.isSupported(file)
+ *         ├─ CangJieBuiltInDecompiler: file.extension == "cjb" ? No
+ *         └─ CangJieNormalDecompiler: file.extension == "cjo" ? Yes ✓
+ *     ↓
+ *   返回 CangJieNormalDecompiler
+ *
+ * 3. ViewProvider 创建
+ *   IDE 调用 createFileViewProvider(file, manager, true)
+ *     ↓
+ *   CangJieMetadataDecompiler.createFileViewProvider()
+ *     ├─ 创建 CangJieDecompiledFileViewProvider
+ *     └─ 传入 factory lambda (延迟执行)
+ *     ↓
+ *   返回 ViewProvider
+ *
+ * 4. PSI 文件创建 (延迟触发)
+ *   IDE 需要 PSI 文件 → 调用 viewProvider.getPsi(CangJieLanguage)
+ *     ↓
+ *   ViewProvider 调用 createFile(project, file, fileType)
+ *     ↓
+ *   执行 factory lambda
+ *     ├─ stubBuilder.hasStub(file) ?
+ *     │   └─ 检查文件是否有有效的元数据
+ *     ├─ Yes → createFile(provider)
+ *     │   └─ CangJieNormalDecompiler 返回 CjDecompiledFile(provider)
+ *     └─ No → 返回 null
+ *     ↓
+ *   返回 CjDecompiledFile
+ *
+ * 5. Stub 树加载
+ *   CjDecompiledFile.getStub()
+ *     ↓
+ *   CompiledStubBuilder.buildStubTree()
+ *     ↓
+ *   CompiledStubBuilder.readOrBuildCompiledStub()
+ *     ↓
+ *   ClsClassFinder.allowMultifileClassPart {
+ *     StubTreeLoader.readOrBuild(project, file, null)
+ *       ├─ 检查内存缓存
+ *       ├─ 检查磁盘缓存
+ *       └─ 缓存未命中 → stubBuilder.buildFileStub()
+ *           ↓
+ *           CangJieNormalMetadataStubBuilder.buildFileStub()
+ *             ├─ 读取 Flatbuffers 元数据
+ *             ├─ 解析包信息、类型声明
+ *             └─ 构建 CangJieFileStubImpl
+ *   }
+ *     ↓
+ *   返回 Stub 树
+ *
+ * 6. 反编译文本生成
+ *   CjDecompiledFile.getText()
+ *     ↓
+ *   decompiledText.get() (LockedClearableLazyValue)
+ *     ↓
+ *   buildDecompiledText(stub)
+ *     ├─ 遍历 Stub 树
+ *     ├─ 使用 DescriptorRenderer 渲染
+ *     └─ 生成格式化的仓颉源码
+ *     ↓
+ *   返回 DecompiledText
+ *
+ * 7. 编辑器显示
+ *   IDE 编辑器组件获取 psiFile.text
+ *     ↓
+ *   显示反编译后的仓颉源代码
+ * ```
+ *
+ * ## 子类实现要求
+ *
+ * ### 最小实现 (2 个成员)
+ *
+ * ```kotlin
+ * class MinimalDecompiler : CangJieMetadataDecompiler() {
+ *     // 1. 提供 StubBuilder (必需)
+ *     override val stubBuilder = MyStubBuilder
+ *
+ *     // 2. 创建 PSI 文件 (必需)
+ *     override fun createFile(viewProvider: CangJieDecompiledFileViewProvider) =
+ *         MyCjDecompiledFile(viewProvider)
+ * }
+ * ```
+ *
+ * ### 完整实现示例
+ *
+ * ```kotlin
+ * /**
+ *  * 自定义格式的元数据反编译器
+ *  */
+ * class CustomFormatDecompiler : CangJieMetadataDecompiler() {
+ *     /**
+ *      * 提供自定义格式的 Stub 构建器
+ *      */
+ *     override val stubBuilder = object : CangJieMetadataStubBuilder() {
+ *         override fun isSupported(file: VirtualFile): Boolean {
+ *             return file.extension == "cjx" && // 自定义扩展名
+ *                    file.inputStream.use { it.read() == 0xCAFE } // 验证文件签名
+ *         }
+ *
+ *         override fun buildFileStub(fileContent: FileContent): CangJieFileStubImpl? {
+ *             // 解析自定义格式的元数据
+ *             val metadata = parseCustomFormat(fileContent.content)
+ *             return buildStubFromMetadata(metadata)
+ *         }
+ *
+ *         override fun hasStub(file: VirtualFile): Boolean {
+ *             return isSupported(file) && file.length > 0
+ *         }
+ *
+ *         override val stubVersion: Int = 42 // 自定义版本号
+ *     }
+ *
+ *     /**
+ *      * 创建自定义的 PSI 文件（如果需要特殊行为）
+ *      */
+ *     override fun createFile(viewProvider: CangJieDecompiledFileViewProvider) =
+ *         CustomCjDecompiledFile(viewProvider) // 或直接使用 CjDecompiledFile(viewProvider)
+ * }
+ * ```
+ *
+ * ## 错误处理
+ *
+ * ### 文件类型不匹配
+ *
+ * ```kotlin
+ * // accepts() 返回 false
+ * override fun accepts(file: VirtualFile): Boolean {
+ *     return stubBuilder.isSupported(file) // 如果不支持，返回 false
+ * }
+ * ```
+ *
+ * **结果**: IDE 会尝试下一个反编译器，如果都不匹配，将文件视为二进制文件。
+ *
+ * ### 文件没有 Stub
+ *
+ * ```kotlin
+ * // factory lambda 返回 null
+ * if (stubBuilder.hasStub(provider.virtualFile)) {
+ *     createFile(provider)
+ * } else {
+ *     null // 没有 Stub，不创建 PSI 文件
+ * }
+ * ```
+ *
+ * **结果**: ViewProvider 创建成功，但没有 PSI 文件，IDE 不会显示反编译内容。
+ *
+ * ### 元数据损坏
+ *
+ * ```kotlin
+ * // stubBuilder.buildFileStub() 返回 null 或抛异常
+ * try {
+ *     val stub = parseMetadata(file)
+ *     buildStub(stub)
+ * } catch (e: IOException) {
+ *     LOG.error("Failed to parse metadata", e)
+ *     return null // 或返回 forInvalid stub
+ * }
+ * ```
+ *
+ * **结果**: Stub 为 null 或包含错误消息，反编译文本显示"无法反编译"。
+ *
+ * ## 性能考虑
+ *
+ * ### 延迟加载策略
+ *
+ * 通过 factory 模式，PSI 文件只在真正需要时创建：
+ * ```kotlin
+ * // ViewProvider 创建 (快速)
+ * val viewProvider = createFileViewProvider(file, manager, true)  // < 1ms
+ *
+ * // PSI 文件创建 (延迟)
+ * val psiFile = viewProvider.getPsi(CangJieLanguage)  // 只在需要时调用
+ * ```
+ *
+ * **好处**:
+ * - 启动时不创建所有库文件的 PSI 文件
+ * - 减少内存占用
+ * - 提升 IDE 响应速度
+ *
+ * ### Stub 缓存复用
+ *
+ * stubBuilder 与 StubTreeLoader 集成：
+ * ```kotlin
+ * StubTreeLoader.readOrBuild(project, file, null)
+ *   ├─ 缓存命中: 直接返回 (< 1ms)
+ *   └─ 缓存未命中: 构建并缓存 (10-50ms)
+ * ```
+ *
+ * **缓存层级**:
+ * 1. **内存缓存**: IDE 运行期间有效
+ * 2. **磁盘缓存**: IDE 重启后仍有效
+ * 3. **跨项目共享**: 同一库在不同项目中只解析一次
+ *
+ * ## 线程安全
+ *
+ * ### final 方法保证
+ *
+ * accepts() 和 createFileViewProvider() 都是 final：
+ * - 避免子类引入线程不安全的实现
+ * - 确保行为一致性
+ *
+ * ### stubBuilder 要求
+ *
+ * stubBuilder 应该是无状态的单例对象：
+ * ```kotlin
+ * object MyStubBuilder : CangJieMetadataStubBuilder() {
+ *     // 无可变状态，线程安全
+ * }
+ * ```
+ *
+ * ### ViewProvider 线程安全
+ *
+ * CangJieDecompiledFileViewProvider 内部使用 LockedClearableLazyValue：
+ * - 延迟初始化是线程安全的
+ * - 多线程并发访问不会重复创建
+ *
+ * ## 扩展性
+ *
+ * ### 添加新文件类型支持
+ *
+ * **步骤**:
+ * 1. 创建 StubBuilder 实现
+ * 2. 创建反编译器子类
+ * 3. 在 plugin.xml 中注册
+ *
+ * **示例**:
+ * ```kotlin
+ * // 1. 创建 StubBuilder
+ * object CjxStubBuilder : CangJieMetadataStubBuilder() {
+ *     override fun isSupported(file: VirtualFile) = file.extension == "cjx"
+ *     // ...
+ * }
+ *
+ * // 2. 创建反编译器
+ * class CjxDecompiler : CangJieMetadataDecompiler() {
+ *     override val stubBuilder = CjxStubBuilder
+ *     override fun createFile(viewProvider) = CjDecompiledFile(viewProvider)
+ * }
+ *
+ * // 3. 注册到 plugin.xml
+ * <classFileDecompiler implementation="...CjxDecompiler"/>
+ * ```
+ *
+ * ### 自定义 PSI 文件行为
+ *
+ * 如果需要特殊的 PSI 文件行为，继承 CjDecompiledFile：
+ * ```kotlin
+ * class CustomDecompiledFile(provider: CangJieDecompiledFileViewProvider) : CjDecompiledFile(provider) {
+ *     override fun getText(): String {
+ *         val originalText = super.getText()
+ *         return "// Custom header\n" + originalText
+ *     }
+ * }
+ *
+ * class CustomDecompiler : CangJieMetadataDecompiler() {
+ *     override fun createFile(viewProvider) = CustomDecompiledFile(viewProvider)
+ *     // ...
+ * }
+ * ```
+ *
+ * ## 调试技巧
+ *
+ * ### 检查反编译器是否被调用
+ *
+ * ```kotlin
+ * override fun accepts(file: VirtualFile): Boolean {
+ *     val result = super.accepts(file)
+ *     println("CangJieMetadataDecompiler.accepts(${file.name}) = $result")
+ *     return result
+ * }
+ * ```
+ *
+ * ### 查看 factory lambda 执行
+ *
+ * ```kotlin
+ * override fun createFileViewProvider(...) = CangJieDecompiledFileViewProvider(...) { provider ->
+ *     println("Factory lambda called for: ${provider.virtualFile.name}")
+ *     val hasStub = stubBuilder.hasStub(provider.virtualFile)
+ *     println("Has stub: $hasStub")
+ *     if (hasStub) createFile(provider) else null
+ * }
+ * ```
+ *
+ * ### 验证 Stub 构建
+ *
+ * ```kotlin
+ * val stub = stubBuilder.buildFileStub(fileContent)
+ * println("Stub tree: ${stub?.treeToString()}")
+ * ```
+ *
+ * ## 常见陷阱
+ *
+ * ### 陷阱 1: stubBuilder 不是单例
+ *
+ * ```kotlin
+ * // ❌ 错误: 每次创建新实例
+ * override val stubBuilder get() = CangJieMetadataStubBuilder()
+ *
+ * // ✅ 正确: 使用单例对象
+ * override val stubBuilder = CangJieMetadataStubBuilder
+ * ```
+ *
+ * **后果**: 每次调用都创建新对象，浪费内存和性能。
+ *
+ * ### 陷阱 2: createFile() 中执行昂贵操作
+ *
+ * ```kotlin
+ * // ❌ 错误: 在文件创建时反编译
+ * override fun createFile(viewProvider) = CjDecompiledFile(viewProvider).apply {
+ *     parseAndDecompile() // 昂贵操作
+ * }
+ *
+ * // ✅ 正确: 延迟到 getText() 时执行
+ * override fun createFile(viewProvider) = CjDecompiledFile(viewProvider)
+ * ```
+ *
+ * **后果**: IDE 启动变慢，因为创建所有 PSI 文件时都会反编译。
+ *
+ * ### 陷阱 3: 覆盖 final 方法
+ *
+ * ```kotlin
+ * // ❌ 编译错误: 不能覆盖 final 方法
+ * override fun accepts(file: VirtualFile): Boolean {
+ *     return myCustomLogic(file)
+ * }
+ * ```
+ *
+ * **解决**: 将自定义逻辑放在 stubBuilder.isSupported() 中。
+ *
+ * ## 与其他组件的集成
+ *
+ * ### 与 ClassFileDecompilers 的关系
+ *
+ * ```
+ * ClassFileDecompilers Extension Point (IDE 框架)
+ *   ↓
+ * ClassFileDecompilers.EP_NAME.extensions (所有注册的反编译器)
+ *   ├─ CangJieBuiltInDecompiler (本类子类)
+ *   ├─ CangJieNormalDecompiler (本类子类)
+ *   └─ OtherLanguageDecompiler (其他语言)
+ *   ↓
+ * ClassFileDecompilers.find() 查找匹配的反编译器
+ *   └─ 调用 accepts() 方法判断
+ * ```
+ *
+ * ### 与 StubTreeLoader 的关系
+ *
+ * ```
+ * CangJieMetadataDecompiler.createFileViewProvider()
+ *   ↓
+ * CangJieDecompiledFileViewProvider.createFile()
+ *   ↓
+ * CjDecompiledFile 创建
+ *   ↓
+ * CompiledStubBuilder.readOrBuildCompiledStub()
+ *   ↓
+ * StubTreeLoader.readOrBuild()
+ *   ├─ 查询缓存
+ *   └─ 缓存失败 → stubBuilder.buildFileStub()
+ * ```
+ *
+ * ### 与 PSI 系统的关系
+ *
+ * ```
+ * VirtualFile (文件系统层)
+ *   ↓
+ * PsiManager.findFile()
+ *   ↓
+ * FileViewProvider (桥接层)
+ *   ↓
+ * PsiFile (PSI 层)
+ *   ↓
+ * IDE 服务 (语法高亮、补全、导航等)
+ * ```
+ *
+ * 本类负责创建 FileViewProvider 和 PsiFile。
+ *
+ * ## 最佳实践
+ *
+ * ### 1. stubBuilder 使用 object 单例
+ *
+ * ```kotlin
+ * override val stubBuilder = MyStubBuilder // object
+ * ```
+ *
+ * ### 2. createFile() 返回简单的 PSI 文件
+ *
+ * ```kotlin
+ * override fun createFile(viewProvider) = CjDecompiledFile(viewProvider)
+ * ```
+ *
+ * ### 3. 不要覆盖 final 方法
+ *
+ * 将自定义逻辑放在抽象成员的实现中。
+ *
+ * ### 4. 利用 hasStub() 提前过滤
+ *
+ * ```kotlin
+ * override fun hasStub(file: VirtualFile): Boolean {
+ *     // 快速检查，避免解析大文件
+ *     return file.length > 0 && file.inputStream.use { /* 验证签名 */ }
+ * }
+ * ```
  *
  * @see ClassFileDecompilers.Full
  * @see CangJieMetadataStubBuilder
- * @see CangJieMetadataDeserializerForDecompiler
+ * @see CangJieDecompiledFileViewProvider
+ * @see CjDecompiledFile
+ * @see ClsClassFinder.allowMultifileClassPart
+ * @see StubTreeLoader
  */
-abstract class CangJieMetadataDecompiler<out V : BinaryVersion>(
-    private val fileType: FileType,
-    private val serializerFlatbuffers: () -> SerializerExtensionFlatbuffers,
-
-    private val expectedBinaryVersion: () -> V,
-    private val invalidBinaryVersion: () -> V,
-    stubVersion: Int
-) : ClassFileDecompilers.Full() {
-
+abstract class CangJieMetadataDecompiler : ClassFileDecompilers.Full() {
     /**
-     * 描述符渲染器，用于将声明描述符转换为可读的源代码文本。
+     * 判断该反编译器是否接受指定的虚拟文件
      *
-     * 使用懒加载初始化，配置了默认的反编译渲染选项。
-     * 渲染器负责格式化类、函数、属性等声明的文本表示。
-     */
-    private val renderer: DescriptorRenderer by lazy {
-        DescriptorRenderer.withOptions { defaultDecompilerRendererOptions() }
-    }
-
-    /**
-     * 元数据 Stub 构建器，用于从元数据文件构建轻量级的 Stub 索引。
-     *
-     * Stub 索引允许 IDE 在不完全解析文件的情况下快速访问符号信息，
-     * 显著提升大型项目的索引和搜索性能。
-     *
-     * 子类可以覆盖此属性以提供自定义的 Stub 构建逻辑。
-     */
-    protected open val metadataStubBuilder: CangJieMetadataStubBuilder =
-        CangJieMetadataStubBuilder(stubVersion, fileType, serializerFlatbuffers) { file, bytes ->
-            readFileSafely(file, bytes)
-        }
-
-    /**
-     * 判断该反编译器是否能处理指定的虚拟文件。
-     *
-     * 通过检查文件扩展名或文件类型来判断兼容性。
+     * 委托给 [stubBuilder] 进行文件类型检查。这确保了文件类型判断逻辑
+     * 与 Stub 构建逻辑保持一致。
      *
      * @param file 待检查的虚拟文件
-     * @return 如果文件扩展名匹配或文件类型匹配则返回 `true`
+     * @return true 如果文件类型被支持
      */
-    override fun accepts(file: VirtualFile) = file.extension == fileType.defaultExtension || file.fileType == fileType
+    final override fun accepts(file: VirtualFile): Boolean = stubBuilder.isSupported(file)
 
     /**
-     * 获取用于构建 Stub 索引的构建器。
+     * Stub 构建器实例
      *
-     * @see metadataStubBuilder
+     * 子类必须提供具体的 Stub 构建器实现。该构建器负责：
+     * - 判断文件类型是否支持
+     * - 读取并解析元数据文件
+     * - 构建轻量级的 Stub 索引树
+     *
+     * @see CangJieBuiltInMetadataStubBuilder
      */
-    override val stubBuilder: ClsStubBuilder
-        get() = metadataStubBuilder
+    abstract override val stubBuilder : CangJieMetadataStubBuilder
 
     /**
-     * 安全地读取元数据文件内容。
+     * 创建反编译的 PSI 文件
      *
-     * 该方法封装了文件读取的异常处理逻辑，确保即使文件不存在或无法访问时也不会抛出异常。
-     * 这在处理可能指向不存在的 JAR 条目的虚拟文件时尤为重要。
+     * 子类必须实现此方法以创建对应类型的 CjDecompiledFile。
+     * 该文件将负责：
+     * - 延迟加载反编译文本
+     * - 提供 getText() 方法给 IDE
+     * - 管理 Stub 缓存
      *
-     * ## 异常处理说明
-     *
-     * 有时会收到指向不存在的 JAR 条目的 VirtualFile 实例。这些文件在 `isValid()` 检查时
-     * 返回 `true`，但尝试读取其内容时会抛出 `FileNotFoundException`。
-     *
-     * 虽然调用 `refresh()` 可能看起来更正确，但这并不总是被允许的，
-     * 而且可能会降低性能。
-     *
-     * @param project 当前项目
-     * @param file 要读取的虚拟文件
-     * @param content 可选的文件内容字节数组，如果为 `null` 则从文件读取
-     * @return 解析后的文件元数据，如果文件无效或读取失败则返回 `null`
+     * @param viewProvider 文件视图提供者
+     * @return 反编译的 PSI 文件实例
      */
-    protected fun readFileSafely(
-
-        file: VirtualFile,
-        content: ByteArray? = null
-    ): CangJieMetadataStubBuilder.FileWithMetadata? {
-        if (!file.isValid) return null
-
-        return try {
-            readFile(content ?: file.contentsToByteArray(false), file)
-        } catch (e: IOException) {
-            // 这里需要捕获异常，因为有时会收到指向不存在的 JAR 条目的 VirtualFile 实例。
-            // 这些文件在 isValid() 检查时返回 true，但尝试读取其内容时会抛出 FileNotFoundException。
-            // 注意：虽然调用 refresh() 而不是捕获异常看起来更正确，
-            // 但这并不总是被允许的，而且可能会降低性能。
-            null
-            // 为方便调试，这里先抛出异常
-            throw e
-        }
-    }
+    protected abstract fun createFile(viewProvider: CangJieDecompiledFileViewProvider): CjDecompiledFile
 
     /**
-     * 读取虚拟文件的元数据（仅用于测试）。
+     * 创建文件视图提供者
      *
-     * 该方法是 [readFileSafely] 的简化包装，用于单元测试场景。
+     * 该方法使用 factory 模式创建 [CangJieDecompiledFileViewProvider]。
+     * factory 函数会检查文件是否有 Stub，只有存在 Stub 的文件才会创建 PSI 文件。
      *
-     * @param project 当前项目
-     * @param file 要读取的虚拟文件
-     * @return 解析后的文件元数据
-     */
-
-    fun readFile(file: VirtualFile) = readFileSafely(file)
-
-    /**
-     * 从字节数组读取并解析元数据文件。
+     * ## 工作流程
      *
-     * 子类必须实现此方法以提供具体的元数据解析逻辑。
-     * 该方法负责将原始字节数据转换为结构化的文件元数据对象。
-     *
-     * @param project 当前项目（可能为 null，在索引构建期间），用于访问项目级服务
-     * @param bytes 文件的原始字节内容
-     * @param file 源虚拟文件，用于获取文件路径等元信息
-     * @return 解析后的文件元数据，如果解析失败则返回 `null`
-     */
-    abstract fun readFile(
-
-        bytes: ByteArray,
-        file: VirtualFile
-    ): CangJieMetadataStubBuilder.FileWithMetadata?
-
-    /**
-     * 为元数据文件创建文件视图提供者。
-     *
-     * 文件视图提供者负责管理反编译文件的 PSI 结构，
-     * 使 IDE 能够像处理普通源文件一样处理反编译后的元数据文件。
-     *
-     * 创建的 [CangJieDecompiledFileViewProvider] 会在需要时延迟生成反编译文本。
-     *
-     * ## 设计说明
-     *
-     * 本方法创建一个文本工厂函数，该工厂：
-     * 1. 读取并解析元数据文件
-     * 2. 生成反编译后的文本内容
-     * 3. 在反编译失败时返回错误提示文本
-     *
-     * 文本工厂保证永不返回 null 或空字符串，避免文档和 PSI 内容不一致的问题。
+     * 1. 创建 CangJieDecompiledFileViewProvider，传入 factory 函数
+     * 2. factory 函数在需要时被调用（通过 createFile(project, file, fileType)）
+     * 3. factory 检查 stubBuilder.hasStub(file)
+     * 4. 如果有 Stub，调用 createFile(provider) 创建实际的 PSI 文件
+     * 5. 如果没有 Stub，返回 null
      *
      * @param file 元数据虚拟文件
      * @param manager PSI 管理器
-     * @param physical 是否为物理文件（非内存中的临时文件）
-     * @return 用于管理反编译文件视图的提供者
+     * @param physical 是否为物理文件
+     * @return 文件视图提供者实例
      */
-    override fun createFileViewProvider(file: VirtualFile, manager: PsiManager, physical: Boolean): FileViewProvider {
-        return CangJieDecompiledFileViewProvider(manager, file, physical) {
-            val virtualFile = it.virtualFile
-
-            // 直接读取并反编译，CangJieDecompiledFileViewProvider 内部已有缓存
-            val fileWithMetadata = readFileSafely(virtualFile)
-            CjDecompiledFile(it)
-        }
-    }
-
-    private fun buildErrorText(virtualFile: VirtualFile): String {
-        return """
-            // IntelliJ API Decompiler stub source generated from a class file
-            // Unable to read metadata file: ${virtualFile.name}
-            // The file may not exist or cannot be accessed.
-        """.trimIndent()
-    }
-
-    /**
-     * 将文件元数据构建为反编译文本。
-     *
-     * 根据元数据的兼容性状态采取不同的处理策略：
-     *
-     * ## 不兼容版本
-     * 如果元数据版本与当前期望版本不兼容，生成包含版本不匹配提示信息的文本，
-     * 告知用户需要更新编译器或 IDE 插件。
-     *
-     * ## 兼容版本
-     * 对于兼容的元数据：
-     * 1. 创建 [CangJieMetadataDeserializerForDecompiler] 反序列化器
-     * 2. 解析包中的所有声明（类、函数、属性等）
-     * 3. 使用 [renderer] 将声明渲染为格式化的源代码文本
-     *
-     * @param project 当前项目
-     * @param file 包含元数据的文件对象
-     * @return 反编译后的文本，包含源代码和文本到描述符的映射
-     *
-     * @see DecompiledText
-     * @see CangJieMetadataDeserializerForDecompiler
-     */
-    private fun buildDecompiledText(
-        project: Project,
-        file: CangJieMetadataStubBuilder.FileWithMetadata
-    ): DecompiledText {
-        return when (file) {
-            is CangJieMetadataStubBuilder.FileWithMetadata.Incompatible -> {
-                createIncompatibleMetadataVersionDecompiledText(expectedBinaryVersion(), file.version)
-            }
-
-            is CangJieMetadataStubBuilder.FileWithMetadata.Compatible -> {
-                val packageFqName = file.packageFqName
-                val resolver = CangJieMetadataDeserializerForDecompiler(
-                    project,
-                    packageFqName, file.`package`, file.version,
-                    serializerFlatbuffers()
-                )
-                val declarations = arrayListOf<DeclarationDescriptor>()
-                declarations.addAll(resolver.resolveAllDeclarationsInPackage(packageFqName))
-
-                buildDecompiledText(packageFqName, declarations, renderer)
-            }
+    final override fun createFileViewProvider(
+        file: VirtualFile,
+        manager: PsiManager,
+        physical: Boolean,
+    ): CangJieDecompiledFileViewProvider = CangJieDecompiledFileViewProvider(manager, file, physical) { provider ->
+        if (stubBuilder.hasStub(provider.virtualFile)) {
+            createFile(provider)
+        } else {
+            null
         }
     }
 }

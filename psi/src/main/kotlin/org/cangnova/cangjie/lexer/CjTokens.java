@@ -542,20 +542,22 @@ int COALESCING_Id = 110;
     此数组用于存根序列化：
     1.请勿更改顺序。
     2.如果添加条目或变更单，请增加存根版本。
+
+    顺序规则：访问控制修饰符在最前，然后是类/函数特性修饰符，最后是其他修饰符
     */
     CjModifierKeywordToken[] MODIFIER_KEYWORDS_ARRAY =
             new CjModifierKeywordToken[]{
+                    // 访问控制修饰符（最前）
+                    PUBLIC_KEYWORD, PRIVATE_KEYWORD, PROTECTED_KEYWORD, INTERNAL_KEYWORD,
 
-                    ABSTRACT_KEYWORD, OPEN_KEYWORD, OVERRIDE_KEYWORD, PRIVATE_KEYWORD,
-                    PUBLIC_KEYWORD, PROTECTED_KEYWORD, INTERNAL_KEYWORD,
-                    STATIC_KEYWORD,
-                    MUT_KEYWORD,
-                    OPERATOR_KEYWORD,
-                    SEALED_KEYWORD,
+                    // 类/函数特性修饰符
+                    ABSTRACT_KEYWORD, OPEN_KEYWORD, SEALED_KEYWORD, OVERRIDE_KEYWORD, REDEF_KEYWORD,
+
+                    // 其他修饰符
+                    STATIC_KEYWORD, MUT_KEYWORD, OPERATOR_KEYWORD
 //                    CONST_KEYWORD,
 //                    FOREIGN_KEYWORD,
 //                    UNSAFE_KEYWORD,
-                    REDEF_KEYWORD
             };
 
     TokenSet MODIFIER_KEYWORDS =         TokenSet.create(MODIFIER_KEYWORDS_ARRAY  );

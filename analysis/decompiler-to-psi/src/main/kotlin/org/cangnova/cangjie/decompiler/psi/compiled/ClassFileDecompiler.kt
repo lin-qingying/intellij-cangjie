@@ -27,12 +27,15 @@ package org.cangnova.cangjie.decompiler.psi.compiled
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileTypes.BinaryFileDecompiler
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 
+val defaultProject get() = ProjectManager.getInstance().defaultProject
+
 class ClassFileDecompiler : BinaryFileDecompiler {
     override fun decompile(file: VirtualFile): CharSequence {
-        val project = ProjectUtil.getActiveProject() ?: return ""
+        val project = ProjectUtil.getActiveProject() ?: defaultProject
         val decompiler: ClassFileDecompilers.Decompiler = ClassFileDecompilers.instance.find(
             file,
             ClassFileDecompilers.Decompiler::class.java,
