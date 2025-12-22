@@ -206,6 +206,7 @@ class OverloadResolver(
         // 用于跟踪已经观察到的全限定名，以避免重复处理
         val observedFQNs = hashSetOf<FqNameUnsafe>()
         for (descriptor in interestingDescriptors) {
+            if (descriptor.containingDeclaration !is PackageFragmentDescriptor) continue
 
 
             val descriptorFQN = DescriptorUtils.getFqName(descriptor)

@@ -115,7 +115,10 @@
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
-
+        <registryKey key="org.cangnova.cangjie.analysis"
+                     defaultValue="true"
+                     description="Enable experimental static analysis and semantic highlighting features (development mode)"
+                     restartRequired="false"/>
         <!-- 模块信息提供者服务 -->
         <projectService
                 serviceInterface="org.cangnova.cangjie.moduleinfo.provider.ModuleInfoProvider"

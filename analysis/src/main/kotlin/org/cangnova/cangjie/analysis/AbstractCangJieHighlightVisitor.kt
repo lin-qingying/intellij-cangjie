@@ -34,6 +34,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.resolve.FileContextUtil
@@ -68,6 +69,11 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
         holder: HighlightInfoHolder,
         action: Runnable
     ): Boolean {
+        // 检查实验性静态分析功能是否启用
+        if (!Registry.`is`("org.cangnova.cangjie.analysis")) {
+            action.run()
+            return true
+        }
 
         val file = psiFile as? CjFile ?: return false
         val highlightingLevelManager = HighlightingLevelManager.getInstance(file.project)

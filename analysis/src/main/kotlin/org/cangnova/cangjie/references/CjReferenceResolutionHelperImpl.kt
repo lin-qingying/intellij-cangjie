@@ -35,6 +35,7 @@ import org.cangnova.cangjie.resolve.caches.resolveImportReference
 import org.cangnova.cangjie.resolve.caches.safeAnalyzeNonSourceRootCode
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.lexer.cdoc.psi.impl.CDocLink
@@ -45,9 +46,15 @@ import org.cangnova.cangjie.resolve.caches.safeAnalyze
 
 
 class CjReferenceResolutionHelperImpl : CjReferenceResolutionHelper {
-    override fun partialAnalyze(element: CjElement): BindingContext = element.safeAnalyzeNonSourceRootCode(
-        BodyResolveMode.PARTIAL
-    )
+    override fun partialAnalyze(element: CjElement): BindingContext {
+        // 检查实验性静态分析功能是否启用
+        if (!Registry.`is`("org.cangnova.cangjie.analysis")) {
+            return BindingContext.EMPTY
+        }
+        return element.safeAnalyzeNonSourceRootCode(
+            BodyResolveMode.PARTIAL
+        )
+    }
 
     override fun resolveImportReference(file: CjFile, fqName: FqName): Collection<DeclarationDescriptor> =
         file.resolveImportReference(fqName)

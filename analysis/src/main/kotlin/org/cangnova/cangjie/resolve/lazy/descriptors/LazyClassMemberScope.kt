@@ -366,23 +366,11 @@ open class LazyClassMemberScope(
 
     }
 
-    private val enumEntryPrimaryConstructor: NullableLazyValue<ClassConstructorDescriptor> =
-        c.storageManager.createNullableLazyValue { resolveEnumEntryPrimaryConstructor() }
 
     private val primaryConstructor: NullableLazyValue<ClassConstructorDescriptor> =
         c.storageManager.createNullableLazyValue { resolvePrimaryConstructor() }
 
-    protected fun resolveEnumEntryPrimaryConstructor(): ClassConstructorDescriptor {
-        val enumEntry = declarationProvider.correspondingClassOrObject as CjEnumEntry
 
-        val descriptor = c.enumDescriptorResolver.resolbeEnumEntryConstructorDescriptor(
-            thisDescriptor.scopeForConstructorHeaderResolution, thisDescriptor,
-            enumEntry, trace, c.languageVersionSettings, c.inferenceSession
-        )
-        setDeferredReturnType(descriptor)
-        return descriptor
-
-    }
 
     protected open fun resolvePrimaryConstructor(): ClassConstructorDescriptor? {
         val classOrObject = declarationProvider.correspondingClassOrObject ?: return null
@@ -474,15 +462,10 @@ open class LazyClassMemberScope(
         return result
     }
 
-    //    主构造函数
-    fun getEnumEntryPrimaryConstructor(): ClassConstructorDescriptor? =
-        (mainScope as LazyClassMemberScope?)?.enumEntryPrimaryConstructor?.invoke() ?: enumEntryPrimaryConstructor()
 
     //    主构造函数
     fun getPrimaryConstructor(): ClassConstructorDescriptor? {
-        if (DescriptorUtils.isEnumEntry(thisDescriptor)) {
-            return getEnumEntryPrimaryConstructor()
-        }
+
 
         return (mainScope as LazyClassMemberScope?)?.primaryConstructor?.invoke() ?: primaryConstructor()
     }
