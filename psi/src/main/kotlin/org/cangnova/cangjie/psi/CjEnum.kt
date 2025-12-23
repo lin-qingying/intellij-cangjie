@@ -46,7 +46,7 @@ class CjEnum : CjTypeStatement {
         return getStubOrPsiChild(ENUM_BODY)
     }
 
-    val entry: List<CjEnumEntry>
+    val entry: List<CjEnumConstructor>
         get() {
             return body?.entrys ?: emptyList()
         }

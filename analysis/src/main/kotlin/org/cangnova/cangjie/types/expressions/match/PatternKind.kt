@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.types.expressions.match
 
 import org.cangnova.cangjie.psi.CjEnum
-import org.cangnova.cangjie.psi.CjEnumEntry
+import org.cangnova.cangjie.psi.CjEnumConstructor
 import org.cangnova.cangjie.resolve.constants.ConstantValue
 import org.cangnova.cangjie.types.CangJieType
 
@@ -78,7 +78,7 @@ sealed class PatternKind {
     /**
      * 枚举模式
      */
-    data class Enum(val enum: CjEnum, val entry: CjEnumEntry, val subPatterns: List<Pattern>) : PatternKind() {
+    data class Enum(val enum: CjEnum, val entry: CjEnumConstructor, val subPatterns: List<Pattern>) : PatternKind() {
         override fun showString(): String {
 
             val str = StringBuilder()

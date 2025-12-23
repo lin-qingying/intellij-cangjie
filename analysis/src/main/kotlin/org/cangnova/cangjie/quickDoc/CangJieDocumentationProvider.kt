@@ -40,10 +40,8 @@ import com.intellij.psi.PsiDocCommentBase
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.FrontendInternals
-import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.lexer.cdoc.CDocTemplate
@@ -59,7 +57,6 @@ import org.cangnova.cangjie.quickDoc.cdoc.CDocRenderer.createHighlightingManager
 import org.cangnova.cangjie.quickDoc.cdoc.CDocRenderer.highlight
 import org.cangnova.cangjie.quickDoc.cdoc.CDocRenderer.renderCDoc
 import org.cangnova.cangjie.quickDoc.cdoc.CangJieIdeDescriptorRenderer
-import org.cangnova.cangjie.quickDoc.cdoc.ClassifierNamePolicyEx
 import org.cangnova.cangjie.quickDoc.cdoc.findCDoc
 import org.cangnova.cangjie.references.mainReference
 import org.cangnova.cangjie.references.resolveCDocLink
@@ -74,9 +71,6 @@ import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
 import org.cangnova.cangjie.resolve.deprecation.deprecatedByAnnotationReplaceWithExpression
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.resolve.source.getPsi
-import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.fqNameUnsafe
-import org.cangnova.cangjie.types.isDefinitelyNonOptionType
 import org.cangnova.cangjie.utils.safeAs
 import org.jetbrains.annotations.Nls
 import java.util.function.Consumer
@@ -802,7 +796,7 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
          * - **CjVArrayType**: 值数组类型
          * - **CjBasicType**: 基本类型
          * - **CjEnum**: 枚举类（包括特殊函数处理）
-         * - **CjEnumEntry**: 枚举条目（显示序号信息）
+         * - **CjEnumConstructor**: 枚举条目（显示序号信息）
          * - **CjDeclaration**: 一般声明（类、函数、属性等）
          * - **CjValueArgumentList**: 参数列表（解析到被调用的函数/构造器）
          * - **CjCallExpression**: 调用表达式（解析到被调用的元素）
@@ -850,9 +844,9 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                 // When caret on special enum function (e.g. SomeEnum.values<caret>())
                 // element is not an CjReferenceExpression, but CjClass of enum
                 return renderEnum(element, originalElement, quickNavigation)
-            } else if (element is CjEnumEntry && !quickNavigation) {
+            } else if (element is CjEnumConstructor && !quickNavigation) {
                 val ordinal =
-                    element.containingTypeStatement?.body?.run { getChildrenOfType<CjEnumEntry>().indexOf(element) }
+                    element.containingTypeStatement?.body?.run { getChildrenOfType<CjEnumConstructor>().indexOf(element) }
 
                 val project = element.project
                 @Suppress("HardCodedStringLiteral")

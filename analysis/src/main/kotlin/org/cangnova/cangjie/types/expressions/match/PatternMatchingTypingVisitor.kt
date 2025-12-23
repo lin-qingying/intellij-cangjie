@@ -1034,7 +1034,7 @@ TODO("")
 //            val enumEntry =
 //                data.context.trace[REFERENCE_TARGET, expression?.referenceExpression()!!]
 //            val enumEntrySource =
-//                enumEntry?.sourceElement?.getPsi() as? CjEnumEntry
+//                enumEntry?.sourceElement?.getPsi() as? CjEnumConstructor
 //                    ?: return returnResult(
 //                        element, data, Pattern(typeInfo.type, PatternKind.Error)
 //                    )
@@ -1204,7 +1204,7 @@ TODO("")
                     val enumEntry =
                         data.context.trace[REFERENCE_TARGET, expression?.referenceExpression()!!]
                     val enumEntrySource =
-                        enumEntry?.sourceElement?.getPsi() as? CjEnumEntry
+                        enumEntry?.sourceElement?.getPsi() as? CjEnumConstructor
                             ?: return returnResult(
                                 element, data, Pattern(typeInfo.type, PatternKind.Error)
                             )
@@ -1917,7 +1917,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
         }
         val kind = when (classDescriptor) {
             is ClassDescriptor -> classDescriptor.kind
-//            is EnumEntryConstructorDescriptor -> ClassKind.ENUM_ENTRY
+//            is EnumEntryConstructorDescriptor -> ClassKind.ENUM_CONSTRUCTOR
             is TupleConstructor -> ClassKind.TUPLE
             else -> {
                 error("Unexpected class descriptor")

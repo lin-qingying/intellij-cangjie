@@ -143,7 +143,7 @@ public interface CjNodeTypes {
 
     IElementType EXTEND = CjStubElementTypes.EXTEND;
     IElementType ENUM_BODY = CjStubElementTypes.ENUM_BODY;
-    IElementType ENUM_ENTRY = CjStubElementTypes.ENUM_ENTRY;
+    IElementType ENUM_CONSTRUCTOR= CjStubElementTypes.ENUM_CONSTRUCTOR;
 
     IElementType TYPE_LIST = CjStubElementTypes.TYPE_LIST;
     IElementType SUPER_TYPE_LIST = CjStubElementTypes.SUPER_TYPE_LIST;

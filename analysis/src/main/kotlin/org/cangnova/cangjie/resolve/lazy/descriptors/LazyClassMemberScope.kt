@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.resolve.lazy.descriptors
 
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.descriptors.impl.AbstractClassDescriptor
 import org.cangnova.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.FunctionDescriptorImpl
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
@@ -39,7 +38,6 @@ import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.incremental.record
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjDeclaration
-import org.cangnova.cangjie.psi.CjEnumEntry
 import org.cangnova.cangjie.psi.CjTypeStatement
 import org.cangnova.cangjie.resolve.*
 import org.cangnova.cangjie.resolve.binding.BindingContext

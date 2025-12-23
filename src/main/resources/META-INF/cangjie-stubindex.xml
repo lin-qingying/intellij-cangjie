@@ -52,7 +52,8 @@
         <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieOverridableInternalMembersShortNameIndex"/>
         <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieExactPackagesIndex"/>
         <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieClassShortNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieEnumEntryShortNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieEnumConstructorShortNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieEnumConstructorByEnumTypeIndex"/>
 
         <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieSuperClassIndex"/>
         <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTopLevelTypeAliasFqNameIndex"/>

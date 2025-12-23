@@ -458,7 +458,7 @@ protected constructor(
 //                    result.add(LazyEnumDescriptor(c, it, thisDescriptor, name))
 //                }
 //
-//                ClassKind.ENUM_ENTRY -> {
+//                ClassKind.ENUM_CONSTRUCTOR -> {
 //                    result.add(
 //                        c.enumDescriptorResolver.resolveEnumEntryDescriptor(
 //                            c, thisDescriptor, name, it as CjEnmuEntryInfo, isExternal

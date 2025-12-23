@@ -26,7 +26,7 @@ package org.cangnova.cangjie.psi.psiUtil
 
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.psi.CjClassLikeDeclaration
-import org.cangnova.cangjie.psi.CjEnumEntry
+import org.cangnova.cangjie.psi.CjEnumConstructor
 import org.cangnova.cangjie.psi.stubs.CangJieClassifierStub
 import org.cangnova.cangjie.psi.stubs.CangJieFileStub
 import org.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
@@ -151,7 +151,7 @@ object StubUtils {
         // 场景 2：嵌套类（但不是枚举条目）
         parentStub is CangJiePlaceHolderStub<*> && parentStub.stubType == CjStubElementTypes.CLASS_BODY -> {
             val containingClassStub = parentStub.parentStub as? CangJieClassifierStub
-            if (containingClassStub != null && currentDeclaration !is CjEnumEntry) {
+            if (containingClassStub != null && currentDeclaration !is CjEnumConstructor) {
                 containingClassStub.getClassId()?.createNestedClassId(currentDeclaration.nameAsSafeName)
             } else {
                 null

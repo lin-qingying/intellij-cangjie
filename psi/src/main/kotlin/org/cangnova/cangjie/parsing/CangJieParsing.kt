@@ -2496,7 +2496,7 @@ class CangJieParsing private constructor(
             expect(RPAR, "Expecting ')'")
         }
 
-        entry?.done(ENUM_ENTRY)
+        entry?.done(ENUM_CONSTRUCTOR)
         return true
     }
 

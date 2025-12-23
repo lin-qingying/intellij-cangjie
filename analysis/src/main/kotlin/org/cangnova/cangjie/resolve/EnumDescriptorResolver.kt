@@ -27,23 +27,15 @@ package org.cangnova.cangjie.resolve
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.ClassDescriptor
-import org.cangnova.cangjie.descriptors.DeclarationDescriptor
-import org.cangnova.cangjie.descriptors.PackageFragmentDescriptor
-import org.cangnova.cangjie.descriptors.data.CjEnmuEntryInfo
 import org.cangnova.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
-import org.cangnova.cangjie.incremental.components.NoLookupLocation
-import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.psi.CjEnum
-import org.cangnova.cangjie.psi.CjEnumEntry
+import org.cangnova.cangjie.psi.CjEnumConstructor
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.components.InferenceSession
-import org.cangnova.cangjie.resolve.lazy.LazyClassContext
 
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.LexicalScopeKind
 import org.cangnova.cangjie.resolve.scopes.LexicalWritableScope
 import org.cangnova.cangjie.resolve.scopes.LocalRedeclarationChecker
-import org.cangnova.cangjie.resolve.source.toSourceElement
 import org.cangnova.cangjie.storage.StorageManager
 
 class EnumDescriptorResolver(
@@ -55,7 +47,7 @@ class EnumDescriptorResolver(
     fun resolbeEnumEntryConstructorDescriptor(
         scope: LexicalScope,
         classDescriptor: ClassDescriptor,
-        entry: CjEnumEntry,
+        entry: CjEnumConstructor,
         trace: BindingTrace,
         languageVersionSettings: LanguageVersionSettings,
         inferenceSession: InferenceSession?,

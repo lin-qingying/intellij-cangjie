@@ -270,12 +270,27 @@ internal class IdeStubIndexService : StubIndexService() {
         }
     }
 
-    override fun indexEnumEntry(stub: CangJieEnumEntryStub, sink: IndexSink) {
-        processNames(sink, stub.name, stub.getFqName() /*, stub.isTopLevel()*/)
-        indexSuperNames(stub, sink)
+    override fun indexEnumEntry(stub: CangJieEnumConstructorStub, sink: IndexSink) {
+        // ❌ 移除：不再将枚举构造器当作类处理
+        // processNames(sink, stub.name, stub.getFqName())
 
+        // ❌ 移除：构造器没有父类关系
+        // indexSuperNames(stub, sink)
+
+        // ✅ 保留：索引到枚举构造器专用索引
+        val name = stub.name
+        if (name != null) {
+            sink.occurrence(CangJieEnumConstructorShortNameIndex.indexKey, name)
+        }
+
+        // ✅ 新增：按枚举类型索引
+        val parentEnumFqName = stub.getParentEnumFqName()
+        if (parentEnumFqName != null) {
+            sink.occurrence(CangJieEnumConstructorByEnumTypeIndex.indexKey, parentEnumFqName.asString())
+        }
+
+        // ✅ 保留：prime 索引
         indexPrime(stub, sink)
-        sink.occurrence(CangJieEnumEntryShortNameIndex.indexKey, stub.name ?: "")
     }
 
     override fun indexEnum(stub: CangJieEnumStub, sink: IndexSink) {

@@ -49,7 +49,7 @@ private class Visitor(var range: TextRange) : CjTreeVisitorUnit() {
         var delta = 0
 
         val psiFactory = CjPsiFactory(cjlass.project)
-        if (declaration is CjEnumEntry) {
+        if (declaration is CjEnumConstructor) {
             val comma = psiFactory.createComma()
 
             val nextEntry = declaration.nextSiblingOfSameType()
@@ -58,7 +58,7 @@ private class Visitor(var range: TextRange) : CjTreeVisitorUnit() {
                 delta += comma.textLength
             }
         } else {
-            val lastEntry = cjlass.declarations.lastIsInstanceOrNull<CjEnumEntry>()
+            val lastEntry = cjlass.declarations.lastIsInstanceOrNull<CjEnumConstructor>()
             if (lastEntry != null &&
                 (lastEntry.containsToken(CjTokens.SEMICOLON) || lastEntry.nextSibling?.node?.elementType == CjTokens.SEMICOLON)
             ) return

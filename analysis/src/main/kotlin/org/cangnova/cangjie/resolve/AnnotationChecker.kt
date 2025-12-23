@@ -154,8 +154,8 @@ enum class CangJieTarget(val description: String, val isDefault: Boolean = true)
         "enum entry",
         false
     ),
-    PROPERTY("property"),                      // includes *_PROPERTY (with and without backing field), PROPERTY_PARAMETER, ENUM_ENTRY
-    VARIABLE("variable"),                      // includes *_PROPERTY (with and without backing field), PROPERTY_PARAMETER, ENUM_ENTRY
+    PROPERTY("property"),                      // includes *_PROPERTY (with and without backing field), PROPERTY_PARAMETER, ENUM_CONSTRUCTOR
+    VARIABLE("variable"),                      // includes *_PROPERTY (with and without backing field), PROPERTY_PARAMETER, ENUM_CONSTRUCTOR
     TYPEALIAS("typealias", false), DESTRUCTURING_DECLARATION(
         "destructuring declaration",
         false
@@ -163,7 +163,7 @@ enum class CangJieTarget(val description: String, val isDefault: Boolean = true)
     EXPRESSION("expression", false),           // includes FUNCTION_LITERAL, OBJECT_LITERAL
     FIELD("field"),
 
-    LOCAL_VARIABLE("local variable"),// includes MEMBER_PROPERTY_WITH_FIELD, TOP_LEVEL_PROPERTY_WITH_FIELD, PROPERTY_PARAMETER, ENUM_ENTRY
+    LOCAL_VARIABLE("local variable"),// includes MEMBER_PROPERTY_WITH_FIELD, TOP_LEVEL_PROPERTY_WITH_FIELD, PROPERTY_PARAMETER, ENUM_CONSTRUCTOR
     INITIALIZER("initializer", false), VALUE_PARAMETER("value parameter"), MEMBER_VARIABLE(
         "member variable",
         false

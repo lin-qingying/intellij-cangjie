@@ -122,7 +122,7 @@ import org.cangnova.cangjie.psi.stubs.impl.*
  * 枚举类型需要额外处理：
  * 1. 创建 [CjEnumBody] 而不是 [CjClassBody]
  * 2. 调用 [createEnumEntryStubs] 创建所有枚举项
- * 3. 枚举项使用 [CangJieEnumEntryStubImpl]
+ * 3. 枚举项使用 [CangJieEnumConstructorStubImpl]
  *
  * ## 本地类降级
  *
@@ -420,14 +420,21 @@ class ClassClsStubBuilder(
     ) {
         val entryName = entry.name
         val fqName = context.containerFqName.child(entryName)
+        val parentEnumFqName = context.containerFqName
 
-        CangJieEnumEntryStubImpl(
-            CjStubElementTypes.ENUM_ENTRY,
+        // 提取参数信息（如果元数据中有）
+        val parameterCount = 0  // TODO: 从 entry 中提取实际参数数量
+        val parameterTypeNames = emptyList<String>()  // TODO: 从 entry 中提取实际参数类型
+
+        CangJieEnumConstructorStubImpl(
+            CjStubElementTypes.ENUM_CONSTRUCTOR,
             parent,
-            fqName.ref(),
-            fqName.ref(),
+            fqName.ref(),              // 枚举条目 FQN
+            parentEnumFqName.ref(),    // 父枚举 FQN
             classId = null,
             name = entryName.ref(),
+            parameterCount,            // 参数数量
+            parameterTypeNames,        // 参数类型名称
             isLocal = false
         )
     }

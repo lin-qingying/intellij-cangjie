@@ -698,7 +698,7 @@ abstract class CangJieCommonBlock(
 
 //            elementType === CLASS_BODY -> return getWrappingStrategyForItemList(
 //                commonSettings.ENUM_CONSTANTS_WRAP,
-//                ENUM_ENTRY
+//                ENUM_CONSTRUCTOR
 //            )
 
             elementType === MODIFIER_LIST -> {
@@ -730,7 +730,7 @@ abstract class CangJieCommonBlock(
             elementType === VALUE_PARAMETER -> return wrapAfterAnnotation(commonSettings.PARAMETER_ANNOTATION_WRAP)
 
             nodePsi is CjEnumBody -> return getWrappingStrategyForEnum(commonSettings.ENUM_CONSTANTS_WRAP)
-//                return getWrappingStrategyForItemList(commonSettings.ENUM_CONSTANTS_WRAP, ENUM_ENTRY)
+//                return getWrappingStrategyForItemList(commonSettings.ENUM_CONSTANTS_WRAP, ENUM_CONSTRUCTOR)
 
             //TODO 别名
             nodePsi is CjTypeStatement -> return wrapAfterAnnotation(commonSettings.CLASS_ANNOTATION_WRAP)
@@ -1061,12 +1061,12 @@ private fun getWrappingStrategyForEnum(
 
 
         additionalWrap?.invoke(childElement)
-            ?: if (childElement.elementType == ENUM_ENTRY && (childElement.prev()?.elementType == OR || childElement.prev()
+            ?: if (childElement.elementType == ENUM_CONSTRUCTOR && (childElement.prev()?.elementType == OR || childElement.prev()
                     ?.prev()?.elementType == OR)
             ) {
 //                Wrap.createWrap(CommonCodeStyleSettings.DO_NOT_WRAP, wrapFirstElement)
 //                if (childElement.elementType == OR) {
-//                    if (childElement.treeNext.elementType == WHITE_SPACE && childElement.treeNext.treeNext.elementType == ENUM_ENTRY) {
+//                    if (childElement.treeNext.elementType == WHITE_SPACE && childElement.treeNext.treeNext.elementType == ENUM_CONSTRUCTOR) {
 //                        val psi = childElement.treePrev.psi
 ////                WriteCommandAction.runWriteCommandAction(psi.project, Runnable {
 //                        // 在这里修改 PSI 元素的文本
@@ -1081,8 +1081,8 @@ private fun getWrappingStrategyForEnum(
 //                }
                 null
 
-            }/* if (childElement.elementType == OR && (childElement.treeNext?.elementType == ENUM_ENTRY || childElement.treeNext
-                     ?.treeNext?.elementType == ENUM_ENTRY) ) {
+            }/* if (childElement.elementType == OR && (childElement.treeNext?.elementType == ENUM_CONSTRUCTOR || childElement.treeNext
+                     ?.treeNext?.elementType == ENUM_CONSTRUCTOR) ) {
                  Wrap.createWrap(CommonCodeStyleSettings.DO_NOT_WRAP, wrapFirstElement)
 
              }*/ else {
@@ -1093,7 +1093,7 @@ private fun getWrappingStrategyForEnum(
 
 
 //           如果第一个枚举没有 | 也换行
-                    if (childElement.elementType == ENUM_ENTRY && (childElement.prev()?.elementType == LBRACE || childElement.prev()
+                    if (childElement.elementType == ENUM_CONSTRUCTOR && (childElement.prev()?.elementType == LBRACE || childElement.prev()
                             ?.prev()?.elementType == LBRACE)
                     ) {
                         itemWrap

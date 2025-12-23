@@ -31,7 +31,7 @@ public interface CjStubElementTypes {
 
     CjScriptElementType CJ_SCRIPT = new CjScriptElementType("CJ_SCRIPT");
 
-    CjEnumEntryElementType ENUM_ENTRY = new CjEnumEntryElementType("ENUM_ENTRY");
+    CjEnumConstructorElementType ENUM_CONSTRUCTOR = new CjEnumConstructorElementType("ENUM_CONSTRUCTOR");
 
     CjClassElementType CLASS = new CjClassElementType("CLASS");
     CjFunctionElementType FUNCTION = new CjFunctionElementType("FUNC");
@@ -203,8 +203,8 @@ public interface CjStubElementTypes {
             new CjPlaceHolderStubElementType<>("PROPERTY_SET", CjPropertySet.class);
 
 
-    CjPlaceHolderStubElementType<CjEnumEntryTypeEntry> TYPE_LIST =
-            new CjPlaceHolderStubElementType<>("TYPE_LIST", CjEnumEntryTypeEntry.class);
+    CjPlaceHolderStubElementType<CjEnumConstructorTypeEntry> TYPE_LIST =
+            new CjPlaceHolderStubElementType<>("TYPE_LIST", CjEnumConstructorTypeEntry.class);
 
 
 //    CjImportDirectiveItemElementType IMPORT_DIRECTIVE_ITEM = new CjImportDirectiveItemElementType("IMPORT_DIRECTIVE_ITEM");

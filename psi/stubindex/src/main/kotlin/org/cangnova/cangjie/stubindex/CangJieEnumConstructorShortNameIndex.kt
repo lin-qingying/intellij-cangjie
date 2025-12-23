@@ -28,29 +28,24 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StringStubIndexExtension
 import com.intellij.psi.stubs.StubIndexKey
-import org.cangnova.cangjie.psi.CjEnumEntry
+import org.cangnova.cangjie.psi.CjEnumConstructor
 
-class CangJieEnumEntryShortNameIndex internal constructor() : StringStubIndexExtension<CjEnumEntry>() {
-    companion object Helper : CangJieStringStubIndexHelper<CjEnumEntry>(CjEnumEntry::class.java) {
-        @JvmStatic
-        @Suppress("DeprecatedCallableAddReplaceWith")
-        @Deprecated("Use the Helper object instead", level = DeprecationLevel.ERROR)
-        fun getInstance(): CangJieEnumEntryShortNameIndex {
-            return CangJieEnumEntryShortNameIndex()
-        }
-
-        @JvmField
-        @Deprecated("Use the Helper object instead", level = DeprecationLevel.ERROR)
-        val INSTANCE: CangJieEnumEntryShortNameIndex = CangJieEnumEntryShortNameIndex()
-
-        override val indexKey: StubIndexKey<String, CjEnumEntry> =
-            StubIndexKey.createIndexKey(CangJieEnumEntryShortNameIndex::class.java.simpleName)
+/**
+ * 枚举构造器按名称索引
+ *
+ * 用于按构造器名称快速查找枚举条目。
+ * 注意：同名但参数不同的构造器都会被索引到同一个名称下。
+ */
+class CangJieEnumConstructorShortNameIndex internal constructor() : StringStubIndexExtension<CjEnumConstructor>() {
+    companion object Helper : CangJieStringStubIndexHelper<CjEnumConstructor>(CjEnumConstructor::class.java) {
+        override val indexKey: StubIndexKey<String, CjEnumConstructor> =
+            StubIndexKey.createIndexKey(CangJieEnumConstructorShortNameIndex::class.java.simpleName)
     }
 
-    override fun getKey(): StubIndexKey<String, CjEnumEntry> = indexKey
+    override fun getKey(): StubIndexKey<String, CjEnumConstructor> = indexKey
 
-    @Deprecated("Base method is deprecated", ReplaceWith("CangJieEnumEntryShortNameIndex[key, project, scope]"))
-    override fun get(shortName: String, project: Project, scope: GlobalSearchScope): Collection<CjEnumEntry> {
+    @Deprecated("Base method is deprecated", ReplaceWith("CangJieEnumConstructorShortNameIndex[key, project, scope]"))
+    override fun get(shortName: String, project: Project, scope: GlobalSearchScope): Collection<CjEnumConstructor> {
         return Helper[shortName, project, scope]
     }
 }

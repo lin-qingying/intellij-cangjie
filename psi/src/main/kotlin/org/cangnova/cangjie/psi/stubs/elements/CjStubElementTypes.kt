@@ -49,7 +49,7 @@
 //    val TYPEALIAS: CjTypeAliasElementType = CjTypeAliasElementType("TYPEALIAS")
 //
 //    @JvmField
-//    val ENUM_ENTRY: CjClassElementType = CjClassElementType("ENUM_ENTRY")
+//    val ENUM_CONSTRUCTOR: CjClassElementType = CjClassElementType("ENUM_CONSTRUCTOR")
 //
 //    @JvmField
 //    val CLASS_INITIALIZER: CjPlaceHolderStubElementType<CjClassInitializer> = CjPlaceHolderStubElementType(

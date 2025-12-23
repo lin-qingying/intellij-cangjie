@@ -279,7 +279,7 @@ class DescriptorResolver(
             return builtIns.stdlibTypes.objectType
         }
 
-        //        if (classDescriptor.getKind() == ClassKind.ENUM_ENTRY) {
+        //        if (classDescriptor.getKind() == ClassKind.ENUM_CONSTRUCTOR) {
 //            return ((ClassDescriptor) classDescriptor.getContainingDeclaration()).getDefaultType();
 //        } else if (classDescriptor.getKind() == ClassKind.CLASS) {
 //            return builtIns.getObjectType();

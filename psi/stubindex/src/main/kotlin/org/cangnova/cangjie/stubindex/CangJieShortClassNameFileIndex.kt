@@ -29,7 +29,7 @@ import com.intellij.util.indexing.impl.CollectionDataExternalizer
 import com.intellij.util.io.EnumeratorStringDescriptor
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType
-import org.cangnova.cangjie.psi.CjEnumEntry
+import org.cangnova.cangjie.psi.CjEnumConstructor
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjTreeVisitorUnit
 import org.cangnova.cangjie.psi.CjTypeStatement
@@ -76,7 +76,7 @@ class CangJieShortClassNameFileIndex : FileBasedIndexExtension<String, Collectio
             is CangJieFileType -> {
                 val cjFile = fileContent.psiFile as? CjFile ?: return@DataIndexer emptyMap()
                 cjFile.acceptChildren(object : CjTreeVisitorUnit() {
-                    override fun visitEnumEntry(enumEntry: CjEnumEntry) {
+                    override fun visitEnumEntry(enumEntry: CjEnumConstructor) {
                         add(enumEntry.name, enumEntry.safeFqNameForLazyResolve()?.asString())
                         super.visitEnumEntry(enumEntry)
                     }

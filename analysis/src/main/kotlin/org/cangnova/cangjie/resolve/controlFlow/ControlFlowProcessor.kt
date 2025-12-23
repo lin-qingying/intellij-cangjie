@@ -1466,7 +1466,7 @@ class ControlFlowProcessor(
 //            if (cclass.isEnum()) {
 //                cclass.declarations.forEach {
 //                    when (it) {
-//                        is CjEnumEntry -> {
+//                        is CjEnumConstructor -> {
 //                            processEntryOrObject(it)
 //                        }
 //

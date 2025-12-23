@@ -342,13 +342,13 @@ fun isComment(element: PsiElement): Boolean {
     return CommentUtilCore.isComment(element)
 }
 
-fun CjEnumEntry.safeFqNameForLazyResolveByParent(): FqName? {
+fun CjEnumConstructor.safeFqNameForLazyResolveByParent(): FqName? {
     // 应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
     val parentFqName = (this.parent?.parent as CjEnum).safeFqNameForLazyResolve()
     return parentFqName?.child(safeNameForLazyResolve())
 }
 
-fun CjEnumEntry.safeFqNameForLazyResolve(): FqName? {
+fun CjEnumConstructor.safeFqNameForLazyResolve(): FqName? {
     // 应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
     val parentFqName = CjNamedDeclarationUtil.getParentFqName(this.parent?.parent as CjEnum)
     return parentFqName?.child(safeNameForLazyResolve())

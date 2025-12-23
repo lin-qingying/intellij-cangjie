@@ -26,43 +26,48 @@ package org.cangnova.cangjie.psi.stubs.impl
 import org.cangnova.cangjie.name.*
 
 import org.cangnova.cangjie.name.ClassId
-import org.cangnova.cangjie.psi.CjEnumEntry
-import org.cangnova.cangjie.psi.stubs.CangJieEnumEntryStub
-import org.cangnova.cangjie.psi.stubs.elements.CjEnumEntryElementType
+import org.cangnova.cangjie.psi.CjEnumConstructor
+import org.cangnova.cangjie.psi.stubs.CangJieEnumConstructorStub
+import org.cangnova.cangjie.psi.stubs.elements.CjEnumConstructorElementType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 
-open class CangJieEnumEntryStubImpl(
-    type: CjEnumEntryElementType,
+/**
+ * 枚举构造器的 Stub 实现
+ *
+ * 根据仓颉语言规范，枚举条目是构造器，不是类型声明。
+ * 此实现不再继承 CangJieStubBaseImpl<CjEnumConstructor>，而是直接实现接口。
+ */
+open class CangJieEnumConstructorStubImpl(
+    type: CjEnumConstructorElementType,
     parent: StubElement<out PsiElement>?,
-    val qualifiedNameByParent: StringRef?, // 枚举值对于enum声明的名称
-    val qualifiedNameByPackage: StringRef?, // 枚举值对于包声明的名称
+    private val fqName: StringRef?,           // 枚举条目的完全限定名 (例如: com.example.Color.Red)
+    private val parentEnumFqName: StringRef?,  // 父枚举的完全限定名 (例如: com.example.Color)
     private val classId: ClassId?,
     private val name: StringRef?,
-
-//    private val isInterface: Boolean,
-
+    private val parameterCount: Int,           // 参数数量(用于区分重载)
+    private val parameterTypeNames: List<String>, // 参数类型名称列表
     private val isLocal: Boolean,
-//    private val isTopLevel: Boolean,
-) : CangJieStubBaseImpl<CjEnumEntry>(parent, type), CangJieEnumEntryStub {
+) : CangJieStubBaseImpl<CjEnumConstructor>(parent, type), CangJieEnumConstructorStub {
 
     override fun getFqName(): FqName? {
-        val stringRef = StringRef.toString(qualifiedNameByParent) ?: return null
-        return FqName(stringRef)
-    }
-    override val fqNameByPackage: FqName?get() {
-        val stringRef = StringRef.toString(qualifiedNameByPackage) ?: return null
+        val stringRef = StringRef.toString(fqName) ?: return null
         return FqName(stringRef)
     }
 
-//    override fun isInterface() = isInterface
+    override fun getParentEnumFqName(): FqName? {
+        val stringRef = StringRef.toString(parentEnumFqName) ?: return null
+        return FqName(stringRef)
+    }
+
+    override fun getParameterCount(): Int = parameterCount
+
+    override fun getParameterTypeNames(): List<String> = parameterTypeNames
 
     override fun isLocal() = isLocal
+
     override fun getName() = StringRef.toString(name)
 
-    override fun getSuperNames(): List<String> = emptyList()
     override fun getClassId(): ClassId? = classId
-
-//    override fun isTopLevel() = isTopLevel
 }

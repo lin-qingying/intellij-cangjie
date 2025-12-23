@@ -25,23 +25,46 @@
 package org.cangnova.cangjie.descriptors.data
 
 import org.cangnova.cangjie.descriptors.ClassKind
-import org.cangnova.cangjie.psi.CjEnumEntry
-import org.cangnova.cangjie.psi.CjTypeParameterList
-import org.cangnova.cangjie.psi.CjTypeReference
-import org.cangnova.cangjie.psi.CjTypeStatement
+import org.cangnova.cangjie.name.FqName
+import org.cangnova.cangjie.psi.*
 
+/**
+ * 枚举构造器信息（全量重构版本）
+ *
+ * 枚举条目是构造器，不是类型声明，因此不继承 CjTypeStatementInfo。
+ * 直接实现 CjClassLikeInfo 接口。
+ */
+class CjEnumConstructorInfo(
+    val entry: CjEnumConstructor,
+) : CjClassLikeInfo {
+    override val classKind: ClassKind = ClassKind.ENUM_ENTRY
 
-class CjEnmuEntryInfo(
-    override val element: CjEnumEntry,
+    val typeReferences: List<CjTypeReference> = entry.typeReferences
 
-    ) : CjClassInfo<CjEnumEntry>(
-    element
-) {
-    override val classKind: ClassKind
-        get() = ClassKind.ENUM_ENTRY
+    override val containingPackageFqName: FqName
+        get() = entry.parentEnum?.containingCjFile?.packageFqName ?: FqName.ROOT
 
+    override val modifierList: CjModifierList?
+        get() = entry.modifierList
 
-    val typeReferences: List<CjTypeReference> = element.typeReferences
+    override val scopeAnchor: CjElement
+        get() = entry
+
+    // 枚举构造器不是类型声明，返回父枚举类型
+    override val correspondingClass: CjTypeStatement?
+        get() = entry.parentEnum
+
+    override val typeParameterList: CjTypeParameterList?
+        get() = null  // 构造器本身没有类型参数
+
+    override val primaryConstructorParameters: List<CjParameter>
+        get() = emptyList()  // 枚举构造器使用类型引用而非参数
+
+    override val danglingAnnotations: List<CjAnnotation>
+        get() = emptyList()
+
+    override val declarations: List<CjDeclaration>
+        get() = emptyList()
 }
 
 open class CjClassInfo<T : CjTypeStatement>(

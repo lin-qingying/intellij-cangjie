@@ -195,8 +195,46 @@ interface CangJieStructStub : CangJieTypeStatementStub<CjStruct>
 interface CangJieInterfaceStub : CangJieTypeStatementStub<CjInterface>
 
 interface CangJieEnumStub : CangJieTypeStatementStub<CjEnum>
-interface CangJieEnumEntryStub : CangJieTypeStatementStub<CjEnumEntry> {
-    val fqNameByPackage: FqName?
+
+/**
+ * 枚举构造器的 Stub 接口（全量重构版本）
+ *
+ * 根据仓颉语言规范，枚举条目是构造器（constructors），而非类型声明。
+ * 因此此接口直接继承 CangJieStubWithFqName，不再继承 CangJieTypeStatementStub。
+ *
+ * 示例:
+ * ```cangjie
+ * enum RGBColor {
+ *     | Red | Green | Blue              // 无参数构造器
+ *     | Red(UInt8) | Green(UInt8) | Blue(UInt8)  // 有参数构造器
+ * }
+ * ```
+ */
+interface CangJieEnumConstructorStub : CangJieStubWithFqName<CjEnumConstructor> {
+    /**
+     * 获取所属枚举类型的完全限定名
+     */
+    fun getParentEnumFqName(): FqName?
+
+    /**
+     * 获取构造器的参数数量（用于区分重载）
+     */
+    fun getParameterCount(): Int
+
+    /**
+     * 获取参数类型名称列表
+     */
+    fun getParameterTypeNames(): List<String>
+
+    /**
+     * 是否为本地枚举条目
+     */
+    fun isLocal(): Boolean
+
+    /**
+     * 获取 ClassId（用于元数据查找）
+     */
+    fun getClassId(): ClassId?
 }
 
 interface CangJieScriptStub : CangJieStubWithFqName<CjScript> {

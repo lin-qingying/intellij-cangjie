@@ -129,7 +129,7 @@ fun ResolutionCandidate.isStaticContext(): Boolean {
 
         is EnumClassQualifier -> {
             value.descriptor.kind == ClassKind.ENUM
-//                !(value.descriptor.kind == ClassKind.ENUM || value.descriptor.kind == ClassKind.ENUM_ENTRY)
+//                !(value.descriptor.kind == ClassKind.ENUM || value.descriptor.kind == ClassKind.ENUM_CONSTRUCTOR)
 
         }
 

@@ -101,7 +101,7 @@ fun textAttributesForClass(cclass: CjTypeStatement): HighlightInfoType = when {
     cclass is CjInterface -> CangJieHighlightInfoTypeSemanticNames.INTERFACE
 //    cclass.isAnnotation() -> CangJieHighlightInfoTypeSemanticNames.ANNOTATION
     cclass.isEnum() -> CangJieHighlightInfoTypeSemanticNames.ENUM
-    cclass is CjEnumEntry -> CangJieHighlightInfoTypeSemanticNames.ENUM_ENTRY
+    cclass is CjEnumConstructor -> CangJieHighlightInfoTypeSemanticNames.ENUM_ENTRY
     cclass.isAbstract() -> CangJieHighlightInfoTypeSemanticNames.ABSTRACT_CLASS
     else -> CangJieHighlightInfoTypeSemanticNames.CLASS
 }

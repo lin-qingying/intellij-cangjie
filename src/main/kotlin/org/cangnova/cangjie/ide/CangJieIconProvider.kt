@@ -174,7 +174,6 @@ abstract class AbstractCangJieIconProvider : IconProvider(), DumbAware {
             is CjEnum -> ENUM
             is CjStruct -> STRUCT
             is CjClass -> if (isAbstract()) ABSTRACT_CLASS else CLASS
-            is CjEnumEntry -> if (getPrimaryConstructorParameterList() == null) ENUM else null
 
 
             is CjParameter -> {

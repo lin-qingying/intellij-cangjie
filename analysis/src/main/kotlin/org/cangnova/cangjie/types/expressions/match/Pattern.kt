@@ -25,11 +25,11 @@
 package org.cangnova.cangjie.types.expressions.match
 
 import org.cangnova.cangjie.psi.CjElement
-import org.cangnova.cangjie.psi.CjEnumEntry
+import org.cangnova.cangjie.psi.CjEnumConstructor
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ErrorUtils
 
-private fun CjEnumEntry.initializer(subPatterns: List<Pattern>, ctx: CjElement?): String = when {
+private fun CjEnumConstructor.initializer(subPatterns: List<Pattern>, ctx: CjElement?): String = when {
 
     typeEntry != null -> subPatterns.joinToString(",", "(", ")") { it.text(ctx) }
     else -> ""

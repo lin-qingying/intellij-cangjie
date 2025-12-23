@@ -179,7 +179,7 @@ abstract class CangJieIntroduceVariableHandler : RefactoringActionHandler {
                     is CjBlockExpression -> true
                     is CjMatchEntry -> place == parent.expression
                     is CjDeclarationWithBody -> parent.bodyExpression == place
-                    is CjAbstractClassBody -> place !is CjEnumEntry
+                    is CjAbstractClassBody -> place !is CjEnumConstructor
                     is CjFile -> true
                     else -> false
                 }

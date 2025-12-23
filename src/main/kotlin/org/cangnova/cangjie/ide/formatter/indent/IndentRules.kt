@@ -52,7 +52,7 @@ object IndentRules {
         // 对块内容进行正常缩进
         strategy("Indent for block content")
             .within(BLOCK, INIT_BLOCK, CLASS_BODY, FUNCTION_LITERAL, PROPERTY_BODY, ENUM_BODY)
-            .notForType(RBRACE, LBRACE, BLOCK, ENUM_ENTRY)
+            .notForType(RBRACE, LBRACE, BLOCK, ENUM_CONSTRUCTOR)
             .set(Indent.getNormalIndent()),
 
         // 对模板内容进行正常缩进

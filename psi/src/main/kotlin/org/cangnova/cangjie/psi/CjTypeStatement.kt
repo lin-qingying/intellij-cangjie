@@ -181,6 +181,6 @@ fun CjTypeStatement.getOrCreateBody(): CjAbstractClassBody {
     body?.let { return it }
 
     val newBody = CjPsiFactory(project).createEmptyClassBody()
-//    if (this is CjEnumEntry) return addAfter(newBody, initializerList ?: nameIdentifier) as CjAbstractClassBody
+//    if (this is CjEnumConstructor) return addAfter(newBody, initializerList ?: nameIdentifier) as CjAbstractClassBody
     return add(newBody) as CjAbstractClassBody
 }

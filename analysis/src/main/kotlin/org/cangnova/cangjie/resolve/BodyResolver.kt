@@ -565,7 +565,7 @@ class BodyResolver(
         val processed = mutableSetOf<CjProperty>()
 
         for ((typeStatement, _) in c.declaredClasses) {
-            if (typeStatement is CjEnumEntry) continue
+            if (typeStatement is CjEnumConstructor) continue
 
             for (property in typeStatement.properties) {
                 val propertyDescriptor = c.properties[property]

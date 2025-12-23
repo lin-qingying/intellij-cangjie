@@ -32,7 +32,7 @@ class VariableDeclarationInstruction(
     blockScope: BlockScope
 ) : InstructionWithNext(element, blockScope) {
     init {
-        assert(element is CjVariableDeclaration || element is CjParameterBase || element is CjEnumEntry) {
+        assert(element is CjVariableDeclaration || element is CjParameterBase || element is CjEnumConstructor) {
             "Invalid element: ${render(element)}}"
         }
     }

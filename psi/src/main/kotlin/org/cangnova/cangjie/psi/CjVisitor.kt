@@ -564,8 +564,8 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
         return visitStringTemplateEntryWithExpression(entry, data)
     }
 
-    open fun visitEnumEntry(cjEnumEntry: CjEnumEntry, data: D): R? {
-        return visitTypeStatement(cjEnumEntry, data)
+    open fun visitEnumEntry(cjEnumConstructor: CjEnumConstructor, data: D): R? {
+        return visitDeclaration(cjEnumConstructor, data)
     }
 
     open fun visitMatchEntry(cjMatchEntry: CjMatchEntry, data: D): R? {

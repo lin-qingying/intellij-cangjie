@@ -29,12 +29,15 @@ import org.cangnova.cangjie.psi.*
 
 
 object CjClassInfoUtil {
-    //    @Deprecated(message = "Use createClassOrObjectInfo(CjClassOrObject) instead", level = DeprecationLevel.ERROR)
-//    @Deprecated("use {@link #createClassOrObjectInfo(CjClassOrObject)} instead.")
     fun createClassLikeInfo(typeStatement: CjTypeStatement): CjClassLikeInfo {
         return createTypeStatementInfo(typeStatement)
     }
 
+    /**
+     * 创建类型声明信息
+     *
+     * 注意：枚举条目（CjEnumConstructor）不再是 CjTypeStatement，应使用 createEnumConstructorInfo
+     */
     fun createTypeStatementInfo(typeStatement: CjTypeStatement): CjTypeStatementInfo<out CjTypeStatement> {
         if (typeStatement is CjClass) {
             return CjClassInfo(typeStatement, ClassKind.CLASS)
@@ -46,10 +49,30 @@ object CjClassInfoUtil {
             return CjClassInfo(typeStatement, ClassKind.INTERFACE)
         } else if (typeStatement is CjExtend) {
             return CjClassInfo(typeStatement, ClassKind.EXTEND)
-        } else if (typeStatement is CjEnumEntry) {
-            return CjEnmuEntryInfo(typeStatement)
         }
 
-        throw IllegalArgumentException("Unknown declaration type: " + typeStatement + typeStatement.text)
+        throw IllegalArgumentException("Unknown declaration type: $typeStatement ${typeStatement.text}")
+    }
+
+    /**
+     * 创建枚举构造器信息
+     */
+    fun createEnumConstructorInfo(entry: CjEnumConstructor): CjEnumConstructorInfo {
+        return CjEnumConstructorInfo(entry)
+    }
+
+    /**
+     * 创建类或对象信息（支持所有命名声明）
+     */
+    fun createClassOrObjectInfo(declaration: CjNamedDeclaration): CjClassLikeInfo {
+        return when (declaration) {
+            is CjClass -> CjClassInfo(declaration, ClassKind.CLASS)
+            is CjEnum -> CjClassInfo(declaration, ClassKind.ENUM)
+            is CjStruct -> CjClassInfo(declaration, ClassKind.STRUCT)
+            is CjInterface -> CjClassInfo(declaration, ClassKind.INTERFACE)
+            is CjExtend -> CjClassInfo(declaration, ClassKind.EXTEND)
+            is CjEnumConstructor -> CjEnumConstructorInfo(declaration)
+            else -> throw IllegalArgumentException("Unknown declaration type: $declaration ${declaration.text}")
+        }
     }
 }

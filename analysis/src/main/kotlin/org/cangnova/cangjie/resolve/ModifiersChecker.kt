@@ -203,7 +203,7 @@ class ModifiersChecker(
             val kind: DetailedClassKind =
                 DetailedClassKind.getClassKind(classDescriptor)
 
-//        if (kind == DetailedClassKind.ANONYMOUS_OBJECT || kind == DetailedClassKind.ENUM_ENTRY) return
+//        if (kind == DetailedClassKind.ANONYMOUS_OBJECT || kind == DetailedClassKind.ENUM_CONSTRUCTOR) return
 
             // Local enums / objects / companion objects are handled in different checks
             if ((kind == DetailedClassKind.ENUM || kind == DetailedClassKind.STRUCT) &&

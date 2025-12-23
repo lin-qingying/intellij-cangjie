@@ -35,7 +35,6 @@ import org.cangnova.cangjie.psi.psiUtil.CjStubbedPsiUtil
 import org.cangnova.cangjie.psi.psiUtil.getElementTextWithContext
 import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
 import org.cangnova.cangjie.resolve.FunctionDescriptorResolver
-import org.cangnova.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.storage.LockBasedLazyResolveStorageManager
 import jakarta.inject.Inject
@@ -314,8 +313,8 @@ open class LazyDeclarationResolver(
                 return visitTypeStatement(cclass, data)
             }
 
-            override fun visitEnumEntry(cjEnumEntry: CjEnumEntry, data: Nothing?): DeclarationDescriptor? {
-                return visitTypeStatement(cjEnumEntry, data)
+            override fun visitEnumEntry(cjEnumConstructor: CjEnumConstructor, data: Nothing?): DeclarationDescriptor? {
+                return null
 
             }
 

@@ -213,7 +213,7 @@ val possibleParentTargetPredicateMap = mapOf(
 //        CangJieTarget.STRUCT,
 //
 //        CangJieTarget.ENUM ,
-//        CangJieTarget.ENUM_ENTRY,
+//        CangJieTarget.ENUM_CONSTRUCTOR,
 ////        CangJieTarget.ANNOTATION_CLASS,
 //        CangJieTarget.FILE
 //    ),

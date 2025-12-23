@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.types.expressions.match
 
 import org.cangnova.cangjie.psi.CjEnum
-import org.cangnova.cangjie.psi.CjEnumEntry
+import org.cangnova.cangjie.psi.CjEnumConstructor
 import org.cangnova.cangjie.psi.CjTypeReference
 import org.cangnova.cangjie.resolve.caches.type
 import org.cangnova.cangjie.resolve.constants.*
@@ -106,7 +106,7 @@ sealed class Constructor {
     open fun coveredByRange(from: CV<*>, to: CV<*>, included: Boolean): Boolean = false
 
     /** Enum variants */
-    data class Enum(val entry: CjEnumEntry) : Constructor()
+    data class Enum(val entry: CjEnumConstructor) : Constructor()
     data class Type(val type: CangJieType) : Constructor()
 
     /** 不因构造函数而变化的所有模式的构造函数，例如结构模式和固定长度数组 */

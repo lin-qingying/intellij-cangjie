@@ -48,13 +48,13 @@ import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.CLASS_INITIALI
 val MODIFIERS_LIST_ENTRIES = TokenSet.orSet(MODIFIER_KEYWORDS)
 
 val EXTEND_COLON_ELEMENTS =
-    TokenSet.create(TYPE_CONSTRAINT, CLASS, TYPE_PARAMETER, ENUM_ENTRY, SECONDARY_CONSTRUCTOR)
+    TokenSet.create(TYPE_CONSTRAINT, CLASS, TYPE_PARAMETER, ENUM_CONSTRUCTOR, SECONDARY_CONSTRUCTOR)
 
 val TYPE_COLON_ELEMENTS =
     TokenSet.create(PROPERTY, FUNC, VALUE_PARAMETER, DESTRUCTURING_DECLARATION_ENTRY, FUNCTION_LITERAL)
 
 
-val DECLARATIONS = TokenSet.create(PROPERTY, FUNC, CLASS, ENUM_ENTRY, SECONDARY_CONSTRUCTOR, CLASS_INITIALIZER)
+val DECLARATIONS = TokenSet.create(PROPERTY, FUNC, CLASS, ENUM_CONSTRUCTOR, SECONDARY_CONSTRUCTOR, CLASS_INITIALIZER)
 
 
 //缩进
@@ -153,7 +153,7 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
 
 
             inPosition(left = FUNC, right = CLASS).emptyLinesIfLineBreakInLeft(1)
-            inPosition(left = ENUM_ENTRY, right = ENUM_ENTRY).emptyLinesIfLineBreakInLeft(
+            inPosition(left = ENUM_CONSTRUCTOR, right = ENUM_CONSTRUCTOR).emptyLinesIfLineBreakInLeft(
                 emptyLines = 0, numberOfLineFeedsOtherwise = 0, numSpacesOtherwise = 1
             )
 
@@ -305,9 +305,9 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
 //            before(TYPEALIAS).lineBreakInCode()
 
 
-            between(ENUM_ENTRY, DECLARATIONS).blankLines(1)
+            between(ENUM_CONSTRUCTOR, DECLARATIONS).blankLines(1)
 
-            between(ENUM_ENTRY, SEMICOLON).spaces(0)
+            between(ENUM_CONSTRUCTOR, SEMICOLON).spaces(0)
 
             between(COMMA, SEMICOLON).lineBreakInCodeIf(cangjieCustomSettings.ALLOW_TRAILING_COMMA)
 
@@ -731,7 +731,7 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
             inPosition(
                 parent = CLASS_BODY,
                 left = LBRACE,
-                right = ENUM_ENTRY
+                right = ENUM_CONSTRUCTOR
             ).lineBreakIfLineBreakInParent(numSpacesOtherwise = 1)
         }
 
@@ -742,7 +742,7 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
                 cangjieCommonSettings.KEEP_LINE_BREAKS,
                 cangjieCommonSettings.KEEP_BLANK_LINES_BEFORE_RBRACE
             )
-            between(LBRACE, ENUM_ENTRY).spacing(1, 0, 0, true, cangjieCommonSettings.KEEP_BLANK_LINES_IN_CODE)
+            between(LBRACE, ENUM_CONSTRUCTOR).spacing(1, 0, 0, true, cangjieCommonSettings.KEEP_BLANK_LINES_IN_CODE)
             beforeInside(RBRACE, MATCH).lineBreakInCode()
             between(RPAR, BODY).spaces(1)
 

@@ -125,7 +125,7 @@ class FunctionDescriptorResolver(
         inferenceSession: InferenceSession?
     ): ClassConstructorDescriptorImpl? {
 
-        if (/*classDescriptor.kind == ClassKind.ENUM_ENTRY ||*/ !classElement.hasPrimaryConstructor()) return null
+        if (/*classDescriptor.kind == ClassKind.ENUM_CONSTRUCTOR ||*/ !classElement.hasPrimaryConstructor()) return null
         return createConstructorDescriptor(
             scope,
             classDescriptor,

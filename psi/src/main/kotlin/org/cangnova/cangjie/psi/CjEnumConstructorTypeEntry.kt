@@ -28,10 +28,10 @@ import org.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 
-class CjEnumEntryTypeEntry : CjElementImplStub<CangJiePlaceHolderStub<CjEnumEntryTypeEntry>> {
+class CjEnumConstructorTypeEntry : CjElementImplStub<CangJiePlaceHolderStub<CjEnumConstructorTypeEntry>> {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJiePlaceHolderStub<CjEnumEntryTypeEntry>) : super(
+    constructor(stub: CangJiePlaceHolderStub<CjEnumConstructorTypeEntry>) : super(
         stub,
         CjStubElementTypes.SUPER_TYPE_ENTRY,
     )
