@@ -273,6 +273,9 @@ class FunctionClsStubBuilder(
             origin = null
         )
 
+        // 先创建注解 Stub（注解在修饰符列表之前）
+        createAnnotationsStub(functionStub, functionWrapper.annotations)
+
         createModifierListStubForDeclaration(
             functionStub,
             functionWrapper.visibility,
@@ -371,6 +374,9 @@ class MainFunctionClsStubBuilder(
             fqName,
             origin = null
         )
+
+        // 先创建注解 Stub（注解在修饰符列表之前）
+        createAnnotationsStub(mainFunctionStub, functionWrapper.annotations)
 
         createModifierListStubForDeclaration(
             mainFunctionStub,
@@ -471,6 +477,9 @@ class MacroClsStubBuilder(
             hasTypeParameterListBeforeFunctionName = functionWrapper.typeParameters.isNotEmpty(),
             origin = null
         )
+
+        // 先创建注解 Stub（注解在修饰符列表之前）
+        createAnnotationsStub(macroStub, functionWrapper.annotations)
 
         createModifierListStubForDeclaration(
             macroStub,
@@ -603,6 +612,9 @@ class PropertyClsStubBuilder(
             isExtension = false
         )
 
+        // 创建注解 Stub（注解在修饰符列表之前）
+        createAnnotationsStub(propertyStub, propertyWrapper.annotations)
+
         createModifierListStubForDeclaration(
             propertyStub,
             propertyWrapper.visibility,
@@ -615,12 +627,19 @@ class PropertyClsStubBuilder(
 
         TypeClsStubBuilder(propertyStub, outerContext).createTypeReferenceStub(propertyWrapper.returnType)
 
-        // 创建 getter/setter stubs
-        if (propertyWrapper.getter != null) {
-            CangJiePropertyAccessorStubImpl(propertyStub, true, false, true)
-        }
-        if (propertyWrapper.setter != null) {
-            CangJiePropertyAccessorStubImpl(propertyStub, false, true, true)
+        // 创建 PROPERTY_BODY 包装器和 getter/setter stubs
+        // PSI 结构要求 accessor 在 PROPERTY_BODY 内部
+        if (propertyWrapper.getter != null || propertyWrapper.setter != null) {
+            val propertyBody = CangJiePlaceHolderStubImpl<CjPropertyBody>(
+                propertyStub,
+                CjStubElementTypes.PROPERTY_BODY
+            )
+            if (propertyWrapper.getter != null) {
+                CangJiePropertyAccessorStubImpl(propertyBody, true, false, true)
+            }
+            if (propertyWrapper.setter != null) {
+                CangJiePropertyAccessorStubImpl(propertyBody, false, true, true)
+            }
         }
     }
 }
@@ -734,6 +753,9 @@ class VariableClsStubBuilder(
             fqName = fqName,
             origin = null
         )
+
+        // 创建注解 Stub（注解在修饰符列表之前）
+        createAnnotationsStub(variableStub, variableWrapper.annotations)
 
         createModifierListStubForDeclaration(
             variableStub,

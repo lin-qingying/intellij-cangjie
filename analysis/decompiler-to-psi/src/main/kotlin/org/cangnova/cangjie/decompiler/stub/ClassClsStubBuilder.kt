@@ -166,7 +166,11 @@ class ClassClsStubBuilder(
 
         val typeParameterContext = createTypeParameterListStub(classStub)
 
+        // 注意：PSI 解析顺序是 SUPER_TYPE_LIST -> TYPE_CONSTRAINT_LIST
+        // stub 构建必须保持相同顺序
         createSuperTypeListStub(classStub, typeParameterContext)
+        createTypeConstraintListStub(classStub, typeParameterContext)
+
         val classBodyContext = typeParameterContext.child(
             emptyList(),
             classDecl.name,
@@ -240,6 +244,9 @@ class ClassClsStubBuilder(
             else -> return null
         }
 
+        // 先创建注解 Stub（注解在修饰符列表之前）
+        createAnnotationsStub(classStub, classDecl.annotations)
+
         createModifierListStubForDeclaration(
             classStub,
             classDecl.visibility,
@@ -251,6 +258,10 @@ class ClassClsStubBuilder(
 
     /**
      * 创建类型参数列表 Stub
+     *
+     * 注意：此方法只创建类型参数列表，不创建类型约束列表。
+     * 类型约束列表（where 子句）应该在 SUPER_TYPE_LIST 之后创建，
+     * 以保持与 PSI 解析顺序一致。
      *
      * @param classOrObjectStub 类或对象 Stub
      * @return 包含类型参数的新上下文
@@ -273,8 +284,7 @@ class ClassClsStubBuilder(
             CangJieTypeParameterStubImpl(typeParamListStub, typeParam.name.ref())
         }
 
-        // 创建 where 子句（类型约束列表）
-        createTypeConstraintListStub(classOrObjectStub, innerContext)
+        // 注意：类型约束列表（where 子句）在 build() 方法中于 SUPER_TYPE_LIST 之后创建
 
         return innerContext
     }
@@ -484,6 +494,9 @@ class ConstructorClsStubBuilder(
             )
         }
 
+        // 先创建注解 Stub（注解在修饰符列表之前）
+        createAnnotationsStub(constructorStub, constructor.annotations)
+
         createModifierListStubForDeclaration(constructorStub, constructor.visibility, null)
         createValueParameterListStub(constructorStub, context, constructor.valueParameters)
     }
@@ -530,6 +543,9 @@ fun createValueParameterListStub(
             hasDefaultValue = param.declaresDefaultValue,
             isNamed = param.isNamedParam
         )
+
+        // 创建参数的注解 Stub（注解在类型引用之前）
+        createAnnotationsStub(paramStub, param.annotations)
 
         TypeClsStubBuilder(paramStub, context).createTypeReferenceStub(param.type)
     }
