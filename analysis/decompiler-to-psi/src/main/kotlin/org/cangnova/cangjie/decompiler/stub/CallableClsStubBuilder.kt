@@ -26,6 +26,7 @@ package org.cangnova.cangjie.decompiler.stub
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
+import com.intellij.util.io.StringRef
 import org.cangnova.cangjie.decompiler.COMPILED_DEFAULT_INITIALIZER
 import org.cangnova.cangjie.descriptors.Modality
 import org.cangnova.cangjie.lexer.CjTokens
@@ -636,9 +637,6 @@ class PropertyClsStubBuilder(
             )
             if (propertyWrapper.getter != null) {
                 val getterStub = CangJiePropertyAccessorStubImpl(propertyBody, true, false, true)
-                // getter 不需要参数列表（根据 CangJieParsing 的语法，getter 直接是 get() 没有 VALUE_PARAMETER_LIST 节点）
-                // getter 可能有返回类型引用
-                TypeClsStubBuilder(getterStub, outerContext).createTypeReferenceStub(propertyWrapper.returnType)
             }
             if (propertyWrapper.setter != null) {
                 val setterStub = CangJiePropertyAccessorStubImpl(propertyBody, false, true, true)
@@ -656,9 +654,7 @@ class PropertyClsStubBuilder(
                     hasLetOrVar = false,
                     hasDefaultValue = false
                 )
-                // 创建参数的类型引用
-                TypeClsStubBuilder(paramStub, outerContext)
-                    .createTypeReferenceStub(propertyWrapper.returnType)
+
             }
         }
     }
@@ -767,7 +763,7 @@ class VariableClsStubBuilder(
             varName.ref(),
             variableWrapper.isVar,
             isTopLevel,
-            hasInitializer = false,
+            hasInitializer = variableWrapper.declaresDefaultValue,
             isExtension = false,
             hasReturnTypeRef = true,
             fqName = fqName,
@@ -784,6 +780,14 @@ class VariableClsStubBuilder(
         )
 
         TypeClsStubBuilder(variableStub, outerContext).createTypeReferenceStub(variableWrapper.returnType)
+
+        // 如果有初始化器，创建 REFERENCE_EXPRESSION stub 占位符
+        if (variableWrapper.declaresDefaultValue) {
+            CangJieNameReferenceExpressionStubImpl(
+                variableStub,
+                StringRef.fromString("COMPILED_CODE")!!
+            )
+        }
     }
 }
 
@@ -963,6 +967,30 @@ class ExtendClsStubBuilder(
             }
         }
 
+        // 创建类型约束列表（where 子句）
+        val constraintsToCreate = mutableListOf<Pair<Name, TypeWrapper>>()
+        for (typeParam in extendWrapper.typeParameters) {
+            for (upper in typeParam.uppers) {
+                constraintsToCreate.add(Pair(typeParam.name, upper))
+            }
+        }
+        if (constraintsToCreate.isNotEmpty()) {
+            val constraintListStub = CangJiePlaceHolderStubImpl<CjTypeConstraintList>(
+                extendStub,
+                CjStubElementTypes.TYPE_CONSTRAINT_LIST
+            )
+            for ((paramName, upperBound) in constraintsToCreate) {
+                val constraintStub = CangJiePlaceHolderStubImpl<CjTypeConstraint>(
+                    constraintListStub,
+                    CjStubElementTypes.TYPE_CONSTRAINT
+                )
+                // 创建类型参数名称引用
+                CangJieNameReferenceExpressionStubImpl(constraintStub, paramName.ref(), false)
+                // 创建 bound 类型引用
+                TypeClsStubBuilder(constraintStub, innerContext).createTypeReferenceStub(upperBound)
+            }
+        }
+
         // 创建类体
         val classBody = CangJiePlaceHolderStubImpl<CjClassBody>(
             extendStub,
@@ -979,12 +1007,14 @@ class ExtendClsStubBuilder(
                     metadataContainer,
                     function
                 )
+
                 function.isMacro -> MacroClsStubBuilder(
                     classBody,
                     innerContext,
                     metadataContainer,
                     function
                 )
+
                 else -> FunctionClsStubBuilder(
                     classBody,
                     innerContext,

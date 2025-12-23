@@ -26,6 +26,7 @@ package org.cangnova.cangjie.decompiler.stub
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
+import com.intellij.util.io.StringRef
 import org.cangnova.cangjie.descriptors.ClassKind
 import org.cangnova.cangjie.metadata.model.wrapper.*
 import org.cangnova.cangjie.name.ClassId
@@ -548,5 +549,13 @@ fun createValueParameterListStub(
         createAnnotationsStub(paramStub, param.annotations)
 
         TypeClsStubBuilder(paramStub, context).createTypeReferenceStub(param.type)
+
+        // 如果有默认值，创建 REFERENCE_EXPRESSION stub 占位符
+        if (param.declaresDefaultValue) {
+            CangJieNameReferenceExpressionStubImpl(
+                paramStub,
+                StringRef.fromString("COMPILED_CODE")!!
+            )
+        }
     }
 }

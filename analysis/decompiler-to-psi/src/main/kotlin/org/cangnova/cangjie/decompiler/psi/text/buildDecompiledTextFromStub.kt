@@ -502,6 +502,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 withSuffix(" ") { cjExtend.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { cjExtend.modifierList?.accept(explicitThis, Unit) }
                 append("extend")
+                cjExtend.typeParameterList?.accept(explicitThis, Unit)
                 withPrefix(" ") { cjExtend.receiverTypeReceiver?.accept(explicitThis, Unit) }
                 withPrefix(" <: ") { cjExtend.getSuperTypeList()?.accept(explicitThis, Unit) }
 
