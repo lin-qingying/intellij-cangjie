@@ -248,9 +248,12 @@ import org.cangnova.cangjie.decompiler.COMPILED_DEFAULT_PARAMETER_VALUE
 import org.cangnova.cangjie.decompiler.DECOMPILED_CODE_COMMENT
 import org.cangnova.cangjie.decompiler.FLEXIBLE_TYPE_COMMENT
 import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.name.OperatorNameConventions.asOperatorName
+import org.cangnova.cangjie.name.OperatorNameConventions.asOperatorString
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.quoteIfNeeded
 import org.cangnova.cangjie.psi.stubs.CangJieFileStubKind
+import org.cangnova.cangjie.psi.stubs.elements.CjTokenSets.FILE_DECLARATION_TYPES
 import org.cangnova.cangjie.psi.stubs.impl.CangJieFileStubImpl
 import org.cangnova.cangjie.psi.stubs.impl.CangJieModifierListStubImpl
 import org.cangnova.cangjie.renderer.render
@@ -410,6 +413,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
             }
 
             private fun printClassOrInterface(typeStatement: CjTypeStatement, keyword: String) {
+                withSuffix(" ") { typeStatement.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { typeStatement.modifierList?.accept(explicitThis, Unit) }
                 append(keyword)
                 withPrefix(" ") { append(typeStatement.name?.quoteIfNeeded()) }
@@ -453,6 +457,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
             }
 
             override fun visitEnum(cenum: CjEnum, data: Unit): Unit? {
+                withSuffix(" ") { cenum.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { cenum.modifierList?.accept(explicitThis, Unit) }
                 append("enum")
                 withPrefix(" ") { append(cenum.name?.quoteIfNeeded()) }
@@ -487,12 +492,14 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
             }
 
             override fun visitEnumConstructor(cjEnumConstructor: CjEnumConstructor, data: Unit): Unit? {
+                withSuffix(" ") { cjEnumConstructor.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { cjEnumConstructor.modifierList?.accept(explicitThis, Unit) }
                 append(cjEnumConstructor.name?.quoteIfNeeded())
                 return null
             }
 
             override fun visitExtend(cjExtend: CjExtend, data: Unit): Unit? {
+                withSuffix(" ") { cjExtend.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { cjExtend.modifierList?.accept(explicitThis, Unit) }
                 append("extend")
                 withPrefix(" ") { cjExtend.receiverTypeReceiver?.accept(explicitThis, Unit) }
@@ -515,9 +522,20 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
             }
 
             override fun visitNamedFunction(function: CjNamedFunction, data: Unit): Unit? {
+                withSuffix(" ") { function.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { function.modifierList?.accept(explicitThis, Unit) }
                 append("func ")
-                append(function.name?.quoteIfNeeded())
+
+                // 处理运算符重载的函数名渲染
+                val name = function.name
+                if (function.isOperator && name != null) {
+                    // 将内部运算符名称（如 *operator_get）转换为运算符符号（如 []）
+                    val operatorSymbol = name.asOperatorName().asOperatorString()
+                    append(operatorSymbol)
+                } else {
+                    append(name?.quoteIfNeeded())
+                }
+
                 function.typeParameterList?.accept(explicitThis, Unit)
                 function.valueParameterList?.accept(explicitThis, Unit)
                 withPrefix(": ") { function.typeReference?.accept(explicitThis, Unit) }
@@ -530,12 +548,14 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
             }
 
             override fun visitPrimaryConstructor(constructor: CjPrimaryConstructor, data: Unit): Unit? {
+                withSuffix(" ") { constructor.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { constructor.modifierList?.accept(explicitThis, Unit) }
                 constructor.valueParameterList?.accept(explicitThis, Unit)
                 return null
             }
 
             override fun visitSecondaryConstructor(constructor: CjSecondaryConstructor, data: Unit): Unit? {
+                withSuffix(" ") { constructor.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { constructor.modifierList?.accept(explicitThis, Unit) }
                 append("init")
                 constructor.valueParameterList?.accept(explicitThis, Unit)
@@ -553,6 +573,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
             }
 
             override fun visitVariable(variable: CjVariable, data: Unit): Unit? {
+                withSuffix(" ") { variable.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { variable.modifierList?.accept(explicitThis, Unit) }
                 if (variable.isVar) {
                     append("var ")
@@ -569,6 +590,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
             }
 
             override fun visitProperty(property: CjProperty, data: Unit): Unit? {
+                withSuffix(" ") { property.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { property.modifierList?.accept(explicitThis, Unit) }
                 if (property.isVar) {
                     append("mut prop ")
@@ -590,6 +612,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
             }
 
             override fun visitPropertyAccessor(accessor: CjPropertyAccessor, data: Unit): Unit? {
+                withSuffix(" ") { accessor.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { accessor.modifierList?.accept(explicitThis, Unit) }
                 if (accessor.isGetter) {
                     append("get()")
@@ -605,6 +628,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
             }
 
             override fun visitTypeAlias(typeAlias: CjTypeAlias, data: Unit): Unit? {
+                withSuffix(" ") { typeAlias.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { typeAlias.modifierList?.accept(explicitThis, Unit) }
                 append("type ")
                 append(typeAlias.name?.quoteIfNeeded())
@@ -614,6 +638,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
             }
 
             override fun visitTypeParameter(parameter: CjTypeParameter, data: Unit): Unit? {
+                withSuffix(" ") { parameter.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { parameter.modifierList?.accept(explicitThis, Unit) }
                 append(parameter.name?.quoteIfNeeded())
             // 注意：类型约束应该在 where 子句中处理，不在类型参数列表中
@@ -636,6 +661,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
             }
 
             override fun visitParameter(cjParameter: CjParameter, data: Unit): Unit? {
+                withSuffix(" ") { cjParameter.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { cjParameter.modifierList?.accept(explicitThis, Unit) }
                 append(cjParameter.name?.quoteIfNeeded())
                 // 如果是命名参数，添加 ! 标记
@@ -749,7 +775,15 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
 
             private fun visitAnnotationEntry(annotation: CjAnnotation) {
                 append('@')
-                annotation.typeReference?.accept(explicitThis, Unit)
+                // 注意：从 stub 创建的 CjAnnotation 没有 CONSTRUCTOR_CALLEE 子节点，
+                // 因此 typeReference 会是 null。直接使用 stub 中存储的 shortName。
+                val shortName = annotation.shortName?.asString()
+                if (shortName != null) {
+                    append(shortName)
+                } else {
+                    // 降级：尝试使用 typeReference（用于非 stub 场景）
+                    annotation.typeReference?.accept(explicitThis, Unit)
+                }
             }
 
             override fun visitAnnotation(annotation: CjAnnotations, data: Unit): Unit? {
@@ -789,7 +823,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
 
         // 获取声明并遍历
         val declarations = fileStub.getChildrenByType(
-            CjFile.FILE_DECLARATION_TYPES,
+            FILE_DECLARATION_TYPES,
             CjDeclaration.ARRAY_FACTORY
         ).asList()
 

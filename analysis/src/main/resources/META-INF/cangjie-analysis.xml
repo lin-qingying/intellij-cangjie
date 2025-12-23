@@ -185,6 +185,10 @@
                 serviceInterface="org.cangnova.cangjie.cache.trackers.ModuleDependencyProviderExtension"
                 serviceImplementation="org.cangnova.cangjie.cache.trackers.ResolutionAnchorModuleDependencyProviderExtension"/>
 
+        <projectService
+                serviceInterface="org.cangnova.cangjie.moduleinfo.CangJieModificationTrackerProvider"
+                serviceImplementation="org.cangnova.cangjie.moduleinfo.CangJieModificationTrackerProviderImpl"/>
+
         <!-- 额外服务注册 -->
         <!-- 应用级服务 -->
         <applicationService

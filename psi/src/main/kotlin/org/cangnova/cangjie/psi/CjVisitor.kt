@@ -552,8 +552,8 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
         return visitCjElement(constructorCalleeExpression, data)
     }
 
-    open fun visitBasicType(cjBasicType: CjBasicType, data: D): R? {
-        return visitCjElement(cjBasicType, data)
+    open fun visitBasicType(basicType: CjBasicType, data: D): R? {
+        return visitCjElement(basicType, data)
     }
 
     open fun visitKeyword(cjKeyword: CjKeyword, data: D): R? {

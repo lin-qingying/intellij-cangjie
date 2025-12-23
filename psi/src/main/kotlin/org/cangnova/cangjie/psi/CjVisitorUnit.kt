@@ -826,8 +826,8 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
 
     }
 
-    override fun visitBasicType(cjBasicType: CjBasicType, data: Unit?): Unit {
-        visitBasicType(cjBasicType)
+    override fun visitBasicType(basicType: CjBasicType, data: Unit?): Unit {
+        visitBasicType(basicType)
 
     }
 

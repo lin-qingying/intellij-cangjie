@@ -75,14 +75,19 @@ abstract class CangJieStringStubIndexHelper<Key : NavigatablePsiElement>(private
      * Note: [processor] should not invoke any indices as it could lead to deadlock. Nested index access is forbidden.
      */
     fun processElements(s: String, project: Project, scope: GlobalSearchScope, processor: Processor<in Key>): Boolean {
-        return processElements(s, project, scope, processor = processor)
+        return processElements(s, project, scope, null, processor)
+
     }
 
     /**
      * Note: [processor] should not invoke any indices as it could lead to deadlock. Nested index access is forbidden.
      */
     fun processElements(
-        s: String, project: Project, scope: GlobalSearchScope, idFilter: IdFilter? = null, processor: Processor<in Key>
+        s: String,
+        project: Project,
+        scope: GlobalSearchScope,
+        idFilter: IdFilter? = null,
+        processor: Processor<in Key>
     ): Boolean {
         return processElementsAndMeasure(indexKey, logger) {
             StubIndex.getInstance().processElements(indexKey, s, project, scope, idFilter, valueClass, processor)

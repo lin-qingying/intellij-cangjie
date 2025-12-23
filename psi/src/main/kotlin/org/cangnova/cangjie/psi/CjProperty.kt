@@ -154,11 +154,11 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
     override val valueParameterList: CjParameterList? = null
     override val valueParameters: List<CjParameter> = emptyList()
 
-    val body: CjPropertyBody? get() = findChildByClass(CjPropertyBody::class.java)
+    val body: CjPropertyBody?
+        get() = getStubOrPsiChild(CjStubElementTypes.PROPERTY_BODY)
+
     val accessors: List<CjPropertyAccessor>
-        get() {
-            return body?.accessors ?: emptyList()
-        }
+        get() = body?.accessors ?: emptyList()
 
     val getter: CjPropertyAccessor?
         get() {

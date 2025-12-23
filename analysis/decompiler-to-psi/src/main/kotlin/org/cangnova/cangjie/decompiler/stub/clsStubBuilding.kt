@@ -588,19 +588,32 @@ fun createAnnotationsStub(
     parent: StubElement<out PsiElement>,
     annotations: List<AnnotationWrapper>
 ) {
-
-
     val annotationsStub = CangJiePlaceHolderStubImpl<CjAnnotations>(
         parent,
         CjStubElementTypes.ANNOTATIONS
     )
 
     for (annotation in annotations) {
-        CangJieAnnotationStubImpl(
+        val annotationStub = CangJieAnnotationStubImpl(
             annotationsStub,
             annotation.name.ref(),
             hasValueArguments = false  // TODO: 从元数据中提取参数信息
         )
+
+        // 创建 CONSTRUCTOR_CALLEE 子节点，与 PSI 解析器结构保持一致
+        // PSI 结构: ANNOTATION -> CONSTRUCTOR_CALLEE -> TYPE_REFERENCE -> USER_TYPE -> REFERENCE_EXPRESSION
+        val constructorCalleeStub = CangJiePlaceHolderStubImpl<CjConstructorCalleeExpression>(
+            annotationStub,
+            CjStubElementTypes.CONSTRUCTOR_CALLEE
+        )
+
+        val typeRefStub = CangJiePlaceHolderStubImpl<CjTypeReference>(
+            constructorCalleeStub,
+            CjStubElementTypes.TYPE_REFERENCE
+        )
+
+        val userTypeStub = CangJieUserTypeStubImpl(typeRefStub)
+        CangJieNameReferenceExpressionStubImpl(userTypeStub, annotation.name.ref(), true)
     }
 }
 

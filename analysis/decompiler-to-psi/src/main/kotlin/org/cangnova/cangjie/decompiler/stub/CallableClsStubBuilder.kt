@@ -635,10 +635,30 @@ class PropertyClsStubBuilder(
                 CjStubElementTypes.PROPERTY_BODY
             )
             if (propertyWrapper.getter != null) {
-                CangJiePropertyAccessorStubImpl(propertyBody, true, false, true)
+                val getterStub = CangJiePropertyAccessorStubImpl(propertyBody, true, false, true)
+                // getter 不需要参数列表（根据 CangJieParsing 的语法，getter 直接是 get() 没有 VALUE_PARAMETER_LIST 节点）
+                // getter 可能有返回类型引用
+                TypeClsStubBuilder(getterStub, outerContext).createTypeReferenceStub(propertyWrapper.returnType)
             }
             if (propertyWrapper.setter != null) {
-                CangJiePropertyAccessorStubImpl(propertyBody, false, true, true)
+                val setterStub = CangJiePropertyAccessorStubImpl(propertyBody, false, true, true)
+                // setter 需要参数列表（根据 CangJieParsing 的语法，setter 有 VALUE_PARAMETER_LIST 节点）
+                val paramListStub = CangJiePlaceHolderStubImpl<CjParameterList>(
+                    setterStub,
+                    CjStubElementTypes.VALUE_PARAMETER_LIST
+                )
+                // 创建 value 参数
+                val paramStub = CangJieParameterStubImpl(
+                    paramListStub,
+                    fqName = null,
+                    name = Name.identifier("value").ref(),
+                    isMutable = false,
+                    hasLetOrVar = false,
+                    hasDefaultValue = false
+                )
+                // 创建参数的类型引用
+                TypeClsStubBuilder(paramStub, outerContext)
+                    .createTypeReferenceStub(propertyWrapper.returnType)
             }
         }
     }
@@ -655,17 +675,17 @@ class PropertyClsStubBuilder(
  * ## 变量类型
  *
  * ### 1. 不可变变量 (let)
- * ```kotlin
+ * ```cangjie
  * let PI: Float64 = 3.14159
  * ```
  *
  * ### 2. 可变变量 (var)
- * ```kotlin
+ * ```cangjie
  * var counter: Int = 0
  * ```
  *
  * ### 3. 静态变量
- * ```kotlin
+ * ```cangjie
  * static let INSTANCE: MyClass = MyClass()
  * ```
  *
@@ -900,26 +920,13 @@ class ExtendClsStubBuilder(
             superTypeRefs
         )
 
-        // 创建被扩展类型引用
-        TypeClsStubBuilder(extendStub, outerContext).createTypeReferenceStub(extendWrapper.type)
+        // 先创建注解 Stub（注解在修饰符列表之前）
+        createAnnotationsStub(extendStub, extendWrapper.annotations)
 
-        // 创建父类型列表
-        if (extendWrapper.superTypes.isNotEmpty()) {
-            val superTypeListStub = CangJiePlaceHolderStubImpl<CjSuperTypeList>(
-                extendStub,
-                CjStubElementTypes.SUPER_TYPE_LIST
-            )
+        // 创建修饰符列表（extend 声明没有可见性修饰符，创建空的）
+        createEmptyModifierListStub(extendStub)
 
-            for (superType in extendWrapper.superTypes) {
-                val superTypeEntryStub = CangJiePlaceHolderStubImpl<CjSuperTypeEntry>(
-                    superTypeListStub,
-                    CjStubElementTypes.SUPER_TYPE_ENTRY
-                )
-                TypeClsStubBuilder(superTypeEntryStub, outerContext).createTypeReferenceStub(superType)
-            }
-        }
-
-        // 创建类型参数列表
+        // 创建类型参数列表（对于 extend，类型参数在类型引用之前）
         val innerContext = if (extendWrapper.typeParameters.isNotEmpty()) {
             val typeParamListStub = CangJiePlaceHolderStubImpl<CjTypeParameterList>(
                 extendStub,
@@ -935,6 +942,25 @@ class ExtendClsStubBuilder(
             context
         } else {
             outerContext
+        }
+
+        // 创建被扩展类型引用
+        TypeClsStubBuilder(extendStub, innerContext).createTypeReferenceStub(extendWrapper.type)
+
+        // 创建父类型列表
+        if (extendWrapper.superTypes.isNotEmpty()) {
+            val superTypeListStub = CangJiePlaceHolderStubImpl<CjSuperTypeList>(
+                extendStub,
+                CjStubElementTypes.SUPER_TYPE_LIST
+            )
+
+            for (superType in extendWrapper.superTypes) {
+                val superTypeEntryStub = CangJiePlaceHolderStubImpl<CjSuperTypeEntry>(
+                    superTypeListStub,
+                    CjStubElementTypes.SUPER_TYPE_ENTRY
+                )
+                TypeClsStubBuilder(superTypeEntryStub, innerContext).createTypeReferenceStub(superType)
+            }
         }
 
         // 创建类体
@@ -1101,6 +1127,9 @@ class TypeAliasClsStubBuilder(
             fqName.ref(),
             null
         )
+
+        // 先创建注解 Stub（注解在修饰符列表之前）
+        createAnnotationsStub(typeAliasStub, typeAliasWrapper.annotations)
 
         createModifierListStubForDeclaration(typeAliasStub, typeAliasWrapper.visibility, null)
 

@@ -2134,3 +2134,7 @@ fun isOverwrite(pattern: CjCasePattern, expression: CjExpression?, context: Bind
         expression, context
     ) == null
 }
+
+val DeclarationDescriptor.sourceElement: SourceElement
+    get() = if (this is DeclarationDescriptorWithSource) source else SourceElement.NO_SOURCE
+

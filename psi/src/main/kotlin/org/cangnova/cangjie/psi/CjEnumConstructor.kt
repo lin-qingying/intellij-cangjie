@@ -64,7 +64,7 @@ class CjEnumConstructor : CjNamedDeclarationStub<CangJieEnumConstructorStub> {
      * 枚举条目的类型入口（参数列表）
      */
     val typeEntry: CjEnumConstructorTypeEntry?
-        get() = findChildByClass(CjEnumConstructorTypeEntry::class.java)
+        get() = getStubOrPsiChild(CjStubElementTypes.TYPE_LIST)
 
     /**
      * 构造器的参数类型引用列表

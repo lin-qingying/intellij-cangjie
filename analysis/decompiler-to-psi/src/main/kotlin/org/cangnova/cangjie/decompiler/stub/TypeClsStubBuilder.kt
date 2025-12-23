@@ -492,12 +492,13 @@ class TypeClsStubBuilder(
             )
 
             // 参数类型在 typeArgs 中
+            // 注意：匿名函数类型参数没有名称，与 CangJieParsing 中的解析保持一致
             val typeArgs = typeWrapper.typeArgs
             for (paramType in typeArgs) {
                 val paramStub = CangJieParameterStubImpl(
                     paramListStub,
                     null,
-                    Name.identifier("_").ref(),
+                    null,  // 匿名参数没有名称
                     isMutable = false,
                     hasLetOrVar = false,
                     hasDefaultValue = false

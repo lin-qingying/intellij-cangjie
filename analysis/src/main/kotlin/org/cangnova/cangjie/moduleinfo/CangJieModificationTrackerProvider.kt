@@ -28,6 +28,9 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
+import org.cangnova.cangjie.cache.trackers.CangJieCodeBlockModificationListener
+import org.cangnova.cangjie.cache.trackers.CangJieModuleOutOfCodeBlockModificationTracker
+
 interface CangJieModificationTrackerProvider {
     companion object {
         fun getInstance(project: Project): CangJieModificationTrackerProvider = project.service()
@@ -38,4 +41,17 @@ interface CangJieModificationTrackerProvider {
     fun getModuleSelfModificationCount(module: Module): Long
 
     fun createModuleModificationTracker(module: Module): ModificationTracker
+}
+
+class CangJieModificationTrackerProviderImpl(private val project: Project) : CangJieModificationTrackerProvider {
+    override val projectTracker: ModificationTracker
+        get() = CangJieCodeBlockModificationListener.getInstance(project).cangjieOutOfCodeBlockTracker
+
+    override fun getModuleSelfModificationCount(module: Module): Long {
+        return CangJieModuleOutOfCodeBlockModificationTracker.getUpdaterInstance(module.project).getModificationCount(module)
+    }
+
+    override fun createModuleModificationTracker(module: Module): ModificationTracker {
+        return CangJieModuleOutOfCodeBlockModificationTracker(module)
+    }
 }

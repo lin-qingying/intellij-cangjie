@@ -26,7 +26,6 @@ package org.cangnova.cangjie.psi
 
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.lang.CangJieLanguage
-import org.cangnova.cangjie.psi.CjFile.Companion.FILE_DECLARATION_TYPES
 import org.cangnova.cangjie.psi.stubs.CangJieFileStub
 import org.cangnova.cangjie.psi.stubs.elements.CjPlaceHolderStubElementType
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
@@ -40,6 +39,7 @@ import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ArrayFactory
 import org.cangnova.cangjie.name.*
+import org.cangnova.cangjie.psi.stubs.elements.CjTokenSets.FILE_DECLARATION_TYPES
 
 /**
  * 仓颉语言文件的基础接口。
@@ -374,13 +374,8 @@ open class CjFile(viewProvider: FileViewProvider, isCompiled: Boolean = false, v
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? =
         visitor.visitCjFile(this, data)
 
-    companion object {
-        /**
-         * 定义可以出现在文件级别的声明类型的标记集。
-         * 将标准声明类型与仓颉脚本声明结合起来。
-         */
-        val FILE_DECLARATION_TYPES = TokenSet.orSet(CjTokenSets.DECLARATION_TYPES, TokenSet.create(CjStubElementTypes.CJ_SCRIPT))
-    }
+
+
 }
 
 /**

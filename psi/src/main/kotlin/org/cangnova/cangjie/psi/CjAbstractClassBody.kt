@@ -32,6 +32,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.*
+import org.cangnova.cangjie.psi.stubs.elements.CjTokenSets
 
 class CjInterfaceBody : CjAbstractClassBody {
     constructor(node: ASTNode) : super(node)
@@ -93,7 +94,7 @@ abstract class CjAbstractClassBody :
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? = visitor.visitClassBody(this, data)
     override val declarations: List<CjDeclaration>
-        get() = stub?.getChildrenByType(CjFile.FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
+        get() = stub?.getChildrenByType(CjTokenSets.CLASS_MEMBER_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
             ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java)
 
     val rBrace: PsiElement?
