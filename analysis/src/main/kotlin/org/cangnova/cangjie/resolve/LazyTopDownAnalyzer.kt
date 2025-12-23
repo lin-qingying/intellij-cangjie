@@ -199,6 +199,9 @@ class LazyTopDownAnalyzer(
                         lazyDeclarationResolver.resolveToDescriptor(constructor) as ClassConstructorDescriptor
                 }
 
+                override fun visitEnumConstructor(cjEnumConstructor: CjEnumConstructor, data: Unit?) {
+                }
+
                 override fun visitSecondaryConstructor(constructor: CjSecondaryConstructor) {
                     c.secondaryConstructors[constructor] =
                         lazyDeclarationResolver.resolveToDescriptor(constructor) as ClassConstructorDescriptor

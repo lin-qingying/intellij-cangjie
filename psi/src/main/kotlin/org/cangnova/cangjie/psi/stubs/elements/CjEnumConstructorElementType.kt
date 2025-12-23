@@ -157,7 +157,7 @@ class CjEnumConstructorElementType(debugName: String) : CjStubElementType<CangJi
     }
 
     override fun indexStub(stub: CangJieEnumConstructorStub, sink: IndexSink) {
-        getInstance().indexEnumEntry(stub, sink)
+        getInstance().indexEnumConstructor(stub, sink)
     }
 
     companion object {

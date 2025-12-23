@@ -171,7 +171,7 @@ class CangJiePostfixTemplateProvider : PostfixTemplateProvider {
 
     private val templateSet: Set<PostfixTemplate> by lazy {
         setOf(
-            CangJieValPostfixTemplate(this),
+            CangJieLetPostfixTemplate(this),
             CangJieVarPostfixTemplate(this),
         )
     }

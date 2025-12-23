@@ -26,8 +26,3 @@ package org.cangnova.cangjie.cjpm.toml
 import com.intellij.openapi.fileTypes.BinaryFileDecompiler
 import com.intellij.openapi.vfs.VirtualFile
 
-class CangJieTomlDecompile : BinaryFileDecompiler {
-    override fun decompile(virtualFile: VirtualFile): CharSequence {
-        TODO()
-    }
-}

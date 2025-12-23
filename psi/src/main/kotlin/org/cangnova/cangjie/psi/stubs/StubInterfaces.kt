@@ -181,7 +181,7 @@ interface CangJieCatchParameterStub : CangJieParameterStubBase<CjCatchParameter>
 
 interface CangJieParameterStub : CangJieParameterStubBase<CjParameter> {
     fun isMutable(): Boolean
-    fun hasValOrVar(): Boolean
+    fun hasLetOrVar(): Boolean
     fun hasDefaultValue(): Boolean
     fun isNamed(): Boolean
 }

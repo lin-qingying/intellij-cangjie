@@ -33,6 +33,7 @@ import org.cangnova.cangjie.descriptors.DescriptorVisibility
 import org.cangnova.cangjie.descriptors.Modality
 import org.cangnova.cangjie.lexer.CjModifierKeywordToken
 import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.metadata.model.wrapper.AnnotationWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.FunctionWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.PropertyWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.VariableWrapper
@@ -549,6 +550,58 @@ fun createModifierListStubForDeclaration(
             ModifierMaskUtils.computeMask { false },
             CjStubElementTypes.MODIFIER_LIST
         )
+}
+
+/**
+ * 创建注解列表 Stub
+ *
+ * ## 功能说明
+ *
+ * 为声明创建注解列表 Stub，保持与源码 PSI 结构的一致性。
+ * 注解是声明的直接子元素，位于修饰符列表之前。
+ *
+ * ## PSI 结构
+ *
+ * ```
+ * CjClass (或其他声明)
+ *   ├─ CangJiePlaceHolderStub<CjAnnotations>  <-- 注解在修饰符列表之前
+ *   │   ├─ CangJieAnnotationStub ("Deprecated")
+ *   │   └─ CangJieAnnotationStub ("Frozen")
+ *   ├─ CangJieModifierListStub
+ *   └─ ... 其他子元素
+ * ```
+ *
+ * ## 使用场景
+ *
+ * 在创建类、函数、属性等声明的 Stub 时调用，确保反编译代码的注解信息
+ * 可以在 IDE 中正确显示和索引。
+ *
+ * **重要**: 必须在创建修饰符列表之前调用此函数，以保持正确的 PSI 结构。
+ *
+ * @param parent 父 Stub 元素（声明 Stub）
+ * @param annotations 注解包装器列表
+ *
+ * @see CangJieAnnotationStubImpl
+ * @see AnnotationWrapper
+ */
+fun createAnnotationsStub(
+    parent: StubElement<out PsiElement>,
+    annotations: List<AnnotationWrapper>
+) {
+
+
+    val annotationsStub = CangJiePlaceHolderStubImpl<CjAnnotations>(
+        parent,
+        CjStubElementTypes.ANNOTATIONS
+    )
+
+    for (annotation in annotations) {
+        CangJieAnnotationStubImpl(
+            annotationsStub,
+            annotation.name.ref(),
+            hasValueArguments = false  // TODO: 从元数据中提取参数信息
+        )
+    }
 }
 
 /**

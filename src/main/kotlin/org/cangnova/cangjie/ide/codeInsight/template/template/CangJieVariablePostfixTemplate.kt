@@ -66,9 +66,9 @@ internal class CangJieVarPostfixTemplate(
     provider: CangJiePostfixTemplateProvider,
 ) : AbstractCangJieVariablePostfixTemplate("var", provider)
 
-internal class CangJieValPostfixTemplate(
+internal class CangJieLetPostfixTemplate(
     provider: CangJiePostfixTemplateProvider,
 
-    ) : AbstractCangJieVariablePostfixTemplate("val", provider) {
+    ) : AbstractCangJieVariablePostfixTemplate("let", provider) {
 
 }

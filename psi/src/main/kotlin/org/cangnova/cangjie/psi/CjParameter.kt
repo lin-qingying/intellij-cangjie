@@ -293,7 +293,7 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjParameterBas
     override fun hasLetOrVar(): Boolean {
         val stub = stub
         if (stub != null) {
-            return stub.hasValOrVar()
+            return stub.hasLetOrVar()
         }
         return letOrVarKeyword != null
     }
@@ -309,7 +309,7 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjParameterBas
     override val letOrVarKeyword: PsiElement?
         get() {
             val stub = stub
-            if (stub != null && !stub.hasValOrVar()) {
+            if (stub != null && !stub.hasLetOrVar()) {
                 return null
             }
             return findChildByType(LET_VAR_TOKEN_SET)

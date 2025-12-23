@@ -313,7 +313,7 @@ open class LazyDeclarationResolver(
                 return visitTypeStatement(cclass, data)
             }
 
-            override fun visitEnumEntry(cjEnumConstructor: CjEnumConstructor, data: Nothing?): DeclarationDescriptor? {
+            override fun visitEnumConstructor(cjEnumConstructor: CjEnumConstructor, data: Nothing?): DeclarationDescriptor? {
                 return null
 
             }

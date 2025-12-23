@@ -1700,11 +1700,8 @@ class CangJieParsing private constructor(
 
         val empty = doParseModifierListBody(tokenConsumer, modifierKeywords, noModifiersBefore, isParseMacro)
 
-        if (empty) {
-            list.drop()
-        } else {
-            list.done(MODIFIER_LIST)
-        }
+        // 始终创建 MODIFIER_LIST 占位符，保持与反编译 Stub 结构一致
+        list.done(MODIFIER_LIST)
         return !empty
     }
 
@@ -2832,7 +2829,7 @@ class CangJieParsing private constructor(
         val decl = mark()
 
 
-        parseAnnotation()
+        parseAnnotations()
 
         val detector = ModifierDetector()
         parseModifierList(detector, TokenSet.EMPTY, rollbackMacro)
@@ -2901,7 +2898,7 @@ class CangJieParsing private constructor(
 
         if (tokenId != null && tokenId != INTERFACE_KEYWORD_Id) {
 
-            parseModifierList(TokenSet.EMPTY)
+            // 注意：修饰符已在 parseMemberDeclaration 中解析，这里不需要再调用 parseModifierList
 
             when {
                 at(INIT_KEYWORD) -> {

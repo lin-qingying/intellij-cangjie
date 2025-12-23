@@ -486,7 +486,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 return null
             }
 
-            override fun visitEnumEntry(cjEnumConstructor: CjEnumConstructor, data: Unit): Unit? {
+            override fun visitEnumConstructor(cjEnumConstructor: CjEnumConstructor, data: Unit): Unit? {
                 withSuffix(" ") { cjEnumConstructor.modifierList?.accept(explicitThis, Unit) }
                 append(cjEnumConstructor.name?.quoteIfNeeded())
                 return null

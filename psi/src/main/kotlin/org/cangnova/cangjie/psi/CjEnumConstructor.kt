@@ -42,7 +42,7 @@ class CjEnumConstructor : CjNamedDeclarationStub<CangJieEnumConstructorStub> {
     constructor(stub: CangJieEnumConstructorStub) : super(stub, CjStubElementTypes.ENUM_CONSTRUCTOR)
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
-        return visitor.visitEnumEntry(this, data)
+        return visitor.visitEnumConstructor(this, data)
     }
 
     /**

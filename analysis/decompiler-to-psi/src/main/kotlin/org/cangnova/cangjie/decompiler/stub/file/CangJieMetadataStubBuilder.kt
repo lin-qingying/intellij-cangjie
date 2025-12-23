@@ -27,6 +27,7 @@ package org.cangnova.cangjie.decompiler.stub.file
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.stubs.PsiFileStub
 import com.intellij.util.indexing.FileContent
@@ -632,7 +633,7 @@ abstract class CangJieMetadataStubBuilder : ClsStubBuilder() {
         val file = readFileSafely(virtualFile, fileContent.content) ?: return null
 
         // 从 FileContent 获取 project
-        val project = fileContent.project
+        val project = fileContent.project ?: ProjectManager.getInstance().defaultProject
 
 
         return when (file) {

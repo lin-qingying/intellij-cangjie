@@ -26,9 +26,9 @@ package org.cangnova.cangjie.psi.stubs
 
 object CangJieStubVersions {
 
-    const val SOURCE_STUB_VERSION = 168
+    const val SOURCE_STUB_VERSION = 177
 
-    private const val BINARY_STUB_VERSION = 103
+    private const val BINARY_STUB_VERSION = SOURCE_STUB_VERSION
 
     const val CLASSFILE_STUB_VERSION = BINARY_STUB_VERSION + 0
 

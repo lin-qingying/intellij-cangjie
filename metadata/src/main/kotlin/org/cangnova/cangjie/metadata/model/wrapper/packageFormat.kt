@@ -507,6 +507,8 @@ class ExtendWrapper(
     }
 
     val id = original.exportId!!
+
+    override val annotations: List<AnnotationWrapper> = original.annotations.map { AnnotationWrapper(it, declTable, typeTable) }
 }
 
 class PropertyWrapper(
@@ -562,6 +564,7 @@ class PropertyWrapper(
         }
     }
 
+    override val annotations: List<AnnotationWrapper> = original.annotations.map { AnnotationWrapper(it, declTable, typeTable) }
 }
 
 class TypeWrapper(
@@ -614,6 +617,7 @@ class VariableWrapper(
     }
     val declaresDefaultValue = info.initializer != 0
 
+    override val annotations: List<AnnotationWrapper> = original.annotations.map { AnnotationWrapper(it, declTable, typeTable) }
 }
 
 class TypeAliasWrapper(
@@ -829,6 +833,7 @@ class ValueParameterWrapper(
     val isNamedParam = info.isNamedParam
     val isMemberParam = info.isMemberParam
 
+    override val annotations: List<AnnotationWrapper> = original.annotations.map { AnnotationWrapper(it, declTable, typeTable) }
 
     val declaresDefaultValue = info.defaultVal != 0
 }

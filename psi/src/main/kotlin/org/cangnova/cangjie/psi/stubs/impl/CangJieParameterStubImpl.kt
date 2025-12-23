@@ -52,7 +52,7 @@ class CangJieParameterStubImpl(
     }
 
     override fun isMutable() = isMutable
-    override fun hasValOrVar() = hasLetOrVar
+    override fun hasLetOrVar() = hasLetOrVar
     override fun hasDefaultValue() = hasDefaultValue
     override fun isNamed() = isNamed
 }

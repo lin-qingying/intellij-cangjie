@@ -60,7 +60,7 @@ class CjParameterElementType(debugName: @NonNls String) :
     override fun serialize(stub: CangJieParameterStub, dataStream: StubOutputStream) {
         dataStream.writeName(stub.name)
         dataStream.writeBoolean(stub.isMutable())
-        dataStream.writeBoolean(stub.hasValOrVar())
+        dataStream.writeBoolean(stub.hasLetOrVar())
         dataStream.writeBoolean(stub.hasDefaultValue())
         dataStream.writeBoolean(stub.isNamed())
         val name = stub.getFqName()
