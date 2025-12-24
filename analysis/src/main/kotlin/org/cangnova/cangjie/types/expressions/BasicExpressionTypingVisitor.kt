@@ -1399,7 +1399,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return callExpressionResolver.getQualifiedExpressionTypeInfo(expression, context)
     }
 
-    override fun visitVariable(variable: CjVariable, context: ExpressionTypingContext): CangJieTypeInfo {
+    override fun visitVariable(variable: CjVariable<*>, context: ExpressionTypingContext): CangJieTypeInfo {
         components.localVariableResolver.process(variable, context, context.scope, facade)
         return declarationInIllegalContext(variable, context)
     }

@@ -894,20 +894,48 @@ class ExpressionTypingVisitorForStatements(
      * @param data 表达式类型检查上下文
      * @return 类型信息
      */
-    override fun visitVariable(variable: CjVariable, data: ExpressionTypingContext): CangJieTypeInfo {
-        return if (variable.pattern == null) {
-            // 简单变量声明
-            val (typeInfo, variableDescriptor) = components.localVariableResolver.process(
-                variable,
-                data,
-                scope,
-                facade
-            )
-            scope.addVariableDescriptor(variableDescriptor)
-            typeInfo
-        } else {
-            // 模式匹配声明
-            patterns.visitVariable(variable, data.replaceScope(scope))
+    override fun visitVariable(variable: CjVariable<*>, data: ExpressionTypingContext): CangJieTypeInfo {
+        return when (variable) {
+            is CjFieldVariable -> {
+                // 字段变量声明
+                val (typeInfo, variableDescriptor) = components.localVariableResolver.process(
+                    variable,
+                    data,
+                    scope,
+                    facade
+                )
+                scope.addVariableDescriptor(variableDescriptor)
+                typeInfo
+            }
+
+            is CjPatternVariable -> {
+                if (variable.pattern == null) {
+                    // 简单变量声明
+                    val (typeInfo, variableDescriptor) = components.localVariableResolver.process(
+                        variable,
+                        data,
+                        scope,
+                        facade
+                    )
+                    scope.addVariableDescriptor(variableDescriptor)
+                    typeInfo
+                } else {
+                    // 模式匹配声明
+                    patterns.visitVariable(variable, data.replaceScope(scope))
+                }
+            }
+
+            else -> {
+                // 未知变量类型，默认处理
+                val (typeInfo, variableDescriptor) = components.localVariableResolver.process(
+                    variable,
+                    data,
+                    scope,
+                    facade
+                )
+                scope.addVariableDescriptor(variableDescriptor)
+                typeInfo
+            }
         }
     }
 

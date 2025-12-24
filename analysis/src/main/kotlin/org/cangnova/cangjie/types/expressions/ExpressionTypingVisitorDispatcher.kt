@@ -181,7 +181,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
 
     protected abstract fun getStatementVisitor(context: ExpressionTypingContext): ExpressionTypingVisitorForStatements
 
-    override fun visitVariable(variable: CjVariable, data: ExpressionTypingContext): CangJieTypeInfo {
+    override fun visitVariable(variable: CjVariable<*>, data: ExpressionTypingContext): CangJieTypeInfo {
         return basic.visitVariable(variable, data)
     }
 
