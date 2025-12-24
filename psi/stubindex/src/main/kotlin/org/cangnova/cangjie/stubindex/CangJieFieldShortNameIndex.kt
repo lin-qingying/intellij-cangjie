@@ -28,7 +28,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StringStubIndexExtension
 import com.intellij.psi.stubs.StubIndexKey
-import org.cangnova.cangjie.psi.CjField
+
+import org.cangnova.cangjie.psi.CjFieldVariable
 
 /**
  * 按短名称索引类成员字段
@@ -36,16 +37,16 @@ import org.cangnova.cangjie.psi.CjField
  * 用于通过字段名称快速查找 CjField 元素。
  * 例如：查找所有名为 "name" 的字段
  */
-class CangJieFieldShortNameIndex internal constructor() : StringStubIndexExtension<CjField>() {
-    companion object Helper : CangJieStringStubIndexHelper<CjField>(CjField::class.java) {
-        override val indexKey: StubIndexKey<String, CjField> =
+class CangJieFieldShortNameIndex internal constructor() : StringStubIndexExtension<CjFieldVariable>() {
+    companion object Helper : CangJieStringStubIndexHelper<CjFieldVariable>(CjFieldVariable::class.java) {
+        override val indexKey: StubIndexKey<String, CjFieldVariable> =
             StubIndexKey.createIndexKey(CangJieFieldShortNameIndex::class.java.simpleName)
     }
 
-    override fun getKey(): StubIndexKey<String, CjField> = indexKey
+    override fun getKey(): StubIndexKey<String, CjFieldVariable> = indexKey
 
     @Deprecated("Base method is deprecated", ReplaceWith("CangJieFieldShortNameIndex[shortName, project, scope]"))
-    override fun get(shortName: String, project: Project, scope: GlobalSearchScope): Collection<CjField> {
+    override fun get(shortName: String, project: Project, scope: GlobalSearchScope): Collection<CjFieldVariable> {
         return Helper[shortName, project, scope]
     }
 }

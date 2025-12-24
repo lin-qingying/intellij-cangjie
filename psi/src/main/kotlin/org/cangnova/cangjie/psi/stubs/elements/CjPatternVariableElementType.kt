@@ -131,6 +131,6 @@ class CjPatternVariableElementType(debugName: @NonNls String) :
     }
 
     override fun indexStub(stub: CangJieVariableStub, sink: IndexSink) {
-        getInstance().indexVariable(stub, sink)
+        getInstance().indexPatternVariable(stub, sink)
     }
 }

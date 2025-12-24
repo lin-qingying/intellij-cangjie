@@ -105,7 +105,7 @@ class CjFieldElementType(debugName: @NonNls String) :
     }
 
     override fun indexStub(stub: CangJieFieldStub, sink: IndexSink) {
-        getInstance().indexField(stub, sink)
+        getInstance().indexFieldVariable(stub, sink)
     }
 
     override fun createPsi(stub: CangJieFieldStub): CjFieldVariable {

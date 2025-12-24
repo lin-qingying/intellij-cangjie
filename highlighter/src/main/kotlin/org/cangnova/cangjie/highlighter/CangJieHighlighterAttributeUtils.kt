@@ -37,17 +37,14 @@ fun textAttributesKeyForCjElement(element: PsiElement): HighlightInfoType? {
     }.firstOrNull { it != null }
 }
 
-fun textAttributesForCjVariableDeclaration(variable: CjVariable): HighlightInfoType = when {
-
-    variable.isLocal -> CangJieHighlightInfoTypeSemanticNames.LOCAL_VARIABLE
-    variable.isTopLevel ->
-
-        CangJieHighlightInfoTypeSemanticNames.PACKAGE_VARIABLE
-
-    else ->
-
-        CangJieHighlightInfoTypeSemanticNames.INSTANCE_PROPERTY
-
+fun textAttributesForCjVariableDeclaration(variable: CjVariable<*>): HighlightInfoType = when (variable) {
+    is CjPatternVariable -> when {
+        variable.isLocal -> CangJieHighlightInfoTypeSemanticNames.LOCAL_VARIABLE
+        variable.isTopLevel -> CangJieHighlightInfoTypeSemanticNames.PACKAGE_VARIABLE
+        else -> CangJieHighlightInfoTypeSemanticNames.INSTANCE_PROPERTY
+    }
+    is CjFieldVariable -> CangJieHighlightInfoTypeSemanticNames.INSTANCE_PROPERTY
+    else -> CangJieHighlightInfoTypeSemanticNames.INSTANCE_PROPERTY
 }
 
 private fun CjProperty.isCustomPropertyDeclaration(): Boolean {
@@ -72,7 +69,7 @@ fun textAttributesForCjParameterDeclaration(parameter: CjParameter): HighlightIn
 fun textAttributesKeyForPropertyDeclaration(declaration: PsiElement): HighlightInfoType? = when (declaration) {
     is CjProperty -> textAttributesForCjPropertyDeclaration(declaration)
     is CjParameter -> textAttributesForCjParameterDeclaration(declaration)
-    is CjVariable -> textAttributesForCjVariableDeclaration(declaration)
+    is CjVariable<*> -> textAttributesForCjVariableDeclaration(declaration)
 
     else -> null
 }

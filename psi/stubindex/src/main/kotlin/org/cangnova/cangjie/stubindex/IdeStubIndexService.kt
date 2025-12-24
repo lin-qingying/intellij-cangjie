@@ -45,7 +45,7 @@ import com.intellij.psi.stubs.StubOutputStream
 import java.io.IOException
 
 internal class IdeStubIndexService : StubIndexService() {
-    override fun indexVariable(stub: CangJieVariableStub, sink: IndexSink) {
+    override fun indexPatternVariable(stub: CangJieVariableStub, sink: IndexSink) {
         // 变量声明的名称和 fqName 来自模式匹配中的绑定模式
         // 遍历子 stub 找到所有绑定模式
         val bindingPatternStubs = stub.childrenStubs
@@ -112,7 +112,7 @@ internal class IdeStubIndexService : StubIndexService() {
         indexInternals(stub, sink)
     }
 
-    override fun indexField(stub: CangJieFieldStub, sink: IndexSink) {
+    override fun indexFieldVariable(stub: CangJieFieldStub, sink: IndexSink) {
         val name: String? = stub.name
         if (name != null) {
             // 按字段名称索引

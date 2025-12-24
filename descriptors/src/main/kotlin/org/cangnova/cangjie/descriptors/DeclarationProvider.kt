@@ -37,7 +37,7 @@ interface DeclarationProvider {
     fun getMainFunctionDeclarations(): Collection<CjMainFunction>
     fun getMacroDeclarations(name: Name): Collection<CjMacroDeclaration>
 
-    fun getVariableDeclarations(name: Name): Collection<CjVariable>
+    fun getVariableDeclarations(name: Name): Collection<CjVariable<*>>
     fun getPropertyDeclarations(name: Name): Collection<CjProperty>
 
     fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>>
@@ -69,7 +69,7 @@ interface DeclarationProvider {
 
             override fun getMacroDeclarations(name: Name): Collection<CjMacroDeclaration> = emptyList()
 
-            override fun getVariableDeclarations(name: Name): Collection<CjVariable> = emptyList()
+            override fun getVariableDeclarations(name: Name): Collection<CjVariable<*>> = emptyList()
 
             override fun getPropertyDeclarations(name: Name): Collection<CjProperty> = emptyList()
 

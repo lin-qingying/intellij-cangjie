@@ -28,7 +28,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StringStubIndexExtension
 import com.intellij.psi.stubs.StubIndexKey
-import org.cangnova.cangjie.psi.CjField
+import org.cangnova.cangjie.psi.CjFieldVariable
 
 /**
  * 按所属类的完全限定名索引类成员字段
@@ -36,16 +36,16 @@ import org.cangnova.cangjie.psi.CjField
  * 用于通过类的 FqName 查找该类的所有字段。
  * 例如：查找 "std.core.Person" 类的所有字段
  */
-class CangJieFieldByClassIndex internal constructor() : StringStubIndexExtension<CjField>() {
-    companion object Helper : CangJieStringStubIndexHelper<CjField>(CjField::class.java) {
-        override val indexKey: StubIndexKey<String, CjField> =
+class CangJieFieldByClassIndex internal constructor() : StringStubIndexExtension<CjFieldVariable>() {
+    companion object Helper : CangJieStringStubIndexHelper<CjFieldVariable>(CjFieldVariable::class.java) {
+        override val indexKey: StubIndexKey<String, CjFieldVariable> =
             StubIndexKey.createIndexKey(CangJieFieldByClassIndex::class.java.simpleName)
     }
 
-    override fun getKey(): StubIndexKey<String, CjField> = indexKey
+    override fun getKey(): StubIndexKey<String, CjFieldVariable> = indexKey
 
     @Deprecated("Base method is deprecated", ReplaceWith("CangJieFieldByClassIndex[classFqName, project, scope]"))
-    override fun get(classFqName: String, project: Project, scope: GlobalSearchScope): Collection<CjField> {
+    override fun get(classFqName: String, project: Project, scope: GlobalSearchScope): Collection<CjFieldVariable> {
         return Helper[classFqName, project, scope]
     }
 }

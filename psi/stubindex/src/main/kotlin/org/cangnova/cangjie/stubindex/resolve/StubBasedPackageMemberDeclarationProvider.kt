@@ -108,7 +108,7 @@ class StubBasedPackageMemberDeclarationProvider(
         return fqName.child(name.safeNameForLazyResolve()).asString()
     }
 
-    override fun getVariableDeclarations(name: Name): Collection<CjVariable> = runReadAction {
+    override fun getVariableDeclarations(name: Name): Collection<CjVariable<*>> = runReadAction {
         CangJieTopLevelVariableFqNameIndex[childName(name), project, searchScope]
 
     }

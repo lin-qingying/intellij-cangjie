@@ -158,7 +158,7 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
     open fun visitProperty(property: CjProperty, data: D): R? {
         return visitNamedDeclaration(property, data)
     }
-    open fun visitPatternVariable(variable: CjVariable<*>, data: D): R? {
+    open fun visitPatternVariable(variable: CjPatternVariable, data: D): R? {
         return visitVariable(variable, data)
     }
     open fun visitVariable(variable: CjVariable<*>, data: D): R? {

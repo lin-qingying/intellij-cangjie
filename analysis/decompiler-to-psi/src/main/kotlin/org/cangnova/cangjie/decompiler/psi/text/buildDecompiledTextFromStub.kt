@@ -573,7 +573,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 }
             }
 
-            override fun visitFieldVariable(field: CjField, data: Unit) {
+            override fun visitFieldVariable(field: CjFieldVariable, data: Unit) {
                 withSuffix(" ") { field.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { field.modifierList?.accept(explicitThis, Unit) }
                 if (field.isVar) {
@@ -591,7 +591,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 }
             }
 
-            override fun visitVariable(variable: CjVariable, data: Unit): Unit? {
+            override fun visitPatternVariable(variable: CjPatternVariable, data: Unit): Unit? {
                 withSuffix(" ") { variable.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { variable.modifierList?.accept(explicitThis, Unit) }
                 if (variable.isVar) {

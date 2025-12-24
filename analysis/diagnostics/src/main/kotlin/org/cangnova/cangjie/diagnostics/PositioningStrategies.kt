@@ -452,7 +452,7 @@ object PositioningStrategies {
             return when (element) {
                 is CjParameter -> markElement(element.letOrVarKeyword ?: element)
                 is CjProperty -> markElement(element.letOrVarKeyword ?: element)
-                is CjVariable -> markElement(element.letOrVarKeyword)
+                is CjVariable<*> -> markElement(element.letOrVarKeyword ?: element)
                 else -> error("Declaration is neither a parameter nor a property: " + element.getElementTextWithContext())
             }
         }
