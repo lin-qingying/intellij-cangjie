@@ -201,7 +201,7 @@ class FunctionReturnResolver(
                         arrayType,
                         false,
                         SourceElement.NO_SOURCE,
-                        { emptyList() }
+
                     )), t.defaultType,
                 Modality.FINAL,
                 PUBLIC

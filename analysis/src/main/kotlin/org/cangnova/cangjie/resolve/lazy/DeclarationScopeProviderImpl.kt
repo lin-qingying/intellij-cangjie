@@ -64,7 +64,7 @@ open class DeclarationScopeProviderImpl(
 
             if (cjDeclaration is CjAnonymousInitializer ||
                 cjDeclaration is CjProperty ||
-                cjDeclaration is CjVariable
+                cjDeclaration is CjVariable<*>
             ) {
                 return parentClassDescriptor.scopeForInitializerResolution
             }

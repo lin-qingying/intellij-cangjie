@@ -224,7 +224,7 @@ class UnsafeExpressionResolver(
                         ),
                         false,
                         SourceElement.NO_SOURCE,
-                        { emptyList() }
+
                     )), T.defaultType,
                 Modality.FINAL,
                 PUBLIC

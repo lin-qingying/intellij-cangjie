@@ -311,6 +311,6 @@ class ResolveSession @Deprecated("Only calls from injectors expected") construct
     companion object {
         
         fun areDescriptorsCreatedForDeclaration(declaration: CjDeclaration): Boolean =
-            declaration !is CjAnonymousInitializer && declaration !is CjDestructuringDeclaration
+            declaration !is CjAnonymousInitializer
     }
 }
