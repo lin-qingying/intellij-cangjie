@@ -29,7 +29,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StringStubIndexExtension
 import com.intellij.psi.stubs.StubIndexKey
 import org.cangnova.cangjie.psi.CjPatternVariable
-import org.cangnova.cangjie.psi.CjVariable
 
 
 class CangJieTopLevelVariableFqNameIndex internal constructor() : StringStubIndexExtension<CjPatternVariable>() {

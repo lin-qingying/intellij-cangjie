@@ -62,7 +62,7 @@ class AnnotationChecker {
                     } ?: TargetLists.T_CLASSIFIER
                 }
 
-                is CjDestructuringDeclarationEntry -> TargetLists.T_LOCAL_VARIABLE
+
                 is CjProperty -> {
                     when {
 
@@ -78,19 +78,17 @@ class AnnotationChecker {
 
                 }
 
-                is CjVariable -> {
+                is CjPatternVariable -> {
                     when {
                         annotated.isLocal -> TargetLists.T_LOCAL_VARIABLE
                         else -> TargetLists.T_TOP_LEVEL_VARIABLE
                     }
                 }
 
-                is CjField -> TargetLists.T_MEMBER_VARIABLE
+                is CjFieldVariable -> TargetLists.T_MEMBER_VARIABLE
 
                 is CjParameter -> {
-                    val destructuringDeclaration = annotated.destructuringDeclaration
                     when {
-                        destructuringDeclaration != null -> TargetLists.T_DESTRUCTURING_DECLARATION
                         annotated.hasLetOrVar() -> TargetLists.T_VALUE_PARAMETER_WITH_LET
                         else -> TargetLists.T_VALUE_PARAMETER_WITHOUT_LET
                     }
@@ -122,7 +120,6 @@ class AnnotationChecker {
                 is CjTypeProjection -> TargetLists.T_TYPE_PROJECTION
 
                 is CjAnonymousInitializer -> TargetLists.T_INITIALIZER
-                is CjDestructuringDeclaration -> TargetLists.T_DESTRUCTURING_DECLARATION
                 is CjLambdaExpression -> TargetLists.T_FUNCTION_LITERAL
 
                 is CjExpression -> TargetLists.T_EXPRESSION

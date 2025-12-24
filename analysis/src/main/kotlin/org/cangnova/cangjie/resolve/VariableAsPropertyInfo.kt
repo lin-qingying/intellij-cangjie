@@ -42,7 +42,7 @@ class VariableAsPropertyInfo(
         }
 
         
-        fun createFromProperty(property: CjVariable): VariableAsPropertyInfo {
+        fun createFromProperty(property: CjVariable<*>): VariableAsPropertyInfo {
             return VariableAsPropertyInfo(null, null, null, false/*, property.hasDelegate()*/)
         }
 

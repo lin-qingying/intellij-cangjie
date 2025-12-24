@@ -224,7 +224,7 @@ object Renderers {
         when (declaration) {
             is CjNamedFunction -> "function"
             is CjProperty -> "property"
-            is CjVariable -> "variable"
+            is CjVariable<*> -> "variable"
             else -> ""
         }
     }

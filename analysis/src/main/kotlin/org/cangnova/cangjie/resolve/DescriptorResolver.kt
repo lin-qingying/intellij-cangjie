@@ -914,51 +914,16 @@ class DescriptorResolver(
         val valueParameterAnnotations =
             resolveValueParameterAnnotations(scope, valueParameter, trace, additionalAnnotations)
 
-        val destructuringDeclaration = valueParameter.destructuringDeclaration
 
-        val destructuringVariables: (() -> List<VariableDescriptor>)?
-        if (destructuringDeclaration != null) {
-//            if (!languageVersionSettings.supportsFeature(LanguageFeature.DestructuringLambdaParameters)) {
-//                trace.report(Errors.UNSUPPORTED_FEATURE.on(valueParameter,
-//                        TuplesCj.to(LanguageFeature.DestructuringLambdaParameters, languageVersionSettings)));
-//            }
-
-            //                ReceiverParameterDescriptor dispatchReceiver = owner.getDispatchReceiverParameter();
-            //                assert dispatchReceiver == null || dispatchReceiver.getContainingDeclaration() instanceof ScriptDescriptor
-            //                        : "Destructuring declarations are only be parsed for lambdas, and they must not have a dispatch receiver";
-            //                LexicalScope scopeForDestructuring =
-            //                        ScopeUtilsCj.createScopeForDestructuring(scope, owner.getExtensionReceiverParameter());
-            //
-            //                List<VariableCallableDescriptor> result =
-            //                        destructuringDeclarationResolver.resolveLocalVariablesFromDestructuringDeclaration(
-            //                                scope,
-            //                                destructuringDeclaration, new TransientReceiver(type), /* initializer = */ null,
-            //                                ExpressionTypingContext.newContext(
-            //                                        trace, scopeForDestructuring, DataFlowInfoFactory.EMPTY, TypeUtils.NO_EXPECTED_TYPE,
-            //                                        languageVersionSettings, dataFlowValueFactory, inferenceSession
-            //                                )
-            //                        );
-            //
-            //                modifiersChecker.withTrace(trace).checkModifiersForDestructuringDeclaration(destructuringDeclaration);
-            //                return result;
-
-            destructuringVariables = { ArrayList() }
-        } else {
-            destructuringVariables = null
-        }
-
-        val parameterName = if (destructuringDeclaration == null) {
-            // NB: let/var for parameter is only allowed in primary constructors where single underscore names are still prohibited.
-            // The problem with val/var is that when lazy resolveName try to find their descriptor, it searches through the member scope
-            // of containing class where, it can not find a descriptor with special name.
-            // Thus, to preserve behavior, we don't use a special name for val/var.
+        // NB: let/var for parameter is only allowed in primary constructors where single underscore names are still prohibited.
+        // The problem with let/var is that when lazy resolveName try to find their descriptor, it searches through the member scope
+        // of containing class where, it can not find a descriptor with special name.
+        // Thus, to preserve behavior, we don't use a special name for let/var.
+        val parameterName =
             if (!valueParameter.hasLetOrVar() && valueParameter.isSingleUnderscore)
                 anonymousParameterName(index)
             else
                 CjPsiUtil.safeName(valueParameter.name)
-        } else {
-            special("<name for destructuring parameter $index>")
-        }
 
         val valueParameterDescriptor = createWithDestructuringDeclarations(
             owner,
@@ -971,7 +936,7 @@ class DescriptorResolver(
             valueParameter.hasDefaultValue(),  //                varargElementType,
 
             valueParameter.toSourceElement(),
-            destructuringVariables
+
         )
 
         trace.record(BindingContext.VALUE_PARAMETER, valueParameter, valueParameterDescriptor)
@@ -1208,7 +1173,7 @@ class DescriptorResolver(
         container: DeclarationDescriptor,
         scopeForDeclarationResolution: LexicalScope,
         scopeForInitializerResolution: LexicalScope,
-        variableDeclaration: CjVariable,
+        variableDeclaration: CjVariable<*>,
         trace: BindingTrace,
         dataFlowInfo: DataFlowInfo,
         inferenceSession: InferenceSession

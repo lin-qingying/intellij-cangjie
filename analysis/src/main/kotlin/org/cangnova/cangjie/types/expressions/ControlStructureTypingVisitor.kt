@@ -770,9 +770,6 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         }
 
         if (expression.getTargetLabel() == null) {
-            while (parentDeclaration is CjDestructuringDeclaration) {
-                parentDeclaration = context.getContextParentOfType(parentDeclaration, CjDeclaration::class.java)
-            }
 
             // 获取父声明的描述符
             val declarationDescriptor = parentDeclaration?.let {

@@ -193,14 +193,7 @@ val UNUSED_PARAMETER: DiagnosticFactory1<CjParameter, VariableDescriptor> =
 val UNUSED_ANONYMOUS_PARAMETER: DiagnosticFactory1<CjParameter, VariableDescriptor> =
     DiagnosticFactory1.create(Severity.WARNING, PositioningStrategies.DECLARATION_NAME)
 
-/**
- * 未使用的解构参数条目
- */
-
-val UNUSED_DESTRUCTURED_PARAMETER_ENTRY: DiagnosticFactory1<CjDestructuringDeclarationEntry, VariableDescriptor> =
-    DiagnosticFactory1.create(Severity.WARNING, PositioningStrategies.DECLARATION_NAME)
-
-/**
+ /**
  * 未使用的更改值
  */
 

@@ -569,7 +569,7 @@ class DeclarationsChecker(
         checkBackingField(property)
     }
 
-    fun checkVariable(variable: CjVariable, variableDescriptor: VariableDescriptor) {
+    fun checkVariable(variable: CjVariable<*>, variableDescriptor: VariableDescriptor) {
         val containingDeclaration = variableDescriptor.containingDeclaration
         if (containingDeclaration is ClassDescriptor) {
             checkMemberVariable(variable, variableDescriptor, containingDeclaration)
@@ -579,7 +579,7 @@ class DeclarationsChecker(
 
     }
 
-    private fun checkVariableInitializer(variable: CjVariable, variableDescriptor: VariableDescriptor) {
+    private fun checkVariableInitializer(variable: CjVariable<*>, variableDescriptor: VariableDescriptor) {
 
         val containingDeclaration = variableDescriptor.containingDeclaration
         val inInterface = DescriptorUtils.isInterface(containingDeclaration)
@@ -641,7 +641,7 @@ class DeclarationsChecker(
         variableDescriptor: VariableDescriptor,
         containingDeclaration: DeclarationDescriptor,
         hasAnyAccessorImplementation: Boolean,
-        variable: CjVariable,
+        variable: CjVariable<*>,
         isOpenValDeferredInitDeprecationWarning: Boolean,
         languageVersionSettings: LanguageVersionSettings,
         trace: BindingTrace,
@@ -660,7 +660,7 @@ class DeclarationsChecker(
         )
     }
 
-    private val DiagnosticFactory0<CjVariable>.deprecationWarning: DiagnosticFactory0<CjVariable>
+    private val DiagnosticFactory0<CjVariable<*>>.deprecationWarning: DiagnosticFactory0<CjVariable<*>>
         get() = when (this) {
 //            MUST_BE_INITIALIZED -> MUST_BE_INITIALIZED_WARNING
 //            MUST_BE_INITIALIZED_OR_BE_ABSTRACT -> MUST_BE_INITIALIZED_OR_BE_ABSTRACT_WARNING
@@ -670,7 +670,7 @@ class DeclarationsChecker(
         }
 
     private fun checkMemberVariable(
-        variable: CjVariable,
+        variable: CjVariable<*>,
         propertyDescriptor: VariableDescriptor,
         classDescriptor: ClassDescriptor
     ) {

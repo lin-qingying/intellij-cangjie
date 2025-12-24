@@ -71,7 +71,7 @@ fun createSuppressWarningActions(
     var suppressAtStatementAllowed = true
     while (current != null) {
         when {
-            current is CjDeclaration && current !is CjDestructuringDeclaration -> {
+            current is CjDeclaration -> {
                 val declaration = current
                 val kind = DeclarationKindDetector.detect(declaration)
                 if (kind != null) {
@@ -82,7 +82,7 @@ fun createSuppressWarningActions(
 
             current is CjExpression && suppressAtStatementAllowed -> {
                 // Add suppress action at first statement
-                if (current.parent is CjBlockExpression || current.parent is CjDestructuringDeclaration) {
+                if (current.parent is CjBlockExpression ) {
                     val kind = if (current.parent is CjBlockExpression)
                         CangJieCodeInsightBundle.message("declaration.kind.statement")
                     else

@@ -43,28 +43,28 @@ import org.cangnova.cangjie.types.CangJieType
  * 必须初始化
  */
 
-val MUST_BE_INITIALIZED: DiagnosticFactory0<CjVariable> =
+val MUST_BE_INITIALIZED: DiagnosticFactory0<CjVariable<*>> =
     DiagnosticFactory0.create(Severity.ERROR, PositioningStrategies.DECLARATION_SIGNATURE)
 
 /**
  * 必须初始化或是抽象的
  */
 
-val MUST_BE_INITIALIZED_OR_BE_ABSTRACT: DiagnosticFactory0<CjVariable> =
+val MUST_BE_INITIALIZED_OR_BE_ABSTRACT: DiagnosticFactory0<CjVariable<*>> =
     DiagnosticFactory0.create(Severity.ERROR, PositioningStrategies.DECLARATION_SIGNATURE)
 
 /**
  * 必须初始化或是 final
  */
 
-val MUST_BE_INITIALIZED_OR_BE_FINAL: DiagnosticFactory0<CjVariable> =
+val MUST_BE_INITIALIZED_OR_BE_FINAL: DiagnosticFactory0<CjVariable<*>> =
     DiagnosticFactory0.create(Severity.ERROR, PositioningStrategies.DECLARATION_SIGNATURE)
 
 /**
  * 必须初始化或是 final 或抽象的
  */
 
-val MUST_BE_INITIALIZED_OR_FINAL_OR_ABSTRACT: DiagnosticFactory0<CjVariable> =
+val MUST_BE_INITIALIZED_OR_FINAL_OR_ABSTRACT: DiagnosticFactory0<CjVariable<*>> =
     DiagnosticFactory0.create(Severity.ERROR, PositioningStrategies.DECLARATION_SIGNATURE)
 
 /**

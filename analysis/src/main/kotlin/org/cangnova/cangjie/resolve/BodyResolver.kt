@@ -205,7 +205,7 @@ class BodyResolver(
 
     private fun resolveVariableInitializer(
         outerDataFlowInfo: DataFlowInfo,
-        variable: CjVariable,
+        variable: CjVariable<*>,
         variableDescriptor: VariableDescriptor,
         initializer: CjExpression,
         propertyHeader: LexicalScope,
@@ -310,7 +310,7 @@ class BodyResolver(
         resolvePropertyAccessors(c, property, propertyDescriptor)
     }
 
-      fun resolveVariable(c: BodiesResolveContext, variable: CjVariable, variableDescriptor: VariableDescriptor) {
+      fun resolveVariable(c: BodiesResolveContext, variable: CjVariable<*>, variableDescriptor: VariableDescriptor) {
         computeDeferredType(variableDescriptor.returnType)
         PreliminaryDeclarationVisitor.createForDeclaration(variable, trace, languageVersionSettings)
 
@@ -914,7 +914,7 @@ class BodyResolver(
     }
 
     companion object {
-        private fun getScopeForVariable(c: BodiesResolveContext, variable: CjVariable): LexicalScope =
+        private fun getScopeForVariable(c: BodiesResolveContext, variable: CjVariable<*>): LexicalScope =
             getScopeForDeclaration(c, variable)
 
         private fun getScopeForDeclaration(c: BodiesResolveContext, declaration: CjDeclaration): LexicalScope {
