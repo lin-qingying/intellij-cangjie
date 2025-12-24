@@ -69,7 +69,7 @@ class LocalVariableResolver(
     private val dataFlowValueFactory: DataFlowValueFactory
 ) {
     fun processForPattern(
-        variable: CjVariable,
+        variable: CjVariable<*>,
         typingContext: ExpressionTypingContext,
         scope: LexicalScope,
         facade: ExpressionTypingFacade
@@ -91,7 +91,7 @@ class LocalVariableResolver(
      * @return 一个包含变量类型信息和描述符的Pair对象。
      */
     fun process(
-        variable: CjVariable,
+        variable: CjVariable<*>,
         typingContext: ExpressionTypingContext,
         scope: LexicalScope,
         facade: ExpressionTypingFacade
@@ -161,7 +161,7 @@ class LocalVariableResolver(
     private fun checkLocalVariableDeclaration(
         context: ExpressionTypingContext,
         descriptor: VariableDescriptor,
-        cjVariable: CjVariable
+        cjVariable: CjVariable<*>
     ) {
         ExpressionTypingUtils.checkVariableShadowing(context.scope, context.trace, descriptor)
 

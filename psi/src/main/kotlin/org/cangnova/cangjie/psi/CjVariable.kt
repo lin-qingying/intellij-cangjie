@@ -52,6 +52,8 @@ import org.cangnova.cangjie.name.Name
 abstract class CjVariable<S : StubElement<*>> : CjDeclarationStub<S>, CjVariableDeclaration {
     constructor(stub: S, type: IStubElementType<S, *>) : super(stub, type)
     constructor(node: ASTNode) : super(node)
+
+    open val isTopLevel: Boolean get() = false
 }
 
 /**
@@ -140,7 +142,7 @@ class CjPatternVariable : CjVariable<CangJieVariableStub> {
         return visitor.visitVariable(this, data)
     }
 
-    val isTopLevel: Boolean
+    override val isTopLevel: Boolean
         get() {
             val stub = stub
             if (stub != null) {

@@ -138,7 +138,7 @@ class PrimitiveClassDescriptor(
             init {
                 val parameter = ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                     this, null, 0, Annotations.EMPTY, org.cangnova.cangjie.name.Name.identifier("value"),
-                    false, createPrimitiveType(sourceType), false, SourceElement.NO_SOURCE, null
+                    false, createPrimitiveType(sourceType), false, SourceElement.NO_SOURCE,
                 )
                 initialize(listOf(parameter))
                 setReturnType(this@PrimitiveClassDescriptor.defaultType)

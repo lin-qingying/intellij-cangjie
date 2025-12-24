@@ -66,7 +66,7 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
         val functions = ArrayListMultimap.create<Name, CjNamedFunction>()
         val mainFunctions = ArrayListMultimap.create<Name, CjMainFunction>()
         val properties = ArrayListMultimap.create<Name, CjProperty>()
-        val variables = ArrayListMultimap.create<Name, CjVariable>()
+        val variables = ArrayListMultimap.create<Name, CjVariable<*>>()
         val macros = ArrayListMultimap.create<Name, CjMacroDeclaration>()
         val classesAndObjects = ArrayListMultimap.create<Name, CjTypeStatementInfo<*>>() // order matters here
         val extends = ArrayListMultimap.create<Name, CjTypeStatementInfo<CjExtend>>()
@@ -93,18 +93,18 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
                 is CjProperty ->
                     properties.put(declaration.safeNameForLazyResolve(), declaration)
 
-                is CjVariable ->
-                    if (declaration.isPattern) {
-                        declaration.pattern.getAllBindings().forEach {
-                            variables.put(it.nameAsName.safeNameForLazyResolve(), declaration)
+                is CjFieldVariable ->
+                    variables.put(declaration.safeNameForLazyResolve(), declaration)
 
+                is CjPatternVariable ->
+                    if (declaration.pattern != null) {
+                        declaration.pattern!!.getAllBindings().forEach {
+                            variables.put(it.nameAsName.safeNameForLazyResolve(), declaration)
                         }
                     } else {
                         variables.put(declaration.safeNameForLazyResolve(), declaration)
-
                     }
 
-//
                 is CjTypeAlias ->
                     typeAliases.put(declaration.nameAsName.safeNameForLazyResolve(), declaration)
 
@@ -166,7 +166,7 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
     override fun getPropertyDeclarations(name: Name): List<CjProperty> =
         index().properties[name.safeNameForLazyResolve()].toList()
 
-    override fun getVariableDeclarations(name: Name): Collection<CjVariable> =
+    override fun getVariableDeclarations(name: Name): Collection<CjVariable<*>> =
         index().variables[name.safeNameForLazyResolve()].toList()
 
     override fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>> =

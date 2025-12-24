@@ -155,7 +155,7 @@ internal class ElementAnnotator(
                         else -> null
                     },
                     highlightType = when (factory) {
-                        in  UNUSED_ELEMENT_DIAGNOSTICS,  UNUSED_DESTRUCTURED_PARAMETER_ENTRY ->
+                        in  UNUSED_ELEMENT_DIAGNOSTICS  ->
                             ProblemHighlightType.LIKE_UNUSED_SYMBOL
 
                          UNUSED_ANONYMOUS_PARAMETER -> ProblemHighlightType.WEAK_WARNING

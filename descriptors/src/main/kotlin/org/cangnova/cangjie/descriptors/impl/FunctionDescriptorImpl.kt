@@ -124,7 +124,6 @@ abstract class FunctionDescriptorImpl(
                     wereChanges?.set(0, true)
                 }
 
-                val destructuringVariablesAction = getDestructuringVariablesAction(unsubstitutedValueParameter)
 
                 result.add(
                     ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
@@ -137,24 +136,15 @@ abstract class FunctionDescriptorImpl(
                         substitutedType,
                         unsubstitutedValueParameter.declaresDefaultValue,
                         if (preserveSourceElement) unsubstitutedValueParameter.source else SourceElement.NO_SOURCE,
-                        destructuringVariablesAction
                     )
                 )
             }
             return result
         }
 
-        private fun getDestructuringVariablesAction(unsubstitutedValueParameter: ValueParameterDescriptor): (() -> List<VariableDescriptor>)? {
-            return if (unsubstitutedValueParameter is ValueParameterDescriptorImpl.WithDestructuringDeclaration) {
-                val destructuringVariables = unsubstitutedValueParameter.destructuringVariables
-                { destructuringVariables }
-            } else null
-        }
+
     }
 
-    fun setExpect(isExpect: Boolean) {
-        this.isExpect = isExpect
-    }
 
     fun setHasStableParameterNames(hasStableParameterNames: Boolean) {
         this.hasStableParameterNames = hasStableParameterNames
@@ -397,8 +387,7 @@ abstract class FunctionDescriptorImpl(
         val substitutedContextReceiverParameters = mutableListOf<ReceiverParameterDescriptor>()
 
         if (configuration.newContextReceiverParameters.isNotEmpty()) {
-            var index = 0
-            for (newContextReceiverParameter in configuration.newContextReceiverParameters) {
+            for ((index, newContextReceiverParameter) in configuration.newContextReceiverParameters.withIndex()) {
                 val substitutedContextReceiverType =
                     substitutor.substitute(newContextReceiverParameter.type, Variance.INVARIANT)
                 if (substitutedContextReceiverType == null) {
@@ -411,8 +400,7 @@ abstract class FunctionDescriptorImpl(
                         newContextReceiverParameter.annotations,
                         index
                     )
-                index++
-//                substitutedContextReceiverParameters方法是根据substitutedContextReceiverType是否返回null的，所以这里已经判断过substitutedContextReceiverType，所以这里一定不为null，使用?let是为了好看
+                //                substitutedContextReceiverParameters方法是根据substitutedContextReceiverType是否返回null的，所以这里已经判断过substitutedContextReceiverType，所以这里一定不为null，使用?let是为了好看
                 substitutedContextReceiverParameter?.let { substitutedContextReceiverParameters.add(it) }
 
                 wereChanges[0] = wereChanges[0] or (substitutedContextReceiverType != newContextReceiverParameter.type)

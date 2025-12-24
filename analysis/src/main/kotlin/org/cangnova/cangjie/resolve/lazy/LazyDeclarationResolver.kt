@@ -339,14 +339,33 @@ open class LazyDeclarationResolver(
                 return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, typeAlias)
             }
 
-            override fun visitVariable(variable: CjVariable, data: Nothing?): DeclarationDescriptor? {
-                if (variable.isPattern) {
-                    return resolveToVariableByPattern(variable).firstOrNull()
+            override fun visitVariable(variable: CjVariable<*>, data: Nothing?): DeclarationDescriptor? {
+                return when (variable) {
+                    is CjFieldVariable -> {
+                        val location = lookupLocationFor(variable, false)
+                        val scopeForDeclaration = getMemberScopeDeclaredIn(variable, location)
+                        scopeForDeclaration.getContributedVariables(variable.nameAsSafeName, location)
+                        bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, variable)
+                    }
+
+                    is CjPatternVariable -> {
+                        if (variable.pattern != null) {
+                            resolveToVariableByPattern(variable).firstOrNull()
+                        } else {
+                            val location = lookupLocationFor(variable, variable.isTopLevel)
+                            val scopeForDeclaration = getMemberScopeDeclaredIn(variable, location)
+                            scopeForDeclaration.getContributedVariables(variable.nameAsSafeName, location)
+                            bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, variable)
+                        }
+                    }
+
+                    else -> {
+                        val location = lookupLocationFor(variable, variable.isTopLevel)
+                        val scopeForDeclaration = getMemberScopeDeclaredIn(variable, location)
+                        scopeForDeclaration.getContributedVariables(variable.nameAsSafeName, location)
+                        bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, variable)
+                    }
                 }
-                val location = lookupLocationFor(variable, variable.isTopLevel)
-                val scopeForDeclaration = getMemberScopeDeclaredIn(variable, location)
-                scopeForDeclaration.getContributedVariables(variable.nameAsSafeName, location)
-                return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, variable)
             }
 
             override fun visitProperty(property: CjProperty, data: Nothing?): DeclarationDescriptor? {

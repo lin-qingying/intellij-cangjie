@@ -73,20 +73,6 @@ class ModifiersChecker(
             }
         }
 
-        fun checkModifiersForDestructuringDeclaration(multiDeclaration: CjDestructuringDeclaration) {
-//            annotationChecker.check(multiDeclaration, trace, null)
-            ModifierCheckerCore.check(multiDeclaration, trace, null, languageVersionSettings)
-            for (multiEntry in multiDeclaration.entries) {
-//                annotationChecker.check(multiEntry, trace, null)
-                ModifierCheckerCore.check(multiEntry, trace, null, languageVersionSettings)
-                UnderscoreChecker.checkNamed(
-                    multiEntry,
-                    trace,
-                    languageVersionSettings,  /* allowSingleUnderscore = */
-                    true
-                )
-            }
-        }
 
         fun checkModifiersForDeclaration(
             modifierListOwner: CjDeclaration,

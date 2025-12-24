@@ -54,9 +54,7 @@ object CangJieSimpleNameBacktickChecker : IdentifierChecker {
     }
 
     override fun checkDeclaration(declaration: CjDeclaration, diagnosticHolder: DiagnosticSink) {
-        if (declaration is CjDestructuringDeclaration) {
-            declaration.entries.forEach { checkNamed(it, diagnosticHolder) }
-        }
+
         if (declaration is CjCallableDeclaration) {
             declaration.valueParameters.forEach { checkNamed(it, diagnosticHolder) }
         }

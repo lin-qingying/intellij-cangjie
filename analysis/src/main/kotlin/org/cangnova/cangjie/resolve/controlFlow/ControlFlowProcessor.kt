@@ -469,11 +469,11 @@ class ControlFlowProcessor(
                 if (accessTarget is AccessTarget.Call) {
                     receiverValues = getReceiverValues(accessTarget.resolvedCall)
                 }
-            } else if (left is CjProperty || left is CjVariable) {
+            } else if (left is CjProperty || left is CjVariable<*>) {
                 accessTarget = getDeclarationAccessTarget(left)
             }
 
-            if (accessTarget === AccessTarget.BlackBox && left !is CjProperty && left !is CjVariable) {
+            if (accessTarget === AccessTarget.BlackBox && left !is CjProperty && left !is CjVariable<*>) {
                 generateInstructions(left)
                 createSyntheticValue(left, MagicKind.VALUE_CONSUMER, left)
             }
@@ -1196,7 +1196,7 @@ class ControlFlowProcessor(
         }
 
 
-        override fun visitVariable(variable: CjVariable) {
+        override fun visitVariable(variable: CjVariable<*>) {
             builder.declareVariable(variable)
             val initializer = variable.initializer
             if (initializer != null) {
@@ -1367,7 +1367,7 @@ class ControlFlowProcessor(
 
         private fun generateInitializersForClassOrObject(classOrObject: CjDeclarationContainer) {
             for (declaration in classOrObject.declarations) {
-                if (declaration is CjProperty || declaration is CjVariable || declaration is CjAnonymousInitializer) {
+                if (declaration is CjProperty || declaration is CjVariable<*> || declaration is CjAnonymousInitializer) {
                     generateInstructions(declaration)
                 }
             }
@@ -1471,7 +1471,7 @@ class ControlFlowProcessor(
 
         override fun visitCjFile(file: CjFile) {
             for (declaration in file.declarations) {
-                if (declaration is CjProperty || declaration is CjVariable) {
+                if (declaration is CjProperty || declaration is CjVariable<*>) {
                     generateInstructions(declaration)
                 }
             }

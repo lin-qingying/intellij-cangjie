@@ -1127,7 +1127,7 @@ class DescriptorResolver(
         container: DeclarationDescriptor,
         scopeForDeclarationResolution: LexicalScope,
 //        scopeForInitializerResolution: LexicalScope,
-        variableDeclaration: CjVariable,
+        variableDeclaration: CjVariable<*>,
         trace: BindingTrace,
         dataFlowInfo: DataFlowInfo,
         inferenceSession: InferenceSession

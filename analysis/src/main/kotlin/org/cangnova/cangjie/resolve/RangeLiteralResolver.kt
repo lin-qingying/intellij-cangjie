@@ -126,7 +126,7 @@ class RangeLiteralResolver(
                         t.defaultType,
                         false,
                         SourceElement.NO_SOURCE,
-                        { emptyList() }
+
                     ),
                     ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                         this,
@@ -138,7 +138,7 @@ class RangeLiteralResolver(
                         t.defaultType,
                         false,
                         SourceElement.NO_SOURCE,
-                        { emptyList() }
+
                     ),
 
                     if (isStep) {
@@ -152,7 +152,7 @@ class RangeLiteralResolver(
                             module.builtIns.int64Type,
                             false,
                             SourceElement.NO_SOURCE,
-                            { emptyList() }
+
                         )
                     } else {
                         null

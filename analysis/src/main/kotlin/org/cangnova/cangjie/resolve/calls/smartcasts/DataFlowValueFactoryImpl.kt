@@ -134,7 +134,7 @@ class DataFlowValueFactoryImpl : DataFlowValueFactory {
         DataFlowValue(IdentifierInfo.Receiver(receiver), receiver.type)
 
     override fun createDataFlowValueForVariable(
-        variable: CjVariable,
+        variable: CjVariable<*>,
         variableDescriptor: VariableDescriptor,
         bindingContext: BindingContext,
         usageContainingModule: ModuleDescriptor?

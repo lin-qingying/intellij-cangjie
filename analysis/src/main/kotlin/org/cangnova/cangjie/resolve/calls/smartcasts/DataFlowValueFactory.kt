@@ -72,7 +72,7 @@ interface DataFlowValueFactory {
     ): DataFlowValue
 
     fun createDataFlowValueForVariable(
-        variable: CjVariable,
+        variable: CjVariable<*>,
         variableDescriptor: VariableDescriptor,
         bindingContext: BindingContext,
         usageContainingModule: ModuleDescriptor?

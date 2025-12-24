@@ -68,7 +68,7 @@ class OperatorFunctionDescriptor(
                     it.type,
                     false,
                     SourceElement.NO_SOURCE
-                ) { emptyList() }
+                )
             }
             /*
                         listOfNotNull(

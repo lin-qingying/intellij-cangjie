@@ -59,7 +59,6 @@ import org.cangnova.cangjie.resolve.caches.CodeFragmentAnalyzer
 import org.cangnova.cangjie.resolve.caches.SLRUCache
 import org.cangnova.cangjie.resolve.caches.analyzeControlFlow
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
-import org.cangnova.cangjie.resolve.calls.util.languageVersionSettings
 import org.cangnova.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl
 import org.cangnova.cangjie.resolve.lazy.*
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode.*
@@ -77,8 +76,7 @@ val CjFile.inBlockModificationCount: Long by NotNullableUserDataProperty(FILE_IN
 //排除的类型
 private val EXCLUDED_TYPES = setOf(
     CjAnonymousInitializer::class,
-    CjDestructuringDeclaration::class,
-    CjDestructuringDeclarationEntry::class,
+
     CjBindingPattern::class,
     CjTypePattern::class,
     CjPackageDirective::class,
@@ -192,7 +190,7 @@ class ResolveElementCache(
                 contextElements
                     .mapNotNull { it.getNonStrictParentOfType<CjDeclaration>() }
                     .filterTo(declarationsToResolve) {
-                        it !is CjAnonymousInitializer && it !is CjDestructuringDeclaration && it !is CjDestructuringDeclarationEntry
+                        it !is CjAnonymousInitializer
                     }
                 addResolveSessionBindingContext = true
             }
@@ -549,7 +547,7 @@ class ResolveElementCache(
                 bodyResolveMode.bindingTraceFilter
             )
 
-            is CjVariable -> variableAdditionalResolve(
+            is CjVariable<*> -> variableAdditionalResolve(
                 resolveSession,
                 resolveElement,
                 file,
@@ -642,7 +640,7 @@ class ResolveElementCache(
     }
 
     private fun variableAdditionalResolve(
-        resolveSession: ResolveSession, variable: CjVariable,
+        resolveSession: ResolveSession, variable: CjVariable<*>,
         file: CjFile,
         statementFilter: StatementFilter,
         bindingTraceFilter: BindingTraceFilter
@@ -1067,10 +1065,8 @@ class ResolveElementCache(
         override val properties: MutableMap<CjProperty, PropertyDescriptor> = hashMapOf()
 
         // 存储变量与其对应的变量描述符之间的映射。
-        override val variables: MutableMap<CjVariable, VariableDescriptor> = hashMapOf()
+        override val variables: MutableMap<CjVariable<*>, List<VariableDescriptor>> = hashMapOf()
 
-        // 存储通过模式匹配的变量与其对应的变量描述符列表之间的映射。
-        override val variablesByPattern: MutableMap<CjVariable, List<VariableDescriptor>> = hashMapOf()
 
         // 存储函数与其对应的函数描述符之间的映射。
         override val functions: MutableMap<CjNamedFunction, SimpleFunctionDescriptor> = hashMapOf()

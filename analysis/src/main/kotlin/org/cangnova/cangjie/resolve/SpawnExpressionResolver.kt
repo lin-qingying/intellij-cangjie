@@ -218,7 +218,7 @@ class SpawnExpressionResolver(
                     ),
                     false,
                     SourceElement.NO_SOURCE,
-                    { emptyList() }
+
                 )), futureType,
                 Modality.FINAL,
                 PUBLIC

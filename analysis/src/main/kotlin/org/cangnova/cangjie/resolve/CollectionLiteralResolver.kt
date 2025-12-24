@@ -290,7 +290,7 @@ class CollectionLiteralResolver(
                         arrayType,
                         false,
                         SourceElement.NO_SOURCE
-                    ) { emptyList() }), returnType,
+                    ) ), returnType,
                 Modality.FINAL,
                 PUBLIC
 
@@ -332,7 +332,7 @@ class CollectionLiteralResolver(
                         arrayType,
                         false,
                         SourceElement.NO_SOURCE
-                    ) { emptyList() }), arrayType,
+                    ) ), arrayType,
                 Modality.FINAL,
                 PUBLIC
 

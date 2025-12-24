@@ -742,7 +742,6 @@ abstract class AbstractEnumConstructorDescriptor(
                     wereChanges?.set(0, true)
                 }
 
-                val destructuringVariablesAction = getDestructuringVariablesAction(unsubstitutedValueParameter)
 
                 result.add(
                     ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
@@ -755,19 +754,13 @@ abstract class AbstractEnumConstructorDescriptor(
                         substitutedType,
                         unsubstitutedValueParameter.declaresDefaultValue,
                         if (preserveSourceElement) unsubstitutedValueParameter.source else SourceElement.NO_SOURCE,
-                        destructuringVariablesAction
                     )
                 )
             }
             return result
         }
 
-        private fun getDestructuringVariablesAction(unsubstitutedValueParameter: ValueParameterDescriptor): (() -> List<VariableDescriptor>)? {
-            return if (unsubstitutedValueParameter is ValueParameterDescriptorImpl.WithDestructuringDeclaration) {
-                val destructuringVariables = unsubstitutedValueParameter.destructuringVariables
-                { destructuringVariables }
-            } else null
-        }
+
     }
 
 }

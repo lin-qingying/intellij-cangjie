@@ -318,7 +318,7 @@ class PrimitiveMemberScope(
 
             val rightParameter = ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                 this, null, 0, Annotations.EMPTY, Name.identifier("other"),
-                false, ownerType, false, SourceElement.NO_SOURCE, null
+                false, ownerType, false, SourceElement.NO_SOURCE,
             )
 
             val returnType = determineReturnType(operatorName, ownerType)

@@ -83,7 +83,7 @@ class CFunctionClassDescriptor(
                     init {
                         val parameter = ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                             this, null, 0, Annotations.EMPTY, Name.identifier("pointer"),
-                            false, builtIns.stdlibTypes.cpointerType, false, SourceElement.NO_SOURCE, null
+                            false, builtIns.stdlibTypes.cpointerType, false, SourceElement.NO_SOURCE
                         )
                         initialize(listOf(parameter))
                         setReturnType(this@CFunctionClassDescriptor.defaultType)

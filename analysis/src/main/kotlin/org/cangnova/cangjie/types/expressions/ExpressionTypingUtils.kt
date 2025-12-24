@@ -623,11 +623,11 @@ object ExpressionTypingUtils {
         // 获取声明的 PSI 元素
         val declaration = DescriptorToSourceUtils.descriptorToDeclaration(variableDescriptor) ?: return
 
-        // 特殊处理解构声明
-        if (declaration is CjDestructuringDeclarationEntry &&
+        // 特殊处理模式匹配中的绑定
+        if (declaration is CjBindingPattern &&
             declaration.parent?.parent is CjParameter
         ) {
-            // 解构参数中的重复名称：foo { a, (a, b) -> }
+            // 模式匹配参数中的重复名称：foo { a, (a, b) -> }
             // 对第二个 'a' 不报告 NAME_SHADOWING，因为应该报告 REDECLARATION
             val oldElement = DescriptorToSourceUtils.descriptorToDeclaration(oldDescriptor)
 

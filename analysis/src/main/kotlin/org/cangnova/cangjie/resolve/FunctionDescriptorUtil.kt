@@ -41,12 +41,6 @@ object FunctionDescriptorUtil {
         descriptor.contextReceiverParameters, LexicalScopeKind.FUNCTION_INNER_SCOPE, redeclarationChecker, {
             for (valueParameterDescriptor in descriptor.valueParameters) {
                 when (valueParameterDescriptor) {
-                    is ValueParameterDescriptorImpl.WithDestructuringDeclaration -> {
-                        val entries: List<VariableDescriptor> = valueParameterDescriptor.destructuringVariables
-                        for (entry in entries) {
-                            addVariableDescriptor(entry)
-                        }
-                    }
 
                     else -> addVariableDescriptor(valueParameterDescriptor)
                 }

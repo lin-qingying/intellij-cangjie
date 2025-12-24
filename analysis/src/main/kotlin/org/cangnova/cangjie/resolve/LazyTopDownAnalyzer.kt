@@ -103,7 +103,7 @@ class LazyTopDownAnalyzer(
 
 
         val properties = mutableListOf<CjProperty>()
-        val variables = mutableListOf<CjVariable>()
+        val variables = mutableListOf<CjVariable<*>>()
         val functions = mutableListOf<CjNamedFunction>()
         val macroDeclarations = mutableListOf<CjMacroDeclaration>()
         val mainFunctions = mutableListOf<CjMainFunction>()
@@ -129,7 +129,7 @@ class LazyTopDownAnalyzer(
                     properties.add(property)
                 }
 
-                override fun visitVariable(variable: CjVariable) {
+                override fun visitVariable(variable: CjVariable<*>) {
                     variables.add(variable)
                 }
 
@@ -449,24 +449,37 @@ class LazyTopDownAnalyzer(
     private fun createVariableDescriptors(
         c: TopDownAnalysisContext,
         topLevelFqNames: HashMultimap<FqName, CjElement>,
-        variables: MutableList<CjVariable>
+        variables: MutableList<CjVariable<*>>
     ) {
         for (variable in variables) {
-            if (variable.pattern != null) {
-                val descriptor = lazyDeclarationResolver.resolveToVariableByPattern(variable)
+            when (variable) {
+                is CjFieldVariable -> {
+                    // 字段变量
+                    val descriptor = lazyDeclarationResolver.resolveToDescriptor(variable) as VariableDescriptor
+                    c.variables[variable] = listOf(descriptor)
+                    registerTopLevelFqName(topLevelFqNames, variable, descriptor)
+                }
 
-                c.variablesByPattern[variable] = descriptor
-//                registerTopLevelFqName(topLevelFqNames, variable, descriptor)
+                is CjPatternVariable -> {
+                    if (variable.pattern != null) {
+                        // 模式匹配变量，可能包含多个绑定
+                        val descriptors = lazyDeclarationResolver.resolveToVariableByPattern(variable)
+                        c.variables[variable] = descriptors
+                    } else {
+                        // 简单变量
+                        val descriptor = lazyDeclarationResolver.resolveToDescriptor(variable) as VariableDescriptor
+                        c.variables[variable] = listOf(descriptor)
+                        registerTopLevelFqName(topLevelFqNames, variable, descriptor)
+                    }
+                }
 
-            } else {
-                val descriptor = lazyDeclarationResolver.resolveToDescriptor(variable) as VariableDescriptor
-
-                c.variables[variable] = descriptor
-                registerTopLevelFqName(topLevelFqNames, variable, descriptor)
-
+                else -> {
+                    // 未知变量类型，默认处理
+                    val descriptor = lazyDeclarationResolver.resolveToDescriptor(variable) as VariableDescriptor
+                    c.variables[variable] = listOf(descriptor)
+                    registerTopLevelFqName(topLevelFqNames, variable, descriptor)
+                }
             }
-
-
         }
     }
 

@@ -36,6 +36,7 @@ import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.findParentOfType
+import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.components.InferenceSession
 import org.cangnova.cangjie.resolve.lazy.LazyClassContext
@@ -140,32 +141,59 @@ protected constructor(
 
         val declarations = declarationProvider.getVariableDeclarations(name)
         for (variableDeclaration in declarations) {
-            if (variableDeclaration.isPattern) {
-                val variableDescriptor = c.descriptorResolver.resolveVariableDescriptorByPattern(
-                    name,
-                    thisDescriptor,
-                    getScopeForMemberDeclarationResolution(variableDeclaration),
-//                    getScopeForInitializerResolution(variableDeclaration),
-                    variableDeclaration,
-                    trace,
-                    c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(variableDeclaration),
-                    c.inferenceSession ?: InferenceSession.default
-                )
-                result.addAll(variableDescriptor)
-            } else {
-                val variableDescriptor = c.descriptorResolver.resolveVariableDescriptor(
+            when (variableDeclaration) {
+                is CjFieldVariable -> {
+                    val variableDescriptor = c.descriptorResolver.resolveVariableDescriptor(
+                        thisDescriptor,
+                        getScopeForMemberDeclarationResolution(variableDeclaration),
+                        getScopeForInitializerResolution(variableDeclaration),
+                        variableDeclaration,
+                        trace,
+                        c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(variableDeclaration),
+                        c.inferenceSession ?: InferenceSession.default
+                    )
+                    result.add(variableDescriptor)
+                }
 
-                    thisDescriptor,
-                    getScopeForMemberDeclarationResolution(variableDeclaration),
-                    getScopeForInitializerResolution(variableDeclaration),
-                    variableDeclaration,
-                    trace,
-                    c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(variableDeclaration),
-                    c.inferenceSession ?: InferenceSession.default
-                )
-                result.add(variableDescriptor)
+                is CjPatternVariable -> {
+                    if (variableDeclaration.pattern != null) {
+                        val variableDescriptors = c.descriptorResolver.resolveVariableDescriptorByPattern(
+                            name,
+                            thisDescriptor,
+                            getScopeForMemberDeclarationResolution(variableDeclaration),
+                            variableDeclaration,
+                            trace,
+                            c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(variableDeclaration),
+                            c.inferenceSession ?: InferenceSession.default
+                        )
+                        result.addAll(variableDescriptors)
+                    } else {
+                        val variableDescriptor = c.descriptorResolver.resolveVariableDescriptor(
+                            thisDescriptor,
+                            getScopeForMemberDeclarationResolution(variableDeclaration),
+                            getScopeForInitializerResolution(variableDeclaration),
+                            variableDeclaration,
+                            trace,
+                            c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(variableDeclaration),
+                            c.inferenceSession ?: InferenceSession.default
+                        )
+                        result.add(variableDescriptor)
+                    }
+                }
+
+                else -> {
+                    val variableDescriptor = c.descriptorResolver.resolveVariableDescriptor(
+                        thisDescriptor,
+                        getScopeForMemberDeclarationResolution(variableDeclaration),
+                        getScopeForInitializerResolution(variableDeclaration),
+                        variableDeclaration,
+                        trace,
+                        c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(variableDeclaration),
+                        c.inferenceSession ?: InferenceSession.default
+                    )
+                    result.add(variableDescriptor)
+                }
             }
-
         }
         return result
 
@@ -282,8 +310,17 @@ protected constructor(
                         result.addAll(getContributedFunctions(name, location))
                     }
                 }
+                is CjPatternVariable -> {
+                    val names = declaration.pattern.getAllBindings().map { it.nameAsSafeName }
+                   names.forEach {
+                       if (nameFilter(it)) {
+                               result.addAll(getContributedVariables(it, location))
+                       }
+                   }
 
-                is CjVariable -> {
+
+                }
+                is CjFieldVariable -> {
                     val name = declaration.nameAsSafeName
                     if (nameFilter(name)) {
                         result.addAll(getContributedVariables(name, location))
@@ -311,9 +348,7 @@ protected constructor(
                     }
                 }
 
-                is CjDestructuringDeclaration -> {
-                    collectDescriptorsFromDestructingDeclaration(result, declaration, nameFilter, location)
-                }
+
 
                 else -> throw IllegalArgumentException("Unsupported declaration kind: $declaration")
             }
@@ -321,14 +356,7 @@ protected constructor(
         return result
     }
 
-    protected open fun collectDescriptorsFromDestructingDeclaration(
-        result: MutableSet<DeclarationDescriptor>,
-        declaration: CjDestructuringDeclaration,
-        nameFilter: (Name) -> Boolean,
-        location: LookupLocation,
-    ) {
-        // MultiDeclarations are not supported on global level by default
-    }
+
 
     protected fun getContributedTypeAliasDescriptors(
         name: Name,
