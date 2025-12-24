@@ -172,7 +172,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
     ExpressionTypingVisitor(facade) {
 
 
-    override fun visitVariable(variable: CjVariable, data: ExpressionTypingContext): CangJieTypeInfo {
+    override fun visitVariable(variable: CjVariable<*>, data: ExpressionTypingContext): CangJieTypeInfo {
         // 更新上下文依赖关系和作用域
         val context = data.replaceContextDependency(ContextDependency.INDEPENDENT)
         val visibility =

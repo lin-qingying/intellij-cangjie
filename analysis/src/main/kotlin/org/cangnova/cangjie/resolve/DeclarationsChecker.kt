@@ -745,14 +745,6 @@ class DeclarationsChecker(
             identifierChecker.checkDeclaration(variable, trace)
         }
 
-        // 遍历通过模式匹配的所有变量，执行变量级别检查
-        for ((variable, variableDescriptors) in bodiesResolveContext.variablesByPattern.entries) {
-            variableDescriptors.forEach {
-                checkVariable(variable, it)
-                modifiersChecker.checkModifiersForDeclaration(variable, it)
-                identifierChecker.checkDeclaration(variable, trace)
-            }
-        }
 
         // 遍历所有属性，执行属性级别检查
         for ((property, propertyDescriptor) in bodiesResolveContext.properties.entries) {
