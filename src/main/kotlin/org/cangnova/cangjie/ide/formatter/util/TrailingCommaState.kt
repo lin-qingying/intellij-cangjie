@@ -26,7 +26,6 @@ package org.cangnova.cangjie.ide.formatter.util
 
 import org.cangnova.cangjie.ide.formatter.containsLineBreakInChild
 import org.cangnova.cangjie.ide.formatter.isMultiline
-import org.cangnova.cangjie.psi.CjDestructuringDeclaration
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjFunctionLiteral
 import org.cangnova.cangjie.psi.CjMatchEntry

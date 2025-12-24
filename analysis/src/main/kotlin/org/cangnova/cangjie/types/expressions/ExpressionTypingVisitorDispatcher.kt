@@ -88,7 +88,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
 
     override fun defineLocalVariablesFromPattern(
         writableScope: LexicalWritableScope,
-        casePattern: CjCasePattern,
+        casePattern: CjCasePatternElement,
         receiver: ReceiverValue,
         initializer: CjExpression?,
         context: ExpressionTypingContext

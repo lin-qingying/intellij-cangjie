@@ -35,7 +35,6 @@ import org.cangnova.cangjie.psi.CjBlockExpression
 import org.cangnova.cangjie.psi.CjClass
 import org.cangnova.cangjie.psi.CjClassLikeDeclaration
 import org.cangnova.cangjie.psi.CjDeclaration
-import org.cangnova.cangjie.psi.CjDestructuringDeclaration
 import org.cangnova.cangjie.psi.CjEnum
 import org.cangnova.cangjie.psi.CjExpression
 import org.cangnova.cangjie.psi.CjFile

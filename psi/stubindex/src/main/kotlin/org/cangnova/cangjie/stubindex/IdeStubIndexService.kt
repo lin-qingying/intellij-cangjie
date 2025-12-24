@@ -30,6 +30,10 @@ import org.cangnova.cangjie.psi.CangJiePsiHeuristics
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjTypeReference
 import org.cangnova.cangjie.psi.CjTypeStatement
+import org.cangnova.cangjie.psi.CjCasePatternElement
+import org.cangnova.cangjie.psi.CjBindingPattern
+import org.cangnova.cangjie.psi.CjTuplePattern
+import org.cangnova.cangjie.psi.CjEnumPattern
 import org.cangnova.cangjie.psi.stubs.*
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import org.cangnova.cangjie.psi.stubs.elements.StubIndexService
@@ -42,69 +46,54 @@ import java.io.IOException
 
 internal class IdeStubIndexService : StubIndexService() {
     override fun indexVariable(stub: CangJieVariableStub, sink: IndexSink) {
-        val name: String? = stub.name
-        if (name != null) {
+        // 变量声明的名称和 fqName 来自模式匹配中的绑定模式
+        // 遍历子 stub 找到所有绑定模式
+        val bindingPatternStubs = stub.childrenStubs
+            .filterIsInstance<CangJieBindingPatternStub>()
+
+        for (bindingStub in bindingPatternStubs) {
+            val name = bindingStub.getName() ?: continue
             sink.occurrence(CangJieVariableShortNameIndex.indexKey, name)
 
-
-            val typeReference: CjTypeReference? = stub.psi.typeReference
-            if (typeReference != null && CangJiePsiHeuristics.isProbablyNothing(typeReference)) {
-                sink.occurrence(CangJieVariableNothingVariableShortNameIndex.indexKey, name)
-            }
-            indexPrime(stub, sink)
-        }
-        if (!stub.childNamesByPattern.isEmpty()) {
-            for (childInfo in stub.childNamesByPattern) {
-                if (childInfo.name != null) {
-                    sink.occurrence(
-                        CangJieVariableShortNameIndex.indexKey,
-                        childInfo.name!!.getString()
-                    )
-
-
-                    val typeReference: CjTypeReference? = stub.psi.typeReference
-                    if (typeReference != null && CangJiePsiHeuristics.isProbablyNothing(typeReference)) {
-                        sink.occurrence(
-                            CangJieVariableNothingVariableShortNameIndex.indexKey,
-                            childInfo.name!!.getString()
-                        )
-                    }
-                }
-            }
-            indexPrime(stub, sink)
-        }
-
-        if (stub.isTopLevel()) {
-            val fqName: FqName? = stub.getFqName()
-
-            if (fqName != null) {
-                sink.occurrence(CangJieTopLevelVariableFqnNameIndex.indexKey, fqName.asString())
+            // fqName 现在存储在绑定模式中
+            val fqName = bindingStub.fqName
+            if (fqName != null && stub.isTopLevel()) {
+                sink.occurrence(CangJieTopLevelVariableFqNameIndex.indexKey, fqName.asString())
                 sink.occurrence(
                     CangJieTopLevelVariableByPackageIndex.indexKey,
                     fqName.parent().asString()
                 )
-                indexTopLevelExtension(stub, sink)
-            }
-
-            if (!stub.childNamesByPattern.isEmpty()) {
-                for (childInfo in stub.childNamesByPattern) {
-                    if (childInfo.fqName != null) {
-                        sink.occurrence(
-                            CangJieTopLevelVariableFqnNameIndex.indexKey,
-                            childInfo.fqName!!.asString()
-                        )
-                        sink.occurrence(
-                            CangJieTopLevelVariableByPackageIndex.indexKey,
-                            childInfo.fqName!!.parent().asString()
-                        )
-                        indexTopLevelExtension(stub, sink)
-                    }
-                }
-                indexTopLevelExtension(stub, sink)
             }
         }
 
-        indexInternals(stub, sink)
+        // 如果没有绑定模式 stub（可能是从 PSI 创建的），则从 PSI 获取
+        if (bindingPatternStubs.isEmpty()) {
+            val psi = stub.psi
+            val allBindings = psi.pattern?.let { getAllBindingsFromPattern(it) } ?: emptyList()
+
+            for (binding in allBindings) {
+                val name = binding.name ?: continue
+                sink.occurrence(CangJieVariableShortNameIndex.indexKey, name)
+
+                val typeReference: CjTypeReference? = psi.typeReference
+                if (typeReference != null && CangJiePsiHeuristics.isProbablyNothing(typeReference)) {
+                    sink.occurrence(CangJieVariableNothingVariableShortNameIndex.indexKey, name)
+                }
+            }
+        }
+        // Variables don't have internal declarations, so no indexInternals call
+    }
+
+    /**
+     * 从模式中获取所有绑定模式
+     */
+    private fun getAllBindingsFromPattern(pattern: CjCasePatternElement): List<CjBindingPattern> {
+        return when (pattern) {
+            is CjBindingPattern -> listOf(pattern)
+            is CjTuplePattern -> pattern.patterns.flatMap { getAllBindingsFromPattern(it) }
+            is CjEnumPattern -> pattern.patterns.flatMap { getAllBindingsFromPattern(it) }
+            else -> emptyList()
+        }
     }
 
     override fun indexProperty(stub: CangJiePropertyStub, sink: IndexSink) {
@@ -119,16 +108,25 @@ internal class IdeStubIndexService : StubIndexService() {
             indexPrime(stub, sink)
         }
 
-        if (stub.isExtension()) {
-            val fqName: FqName? = stub.getFqName()
-            // can have special fq name in case of syntactically incorrect property with no name
-            if (fqName != null) {
-                sink.occurrence(CangJieTopLevelPropertyFqnNameIndex.indexKey, fqName.asString())
-                sink.occurrence(
-                    CangJieTopLevelPropertyByPackageIndex.indexKey,
-                    fqName.parent().asString()
-                )
-                indexTopLevelExtension(stub, sink)
+
+        indexInternals(stub, sink)
+    }
+
+    override fun indexField(stub: CangJieFieldStub, sink: IndexSink) {
+        val name: String? = stub.name
+        if (name != null) {
+            // 按字段名称索引
+            sink.occurrence(CangJieFieldShortNameIndex.indexKey, name)
+            indexPrime(stub, sink)
+        }
+
+        // 按所属类的 FqName 索引
+        val fqName: FqName? = stub.getFqName()
+        if (fqName != null) {
+            // fqName 格式如 "pkg.ClassName.fieldName"，取其父级即为类的 FqName
+            val parentFqName = fqName.parent()
+            if (!parentFqName.isRoot) {
+                sink.occurrence(CangJieFieldByClassIndex.indexKey, parentFqName.asString())
             }
         }
 
@@ -180,8 +178,7 @@ internal class IdeStubIndexService : StubIndexService() {
             // can have special fq name in case of syntactically incorrect function with no name
             val fqName: FqName? = stub.getFqName()
             if (fqName != null) {
-                sink.occurrence(CangJieMainFunctionFqnNameIndex.indexKey, fqName.asString())
-                indexTopLevelExtension(stub, sink)
+                sink.occurrence(CangJieMainFunctionFqNameIndex.indexKey, fqName.asString())
             }
         }
 
@@ -197,12 +194,11 @@ internal class IdeStubIndexService : StubIndexService() {
         }
         val fqName: FqName? = stub.getFqName()
         if (fqName != null) {
-            sink.occurrence(CangJieMacroDeclarationFqnNameIndex.indexKey, fqName.asString())
+            sink.occurrence(CangJieMacroDeclarationFqNameIndex.indexKey, fqName.asString())
             sink.occurrence(
                 CangJieMacroDeclarationByPackageIndex.indexKey,
                 fqName.parent().asString()
             )
-            indexTopLevelExtension(stub, sink)
         }
     }
 
@@ -218,26 +214,18 @@ internal class IdeStubIndexService : StubIndexService() {
 
             indexPrime(stub, sink)
         }
-        //如果该方法是顶层方法或有扩展接收器，则将其索引到顶层
-        if (stub.isTopLevel() /*|| stub.isExtension()*/) {
+        //如果该方法是顶层方法，则将其索引到顶层
+        if (stub.isTopLevel()) {
             val fqName: FqName? = stub.getFqName()
             if (fqName != null) {
-                sink.occurrence(CangJieTopLevelFunctionFqnNameIndex.indexKey, fqName.asString())
+                sink.occurrence(CangJieTopLevelFunctionFqNameIndex.indexKey, fqName.asString())
                 sink.occurrence(
                     CangJieTopLevelFunctionByPackageIndex.indexKey,
                     fqName.parent().asString()
                 )
-                indexTopLevelExtension(stub, sink)
             }
         }
-        if (stub.isExtension()) {
-            val fqName: FqName? = stub.getFqName()
-            if (fqName != null) {
-                sink.occurrence(CangJieTopLevelFunctionFqnNameIndex.indexKey, fqName.asString())
 
-                indexTopLevelExtension(stub, sink)
-            }
-        }
 
         indexInternals(stub, sink)
     }
@@ -247,7 +235,7 @@ internal class IdeStubIndexService : StubIndexService() {
 
 
         if (fqName != null) {
-            sink.occurrence(CangJieExtendClassNameIndex.indexKey, fqName.asString())
+            sink.occurrence(CangJieExtendNameIndex.indexKey, fqName.asString())
         }
 
         indexSuperNames(stub, sink)

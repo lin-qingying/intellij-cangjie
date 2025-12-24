@@ -24,13 +24,18 @@
 
 package org.cangnova.cangjie.resolve
 
+import com.intellij.psi.PsiNameIdentifierOwner
 import org.cangnova.cangjie.config.LanguageVersionSettings
+import org.cangnova.cangjie.descriptors.DescriptorVisibilities
 import org.cangnova.cangjie.descriptors.DescriptorVisibility
+import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.descriptors.VariableDescriptor
+import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.impl.LocalVariableDescriptor
 import org.cangnova.cangjie.descriptors.impl.VariableDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.VariableDescriptorWithInitializerImpl
 import org.cangnova.cangjie.diagnostics.infos.errors.LOCAL_EXTENSION_VARIABLE
+import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjPsiUtil
 import org.cangnova.cangjie.psi.CjVariable
 import org.cangnova.cangjie.psi.CjVariableDeclaration
@@ -274,6 +279,57 @@ class LocalVariableResolver(
             variable.toSourceElement()
         )
         trace.record(BindingContext.VARIABLE, variable, variableDescriptor)
+        return variableDescriptor
+    }
+
+    /**
+     * 为模式匹配元素创建本地变量描述符
+     * 模式元素（如 CjBindingPattern, CjTypePattern）没有注解，但可以有名称
+     */
+    fun resolveLocalVariableDescriptorWithType(
+        scope: LexicalScope,
+        pattern: PsiNameIdentifierOwner,
+        type: CangJieType?,
+        trace: BindingTrace,
+        isVar: Boolean
+    ): LocalVariableDescriptor {
+
+        val variableDescriptor = LocalVariableDescriptor(
+            scope.ownerDescriptor,
+            Annotations.EMPTY,
+            CjPsiUtil.safeName(pattern.name),
+            type,
+            isVar,
+            (pattern as? CjElement)?.toSourceElement() ?: SourceElement.NO_SOURCE
+        )
+        if (pattern is CjElement) {
+            trace.record(BindingContext.VARIABLE, pattern, variableDescriptor)
+        }
+        return variableDescriptor
+    }
+
+    /**
+     * 为模式匹配元素创建变量描述符（非本地）
+     */
+    fun resolveVariableDescriptorWithType(
+        scope: LexicalScope,
+        pattern: PsiNameIdentifierOwner,
+        type: CangJieType?,
+        trace: BindingTrace,
+        isVar: Boolean,
+        visibility: DescriptorVisibility?
+    ): VariableDescriptor {
+        val variableDescriptor = VariableDescriptorImpl(
+            scope.ownerDescriptor,
+            CjPsiUtil.safeName(pattern.name),
+            type,
+            isVar,
+            (pattern as? CjElement)?.toSourceElement() ?: SourceElement.NO_SOURCE,
+            visibility ?: DescriptorVisibilities.LOCAL
+        )
+        if (pattern is CjElement) {
+            trace.record(BindingContext.VARIABLE, pattern, variableDescriptor)
+        }
         return variableDescriptor
     }
 

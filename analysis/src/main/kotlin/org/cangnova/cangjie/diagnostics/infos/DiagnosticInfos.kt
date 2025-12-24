@@ -38,6 +38,6 @@ import org.cangnova.cangjie.diagnostics.*
 /**
  * 插件信息
  */
-@JvmField
+
 val PLUGIN_INFO: DiagnosticFactory1<PsiElement, RenderedDiagnostic<*>> =
     DiagnosticFactory1.create(Severity.INFO)

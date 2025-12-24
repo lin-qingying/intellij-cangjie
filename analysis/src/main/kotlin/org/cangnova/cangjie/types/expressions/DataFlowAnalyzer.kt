@@ -183,7 +183,7 @@ class DataFlowAnalyzer(
          * @param languageVersionSettings 语言版本设置
          * @return 所有可能的类型集合
          */
-        @JvmStatic
+        
         fun getAllPossibleTypes(
             type: CangJieType,
             c: ResolutionContext<*>,

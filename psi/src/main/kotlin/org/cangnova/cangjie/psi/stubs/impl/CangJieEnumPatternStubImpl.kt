@@ -22,21 +22,23 @@
  *
  */
 
-package org.cangnova.cangjie.stubindex
+package org.cangnova.cangjie.psi.stubs.impl
 
-import org.cangnova.cangjie.psi.CjCallableDeclaration
+import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.StubElement
+import org.cangnova.cangjie.psi.CjEnumPattern
+import org.cangnova.cangjie.psi.stubs.CangJieEnumPatternStub
+import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 
-
-abstract class CangJieExtensionsByReceiverTypeStubIndexHelper : CangJieStringStubIndexHelper<CjCallableDeclaration>(
-    CjCallableDeclaration::class.java
-) {
-    fun buildKey(receiverTypeName: String, callableName: String): String = receiverTypeName + SEPARATOR + callableName
-
-    fun receiverTypeNameFromKey(key: String): String = key.substringBefore(SEPARATOR, "")
-
-    fun callableNameFromKey(key: String): String = key.substringAfter(SEPARATOR, "")
-
-    private companion object {
-        private const val SEPARATOR = '\n'
-    }
-}
+/**
+ * 枚举模式 Stub 实现
+ *
+ * 存储枚举类型引用，子 stub 包含参数模式
+ * 如 `let Some(x) = optional` 中的 `Some(x)`
+ *
+ * @param parent 父 Stub 元素
+ */
+class CangJieEnumPatternStubImpl(
+    parent: StubElement<out PsiElement>?,
+) : CangJieStubBaseImpl<CjEnumPattern>(parent, CjStubElementTypes.ENUM_PATTERN),
+    CangJieEnumPatternStub

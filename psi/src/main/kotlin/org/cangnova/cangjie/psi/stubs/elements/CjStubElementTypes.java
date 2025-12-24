@@ -36,7 +36,8 @@ public interface CjStubElementTypes {
     CjClassElementType CLASS = new CjClassElementType("CLASS");
     CjFunctionElementType FUNCTION = new CjFunctionElementType("FUNC");
 
-    CjVariableElementType VARIABLE = new CjVariableElementType("VARIABLE");
+    CjPatternVariableElementType VARIABLE = new CjPatternVariableElementType("VARIABLE");
+    CjFieldElementType FIELD = new CjFieldElementType("FIELD");
     CjPropertyElementType PROPERTY = new CjPropertyElementType("PROPERTY");
     CjPropertyAccessorElementType PROPERTY_ACCESSOR = new CjPropertyAccessorElementType("PROPERTY_ACCESSOR");
     //    CjBackingFieldElementType BACKING_FIELD = new CjBackingFieldElementType("BACKING_FIELD");
@@ -218,5 +219,14 @@ public interface CjStubElementTypes {
             new CjSecondaryConstructorElementType("SECONDARY_CONSTRUCTOR");
     CjPrimaryConstructorElementType PRIMARY_CONSTRUCTOR =
             new CjPrimaryConstructorElementType("PRIMARY_CONSTRUCTOR");
+
+    // 模式 Stub ElementTypes
+    CjBindingPatternElementType BINDING_PATTERN = new CjBindingPatternElementType("BINDING_PATTERN");
+    CjTuplePatternElementType TUPLE_PATTERN = new CjTuplePatternElementType("TUPLE_PATTERN");
+    CjEnumPatternElementType ENUM_PATTERN = new CjEnumPatternElementType("ENUM_PATTERN");
+    CjWildcardPatternElementType WILDCARD_PATTERN = new CjWildcardPatternElementType("WILDCARD_PATTERN");
+    CjTypePatternElementType TYPE_PATTERN = new CjTypePatternElementType("TYPE_PATTERN");
+    CjConstantPatternElementType CONSTANT_PATTERN = new CjConstantPatternElementType("CONSTANT_PATTERN");
+    CjMatchConditionElementType MATCH_CONDITION = new CjMatchConditionElementType("MATCH_CONDITION");
 
 }

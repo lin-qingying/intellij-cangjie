@@ -41,11 +41,11 @@ typealias Matrix = List<List<Pattern>>
 fun List<CjMatchEntry>.calculateMatrix(context: BindingContext): Matrix =
     flatMap { arm -> arm.conditions.map { listOf(getPattern(context, it)) } }
 
-fun CjCasePattern.calculateMatrix(context: BindingContext): Matrix = listOf(
+fun CjCasePatternElement.calculateMatrix(context: BindingContext): Matrix = listOf(
     listOf(getPattern(context, this))
 )
 
-fun getPattern(context: BindingContext, element: CjCasePattern): Pattern {
+fun getPattern(context: BindingContext, element: CjCasePatternElement): Pattern {
     return context[BindingContext.PATTERN, element] ?: Pattern.Error
 
 
@@ -426,7 +426,7 @@ fun doCheckExhaustive(match: CjMatchExpression, context: BindingContext): List<P
  * @param context 上下文
  * @return  如果匹配表达式不是穷尽的，则返回一个模式列表；否则返回 null。
  */
-fun CjCasePattern.getExhaustive(expression: CjExpression?, context: BindingContext): List<Pattern>? {
+fun CjCasePatternElement.getExhaustive(expression: CjExpression?, context: BindingContext): List<Pattern>? {
 
     val type = expression?.let { context.getType(it) } ?: ErrorUtils.invalidType
 
@@ -447,6 +447,6 @@ fun CjCasePattern.getExhaustive(expression: CjExpression?, context: BindingConte
     return null
 }
 
-//fun isOverwriteForForInExpr(pattern: CjCasePattern, context: BindingContext):Boolean {
+//fun isOverwriteForForInExpr(pattern: CjCasePatternElement, context: BindingContext):Boolean {
 //    doCheckExhaustive()
 //}

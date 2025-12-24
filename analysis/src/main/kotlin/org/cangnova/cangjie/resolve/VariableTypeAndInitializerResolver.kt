@@ -58,11 +58,11 @@ class VariableTypeAndInitializerResolver(
 
 ) {
     companion object {
-        @JvmStatic
+        
         fun getTypeForPropertyWithoutReturnType(property: String): SimpleType =
             ErrorUtils.createErrorType(ErrorTypeKind.RETURN_TYPE_FOR_PROPERTY, property)
 
-        @JvmStatic
+        
         fun getTypeForVariableWithoutReturnType(property: String): SimpleType =
             ErrorUtils.createErrorType(ErrorTypeKind.RETURN_TYPE_FOR_VARIABLE, property)
     }

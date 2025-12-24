@@ -79,7 +79,7 @@ class BodyResolver(
 
     private fun resolveVariableDeclarationBodies(c: BodiesResolveContext) {
         // Member variable
-        val processed = mutableSetOf<CjVariable>()
+        val processed = mutableSetOf<CjVariable<*>>()
 
         for ((typeStatement, _) in c.declaredClasses) {
             for (variable in typeStatement.variables) {
@@ -97,12 +97,7 @@ class BodyResolver(
             resolveVariable(c, variable, variableDescriptor)
         }
 
-        for ((variable, variableDescriptors) in c.variablesByPattern) {
-            if (variable in processed) continue
-            variableDescriptors.forEach { variableDescriptor ->
-                resolveVariable(c, variable, variableDescriptor)
-            }
-        }
+
     }
 
     private fun resolveConstructorDelegationCall(

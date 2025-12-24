@@ -24,6 +24,10 @@
 
 package org.cangnova.cangjie.stubindex
 
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.registry.Registry
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.stubs.*
@@ -31,6 +35,16 @@ import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.psi.stubs.IndexSink
 import com.intellij.psi.stubs.NamedStub
 import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.stubs.StubIndexKey
+import com.intellij.util.indexing.FileBasedIndexTumbler
+import org.cangnova.cangjie.utils.invokeAndWaitIfNeeded
+import org.cangnova.cangjie.utils.isInternal
+import org.cangnova.cangjie.utils.isUnitTestMode
+import org.cangnova.telemetry.performance.IndexingPerformanceTelemetry
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.TimeSource
+import kotlin.time.toDuration
 
 fun indexTypeAliasExpansion(stub: CangJieTypeAliasStub, sink: IndexSink) {
     val declaration = stub.psi
@@ -66,36 +80,7 @@ fun indexInternals(stub: CangJieCallableStubBase<*>, sink: IndexSink) {
 }
 
 
-private fun <TDeclaration : CjCallableDeclaration> CangJieExtensionsByReceiverTypeStubIndexHelper.indexExtension(
-    stub: CangJieCallableStubBase<TDeclaration>,
-    sink: IndexSink
-) {
-    if (!stub.isExtension()) return
 
-    val declaration = stub.psi
-    val callableName = declaration.name ?: return
-    val containingTypeReference = declaration.receiverTypeReference!!
-    containingTypeReference.typeElement?.index(declaration, containingTypeReference) { typeName ->
-        sink.occurrence(indexKey, buildKey(typeName, callableName))
-    }
-}
-
-/**
- * 索引顶级扩展函数或属性
- * 本函数专注于处理那些定义在模块顶层，用于扩展其他类型的函数或属性
- * 它通过分析给定的声明存根，来构建与接收者类型相关的索引
- *
- * @param stub CangJieCallableStubBase的实例，代表了一个函数或属性的存根
- *             这个存根包含了构建索引所需的信息，比如函数或属性的接收者类型
- * @param sink IndexSink的实例，用于接收索引过程中的输出
- *             它是一个索引数据的消费者，可以帮助建立或更新索引
- */
-fun <TDeclaration : CjCallableDeclaration> indexTopLevelExtension(
-    stub: CangJieCallableStubBase<TDeclaration>,
-    sink: IndexSink
-) {
-    CangJieTopLevelExtensionsByReceiverTypeIndex.indexExtension(stub, sink)
-}
 
 
 private fun CjTypeElement.index(
@@ -214,4 +199,111 @@ private val StubElement<*>.annotatedJvmNameElementName: String?
 
 private val CangJieStubWithFqName<*>.modifierList: CangJieModifierListStub?
     get() = findChildStubByType(CjStubElementTypes.MODIFIER_LIST)
+
+
+
+fun runAfterIndexing(project: Project, callback: Runnable) {
+    DumbService.getInstance(project).runWhenSmart(callback)
+}
+
+fun updateIndex() {
+    invokeAndWaitIfNeeded {
+        val tumbler = FileBasedIndexTumbler("Reindex")
+        try {
+            tumbler.turnOff()
+        } finally {
+            tumbler.turnOn()
+        }
+    }
+}
+
+fun getByKeyMaxDuration(): Duration =
+    Registry.intValue("cangjie.indices.timing.threshold.single").toDuration(DurationUnit.MILLISECONDS)
+
+
+inline fun <T> getByKeyAndMeasure(index: StubIndexKey<*, *>, log: Logger, crossinline block: () -> T): T =
+    measureIndexCall(index, "getByKey", getByKeyMaxDuration(), log, block)
+
+
+inline fun <T> measureIndexCall(
+    index: StubIndexKey<*, *>,
+    prefix: String,
+    threshold: Duration,
+    log: Logger,
+    crossinline block: () -> T
+): T {
+    val operationId = IndexingPerformanceTelemetry.startIndexing("stub_index_${prefix}")
+    val mark = TimeSource.Monotonic.markNow()
+
+    try {
+        val t = block()
+        val elapsed = mark.elapsedNow()
+        val elapsedMs = elapsed.inWholeMilliseconds
+
+        // 发送性能遥测事件
+        IndexingPerformanceTelemetry.endIndexing(
+            operationId,
+            // Stub索引操作通常不直接对应文件数量
+            additionalInfo = mapOf(
+                "index_name" to index.name,
+                "operation_type" to prefix,
+                "threshold_ms" to threshold.inWholeMilliseconds.toString()
+            )
+        )
+
+        if (elapsed > threshold) {
+            if (isInternal && !isUnitTestMode && Registry.`is`("cangjie.indices.timing.enabled")) {
+                log.error("${index.name} $prefix took $elapsed more than expected $threshold")
+            }
+
+            // 发送性能警告遥测事件
+            org.cangnova.telemetry.error.ErrorTelemetry.sendPerformanceWarning(
+                "stub_index_operation",
+                elapsedMs,
+                threshold.inWholeMilliseconds,
+                "stub_index_${prefix}",
+                mapOf(
+                    "index_name" to index.name,
+                    "operation_type" to prefix
+                )
+            )
+        }
+
+        return t
+    } catch (e: Exception) {
+        // 发送索引错误遥测事件
+        IndexingPerformanceTelemetry.sendIndexingError(
+            "stub_index_${prefix}",
+            "Error during ${index.name} $prefix operation",
+            e,
+            mapOf(
+                "index_name" to index.name,
+                "operation_type" to prefix
+            )
+        )
+        throw e
+    }
+}
+
+inline fun <T> processElementsAndMeasure(index: StubIndexKey<*, *>, log: Logger, crossinline block: () -> T): T =
+    measureIndexCall(
+        index,
+        "processElements",
+        processElementsMaxDuration(),
+        log,
+        block
+    )
+
+
+inline fun <T> getAllKeysAndMeasure(index: StubIndexKey<*, *>, log: Logger, crossinline block: () -> T): T =
+    measureIndexCall(index, "getAllKeys", processElementsMaxDuration(), log, block)
+
+
+fun processElementsMaxDuration(): Duration =
+    Registry.intValue("cangjie.indices.timing.threshold.batch").toDuration(DurationUnit.MILLISECONDS)
+
+
+inline fun <T> processAllKeysAndMeasure(index: StubIndexKey<*, *>, log: Logger, crossinline block: () -> T): T =
+    measureIndexCall(index, "processAllKeys", processElementsMaxDuration(), log, block)
+
 

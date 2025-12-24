@@ -73,7 +73,7 @@ fun getEffectiveExpectedType(
 fun isConventionCall(call: Call): Boolean {
     if (call is CallTransformer.CallForImplicitInvoke) return true
     val callElement = call.callElement
-    if (callElement is CjArrayAccessExpression || callElement is CjDestructuringDeclarationEntry) return true
+    if (callElement is CjArrayAccessExpression) return true
     val calleeExpression = call.calleeExpression as? CjOperationReferenceExpression ?: return false
     return calleeExpression.isConventionOperator()
 }

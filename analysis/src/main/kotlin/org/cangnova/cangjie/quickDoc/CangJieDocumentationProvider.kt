@@ -48,6 +48,7 @@ import org.cangnova.cangjie.lexer.cdoc.CDocTemplate
 import org.cangnova.cangjie.lexer.cdoc.insert
 import org.cangnova.cangjie.lexer.cdoc.psi.CDoc
 import org.cangnova.cangjie.lexer.cdoc.psi.impl.CDocSection
+import org.cangnova.cangjie.psi.CjBindingPattern
 import org.cangnova.cangjie.navigation.SourceNavigationHelper
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.*
@@ -517,10 +518,10 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
         private fun buildCangJieDeclaration(declaration: CjExpression, quickNavigation: Boolean): CDocTemplate {
             val resolutionFacade = declaration.getResolutionFacade()
             val context = declaration.safeAnalyzeNonSourceRootCode(resolutionFacade, BodyResolveMode.PARTIAL)
-            val declarationDescriptor = if (declaration is PatternVariableDeclaration) {
+            val declarationDescriptor = if (declaration is CjBindingPattern) {
+                // For binding patterns, get the descriptor of the parent variable
                 declaration.variable?.let {
                     context[BindingContext.DECLARATION_TO_DESCRIPTOR, it]
-
                 }
             } else {
                 context[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration]

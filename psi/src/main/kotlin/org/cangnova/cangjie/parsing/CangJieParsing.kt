@@ -1740,9 +1740,7 @@ class CangJieParsing private constructor(
                 parseProperty(classdetector = classdetector, detector = detector)
             }
 
-            LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> parseVariable(
-                classdetector, DeclarationParsingMode.MEMBER
-            )
+            LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> parseField(classdetector)
 
             CLASS_KEYWORD_Id, INTERFACE_KEYWORD_Id, STRUCT_KEYWORD_Id, ENUM_KEYWORD_Id, EXTEND_KEYWORD_Id -> {
 
@@ -1837,42 +1835,76 @@ class CangJieParsing private constructor(
 
 
     /**
-     * variableDeclarationEntry
-     *   : SimpleName (":" ('?')?type)?
+     * 解析类成员字段声明
+     *
+     * field
+     *   : modifiers ("let" | "var" | "const") SimpleName (":" type) ("=" expression)?
+     *   | modifiers ("let" | "var" | "const") SimpleName (":" type)? "=" expression
      *   ;
      *
-     * property
-     *   : modifiers ("let" | "var" | "const")
-     *   ;
+     * 成员字段使用简单标识符，不支持模式匹配
+     * 成员字段必须有类型声明或初始化表达式
      */
-    context(parseContext: ParsingContext) fun parseVariable(
-        classdetector: ModifierDetector, declarationParsingMode: DeclarationParsingMode? = null
+    context(parseContext: ParsingContext) fun parseField(
+        classdetector: ModifierDetector
     ): IElementType {
         assert(at(LET_KEYWORD) || at(VAR_KEYWORD) || at(CONST_KEYWORD))
         advance()
 
-        if (declarationParsingMode == DeclarationParsingMode.MEMBER) {
-            parseIdentifierByTitle("variable", PROPERTY_NAME_FOLLOW_SET, true)
-        } else {
-            expressionParsing.parsePattern(
-                CangJieExpressionParsing.PatternParseContext.VARIABLE_DECL
-            )
-        }
+        // 成员字段使用简单标识符
+        parseIdentifierByTitle("field", PROPERTY_NAME_FOLLOW_SET, true)
 
-        var noTypeReference = true
+        var hasTypeRef = false
+        var hasInitializer = false
 
         if (at(COLON)) {
             advance() // COLON
-            noTypeReference = false
+            parseTypeRef()
+            hasTypeRef = true
+        }
 
+        if (at(EQ)) {
+            advance() // EQ
+            expressionParsing.parseExpression()
+            hasInitializer = true
+        }
+
+        // 成员字段必须有类型声明或初始化表达式
+        if (!hasTypeRef && !hasInitializer) {
+            error(CangJieParsingBundle.message("parsing.error.field.requires.type.or.initializer"))
+        }
+
+        return FIELD
+    }
+
+    /**
+     * 解析变量声明（支持模式匹配）
+     *
+     * variableDeclaration
+     *   : modifiers ("let" | "var" | "const") pattern (":" type)? ("=" expression)?
+     *   ;
+     *
+     * 用于顶层变量和局部变量，支持解构赋值如 let (a, b) = tuple
+     */
+    context(parseContext: ParsingContext) fun parseVariable(
+        classdetector: ModifierDetector
+    ): IElementType {
+        assert(at(LET_KEYWORD) || at(VAR_KEYWORD) || at(CONST_KEYWORD))
+        advance()
+
+        // 变量声明使用模式匹配
+        expressionParsing.parsePattern(
+            CangJieExpressionParsing.PatternParseContext.VARIABLE_DECL
+        )
+
+        if (at(COLON)) {
+            advance() // COLON
             parseTypeRef()
         }
 
         if (at(EQ)) {
             advance() // EQ
-
             expressionParsing.parseExpression()
-
         }
 
         return VARIABLE
@@ -2040,7 +2072,8 @@ class CangJieParsing private constructor(
     }
 
     private class VariableParser : DeclarationParser {
-        override fun isValidInScope(scope: DeclarationParsingMode): Boolean = true
+        override fun isValidInScope(scope: DeclarationParsingMode): Boolean =
+            scope != DeclarationParsingMode.MEMBER // 成员字段由 FieldParser 处理
 
         context(parseContext: ParsingContext) override fun parse(
             parser: CangJieParsing,
@@ -2048,7 +2081,21 @@ class CangJieParsing private constructor(
             nameParsingMode: NameParsingMode,
             scope: DeclarationParsingMode
         ): IElementType? {
-            return parser.parseVariable(detector, scope)
+            return parser.parseVariable(detector)
+        }
+    }
+
+    private class FieldParser : DeclarationParser {
+        override fun isValidInScope(scope: DeclarationParsingMode): Boolean =
+            scope == DeclarationParsingMode.MEMBER
+
+        context(parseContext: ParsingContext) override fun parse(
+            parser: CangJieParsing,
+            detector: ModifierDetector,
+            nameParsingMode: NameParsingMode,
+            scope: DeclarationParsingMode
+        ): IElementType? {
+            return parser.parseField(detector)
         }
     }
 
@@ -4391,62 +4438,6 @@ class CangJieParsing private constructor(
             return true
         }
         return false
-    }
-
-    /**
-     * 解析多重声明名称
-     *
-     * Grammar:
-     * ```
-     * multiDeclarationName
-     *   : "(" (simpleName ("," simpleName)*)? ")"
-     *   ;
-     * ```
-     *
-     * @param follow 跟随的token集合
-     * @param recoverySet 恢复伤口的token集合
-     */
-    context(parseContext: ParsingContext) fun parseMultiDeclarationName(
-        follow: TokenSet,
-        recoverySet: TokenSet
-    ) {
-        builder.disableNewlines()
-        advance() // LPAR
-
-        if (!atSet(follow)) {
-            while (true) {
-                when {
-                    at(COMMA) -> errorAndAdvance(CangJieParsingBundle.message("parsing.error.expecting", "name"))
-                    at(RPAR) -> { // For declaration similar to `val () = somethingCall()`
-                        error(CangJieParsingBundle.message("parsing.error.expecting", "name"))
-                        break
-                    }
-
-                    else -> {
-                        val property = mark()
-
-                        parseModifierList(COMMA_RPAR_COLON_EQ_SET)
-
-                        expect(IDENTIFIER, "Expecting a name", recoverySet)
-
-                        // 如果需要解析类型注解，可以取消注释
-                        // if (at(COLON)) {
-                        //     advance() // COLON
-                        //     parseTypeRef(follow)
-                        // }
-
-                        property.done(DESTRUCTURING_DECLARATION_ENTRY)
-
-                        if (!at(COMMA)) break
-                        advance() // COMMA
-                        if (at(RPAR)) break
-                    }
-                }
-            }
-        }
-
-        expect(RPAR, "Expecting ')'", follow)
-        builder.restoreNewlinesState()
     }
 
     /**

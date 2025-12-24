@@ -28,6 +28,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 import org.cangnova.cangjie.decompiler.COMPILED_DEFAULT_INITIALIZER
+import org.cangnova.cangjie.psi.stubs.PatternKind
 import org.cangnova.cangjie.descriptors.Modality
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.metadata.model.wrapper.*
@@ -756,17 +757,16 @@ class VariableClsStubBuilder(
 
     fun build() {
         val varName = variableWrapper.name
+        // fqName 现在存储在绑定模式中，而不是变量本身
         val fqName = if (isTopLevel) outerContext.containerFqName.child(varName) else null
 
         val variableStub = CangJieVariableStubImpl(
             parentStub,
-            varName.ref(),
+            PatternKind.BINDING, // Decompiled code always uses simple binding pattern
             variableWrapper.isVar,
             isTopLevel,
             hasInitializer = variableWrapper.declaresDefaultValue,
-            isExtension = false,
             hasReturnTypeRef = true,
-            fqName = fqName,
             origin = null
         )
 
@@ -779,12 +779,82 @@ class VariableClsStubBuilder(
             variableWrapper.modality
         )
 
+        // 创建绑定模式 Stub（用于存储变量名和 fqName）
+        CangJieBindingPatternStubImpl(variableStub, varName.ref(), fqName)
+
         TypeClsStubBuilder(variableStub, outerContext).createTypeReferenceStub(variableWrapper.returnType)
 
         // 如果有初始化器，创建 REFERENCE_EXPRESSION stub 占位符
         if (variableWrapper.declaresDefaultValue) {
             CangJieNameReferenceExpressionStubImpl(
                 variableStub,
+                StringRef.fromString("COMPILED_CODE")!!
+            )
+        }
+    }
+}
+
+/**
+ * 成员字段 Stub 构建器
+ *
+ * ## 功能说明
+ *
+ * 为类成员字段（let/var/const 声明）创建 [CangJieFieldStubImpl]。
+ * 成员字段是类、结构体、枚举的成员变量，不支持模式匹配解构。
+ *
+ * ## 与变量的区别
+ *
+ * | 特性 | 字段 (Field) | 变量 (Variable) |
+ * |------|-------------|----------------|
+ * | 位置 | 类成员 | 顶层或局部 |
+ * | 模式匹配 | ❌ 不支持 | ✅ 支持 |
+ * | Stub 类型 | [CangJieFieldStubImpl] | [CangJieVariableStubImpl] |
+ *
+ * @property parentStub 父 Stub（类体 Stub）
+ * @property outerContext 外部构建上下文
+ * @property metadataContainer 元数据容器（Class）
+ * @property variableWrapper 变量包装器（来自元数据）
+ *
+ * @see CangJieFieldStubImpl
+ * @see VariableClsStubBuilder
+ */
+class FieldClsStubBuilder(
+    private val parentStub: StubElement<out PsiElement>,
+    private val outerContext: ClsStubBuilderContext,
+    private val metadataContainer: MetadataContainer,
+    private val variableWrapper: VariableWrapper
+) {
+    fun build() {
+        val fieldName = variableWrapper.name
+        // 成员字段的 fqName = 类的 fqName + 字段名
+        val fqName = outerContext.containerFqName.child(fieldName)
+
+        val fieldStub = CangJieFieldStubImpl(
+            parentStub,
+            fieldName.ref(),
+            fqName,
+            variableWrapper.isVar,
+            variableWrapper.isConst,
+            hasInitializer = variableWrapper.declaresDefaultValue,
+            hasReturnTypeRef = true,
+            origin = null
+        )
+
+        // 创建注解 Stub（注解在修饰符列表之前）
+        createAnnotationsStub(fieldStub, variableWrapper.annotations)
+
+        createModifierListStubForDeclaration(
+            fieldStub,
+            variableWrapper.visibility,
+            variableWrapper.modality
+        )
+
+        TypeClsStubBuilder(fieldStub, outerContext).createTypeReferenceStub(variableWrapper.returnType)
+
+        // 如果有初始化器，创建 REFERENCE_EXPRESSION stub 占位符
+        if (variableWrapper.declaresDefaultValue) {
+            CangJieNameReferenceExpressionStubImpl(
+                fieldStub,
                 StringRef.fromString("COMPILED_CODE")!!
             )
         }
@@ -1030,9 +1100,9 @@ class ExtendClsStubBuilder(
             PropertyClsStubBuilder(classBody, innerContext, metadataContainer, property).build()
         }
 
-        // 创建扩展变量 Stubs
+        // 创建扩展字段 Stubs
         for (variable in extendWrapper.variables) {
-            VariableClsStubBuilder(classBody, innerContext, metadataContainer, variable).build()
+            FieldClsStubBuilder(classBody, innerContext, metadataContainer, variable).build()
         }
     }
 }

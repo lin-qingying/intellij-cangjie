@@ -30,6 +30,7 @@ import com.intellij.util.io.StringRef
 import org.cangnova.cangjie.lexer.CjKeywordToken
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.FqName
+import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
 import java.io.IOException
 
@@ -115,44 +116,145 @@ interface CangJieTypeAliasStub : CangJieClassifierStub, CangJieStubWithFqName<Cj
 
 }
 
-interface CangJieVariableStub : CangJieCallableStubBase<CjVariable> {
-    fun isVar(): Boolean
+/**
+ * 变量声明模式类型
+ *
+ * 变量声明支持的模式匹配类型（不包含类型模式）
+ */
+enum class PatternKind {
+    /** 通配符模式: `_` */
+    WILDCARD,
+    /** 绑定模式: `identifier` */
+    BINDING,
+    /** 元组模式: `(a, b)` */
+    TUPLE,
+    /** 枚举模式: `Some(x)` */
+    ENUM;
 
-    fun hasInitializer(): Boolean
-    fun hasReturnTypeRef(): Boolean
-
-    data class ChildInfo(
-        val name: StringRef?,
-        val fqName: FqName?,
-    ) {
-
-        fun serialize(dataStream: StubOutputStream) {
-            dataStream.writeName(name?.string)
-
-            dataStream.writeName(fqName?.asString())
-        }
-
-        companion object {
-            @Throws(IOException::class)
-            fun deserialize(dataStream: StubInputStream): ChildInfo {
-                val name = dataStream.readName()
-                val fqNameAsString = dataStream.readName()
-                val fqName = if (fqNameAsString != null) FqName(fqNameAsString.toString()) else null
-
-                return ChildInfo(name, fqName)
-            }
-        }
+    companion object {
+        fun fromOrdinal(ordinal: Int): PatternKind = entries[ordinal]
     }
-
-    //    处于模式匹配的子模块
-    val childNamesByPattern: List<ChildInfo> get() = emptyList()
 }
+
+/**
+ * 变量声明的 Stub 接口
+ *
+ * 变量声明是模式匹配的声明方式，用于顶层变量和局部变量。
+ * 与 CangJieFieldStub 不同，Variable 支持模式匹配解构。
+ *
+ * 变量本身没有 fqName，因为一个变量声明可能包含多个绑定（如元组解构）。
+ * fqName 存储在子模式（CangJieBindingPatternStub）中。
+ */
+interface CangJieVariableStub : StubElement<CjPatternVariable> {
+    /** 获取模式类型 */
+    fun getPatternKind(): PatternKind
+    /** 是否为 var 声明（可变） */
+    fun isVar(): Boolean
+    /** 是否为顶层变量 */
+    fun isTopLevel(): Boolean
+    /** 是否有初始化器 */
+    fun hasInitializer(): Boolean
+    /** 是否有类型声明 */
+    fun hasReturnTypeRef(): Boolean
+}
+
+// ==================== 模式 Stub 接口 ====================
+
+/**
+ * 模式 Stub 基础接口
+ */
+interface CangJiePatternStub<T : CjCasePatternElement> : StubElement<T>
+
+/**
+ * 绑定模式 Stub
+ *
+ * 存储绑定变量的名称和 fqName。
+ * 如 `let a = 1` 中的 `a`，fqName 为 `package.a`。
+ *
+ * 对于 `let (a, b) = tuple`，会有两个绑定模式 Stub，
+ * 分别存储 `a` 和 `b` 的 fqName。
+ */
+interface CangJieBindingPatternStub : CangJiePatternStub<CjBindingPattern>, NamedStub<CjBindingPattern> {
+    /** 获取完全限定名（仅顶层变量的绑定有效） */
+    val fqName : FqName?
+
+}
+
+/**
+ * 元组模式 Stub
+ *
+ * 子 stub 包含元组中的各个模式
+ * 如 `let (a, b) = tuple` 中的 `(a, b)`
+ */
+interface CangJieTuplePatternStub : CangJiePatternStub<CjTuplePattern>
+
+/**
+ * 类型模式 Stub
+ *
+ * ```cangjie
+ * match(a){
+ *   case b:Int => {}
+ * }
+ * ```
+ */
+interface CangJieTypePatternStub : CangJiePatternStub<CjTypePattern>, NamedStub<CjTypePattern>
+
+/**
+ * 枚举模式 Stub
+ *
+ * 存储枚举类型引用，子 stub 包含参数模式
+ * 如 `let Some(x) = optional` 中的 `Some(x)`
+ */
+interface CangJieEnumPatternStub : CangJiePatternStub<CjEnumPattern>
+
+/**
+ * 通配符模式 Stub
+ *
+ * 如 `let _ = ignored` 中的 `_`
+ */
+interface CangJieWildcardPatternStub : CangJiePatternStub<CjWildcardPattern>
+
+/**
+ * 常量模式 Stub
+ *
+ * 如 `case 1 => ...` 中的常量
+ */
+interface CangJieConstantPatternStub : CangJiePatternStub<CjConstantPattern>
+
+/**
+ * Match 条件表达式模式 Stub
+ */
+interface CangJieMatchConditionStub : CangJiePatternStub<CjMatchConditionWithExpression>
 
 interface CangJiePropertyStub : CangJieCallableStubBase<CjProperty> {
     fun hasReturnTypeRef(): Boolean
 
     override fun isTopLevel(): Boolean = false
     override fun isExtension(): Boolean = false
+}
+
+/**
+ * 类成员字段的 Stub 接口
+ *
+ * 与 CangJieVariableStub 不同，Field 是类/结构体/接口的成员变量声明，
+ * 不支持模式匹配，只有简单的标识符名称。
+ *
+ * 示例:
+ * ```cangjie
+ * class Person {
+ *     let name: String      // Field
+ *     var age: Int64        // Field
+ *     const MAX_AGE = 150   // Field
+ * }
+ * ```
+ */
+interface CangJieFieldStub : CangJieCallableStubBase<CjFieldVariable> {
+    fun isVar(): Boolean
+    fun isConst(): Boolean
+    fun hasInitializer(): Boolean
+    fun hasReturnTypeRef(): Boolean
+
+    override fun isTopLevel(): Boolean = false
 }
 
 interface CangJieCallableStubBase<TDeclaration : CjCallableDeclaration> : CangJieStubWithFqName<TDeclaration> {

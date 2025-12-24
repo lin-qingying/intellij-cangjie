@@ -161,7 +161,7 @@ class TracingStrategyImpl private constructor(override val reference: CjReferenc
 
     companion object {
         //
-        @JvmStatic
+        
         fun create(reference: CjReferenceExpression, call: Call): TracingStrategy {
             return TracingStrategyImpl(reference, call)
         }

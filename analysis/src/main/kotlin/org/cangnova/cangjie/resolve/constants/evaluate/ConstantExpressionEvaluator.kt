@@ -70,7 +70,7 @@ class ConstantExpressionEvaluator(
 ) {
 
     companion object {
-        @JvmStatic
+        
         fun getPossiblyErrorConstant(
             expression: CjExpression,
             bindingContext: BindingContext
@@ -78,7 +78,7 @@ class ConstantExpressionEvaluator(
             return bindingContext.get(BindingContext.COMPILE_TIME_VALUE, expression)
         }
 
-        @JvmStatic
+        
         fun getConstant(expression: CjExpression, bindingContext: BindingContext): CompileTimeConstant<*>? {
             val constant = getPossiblyErrorConstant(expression, bindingContext) ?: return null
             return if (!constant.isError) constant else null

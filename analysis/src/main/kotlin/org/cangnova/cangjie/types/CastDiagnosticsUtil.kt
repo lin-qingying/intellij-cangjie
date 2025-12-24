@@ -92,7 +92,7 @@ object CastDiagnosticsUtil {
      * @param platformToCangJieClassMapper 平台到 CangJie 类的映射器
      * @return 如果类型转换可能，则返回 true，否则返回 false
      */
-    @JvmStatic
+    
     fun isCastPossible(
         lhsType: CangJieType,
         rhsType: CangJieType,
@@ -164,7 +164,7 @@ object CastDiagnosticsUtil {
      * @param typeChecker 类型检查器
      * @return 如果转换被擦除，则返回 true，否则返回 false
      */
-    @JvmStatic
+    
     fun isCastErased(supertype: CangJieType, subtype: CangJieType, typeChecker: CangJieTypeChecker): Boolean {
         val isNonReifiedTypeParameter = TypeUtils.isNonReifiedTypeParameter(subtype)
         val isUpcast = typeChecker.isSubtypeOf(supertype, subtype)
@@ -207,7 +207,7 @@ object CastDiagnosticsUtil {
      * @param subtypeConstructor 子类型的构造器
      * @return 类型重建结果
      */
-    @JvmStatic
+    
     fun findStaticallyKnownSubtype(
         supertype: CangJieType,
         subtypeConstructor: TypeConstructor

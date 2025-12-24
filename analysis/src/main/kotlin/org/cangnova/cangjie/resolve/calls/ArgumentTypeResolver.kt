@@ -261,7 +261,7 @@ class ArgumentTypeResolver //        this.functionPlaceholders = functionPlaceho
             return expression is CjCollectionLiteralExpression && context.call.callElement is CjAnnotation
         }
 
-        @JvmStatic
+        
         fun isCollectionLiteralArgument(expression: CjExpression): Boolean {
             return expression is CjCollectionLiteralExpression
         }
@@ -272,7 +272,7 @@ class ArgumentTypeResolver //        this.functionPlaceholders = functionPlaceho
             return getCallableReferenceExpressionIfAny(expression, statementFilter) != null
         }
 
-        @JvmStatic
+        
         fun isCallableReferenceArgument(
             expression: CjExpression, context: ResolutionContext<*>
         ): Boolean {
@@ -294,14 +294,14 @@ class ArgumentTypeResolver //        this.functionPlaceholders = functionPlaceho
             )
         }
 
-        @JvmStatic
+        
         fun isFunctionLiteralOrCallableReference(
             expression: CjExpression, context: ResolutionContext<*>
         ): Boolean {
             return isFunctionLiteralOrCallableReference(expression, context.statementFilter)
         }
 
-        @JvmStatic
+        
         fun isFunctionLiteralArgument(
             expression: CjExpression, context: ResolutionContext<*>
         ): Boolean {

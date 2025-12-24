@@ -27,7 +27,6 @@ package org.cangnova.cangjie.stubindex.resolve
 import org.cangnova.cangjie.builtins.StandardNames.MAIN
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.safeNameForLazyResolve
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
@@ -42,11 +41,11 @@ import org.cangnova.cangjie.descriptors.data.CjTypeStatementInfo
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
-import org.cangnova.cangjie.stubindex.CangJieMacroDeclarationFqnNameIndex
+import org.cangnova.cangjie.stubindex.CangJieMacroDeclarationFqNameIndex
 import org.cangnova.cangjie.stubindex.*
 import org.cangnova.cangjie.stubindex.CangJieTopLevelClassByPackageIndex
 import org.cangnova.cangjie.stubindex.CangJieTopLevelFunctionByPackageIndex
-import org.cangnova.cangjie.stubindex.CangJieTopLevelFunctionFqnNameIndex
+import org.cangnova.cangjie.stubindex.CangJieTopLevelFunctionFqNameIndex
 import org.cangnova.cangjie.stubindex.CangJieTopLevelTypeAliasByPackageIndex
 import org.cangnova.cangjie.stubindex.CangJieTopLevelVariableByPackageIndex
 import org.cangnova.cangjie.utils.isApplicationInternalMode
@@ -88,16 +87,16 @@ class StubBasedPackageMemberDeclarationProvider(
     }
 
     override fun getFunctionDeclarations(name: Name): Collection<CjNamedFunction> = runReadAction {
-        CangJieTopLevelFunctionFqnNameIndex[childName(name), project, searchScope]
+        CangJieTopLevelFunctionFqNameIndex[childName(name), project, searchScope]
     }
 
     override fun getMacroDeclarations(name: Name): Collection<CjMacroDeclaration> = runReadAction {
 
-        CangJieMacroDeclarationFqnNameIndex[childName(name), project, searchScope]
+        CangJieMacroDeclarationFqNameIndex[childName(name), project, searchScope]
     }
 
     override fun getMainFunctionDeclarations(): Collection<CjMainFunction> = runReadAction {
-        CangJieMainFunctionFqnNameIndex[moduleChildName(MAIN), project, searchScope]
+        CangJieMainFunctionFqNameIndex[moduleChildName(MAIN), project, searchScope]
 
     }
 
@@ -110,20 +109,16 @@ class StubBasedPackageMemberDeclarationProvider(
     }
 
     override fun getVariableDeclarations(name: Name): Collection<CjVariable> = runReadAction {
-        CangJieTopLevelVariableFqnNameIndex[childName(name), project, searchScope]
+        CangJieTopLevelVariableFqNameIndex[childName(name), project, searchScope]
 
     }
 
-    override fun getPropertyDeclarations(name: Name): Collection<CjProperty> = runReadAction {
-
-        CangJieTopLevelPropertyFqnNameIndex[childName(name), project, searchScope]
-
-    }
-
-    override fun getDestructuringDeclarationsEntries(name: Name): Collection<CjDestructuringDeclarationEntry> {
+    override fun getPropertyDeclarations(name: Name): Collection<CjProperty> {
+        // prop 只能在类成员中，不存在顶层属性
         return emptyList()
-
     }
+
+
 
 
 

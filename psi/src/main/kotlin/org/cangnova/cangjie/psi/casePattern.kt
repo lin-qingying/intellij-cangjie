@@ -26,52 +26,54 @@ package org.cangnova.cangjie.psi
 
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNameIdentifierOwner
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.stubs.IStubElementType
+import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.tree.IElementType
-import org.cangnova.cangjie.lexer.CjKeywordToken
 import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.lexer.cdoc.psi.CDoc
-import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.psi.stubs.CangJieBindingPatternStub
+import org.cangnova.cangjie.psi.stubs.CangJieConstantPatternStub
+import org.cangnova.cangjie.psi.stubs.CangJieEnumPatternStub
+import org.cangnova.cangjie.psi.stubs.CangJieMatchConditionStub
+import org.cangnova.cangjie.psi.stubs.CangJieTuplePatternStub
+import org.cangnova.cangjie.psi.stubs.CangJieTypePatternStub
+import org.cangnova.cangjie.psi.stubs.CangJieWildcardPatternStub
+import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 
-abstract class CjCasePattern(node: ASTNode) : CjElementImpl(node), ValueArgument, CjExpression {
+/**
+ * 模式匹配 PSI 元素的基础接口
+ */
+interface CjCasePatternElement : CjElement, ValueArgument, CjExpression
 
-    val destructuringDeclaration: CjDestructuringDeclaration?
-        get() {
+/**
+ * 基于 Stub 的模式匹配基类（所有模式都支持 Stub）
+ */
+abstract class CjCasePattern<T : StubElement<*>> : CjElementImplStub<T>, CjCasePatternElement {
 
-            return findChildByType(CjNodeTypes.DESTRUCTURING_DECLARATION)
-        }
+    constructor(stub: T, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
+    constructor(node: ASTNode) : super(node)
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitCasePattern(this, data)
     }
 
-    override fun getArgumentName(): ValueArgumentName? {
-        return null
-    }
-
-    override fun isNamed(): Boolean {
-        return false
-    }
-
-    override fun asElement(): CjElement {
-        return this
-    }
-
-    override fun getSpreadElement(): LeafPsiElement? {
-        return null
-    }
-
-    override fun isExternal(): Boolean {
-        return false
-    }
-
-    override fun getArgumentExpression(): CjExpression? {
-        return this
-    }
+    override fun getArgumentName(): ValueArgumentName? = null
+    override fun isNamed(): Boolean = false
+    override fun asElement(): CjElement = this
+    override fun getSpreadElement(): LeafPsiElement? = null
+    override fun isExternal(): Boolean = false
+    override fun getArgumentExpression(): CjExpression? = this
 }
 
-class CjMatchConditionWithExpression(node: ASTNode) : CjCasePattern(node) {
+/**
+ * match 表达式条件模式（支持 Stub）
+ */
+class CjMatchConditionWithExpression : CjCasePattern<CangJieMatchConditionStub> {
+    constructor(node: ASTNode) : super(node)
+    constructor(stub: CangJieMatchConditionStub) : super(stub, CjStubElementTypes.MATCH_CONDITION)
+
     @get:IfNotParsed
     val expression
         get() = findChildByClass<CjExpression>(CjExpression::class.java)
@@ -81,167 +83,192 @@ class CjMatchConditionWithExpression(node: ASTNode) : CjCasePattern(node) {
     }
 }
 
-abstract class PatternVariableDeclaration(node: ASTNode) : CjCasePattern(node), CjVariableDeclaration {
-    override val isVar: Boolean
-        get() = false
-    override val valueParameterList: CjParameterList? = null
-    override val valueParameters: List<CjParameter> = emptyList()
-    override val receiverTypeReference: CjTypeReference? = null
-    override val typeReference: CjTypeReference? = null
+/**
+ * 绑定模式 PSI 元素（支持 Stub）
+ *
+ * 表示变量绑定模式，如 `let a = 1` 中的 `a`
+ * 绑定模式是模式匹配的一部分，不是独立的变量声明
+ */
+class CjBindingPattern : CjCasePattern<CangJieBindingPatternStub>, CjSimpleNameExpression, PsiNameIdentifierOwner, CjNamed {
+    constructor(node: ASTNode) : super(node)
+    constructor(stub: CangJieBindingPatternStub) : super(stub, CjStubElementTypes.BINDING_PATTERN)
 
-    override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? = null
-    override fun getName(): String? {
-        return text
-    }
-    private fun getParentVariable(): CjVariable? {
-        var parent = parent
+    override val referencedName: String
+        get() = name ?: ""
 
-//       如果parent是 CjCasePattern，则继续向上寻找
-        while (parent is CjCasePattern) {
-            parent = parent.parent
-        }
-        return parent as? CjVariable
-    }
-
-    //    绑定模式隶属的变量声明
-    val variable: CjVariable?
-        get() {
-            return getParentVariable()
-        }
-    override val colon: PsiElement? = null
-    override val nameAsSafeName: Name
-        get() = Name.identifier("")
-    override val fqName: FqName? = null
-    override val docComment: CDoc? = null
-    override val expression: CjExpression? = null
-
-    override val modifierList: CjModifierList? = null
-    override fun hasModifier(modifier: CjKeywordToken): Boolean = false
-
-    override fun addModifier(modifier: CjKeywordToken) {
-    }
-
-    override fun removeModifier(modifier: CjKeywordToken) {
-    }
-
-    override val annotations: CjAnnotations? = null
-    override val annotationEntries: List<CjAnnotation> = emptyList()
-
-    override fun setName(name: String): PsiElement {
-        return this
-    }
-
-    override fun getNameIdentifier(): PsiElement? = null
-
-    override val nameAsName: Name? = nameAsSafeName
-    override val typeParameterList: CjTypeParameterList? = null
-    override val typeConstraintList: CjTypeConstraintList? = null
-    override val typeConstraints: List<CjTypeConstraint> = emptyList()
-    override val typeParameters: List<CjTypeParameter> = emptyList()
-    override val initializer: CjExpression? = null
-
-    override fun hasInitializer(): Boolean {
-        TODO("Not yet implemented")
-    }
-
-    override val letOrVarKeyword: PsiElement? = null
-}
-
-class CjBindingPattern(node: ASTNode) : PatternVariableDeclaration(node), CjSimpleNameExpression {
-    override val referencedName: String get() {
-        return expression?.name ?: ""
-    }
-
-    override val referencedNameAsName: Name get() {
-        return Name.identifier(referencedName)
-    }
+    override val referencedNameAsName: Name
+        get() = Name.identifier(referencedName)
 
     val isLocal: Boolean
         get() = !isTopLevel
+
     val isTopLevel: Boolean
-        get() {
+        get() = parent is CjFile
 
-            return parent is CjFile
-        }
+    override val referencedNameElement: PsiElement
+        get() = expression ?: this
 
-    override val referencedNameElement: PsiElement get() {
-        return expression ?: this
-    }
+    override val identifier: PsiElement?
+        get() = findChildByType(CjTokens.IDENTIFIER)
 
-    override val identifier: PsiElement? get() {
-        return findChildByType(CjTokens.IDENTIFIER)
-    }
+    override val referencedNameElementType: IElementType
+        get() = CjSimpleNameExpressionImpl.getReferencedNameElementTypeImpl(this)
 
-    override val referencedNameElementType: IElementType get() {
-        return CjSimpleNameExpressionImpl.getReferencedNameElementTypeImpl(this)
-    }
-
-    override val expression: CjSimpleNameExpression?
+    val expression: CjSimpleNameExpression?
         get() = findChildByType(CjNodeTypes.REFERENCE_EXPRESSION)
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitPatternByBinding(this, data)
     }
 
-    override val nameAsSafeName: Name
+    override fun getName(): String? {
+        val stub = stub
+        if (stub != null) {
+            return stub.name
+        }
+        return expression?.name
+    }
+
+    override fun getNameIdentifier(): PsiElement? {
+        return expression?.identifier
+    }
+
+    val nameAsSafeName: Name
         get() = Name.identifier(name ?: "")
+
+    override val nameAsName: Name?
+        get() = nameAsSafeName
+
+    override fun setName(name: String): PsiElement = this
+
+    /**
+     * 获取所属的变量声明
+     */
+    private fun getParentVariable(): CjPatternVariable? {
+        var parent = parent
+        while (parent is CjCasePatternElement) {
+            parent = parent.parent
+        }
+        return parent as? CjPatternVariable
+    }
+
+    val variable: CjPatternVariable?
+        get() = getParentVariable()
 }
 
-class CjTypePattern(node: ASTNode) : PatternVariableDeclaration(node) {
+/**
+ * 类型模式 PSI 元素（支持 Stub）
+ *
+ * 表示类型匹配模式，如 `case x: Int => ...` 中的 `x: Int`
+ */
+class CjTypePattern : CjCasePattern<CangJieTypePatternStub>, PsiNameIdentifierOwner, CjNamed {
+    constructor(node: ASTNode) : super(node)
+    constructor(stub: CangJieTypePatternStub) : super(stub, CjStubElementTypes.TYPE_PATTERN)
+
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitPatternByType(this, data)
     }
 
-    val identifier: PsiElement? get() = findChildByType(CjTokens.IDENTIFIER)
+    val identifierElement: PsiElement?
+        get() = findChildByType(CjTokens.IDENTIFIER)
+
     override fun getName(): String? {
+        val stub = stub
+        if (stub != null) {
+            return stub.name
+        }
         return reference?.text
     }
 
-    val reference get() = findChildByType<CjSimpleNameExpression>(CjNodeTypes.REFERENCE_EXPRESSION)
+    val reference: CjSimpleNameExpression?
+        get() = findChildByType(CjNodeTypes.REFERENCE_EXPRESSION)
 
-    override val typeReference get() = findChildByType<CjTypeReference>(CjNodeTypes.TYPE_REFERENCE)
+    val typeReference: CjTypeReference?
+        get() = findChildByType(CjNodeTypes.TYPE_REFERENCE)
+
+    override fun getNameIdentifier(): PsiElement? = identifierElement
+
+    val nameAsSafeName: Name
+        get() = Name.identifier(name ?: "")
+
+    override val nameAsName: Name?
+        get() = nameAsSafeName
+
+    override fun setName(name: String): PsiElement = this
 }
 
-class CjTuplePattern(node: ASTNode) : CjCasePattern(node), CjEnumAndTuplePattern {
+/**
+ * 元组模式 PSI 元素（支持 Stub）
+ *
+ * 表示元组解构模式，如 `let (a, b) = tuple` 中的 `(a, b)`
+ */
+class CjTuplePattern : CjCasePattern<CangJieTuplePatternStub>, CjEnumAndTuplePattern {
+    constructor(node: ASTNode) : super(node)
+    constructor(stub: CangJieTuplePatternStub) : super(stub, CjStubElementTypes.TUPLE_PATTERN)
+
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitPatternByTuple(this, data)
     }
 
-    override val patterns get() = findChildrenByClass(CjCasePattern::class.java).toList()
+    override val patterns: List<CjCasePatternElement>
+        get() = findChildrenByClass(CjCasePatternElement::class.java).toList()
 }
 
 interface CjEnumAndTuplePattern {
-    val patterns: List<CjCasePattern>
+    val patterns: List<CjCasePatternElement>
 }
 
-class CjEnumPattern(node: ASTNode) : CjCasePattern(node), CjEnumAndTuplePattern {
+/**
+ * 枚举模式 PSI 元素（支持 Stub）
+ *
+ * 表示枚举解构模式，如 `let Some(x) = optional` 中的 `Some(x)`
+ */
+class CjEnumPattern : CjCasePattern<CangJieEnumPatternStub>, CjEnumAndTuplePattern {
+    constructor(node: ASTNode) : super(node)
+    constructor(stub: CangJieEnumPatternStub) : super(stub, CjStubElementTypes.ENUM_PATTERN)
+
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitPatternByEnum(this, data)
     }
 
     val type: CjTypeReference?
         get() = findChildByType(CjNodeTypes.TYPE_REFERENCE)
-    val expression: CjExpression?
-        get() = findChildByType(CjNodeTypes.REFERENCE_EXPRESSION) ?: findChildByType(
-            CjNodeTypes.DOT_QUALIFIED_EXPRESSION,
-        )
 
-    override val patterns get() = findChildrenByClass(CjCasePattern::class.java).toList()
+    val expression: CjExpression?
+        get() = findChildByType(CjNodeTypes.REFERENCE_EXPRESSION)
+            ?: findChildByType(CjNodeTypes.DOT_QUALIFIED_EXPRESSION)
+
+    override val patterns: List<CjCasePatternElement>
+        get() = findChildrenByClass(CjCasePatternElement::class.java).toList()
 }
 
-class CjWildcardPattern(node: ASTNode) : CjCasePattern(node) {
+/**
+ * 通配符模式 PSI 元素（支持 Stub）
+ *
+ * 表示通配符模式，如 `let _ = ignored` 中的 `_`
+ */
+class CjWildcardPattern : CjCasePattern<CangJieWildcardPatternStub> {
+    constructor(node: ASTNode) : super(node)
+    constructor(stub: CangJieWildcardPatternStub) : super(stub, CjStubElementTypes.WILDCARD_PATTERN)
+
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitPatternByWildcard(this, data)
     }
 }
 
-class CjConstantPattern(node: ASTNode) : CjCasePattern(node) {
+/**
+ * 常量模式 PSI 元素（支持 Stub）
+ *
+ * 表示常量匹配模式，如 `case 1 => ...` 中的 `1`
+ */
+class CjConstantPattern : CjCasePattern<CangJieConstantPatternStub> {
+    constructor(node: ASTNode) : super(node)
+    constructor(stub: CangJieConstantPatternStub) : super(stub, CjStubElementTypes.CONSTANT_PATTERN)
+
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitPatternByConstant(this, data)
     }
 
     val expression: CjExpression?
-        get() {
-            return findChildByClass(CjExpression::class.java)
-        }
+        get() = findChildByClass(CjExpression::class.java)
 }

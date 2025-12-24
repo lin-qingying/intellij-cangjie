@@ -111,7 +111,7 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
         return visitExpression(element, data)
     }
 
-    open fun visitCasePattern(element: CjCasePattern, data: D): R? {
+    open fun visitCasePattern(element: CjCasePatternElement, data: D): R? {
         return visitCjElement(element, data)
     }
 
@@ -158,9 +158,15 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
     open fun visitProperty(property: CjProperty, data: D): R? {
         return visitNamedDeclaration(property, data)
     }
-
-    open fun visitVariable(variable: CjVariable, data: D): R? {
+    open fun visitPatternVariable(variable: CjVariable<*>, data: D): R? {
+        return visitVariable(variable, data)
+    }
+    open fun visitVariable(variable: CjVariable<*>, data: D): R? {
         return visitNamedDeclaration(variable, data)
+    }
+
+    open fun visitFieldVariable(field: CjFieldVariable, data: D): R? {
+        return visitVariable(field, data)
     }
 
     open fun visitCallableReferenceExpression(expression: CjCallableReferenceExpression, data: D): R? {
@@ -432,17 +438,6 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
 
     open fun visitParameter(cjParameter: CjParameter, data: D): R? {
         return visitCjElement(cjParameter, data)
-    }
-
-    open fun visitDestructuringDeclaration(cjDestructuringDeclaration: CjDestructuringDeclaration, data: D): R? {
-        return visitCjElement(cjDestructuringDeclaration, data)
-    }
-
-    open fun visitDestructuringDeclarationEntry(
-        cjDestructuringDeclarationEntry: CjDestructuringDeclarationEntry,
-        data: D
-    ): R? {
-        return visitCjElement(cjDestructuringDeclarationEntry, data)
     }
 
     /**

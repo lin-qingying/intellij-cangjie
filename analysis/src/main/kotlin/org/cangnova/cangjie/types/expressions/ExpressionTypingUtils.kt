@@ -131,7 +131,7 @@ object ExpressionTypingUtils {
      * @param expression 要检查的表达式
      * @return 如果是 !! 表达式则返回 true
      */
-    @JvmStatic
+    
     fun isExclExclExpression(expression: CjExpression?): Boolean {
         return expression is CjUnaryExpression
         // TODO: 需要检查操作符类型是否为 EXCLEXCL
@@ -160,7 +160,7 @@ object ExpressionTypingUtils {
      * @param context 类型检查上下文
      * @return 表达式接收者，如果表达式类型为 null 则返回 null
      */
-    @JvmStatic
+    
     fun getExpressionReceiver(
         facade: ExpressionTypingFacade,
         expression: CjExpression,
@@ -192,7 +192,7 @@ object ExpressionTypingUtils {
      * @param argumentType 表达式的类型
      * @return 创建的假表达式
      */
-    @JvmStatic
+    
     fun createFakeExpressionOfType(
         project: Project,
         trace: BindingTrace,
@@ -231,7 +231,7 @@ object ExpressionTypingUtils {
      * @param facade 表达式类型检查内部接口
      * @return 类型信息，永远不为 null
      */
-    @JvmStatic
+    
     fun getTypeInfoOrNullType(
         expression: CjExpression?,
         context: ExpressionTypingContext,
@@ -278,7 +278,7 @@ object ExpressionTypingUtils {
      * @param overloadChecker 重载检查器，用于检测重声明
      * @return 新创建的可写作用域
      */
-    @JvmStatic
+    
     fun newWritableScopeImpl(
         context: ExpressionTypingContext,
         scopeKind: LexicalScopeKind,
@@ -323,7 +323,7 @@ object ExpressionTypingUtils {
      * @param expression 要检查的表达式
      * @return 如果表达式依赖期望类型则返回 true
      */
-    @JvmStatic
+    
     fun dependsOnExpectedType(expression: CjExpression?): Boolean {
         val expr = CjPsiUtil.deparenthesize(expression) ?: return false
 
@@ -364,7 +364,7 @@ object ExpressionTypingUtils {
      * @param expression 二元表达式
      * @return 如果依赖期望类型则返回 true
      */
-    @JvmStatic
+    
     @Suppress("DEPRECATION")
     fun isBinaryExpressionDependentOnExpectedType(expression: CjBinaryExpression): Boolean {
         val operationType = expression.operationReference.referencedNameElementType
@@ -392,7 +392,7 @@ object ExpressionTypingUtils {
      * @return 非 null 的类型
      * @throws AssertionError 如果类型为 null
      */
-    @JvmStatic
+    
     fun safeGetType(typeInfo: CangJieTypeInfo): CangJieType {
         val type = typeInfo.type
         check(type != null) {
@@ -425,7 +425,7 @@ object ExpressionTypingUtils {
      * @return 非 null 的表达式接收者
      * @throws AssertionError 如果表达式类型为 null
      */
-    @JvmStatic
+    
     fun safeGetExpressionReceiver(
         facade: ExpressionTypingFacade,
         expression: CjExpression,
@@ -442,7 +442,7 @@ object ExpressionTypingUtils {
     //  * @param expression 一元表达式
     //  * @return 如果依赖期望类型则返回 true
     //  */
-    // @JvmStatic
+    // 
     // fun isUnaryExpressionDependentOnExpectedType(expression: CjUnaryExpression): Boolean {
     //     return expression.operationReference.referencedNameElementType == CjTokens.EXCLEXCL
     // }
@@ -504,7 +504,7 @@ object ExpressionTypingUtils {
      * @param candidate 候选声明
      * @return 如果候选是局部声明则返回 true
      */
-    @JvmStatic
+    
     fun isLocal(containerOfTheCurrentLocality: DeclarationDescriptor, candidate: DeclarationDescriptor): Boolean {
         // 值参数总是局部的
         if (candidate is ValueParameterDescriptor) {
@@ -593,7 +593,7 @@ object ExpressionTypingUtils {
      * @param trace 绑定跟踪器，用于报告诊断信息
      * @param variableDescriptor 新声明的变量描述符
      */
-    @JvmStatic
+    
     @Suppress("DEPRECATION")
     fun checkVariableShadowing(
         scope: LexicalScope,
@@ -656,7 +656,7 @@ object ExpressionTypingUtils {
      * @param descriptor 声明描述符
      * @return 如果是函数表达式则返回 true
      */
-    @JvmStatic
+    
     fun isFunctionExpression(descriptor: DeclarationDescriptor?): Boolean {
         return descriptor is FunctionExpressionDescriptor
     }
@@ -686,7 +686,7 @@ object ExpressionTypingUtils {
      * @param descriptor 声明描述符
      * @return 如果是函数字面量则返回 true
      */
-    @JvmStatic
+    
     fun isFunctionLiteral(descriptor: DeclarationDescriptor?): Boolean {
         return descriptor is AnonymousFunctionDescriptor
     }

@@ -106,7 +106,7 @@ class ControlStructureTypingUtils(
             return createIndependentDataFlowInfoForArgumentsForCall(conditionInfo, dataFlowInfoForArgumentsMap)
         }
 
-        @JvmStatic
+        
         fun createDataFlowInfoForArgumentsOfMatchCall(
             callForWhen: Call,
             subjectDataFlowInfo: DataFlowInfo,
@@ -121,7 +121,7 @@ class ControlStructureTypingUtils(
         }
 
 
-        @JvmStatic
+        
         fun createDataFlowInfoForArgumentsOfTryCall(
             callForTry: Call,
             dataFlowInfoBeforeTry: DataFlowInfo,
@@ -140,7 +140,7 @@ class ControlStructureTypingUtils(
             )
         }
 
-        @JvmStatic
+        
         fun createCallForSpecialConstruction(
             expression: CjExpression,
             calleeExpression: CjExpression,

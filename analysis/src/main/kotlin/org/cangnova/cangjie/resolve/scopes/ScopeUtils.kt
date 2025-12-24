@@ -497,7 +497,7 @@ fun LexicalScope.getVariableFromImplicitReceivers(name: Name): VariableDescripto
 }
 
 object ScopeUtils {
-    @JvmStatic
+    
     fun makeScopeForPropertyInitializer(
         propertyHeader: LexicalScope,
         propertyDescriptor: PropertyDescriptor
@@ -520,7 +520,7 @@ object ScopeUtils {
         )
     }
 
-    @JvmStatic
+    
     fun makeScopeForVariableInitializer(
         variableHeader: LexicalScope,
         variableDescriptor: VariableDescriptor
@@ -528,7 +528,7 @@ object ScopeUtils {
         return makeScopeForVariableBaseInitializer(variableHeader, variableDescriptor)
     }
 
-//    @JvmStatic
+//    
 //    fun makeScopeForVariableInitializer(
 //        variableHeader: LexicalScope,
 //        variableDescriptor: VariableCallableDescriptor
@@ -556,7 +556,7 @@ object ScopeUtils {
         }
     }
 
-    @JvmStatic
+    
     fun makeScopeForVariableHeader(
         parent: LexicalScope,
         variableDescriptor: VariableDescriptor
@@ -564,7 +564,7 @@ object ScopeUtils {
         return makeScopeForVariableBaseHeader(parent, variableDescriptor)
     }
 
-    @JvmStatic
+    
     fun makeScopeForPropertyHeader(
         parent: LexicalScope,
         propertyDescriptor: PropertyDescriptor

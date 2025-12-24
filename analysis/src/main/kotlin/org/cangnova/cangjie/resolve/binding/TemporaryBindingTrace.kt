@@ -79,7 +79,7 @@ open class TemporaryBindingTrace protected constructor(
          * @param debugName 调试名称
          * @return 创建的 TemporaryBindingTrace 实例
          */
-        @JvmStatic
+        
         fun create(trace: BindingTrace, debugName: String): TemporaryBindingTrace {
             return create(trace, debugName, BindingTraceFilter.ACCEPT_ALL)
         }
@@ -92,7 +92,7 @@ open class TemporaryBindingTrace protected constructor(
          * @param filter 绑定跟踪过滤器
          * @return 创建的 TemporaryBindingTrace 实例
          */
-        @JvmStatic
+        
         fun create(trace: BindingTrace, debugName: String, filter: BindingTraceFilter): TemporaryBindingTrace {
             return TemporaryBindingTrace(trace, debugName, filter)
         }
@@ -105,7 +105,7 @@ open class TemporaryBindingTrace protected constructor(
          * @param resolutionSubjectForMessage 用于生成调试名称的解析主题
          * @return 创建的 TemporaryBindingTrace 实例
          */
-        @JvmStatic
+        
         fun create(trace: BindingTrace, debugName: String, resolutionSubjectForMessage: Any?): TemporaryBindingTrace {
             return create(trace, AnalyzingUtils.formDebugNameForBindingTrace(debugName, resolutionSubjectForMessage))
         }

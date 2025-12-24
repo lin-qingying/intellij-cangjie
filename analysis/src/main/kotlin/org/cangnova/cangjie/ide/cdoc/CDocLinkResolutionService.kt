@@ -145,14 +145,14 @@ private class GlobalSyntheticPackageViewDescriptor(
             .flatMap { CangJieFullClassNameIndex[it.asString(), project, scope].asSequence() }
             .map { it.resolveToDescriptorIfAny() }
 
-        fun getFunctionsByNameFilter(nameFilter: (Name) -> Boolean) = CangJieTopLevelFunctionFqnNameIndex
+        fun getFunctionsByNameFilter(nameFilter: (Name) -> Boolean) = CangJieTopLevelFunctionFqNameIndex
             .getAllKeys(project)
             .asSequence()
             .filter { it.startsWith(fqName.asString()) }
             .map(::FqName)
             .filter { it.isChildOf(fqName) }
             .filter { nameFilter(it.shortName()) }
-            .flatMap { CangJieTopLevelFunctionFqnNameIndex[it.asString(), project, scope].asSequence() }
+            .flatMap { CangJieTopLevelFunctionFqNameIndex[it.asString(), project, scope].asSequence() }
             .map { it.resolveToDescriptorIfAny() }
 
         fun getSubpackages(nameFilter: (Name) -> Boolean) =

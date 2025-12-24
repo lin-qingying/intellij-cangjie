@@ -2363,7 +2363,7 @@ open class CangJieExpressionParsing(
             }
             expect(
                 sturctEnd,
-                CangJieParsingBundle.message("parsing.error.expecting.symbol", sturctEnd.name ?: ")"),
+                CangJieParsingBundle.message("parsing.error.expecting.symbol", sturctEnd.name),
                 EXPRESSION_FOLLOW
             )
         }
@@ -2639,7 +2639,7 @@ open class CangJieExpressionParsing(
 
         return if (declType == ANNOTATION) {
             decl.rollbackTo()
-            return parseLocalDeclaration(rollbackIfDefinitelyNotExpression, true)
+            parseLocalDeclaration(rollbackIfDefinitelyNotExpression, true)
         } else if (declType == INVALID_DECLARATION) {
             decl.error(CangJieParsingBundle.message("parsing.error.invalid.declaration.scope"))
             true
@@ -2647,7 +2647,7 @@ open class CangJieExpressionParsing(
             closeDeclarationWithCommentBinders(
                 decl,
                 declType,
-                declType !== VARIABLE && declType !== DESTRUCTURING_DECLARATION,
+                declType !== VARIABLE,
             )
             true
         } else {

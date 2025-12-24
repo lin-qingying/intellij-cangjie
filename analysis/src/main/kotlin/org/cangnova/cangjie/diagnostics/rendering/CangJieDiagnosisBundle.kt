@@ -37,27 +37,27 @@ private const val BUNDLE = "messages.CangJieDiagnosisBundle"
 
 object CangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle {
     @Nls
-    @JvmStatic
+    
     fun message(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =
         getMessage(key, *params)
 
     @Nls
-    @JvmStatic
+    
     fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String): String =
         getMessage(key) // 不传递任何参数
 
     @Nls
-    @JvmStatic
+    
     fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: DiagnosticFactory<*>): String =
         getMessage(key.name) // 不传递任何参数
 
     // 新增的方法来获取原始内容
 //    @Nls
-//    @JvmStatic
+//    
 //    fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String): String =
 //        getMessage(key) // 不传递任何参数
     @Nls
-    @JvmStatic
+    
     fun htmlMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =
         getMessage(key, *params).withHtml()
 

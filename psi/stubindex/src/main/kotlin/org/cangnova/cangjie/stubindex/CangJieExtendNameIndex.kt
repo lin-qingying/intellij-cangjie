@@ -28,21 +28,31 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StringStubIndexExtension
 import com.intellij.psi.stubs.StubIndexKey
-import org.cangnova.cangjie.psi.CjMainFunction
+import org.cangnova.cangjie.psi.CjExtend
 
-class CangJieMainFunctionFqnNameIndex internal constructor() : StringStubIndexExtension<CjMainFunction>() {
 
-    companion object Helper : CangJieStringStubIndexHelper<CjMainFunction>(CjMainFunction::class.java) {
-        override val indexKey: StubIndexKey<String, CjMainFunction> =
-            StubIndexKey.createIndexKey(CangJieMainFunctionFqnNameIndex::class.java.simpleName)
+class CangJieExtendNameIndex internal constructor() : StringStubIndexExtension<CjExtend>() {
+    companion object Helper : CangJieStringStubIndexHelper<CjExtend>(CjExtend::class.java) {
+        @JvmField
+        @Deprecated("Use the Helper object instead", level = DeprecationLevel.ERROR)
+        val INSTANCE: CangJieExtendNameIndex = CangJieExtendNameIndex()
+
+        @JvmStatic
+        @Suppress("DeprecatedCallableAddReplaceWith")
+        @Deprecated("Use the Helper object instead", level = DeprecationLevel.ERROR)
+        fun getInstance(): CangJieExtendNameIndex {
+
+            return CangJieExtendNameIndex()
+        }
+
+        override val indexKey: StubIndexKey<String, CjExtend> =
+            StubIndexKey.createIndexKey( CangJieExtendNameIndex::class.java.simpleName)
     }
 
-    override fun getKey(): StubIndexKey<String, CjMainFunction> = indexKey
+    override fun getKey(): StubIndexKey<String, CjExtend> = indexKey
 
-    @Deprecated("Base method is deprecated", ReplaceWith("CangJieMainFunctionFqnNameIndex[key, project, scope]"))
-    override fun get(key: String, project: Project, scope: GlobalSearchScope): Collection<CjMainFunction> {
-
-
-        return Helper[key, project, scope]
+    @Deprecated("Base method is deprecated", ReplaceWith("CangJieExtendNameIndex[packagefqName, project, scope]"))
+    override fun get(fqName: String, project: Project, scope: GlobalSearchScope): Collection<CjExtend> {
+        return Helper[fqName, project, scope]
     }
 }

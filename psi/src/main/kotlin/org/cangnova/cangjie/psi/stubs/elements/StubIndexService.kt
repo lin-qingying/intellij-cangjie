@@ -73,6 +73,9 @@ open class StubIndexService protected constructor() {
     open fun indexVariable(stub: CangJieVariableStub, sink: IndexSink) {
     }
 
+    open fun indexField(stub: CangJieFieldStub, sink: IndexSink) {
+    }
+
     open fun indexProperty(stub: CangJiePropertyStub, sink: IndexSink) {
     }
 

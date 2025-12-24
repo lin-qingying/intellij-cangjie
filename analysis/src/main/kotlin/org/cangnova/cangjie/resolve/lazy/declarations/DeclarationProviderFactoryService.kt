@@ -65,7 +65,7 @@ abstract class DeclarationProviderFactoryService {
     ): DeclarationProviderFactory
 
     companion object {
-        @JvmStatic
+        
         fun createDeclarationProviderFactory(
             project: Project,
             storageManager: StorageManager,

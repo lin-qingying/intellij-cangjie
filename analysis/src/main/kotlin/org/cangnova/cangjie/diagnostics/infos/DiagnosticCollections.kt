@@ -40,7 +40,7 @@ import org.cangnova.cangjie.diagnostics.infos.errors.*
  *
  * 包含所有关于未使用元素的诊断（参数、变量等）。
  */
-@JvmField
+
 val UNUSED_ELEMENT_DIAGNOSTICS: ImmutableSet<DiagnosticFactory<*>> = ImmutableSet.of(
 //    UNUSED_PARAMETER
 )
@@ -50,7 +50,7 @@ val UNUSED_ELEMENT_DIAGNOSTICS: ImmutableSet<DiagnosticFactory<*>> = ImmutableSe
  *
  * 包含所有关于未解析引用的诊断。
  */
-@JvmField
+
 val UNRESOLVED_REFERENCE_DIAGNOSTICS: ImmutableSet<DiagnosticFactory<*>> = ImmutableSet.of(
     UNRESOLVED_REFERENCE,
     NAMED_PARAMETER_NOT_FOUND,
@@ -62,7 +62,7 @@ val UNRESOLVED_REFERENCE_DIAGNOSTICS: ImmutableSet<DiagnosticFactory<*>> = Immut
  *
  * 包含所有关于必须初始化的诊断。
  */
-@JvmField
+
 val MUST_BE_INITIALIZED_DIAGNOSTICS: ImmutableSet<DiagnosticFactory<*>> = ImmutableSet.of(
     MUST_BE_INITIALIZED,
     MUST_BE_INITIALIZED_OR_BE_ABSTRACT

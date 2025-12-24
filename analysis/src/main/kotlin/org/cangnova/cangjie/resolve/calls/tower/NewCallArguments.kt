@@ -77,7 +77,7 @@ class CasePatternCangJieCallArgumentImpl(
     override val argumentName: Name?,
     override val dataFlowInfoBeforeThisArgument: DataFlowInfo,
     override val dataFlowInfoAfterThisArgument: DataFlowInfo,
-    val collectionLiteralExpression: CjCasePattern,
+    val collectionLiteralExpression: CjCasePatternElement,
     val outerCallContext: BasicCallResolutionContext
 ) : CollectionLiteralCangJieCallArgument, PSICangJieCallArgument() {
     override val isSpread: Boolean get() = valueArgument.getSpreadElement() != null

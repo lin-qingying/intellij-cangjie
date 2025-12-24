@@ -36,7 +36,7 @@ open class CangJieModificationTrackerService {
     companion object {
         private val NEVER_CHANGE_TRACKER_SERVICE = CangJieModificationTrackerService()
 
-        @JvmStatic
+        
         fun getInstance(project: Project): CangJieModificationTrackerService {
             return project.getService(CangJieModificationTrackerService::class.java) ?: NEVER_CHANGE_TRACKER_SERVICE
         }

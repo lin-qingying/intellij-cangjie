@@ -149,7 +149,7 @@ class PseudocodeVariablesData(val pseudocode: Pseudocode, private val bindingCon
     private fun CjVariableDeclaration.isVariableWithTrivialInitializer(descriptor: VariableDescriptor): Boolean {
         if (descriptor.isPropertyWithoutBackingField()) return true
         if (isVar) return false
-        return initializer != null || this is CjDestructuringDeclarationEntry
+        return initializer != null
     }
 
     private fun VariableDescriptor.isPropertyWithoutBackingField(): Boolean {
@@ -451,7 +451,7 @@ class PseudocodeVariablesData(val pseudocode: Pseudocode, private val bindingCon
 
     companion object {
 
-        @JvmStatic
+        
         fun getDefaultValueForInitializers(
             variable: VariableDescriptor,
             instruction: Instruction,

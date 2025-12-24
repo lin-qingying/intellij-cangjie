@@ -78,7 +78,7 @@ object CangJieCodeInsightBundle : AbstractCangJieBundle(BUNDLE) {
      * @return 格式化后的本地化消息
      */
     @Nls
-    @JvmStatic
+    
     fun message(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =
         getMessage(key, *params)
 }

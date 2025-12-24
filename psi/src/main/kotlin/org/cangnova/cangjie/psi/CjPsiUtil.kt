@@ -247,7 +247,7 @@ object CjPsiUtil {
     }
 
     private fun isNonLocalCallable(declaration: CjDeclaration?): Boolean {
-        if (declaration is CjVariable) {
+        if (declaration is CjPatternVariable) {
             return !declaration.isLocal
         }
 

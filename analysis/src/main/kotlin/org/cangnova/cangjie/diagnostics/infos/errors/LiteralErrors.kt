@@ -39,83 +39,83 @@ import org.cangnova.cangjie.types.CangJieType
 /**
  * 整数字面量超出范围
  */
-@JvmField
+
 val INT_LITERAL_OUT_OF_RANGE: DiagnosticFactory0<CjConstantExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 整数字面量按类型超出范围
  */
-@JvmField
+
 val INT_LITERAL_OUT_OF_RANGE_BY_TYPE: DiagnosticFactory2<CjConstantExpression, Long, CangJieType> =
     DiagnosticFactory2.create(Severity.ERROR)
 
 /**
  * 浮点字面量超出范围
  */
-@JvmField
+
 val FLOAT_LITERAL_OUT_OF_RANGE: DiagnosticFactory0<CjConstantExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 错误的字符字面量
  */
-@JvmField
+
 val INCORRECT_CHARACTER_LITERAL: DiagnosticFactory0<CjConstantExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 空字符字面量
  */
-@JvmField
+
 val EMPTY_CHARACTER_LITERAL: DiagnosticFactory0<CjConstantExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 字符字面量中字符过多
  */
-@JvmField
+
 val TOO_MANY_CHARACTERS_IN_CHARACTER_LITERAL: DiagnosticFactory1<CjConstantExpression, String> =
     DiagnosticFactory1.create(Severity.ERROR)
 
 /**
  * 非法转义
  */
-@JvmField
+
 val ILLEGAL_ESCAPE: DiagnosticFactory1<CjElement, CjElement> =
     DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.CUT_CHAR_QUOTES)
 
 /**
  * 非法下划线
  */
-@JvmField
+
 val ILLEGAL_UNDERSCORE: DiagnosticFactory0<CjConstantExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 类路径上没有无符号字面量声明
  */
-@JvmField
+
 val UNSIGNED_LITERAL_WITHOUT_DECLARATIONS_ON_CLASSPATH: DiagnosticFactory0<CjConstantExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 下划线保留
  */
-@JvmField
+
 val UNDERSCORE_IS_RESERVED: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 有符号常量转换为无符号
  */
-@JvmField
+
 val SIGNED_CONSTANT_CONVERTED_TO_UNSIGNED: DiagnosticFactory0<CjExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 多行字符串没有换行符
  */
-@JvmField
+
 val NO_MULTILINE_NEWLINE: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)

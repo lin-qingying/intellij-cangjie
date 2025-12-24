@@ -163,7 +163,7 @@ class ExpressionTypingVisitorForStatements(
          * @param leftOperandType 左操作数类型
          * @return 提炼后的类型，或原始类型
          */
-        @JvmStatic
+        
         private fun refineTypeFromPropertySetterIfPossible(
             bindingContext: BindingContext,
             leftOperand: CjElement?,
@@ -194,7 +194,7 @@ class ExpressionTypingVisitorForStatements(
          * @param leftOperandType 左操作数类型
          * @return 提炼后的类型，或原始类型
          */
-        @JvmStatic
+        
         private fun refineTypeByPropertyInType(
             bindingContext: BindingContext,
             leftOperand: CjElement?,
@@ -219,7 +219,7 @@ class ExpressionTypingVisitorForStatements(
          * @param operationName 操作名称
          * @return 如果找到至少一个操作则返回 true
          */
-        @JvmStatic
+        
         private fun atLeastOneOperation(
             calls: Collection<ResolvedCall<FunctionDescriptor>>,
             operationName: Name

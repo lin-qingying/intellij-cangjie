@@ -134,7 +134,7 @@ class ControlFlowProcessor(
 
         private val conditionVisitor = object : CjVisitorUnit() {
 
-            private fun getSubjectExpression(condition: CjCasePattern): CjExpression? =
+            private fun getSubjectExpression(condition: CjCasePatternElement): CjExpression? =
                 condition.getStrictParentOfType<CjMatchExpression>()?.subjectExpression
 
             //
@@ -854,12 +854,7 @@ class ControlFlowProcessor(
         private fun declareLoopParameter(expression: CjForExpression) {
             val loopParameter = expression.loopParameter
             if (loopParameter != null) {
-                val destructuringDeclaration = loopParameter.destructuringDeclaration
-                if (destructuringDeclaration != null) {
-                    visitDestructuringDeclaration(destructuringDeclaration, false)
-                } else {
-                    builder.declareParameter(loopParameter)
-                }
+                builder.declareParameter(loopParameter)
             }
         }
 
@@ -875,16 +870,10 @@ class ControlFlowProcessor(
             ).outputValue
 
             if (loopParameter != null) {
-                val destructuringDeclaration = loopParameter.destructuringDeclaration
-                if (destructuringDeclaration != null) {
-                    for (entry in destructuringDeclaration.entries) {
-                        generateInitializer(entry, value)
-                    }
-                } else {
-                    generateInitializer(loopParameter, value)
+                generateInitializer(loopParameter, value)
                 }
             }
-        }
+
 
         override fun visitBreakExpression(expression: CjBreakExpression) {
             val loop = getCorrespondingLoop(expression)
@@ -1044,15 +1033,6 @@ class ControlFlowProcessor(
             }
         }
 
-//        private fun checkReturnLabelTarget(returnExpression: CjReturnExpression, labeledElement: CjElement) {
-//            if (labeledElement !is CjFunctionLiteral && labeledElement !is CjNamedFunction) {
-//                if (languageVersionSettings.supportsFeature(LanguageFeature.RestrictReturnStatementTarget)) {
-//                    trace.report(NOT_A_FUNCTION_LABEL.on(returnExpression))
-//                } else {
-//                    trace.report(NOT_A_FUNCTION_LABEL_WARNING.on(returnExpression))
-//                }
-//            }
-//        }
 
         override fun visitParameter(parameter: CjParameter) {
             builder.declareParameter(parameter)
@@ -1065,10 +1045,6 @@ class ControlFlowProcessor(
                 builder.bindLabel(skipDefaultValue)
             }
             generateInitializer(parameter, computePseudoValueForParameter(parameter))
-
-            parameter.destructuringDeclaration?.let {
-                visitDestructuringDeclaration(it, generateWriteForEntries = true)
-            }
         }
 
         private fun computePseudoValueForParameter(parameter: CjParameter): PseudoValue {
@@ -1235,38 +1211,6 @@ class ControlFlowProcessor(
 
         }
 
-        override fun visitDestructuringDeclaration(destructuringDeclaration: CjDestructuringDeclaration) {
-            visitDestructuringDeclaration(destructuringDeclaration, true)
-        }
-
-        private fun visitDestructuringDeclaration(
-            declaration: CjDestructuringDeclaration,
-            generateWriteForEntries: Boolean
-        ) {
-            val initializer = declaration.initializer
-            generateInstructions(initializer)
-            for (entry in declaration.entries) {
-                builder.declareVariable(entry)
-
-                val resolvedCall = trace.get(BindingContext.COMPONENT_RESOLVED_CALL, entry)
-
-                val writtenValue = if (resolvedCall != null) {
-                    builder.call(
-                        entry,
-                        resolvedCall,
-                        getReceiverValues(resolvedCall),
-                        emptyMap()
-                    ).outputValue
-                } else {
-                    initializer?.let { createSyntheticValue(entry, MagicKind.UNRESOLVED_CALL, it) }
-                }
-
-                if (generateWriteForEntries) {
-                    generateInitializer(entry, writtenValue ?: createSyntheticValue(entry, MagicKind.FAKE_INITIALIZER))
-                }
-            }
-        }
-
 
         override fun visitBinaryWithTypeRHSExpression(expression: CjBinaryExpressionWithTypeRHS) {
             mark(expression)
@@ -1429,17 +1373,6 @@ class ControlFlowProcessor(
             }
         }
 
-        //        private fun processEntryOrObject(entryOrObject: CjTypeStatement) {
-//            val classDescriptor = trace[BindingContext.DECLARATION_TO_DESCRIPTOR, entryOrObject]
-//            if (classDescriptor is ClassDescriptor) {
-//                builder.declareEntryOrObject(entryOrObject)
-//                builder.write(
-//                    entryOrObject, entryOrObject, createSyntheticValue(entryOrObject, MagicKind.FAKE_INITIALIZER),
-//                    AccessTarget.Declaration(FakeCallableDescriptorForObject(classDescriptor)), emptyMap()
-//                )
-//                generateInstructions(entryOrObject)
-//            }
-//        }
         override fun visitTypeStatement(typeStatement: CjTypeStatement) {
             if (typeStatement.hasPrimaryConstructor()) {
                 processParameters(typeStatement.primaryConstructorParameters)
@@ -1515,9 +1448,6 @@ class ControlFlowProcessor(
             generateCallOrMarkUnresolved(call)
         }
 
-//        override fun visitInitializerList(list: CjInitializerList) {
-//            list.acceptChildren(this)
-//        }
 
         private fun generateCallOrMarkUnresolved(call: CjCallElement) {
             if (!generateCall(call)) {
@@ -1530,13 +1460,6 @@ class ControlFlowProcessor(
             }
         }
 
-//        override fun visitDelegatedSuperTypeEntry(specifier: CjDelegatedSuperTypeEntry) {
-//            val delegateExpression = specifier.delegateExpression
-//            generateInstructions(delegateExpression)
-//            if (delegateExpression != null) {
-//                createSyntheticValue(specifier, MagicKind.VALUE_CONSUMER, delegateExpression)
-//            }
-//        }
 
         override fun visitSuperTypeEntry(specifier: CjSuperTypeEntry) {
             // Do not generate UNSUPPORTED_ELEMENT here
@@ -1554,21 +1477,7 @@ class ControlFlowProcessor(
             }
         }
 
-//        override fun visitDoubleColonExpression(expression: CjDoubleColonExpression) {
-//            mark(expression)
-//            val receiverExpression = expression.receiverExpression
-//            if (receiverExpression != null &&
-//                trace.bindingContext.get(
-//                    BindingContext.DOUBLE_COLON_LHS,
-//                    receiverExpression
-//                ) is DoubleColonLHS.Expression
-//            ) {
-//                generateInstructions(receiverExpression)
-//                createNonSyntheticValue(expression, MagicKind.BOUND_CALLABLE_REFERENCE, receiverExpression)
-//            } else {
-//                createNonSyntheticValue(expression, MagicKind.UNBOUND_CALLABLE_REFERENCE)
-//            }
-//        }
+
 
         override fun visitCjElement(element: CjElement) {
             createNonSyntheticValue(element, MagicKind.UNSUPPORTED_ELEMENT)

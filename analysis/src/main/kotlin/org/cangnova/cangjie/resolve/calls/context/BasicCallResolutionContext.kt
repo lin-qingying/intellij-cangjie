@@ -114,7 +114,7 @@ class BasicCallResolutionContext private constructor(
         /**
          * 创建基本调用解析上下文
          */
-        @JvmStatic
+        
         fun create(
             trace: BindingTrace,
             scope: LexicalScope,
@@ -139,7 +139,7 @@ class BasicCallResolutionContext private constructor(
         /**
          * 创建基本调用解析上下文（使用默认推断会话）
          */
-        @JvmStatic
+        
         fun create(
             trace: BindingTrace,
             scope: LexicalScope,
@@ -164,7 +164,7 @@ class BasicCallResolutionContext private constructor(
         /**
          * 从已有上下文创建基本调用解析上下文
          */
-        @JvmStatic
+        
         @JvmOverloads
         fun create(
             context: ResolutionContext<*>,

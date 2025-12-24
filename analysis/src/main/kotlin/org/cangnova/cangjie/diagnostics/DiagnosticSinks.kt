@@ -55,7 +55,7 @@ object DiagnosticSinks {
      * compiler.compile(source, sink)
      * ```
      */
-    @JvmField
+    
     val DO_NOTHING: DiagnosticSink = object : DiagnosticSink {
         override fun report(diagnostic: Diagnostic) {
             // 不执行任何操作
@@ -93,7 +93,7 @@ object DiagnosticSinks {
      * }
      * ```
      */
-    @JvmField
+    
     val THROW_EXCEPTION: DiagnosticSink = object : DiagnosticSink {
         override fun report(diagnostic: Diagnostic) {
             if (diagnostic.severity == Severity.ERROR) {

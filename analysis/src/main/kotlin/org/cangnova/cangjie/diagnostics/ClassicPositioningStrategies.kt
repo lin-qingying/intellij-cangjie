@@ -31,7 +31,7 @@ import org.cangnova.cangjie.resolve.controlFlow.UnreachableCode
 
 object ClassicPositioningStrategies {
 
-    @JvmField
+    
     val UNREACHABLE_CODE: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
         override fun markDiagnostic(diagnostic: DiagnosticMarker): List<TextRange> {
             @Suppress("UNCHECKED_CAST")

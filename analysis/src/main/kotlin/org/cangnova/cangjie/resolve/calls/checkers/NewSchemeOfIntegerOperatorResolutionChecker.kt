@@ -107,7 +107,7 @@ object NewSchemeOfIntegerOperatorResolutionChecker : CallChecker {
     }
 
 
-    @JvmStatic
+    
     fun checkArgument(
         expectedType: CangJieType,
         argument: CjExpression,

@@ -42,7 +42,7 @@ object Slices {
     /**
      * 仅允许重写为相等对象的策略
      */
-    @JvmField
+    
     val ONLY_REWRITE_TO_EQUAL: RewritePolicy = object : RewritePolicy {
         override fun <K : Any> rewriteProcessingNeeded(key: K): Boolean = true
 
@@ -64,7 +64,7 @@ object Slices {
      * 允许相等对象的重写，以及有符号常量值到无符号常量值的转换
      * 这是为了避免使 CompileTimeConstant 可变
      */
-    @JvmField
+    
     val COMPILE_TIME_VALUE_REWRITE_POLICY: RewritePolicy = object : RewritePolicy {
         override fun <K : Any> rewriteProcessingNeeded(key: K): Boolean = true
 
@@ -100,7 +100,7 @@ object Slices {
     /**
      * 创建集合式的 Set Slice
      */
-    @JvmStatic
+    
     fun <K : Any> createCollectiveSetSlice(): WritableSlice<K, Boolean> {
         return SetSlice(RewritePolicy.Companion.DO_NOTHING, isCollective = true)
     }
@@ -108,7 +108,7 @@ object Slices {
     /**
      * 创建简单的 Slice
      */
-    @JvmStatic
+    
     fun <K : Any, V: Any> createSimpleSlice(): WritableSlice<K, V> {
         return BasicWritableSlice(ONLY_REWRITE_TO_EQUAL)
     }
@@ -116,7 +116,7 @@ object Slices {
     /**
      * 创建简单的 Set Slice
      */
-    @JvmStatic
+    
     fun <K : Any> createSimpleSetSlice(): WritableSlice<K, Boolean> {
         return SetSlice(RewritePolicy.Companion.DO_NOTHING)
     }
@@ -124,7 +124,7 @@ object Slices {
     /**
      * 创建 Slice 构建器
      */
-    @JvmStatic
+    
     fun <K : Any, V: Any> sliceBuilder(): SliceBuilder<K, V> {
         return SliceBuilder(ONLY_REWRITE_TO_EQUAL)
     }

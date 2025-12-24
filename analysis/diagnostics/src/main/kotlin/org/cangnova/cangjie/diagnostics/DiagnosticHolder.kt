@@ -37,7 +37,7 @@ package org.cangnova.cangjie.diagnostics
  *
  * package org.cangnova.cangjie.diagnostics.errors
  *
- * @JvmField
+ *
  * val MY_ERROR: DiagnosticFactory0<PsiElement> =
  *     DiagnosticFactory0.create(Severity.ERROR)
  * ```

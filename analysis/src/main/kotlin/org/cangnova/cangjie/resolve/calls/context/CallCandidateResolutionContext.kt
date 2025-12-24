@@ -118,7 +118,7 @@ class CallCandidateResolutionContext<D : CallableDescriptor> private constructor
         /**
          * 创建调用候选解析上下文
          */
-        @JvmStatic
+        
         fun <D : CallableDescriptor> create(
             candidateCall: MutableResolvedCall<D>,
             context: CallResolutionContext<*>,
@@ -142,7 +142,7 @@ class CallCandidateResolutionContext<D : CallableDescriptor> private constructor
         /**
          * 为正在分析的调用创建上下文
          */
-        @JvmStatic
+        
         fun <D : CallableDescriptor> createForCallBeingAnalyzed(
             candidateCall: MutableResolvedCall<D>,
             context: BasicCallResolutionContext,

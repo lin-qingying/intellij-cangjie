@@ -39,7 +39,6 @@ fun setTypeReference(declaration: CjCallableDeclaration, addAfter: PsiElement?, 
         } else {
             val anchor = addAfter
                 ?: declaration.nameIdentifier?.siblings(forward = true)?.firstOrNull { it is PsiErrorElement }
-                ?: (declaration as? CjParameter)?.destructuringDeclaration
             val newTypeRef = declaration.addAfter(typeRef, anchor) as CjTypeReference
             declaration.addAfter(CjPsiFactory(declaration.project).createColon(), anchor)
             newTypeRef

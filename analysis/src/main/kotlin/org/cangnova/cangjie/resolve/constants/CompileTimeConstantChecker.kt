@@ -196,7 +196,7 @@ class CompileTimeConstantChecker(
         /**
          * 解析 Rune 字符
          */
-        @JvmStatic
+        
         fun parseRune(expression: CjConstantExpression): Char? =
             parseCharacter(expression).value
 
@@ -209,7 +209,7 @@ class CompileTimeConstantChecker(
         /**
          * 解析字符字面量
          */
-        @JvmStatic
+        
         fun parseCharacter(expression: CjConstantExpression): CharacterWithDiagnostic {
             val text = expression.text
 
@@ -243,7 +243,7 @@ class CompileTimeConstantChecker(
         /**
          * 解析转义字符
          */
-        @JvmStatic
+        
         fun escapedStringToCharacter(text: String, expression: CjElement): CharacterWithDiagnostic {
             require(text.isNotEmpty() && text[0] == '\\') {
                 "Only escaped sequences must be passed to this routine: $text"

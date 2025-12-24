@@ -322,7 +322,7 @@ abstract class ResolutionContext<Context : ResolutionContext<Context>> protected
         /**
          * 默认表达式上下文提供者（总是返回 null）
          */
-        @JvmField
+        
         val DEFAULT_EXPRESSION_CONTEXT_PROVIDER: (CjExpression) -> CjExpression? = { null }
     }
 }

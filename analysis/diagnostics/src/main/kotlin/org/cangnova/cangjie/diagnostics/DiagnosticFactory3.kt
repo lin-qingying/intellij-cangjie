@@ -99,7 +99,7 @@ class DiagnosticFactory3<E : PsiElement, A : Any, B : Any, C : Any> protected co
          * @param severity 严重性级别
          * @return 新的诊断工厂实例
          */
-        @JvmStatic
+
         fun <T : PsiElement, A : Any, B : Any, C : Any> create(severity: Severity): DiagnosticFactory3<T, A, B, C> {
             return create(severity, PositioningStrategies.DEFAULT)
         }
@@ -115,7 +115,7 @@ class DiagnosticFactory3<E : PsiElement, A : Any, B : Any, C : Any> protected co
          * @param positioningStrategy 定位策略
          * @return 新的诊断工厂实例
          */
-        @JvmStatic
+
         fun <T : PsiElement, A : Any, B : Any, C : Any> create(
             severity: Severity,
             positioningStrategy: PositioningStrategy<T>

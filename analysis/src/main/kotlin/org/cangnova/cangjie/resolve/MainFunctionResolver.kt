@@ -29,7 +29,7 @@ import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.diagnostics.infos.errors.MAIN_FUNCTION_NUMBER_ERROR
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.BodiesResolveContext
-import org.cangnova.cangjie.stubindex.CangJieMainFunctionFqnNameIndex
+import org.cangnova.cangjie.stubindex.CangJieMainFunctionFqNameIndex
 
 class MainFunctionResolver(
     private val trace: BindingTrace
@@ -48,7 +48,7 @@ class MainFunctionResolver(
         runReadAction {
 
             val mainFunctions =
-                CangJieMainFunctionFqnNameIndex.get("$fqname.main", project)
+                CangJieMainFunctionFqNameIndex.get("$fqname.main", project)
             if (mainFunctions.size > 1) {
                 mainFunctions.forEach {
                     trace.report(MAIN_FUNCTION_NUMBER_ERROR.on(it))

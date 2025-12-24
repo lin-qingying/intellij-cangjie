@@ -155,7 +155,7 @@ object CallMaker {
         return ExpressionValueArgument(expression, reportErrorsOn, false)
     }
 
-    @JvmStatic
+    
     fun makeCall(leftAsReceiver: ReceiverValue, expression: CjBinaryExpression): Call {
         return makeCallWithExpressions(
             expression,
@@ -166,12 +166,12 @@ object CallMaker {
         )
     }
 
-    @JvmStatic
+    
     fun makeCall(baseAsReceiver: ReceiverValue, expression: CjUnaryExpression): Call {
         return makeCall(expression, baseAsReceiver, null, expression.operationReference, emptyList())
     }
 
-    @JvmStatic
+    
     fun makeCall(explicitReceiver: Receiver?, callOperationNode: ASTNode?, callElement: CjCallElement): Call {
         return object : Call {
             override val callOperationNode: ASTNode?

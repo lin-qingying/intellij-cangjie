@@ -52,7 +52,7 @@ object ConfusingMatchBranchSyntaxChecker {
     }
 
     private fun checkCondition(
-        condition: CjCasePattern,
+        condition: CjCasePatternElement,
         languageVersionSettings: LanguageVersionSettings,
         trace: BindingTrace
     ) {

@@ -137,7 +137,7 @@ class PsiDiagnosticUtils {
          * // 输出: "(15,8) in /src/main.cj"
          * ```
          */
-        @JvmStatic
+        
         fun atLocation(element: PsiElement): String {
             if (element.isValid) {
                 return atLocation(
@@ -186,7 +186,7 @@ class PsiDiagnosticUtils {
          * println("代码: ${lineCol.lineContent}")
          * ```
          */
-        @JvmStatic
+        
         fun offsetToLineAndColumn(
             document: Document?,
             offset: Int
@@ -236,7 +236,7 @@ class PsiDiagnosticUtils {
          * )
          * ```
          */
-        @JvmStatic
+        
         fun atLocation(file: PsiFile, textRange: TextRange, document: Document?): String {
             val offset = textRange.startOffset
             val virtualFile = file.virtualFile
@@ -263,7 +263,7 @@ class PsiDiagnosticUtils {
          * // 输出: "(10,5) in /src/main/example.cj"
          * ```
          */
-        @JvmStatic
+        
         fun atLocation(file: PsiFile, textRange: TextRange): String {
             val document = file.viewProvider.document
             return atLocation(file, textRange, document)

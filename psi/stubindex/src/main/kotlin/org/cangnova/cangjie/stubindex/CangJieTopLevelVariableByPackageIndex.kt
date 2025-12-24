@@ -38,7 +38,7 @@ class CangJieTopLevelVariableByPackageIndex internal constructor() : StringStubI
 
     override fun getKey(): StubIndexKey<String, CjVariable> = indexKey
 
-    @Deprecated("Base method is deprecated", ReplaceWith("CangJieTopLevelPropertyByPackageIndex[key, project, scope]"))
+    @Deprecated("Base method is deprecated", ReplaceWith("CangJieTopLevelVariableByPackageIndex[key, project, scope]"))
     override fun get(key: String, project: Project, scope: GlobalSearchScope): Collection<CjVariable> {
         return Helper[key, project, scope]
     }

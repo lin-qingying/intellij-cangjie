@@ -48,9 +48,7 @@ class CombinedPackageMemberDeclarationProvider(
     override fun getPropertyDeclarations(name: Name) = providers.flatMap { it.getPropertyDeclarations(name) }
 
 
-    override fun getDestructuringDeclarationsEntries(name: Name): Collection<CjDestructuringDeclarationEntry> {
-        return providers.flatMap { it.getDestructuringDeclarationsEntries(name) }
-    }
+
 
 
 

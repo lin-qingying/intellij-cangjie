@@ -81,10 +81,11 @@ class AnnotationChecker {
                 is CjVariable -> {
                     when {
                         annotated.isLocal -> TargetLists.T_LOCAL_VARIABLE
-                        annotated.isMember -> TargetLists.T_MEMBER_VARIABLE
                         else -> TargetLists.T_TOP_LEVEL_VARIABLE
                     }
                 }
+
+                is CjField -> TargetLists.T_MEMBER_VARIABLE
 
                 is CjParameter -> {
                     val destructuringDeclaration = annotated.destructuringDeclaration

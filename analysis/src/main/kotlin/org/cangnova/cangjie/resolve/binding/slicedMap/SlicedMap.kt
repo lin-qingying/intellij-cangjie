@@ -59,7 +59,7 @@ interface SlicedMap {
         /**
          * 什么都不做的 SlicedMap 实现
          */
-        @JvmField
+        
         val DO_NOTHING: SlicedMap = object : SlicedMap {
             override fun <K : Any, V : Any> get(slice: ReadOnlySlice<K, V>, key: K): V? {
                 return slice.computeValue(this, key, null, true)

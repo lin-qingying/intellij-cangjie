@@ -32,7 +32,7 @@ object AnalyzingUtils {
     private const val WRITE_DEBUG_TRACE_NAMES = false
 
     // --------------------------------------------------------------------------------------------------------------------------
-    @JvmStatic
+    
     fun formDebugNameForBindingTrace(debugName: String, resolutionSubjectForMessage: Any?): String {
         if (WRITE_DEBUG_TRACE_NAMES) {
             val debugInfo = StringBuilder(debugName)

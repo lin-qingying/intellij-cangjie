@@ -316,7 +316,7 @@ open class AnalysisResult protected constructor(
          * @param module 被分析的模块
          * @return 成功的分析结果
          */
-        @JvmStatic
+        
         fun success(bindingContext: BindingContext, module: ModuleDescriptor): AnalysisResult {
             return AnalysisResult(bindingContext, module)
         }
@@ -335,7 +335,7 @@ open class AnalysisResult protected constructor(
          * @param shouldGenerateCode 是否应该生成代码
          * @return 成功的分析结果
          */
-        @JvmStatic
+        
         fun success(
             bindingContext: BindingContext,
             module: ModuleDescriptor,
@@ -360,7 +360,7 @@ open class AnalysisResult protected constructor(
          * @param error 导致错误的异常
          * @return 内部错误结果
          */
-        @JvmStatic
+        
         fun internalError(bindingContext: BindingContext, error: Throwable): AnalysisResult {
             return InternalError(bindingContext, error)
         }

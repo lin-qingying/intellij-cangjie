@@ -119,7 +119,7 @@ class DiagnosticFactoryForDeprecation0<E : PsiElement>(
          * @param positioningStrategy 定位策略，默认为 DEFAULT
          * @return 废弃诊断工厂实例
          */
-        @JvmStatic
+        
         @JvmOverloads
         fun <E : PsiElement> create(
             featureForError: LanguageFeature,
@@ -174,7 +174,7 @@ class DiagnosticFactoryForDeprecation2<E : PsiElement, A : Any, B : Any>(
     errorFactory
 ) {
     companion object {
-        @JvmStatic
+        
         @JvmOverloads
         fun <E : PsiElement, A : Any, B : Any> create(
             featureForError: LanguageFeature,
@@ -218,7 +218,7 @@ class DiagnosticFactoryForDeprecation1<E : PsiElement, A : Any>(
     errorFactory
 ) {
     companion object {
-        @JvmStatic
+        
         @JvmOverloads
         fun <E : PsiElement, A : Any> create(
             featureForError: LanguageFeature,
@@ -263,7 +263,7 @@ class DiagnosticFactoryForDeprecation3<E : PsiElement, A : Any, B : Any, C : Any
     errorFactory
 ) {
     companion object {
-        @JvmStatic
+        
         @JvmOverloads
         fun <E : PsiElement, A : Any, B : Any, C : Any> create(
             featureForError: LanguageFeature,
@@ -311,7 +311,7 @@ class DiagnosticFactoryForDeprecation4<E : PsiElement, A : Any, B : Any, C : Any
     errorFactory
 ) {
     companion object {
-        @JvmStatic
+        
         @JvmOverloads
         fun <E : PsiElement, A : Any, B : Any, C : Any, D : Any> create(
             featureForError: LanguageFeature,

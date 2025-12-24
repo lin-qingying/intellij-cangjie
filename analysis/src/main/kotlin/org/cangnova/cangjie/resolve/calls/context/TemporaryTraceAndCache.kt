@@ -28,11 +28,11 @@ import org.cangnova.cangjie.psi.CjExpression
 import org.cangnova.cangjie.resolve.binding.TemporaryBindingTrace
 
 class TemporaryTraceAndCache(context: ResolutionContext<*>, debugName: String?, expression: CjExpression?) {
-    @JvmField
+    
     val trace: TemporaryBindingTrace =
         TemporaryBindingTrace.create(context.trace, debugName ?: "Temporary trace", expression)
 
-    @JvmField
+    
     val cache: TemporaryResolutionResultsCache =
         TemporaryResolutionResultsCache(context.resolutionResultsCache)
 
@@ -56,7 +56,7 @@ class TemporaryTraceAndCache(context: ResolutionContext<*>, debugName: String?, 
     }
 
     companion object {
-        @JvmStatic
+        
         fun create(
             context: ResolutionContext<*>,
             debugName: String?,

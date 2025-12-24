@@ -36,7 +36,8 @@
       "Bash(./gradlew:*)",
       "WebFetch(domain:plugins.jetbrains.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

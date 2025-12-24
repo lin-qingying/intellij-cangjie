@@ -69,9 +69,15 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
     open fun visitProperty(property: CjProperty) {
         super.visitProperty(property, Unit)
     }
-
-    open fun visitVariable(variable: CjVariable) {
+    open fun visitPatternVariable(variable: CjPatternVariable) {
+        super.visitPatternVariable(variable, Unit)
+    }
+    open fun visitVariable(variable: CjVariable<*>) {
         super.visitVariable(variable, Unit)
+    }
+
+    open fun visitFieldVariable(field: CjFieldVariable) {
+        super.visitFieldVariable(field, Unit)
     }
 
     open fun visitTypeStatement(typeStatement: CjTypeStatement) {
@@ -138,14 +144,6 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
 
     open fun visitNamedFunction(function: CjNamedFunction) {
         super.visitNamedFunction(function, Unit)
-    }
-
-    open fun visitDestructuringDeclaration(destructuringDeclaration: CjDestructuringDeclaration) {
-        super.visitDestructuringDeclaration(destructuringDeclaration, Unit)
-    }
-
-    fun visitDestructuringDeclarationEntry(multiDeclarationEntry: CjDestructuringDeclarationEntry) {
-        super.visitDestructuringDeclarationEntry(multiDeclarationEntry, Unit)
     }
 
     open fun visitCjFile(file: CjFile) {
@@ -469,9 +467,10 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
 
     }
 
-    override fun visitVariable(variable: CjVariable, data: Unit?): Unit {
-        visitVariable(variable)
 
+
+    override fun visitFieldVariable(field: CjFieldVariable, data: Unit?): Unit {
+        visitFieldVariable(field)
     }
 
     override fun visitEndSecondaryConstructor(constructor: CjEndSecondaryConstructor, data: Unit?): Unit {
@@ -501,22 +500,6 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
 
     override fun visitTypeAlias(typeAlias: CjTypeAlias, data: Unit?): Unit {
         visitTypeAlias(typeAlias)
-
-    }
-
-    override fun visitDestructuringDeclaration(
-        cjDestructuringDeclaration: CjDestructuringDeclaration,
-        data: Unit?,
-    ): Unit {
-        visitDestructuringDeclaration(cjDestructuringDeclaration)
-
-    }
-
-    override fun visitDestructuringDeclarationEntry(
-        cjDestructuringDeclarationEntry: CjDestructuringDeclarationEntry,
-        data: Unit?,
-    ): Unit {
-        visitDestructuringDeclarationEntry(cjDestructuringDeclarationEntry)
 
     }
 
@@ -951,12 +934,12 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
 
     }
 
-    override fun visitCasePattern(element: CjCasePattern, data: Unit?): Unit {
+    override fun visitCasePattern(element: CjCasePatternElement, data: Unit?): Unit {
         visitCasePattern(element)
 
     }
 
-    open fun visitCasePattern(element: CjCasePattern) {
+    open fun visitCasePattern(element: CjCasePatternElement) {
         super.visitCasePattern(element, Unit)
     }
 

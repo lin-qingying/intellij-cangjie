@@ -115,7 +115,7 @@ class LazyTypeAliasDescriptor(
 
 
     companion object {
-        @JvmStatic
+        
         fun create(
             storageManager: StorageManager,
             trace: BindingTrace,

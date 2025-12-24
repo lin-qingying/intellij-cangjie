@@ -43,7 +43,7 @@ import org.cangnova.cangjie.types.CangJieType
 
 abstract class AbstractTracingStrategy protected constructor(
     protected open val reference: CjExpression,
-    @JvmField protected val call: Call
+     protected val call: Call
 ) :
     TracingStrategy {
     private fun reportUnsafeCallOnBinaryExpression(trace: BindingTrace, binaryExpression: CjBinaryExpression) {

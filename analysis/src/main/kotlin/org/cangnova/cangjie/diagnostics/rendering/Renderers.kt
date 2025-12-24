@@ -68,20 +68,20 @@ fun DescriptorRenderer.asRenderer() = SmartDescriptorRenderer(this)
 object Renderers {
     private val LOG = Logger.getInstance(Renderers::class.java)
 
-    @JvmField
+    
     val NAME = renderer<Name> { it.asString() }
 
-    @JvmField
+    
     val INT = renderer<Int> {
         it.toString()
     }
 
-    @JvmField
+    
     val AMBIGUOUS_CALLABLE_REFERENCES = renderer { references: Collection<CallableDescriptor> ->
         renderAmbiguousDescriptors(references)
     }
 
-    @JvmField
+    
     val NAMED_ADN_PARAMETER = renderer { d: DeclarationDescriptor ->
         NAME.render(d.name) + when (d) {
             is FunctionDescriptor -> {
@@ -96,24 +96,24 @@ object Renderers {
         }
     }
 
-    @JvmField
+    
     val TYPE_AND_NAMED = renderer<DeclarationDescriptor> {
 
         getDescriptorName(it) + ":" + NAME.render(it.name)
     }
 
-    @JvmField
+    
     val NAMED = renderer<Named> {
         NAME.render(it.name)
     }
 
-    @JvmField
+    
     val RENDER_CLASS_OR_OBJECT_NAME = renderer<ClassifierDescriptorWithTypeParameters> { it.renderKindWithName() }
 
-    @JvmField
+    
     val COMPACT_WITHOUT_SUPERTYPES = DescriptorRenderer.COMPACT_WITHOUT_SUPERTYPES.asRenderer()
 
-    @JvmField
+    
     val RENDER_TYPE = SmartTypeRenderer(DescriptorRenderer.FQ_NAMES_IN_TYPES.withOptions {
         parameterNamesInFunctionalTypes = false
     })
@@ -126,7 +126,7 @@ object Renderers {
 //        get() = any { it.kind is PatternKind.Enum }
     private val MATCH_MISSING_LIMIT = 7
 
-//    @JvmField
+//    
 //    val RENDER_MATCH_MISSING_CASES_PATTERN = renderer<List<Pattern>> {
 //
 //
@@ -144,7 +144,7 @@ object Renderers {
 //
 //    }
 
-    @JvmField
+    
     val RENDER_MATCH_MISSING_CASES = renderer<List<MatchMissingCase>> {
         if (!it.assumesElseBranchOnly) {
             val list = it.joinToString(", ", limit = MATCH_MISSING_LIMIT) { "'$it'" }
@@ -155,14 +155,14 @@ object Renderers {
         }
     }
 
-    @JvmField
+    
     val CLASS_NAME = renderer { cclass: ClassDescriptor ->
 
 
         NAME.render(cclass.name)
     }
 
-    @JvmField
+    
     val NAMES_TO_STRING = renderer { names: Collection<Name> ->
         names.joinToString(", ", "{", "}") { type ->
 
@@ -171,7 +171,7 @@ object Renderers {
 
     }
 
-    @JvmField
+    
     val VISIBLITYS_NAMES = renderer {
 
             visiblitys: List<DescriptorVisibility> ->
@@ -183,7 +183,7 @@ object Renderers {
 
     }
 
-    @JvmField
+    
     val RENDER_COLLECTION_OF_TYPES = renderer { types: List<CangJieType> ->
 
         types.joinToString(", ", "{ ", " }") { type ->
@@ -194,7 +194,7 @@ object Renderers {
 
     }
 
-    @JvmField
+    
     val RENDER_TYPE_STATMENT = renderer { classOrObject: CjTypeStatement ->
         val name = classOrObject.name?.let { " ${it.wrapIntoQuotes()}" } ?: ""
         when (classOrObject) {
@@ -206,18 +206,18 @@ object Renderers {
         }
     }
 
-    @JvmField
+    
     val FQ_NAMES_IN_TYPES = DescriptorRenderer.FQ_NAMES_IN_TYPES.asRenderer()
 
-    @JvmField
+    
     val COMPACT_WITH_MODIFIERS = DescriptorRenderer.COMPACT_WITH_MODIFIERS.asRenderer()
 
-    @JvmField
+    
     val DESCRIPTOR_KIND_NAME = renderer { kind: DescriptorKind ->
         kind.kind
     }
 
-    @JvmField
+    
 
     val PSI_NAMED_TYPE_NAM = renderer { declaration: CjDeclaration ->
 
@@ -230,7 +230,7 @@ object Renderers {
     }
 
     //根据表达式类型显示
-    @JvmField
+    
     val EXPRESSION_TYPE_TEXT = renderer<PsiElement> {
 
         when (it) {
@@ -240,22 +240,22 @@ object Renderers {
         }
     }
 
-    @JvmField
+    
     val MODALITY_NAME = renderer { modality: Modality ->
         modality.name.lowercase()
     }
 
-    @JvmField
+    
     val VISIBILITY = renderer<DescriptorVisibility> {
         it.externalDisplayName
     }
 
-    @JvmField
+    
     val DECL_FQNAME = renderer<DeclarationDescriptor> {
         it.fqNameUnsafe.asString()
     }
 
-    @JvmField
+    
     val NAME_OF_CONTAINING_DECLARATION_OR_FILE = renderer<DeclarationDescriptor> {
         if (DescriptorUtils.isTopLevelDeclaration(it) && it is DeclarationDescriptorWithVisibility && it.visibility == DescriptorVisibilities.PRIVATE) {
             "file"
@@ -278,13 +278,13 @@ object Renderers {
             }
     }
 
-//    @JvmField
+//    
 //    val AMBIGUOUS_CALLS = renderer { calls: Collection<ResolvedCall<*>> ->
 //        val descriptors = calls.map { it.resultingDescriptor }
 //        renderAmbiguousDescriptors(descriptors)
 //    }
 
-    @JvmField
+    
     val TO_STRING = renderer<Any> { element ->
         if (element is DeclarationDescriptor) {
             LOG.warn(
@@ -296,27 +296,27 @@ object Renderers {
         element.toString()
     }
 
-    @JvmField
+    
     val ELEMENT_TEXT = renderer<PsiElement> {
         it.text
     }
 
-    @JvmField
+    
     val ELEMENT_IDENTIFIER_TEXT = renderer<PsiElement> {
         it.identifier?.text ?: ""
     }
 
-    @JvmField
+    
     val FQNAMES = renderer<List<FqName>> {
         it.joinToString(" , ") { it.asString() }
     }
 
-    @JvmField
+    
     val FQNAME = renderer<FqName> {
         it.asString()
     }
 
-    @JvmField
+    
     val FQ_NAMES_IN_TYPES_ANNOTATIONS_WHITELIST =
         DescriptorRenderer.FQ_NAMES_IN_TYPES_WITH_ANNOTATIONS.withAnnotationsWhitelist()
 

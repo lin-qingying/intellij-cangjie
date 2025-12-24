@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.inspections.suppress
 
-import org.cangnova.cangjie.psi.CjDestructuringDeclarationEntry
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjParameter
 import com.intellij.codeInsight.intention.FileModifier
@@ -44,7 +43,6 @@ class CangJieSuppressIntentionAction(
     private fun isLambdaParameter(element: PsiElement): Boolean {
         if (kind.kind != CangJieCodeInsightBundle.message("declaration.kind.parameter")) return false
         val parentParameter = element.parent as? CjParameter
-            ?: (element.parent as? CjDestructuringDeclarationEntry)?.parent?.parent as? CjParameter
         return parentParameter?.isLambdaParameter == true
     }
     override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {

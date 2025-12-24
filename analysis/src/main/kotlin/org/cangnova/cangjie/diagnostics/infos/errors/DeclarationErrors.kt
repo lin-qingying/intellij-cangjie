@@ -40,77 +40,77 @@ import org.cangnova.cangjie.types.CangJieType
 /**
  * 重复声明
  */
-@JvmField
+
 val REDECLARATION: DiagnosticFactory1<PsiElement, Collection<DeclarationDescriptor>> =
     DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.FOR_REDECLARATION)
 
 /**
  * 枚举重复声明
  */
-@JvmField
+
 val ENUM_REDECLARATION: DiagnosticFactory1<PsiElement, String> =
     DiagnosticFactory1.create(Severity.ERROR)
 
 /**
  * 包或分类器重复声明
  */
-@JvmField
+
 val PACKAGE_OR_CLASSIFIER_REDECLARATION: DiagnosticFactory1<PsiElement, String> =
     DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.FOR_REDECLARATION)
 
 /**
  * 冲突的重载
  */
-@JvmField
+
 val CONFLICTING_OVERLOADS: DiagnosticFactory1<PsiElement, Collection<DeclarationDescriptor>> =
     DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.DECLARATION_SIGNATURE_OR_DEFAULT)
 
 /**
  * 冲突的静态成员
  */
-@JvmField
+
 val CONFLICTING_STATIC: DiagnosticFactory2<PsiElement, Collection<DeclarationDescriptor>, String> =
     DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_SIGNATURE_OR_DEFAULT)
 
 /**
  * 非法上下文中的声明
  */
-@JvmField
+
 val DECLARATION_IN_ILLEGAL_CONTEXT: DiagnosticFactory0<CjDeclaration> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 匿名函数带有名称
  */
-@JvmField
+
 val ANONYMOUS_FUNCTION_WITH_NAME: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 匿名函数参数带有默认值
  */
-@JvmField
+
 val ANONYMOUS_FUNCTION_PARAMETER_WITH_DEFAULT_VALUE: DiagnosticFactory0<CjParameter> =
     DiagnosticFactory0.create(Severity.ERROR, PositioningStrategies.PARAMETER_DEFAULT_VALUE)
 
 /**
  * 函数声明没有名称
  */
-@JvmField
+
 val FUNCTION_DECLARATION_WITH_NO_NAME: DiagnosticFactory0<CjFunction> =
     DiagnosticFactory0.create(Severity.ERROR, PositioningStrategies.DECLARATION_SIGNATURE)
 
 /**
  * 没有类型没有初始化器的变量
  */
-@JvmField
+
 val VARIABLE_WITH_NO_TYPE_NO_INITIALIZER: DiagnosticFactory0<CjVariableDeclaration> =
     DiagnosticFactory0.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
 
 /**
  * 不能推导可见性
  */
-@JvmField
+
 val CANNOT_INFER_VISIBILITY: DiagnosticFactory1<CjDeclaration, CallableMemberDescriptor> =
     DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.DECLARATION_SIGNATURE_OR_DEFAULT)
 
@@ -121,76 +121,76 @@ val CANNOT_INFER_VISIBILITY: DiagnosticFactory1<CjDeclaration, CallableMemberDes
 /**
  * 块体函数没有返回值
  */
-@JvmField
+
 val NO_RETURN_IN_FUNCTION_WITH_BLOCK_BODY: DiagnosticFactory0<CjDeclarationWithBody> =
     DiagnosticFactory0.create(Severity.ERROR, PositioningStrategies.DECLARATION_WITH_BODY)
 
 /**
  * 块体函数没有返回值（迁移）
  */
-@JvmField
+
 val NO_RETURN_IN_FUNCTION_WITH_BLOCK_BODY_MIGRATION: DiagnosticFactory0<CjDeclarationWithBody> =
     DiagnosticFactory0.create(Severity.ERROR, PositioningStrategies.DECLARATION_WITH_BODY)
 
 /**
  * 表达式体函数中的 return
  */
-@JvmField
+
 val RETURN_IN_FUNCTION_WITH_EXPRESSION_BODY: DiagnosticFactory0<CjReturnExpression> =
     DiagnosticFactory0.create(Severity.ERROR, PositioningStrategies.RETURN_WITH_LABEL)
 
 /**
  * 非抽象类中的抽象函数
  */
-@JvmField
+
 val ABSTRACT_FUNCTION_IN_NON_ABSTRACT_CLASS: DiagnosticFactory2<CjFunction, String, ClassDescriptor> =
     DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.ABSTRACT_MODIFIER)
 
 /**
  * 抽象函数没有返回类型
  */
-@JvmField
+
 val ABSTRACT_FUNCTION_WITHOUT_RETURN_TYPE: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 抽象函数带有函数体
  */
-@JvmField
+
 val ABSTRACT_FUNCTION_WITH_BODY: DiagnosticFactory1<CjFunction, SimpleFunctionDescriptor> =
     DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.ABSTRACT_MODIFIER)
 
 /**
  * 抽象成员可见性错误
  */
-@JvmField
+
 val ABSTRACT_MEMBER_VISIBILITY_ERROR: DiagnosticFactory3<PsiElement, Modality, DescriptorKind, List<DescriptorVisibility>> =
     DiagnosticFactory3.create(Severity.ERROR)
 
 /**
  * 私有函数没有函数体
  */
-@JvmField
+
 val PRIVATE_FUNCTION_WITH_NO_BODY: DiagnosticFactory1<CjFunction, SimpleFunctionDescriptor> =
     DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.PRIVATE_MODIFIER)
 
 /**
  * 预期需要函数调用
  */
-@JvmField
+
 val FUNCTION_EXPECTED: DiagnosticFactory2<CjExpression, CjExpression, CangJieType> =
     DiagnosticFactory2.create(Severity.ERROR)
 
 /**
  * 函数调用预期
  */
-@JvmField
+
 val FUNCTION_CALL_EXPECTED: DiagnosticFactory2<CjExpression, CjExpression, Boolean> =
     DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.CALL_EXPRESSION)
 
 /**
  * 常量成员函数需要常量构造函数
  */
-@JvmField
+
 val CONST_MEMBER_FUNCTION_REQUIRES_CONST_CONSTRUCTOR: DiagnosticFactory0<CjFunction> =
     DiagnosticFactory0.create(Severity.ERROR)

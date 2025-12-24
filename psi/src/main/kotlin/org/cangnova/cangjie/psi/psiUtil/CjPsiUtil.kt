@@ -497,7 +497,7 @@ fun CjElement.findElementOfAdditionalResolve(): CjElement? {
 //                    it is CjPrimaryConstructor ||
 //                    it is CjSecondaryConstructor ||
             it is CjProperty ||
-            it is CjVariable ||
+            it is CjVariable<*> ||
             it is CjSuperTypeList ||
 
             it is CjImportList ||
@@ -506,8 +506,8 @@ fun CjElement.findElementOfAdditionalResolve(): CjElement? {
             it is CjTypeConstraint ||
             it is CjPackageDirective ||
             it is CjCodeFragment ||
-            it is CjTypeAlias ||
-            it is CjDestructuringDeclaration
+            it is CjTypeAlias
+
     } as CjElement?
 
     when (elementOfAdditionalResolve) {

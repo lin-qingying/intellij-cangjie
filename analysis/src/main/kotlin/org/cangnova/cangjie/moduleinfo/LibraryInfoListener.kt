@@ -33,7 +33,7 @@ interface LibraryInfoListener {
     fun libraryInfosAdded(libraryInfos: Collection<LibraryInfo>) = Unit
 
     companion object {
-        @JvmStatic
+        
         @Topic.ProjectLevel
         val TOPIC = Topic(LibraryInfoListener::class.java, Topic.BroadcastDirection.NONE, true)
     }

@@ -90,7 +90,7 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
 
         val result = declarations.any {
             (
-                it is CjVariable ||
+                it is CjVariable<*> ||
                     it is CjNamedFunction ||
                     it is CjTypeAlias
                 ) /* && !it.hasExpectModifier()*/

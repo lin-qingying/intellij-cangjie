@@ -81,12 +81,12 @@ fun Module.asSourceInfo(rootTypeId: String?): ModuleSourceInfoWithExpectedBy? =
         else -> null
     }
 
-@JvmField
+
 @Deprecated("Use 'customSourceRootTypeId' instead.")
 val MODULE_ROOT_TYPE_KEY = getOrCreateKey<String>("Cj_SourceRootType")
 
 
-@JvmField
+
 @Deprecated("Use 'customLibrary' instead.")
 val LIBRARY_KEY = getOrCreateKey<Library>("Cj_Library")
 
@@ -181,7 +181,7 @@ class ModuleModificationTracker(project: Project) :
     override fun dispose() = Unit
 
     companion object {
-        @JvmStatic
+        
         fun getInstance(project: Project): ModuleModificationTracker = project.service()
     }
 }

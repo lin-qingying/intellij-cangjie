@@ -86,7 +86,7 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
      * @return 格式化后的 HTML 消息
      */
     @Nls
-    @JvmStatic
+    
     fun message(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String {
         return try {
             getMessage(key, *params)
@@ -103,7 +103,7 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
      * @return 消息模板
      */
     @Nls
-    @JvmStatic
+    
     fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String): String {
         return try {
             getMessage(key)
@@ -120,7 +120,7 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
      * @return 消息模板
      */
     @Nls
-    @JvmStatic
+    
     fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) factory: DiagnosticFactory<*>): String {
         return try {
             getMessage(factory.name)
@@ -140,7 +140,7 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
      * @return HTML 格式的消息
      */
     @Nls
-    @JvmStatic
+    
     fun htmlMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String {
         return message(key, *params)
     }

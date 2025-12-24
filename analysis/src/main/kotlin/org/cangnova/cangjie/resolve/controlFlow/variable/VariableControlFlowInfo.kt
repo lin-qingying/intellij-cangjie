@@ -156,7 +156,7 @@ enum class VariableUseState(private val priority: Int) {
 
     companion object {
 
-        @JvmStatic
+        
         fun isUsed(variableUseState: VariableUseState?): Boolean =
             variableUseState != null && variableUseState != UNUSED
     }

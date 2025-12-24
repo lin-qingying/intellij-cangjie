@@ -298,7 +298,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
     fun defineLocalVariablesFromPattern(
         writableScope: LexicalWritableScope,
-        casePattern: CjCasePattern,
+        casePattern: CjCasePatternElement,
         receiver: ReceiverValue,
         initializer: CjExpression?,
         context: ExpressionTypingContext
@@ -564,7 +564,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
     private fun resoleCasePattern(
         subject: Subject,
-        condition: CjCasePattern,
+        condition: CjCasePatternElement,
         context: ExpressionTypingContext,
         config: Config = Config()
     ): ConditionalDataFlowInfo {
@@ -623,7 +623,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
     }
 
-    //    private fun CjCasePattern.getKind(context: ExpressionTypingContext): PatternKind {
+    //    private fun CjCasePatternElement.getKind(context: ExpressionTypingContext): PatternKind {
 //
 //    }
     private fun checkExhaustive(
@@ -974,7 +974,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
     ) : CjVisitor<Pattern, PatternContext>() {
 
-        private fun returnResult(element: CjCasePattern, data: PatternContext, result: Pattern): Pattern {
+        private fun returnResult(element: CjCasePatternElement, data: PatternContext, result: Pattern): Pattern {
 
 
             data.context.trace.record(PATTERN, element, result)
@@ -1271,7 +1271,7 @@ private interface MatchExhaustivenessChecker {
     ): List<MatchMissingCase>
 
     fun isOverwrite(
-        pattern: CjCasePattern,
+        pattern: CjCasePatternElement,
 
         context: BindingContext,
         subjectDescriptor: ClassDescriptor?,
@@ -1289,11 +1289,11 @@ fun CjMatchExpression.checkExhaustive(context: BindingContext): List<Pattern>? {
 }
 
 object MatchChecker {
-    @JvmStatic
+    
     fun getClassDescriptorOfTypeIfSealed(type: CangJieType?): ClassDescriptor? =
         type?.let { TypeUtils.getClassDescriptor(it) }?.takeIf { DescriptorUtils.isSealedClass(it) }
 
-    @JvmStatic
+    
     fun getClassDescriptorOfTypeIfTuple(type: CangJieType?): ClassDescriptor? {
         if (type == null) return null
         val classDescriptor = TypeUtils.getClassDescriptor(type) ?: return null
@@ -1302,7 +1302,7 @@ object MatchChecker {
         return classDescriptor
     }
 
-    @JvmStatic
+    
     fun getClassDescriptorOfTypeIfEnum(type: CangJieType?): ClassDescriptor? {
         if (type == null) return null
         var classDescriptor = TypeUtils.getClassDescriptor(type) ?: return null
@@ -1314,7 +1314,7 @@ object MatchChecker {
         return classDescriptor
     }
 
-    @JvmStatic
+    
     fun matchSubjectType(expression: CjMatchExpression, context: BindingContext): CangJieType? {
 //        val subjectVariable = expression.subjectVariable
         val subjectExpression = expression.subjectExpression
@@ -1337,7 +1337,7 @@ object MatchChecker {
     )
 
     @Deprecated("use isOverwriteForForInExpr")
-    fun isOverwrite(pattern: CjCasePattern, type: CangJieType, context: BindingContext): Boolean {
+    fun isOverwrite(pattern: CjCasePatternElement, type: CangJieType, context: BindingContext): Boolean {
         val checkers = exhaustivenessCheckers.filter { it.isApplicable(type) }
         if (checkers.isEmpty()) return false
         return checkers.all {
@@ -1368,7 +1368,7 @@ object MatchChecker {
     }
 
 
-    @JvmStatic
+    
     fun MatchSubjectType(expression: CjMatchExpression, context: BindingContext): CangJieType? {
 //        val subjectVariable = expression.subjectVariable
         val subjectExpression = expression.subjectExpression
@@ -1384,7 +1384,7 @@ object MatchChecker {
 
     }
 
-    @JvmStatic
+    
     fun isMatchExhaustive(expression: CjMatchExpression, trace: BindingTrace) = false
 
     //        if (getMissingCases(expression, trace.bindingContext).isEmpty()) {
@@ -1485,7 +1485,7 @@ object MatchChecker {
         val bindingContext = trace.bindingContext
 
         //不能引入变量
-        fun reportVariableIntroductionConflict(element: CjCasePattern) {
+        fun reportVariableIntroductionConflict(element: CjCasePatternElement) {
             trace.report(VARIABLE_INTRODUCTION_CONFLICT.on(element))
         }
 
@@ -1623,10 +1623,10 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
             else -> setOf(this)
         }
 
-    private val CjCasePattern.negated
+    private val CjCasePatternElement.negated
         get() =/* (this as? CjMatchConditionIsPattern)?.isNegated ?:*/ false
 
-    private fun CjCasePattern.isRelevant(checkedDescriptor: ClassifierDescriptorWithTypeParameters) =
+    private fun CjCasePatternElement.isRelevant(checkedDescriptor: ClassifierDescriptorWithTypeParameters) =
         this !is CjMatchConditionWithExpression ||
 //                DescriptorUtils.isObject(checkedDescriptor) ||
                 when (checkedDescriptor) {
@@ -1635,7 +1635,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
                     else -> false
                 }
 
-    private fun CjCasePattern.getCheckedDescriptor(context: BindingContext): ClassifierDescriptorWithTypeParameters? {
+    private fun CjCasePatternElement.getCheckedDescriptor(context: BindingContext): ClassifierDescriptorWithTypeParameters? {
         return when (this) {
 //            is CjMatchConditionIsPattern -> {
 //                val checkedType = context.get(BindingContext.TYPE, typeReference) ?: return null
@@ -1708,7 +1708,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
 
     //    检查元组模式 枚举模式是否使用绑定模式或通配符模式进行覆盖
     fun checkBindingPatternOrWildcardPattern(
-        condition: CjCasePattern,
+        condition: CjCasePatternElement,
         context: BindingContext,
         types: List<CangJieType> = emptyList()
     ): Boolean {
@@ -1813,7 +1813,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
      */
 
     override fun isOverwrite(
-        pattern: CjCasePattern,
+        pattern: CjCasePatternElement,
         context: BindingContext,
         subjectDescriptor: ClassDescriptor?
     ): Boolean {
@@ -1821,7 +1821,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
     }
 
     fun isOverwrite(
-        pattern: CjCasePattern,
+        pattern: CjCasePatternElement,
         context: BindingContext,
         subclasses: Set<ClassifierDescriptorWithTypeParameters> = emptySet()
     ): Boolean {
@@ -2025,7 +2025,7 @@ private object MatchOnTupleExhaustivenessChecker : MatchOnClassExhaustivenessChe
 private object MatchOnEnumExhaustivenessChecker : MatchOnClassExhaustivenessChecker() {
 
     override fun isOverwrite(
-        pattern: CjCasePattern,
+        pattern: CjCasePatternElement,
         context: BindingContext,
         subjectDescriptor: ClassDescriptor?,
 
@@ -2111,7 +2111,7 @@ fun isBindingPattern(pattern: CjBindingPattern, context: BindingContext): Boolea
 }
 
 
-fun isOverwriteForForInExpr(pattern: CjCasePattern, expression: CjExpression?, trace: BindingTrace) {
+fun isOverwriteForForInExpr(pattern: CjCasePatternElement, expression: CjExpression?, trace: BindingTrace) {
     val isOverwrite = isOverwrite(pattern, expression, trace.bindingContext)
     if (!isOverwrite || pattern is CjTypePattern) {
         trace.report(IRREFUTABLE_PATTERN_FOR_IN_ERROR.on(pattern))
@@ -2119,7 +2119,7 @@ fun isOverwriteForForInExpr(pattern: CjCasePattern, expression: CjExpression?, t
 
 }
 
-fun isOverwriteForVariableDeclaration(pattern: CjCasePattern, expression: CjExpression?, trace: BindingTrace) {
+fun isOverwriteForVariableDeclaration(pattern: CjCasePatternElement, expression: CjExpression?, trace: BindingTrace) {
     val isOverwrite = isOverwrite(pattern, expression, trace.bindingContext)
     if (!isOverwrite || pattern is CjTypePattern) {
         trace.report(IRREFUTABLE_PATTERN_ERROR.on(pattern))
@@ -2127,7 +2127,7 @@ fun isOverwriteForVariableDeclaration(pattern: CjCasePattern, expression: CjExpr
 
 }
 
-fun isOverwrite(pattern: CjCasePattern, expression: CjExpression?, context: BindingContext): Boolean {
+fun isOverwrite(pattern: CjCasePatternElement, expression: CjExpression?, context: BindingContext): Boolean {
 
 
     return pattern.getExhaustive(

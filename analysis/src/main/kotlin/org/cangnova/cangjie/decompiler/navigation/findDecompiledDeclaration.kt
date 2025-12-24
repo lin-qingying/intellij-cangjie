@@ -40,9 +40,9 @@ import org.cangnova.cangjie.resolve.DescriptorUtils.isLocal
 import org.cangnova.cangjie.resolve.fqNameSafe
 import org.cangnova.cangjie.resolve.module
 import org.cangnova.cangjie.stubindex.CangJieFullClassNameIndex
-import org.cangnova.cangjie.stubindex.CangJieTopLevelFunctionFqnNameIndex
+import org.cangnova.cangjie.stubindex.CangJieTopLevelFunctionFqNameIndex
 import org.cangnova.cangjie.stubindex.CangJieTopLevelTypeAliasFqNameIndex
-import org.cangnova.cangjie.stubindex.CangJieTopLevelVariableFqnNameIndex
+import org.cangnova.cangjie.stubindex.CangJieTopLevelVariableFqNameIndex
 import org.cangnova.cangjie.types.ErrorUtils
 
 
@@ -144,8 +144,8 @@ private fun isLocal(descriptor: DeclarationDescriptor): Boolean = if (descriptor
  *
  * - **类成员**: 查找包含该成员的类
  * - **顶层声明**: 根据类型使用对应的顶层索引
- *   - 函数: [CangJieTopLevelFunctionFqnNameIndex]
- *   - 变量: [CangJieTopLevelVariableFqnNameIndex]
+ *   - 函数: [CangJieTopLevelFunctionFqNameIndex]
+ *   - 变量: [CangJieTopLevelVariableFqNameIndex]
  *   - 类型别名: [CangJieTopLevelTypeAliasFqNameIndex]
  *
  * @param referencedDescriptor 要查找的 Descriptor
@@ -187,8 +187,8 @@ private fun findCandidateDeclarationsInIndex(
     // 4. 根据声明类型使用相应的索引
     val fqName = topLevelDeclaration.fqNameSafe.asString()
     return when (topLevelDeclaration) {
-        is FunctionDescriptor -> CangJieTopLevelFunctionFqnNameIndex.get(fqName, project, scope)
-        is VariableDescriptor -> CangJieTopLevelVariableFqnNameIndex.get(fqName, project, scope)
+        is FunctionDescriptor -> CangJieTopLevelFunctionFqNameIndex.get(fqName, project, scope)
+        is VariableDescriptor -> CangJieTopLevelVariableFqNameIndex.get(fqName, project, scope)
         is TypeAliasDescriptor -> CangJieTopLevelTypeAliasFqNameIndex.get(fqName, project, scope)
         else -> error("Referenced non local declaration that is not inside top level function, property, class or typealias:\n $referencedDescriptor")
     }

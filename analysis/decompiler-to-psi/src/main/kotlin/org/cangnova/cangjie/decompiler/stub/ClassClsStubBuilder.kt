@@ -394,9 +394,9 @@ class ClassClsStubBuilder(
             classDecl.propertys
         )
 
-        // 创建成员变量 Stubs
+        // 创建成员字段 Stubs
         for (variable in classDecl.variables) {
-            VariableClsStubBuilder(classBodyStub, context, context.metadataContainer, variable).build()
+            FieldClsStubBuilder(classBodyStub, context, context.metadataContainer, variable).build()
         }
 
         // 如果是枚举，创建枚举项 Stubs

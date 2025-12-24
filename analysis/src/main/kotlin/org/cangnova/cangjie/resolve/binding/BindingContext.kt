@@ -206,10 +206,6 @@ interface BindingContext {
             Slices.createSimpleSlice()
 
 
-        val COMPONENT_RESOLVED_CALL: WritableSlice<CjDestructuringDeclarationEntry, ResolvedCall<FunctionDescriptor>> =
-            Slices.createSimpleSlice()
-
-
         val INDEXED_LVALUE_SET: WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> =
             Slices.createSimpleSlice()
 
@@ -512,7 +508,7 @@ interface BindingContext {
             Slices.createSimpleSlice()
 
 
-        val PATTERN: WritableSlice<CjCasePattern, Pattern> = Slices.createSimpleSlice()
+        val PATTERN: WritableSlice<CjCasePatternElement, Pattern> = Slices.createSimpleSlice()
 
         /**
          * 用于初始化 slice 调试名称的静态初始化器

@@ -34,17 +34,17 @@ const val BUNDLE_MODULE_INFO = "messages.CangJieModuleInfoBundle"
 
 object CangJieModuleInfoBundle : AbstractCangJieBundle(BUNDLE_MODULE_INFO) {
     @Nls
-    @JvmStatic
+    
     fun message(@NonNls @PropertyKey(resourceBundle = BUNDLE_MODULE_INFO) key: String, vararg params: Any): String =
         getMessage(key, *params)
 
     @Nls
-    @JvmStatic
+    
     fun htmlMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE_MODULE_INFO) key: String, vararg params: Any): String =
         getMessage(key, *params).withHtml()
 
     @Nls
-    @JvmStatic
+    
     fun lazyMessage(@PropertyKey(resourceBundle = BUNDLE_MODULE_INFO) key: String, vararg params: Any): () -> String =
         { getMessage(key, *params) }
 }

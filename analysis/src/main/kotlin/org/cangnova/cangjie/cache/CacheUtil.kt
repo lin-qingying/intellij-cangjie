@@ -94,6 +94,8 @@ import com.intellij.psi.util.CachedValuesManager
  * @see cacheByClass
  */
 fun <T> Module.cacheByClassInvalidatingOnRootModifications(classForKey: Class<*>, provider: () -> T): T {
+    
+    
     return cacheByClass(classForKey, ProjectRootModificationTracker.getInstance(project), provider = provider)
 }
 

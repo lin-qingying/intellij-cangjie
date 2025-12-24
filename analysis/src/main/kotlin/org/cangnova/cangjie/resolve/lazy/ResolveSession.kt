@@ -309,7 +309,7 @@ class ResolveSession @Deprecated("Only calls from injectors expected") construct
     }
 
     companion object {
-        @JvmStatic
+        
         fun areDescriptorsCreatedForDeclaration(declaration: CjDeclaration): Boolean =
             declaration !is CjAnonymousInitializer && declaration !is CjDestructuringDeclaration
     }

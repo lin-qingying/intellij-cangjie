@@ -75,7 +75,6 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
         val typeAliases = ArrayListMultimap.create<Name, CjTypeAlias>()
 
         val originalTypeAliases = ArrayListMultimap.create<Name, CjTypeAlias>()
-        val destructuringDeclarationsEntries = ArrayListMultimap.create<Name, CjDestructuringDeclarationEntry>()
         val names = hashSetOf<Name>()
 
         fun putToIndex(declaration: CjDeclaration) {
@@ -97,7 +96,7 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
                 is CjVariable ->
                     if (declaration.isPattern) {
                         declaration.pattern.getAllBindings().forEach {
-                            variables.put(it.safeNameForLazyResolve(), declaration)
+                            variables.put(it.nameAsName.safeNameForLazyResolve(), declaration)
 
                         }
                     } else {
@@ -120,14 +119,6 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
                         declaration.nameAsName.safeNameForLazyResolve(),
                         CjClassInfoUtil.createTypeStatementInfo(declaration)
                     )
-
-                is CjDestructuringDeclaration -> {
-                    for (entry in declaration.entries) {
-                        val name = entry.nameAsName.safeNameForLazyResolve()
-                        destructuringDeclarationsEntries.put(name, entry)
-                        names.add(name)
-                    }
-                }
 
                 is CjParameter -> {
                     // Do nothing, just put it into allDeclarations is enough
@@ -177,10 +168,6 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
 
     override fun getVariableDeclarations(name: Name): Collection<CjVariable> =
         index().variables[name.safeNameForLazyResolve()].toList()
-
-    override fun getDestructuringDeclarationsEntries(name: Name): Collection<CjDestructuringDeclarationEntry> =
-        index().destructuringDeclarationsEntries[name.safeNameForLazyResolve()].toList()
-
 
     override fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>> =
         index().classesAndObjects[name.safeNameForLazyResolve()]

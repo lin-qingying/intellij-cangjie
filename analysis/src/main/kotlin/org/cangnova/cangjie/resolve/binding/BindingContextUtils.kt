@@ -59,7 +59,7 @@ import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
 
 object BindingContextUtils {
-    @JvmStatic
+    
     fun extractVariableDescriptorFromReference(
         bindingContext: BindingContext,
         element: CjElement?
@@ -73,7 +73,7 @@ object BindingContextUtils {
         else -> null
     }
 
-    @JvmStatic
+    
     fun reportAmbiguousLabel(
         trace: BindingTrace,
         targetLabel: CjSimpleNameExpression,
@@ -91,11 +91,11 @@ object BindingContextUtils {
         trace.report(AMBIGUOUS_LABEL.on(targetLabel))
     }
 
-    @JvmStatic
+    
     fun variableDescriptorForDeclaration(descriptor: DeclarationDescriptor?): VariableDescriptor? =
         descriptor as? VariableDescriptor
 
-    @JvmStatic
+    
     fun extractVariableFromResolvedCall(
         bindingContext: BindingContext,
         callElement: CjElement?
@@ -104,7 +104,7 @@ object BindingContextUtils {
         return resolvedCall.resultingDescriptor as? VariableDescriptor
     }
 
-    @JvmStatic
+    
     fun updateRecordedType(
         type: CangJieType?,
         expression: CjExpression,
@@ -118,7 +118,7 @@ object BindingContextUtils {
         return updatedType
     }
 
-    @JvmStatic
+    
     fun getContainingFunctionSkipFunctionLiterals(
         startDescriptor: DeclarationDescriptor?,
         strict: Boolean
@@ -135,14 +135,14 @@ object BindingContextUtils {
         return containingFunctionDescriptor to containingFunction
     }
 
-    @JvmStatic
+    
     fun <K : Any, V: Any> getNotNull(
         bindingContext: BindingContext,
         slice: ReadOnlySlice<K, V>,
         key: K
     ): V = getNotNull(bindingContext, slice, key, "Value at $slice must not be null for $key")
 
-    @JvmStatic
+    
     fun <K : Any, V : Any> getNotNull(
         bindingContext: BindingContext,
         slice: ReadOnlySlice<K, V>,
@@ -150,7 +150,7 @@ object BindingContextUtils {
         messageIfNull: String
     ): V = bindingContext[slice, key] ?: throw IllegalStateException(messageIfNull)
 
-    @JvmStatic
+    
     fun getRecordedTypeInfo(expression: CjExpression, context: BindingContext): CangJieTypeInfo? {
         if (context[BindingContext.PROCESSED, expression] != true) return null
         // NB: should never return null if expression is already processed
@@ -168,7 +168,7 @@ object BindingContextUtils {
      * @param map               MutableSlicedMap对象，包含要添加到trace的数据
      * @param diagnostics       MutableDiagnosticsWithSuppression对象，包含可能要提交的诊断信息
      */
-    @JvmStatic
+    
     internal fun addOwnDataTo(
         trace: BindingTrace,
         filter: TraceEntryFilter?,
@@ -214,7 +214,7 @@ object BindingContextUtils {
         trace.record(slice, key, value  )
     }
 
-    @JvmStatic
+    
     fun recordMacroDeclarationToDescriptor(
         trace: BindingTrace,
         psiElement: PsiElement,
@@ -223,7 +223,7 @@ object BindingContextUtils {
         trace.record(BindingContext.MACRO, psiElement, macroDescriptor)
     }
 
-    @JvmStatic
+    
     fun recordFunctionDeclarationToDescriptor(
         trace: BindingTrace,
         psiElement: PsiElement,
@@ -232,12 +232,12 @@ object BindingContextUtils {
         trace.record(BindingContext.FUNCTION, psiElement, function)
     }
 
-    @JvmStatic
+    
     fun <K : Any, V: Any> removeBySlice(slice: ReadOnlySlice<K, V>, key: K, trace: BindingTrace) {
         (trace as? DelegatingBindingTrace)?.removeBySlice(slice, key)
     }
 
-    @JvmStatic
+    
     fun remove(key: CjElement, trace: BindingTrace) {
         (trace as? DelegatingBindingTrace)?.remove(key)
     }

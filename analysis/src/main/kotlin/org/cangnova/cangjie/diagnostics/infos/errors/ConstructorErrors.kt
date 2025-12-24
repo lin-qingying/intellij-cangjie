@@ -39,104 +39,104 @@ import org.cangnova.cangjie.psi.*
 /**
  * 没有构造函数
  */
-@JvmField
+
 val NO_CONSTRUCTOR: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 枚举类构造函数调用
  */
-@JvmField
+
 val ENUM_CLASS_CONSTRUCTOR_CALL: DiagnosticFactory0<CjCallExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 密封类构造函数调用
  */
-@JvmField
+
 val SEALED_CLASS_CONSTRUCTOR_CALL: DiagnosticFactory0<CjCallExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 需要显式委托调用
  */
-@JvmField
+
 val EXPLICIT_DELEGATION_CALL_REQUIRED: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR, PositioningStrategies.SECONDARY_CONSTRUCTOR_DELEGATION_CALL)
 
 /**
  * 预期主构造函数委托调用
  */
-@JvmField
+
 val PRIMARY_CONSTRUCTOR_DELEGATION_CALL_EXPECTED: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR, PositioningStrategies.SECONDARY_CONSTRUCTOR_DELEGATION_CALL)
 
 /**
  * 枚举构造函数中的委托 super 调用
  */
-@JvmField
+
 val DELEGATION_SUPER_CALL_IN_ENUM_CONSTRUCTOR: DiagnosticFactory0<CjConstructorDelegationReferenceExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 循环构造函数委托调用
  */
-@JvmField
+
 val CYCLIC_CONSTRUCTOR_DELEGATION_CALL: DiagnosticFactory0<CjConstructorDelegationReferenceExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 主构造函数中调用 this 无效
  */
-@JvmField
+
 val INVALID_CALLING_THIS_IN_PRIMARY_CONSTRUCTOR: DiagnosticFactory0<CjConstructorDelegationReferenceExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 主构造函数中调用 this 无效（内联）
  */
-@JvmField
+
 val INLETID_CALLING_THIS_IN_PRIMARY_CONSTRUCTOR: DiagnosticFactory0<CjConstructorDelegationReferenceExpression> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 多个主构造函数
  */
-@JvmField
+
 val MULTIPLE_PRIMARY_CONSTRUCTORS: DiagnosticFactory1<CjPrimaryConstructor, ClassDescriptor> =
     DiagnosticFactory1.create(Severity.ERROR)
 
 /**
  * 接口中的构造函数
  */
-@JvmField
+
 val CONSTRUCTOR_IN_INTERFACE: DiagnosticFactory0<CjDeclaration> =
     DiagnosticFactory0.create(Severity.ERROR, PositioningStrategies.DECLARATION_SIGNATURE)
 
 /**
  * 构造函数名称不一致
  */
-@JvmField
+
 val CONSTRUCTOR_NAME_INCONSISTENCY: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 函数体中意外的终结器
  */
-@JvmField
+
 val UNEXPECTED_FINALIZER_IN_BODY_ERROR: DiagnosticFactory1<PsiElement, String> =
     DiagnosticFactory1.create(Severity.ERROR)
 
 /**
  * 终结器不能有参数
  */
-@JvmField
+
 val FINALIZER_CANNOT_HAVE_PARAMETERS_ERROR: DiagnosticFactory0<PsiElement> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
  * 函数体中意外的构造函数
  */
-@JvmField
+
 val UNEXPECTED_CONSTRUCTOR_IN_BODY_ERROR: DiagnosticFactory1<PsiElement, String> =
     DiagnosticFactory1.create(Severity.ERROR)

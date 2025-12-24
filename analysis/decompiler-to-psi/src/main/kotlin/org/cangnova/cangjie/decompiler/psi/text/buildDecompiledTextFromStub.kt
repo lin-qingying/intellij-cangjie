@@ -418,7 +418,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 append(keyword)
                 withPrefix(" ") { append(typeStatement.name?.quoteIfNeeded()) }
                 typeStatement.typeParameterList?.accept(explicitThis, Unit)
-       
+
                 withPrefix(" <: ") { typeStatement.getSuperTypeList()?.accept(explicitThis, Unit) }
 
                 // 渲染 where 子句（如果存在）
@@ -573,6 +573,24 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 }
             }
 
+            override fun visitFieldVariable(field: CjField, data: Unit) {
+                withSuffix(" ") { field.annotations?.accept(explicitThis, Unit) }
+                withSuffix(" ") { field.modifierList?.accept(explicitThis, Unit) }
+                if (field.isVar) {
+                    append("var ")
+                } else {
+                    append("let ")
+                }
+
+                append(field.name?.quoteIfNeeded())
+
+                withPrefix(": ") { field.typeReference?.accept(explicitThis, Unit) }
+
+                if (field.hasInitializer()) {
+                    append(" = $COMPILED_DEFAULT_INITIALIZER")
+                }
+            }
+
             override fun visitVariable(variable: CjVariable, data: Unit): Unit? {
                 withSuffix(" ") { variable.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { variable.modifierList?.accept(explicitThis, Unit) }
@@ -581,7 +599,11 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 } else {
                     append("let ")
                 }
-                append(variable.name?.quoteIfNeeded())
+                // 从模式中获取名称（对于反编译的代码，总是简单绑定模式）
+                val pattern = variable.pattern
+                if (pattern is CjBindingPattern) {
+                    append(pattern.name?.quoteIfNeeded())
+                }
                 withPrefix(": ") { variable.typeReference?.accept(explicitThis, Unit) }
 
                 if (variable.hasInitializer()) {
@@ -642,7 +664,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 withSuffix(" ") { parameter.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { parameter.modifierList?.accept(explicitThis, Unit) }
                 append(parameter.name?.quoteIfNeeded())
-            // 注意：类型约束应该在 where 子句中处理，不在类型参数列表中
+                // 注意：类型约束应该在 where 子句中处理，不在类型参数列表中
                 // extendsBound 会通过 typeConstraintList 来渲染
                 return null
             }

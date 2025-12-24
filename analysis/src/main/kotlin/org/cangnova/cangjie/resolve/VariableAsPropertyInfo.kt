@@ -41,12 +41,12 @@ class VariableAsPropertyInfo(
             return VariableAsPropertyInfo(null, null, type, false/*, false*/)
         }
 
-        @JvmStatic
+        
         fun createFromProperty(property: CjVariable): VariableAsPropertyInfo {
             return VariableAsPropertyInfo(null, null, null, false/*, property.hasDelegate()*/)
         }
 
-        @JvmStatic
+        
 
         fun createFromProperty(property: CjProperty): VariableAsPropertyInfo {
             return VariableAsPropertyInfo(

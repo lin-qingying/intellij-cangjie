@@ -264,7 +264,7 @@ class ControlFlowInstructionsGenerator : ControlFlowBuilderAdapter() {
 
         }
 
-        override fun declarePattern(parameter: CjCasePattern) {
+        override fun declarePattern(parameter: CjCasePatternElement) {
 
         }
 

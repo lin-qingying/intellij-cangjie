@@ -109,7 +109,7 @@ open class BasicWritableSlice<K : Any, V: Any>(
          *
          * @param declarationOwner 声明 slice 的类
          */
-        @JvmStatic
+        
         fun initSliceDebugNames(declarationOwner: Class<*>) {
             for (field in declarationOwner.fields) {
                 if (!Modifier.isStatic(field.modifiers)) continue

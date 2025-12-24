@@ -49,7 +49,7 @@ sealed class RenderingContext {
     }
 
     companion object {
-        @JvmStatic
+
         fun of(vararg objectsToRender: Any?): RenderingContext {
             return Impl(objectsToRender.toList())
         }

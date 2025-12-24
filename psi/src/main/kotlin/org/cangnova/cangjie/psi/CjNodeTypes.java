@@ -88,6 +88,7 @@ public interface CjNodeTypes {
     IElementType CONSTRUCTOR_DELEGATION_REFERENCE = new CjNodeType.CjLeftBoundNodeType("CONSTRUCTOR_DELEGATION_REFERENCE", CjConstructorDelegationReferenceExpression.class);
 
     IElementType VARIABLE = CjStubElementTypes.VARIABLE;
+    IElementType FIELD = CjStubElementTypes.FIELD;
     IElementType MAIN_FUNC = CjStubElementTypes.MAIN_FUNC;
     IElementType MACRO = CjStubElementTypes.MACRO;
     IElementType FOREIGN = CjStubElementTypes.FOREIGN;
@@ -120,8 +121,6 @@ public interface CjNodeTypes {
 
     IElementType SUPER_TYPE_ENTRY = CjStubElementTypes.SUPER_TYPE_ENTRY;
     IElementType MODIFIER_LIST = CjStubElementTypes.MODIFIER_LIST;
-    IElementType DESTRUCTURING_DECLARATION_ENTRY = new CjNodeType("DESTRUCTURING_DECLARATION_ENTRY", CjDestructuringDeclarationEntry.class);
-    IElementType DESTRUCTURING_DECLARATION = new CjNodeType("DESTRUCTURING_DECLARATION", CjDestructuringDeclaration.class);
 //    IElementType CLASS_INITIALIZER = CjStubElementTypes.CLASS_INITIALIZER;
 
     IElementType REFERENCE_EXPRESSION = CjStubElementTypes.REFERENCE_EXPRESSION;

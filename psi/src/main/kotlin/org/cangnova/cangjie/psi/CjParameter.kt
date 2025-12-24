@@ -139,20 +139,6 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjParameterBas
     }
 
     /**
-     * 参数的解构声明
-     *
-     * 例如：`val (a, b) = pair` 或 lambda 参数 `{ (x, y) -> ... }`
-     * 注意：Stub 索引不支持解构声明，因此始终从 PSI 树获取
-     *
-     * @return 解构声明，如果不是解构参数则返回 null
-     */
-    val destructuringDeclaration: CjDestructuringDeclaration?
-        get() {
-            if (stub != null) return null
-            return findChildByType(CjNodeTypes.DESTRUCTURING_DECLARATION)
-        }
-
-    /**
      * 检查参数是否为函数类型的参数
      *
      * 例如：`fun foo(lambdaArgument: (functionTypeParameter: T, ...) -> R) { ... }`

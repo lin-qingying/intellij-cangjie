@@ -41,35 +41,35 @@ import org.cangnova.cangjie.types.CangJieType
 /**
  * 类型检查器遇到递归问题（废弃警告）
  */
-//@JvmField
+//
 //val TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM: DiagnosticFactoryForDeprecation0<CjExpression> =
 //    DiagnosticFactoryForDeprecation0.create(LanguageFeature.ForbidRecursiveDelegateExpressions)
 //
 /**
  * 增强赋值中的递归类型问题（废弃警告）
  */
-//@JvmField
+//
 //val TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM_IN_AUGMENTED_ASSIGNMENT: DiagnosticFactoryForDeprecation0<CjExpression> =
 //    DiagnosticFactoryForDeprecation0.create(LanguageFeature.ReportErrorsOnRecursiveTypeInsidePlusAssignment)
 
 /**
  * 类型推导仅限输入类型（废弃警告）
  */
-//@JvmField
+//
 //val TYPE_INFERENCE_ONLY_INPUT_TYPES: DiagnosticFactoryForDeprecation1<PsiElement, TypeParameterDescriptor> =
 //    DiagnosticFactoryForDeprecation1.create(LanguageFeature.StrictOnlyInputTypesChecks)
 
 /**
  * 推导类型变量到空交集（废弃警告）
  */
-//@JvmField
+//
 //val INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION: DiagnosticFactoryForDeprecation4<PsiElement, String, Collection<CangJieType>, String, String> =
 //    DiagnosticFactoryForDeprecation4.create(LanguageFeature.ForbidInferringTypeVariablesIntoEmptyIntersection)
 
 /**
  * 不可见的抽象成员（来自超类）
  */
-//@JvmField
+//
 //val INVISIBLE_ABSTRACT_MEMBER_FROM_SUPER: DiagnosticFactoryForDeprecation2<CjTypeStatement, ClassDescriptor, Collection<CallableMemberDescriptor>> =
 //    DiagnosticFactoryForDeprecation2.create(
 //        LanguageFeature.ProhibitInvisibleAbstractMethodsInSuperclasses,
@@ -79,6 +79,6 @@ import org.cangnova.cangjie.types.CangJieType
 /**
  * 通过 backing field 重新赋值 let（废弃警告）
  */
-//@JvmField
+//
 //val LET_REASSIGNMENT_VIA_BACKING_FIELD: DiagnosticFactoryForDeprecation1<CjExpression, DeclarationDescriptor> =
 //    DiagnosticFactoryForDeprecation1.create(LanguageFeature.RestrictionOfLetReassignmentViaBackingField)

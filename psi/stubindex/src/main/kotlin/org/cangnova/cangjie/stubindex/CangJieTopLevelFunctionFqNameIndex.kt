@@ -33,15 +33,15 @@ import org.cangnova.cangjie.psi.CjNamedFunction
 /**
  * Stores package top level function (both extension and non-extension) full qualified names.
  */
-class CangJieTopLevelFunctionFqnNameIndex internal constructor() : StringStubIndexExtension<CjNamedFunction>() {
+class CangJieTopLevelFunctionFqNameIndex internal constructor() : StringStubIndexExtension<CjNamedFunction>() {
   companion  object Helper : CangJieStringStubIndexHelper<CjNamedFunction>(CjNamedFunction::class.java) {
         override val indexKey: StubIndexKey<String, CjNamedFunction> =
-            StubIndexKey.createIndexKey(CangJieTopLevelFunctionFqnNameIndex::class .java.simpleName)
+            StubIndexKey.createIndexKey(CangJieTopLevelFunctionFqNameIndex::class .java.simpleName)
     }
 
     override fun getKey(): StubIndexKey<String, CjNamedFunction> = indexKey
 
-    @Deprecated("Base method is deprecated", ReplaceWith("CangJieTopLevelFunctionFqnNameIndex[key, project, scope]"))
+    @Deprecated("Base method is deprecated", ReplaceWith("CangJieTopLevelFunctionFqNameIndex[key, project, scope]"))
     override fun get(key: String, project: Project, scope: GlobalSearchScope): Collection<CjNamedFunction> {
 
 

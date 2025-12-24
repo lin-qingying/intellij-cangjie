@@ -28,19 +28,21 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StringStubIndexExtension
 import com.intellij.psi.stubs.StubIndexKey
-import org.cangnova.cangjie.psi.CjProperty
+import org.cangnova.cangjie.psi.CjMainFunction
 
+class CangJieMainFunctionFqNameIndex internal constructor() : StringStubIndexExtension<CjMainFunction>() {
 
-class CangJieTopLevelPropertyFqnNameIndex internal constructor() : StringStubIndexExtension<CjProperty>() {
-    companion object Helper : CangJieStringStubIndexHelper<CjProperty>(CjProperty::class.java) {
-        override val indexKey: StubIndexKey<String, CjProperty> =
-            StubIndexKey.createIndexKey(CangJieTopLevelPropertyFqnNameIndex::class.java.simpleName)
+    companion object Helper : CangJieStringStubIndexHelper<CjMainFunction>(CjMainFunction::class.java) {
+        override val indexKey: StubIndexKey<String, CjMainFunction> =
+            StubIndexKey.createIndexKey(CangJieMainFunctionFqNameIndex::class.java.simpleName)
     }
 
-    override fun getKey(): StubIndexKey<String, CjProperty> = indexKey
+    override fun getKey(): StubIndexKey<String, CjMainFunction> = indexKey
 
-    @Deprecated("Base method is deprecated", ReplaceWith("CangJieTopLevelPropertyFqnNameIndex[key, project, scope]"))
-    override fun get(key: String, project: Project, scope: GlobalSearchScope): Collection<CjProperty> {
+    @Deprecated("Base method is deprecated", ReplaceWith("CangJieMainFunctionFqNameIndex[key, project, scope]"))
+    override fun get(key: String, project: Project, scope: GlobalSearchScope): Collection<CjMainFunction> {
+
+
         return Helper[key, project, scope]
     }
 }

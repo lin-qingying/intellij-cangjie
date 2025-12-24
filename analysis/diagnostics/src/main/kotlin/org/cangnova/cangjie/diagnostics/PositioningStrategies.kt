@@ -92,7 +92,7 @@ object PositioningStrategies {
      * import foo.bar.MyClass        // 标记 "MyClass"
      * ```
      */
-    @JvmField
+    
     val IMPORT_ALIAS: PositioningStrategy<CjImportDirectiveItem> =
         object : PositioningStrategy<CjImportDirectiveItem>() {
             override fun mark(element: CjImportDirectiveItem): List<TextRange> {
@@ -118,7 +118,7 @@ object PositioningStrategies {
      * val x = nonNullValue ?: defaultValue  // 标记 "?: defaultValue"
      * ```
      */
-    @JvmField
+    
     val USELESS_ELVIS: PositioningStrategy<CjBinaryExpression> = object : PositioningStrategy<CjBinaryExpression>() {
         override fun mark(element: CjBinaryExpression): List<TextRange> {
             return listOf(TextRange(element.operationReference.startOffset, element.endOffset))
@@ -136,7 +136,7 @@ object PositioningStrategies {
      * matrix[i][j]  // 标记 "[i]" 或 "[j]"，取决于错误位置
      * ```
      */
-    @JvmField
+    
     val ARRAY_ACCESS: PositioningStrategy<CjArrayAccessExpression> =
         object : PositioningStrategy<CjArrayAccessExpression>() {
             override fun mark(element: CjArrayAccessExpression): List<TextRange> {
@@ -155,7 +155,7 @@ object PositioningStrategies {
      * return value        // 标记 "return"
      * ```
      */
-    @JvmField
+    
     val RETURN_WITH_LABEL: PositioningStrategy<CjReturnExpression> =
         object : PositioningStrategy<CjReturnExpression>() {
             override fun mark(element: CjReturnExpression): List<TextRange> {
@@ -174,7 +174,7 @@ object PositioningStrategies {
      * 创建用于标记泛型投影修饰符（in/out）的定位策略。
      * 注意：当前实现会抛出异常，因为未找到对应的修饰符。
      */
-    @JvmStatic
+    
     fun projectionPosition(): PositioningStrategy<CjModifierListOwner> {
         return object : PositioningStrategy<CjModifierListOwner>() {
             override fun mark(element: CjModifierListOwner): List<TextRange> {
@@ -188,7 +188,7 @@ object PositioningStrategies {
      *
      * 用于标记泛型类型参数的型变修饰符（in/out）。
      */
-    @JvmField
+    
     val VARIANCE_MODIFIER: PositioningStrategy<CjModifierListOwner> = projectionPosition()
 
     /**
@@ -196,7 +196,7 @@ object PositioningStrategies {
      *
      * 用于标记 open 关键字，表示类或成员可以被继承或重写。
      */
-    @JvmField
+    
     val OPEN_MODIFIER: PositioningStrategy<CjModifierListOwner> =
         ModifierSetBasedPositioningStrategy(CjTokens.OPEN_KEYWORD)
 
@@ -206,7 +206,7 @@ object PositioningStrategies {
      * 用于标记整个声明的签名部分（不包括函数体）。
      * 适用于函数、类、属性等各种声明。
      */
-    @JvmField
+    
     val DECLARATION_SIGNATURE: PositioningStrategy<CjDeclaration> = object : DeclarationHeader<CjDeclaration>() {
 
     }
@@ -216,7 +216,7 @@ object PositioningStrategies {
      *
      * 用于标记 private 可见性修饰符。
      */
-    @JvmField
+    
     val PRIVATE_MODIFIER: PositioningStrategy<CjModifierListOwner> =
         ModifierSetBasedPositioningStrategy(CjTokens.PRIVATE_KEYWORD)
 
@@ -225,7 +225,7 @@ object PositioningStrategies {
      *
      * 用于标记 abstract 关键字，表示抽象类或抽象成员。
      */
-    @JvmField
+    
     val ABSTRACT_MODIFIER: PositioningStrategy<CjModifierListOwner> =
         ModifierSetBasedPositioningStrategy(CjTokens.ABSTRACT_KEYWORD)
 
@@ -239,7 +239,7 @@ object PositioningStrategies {
      * 'a'  // 标记 "a" 而不是 "'a'"
      * ```
      */
-    @JvmField
+    
     val CUT_CHAR_QUOTES: PositioningStrategy<CjElement> = object : PositioningStrategy<CjElement>() {
         override fun mark(element: CjElement): List<TextRange> {
             if (element is CjConstantExpression) {
@@ -262,7 +262,7 @@ object PositioningStrategies {
      * obj?.method()  // 标记 "?."
      * ```
      */
-    @JvmField
+    
     val SAFE_ACCESS: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
         override fun mark(element: PsiElement): List<TextRange> {
             return markElement(element.node.findChildByType(CjTokens.SAFE_ACCESS)?.psi ?: element)
@@ -326,7 +326,7 @@ object PositioningStrategies {
      * obj.method()  // 标记 ".method()"
      * ```
      */
-    @JvmField
+    
     val CALL_ELEMENT_WITH_DOT: PositioningStrategy<CjQualifiedExpression> =
         object : PositioningStrategy<CjQualifiedExpression>() {
             override fun mark(element: CjQualifiedExpression): List<TextRange> {
@@ -351,7 +351,7 @@ object PositioningStrategies {
      *
      * 智能选择定位策略：如果是声明则使用声明签名策略，否则使用默认策略。
      */
-    @JvmField
+    
     val DECLARATION_SIGNATURE_OR_DEFAULT: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
         override fun mark(element: PsiElement): List<TextRange> {
             return if (element is CjDeclaration)
@@ -374,7 +374,7 @@ object PositioningStrategies {
      * 用于标记重复声明错误，优先标记名称标识符。
      * 适用于命名声明和包声明。
      */
-    @JvmField
+    
     val FOR_REDECLARATION: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
         override fun mark(element: PsiElement): List<TextRange> {
             val nameIdentifier = when (element) {
@@ -398,7 +398,7 @@ object PositioningStrategies {
      * function()     // 标记 "function"
      * ```
      */
-    @JvmField
+    
     val CALL_EXPRESSION: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
         override fun mark(element: PsiElement): List<TextRange> {
             if (element is CjCallExpression) {
@@ -413,7 +413,7 @@ object PositioningStrategies {
      *
      * 用于标记可见性修饰符（public、private、protected、internal 等）。
      */
-    @JvmField
+    
     val VISIBILITY_MODIFIER: PositioningStrategy<CjModifierListOwner> =
         ModifierSetBasedPositioningStrategy(CjTokens.VISIBILITY_MODIFIERS)
 
@@ -427,7 +427,7 @@ object PositioningStrategies {
      * func foo(x: Int = 42)  // 标记 "42"
      * ```
      */
-    @JvmField
+    
     val PARAMETER_DEFAULT_VALUE: PositioningStrategy<CjParameter> = object : PositioningStrategy<CjParameter>() {
         override fun mark(element: CjParameter): List<TextRange> {
             return markNode(element.defaultValue!!.node)
@@ -446,14 +446,13 @@ object PositioningStrategies {
      * var y = 20     // 标记 "var"
      * ```
      */
-    @JvmField
+    
     val LET_OR_VAR_NODE: PositioningStrategy<CjDeclaration> = object : PositioningStrategy<CjDeclaration>() {
         override fun mark(element: CjDeclaration): List<TextRange> {
             return when (element) {
                 is CjParameter -> markElement(element.letOrVarKeyword ?: element)
                 is CjProperty -> markElement(element.letOrVarKeyword ?: element)
                 is CjVariable -> markElement(element.letOrVarKeyword)
-                is CjDestructuringDeclaration -> markElement(element.letOrVarKeyword ?: element)
                 else -> error("Declaration is neither a parameter nor a property: " + element.getElementTextWithContext())
             }
         }
@@ -464,7 +463,7 @@ object PositioningStrategies {
      *
      * 用于标记 override 或 redef 关键字，表示重写父类成员。
      */
-    @JvmField
+    
     val OVERRIDE_MODIFIER: PositioningStrategy<CjModifierListOwner> =
         ModifierSetBasedPositioningStrategy(CjTokens.OVERRIDE_KEYWORD, CjTokens.REDEF_KEYWORD)
 
@@ -480,7 +479,7 @@ object PositioningStrategies {
      * get(): String { }    // 标记 "String"
      * ```
      */
-    @JvmField
+    
     val DECLARATION_RETURN_TYPE: PositioningStrategy<CjDeclaration> = object : PositioningStrategy<CjDeclaration>() {
         override fun mark(element: CjDeclaration): List<TextRange> {
             return markElement(getElementToMark(element))
@@ -513,7 +512,7 @@ object PositioningStrategies {
      * var x: String?  // 标记 "?"
      * ```
      */
-    @JvmField
+    
     val OPTIONAL_TYPE: PositioningStrategy<CjOptionType> = object : PositioningStrategy<CjOptionType>() {
         override fun mark(element: CjOptionType): List<TextRange> {
             return markNode(element.getQuestionMarkNode())
@@ -532,7 +531,7 @@ object PositioningStrategies {
      * func bar() { }       // 标记整个函数签名
      * ```
      */
-    @JvmField
+    
     val TYPE_PARAMETERS_OR_DECLARATION_SIGNATURE: PositioningStrategy<CjDeclaration> =
         object : PositioningStrategy<CjDeclaration>() {
             override fun mark(element: CjDeclaration): List<TextRange> {
@@ -558,7 +557,7 @@ object PositioningStrategies {
      * }  // 标记这个 "}"
      * ```
      */
-    @JvmField
+    
     val DECLARATION_WITH_BODY: PositioningStrategy<CjDeclarationWithBody> =
         object : PositioningStrategy<CjDeclarationWithBody>() {
             override fun mark(element: CjDeclarationWithBody): List<TextRange> {
@@ -586,7 +585,7 @@ object PositioningStrategies {
      * var myProperty = 0     // 标记 "myProperty"
      * ```
      */
-    @JvmField
+    
     val DECLARATION_NAME: PositioningStrategy<CjNamedDeclaration> = object : DeclarationHeader<CjNamedDeclaration>() {
         override fun mark(element: CjNamedDeclaration): List<TextRange> {
             val nameIdentifier = element.nameIdentifier
@@ -626,7 +625,7 @@ object PositioningStrategies {
      * }
      * ```
      */
-    @JvmField
+    
     val ELSE_ENTRY: PositioningStrategy<CjMatchEntry> = object : PositioningStrategy<CjMatchEntry>() {
         override fun mark(element: CjMatchEntry): List<TextRange> {
             return markElement(element.elseKeyword!!)
@@ -645,7 +644,7 @@ object PositioningStrategies {
      * }
      * ```
      */
-    @JvmField
+    
     val MATCH_EXPRESSION: PositioningStrategy<CjMatchExpression> = object : PositioningStrategy<CjMatchExpression>() {
         override fun mark(element: CjMatchExpression): List<TextRange> {
             return markElement(element.matchKeyword)
@@ -664,7 +663,7 @@ object PositioningStrategies {
      * foo()         // 标记 "()"
      * ```
      */
-    @JvmField
+    
     val VALUE_ARGUMENTS: PositioningStrategy<CjElement> = object : PositioningStrategy<CjElement>() {
         override fun mark(element: CjElement): List<TextRange> {
             if (element is CjBinaryExpression && element.operationToken in CjTokens.ALL_ASSIGNMENTS) {
@@ -714,7 +713,7 @@ object PositioningStrategies {
      * }
      * ```
      */
-    @JvmField
+    
     val SECONDARY_CONSTRUCTOR_DELEGATION_CALL: PositioningStrategy<PsiElement> =
         object : PositioningStrategy<PsiElement>() {
             override fun mark(element: PsiElement): List<TextRange> {
@@ -751,7 +750,7 @@ object PositioningStrategies {
      * List<in T>   // 标记 "in"
      * ```
      */
-    @JvmField
+    
     val VARIANCE_IN_PROJECTION: PositioningStrategy<CjTypeProjection> =
         object : PositioningStrategy<CjTypeProjection>() {
             override fun mark(element: CjTypeProjection): List<TextRange> {
@@ -770,7 +769,7 @@ object PositioningStrategies {
      * obj.bar()    // 标记 "bar"
      * ```
      */
-    @JvmField
+    
     val CALL_ELEMENT: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
         override fun mark(element: PsiElement): List<TextRange> {
             return markElement((element as? CjCallElement)?.calleeExpression ?: element)
@@ -788,7 +787,7 @@ object PositioningStrategies {
      * array[index]       // 标记 "[index]"
      * ```
      */
-    @JvmField
+    
     val FOR_UNRESOLVED_REFERENCE: PositioningStrategy<CjReferenceExpression> =
         object : PositioningStrategy<CjReferenceExpression>() {
             override fun mark(element: CjReferenceExpression): List<TextRange> {
@@ -808,7 +807,7 @@ object PositioningStrategies {
      * 当没有更具体的定位策略时使用。
      * 标记整个元素，排除前后的空白和注释。
      */
-    @JvmField
+    
     val DEFAULT: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
         override fun mark(element: PsiElement): List<TextRange> {
             when (element) {

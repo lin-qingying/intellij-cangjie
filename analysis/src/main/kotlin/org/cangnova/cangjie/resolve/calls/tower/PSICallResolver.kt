@@ -953,7 +953,7 @@ class PSICallResolver(
         )?.let {
             return it
         }
-        if (cjExpression is CjCasePattern) {
+        if (cjExpression is CjCasePatternElement) {
             return CasePatternCangJieCallArgumentImpl(
                 valueArgument, argumentName, startDataFlowInfo, startDataFlowInfo, cjExpression, outerCallContext
             )

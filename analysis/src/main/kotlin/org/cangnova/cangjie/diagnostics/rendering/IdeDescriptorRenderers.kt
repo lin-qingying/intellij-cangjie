@@ -62,12 +62,12 @@ import org.cangnova.cangjie.types.isDynamic
 import kotlin.properties.Delegates
 
 object IdeDescriptorRenderers {
-    @JvmField
+    
     val APPROXIMATE_FLEXIBLE_TYPES: (CangJieType) -> CangJieType = {
         it.approximateFlexibleTypes(preferNotNull = false)
     }
 
-    @JvmField
+    
     val FQ_NAMES_IN_TYPES_WITH_NORMALIZER: DescriptorRenderer = FQ_NAMES_IN_TYPES.withOptions {
         classifierNamePolicy = ClassifierNamePolicy.SOURCE_CODE_QUALIFIED
         typeNormalizer = { APPROXIMATE_FLEXIBLE_TYPES(unwrapAnonymousType(it)) }
@@ -101,14 +101,14 @@ object IdeDescriptorRenderers {
         return builtIns.stdlibTypes.anyType
     }
 
-    @JvmField
+    
     val SOURCE_CODE_SHORT_NAMES_NO_ANNOTATIONS: DescriptorRenderer = BASE.withOptions {
         classifierNamePolicy = ClassifierNamePolicy.SHORT
         typeNormalizer = { APPROXIMATE_FLEXIBLE_TYPES(unwrapAnonymousType(it)) }
         modifiers = modifiers - DescriptorRendererModifier.ANNOTATIONS
     }
 
-    @JvmField
+    
     val SOURCE_CODE: DescriptorRenderer = BASE.withOptions {
         classifierNamePolicy = ClassifierNamePolicy.SOURCE_CODE_QUALIFIED
         typeNormalizer = { APPROXIMATE_FLEXIBLE_TYPES(unwrapAnonymousType(it)) }

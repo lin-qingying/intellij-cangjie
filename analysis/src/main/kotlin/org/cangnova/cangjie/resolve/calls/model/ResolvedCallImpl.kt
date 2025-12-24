@@ -418,7 +418,7 @@ class ResolvedCallImpl<D : CallableDescriptor> : MutableResolvedCall<D> {
         /**
          * 从解析候选创建已解析调用
          */
-        @JvmStatic
+        
         fun <D : CallableDescriptor> create(
             candidate: OldResolutionCandidate<D>,
             trace: DelegatingBindingTrace,

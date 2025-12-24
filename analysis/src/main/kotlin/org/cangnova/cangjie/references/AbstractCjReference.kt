@@ -84,7 +84,7 @@ import org.cangnova.cangjie.resolve.binding.BindingContext
 //    }
 //
 //    companion object {
-//        @JvmStatic
+//        
 //        fun doRename(identifier: PsiElement, newName: String) {
 //            val factory = CjPsiFactory(identifier.project)
 //            val newId = when (identifier.elementType) {

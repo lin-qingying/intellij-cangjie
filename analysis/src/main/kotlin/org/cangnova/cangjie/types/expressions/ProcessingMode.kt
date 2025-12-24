@@ -43,7 +43,7 @@ data class ContextConfig(
     var isDotEnumGetType: Boolean = false
 
     companion object {
-        @JvmField
+        
         val DEFAULT = ContextConfig()
     }
 }

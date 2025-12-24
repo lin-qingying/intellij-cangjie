@@ -97,7 +97,7 @@ val EXPECT_TYPE_IN_MATCH_WITHOUT_ELSE: DiagnosticFactory1<CjMatchExpression, Str
  * 变量引入冲突
  */
 
-val VARIABLE_INTRODUCTION_CONFLICT: DiagnosticFactory0<CjCasePattern> =
+val VARIABLE_INTRODUCTION_CONFLICT: DiagnosticFactory0<CjCasePatternElement> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**

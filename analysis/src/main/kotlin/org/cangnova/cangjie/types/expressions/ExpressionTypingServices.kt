@@ -60,7 +60,7 @@ import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 class ExpressionTypingServices(
     val expressionTypingComponents: ExpressionTypingComponents,
     private val annotationChecker: AnnotationChecker,
-    @JvmField val statementFilter: StatementFilter,
+     val statementFilter: StatementFilter,
     facade: ExpressionTypingVisitorDispatcher.ForDeclarations
 ) {
     val expressionTypingFacade: ExpressionTypingFacade = facade

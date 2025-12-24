@@ -57,7 +57,7 @@ var CjFile.elementContext: PsiElement? by UserDataProperty(Key.create("ELEMENT_C
  * 不分析通知消息
  */
 private const val DO_NOT_ANALYZE_NOTIFICATION = "This file was created by CjPsiFactory and should not be analyzed\n" +
-    "Use createAnalyzableFile to create file that can be analyzed\n"
+        "Use createAnalyzableFile to create file that can be analyzed\n"
 
 /**
  * 仓颉 PSI 元素工厂
@@ -116,7 +116,7 @@ class CjPsiFactory private constructor(
      */
     @JvmOverloads
     constructor(project: Project, markGenerated: Boolean = true) :
-        this(project, markGenerated, context = null, eventSystemEnabled = false)
+            this(project, markGenerated, context = null, eventSystemEnabled = false)
 
     /**
      * 构造器：创建支持事件系统的 PSI 工厂
@@ -126,7 +126,7 @@ class CjPsiFactory private constructor(
      * @param eventSystemEnabled 是否启用事件系统
      */
     constructor(project: Project, markGenerated: Boolean = true, eventSystemEnabled: Boolean) :
-        this(project, markGenerated, context = null, eventSystemEnabled = eventSystemEnabled)
+            this(project, markGenerated, context = null, eventSystemEnabled = eventSystemEnabled)
 
     /**
      * 构造器：从现有元素创建 PSI 工厂
@@ -182,7 +182,7 @@ class CjPsiFactory private constructor(
      * @return 类型参数列表
      */
     fun createTypeArguments(@NonNls text: String): CjTypeArgumentList {
-        val property = createVariable("let x = foo$text()")
+        val property = createPatternVariable("let x = foo$text()")
         return (property.initializer as CjCallExpression).typeArgumentList!!
     }
 
@@ -312,16 +312,16 @@ class CjPsiFactory private constructor(
     ): CjProperty {
         val text = modifiers.let { "$it " } +
 
-            (if (isMut) " mut " else "") + "prop" + name +
-            (if (type != null) ":$type" else "") +
-            "{" +
-            "get(){}" +
-            if (isMut) {
-                "set(value){}"
-            } else {
-                "" +
-                    "}"
-            }
+                (if (isMut) " mut " else "") + "prop" + name +
+                (if (type != null) ":$type" else "") +
+                "{" +
+                "get(){}" +
+                if (isMut) {
+                    "set(value){}"
+                } else {
+                    "" +
+                            "}"
+                }
         return createProperty(text)
     }
 
@@ -332,7 +332,7 @@ class CjPsiFactory private constructor(
     }
 
     fun createSimpleName(@NonNls name: String): CjSimpleNameExpression {
-        return createVariable(name, null, false, name).initializer as CjSimpleNameExpression
+        return createPatternVariable(name, null, false, name).initializer as CjSimpleNameExpression
     }
 
     private inline fun <reified E : CjExpression> createExpressionOfType(text: String): E =
@@ -345,7 +345,7 @@ class CjPsiFactory private constructor(
     }
 
     fun createColon(): PsiElement {
-        return createVariable("let x: Int64").findElementAt(5)!!
+        return createPatternVariable("let x: Int64").findElementAt(5)!!
     }
 
     fun createPrimaryConstructor(@NonNls text: String = ""): CjPrimaryConstructor {
@@ -368,7 +368,7 @@ class CjPsiFactory private constructor(
     }
 
     fun createCallArguments(@NonNls text: String): CjValueArgumentList {
-        val property = createVariable("let x = foo $text")
+        val property = createPatternVariable("let x = foo $text")
         return (property.initializer as CjCallExpression).valueArgumentList!!
     }
 
@@ -410,9 +410,11 @@ class CjPsiFactory private constructor(
             append(" as ").append(alias.asString())
         }
     }
+
     fun createBlockCodeFragment(@NonNls text: String, context: PsiElement?): CjBlockCodeFragment {
         return CjBlockCodeFragment(project, "fragment.cj", text, null, context)
     }
+
     fun createComment(@NonNls text: String): PsiComment {
         val file = createFile(text)
         val comments = file.children.filterIsInstance<PsiComment>()
@@ -423,19 +425,19 @@ class CjPsiFactory private constructor(
 
     fun createLambdaExpression(@NonNls parameters: String, @NonNls body: String): CjLambdaExpression =
         (
-            if (parameters.isNotEmpty()) {
-                createExpression("{ $parameters -> $body }")
-            } else {
-                createExpression("{ $body }")
-            }
-            ) as CjLambdaExpression
+                if (parameters.isNotEmpty()) {
+                    createExpression("{ $parameters -> $body }")
+                } else {
+                    createExpression("{ $body }")
+                }
+                ) as CjLambdaExpression
 
     fun createExpressionCodeFragment(@NonNls text: String, context: PsiElement?): CjExpressionCodeFragment {
         return CjExpressionCodeFragment(project, "fragment.cj", text, null, context)
     }
 
     fun createSemicolon(): PsiElement {
-        return createVariable("let x: Int64;").findElementAt(12)!!
+        return createPatternVariable("let x: Int64;").findElementAt(12)!!
     }
 
     fun createFunction(@NonNls funDecl: String): CjNamedFunction {
@@ -450,24 +452,38 @@ class CjPsiFactory private constructor(
         createClass("class A ").primaryConstructor!!.getInitKeyword()!!
 
     fun createNameIdentifier(@NonNls name: String) = createNameIdentifierIfPossible(name)!!
-    fun createNameIdentifierIfPossible(@NonNls name: String) = createVariable(name, null, false).nameIdentifier
-    fun createVariable(@NonNls name: String, @NonNls type: String?, isVar: Boolean): CjVariable {
-        return createVariable(name, type, isVar, null)
+    fun createNameIdentifierIfPossible(@NonNls name: String) = createFieldVariable(name, null, false).nameIdentifier
+    fun createPatternVariable(@NonNls name: String, @NonNls type: String?, isVar: Boolean): CjPatternVariable {
+        return createPatternVariable(name, type, isVar, null)
     }
 
-    fun createVariable(
+    fun createFieldVariable(@NonNls name: String, @NonNls type: String?, isVar: Boolean): CjFieldVariable {
+        return createFieldVariable(name, type, isVar, null)
+    }
+
+    fun createFieldVariable(
         @NonNls name: String,
         @NonNls type: String?,
         isVar: Boolean,
         @NonNls initializer: String?,
-    ): CjVariable {
-        return createVariable(null, name, type, isVar, initializer)
+    ): CjFieldVariable {
+        return createFieldVariable(null, name, type, isVar, initializer)
+    }
+
+    fun createPatternVariable(
+        @NonNls name: String,
+        @NonNls type: String?,
+        isVar: Boolean,
+        @NonNls initializer: String?,
+    ): CjPatternVariable {
+        return createPatternVariable(null, name, type, isVar, initializer)
     }
 
     fun creareDelegatedSuperTypeEntry(@NonNls text: String): CjConstructorDelegationCall {
         return createClass("class A { init() { $text}").secondaryConstructors.first()
             .delegationCall!!
     }
+
     fun createStruct(@NonNls text: String): CjStruct {
         return createDeclaration(text)
     }
@@ -480,17 +496,41 @@ class CjPsiFactory private constructor(
         return createDeclaration(text)
     }
 
-    fun createVariable(
+    fun createFieldVariable(
         @NonNls modifiers: String?,
         @NonNls name: String,
         @NonNls type: String?,
         isVar: Boolean,
         @NonNls initializer: String?,
-    ): CjVariable {
+    ): CjFieldVariable {
+
+        val text = StringBuilder().apply {
+            append("class abc")
+            append("{")
+            modifiers.let { append("$it ") }
+            append((if (isVar) " var " else " let ") + name)
+            append(if (type != null) ":$type" else "")
+            if (initializer == null) {
+                append(";")
+            } else {
+                append(" = $initializer;")
+            }
+            append("}")
+        }
+        return createFieldVariable(text.toString())
+    }
+
+    fun createPatternVariable(
+        @NonNls modifiers: String?,
+        @NonNls name: String,
+        @NonNls type: String?,
+        isVar: Boolean,
+        @NonNls initializer: String?,
+    ): CjPatternVariable {
         val text = modifiers.let { "$it " } +
-            (if (isVar) " var " else " let ") + name +
-            (if (type != null) ":$type" else "") + (if (initializer == null) "" else " = $initializer")
-        return createVariable(text)
+                (if (isVar) " var " else " let ") + name +
+                (if (type != null) ":$type" else "") + (if (initializer == null) "" else " = $initializer")
+        return createPatternVariable(text)
     }
 
     fun createPackageDirectiveIfNeeded(fqName: FqName): CjPackageDirective? {
@@ -503,10 +543,14 @@ class CjPsiFactory private constructor(
 
     private fun doCreateExpression(@NonNls text: String): CjExpression? {
         // 注意：下面的‘\n’很重要--如果没有它，会出现一些奇怪的代码缩进问题
-        return createVariable("let x =\n$text").initializer
+        return createPatternVariable("let x =\n$text").initializer
     }
 
-    fun createVariable(@NonNls text: String): CjVariable {
+    fun createFieldVariable(@NonNls text: String): CjFieldVariable {
+        return createDeclaration(text)
+    }
+
+    fun createPatternVariable(@NonNls text: String): CjPatternVariable {
         return createDeclaration(text)
     }
 
@@ -582,7 +626,7 @@ class CjPsiFactory private constructor(
     }
 
     fun createTypeIfPossible(@NonNls type: String): CjTypeReference? {
-        val typeReference = createVariable("let x : $type").typeReference
+        val typeReference = createPatternVariable("let x : $type").typeReference
         return if (typeReference?.text == type) typeReference else null
     }
 
@@ -603,7 +647,7 @@ class CjPsiFactory private constructor(
     }
 
     fun createWhiteSpace(@NonNls text: String): PsiElement {
-        return createVariable("let${text}x: Int64").findElementAt(3)!!
+        return createPatternVariable("let${text}x: Int64").findElementAt(3)!!
     }
 
     fun createWhiteSpace(): PsiElement {
@@ -629,7 +673,6 @@ class CjPsiFactory private constructor(
     fun createIdentifier(toString: String): PsiElement? {
         return createClass("class $toString").nameIdentifier
     }
-
 
 
 }

@@ -254,7 +254,7 @@ class ControlFlowInformationProviderImpl private constructor(
                 }
 
                 override fun visitCjElement(element: CjElement) {
-                    if (!(element is CjExpression || element is CjCasePattern)) return
+                    if (!(element is CjExpression || element is CjCasePatternElement)) return
 
                     if (blockBody && !noExpectedType(expectedReturnType)
                         && !CangJieBuiltIns.isUnit(expectedReturnType)

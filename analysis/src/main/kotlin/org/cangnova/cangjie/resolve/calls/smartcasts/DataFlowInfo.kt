@@ -126,6 +126,6 @@ interface DataFlowInfo {
 
 
 object DataFlowInfoFactory {
-    @JvmField
+    
     val EMPTY: DataFlowInfo = DataFlowInfoImpl()
 }

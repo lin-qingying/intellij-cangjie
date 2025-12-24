@@ -40,7 +40,6 @@ interface DeclarationProvider {
     fun getVariableDeclarations(name: Name): Collection<CjVariable>
     fun getPropertyDeclarations(name: Name): Collection<CjProperty>
 
-    fun getDestructuringDeclarationsEntries(name: Name): Collection<CjDestructuringDeclarationEntry>
     fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>>
 
 
@@ -74,8 +73,6 @@ interface DeclarationProvider {
 
             override fun getPropertyDeclarations(name: Name): Collection<CjProperty> = emptyList()
 
-            override fun getDestructuringDeclarationsEntries(name: Name): Collection<CjDestructuringDeclarationEntry> =
-                emptyList()
 
             override fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>> = emptyList()
 

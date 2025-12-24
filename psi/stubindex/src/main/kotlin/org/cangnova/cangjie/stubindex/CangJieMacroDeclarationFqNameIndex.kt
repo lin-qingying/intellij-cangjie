@@ -28,23 +28,21 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StringStubIndexExtension
 import com.intellij.psi.stubs.StubIndexKey
-import org.cangnova.cangjie.psi.CjVariable
+import org.cangnova.cangjie.psi.CjMacroDeclaration
 
 
-class CangJieTopLevelVariableFqnNameIndex internal constructor() : StringStubIndexExtension<CjVariable>() {
-    companion object Helper : CangJieStringStubIndexHelper<CjVariable>(CjVariable::class.java) {
-        override val indexKey: StubIndexKey<String, CjVariable> =
-            StubIndexKey.createIndexKey(CangJieTopLevelVariableFqnNameIndex::class.java.simpleName)
+class CangJieMacroDeclarationFqNameIndex internal constructor() : StringStubIndexExtension<CjMacroDeclaration>() {
+    companion object Helper : CangJieStringStubIndexHelper<CjMacroDeclaration>(CjMacroDeclaration::class.java) {
+        override val indexKey: StubIndexKey<String, CjMacroDeclaration> =
+            StubIndexKey.createIndexKey(CangJieMacroDeclarationFqNameIndex::class.java.simpleName)
     }
 
-    override fun getVersion(): Int {
-        return 4
-    }
+    override fun getKey(): StubIndexKey<String, CjMacroDeclaration> = indexKey
 
-    override fun getKey(): StubIndexKey<String, CjVariable> = indexKey
+    @Deprecated("Base method is deprecated", ReplaceWith("CangJieMacroDeclarationFqNameIndex[key, project, scope]"))
+    override fun get(key: String, project: Project, scope: GlobalSearchScope): Collection<CjMacroDeclaration> {
 
-    @Deprecated("Base method is deprecated", ReplaceWith("CangJieTopLevelVariableFqnNameIndex[key, project, scope]"))
-    override fun get(key: String, project: Project, scope: GlobalSearchScope): Collection<CjVariable> {
+
         return Helper[key, project, scope]
     }
 }

@@ -57,7 +57,7 @@ abstract class SLRUCache<K, V> protected constructor(protectedQueueSize: Int, pr
     open fun getIfCached(key: K): V? = super.get(key)
 
     companion object {
-        @JvmStatic
+        
         fun <K, V> slruCache(
             protectedQueueSize: Int,
             probationalQueueSize: Int,
@@ -72,7 +72,7 @@ abstract class SLRUCache<K, V> protected constructor(protectedQueueSize: Int, pr
          * @deprecated Use Caffeine.
          */
         @Deprecated("Use Caffeine.")
-        @JvmStatic
+        
         fun <K, V> create(
             protectedQueueSize: Int,
             probationalQueueSize: Int,

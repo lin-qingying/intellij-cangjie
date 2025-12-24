@@ -22,26 +22,28 @@
  *
  */
 
-package org.cangnova.cangjie.stubindex
+package org.cangnova.cangjie.psi.stubs.impl
 
+import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.StubElement
+import com.intellij.util.io.StringRef
+import org.cangnova.cangjie.psi.CjTypePattern
+import org.cangnova.cangjie.psi.stubs.CangJieTypePatternStub
+import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 
-import org.cangnova.cangjie.utils.invokeAndWaitIfNeeded
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.Project
-import com.intellij.util.indexing.FileBasedIndexTumbler
+/**
+ * 类型模式 Stub 实现
+ *
+ * 存储类型模式中的变量名称
+ *
+ * @param parent 父 Stub 元素
+ * @param name 变量名称
+ */
+class CangJieTypePatternStubImpl(
+    parent: StubElement<out PsiElement>?,
+    private val name: StringRef?,
+) : CangJieStubBaseImpl<CjTypePattern>(parent, CjStubElementTypes.TYPE_PATTERN),
+    CangJieTypePatternStub {
 
-
-fun runAfterIndexing(project: Project, callback: Runnable) {
-    DumbService.getInstance(project).runWhenSmart(callback)
-}
-
-fun updateIndex() {
-    invokeAndWaitIfNeeded {
-        val tumbler = FileBasedIndexTumbler("Reindex")
-        try {
-            tumbler.turnOff()
-        } finally {
-            tumbler.turnOn()
-        }
-    }
+    override fun getName(): String? = StringRef.toString(name)
 }

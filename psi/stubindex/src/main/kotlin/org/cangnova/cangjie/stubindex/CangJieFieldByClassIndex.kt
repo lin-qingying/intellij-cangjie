@@ -28,26 +28,24 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StringStubIndexExtension
 import com.intellij.psi.stubs.StubIndexKey
-import org.cangnova.cangjie.psi.CjCallableDeclaration
+import org.cangnova.cangjie.psi.CjField
 
-
-class CangJieTopLevelExtensionsByReceiverTypeIndex internal constructor() : StringStubIndexExtension<CjCallableDeclaration>() {
-    companion object Helper : CangJieExtensionsByReceiverTypeStubIndexHelper() {
-        @JvmField
-        @Suppress("DeprecatedCallableAddReplaceWith")
-        @Deprecated("Use the Helper object instead", level = DeprecationLevel.ERROR)
-        val INSTANCE: CangJieTopLevelExtensionsByReceiverTypeIndex = CangJieTopLevelExtensionsByReceiverTypeIndex()
-
-        override val indexKey: StubIndexKey<String, CjCallableDeclaration> =
-            StubIndexKey.createIndexKey(CangJieTopLevelExtensionsByReceiverTypeIndex::class.java.simpleName)
+/**
+ * 按所属类的完全限定名索引类成员字段
+ *
+ * 用于通过类的 FqName 查找该类的所有字段。
+ * 例如：查找 "std.core.Person" 类的所有字段
+ */
+class CangJieFieldByClassIndex internal constructor() : StringStubIndexExtension<CjField>() {
+    companion object Helper : CangJieStringStubIndexHelper<CjField>(CjField::class.java) {
+        override val indexKey: StubIndexKey<String, CjField> =
+            StubIndexKey.createIndexKey(CangJieFieldByClassIndex::class.java.simpleName)
     }
 
-    override fun getKey() = indexKey
+    override fun getKey(): StubIndexKey<String, CjField> = indexKey
 
-    override fun getVersion(): Int = super.getVersion() + 1
-
-    @Deprecated("Base method is deprecated", ReplaceWith("CangJieTopLevelExtensionsByReceiverTypeIndex[key, project, scope]"))
-    override fun get(key: String, project: Project, scope: GlobalSearchScope): Collection<CjCallableDeclaration> {
-        return Helper[key, project, scope]
+    @Deprecated("Base method is deprecated", ReplaceWith("CangJieFieldByClassIndex[classFqName, project, scope]"))
+    override fun get(classFqName: String, project: Project, scope: GlobalSearchScope): Collection<CjField> {
+        return Helper[classFqName, project, scope]
     }
 }

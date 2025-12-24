@@ -69,7 +69,7 @@ class PreliminaryLoopVisitor private constructor() : AssignedVariablesSearcher()
 
     companion object {
 
-        @JvmStatic
+        
         fun visitLoop(loopExpression: CjLoopExpression): PreliminaryLoopVisitor {
             val visitor = PreliminaryLoopVisitor()
             @Suppress("UNCHECKED_CAST")
@@ -77,7 +77,7 @@ class PreliminaryLoopVisitor private constructor() : AssignedVariablesSearcher()
             return visitor
         }
 
-        @JvmStatic
+        
         fun visitTryBlock(tryExpression: CjTryExpression): PreliminaryLoopVisitor {
             val visitor = PreliminaryLoopVisitor()
             @Suppress("UNCHECKED_CAST")
@@ -85,11 +85,11 @@ class PreliminaryLoopVisitor private constructor() : AssignedVariablesSearcher()
             return visitor
         }
 
-        @JvmStatic
+        
         fun visitCatchBlocks(tryExpression: CjTryExpression): PreliminaryLoopVisitor =
             visitCatchBlocks(tryExpression, tryExpression.catchClauses.map { true })
 
-        @JvmStatic
+        
         fun visitCatchBlocks(
             tryExpression: CjTryExpression,
             isBlockShouldBeVisited: List<Boolean>

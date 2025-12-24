@@ -89,8 +89,8 @@ abstract class CjAbstractClassBody :
 
     val properties: List<CjProperty>
         get() = getStubOrPsiChildrenAsList(PROPERTY)
-    val variables: List<CjVariable>
-        get() = getStubOrPsiChildrenAsList(VARIABLE)
+    val variables: List<CjFieldVariable>
+        get() = getStubOrPsiChildrenAsList(FIELD)
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? = visitor.visitClassBody(this, data)
     override val declarations: List<CjDeclaration>

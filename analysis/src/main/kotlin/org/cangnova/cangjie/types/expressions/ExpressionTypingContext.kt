@@ -121,7 +121,7 @@ class ExpressionTypingContext private constructor(
          * @param context 源上下文
          * @return 新的表达式类型推导上下文
          */
-        @JvmStatic
+        
         fun newContext(context: ResolutionContext<*>): ExpressionTypingContext {
             return ExpressionTypingContext(
                 context.trace, context.scope, context.dataFlowInfo, context.expectedType,
@@ -140,7 +140,7 @@ class ExpressionTypingContext private constructor(
          * @param isDebuggerContext 是否为调试器上下文
          * @return 新的表达式类型推导上下文
          */
-        @JvmStatic
+        
         fun newContext(context: ResolutionContext<*>, isDebuggerContext: Boolean): ExpressionTypingContext {
             return ExpressionTypingContext(
                 context.trace, context.scope, context.dataFlowInfo, context.expectedType,
@@ -166,7 +166,7 @@ class ExpressionTypingContext private constructor(
          * @param inferenceSession 推断会话
          * @return 新的表达式类型推导上下文
          */
-        @JvmStatic
+        
         fun newContext(
             trace: BindingTrace,
             scope: LexicalScope,
@@ -201,7 +201,7 @@ class ExpressionTypingContext private constructor(
          * @param inferenceSession 推断会话
          * @return 新的表达式类型推导上下文
          */
-        @JvmStatic
+        
         fun newContext(
             trace: BindingTrace,
             scope: LexicalScope,
@@ -236,7 +236,7 @@ class ExpressionTypingContext private constructor(
          * @param dataFlowValueFactory 数据流值工厂
          * @return 新的表达式类型推导上下文
          */
-        @JvmStatic
+        
         fun newContext(
             trace: BindingTrace,
             scope: LexicalScope,
@@ -264,7 +264,7 @@ class ExpressionTypingContext private constructor(
          * @param inferenceSession 推断会话（可为 null，使用默认值）
          * @return 新的表达式类型推导上下文
          */
-        @JvmStatic
+        
         fun newContext(
             trace: BindingTrace,
             scope: LexicalScope,

@@ -36,7 +36,7 @@
 //    val FUNCTION: CjFunctionElementType = CjFunctionElementType("FUNC")
 //
 //    @JvmField
-//    val VARIABLE: CjVariableElementType = CjVariableElementType("VARIABLE")
+//    val VARIABLE: CjPatternVariableElementType = CjPatternVariableElementType("VARIABLE")
 //
 //    @JvmField
 //    val PROPERTY: CjPropertyElementType = CjPropertyElementType("PROPERTY")
