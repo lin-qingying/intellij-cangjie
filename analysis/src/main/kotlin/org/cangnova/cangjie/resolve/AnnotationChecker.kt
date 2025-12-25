@@ -268,7 +268,7 @@ enum class CangJieTarget(val description: String, val isDefault: Boolean = true)
 
 object AnnotationTargetLists {
     val T_CLASSIFIER = targetList(CLASS)
-    // 解构声明已移除，统一使用模式匹配变量
+
     val T_INITIALIZER = targetList(INITIALIZER)
     val T_VALUE_PARAMETER_WITHOUT_LET = targetList(VALUE_PARAMETER)
     val T_LOCAL_VARIABLE = targetList(LOCAL_VARIABLE)
