@@ -36,6 +36,7 @@ class CjPrimaryConstructorElementType(debugName: String) :
     override fun newStub(
         parentStub: StubElement<*>,
         nameRef: StringRef?,
+        identifierNameRef: StringRef?,
         hasBody: Boolean,
         isDelegatedCallToThis: Boolean,
     ): CangJieConstructorStub<CjPrimaryConstructor> {
@@ -43,10 +44,15 @@ class CjPrimaryConstructorElementType(debugName: String) :
             parentStub,
             CjStubElementTypes.PRIMARY_CONSTRUCTOR,
             nameRef,
+            identifierNameRef,
             hasBody,
             isDelegatedCallToThis,
         )
     }
 
     override fun isDelegatedCallToThis(constructor: CjPrimaryConstructor) = false
+
+    override fun getIdentifierName(constructor: CjPrimaryConstructor): String? {
+        return constructor.identifier?.text
+    }
 }

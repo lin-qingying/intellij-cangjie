@@ -37,6 +37,7 @@ class CjEndSecondaryConstructorElementType(debugName: String) :
     override fun newStub(
         parentStub: StubElement<*>,
         nameRef: StringRef?,
+        identifierNameRef: StringRef?,
         hasBody: Boolean,
         isDelegatedCallToThis: Boolean,
     ): CangJieConstructorStub<CjEndSecondaryConstructor> {
@@ -44,12 +45,15 @@ class CjEndSecondaryConstructorElementType(debugName: String) :
             parentStub,
             CjStubElementTypes.END_SECONDARY_CONSTRUCTOR,
             nameRef,
+            identifierNameRef,
             hasBody,
             isDelegatedCallToThis,
         )
     }
 
     override fun isDelegatedCallToThis(constructor: CjEndSecondaryConstructor) = constructor.getDelegationCallOrNull()?.isCallToThis ?: true
+
+    override fun getIdentifierName(constructor: CjEndSecondaryConstructor): String? = null
 }
 
 class CjSecondaryConstructorElementType(debugName: String) :
@@ -57,6 +61,7 @@ class CjSecondaryConstructorElementType(debugName: String) :
     override fun newStub(
         parentStub: StubElement<*>,
         nameRef: StringRef?,
+        identifierNameRef: StringRef?,
         hasBody: Boolean,
         isDelegatedCallToThis: Boolean,
     ): CangJieConstructorStub<CjSecondaryConstructor> {
@@ -64,10 +69,13 @@ class CjSecondaryConstructorElementType(debugName: String) :
             parentStub,
             CjStubElementTypes.SECONDARY_CONSTRUCTOR,
             nameRef,
+            identifierNameRef,
             hasBody,
             isDelegatedCallToThis,
         )
     }
 
     override fun isDelegatedCallToThis(constructor: CjSecondaryConstructor) = constructor.getDelegationCallOrNull()?.isCallToThis ?: true
+
+    override fun getIdentifierName(constructor: CjSecondaryConstructor): String? = null
 }

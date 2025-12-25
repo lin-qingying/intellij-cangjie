@@ -73,9 +73,42 @@ class CjPrimaryConstructor : CjConstructor<CjPrimaryConstructor> {
     override fun getIdentifyingElement(): PsiElement? {
         return identifier
     }
-    val identifier: PsiElement? get() = findChildByType(CjTokens.IDENTIFIER)
+
+    val identifier: PsiElement?
+        get() {
+            // 优先从 Stub 获取，避免访问 AST
+            val stubIdentifier = greenStub?.getIdentifierName()
+            if (stubIdentifier != null) {
+                // Stub 中有标识符名称，但我们需要返回 PsiElement
+                // 如果只是为了获取名称，不需要 PsiElement，直接用 getName()
+                // 这里仍然需要找到实际的 PsiElement
+                if (containingFile.isValid) {
+                    return findChildByType(CjTokens.IDENTIFIER)
+                }
+                return null
+            }
+            return findChildByType(CjTokens.IDENTIFIER)
+        }
+
     override fun getName(): String? {
-        return identifier ?.text
+        // 优先从 Stub 获取，避免访问 AST 导致 PsiInvalidElementAccessException
+        val stub = greenStub
+        if (stub != null) {
+            val identifierName = stub.getIdentifierName()
+            if (identifierName != null) {
+                return identifierName
+            }
+        }
+        // 如果 Stub 不可用，再访问 AST
+        return try {
+            if (containingFile.isValid) {
+                identifier?.text
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
     }
     override fun removeModifier(modifier: CjKeywordToken) {
         super.removeModifier(modifier)

@@ -357,6 +357,8 @@ interface CangJieConstructorStub<T : CjConstructor<T>> :
     CangJieCallableStubBase<T> {
     fun hasBody(): Boolean
     fun isDelegatedCallToThis(): Boolean
+    /** 获取主构造函数的标识符（仅用于主构造函数，次构造函数返回 null） */
+    fun getIdentifierName(): String?
 }
 
 interface CangJieImportAliasStub : StubElement<CjImportAlias> {

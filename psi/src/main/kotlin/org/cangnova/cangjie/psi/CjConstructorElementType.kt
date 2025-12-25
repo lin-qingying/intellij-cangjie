@@ -42,21 +42,31 @@ abstract class CjConstructorElementType<T : CjConstructor<T>>(
     protected abstract fun newStub(
         parentStub: StubElement<*>,
         nameRef: StringRef?,
+        identifierNameRef: StringRef?,
         hasBody: Boolean,
         isDelegatedCallToThis: Boolean,
     ): CangJieConstructorStub<T>
 
     protected abstract fun isDelegatedCallToThis(constructor: T): Boolean
+    protected abstract fun getIdentifierName(constructor: T): String?
 
     override fun createStub(psi: T, parentStub: StubElement<*>): CangJieConstructorStub<T> {
         val hasBody = psi.hasBody()
         val isDelegatedCallToThis = isDelegatedCallToThis(psi)
-        return newStub(parentStub, StringRef.fromString(psi.name), hasBody, isDelegatedCallToThis)
+        val identifierName = getIdentifierName(psi)
+        return newStub(
+            parentStub,
+            StringRef.fromString(psi.name),
+            StringRef.fromString(identifierName),
+            hasBody,
+            isDelegatedCallToThis
+        )
     }
 
     @Throws(IOException::class)
     override fun serialize(stub: CangJieConstructorStub<T>, dataStream: StubOutputStream) {
         dataStream.writeName(stub.name)
+        dataStream.writeName(stub.getIdentifierName())
         dataStream.writeBoolean(stub.hasBody())
         dataStream.writeBoolean(stub.isDelegatedCallToThis())
     }
@@ -64,9 +74,10 @@ abstract class CjConstructorElementType<T : CjConstructor<T>>(
     @Throws(IOException::class)
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieConstructorStub<T> {
         val name = dataStream.readName()
+        val identifierName = dataStream.readName()
         val hasBody = dataStream.readBoolean()
         val isDelegatedCallToThis = dataStream.readBoolean()
-        return newStub(parentStub, name, hasBody, isDelegatedCallToThis)
+        return newStub(parentStub, name, identifierName, hasBody, isDelegatedCallToThis)
     }
 
     override fun indexStub(stub: CangJieConstructorStub<T>, sink: IndexSink) {

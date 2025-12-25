@@ -482,6 +482,7 @@ class ConstructorClsStubBuilder(
                 parentStub,
                 CjStubElementTypes.PRIMARY_CONSTRUCTOR,
                 name,
+                name,
                 hasBody = false,
                 isDelegatedCallToThis = false
             )
@@ -489,6 +490,7 @@ class ConstructorClsStubBuilder(
             CangJieConstructorStubImpl(
                 parentStub,
                 CjStubElementTypes.SECONDARY_CONSTRUCTOR,
+                name,
                 name,
                 hasBody = true,
                 isDelegatedCallToThis = false
