@@ -252,7 +252,6 @@ import org.cangnova.cangjie.name.OperatorNameConventions.asOperatorName
 import org.cangnova.cangjie.name.OperatorNameConventions.asOperatorString
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.quoteIfNeeded
-import org.cangnova.cangjie.psi.stubs.CangJieEnumStub
 import org.cangnova.cangjie.psi.stubs.CangJieFileStubKind
 import org.cangnova.cangjie.psi.stubs.elements.CjTokenSets.FILE_DECLARATION_TYPES
 import org.cangnova.cangjie.psi.stubs.impl.CangJieFileStubImpl
@@ -498,13 +497,13 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 return null
             }
 
-            override fun visitEnumConstructor(cjEnumConstructor: CjEnumConstructor, data: Unit): Unit? {
-                withSuffix(" ") { cjEnumConstructor.annotations?.accept(explicitThis, Unit) }
-                withSuffix(" ") { cjEnumConstructor.modifierList?.accept(explicitThis, Unit) }
-                append(cjEnumConstructor.name?.quoteIfNeeded())
+            override fun visitEnumConstructor(enumConstructor: CjEnumConstructor, data: Unit): Unit? {
+                withSuffix(" ") { enumConstructor.annotations?.accept(explicitThis, Unit) }
+                withSuffix(" ") { enumConstructor.modifierList?.accept(explicitThis, Unit) }
+                append(enumConstructor.name?.quoteIfNeeded())
 
                 // 如果有类型参数，渲染类型列表
-                val typeRefs = cjEnumConstructor.typeReferences
+                val typeRefs = enumConstructor.typeReferences
                 if (typeRefs.isNotEmpty()) {
                     printCollection(typeRefs, prefix = "(", postfix = ")") {
                         it.accept(explicitThis, Unit)
@@ -514,20 +513,20 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 return null
             }
 
-            override fun visitExtend(cjExtend: CjExtend, data: Unit): Unit? {
-                withSuffix(" ") { cjExtend.annotations?.accept(explicitThis, Unit) }
-                withSuffix(" ") { cjExtend.modifierList?.accept(explicitThis, Unit) }
+            override fun visitExtend(extend: CjExtend, data: Unit): Unit? {
+                withSuffix(" ") { extend.annotations?.accept(explicitThis, Unit) }
+                withSuffix(" ") { extend.modifierList?.accept(explicitThis, Unit) }
                 append("extend")
-                cjExtend.typeParameterList?.accept(explicitThis, Unit)
-                withPrefix(" ") { cjExtend.receiverTypeReceiver?.accept(explicitThis, Unit) }
-                withPrefix(" <: ") { cjExtend.getSuperTypeList()?.accept(explicitThis, Unit) }
+                extend.typeParameterList?.accept(explicitThis, Unit)
+                withPrefix(" ") { extend.receiverTypeReceiver?.accept(explicitThis, Unit) }
+                withPrefix(" <: ") { extend.getSuperTypeList()?.accept(explicitThis, Unit) }
 
                 // 渲染 where 子句（如果存在）
-                withPrefix(" ") { cjExtend.typeConstraintList?.accept(explicitThis, Unit) }
+                withPrefix(" ") { extend.typeConstraintList?.accept(explicitThis, Unit) }
 
                 appendLine(" {")
                 withIndent {
-                    val declarations = cjExtend.body?.declarations ?: emptyList()
+                    val declarations = extend.body?.declarations ?: emptyList()
                     withSuffix("\n") {
                         printCollectionIfNotEmpty(declarations, separator = "\n\n") {
                             it.accept(explicitThis, Unit)
@@ -696,24 +695,24 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 return null
             }
 
-            override fun visitParameterList(cjParameterList: CjParameterList, data: Unit): Unit? {
-                printCollection(cjParameterList.parameters, prefix = "(", postfix = ")") {
+            override fun visitParameterList(parameterList: CjParameterList, data: Unit): Unit? {
+                printCollection(parameterList.parameters, prefix = "(", postfix = ")") {
                     it.accept(explicitThis, Unit)
                 }
                 return null
             }
 
-            override fun visitParameter(cjParameter: CjParameter, data: Unit): Unit? {
-                withSuffix(" ") { cjParameter.annotations?.accept(explicitThis, Unit) }
-                withSuffix(" ") { cjParameter.modifierList?.accept(explicitThis, Unit) }
-                append(cjParameter.name?.quoteIfNeeded())
+            override fun visitParameter(parameter: CjParameter, data: Unit): Unit? {
+                withSuffix(" ") { parameter.annotations?.accept(explicitThis, Unit) }
+                withSuffix(" ") { parameter.modifierList?.accept(explicitThis, Unit) }
+                append(parameter.name?.quoteIfNeeded())
                 // 如果是命名参数，添加 ! 标记
-                if (cjParameter.isNamed) {
+                if (parameter.isNamed) {
                     append("!")
                 }
                 append(": ")
-                cjParameter.typeReference?.accept(explicitThis, Unit)
-                if (cjParameter.hasDefaultValue()) {
+                parameter.typeReference?.accept(explicitThis, Unit)
+                if (parameter.hasDefaultValue()) {
                     append(" = $COMPILED_DEFAULT_PARAMETER_VALUE")
                 }
                 return null
@@ -761,8 +760,8 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 return null
             }
 
-            override fun visitTupleType(cjTupleType: CjTupleType, data: Unit): Unit? {
-                printCollection(cjTupleType.typeArgumentsAsTypes, prefix = "(", postfix = ")") {
+            override fun visitTupleType(tupleType: CjTupleType, data: Unit): Unit? {
+                printCollection(tupleType.typeArgumentsAsTypes, prefix = "(", postfix = ")") {
                     it.accept(explicitThis, Unit)
                 }
                 return null

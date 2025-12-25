@@ -428,12 +428,12 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
         return visitCjElement(constraint, data)
     }
 
-    open fun visitParameterList(cjParameterList: CjParameterList, data: D): R? {
-        return visitCjElement(cjParameterList, data)
+    open fun visitParameterList(parameterList: CjParameterList, data: D): R? {
+        return visitCjElement(parameterList, data)
     }
 
-    open fun visitParameter(cjParameter: CjParameter, data: D): R? {
-        return visitCjElement(cjParameter, data)
+    open fun visitParameter(parameter: CjParameter, data: D): R? {
+        return visitCjElement(parameter, data)
     }
 
     /**
@@ -547,28 +547,28 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
         return visitCjElement(basicType, data)
     }
 
-    open fun visitKeyword(cjKeyword: CjKeyword, data: D): R? {
-        return visitCjElement(cjKeyword, data)
+    open fun visitKeyword(keyword: CjKeyword, data: D): R? {
+        return visitCjElement(keyword, data)
     }
 
     open fun visitSimpleNameStringTemplateEntry(entry: CjSimpleNameStringTemplateEntry, data: D): R? {
         return visitStringTemplateEntryWithExpression(entry, data)
     }
 
-    open fun visitEnumConstructor(cjEnumConstructor: CjEnumConstructor, data: D): R? {
-        return visitCjElement(cjEnumConstructor, data)
+    open fun visitEnumConstructor(enumConstructor: CjEnumConstructor, data: D): R? {
+        return visitCjElement(enumConstructor, data)
     }
 
-    open fun visitMatchEntry(cjMatchEntry: CjMatchEntry, data: D): R? {
-        return visitCjElement(cjMatchEntry, data)
+    open fun visitMatchEntry(matchEntry: CjMatchEntry, data: D): R? {
+        return visitCjElement(matchEntry, data)
     }
 
-    open fun visitTupleType(cjTupleType: CjTupleType, data: D): R? {
-        return visitCjElement(cjTupleType, data)
+    open fun visitTupleType(tupleType: CjTupleType, data: D): R? {
+        return visitCjElement(tupleType, data)
     }
 
-    open fun visitParenthesizedType(cjParenthesizedType: CjParenthesizedType, data: D): R? {
-        return visitCjElement(cjParenthesizedType, data)
+    open fun visitParenthesizedType(parenthesizedType: CjParenthesizedType, data: D): R? {
+        return visitCjElement(parenthesizedType, data)
     }
 
     open fun visitFunctionType(type: CjFunctionType, data: D): R? {
@@ -592,8 +592,8 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
         return visitDeclaration(accessor, data)
     }
 
-    open fun visitExtend(cjExtend: CjExtend, data: D): R? {
-        return visitTypeStatement(cjExtend, data)
+    open fun visitExtend(extend: CjExtend, data: D): R? {
+        return visitTypeStatement(extend, data)
     }
 
     open fun visitClass(klass: CjClass, data: D): R? {
@@ -630,7 +630,7 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
         return visitCjElement(annotation, data)
     }
 
-    open fun visitMainFunction(cjMainFunction: CjMainFunction, data: D): R? {
-        return visitDeclaration(cjMainFunction, data)
+    open fun visitMainFunction(mainFunction: CjMainFunction, data: D): R? {
+        return visitDeclaration(mainFunction, data)
     }
 } 

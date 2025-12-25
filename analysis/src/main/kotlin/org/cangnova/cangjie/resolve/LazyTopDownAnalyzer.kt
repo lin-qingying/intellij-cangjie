@@ -174,7 +174,7 @@ class LazyTopDownAnalyzer(
                     checkTypeStatementDeclarations(typeStatement, descriptor)
                 }
 
-                override fun visitExtend(cjExtend: CjExtend) {
+                override fun visitExtend(extend: CjExtend) {
 //                    TODO("实现扩展")
                 }
 
@@ -199,7 +199,7 @@ class LazyTopDownAnalyzer(
                         lazyDeclarationResolver.resolveToDescriptor(constructor) as ClassConstructorDescriptor
                 }
 
-                override fun visitEnumConstructor(cjEnumConstructor: CjEnumConstructor, data: Unit?) {
+                override fun visitEnumConstructor(enumConstructor: CjEnumConstructor, data: Unit?) {
                 }
 
                 override fun visitSecondaryConstructor(constructor: CjSecondaryConstructor) {
@@ -246,8 +246,8 @@ class LazyTopDownAnalyzer(
                     macroDeclarations.add(function)
                 }
 
-                override fun visitMainFunction(cjMainFunction: CjMainFunction) {
-                    mainFunctions.add(cjMainFunction)
+                override fun visitMainFunction(mainFunction: CjMainFunction) {
+                    mainFunctions.add(mainFunction)
 
                 }
 

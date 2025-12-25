@@ -266,17 +266,17 @@ open class LazyDeclarationResolver(
                 }
             }
 
-            override fun visitMainFunction(cjMainFunction: CjMainFunction, data: Nothing?): DeclarationDescriptor? {
-                val location = lookupLocationFor(cjMainFunction, true)
-                val scopeForDeclaration = getMemberScopeDeclaredIn(cjMainFunction, location)
+            override fun visitMainFunction(mainFunction: CjMainFunction, data: Nothing?): DeclarationDescriptor? {
+                val location = lookupLocationFor(mainFunction, true)
+                val scopeForDeclaration = getMemberScopeDeclaredIn(mainFunction, location)
 
-                scopeForDeclaration.getContributedFunctions(cjMainFunction.nameAsSafeName, location)
-                return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, cjMainFunction)
+                scopeForDeclaration.getContributedFunctions(mainFunction.nameAsSafeName, location)
+                return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, mainFunction)
 
 
             }
 
-            override fun visitExtend(cjExtend: CjExtend, data: Nothing?): DeclarationDescriptor {
+            override fun visitExtend(extend: CjExtend, data: Nothing?): DeclarationDescriptor {
 
                 TODO("扩展")
             }
@@ -321,7 +321,7 @@ open class LazyDeclarationResolver(
                 return visitTypeStatement(cclass, data)
             }
 
-            override fun visitEnumConstructor(cjEnumConstructor: CjEnumConstructor, data: Nothing?): DeclarationDescriptor? {
+            override fun visitEnumConstructor(enumConstructor: CjEnumConstructor, data: Nothing?): DeclarationDescriptor? {
                 return null
 
             }

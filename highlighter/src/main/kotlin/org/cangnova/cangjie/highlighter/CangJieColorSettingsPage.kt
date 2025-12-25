@@ -190,7 +190,7 @@ class CangJieColorSettingsPage : ColorSettingsPage, RainbowColorSettingsPage {
             CangJieHighlightingBundle.message("highlighter.descriptor.text.typeDefined") to CangJieHighlightingColors.TYPE_DEFINED,
             CangJieHighlightingBundle.message("highlighter.descriptor.text.typeAlias") to CangJieHighlightingColors.TYPE_ALIAS,
             CangJieHighlightingBundle.message("highlighter.descriptor.text.enum") to CangJieHighlightingColors.ENUM,
-            CangJieHighlightingBundle.message("highlighter.descriptor.text.enumEntry") to CangJieHighlightingColors.ENUM_ENTRY,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.enumEntry") to CangJieHighlightingColors.ENUM_CONSTRUCTOR,
             CangJieHighlightingBundle.message("highlighter.descriptor.text.var") to CangJieHighlightingColors.MUTABLE_VARIABLE,
             CangJieHighlightingBundle.message("highlighter.descriptor.text.local.variable") to CangJieHighlightingColors.LOCAL_VARIABLE,
             CangJieHighlightingBundle.message("highlighter.descriptor.text.captured.variable") to CangJieHighlightingColors.WRAPPED_INTO_REF,

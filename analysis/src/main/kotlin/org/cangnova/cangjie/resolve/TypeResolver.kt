@@ -66,7 +66,6 @@ import org.cangnova.cangjie.types.checker.TrailingCommaChecker
 import org.cangnova.cangjie.types.checker.TypeIntersector
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.expressions.TypeAttributeTranslators
-import org.cangnova.cangjie.types.util.*
 import kotlin.math.min
 
 class TypeResolver(
@@ -351,8 +350,8 @@ class TypeResolver(
                 result = resolveTypeForClassifier(c, classifier, qualifierResolutionResult, type, annotations)
             }
 
-            override fun visitParenthesizedType(cjParenthesizedType: CjParenthesizedType) {
-                result = resolveTypeElement(c, Annotations.EMPTY, null, cjParenthesizedType.getType())
+            override fun visitParenthesizedType(parenthesizedType: CjParenthesizedType) {
+                result = resolveTypeElement(c, Annotations.EMPTY, null, parenthesizedType.getType())
             }
 
             private fun resolveParametersOfFunctionType(parameters: List<CjParameter>): List<VariableDescriptor> {

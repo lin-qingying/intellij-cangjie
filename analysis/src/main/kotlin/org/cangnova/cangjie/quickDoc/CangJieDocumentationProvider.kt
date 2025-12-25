@@ -846,26 +846,27 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                 // element is not an CjReferenceExpression, but CjClass of enum
                 return renderEnum(element, originalElement, quickNavigation)
             } else if (element is CjEnumConstructor && !quickNavigation) {
-                val ordinal =
-                    element.containingTypeStatement?.body?.run { getChildrenOfType<CjEnumConstructor>().indexOf(element) }
-
-                val project = element.project
-                @Suppress("HardCodedStringLiteral")
-                return buildString {
-                    insert(buildCangJieDeclaration(element, quickNavigation = false)) {
-                        definition {
-                            it.inherit()
-                            ordinal?.let {
-                                append("<br>")
-                                appendHighlighted("// ", project) { asInfo }
-                                appendHighlighted(
-                                    CangJieCDocBundle.message("quick.doc.text.enum.ordinal", ordinal),
-                                    project
-                                ) { asInfo }
-                            }
-                        }
-                    }
-                }
+                TODO()
+//                val ordinal =
+//                    element.containingTypeStatement?.body?.run { getChildrenOfType<CjEnumConstructor>().indexOf(element) }
+//
+//                val project = element.project
+//                @Suppress("HardCodedStringLiteral")
+//                return buildString {
+//                    insert(buildCangJieDeclaration(element, quickNavigation = false)) {
+//                        definition {
+//                            it.inherit()
+//                            ordinal?.let {
+//                                append("<br>")
+//                                appendHighlighted("// ", project) { asInfo }
+//                                appendHighlighted(
+//                                    CangJieCDocBundle.message("quick.doc.text.enum.ordinal", ordinal),
+//                                    project
+//                                ) { asInfo }
+//                            }
+//                        }
+//                    }
+//                }
             } else if (element is CjDeclaration) {
                 return renderCangJieDeclaration(element, quickNavigation)
             } /*else if (element is CjNameReferenceExpression && element.getReferencedNameAsName() == StandardNames.IMPLICIT_LAMBDA_PARAMETER_NAME) {

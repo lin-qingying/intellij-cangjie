@@ -38,8 +38,8 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
         super.visitFunctionType(type, Unit)
     }
 
-    override fun visitTupleType(cjTupleType: CjTupleType, data: Unit?) {
-        visitTupleType(cjTupleType)
+    override fun visitTupleType(tupleType: CjTupleType, data: Unit?) {
+        visitTupleType(tupleType)
 
     }
 
@@ -48,13 +48,13 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
 
     }
 
-    override fun visitParenthesizedType(cjParenthesizedType: CjParenthesizedType, data: Unit?): Unit {
-        visitParenthesizedType(cjParenthesizedType)
+    override fun visitParenthesizedType(parenthesizedType: CjParenthesizedType, data: Unit?): Unit {
+        visitParenthesizedType(parenthesizedType)
 
     }
 
-    open fun visitParenthesizedType(cjParenthesizedType: CjParenthesizedType) {
-        super.visitParenthesizedType(cjParenthesizedType, Unit)
+    open fun visitParenthesizedType(parenthesizedType: CjParenthesizedType) {
+        super.visitParenthesizedType(parenthesizedType, Unit)
     }
 
     override fun visitOptionType(optionType: CjOptionType, data: Unit?) {
@@ -88,22 +88,22 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
         super.visitClass(klass, Unit)
     }
 
-    override fun visitExtend(cjExtend: CjExtend, data: Unit?): Unit {
-        visitExtend(cjExtend)
+    override fun visitExtend(extend: CjExtend, data: Unit?): Unit {
+        visitExtend(extend)
 
     }
 
-    open fun visitExtend(cjExtend: CjExtend) {
-        super.visitExtend(cjExtend, Unit)
+    open fun visitExtend(extend: CjExtend) {
+        super.visitExtend(extend, Unit)
     }
 
-    override fun visitMainFunction(cjMainFunction: CjMainFunction, data: Unit?): Unit {
-        visitMainFunction(cjMainFunction)
+    override fun visitMainFunction(mainFunction: CjMainFunction, data: Unit?): Unit {
+        visitMainFunction(mainFunction)
 
     }
 
-    open fun visitMainFunction(cjMainFunction: CjMainFunction) {
-        super.visitMainFunction(cjMainFunction, Unit)
+    open fun visitMainFunction(mainFunction: CjMainFunction) {
+        super.visitMainFunction(mainFunction, Unit)
     }
 
     open fun visitStruct(cstruct: CjStruct) {
@@ -544,18 +544,18 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
 
     }
 
-    override fun visitEnumConstructor(cjEnumConstructor: CjEnumConstructor, data: Unit?): Unit {
-        visitEnumConstructor(cjEnumConstructor)
+    override fun visitEnumConstructor(enumConstructor: CjEnumConstructor, data: Unit?): Unit {
+        visitEnumConstructor(enumConstructor)
 
     }
 
-    override fun visitParameterList(cjParameterList: CjParameterList, data: Unit?): Unit {
-        visitParameterList(cjParameterList)
+    override fun visitParameterList(parameterList: CjParameterList, data: Unit?): Unit {
+        visitParameterList(parameterList)
 
     }
 
-    override fun visitParameter(cjParameter: CjParameter, data: Unit?): Unit {
-        visitParameter(cjParameter)
+    override fun visitParameter(parameter: CjParameter, data: Unit?): Unit {
+        visitParameter(parameter)
 
     }
 
@@ -830,12 +830,12 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
 
     }
 
-    fun visitMatchEntry(cjMatchEntry: CjMatchEntry) {
-        super.visitMatchEntry(cjMatchEntry, Unit)
+    fun visitMatchEntry(matchEntry: CjMatchEntry) {
+        super.visitMatchEntry(matchEntry, Unit)
     }
 
-    override fun visitMatchEntry(cjMatchEntry: CjMatchEntry, data: Unit?): Unit {
-        visitMatchEntry(cjMatchEntry)
+    override fun visitMatchEntry(matchEntry: CjMatchEntry, data: Unit?): Unit {
+        visitMatchEntry(matchEntry)
 
     }
 
