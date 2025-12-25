@@ -535,7 +535,6 @@ object CangJieResolveDataProvider {
 
         val topmostElement = element.findTopmostParentInFile {
             it is CjNamedFunction ||
-                    it is CjAnonymousInitializer ||
                     it is CjProperty ||
                     it is CjImportDirectiveItem ||
                     it is CjPackageDirective ||
@@ -562,8 +561,6 @@ object CangJieResolveDataProvider {
         }
         // Primary constructor should never be returned
         if (analyzableElement is CjPrimaryConstructor) return analyzableElement.getContainingTypeStatement()
-        // Class initializer should be replaced by containing class to provide full analysis
-        if (analyzableElement is CjClassInitializer) return analyzableElement.containingDeclaration
         return analyzableElement
         // if none of the above worked, take the outermost declaration
             ?: element.findTopmostParentOfType<CjDeclaration>()

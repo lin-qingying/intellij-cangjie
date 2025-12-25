@@ -378,10 +378,6 @@ class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypi
             override fun visitPropertyAccessor(accessor: CjPropertyAccessor, data: Boolean) {
                 super.visitPropertyAccessor(accessor, false)
             }
-
-            override fun visitAnonymousInitializer(initializer: CjAnonymousInitializer, data: Boolean) {
-                super.visitAnonymousInitializer(initializer, false)
-            }
         }, true)
 
         return returns

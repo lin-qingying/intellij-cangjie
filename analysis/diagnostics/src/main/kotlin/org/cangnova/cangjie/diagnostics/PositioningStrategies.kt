@@ -857,7 +857,7 @@ object PositioningStrategies {
 
             val elementToMark = when (element) {
                 is CjPropertyAccessor -> element.namePlaceholder
-                is CjAnonymousInitializer, is CjPrimaryConstructor -> element
+          is CjPrimaryConstructor -> element
                 else -> throw IllegalArgumentException(
                     "Can't find text range for element '${element::class.java.canonicalName}' with the text '${element.text}'"
                 )

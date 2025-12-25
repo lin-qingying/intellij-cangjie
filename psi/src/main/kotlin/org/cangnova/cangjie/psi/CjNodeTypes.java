@@ -121,7 +121,6 @@ public interface CjNodeTypes {
 
     IElementType SUPER_TYPE_ENTRY = CjStubElementTypes.SUPER_TYPE_ENTRY;
     IElementType MODIFIER_LIST = CjStubElementTypes.MODIFIER_LIST;
-//    IElementType CLASS_INITIALIZER = CjStubElementTypes.CLASS_INITIALIZER;
 
     IElementType REFERENCE_EXPRESSION = CjStubElementTypes.REFERENCE_EXPRESSION;
     IElementType TYPE_PARAMETER_LIST = CjStubElementTypes.TYPE_PARAMETER_LIST;
@@ -237,15 +236,7 @@ public interface CjNodeTypes {
     IElementType MATCH_ENTRY = new CjNodeType("MATCH_ENTRY", CjMatchEntry.class);
 
 
-//    IElementType CASE_PATTERN = new CjNodeType("CASE_PATTERN", CjCasePattern.class);
 
-    //    IElementType CHARACTER_CONSTANT = CjStubElementTypes.CHARACTER_CONSTANT;
-    IElementType WILDCARD_PATTERN = new CjNodeType("WILDCARD_PATTERN", CjWildcardPattern.class);
-    IElementType TYPE_PATTERN = new CjNodeType("TYPE_PATTERN", CjTypePattern.class);
-    IElementType ENUM_PATTERN = new CjNodeType("ENUM_PATTERN", CjEnumPattern.class);
-    IElementType BINDING_PATTERN = new CjNodeType("BINDING_PATTERN", CjBindingPattern.class);
-    IElementType TUPLE_PATTERN = new CjNodeType("TUPLE_PATTERN", CjTuplePattern.class);
-    IElementType CONSTANT_PATTERN = new CjNodeType("CONSTANT_PATTERN", CjConstantPattern.class);
 
     IElementType PROPERTY_ACCESSOR = CjStubElementTypes.PROPERTY_ACCESSOR;
     IElementType ERROR_ELEMENT = new CjNodeType("ERROR_ELEMENT", CjErrorElement.class);
@@ -253,6 +244,15 @@ public interface CjNodeTypes {
     IElementType SECONDARY_CONSTRUCTOR = CjStubElementTypes.SECONDARY_CONSTRUCTOR;
     IElementType PRIMARY_CONSTRUCTOR = CjStubElementTypes.PRIMARY_CONSTRUCTOR;
     IElementType CONTEXT_RECEIVER_LIST = CjStubElementTypes.CONTEXT_RECEIVER_LIST;
+
+
+
+    IElementType BINDING_PATTERN = CjStubElementTypes.BINDING_PATTERN;
+    IElementType TUPLE_PATTERN = CjStubElementTypes.TUPLE_PATTERN;
+    IElementType ENUM_PATTERN = CjStubElementTypes.ENUM_PATTERN;
+    IElementType WILDCARD_PATTERN = CjStubElementTypes.WILDCARD_PATTERN;
+    IElementType TYPE_PATTERN = CjStubElementTypes.TYPE_PATTERN;
+    IElementType CONSTANT_PATTERN = CjStubElementTypes.CONSTANT_PATTERN;
 
 
 //    IFileElementType TYPE_CODE_FRAGMENT = CjStubElementTypes.TYPE_CODE_FRAGMENT;

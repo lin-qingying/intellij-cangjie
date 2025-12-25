@@ -377,21 +377,6 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
                     }
                 }
 
-                is CjClassInitializer -> {
-                    // 对于类初始化器，检查元素是否在其内部
-                    blockDeclaration
-                        .takeIf { it.isAncestor(element) }
-                        ?.let { cjClassInitializer ->
-                            parentClassOrObject?.let {
-                                return if (parentClassOrObject == directParentClassOrObject) {
-                                    BlockModificationScopeElement(it, cjClassInitializer)
-                                } else {
-                                    BlockModificationScopeElement(parentClassOrObject, cjClassInitializer)
-                                }
-                            }
-                        }
-                }
-
                 else -> throw IllegalStateException()
             }
 
@@ -419,8 +404,7 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
         fun isBlockDeclaration(declaration: PsiElement): Boolean {
             // 检查声明是否为属性访问器、变量、函数或类初始化器
             return declaration is CjPropertyAccessor || declaration is CjVariable<*> ||
-                    declaration is CjFunction ||
-                    declaration is CjClassInitializer
+                    declaration is CjFunction
         }
     }
 

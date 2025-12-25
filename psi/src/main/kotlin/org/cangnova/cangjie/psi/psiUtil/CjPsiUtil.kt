@@ -493,7 +493,7 @@ private fun CjModifierListOwner.modifierFromTokenSet(set: TokenSet) = modifierLi
 fun CjElement.findElementOfAdditionalResolve(): CjElement? {
     val elementOfAdditionalResolve = findTopmostParentInFile {
         it is CjFunction ||
-            it is CjAnonymousInitializer ||
+
 //                    it is CjPrimaryConstructor ||
 //                    it is CjSecondaryConstructor ||
             it is CjProperty ||

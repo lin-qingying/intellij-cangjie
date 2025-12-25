@@ -42,7 +42,7 @@ object CjTokenSets {
         CjStubElementTypes.VARIABLE,
         CjStubElementTypes.PROPERTY,
         CjStubElementTypes.TYPEALIAS,
-        CjStubElementTypes.CLASS_INITIALIZER,
+
         CjStubElementTypes.SECONDARY_CONSTRUCTOR,
         CjStubElementTypes.CJ_SCRIPT,
     )
@@ -66,8 +66,9 @@ object CjTokenSets {
      * 类/接口/结构体/枚举成员声明类型
      */
     val CLASS_MEMBER_DECLARATION_TYPES: TokenSet = TokenSet.create(
+        CjStubElementTypes.PRIMARY_CONSTRUCTOR,
         CjStubElementTypes.FUNCTION,
-        CjStubElementTypes.VARIABLE,
+        CjStubElementTypes.FIELD,
         CjStubElementTypes.PROPERTY,
         CjStubElementTypes.SECONDARY_CONSTRUCTOR,
         CjStubElementTypes.CLASS,
@@ -75,7 +76,7 @@ object CjTokenSets {
         CjStubElementTypes.STRUCT,
         CjStubElementTypes.ENUM,
         CjStubElementTypes.TYPEALIAS,
-        CjStubElementTypes.CLASS_INITIALIZER,
+
     )
 
     val INSIDE_DIRECTIVE_EXPRESSIONS: TokenSet = TokenSet.create( //            IMPORT_DIRECTIVE_ITEM,

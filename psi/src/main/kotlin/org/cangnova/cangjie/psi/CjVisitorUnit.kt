@@ -367,13 +367,6 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
         super.visitParenthesizedExpression(expression, Unit)
     }
 
-    open fun visitAnonymousInitializer(initializer: CjAnonymousInitializer) {
-        super.visitAnonymousInitializer(initializer, Unit)
-    }
-
-    fun visitClassInitializer(initializer: CjClassInitializer) {
-        super.visitClassInitializer(initializer, Unit)
-    }
 
     fun visitTypeConstraintList(list: CjTypeConstraintList) {
         super.visitTypeConstraintList(list, Unit)
@@ -779,10 +772,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
 
     }
 
-    override fun visitAnonymousInitializer(initializer: CjAnonymousInitializer, data: Unit?): Unit {
-        visitAnonymousInitializer(initializer)
 
-    }
 
     override fun visitTypeConstraintList(list: CjTypeConstraintList, data: Unit?): Unit {
         visitTypeConstraintList(list)
@@ -926,11 +916,6 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
 
     override fun visitInterface(cinterface: CjInterface, data: Unit?): Unit {
         visitInterface(cinterface)
-
-    }
-
-    override fun visitClassInitializer(initializer: CjClassInitializer, data: Unit?): Unit {
-        visitClassInitializer(initializer)
 
     }
 

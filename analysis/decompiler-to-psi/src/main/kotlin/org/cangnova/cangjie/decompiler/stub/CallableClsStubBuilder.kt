@@ -781,7 +781,13 @@ class VariableClsStubBuilder(
 
         // 创建绑定模式 Stub（用于存储变量名和 fqName）
         CangJieBindingPatternStubImpl(variableStub, varName.ref(), fqName)
+            .also {
+                CangJieNameReferenceExpressionStubImpl(
+                    it,
+                    varName.ref()
+                )
 
+            }
         TypeClsStubBuilder(variableStub, outerContext).createTypeReferenceStub(variableWrapper.returnType)
 
         // 如果有初始化器，创建 REFERENCE_EXPRESSION stub 占位符

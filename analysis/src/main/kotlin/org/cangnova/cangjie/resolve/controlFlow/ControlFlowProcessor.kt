@@ -1355,10 +1355,6 @@ class ControlFlowProcessor(
             // TODO : Support Type Arguments. Companion object may be initialized at this point");
         }
 
-        override fun visitAnonymousInitializer(initializer: CjAnonymousInitializer) {
-            generateInstructions(initializer.body)
-        }
-
         private fun generateHeaderDelegationSpecifiers(classOrObject: CjTypeStatement) {
             for (specifier in classOrObject.superTypeListEntries) {
                 generateInstructions(specifier)
@@ -1367,7 +1363,7 @@ class ControlFlowProcessor(
 
         private fun generateInitializersForClassOrObject(classOrObject: CjDeclarationContainer) {
             for (declaration in classOrObject.declarations) {
-                if (declaration is CjProperty || declaration is CjVariable<*> || declaration is CjAnonymousInitializer) {
+                if (declaration is CjProperty || declaration is CjVariable<*>) {
                     generateInstructions(declaration)
                 }
             }
@@ -1413,8 +1409,7 @@ class ControlFlowProcessor(
             if (classOrObject.isLocal) {
                 for (declaration in classOrObject.declarations) {
                     if (declaration is CjSecondaryConstructor ||
-                        declaration is CjProperty ||
-                        declaration is CjAnonymousInitializer
+                        declaration is CjProperty
                     ) {
                         continue
                     }

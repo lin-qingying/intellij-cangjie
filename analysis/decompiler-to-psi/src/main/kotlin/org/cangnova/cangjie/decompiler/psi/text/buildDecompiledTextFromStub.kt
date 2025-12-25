@@ -426,19 +426,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
 
                 appendLine(" {")
                 withIndent {
-                    // 先渲染主构造函数（如果存在）
-                    typeStatement.primaryConstructor?.let { constructor ->
-                        withSuffix(" ") { constructor.modifierList?.accept(explicitThis, Unit) }
-                        append("init")
-                        constructor.valueParameterList?.accept(explicitThis, Unit)
-                        appendLine(" { $DECOMPILED_CODE_COMMENT }")
-                    }
-
                     val declarations = typeStatement.body?.declarations ?: emptyList()
-                    // 如果有主构造函数和其他声明，添加分隔
-                    if (typeStatement.primaryConstructor != null && declarations.isNotEmpty()) {
-                        appendLine()
-                    }
                     withSuffix("\n") {
                         printCollectionIfNotEmpty(declarations, separator = "\n\n") {
                             it.accept(explicitThis, Unit)
@@ -551,7 +539,9 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
             override fun visitPrimaryConstructor(constructor: CjPrimaryConstructor, data: Unit): Unit? {
                 withSuffix(" ") { constructor.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { constructor.modifierList?.accept(explicitThis, Unit) }
+                append(constructor.name)
                 constructor.valueParameterList?.accept(explicitThis, Unit)
+                append(" { $DECOMPILED_CODE_COMMENT }")
                 return null
             }
 
@@ -601,6 +591,8 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 }
                 // 从模式中获取名称（对于反编译的代码，总是简单绑定模式）
                 val pattern = variable.pattern
+
+//                没必要处理其他模式了，反编译代码中不会出现复杂模式
                 if (pattern is CjBindingPattern) {
                     append(pattern.name?.quoteIfNeeded())
                 }

@@ -71,14 +71,14 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
         val classesAndObjects = ArrayListMultimap.create<Name, CjTypeStatementInfo<*>>() // order matters here
         val extends = ArrayListMultimap.create<Name, CjTypeStatementInfo<CjExtend>>()
 
-        //        val scripts = ArrayListMultimap.create<Name, CjScriptInfo>()
+
         val typeAliases = ArrayListMultimap.create<Name, CjTypeAlias>()
 
         val originalTypeAliases = ArrayListMultimap.create<Name, CjTypeAlias>()
         val names = hashSetOf<Name>()
 
         fun putToIndex(declaration: CjDeclaration) {
-            if (declaration is CjAnonymousInitializer || declaration is CjConstructor<*>) return
+            if ( declaration is CjConstructor<*>) return
 
             allDeclarations.add(declaration)
             when (declaration) {
@@ -129,6 +129,12 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
             }
 
             when (declaration) {
+                is CjPatternVariable -> declaration.pattern!!.getAllBindings().forEach {
+                    if (it.nameAsName != null) {
+                        names.add(it.nameAsName.safeNameForLazyResolve())
+                    }
+                }
+
                 is CjNamedDeclaration -> names.add(declaration.safeNameForLazyResolve())
             }
         }
@@ -171,7 +177,6 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
 
     override fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>> =
         index().classesAndObjects[name.safeNameForLazyResolve()]
-
 
 
     override fun getAliasTypeStatementDeclarations(name: Name): Collection<CjTypeAlias> =

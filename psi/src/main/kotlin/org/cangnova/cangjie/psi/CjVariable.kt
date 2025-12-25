@@ -111,7 +111,12 @@ class CjPatternVariable : CjVariable<CangJieVariableStub> {
      * 使用 [getAllBindings] 扩展函数获取所有绑定的变量名。
      */
     val pattern: CjCasePatternElement?
-        get() = findChildByClass(CjCasePatternElement::class.java)
+        get() = getStubOrPsiChildByTypes(
+            CjStubElementTypes.BINDING_PATTERN,
+            CjStubElementTypes.TUPLE_PATTERN,
+            CjStubElementTypes.ENUM_PATTERN,
+            CjStubElementTypes.WILDCARD_PATTERN
+        )
 
     /**
      * 获取模式类型
@@ -139,7 +144,8 @@ class CjPatternVariable : CjVariable<CangJieVariableStub> {
     }
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
-        return visitor.visitVariable(this, data)
+        return visitor.visitPatternVariable(this, data)
+
     }
 
     override val isTopLevel: Boolean

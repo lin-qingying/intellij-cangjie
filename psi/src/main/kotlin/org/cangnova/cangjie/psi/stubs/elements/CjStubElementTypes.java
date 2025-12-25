@@ -43,8 +43,6 @@ public interface CjStubElementTypes {
     //    CjBackingFieldElementType BACKING_FIELD = new CjBackingFieldElementType("BACKING_FIELD");
     CjTypeAliasElementType TYPEALIAS = new CjTypeAliasElementType("TYPEALIAS");
 
-    CjPlaceHolderStubElementType<CjClassInitializer> CLASS_INITIALIZER =
-            new CjPlaceHolderStubElementType<>("CLASS_INITIALIZER", CjClassInitializer.class);
 
     CjCatchParameterElementType CATCH_PARAMETER = new CjCatchParameterElementType("CATCH_PARAMETER");
     CjParameterElementType VALUE_PARAMETER = new CjParameterElementType("VALUE_PARAMETER");

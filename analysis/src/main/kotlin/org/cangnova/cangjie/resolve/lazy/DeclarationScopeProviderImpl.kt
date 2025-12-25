@@ -62,8 +62,7 @@ open class DeclarationScopeProviderImpl(
                 NoLookupLocation.MATCH_GET_DECLARATION_SCOPE
             ) as ClassDescriptorWithResolutionScopes
 
-            if (cjDeclaration is CjAnonymousInitializer ||
-                cjDeclaration is CjProperty ||
+            if (cjDeclaration is CjProperty ||
                 cjDeclaration is CjVariable<*>
             ) {
                 return parentClassDescriptor.scopeForInitializerResolution

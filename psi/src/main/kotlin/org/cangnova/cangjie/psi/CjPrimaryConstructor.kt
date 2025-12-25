@@ -77,7 +77,7 @@ class CjPrimaryConstructor : CjConstructor<CjPrimaryConstructor> {
     val identifier: PsiElement?
         get() {
             // 优先从 Stub 获取，避免访问 AST
-            val stubIdentifier = greenStub?.getIdentifierName()
+            val stubIdentifier = greenStub?.name
             if (stubIdentifier != null) {
                 // Stub 中有标识符名称，但我们需要返回 PsiElement
                 // 如果只是为了获取名称，不需要 PsiElement，直接用 getName()
@@ -94,7 +94,7 @@ class CjPrimaryConstructor : CjConstructor<CjPrimaryConstructor> {
         // 优先从 Stub 获取，避免访问 AST 导致 PsiInvalidElementAccessException
         val stub = greenStub
         if (stub != null) {
-            val identifierName = stub.getIdentifierName()
+            val identifierName = stub.name
             if (identifierName != null) {
                 return identifierName
             }

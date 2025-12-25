@@ -1160,17 +1160,8 @@ fun CjElement.getElementParentDeclaration(): CjDeclaration? =
 
 fun CjDeclaration?.getDeclarationDescriptorIncludingConstructors(context: BindingContext): DeclarationDescriptor? {
     val descriptor =
-        context.get(DECLARATION_TO_DESCRIPTOR,
-            ((this as? CjClassInitializer)?.containingDeclaration ?: this) ?: return null
-        )
-    return if (descriptor is ClassDescriptor && this is CjClassInitializer) {
-        // For a class primary constructor, we cannot directly get ConstructorDescriptor by CjClassInitializer,
-        // so we have to do additional conversion: CjClassInitializer -> CjClassOrObject -> ClassDescriptor -> ConstructorDescriptor
-        descriptor.unsubstitutedPrimaryConstructor
-            ?: (descriptor as? ClassDescriptorWithResolutionScopes)?.scopeForInitializerResolution?.ownerDescriptor
-    } else {
-        descriptor
-    }
+        context.get(DECLARATION_TO_DESCRIPTOR, this ?: return null)
+    return descriptor
 }
 
 fun isBackingFieldReference(descriptor: DeclarationDescriptor?): Boolean {

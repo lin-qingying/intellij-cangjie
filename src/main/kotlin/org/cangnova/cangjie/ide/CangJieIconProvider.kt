@@ -87,7 +87,7 @@ abstract class AbstractCangJieIconProvider : IconProvider(), DumbAware {
         }
 
         val result = psiElement.getBaseIcon()
-        if (flags and Iconable.ICON_FLAG_VISIBILITY > 0 && result != null && (psiElement is CjModifierListOwner && psiElement !is CjClassInitializer)) {
+        if (flags and Iconable.ICON_FLAG_VISIBILITY > 0 && result != null && psiElement is CjModifierListOwner) {
             val list = psiElement.modifierList
             val visibilityIcon = getVisibilityIcon(list)
 

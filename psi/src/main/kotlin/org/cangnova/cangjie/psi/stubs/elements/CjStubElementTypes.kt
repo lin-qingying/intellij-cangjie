@@ -52,12 +52,6 @@
 //    val ENUM_CONSTRUCTOR: CjClassElementType = CjClassElementType("ENUM_CONSTRUCTOR")
 //
 //    @JvmField
-//    val CLASS_INITIALIZER: CjPlaceHolderStubElementType<CjClassInitializer> = CjPlaceHolderStubElementType(
-//        "CLASS_INITIALIZER",
-//        CjClassInitializer::class.java
-//    )
-//
-//    @JvmField
 //    val SECONDARY_CONSTRUCTOR: CjSecondaryConstructorElementType =
 //        CjSecondaryConstructorElementType("SECONDARY_CONSTRUCTOR")
 //

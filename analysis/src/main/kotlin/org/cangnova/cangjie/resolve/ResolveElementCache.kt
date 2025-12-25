@@ -75,8 +75,6 @@ val CjFile.inBlockModificationCount: Long by NotNullableUserDataProperty(FILE_IN
 
 //排除的类型
 private val EXCLUDED_TYPES = setOf(
-    CjAnonymousInitializer::class,
-
     CjBindingPattern::class,
     CjTypePattern::class,
     CjPackageDirective::class,
@@ -189,9 +187,7 @@ class ResolveElementCache(
             } else {
                 contextElements
                     .mapNotNull { it.getNonStrictParentOfType<CjDeclaration>() }
-                    .filterTo(declarationsToResolve) {
-                        it !is CjAnonymousInitializer
-                    }
+                    .toCollection(declarationsToResolve)
                 addResolveSessionBindingContext = true
             }
         }
@@ -289,7 +285,6 @@ class ResolveElementCache(
                     kclass == it::class
 
                 }
-//                it !is CjAnonymousInitializer && it !is CjDestructuringDeclaration && it !is CjDestructuringDeclarationEntry
             }?.let { resolveSession.resolveToDescriptor(it) }
             resolveSession.bindingContext
         }

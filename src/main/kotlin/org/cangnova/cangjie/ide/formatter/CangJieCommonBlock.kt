@@ -22,6 +22,282 @@
  *
  */
 
+/**
+ * 仓颉语言代码格式化系统的核心实现
+ *
+ * ## 架构概述
+ *
+ * 本文件是 IntelliJ Platform 代码格式化系统在仓颉语言上的具体实现，负责将抽象语法树（AST）
+ * 转换为格式化的代码块（Block），并根据用户配置的代码风格规则进行排版。
+ *
+ * ### 格式化系统架构
+ *
+ * ```
+ * PSI 树（源代码）
+ *   ↓
+ * AST Node
+ *   ↓
+ * CangJieCommonBlock（本文件）
+ *   ├─ 构建子块（buildSubBlocks）
+ *   ├─ 计算缩进（createChildIndent）
+ *   ├─ 计算换行（getWrappingStrategy）
+ *   ├─ 计算对齐（getChildrenAlignmentStrategy）
+ *   └─ 计算间距（spacingBuilder）
+ *   ↓
+ * 格式化后的代码
+ * ```
+ *
+ * ## 核心功能模块
+ *
+ * ### 1. 代码块构建（Block Building）
+ *
+ * **职责**：将 AST 节点递归地转换为格式化块
+ *
+ * **核心方法**：
+ * - `buildChildren()` - 构建当前节点的所有子块
+ * - `buildSubBlocks()` - 实际的子块构建逻辑
+ * - `buildSubBlock()` - 为单个子节点创建块
+ *
+ * **特殊处理**：
+ * - 限定表达式（Qualified Expressions）- 在 `.` 操作符处分割
+ * - Elvis 表达式 - 在 `?:` 操作符处分割
+ * - 二元表达式 - 扁平化嵌套的二元表达式树
+ *
+ * ### 2. 缩进计算（Indentation）
+ *
+ * **职责**：为每个代码块计算正确的缩进级别
+ *
+ * **核心方法**：
+ * - `createChildIndent()` - 根据父子关系和代码风格计算缩进
+ * - `getChildAttributes()` - 获取新插入元素的缩进和对齐
+ *
+ * **缩进类型**：
+ * - `Indent.getNoneIndent()` - 无缩进
+ * - `Indent.getNormalIndent()` - 标准缩进（通常是 4 个空格）
+ * - `Indent.getContinuationIndent()` - 延续缩进（通常是 8 个空格）
+ * - `Indent.getContinuationWithoutFirstIndent()` - 除第一个元素外的延续缩进
+ *
+ * **缩进规则示例**：
+ * ```cangjie
+ * class Foo {           // CLASS_BODY 内部使用 NORMAL 缩进
+ *     func bar() {      // 成员函数使用 NORMAL 缩进
+ *         let x = 1     // BLOCK 内部使用 NORMAL 缩进
+ *         let y = some
+ *             .very     // 链式调用使用 CONTINUATION 缩进
+ *             .long
+ *             .call()
+ *     }
+ * }
+ * ```
+ *
+ * ### 3. 换行策略（Wrapping Strategy）
+ *
+ * **职责**：决定何时在元素之间插入换行符
+ *
+ * **核心方法**：
+ * - `getWrappingStrategy()` - 根据节点类型返回换行策略
+ * - `getWrappingStrategyForItemList()` - 列表元素的通用换行策略
+ * - `trailingCommaWrappingStrategy()` - 支持尾随逗号的换行策略
+ *
+ * **换行模式**（对应 IntelliJ 设置）：
+ * - `DO_NOT_WRAP (0)` - 不换行
+ * - `WRAP_AS_NEEDED (1)` - 必要时换行（超过行宽限制）
+ * - `WRAP_ON_EVERY_ITEM (2)` - 每个元素都换行
+ * - `WRAP_ALWAYS (3)` - 总是换行
+ *
+ * **特殊处理**：
+ * - **尾随逗号**：支持参数列表、类型参数等的尾随逗号格式化
+ * - **链式调用**：`.method().method()` 形式的换行控制
+ * - **枚举常量**：`|` 分隔符的特殊换行逻辑
+ *
+ * ### 4. 对齐策略（Alignment Strategy）
+ *
+ * **职责**：在多行代码中对齐相关元素
+ *
+ * **核心方法**：
+ * - `getChildrenAlignmentStrategy()` - 为子元素获取对齐策略
+ * - `getAlignmentForChildInParenthesis()` - 括号内元素的对齐
+ *
+ * **对齐示例**：
+ * ```cangjie
+ * // 参数对齐
+ * func foo(param1: Int,
+ *          param2: String,  // 与 param1 对齐
+ *          param3: Bool)
+ *
+ * // 二元表达式对齐
+ * let result = value1 +
+ *              value2 +     // 与 value1 对齐
+ *              value3
+ * ```
+ *
+ * ### 5. 格式化控制（Formatting Control）
+ *
+ * **职责**：支持选择性禁用格式化
+ *
+ * **核心方法**：
+ * - `shouldFormat()` - 判断节点是否应该被格式化
+ *
+ * **控制机制**：
+ * ```cangjie
+ * // @formatter:off
+ * let unformatted = poorly    formatted   code
+ * // @formatter:on
+ * ```
+ *
+ * ### 6. 特殊语法处理
+ *
+ * #### 限定表达式（Qualified Expressions）
+ *
+ * **问题**：链式调用需要特殊的换行和缩进处理
+ * ```cangjie
+ * object.method1()
+ *     .method2()
+ *     .method3()
+ * ```
+ *
+ * **解决方案**：
+ * - `splitSubBlocksOnDot()` - 在 `.` 处分割子块
+ * - `anyCallInCallChainIsWrapped()` - 检测链中是否有换行
+ * - `createWrapForQualifierExpression()` - 为链式调用创建换行
+ *
+ * #### 二元表达式（Binary Expressions）
+ *
+ * **问题**：嵌套的二元表达式树需要扁平化以便统一处理
+ * ```cangjie
+ * let result = a + b + c + d
+ * ```
+ *
+ * **解决方案**：
+ * - `collectBinaryExpressionChildren()` - 递归收集所有操作数和操作符
+ * - `splitSubBlocksOnElvis()` - Elvis 操作符的特殊处理
+ *
+ * #### 枚举定义（Enum Definitions）
+ *
+ * **问题**：枚举使用 `|` 分隔符，需要特殊换行逻辑
+ * ```cangjie
+ * enum Color {
+ *     RED
+ *     | GREEN
+ *     | BLUE
+ * }
+ * ```
+ *
+ * **解决方案**：
+ * - `getWrappingStrategyForEnum()` - 枚举专用换行策略
+ *
+ * ## 关键数据结构
+ *
+ * ### ASTBlock
+ *
+ * IntelliJ Platform 的格式化块接口，每个块代表一个需要格式化的代码片段。
+ *
+ * **核心属性**：
+ * - `node: ASTNode` - 对应的 AST 节点
+ * - `indent: Indent` - 缩进信息
+ * - `wrap: Wrap` - 换行信息
+ * - `alignment: Alignment` - 对齐信息
+ * - `subBlocks: List<Block>` - 子块列表
+ *
+ * ### CommonAlignmentStrategy
+ *
+ * 对齐策略的抽象接口，根据节点类型返回对应的对齐对象。
+ *
+ * ### WrappingStrategy
+ *
+ * 换行策略的类型别名：`(ASTNode) -> Wrap?`
+ *
+ * ## 配置项支持
+ *
+ * 本文件支持以下代码风格配置项（来自 `CodeStyleSettings`）：
+ *
+ * ### 通用设置（CommonCodeStyleSettings）
+ *
+ * - `ALIGN_MULTILINE_PARAMETERS` - 对齐多行参数
+ * - `ALIGN_MULTILINE_PARAMETERS_IN_CALLS` - 对齐多行调用参数
+ * - `ALIGN_MULTILINE_BINARY_OPERATION` - 对齐多行二元表达式
+ * - `ALIGN_MULTILINE_EXTENDS_LIST` - 对齐多行继承列表
+ * - `METHOD_CALL_CHAIN_WRAP` - 方法链换行模式
+ * - `CALL_PARAMETERS_WRAP` - 调用参数换行模式
+ * - `METHOD_PARAMETERS_WRAP` - 方法参数换行模式
+ * - `ASSIGNMENT_WRAP` - 赋值表达式换行模式
+ * - `*_ANNOTATION_WRAP` - 各类注解换行模式
+ *
+ * ### 自定义设置（CangJieCodeStyleSettings）
+ *
+ * - `CONTINUATION_INDENT_FOR_CHAINED_CALLS` - 链式调用使用延续缩进
+ * - `CONTINUATION_INDENT_IN_ARGUMENT_LISTS` - 参数列表使用延续缩进
+ * - `CONTINUATION_INDENT_IN_PARAMETER_LISTS` - 形参列表使用延续缩进
+ * - `CONTINUATION_INDENT_IN_ELVIS` - Elvis 表达式使用延续缩进
+ * - `CONTINUATION_INDENT_FOR_EXPRESSION_BODIES` - 表达式体使用延续缩进
+ * - `WRAP_EXPRESSION_BODY_FUNCTIONS` - 表达式体函数换行模式
+ * - `WRAP_FIRST_METHOD_IN_CALL_CHAIN` - 链中第一个方法也换行
+ * - `ALIGN_IN_COLUMNS_CASE_BRANCH` - Match 分支列对齐
+ * - `BLANK_LINES_AROUND_BLOCK_MATCH_BRANCHES` - Match 分支间空行数
+ *
+ * ## 性能优化
+ *
+ * ### 缓存机制
+ *
+ * - `@Volatile private var mySubBlocks` - 子块列表缓存，避免重复构建
+ *
+ * ### 惰性计算
+ *
+ * - 子块按需构建，不会一次性构建整个树
+ * - 对齐和换行策略按需计算
+ *
+ * ### 序列操作
+ *
+ * - 使用 Kotlin `Sequence` 进行惰性遍历，减少中间集合创建
+ *
+ * ## 扩展点
+ *
+ * ### 抽象方法（需要子类实现）
+ *
+ * - `createBlock()` - 创建特定类型的格式化块
+ * - `createSyntheticSpacingNodeBlock()` - 创建合成间距节点块
+ * - `getSubBlocks()` - 获取子块列表
+ * - `getSuperChildAttributes()` - 获取父类的子元素属性
+ * - `isIncompleteInSuper()` - 判断父类是否未完成
+ * - `getAlignmentForCaseBranch()` - 获取 case 分支对齐策略
+ * - `getAlignment()` - 获取当前块的对齐对象
+ * - `createAlignmentStrategy()` - 创建对齐策略
+ * - `getNullAlignmentStrategy()` - 获取空对齐策略
+ *
+ * ## 已知限制
+ *
+ * 1. **格式化区域标记**：目前 `// @formatter:off/on` 的检测基于简单的文本匹配，
+ *    可能在复杂嵌套结构中出现误判
+ *
+ * 2. **枚举格式化**：枚举的 `|` 分隔符格式化逻辑较为复杂，存在一些注释掉的实验性代码
+ *
+ * 3. **尾随逗号**：尾随逗号的支持依赖于多个条件判断，可能在边缘情况下行为不一致
+ *
+ * ## 调试建议
+ *
+ * ### 启用格式化调试
+ *
+ * 在 IntelliJ IDEA 中：
+ * 1. Help → Diagnostic Tools → Debug Log Settings
+ * 2. 添加：`#org.cangnova.cangjie.ide.formatter`
+ *
+ * ### 常见问题排查
+ *
+ * - **缩进错误**：检查 `createChildIndent()` 和相关的 `IndentRules`
+ * - **换行不符合预期**：检查 `getWrappingStrategy()` 返回的 `Wrap` 对象
+ * - **对齐失效**：检查 `getChildrenAlignmentStrategy()` 和 `Alignment` 对象
+ * - **格式化被跳过**：检查 `shouldFormat()` 和 `NO_FORMAT_NODES`
+ *
+ * ## 参考资料
+ *
+ * - [IntelliJ Platform SDK - Code Formatting](https://plugins.jetbrains.com/docs/intellij/code-formatting.html)
+ * - [Kotlin Plugin Formatter 实现](https://github.com/JetBrains/intellij-community/tree/master/plugins/kotlin/formatter)
+ *
+ * @see CangJieSpacingBuilder 间距计算
+ * @see IndentRules 缩进规则集合
+ * @see CommonAlignmentStrategy 对齐策略
+ * @see cangjieSpacingRules 间距规则定义
+ */
 package org.cangnova.cangjie.ide.formatter
 
 import org.cangnova.cangjie.ide.formatter.indent.IndentRules
@@ -684,10 +960,7 @@ abstract class CangJieCommonBlock(
                 return { childElement -> if (childElement.psi is CjSuperTypeListEntry) wrap else null }
             }
 
-//            elementType === CLASS_BODY -> return getWrappingStrategyForItemList(
-//                commonSettings.ENUM_CONSTANTS_WRAP,
-//                ENUM_CONSTRUCTOR
-//            )
+
 
             elementType === MODIFIER_LIST -> {
                 when (val parent = node.treeParent.psi) {
@@ -775,15 +1048,7 @@ abstract class CangJieCommonBlock(
                     }
                 }
 
-//                if (  nodePsi.getStrictParentOfType<CjStringTemplateExpression>() == null) {
-//                    return { childElement ->
-//                        if (childElement.elementType == OPERATION_REFERENCE && (childElement.psi as? CjOperationReferenceExpression)?.operationSignTokenType == COALESCING) {
-//                            Wrap.createWrap(settings.cangjieCustomSettings.WRAP_ELVIS_EXPRESSIONS, true)
-//                        } else {
-//                            null
-//                        }
-//                    }
-//                }
+
 
                 return ::noWrapping
             }

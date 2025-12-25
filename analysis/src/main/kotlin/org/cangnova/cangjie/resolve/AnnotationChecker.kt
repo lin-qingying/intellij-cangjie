@@ -119,7 +119,6 @@ class AnnotationChecker {
                 is CjTypeParameter -> TargetLists.T_TYPE_PARAMETER
                 is CjTypeProjection -> TargetLists.T_TYPE_PROJECTION
 
-                is CjAnonymousInitializer -> TargetLists.T_INITIALIZER
                 is CjLambdaExpression -> TargetLists.T_FUNCTION_LITERAL
 
                 is CjExpression -> TargetLists.T_EXPRESSION

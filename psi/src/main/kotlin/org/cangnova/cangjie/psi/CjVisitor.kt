@@ -161,13 +161,14 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
     open fun visitPatternVariable(variable: CjPatternVariable, data: D): R? {
         return visitVariable(variable, data)
     }
+    open fun visitFieldVariable(field: CjFieldVariable, data: D): R? {
+        return visitVariable(field, data)
+    }
     open fun visitVariable(variable: CjVariable<*>, data: D): R? {
         return visitNamedDeclaration(variable, data)
     }
 
-    open fun visitFieldVariable(field: CjFieldVariable, data: D): R? {
-        return visitVariable(field, data)
-    }
+
 
     open fun visitCallableReferenceExpression(expression: CjCallableReferenceExpression, data: D): R? {
         return visitDoubleColonExpression(expression, data)
@@ -349,13 +350,8 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
         return visitExpression(expression, data)
     }
 
-    open fun visitClassInitializer(initializer: CjClassInitializer, data: D): R? {
-        return visitAnonymousInitializer(initializer, data)
-    }
 
-    open fun visitAnonymousInitializer(initializer: CjAnonymousInitializer, data: D): R? {
-        return visitDeclaration(initializer, data)
-    }
+
 
     open fun visitSuperTypeListEntry(specifier: CjSuperTypeListEntry, data: D): R? {
         return visitCjElement(specifier, data)

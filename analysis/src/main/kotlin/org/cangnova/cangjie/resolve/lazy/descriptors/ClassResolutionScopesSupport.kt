@@ -128,7 +128,7 @@ fun scopeForInitializerResolution(
         false,
         null,
         emptyList(),
-        LexicalScopeKind.CLASS_INITIALIZER
+        LexicalScopeKind.CLASS_MEMBER_SCOPE
     ) {
         if (primaryConstructorParameters.isNotEmpty()) {
             val parameterDescriptors = classDescriptor.unsubstitutedPrimaryConstructor!!.valueParameters

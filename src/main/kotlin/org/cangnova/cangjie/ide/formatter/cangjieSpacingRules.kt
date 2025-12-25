@@ -42,7 +42,6 @@ import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.CjNodeTypes.*
 import org.cangnova.cangjie.psi.psiUtil.children
 import org.cangnova.cangjie.psi.psiUtil.textRangeWithoutComments
-import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.CLASS_INITIALIZER
 
 
 val MODIFIERS_LIST_ENTRIES = TokenSet.orSet(MODIFIER_KEYWORDS)
@@ -54,7 +53,7 @@ val TYPE_COLON_ELEMENTS =
     TokenSet.create(PROPERTY, FUNC, VALUE_PARAMETER, FUNCTION_LITERAL)
 
 
-val DECLARATIONS = TokenSet.create(PROPERTY, FUNC, CLASS, ENUM_CONSTRUCTOR, SECONDARY_CONSTRUCTOR, CLASS_INITIALIZER)
+val DECLARATIONS = TokenSet.create(PROPERTY, FUNC, CLASS, ENUM_CONSTRUCTOR, SECONDARY_CONSTRUCTOR)
 
 
 //缩进
@@ -298,7 +297,6 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
 
 
             between(SECONDARY_CONSTRUCTOR, DECLARATIONS).blankLines(1)
-            between(CLASS_INITIALIZER, DECLARATIONS).blankLines(1)
 
             // TYPEALIAS - TYPEALIAS is an exception
 //            between(TYPEALIAS, DECLARATIONS).blankLines(1)
@@ -592,7 +590,6 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
 
             inPosition(parent = FUNC, right = BLOCK).customRule(leftBraceRule())
             inPosition(parent = SECONDARY_CONSTRUCTOR, right = BLOCK).customRule(leftBraceRule())
-            inPosition(parent = CLASS_INITIALIZER, right = BLOCK).customRule(leftBraceRule())
             inPosition(parent = PROPERTY_ACCESSOR, right = BLOCK).customRule(leftBraceRule())
 
             inPosition(right = CLASS_BODY).customRule(leftBraceRule(blockType = CLASS_BODY))
@@ -687,7 +684,7 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
 
                 when (psiElement) {
                     is CjDeclarationWithBody -> if (psiElement.name != null && !empty) return null
-                    is CjMatchEntry, is CjClassInitializer -> if (!empty) return null
+                    is CjMatchEntry -> if (!empty) return null
                     else -> return null
                 }
 
