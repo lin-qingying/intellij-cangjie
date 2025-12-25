@@ -186,7 +186,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
         super.visitTypeParameter(parameter, Unit)
     }
 
-    open fun visitEnumEntry(enumEntry: CjEnumConstructor) {
+    open fun visitEnumConstructor(enumEntry: CjEnumConstructor) {
         super.visitEnumConstructor(enumEntry, Unit)
     }
 
@@ -545,7 +545,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
     }
 
     override fun visitEnumConstructor(cjEnumConstructor: CjEnumConstructor, data: Unit?): Unit {
-        visitEnumEntry(cjEnumConstructor)
+        visitEnumConstructor(cjEnumConstructor)
 
     }
 

@@ -125,10 +125,10 @@ class BeforeResolveHighlightingVisitor(holder: HighlightInfoHolder) : AbstractHi
         super.visitEnum(cenum)
     }
 
-    override fun visitEnumEntry(enumEntry: CjEnumConstructor) {
+    override fun visitEnumConstructor(enumEntry: CjEnumConstructor) {
         highlightNamedDeclaration(enumEntry, CangJieHighlightInfoTypeSemanticNames.ENUM_ENTRY)
 
-        super.visitEnumEntry(enumEntry)
+        super.visitEnumConstructor(enumEntry)
     }
 
     override fun visitVariable(variable: CjVariable<*>) {

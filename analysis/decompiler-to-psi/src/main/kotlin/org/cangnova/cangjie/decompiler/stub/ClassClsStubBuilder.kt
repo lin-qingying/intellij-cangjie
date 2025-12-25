@@ -97,7 +97,8 @@ abstract class   EnumAndClassClsStubBuilder(
                 classId = classId.takeUnless { it.isLocal },
                 shortName.ref(),
                 superTypeRefs,
-                isLocal = false
+                isLocal = false,
+                isNonExhaustive = (classDecl as? EnumWrapper)?.isNonExhaustive ?: false
             )
 
             else -> return null
@@ -595,12 +596,16 @@ class EnumClsStubBuilder(
         // 提取参数类型数量
         val typeCount = entry.valueParameters.size
 
+        // 获取枚举的 FqName（用于索引）
+        val enumFqName = outerContext.containerFqName.child(enumDecl.name)
+
         // 创建枚举构造器 Stub
         val constructorStub = CangJieEnumConstructorStubImpl(
             CjStubElementTypes.ENUM_CONSTRUCTOR,
             parent,
             entryName.ref(),
             typeCount,
+            enumFqName.ref(),
         )
 
         // 如果有参数类型，创建 TYPE_LIST

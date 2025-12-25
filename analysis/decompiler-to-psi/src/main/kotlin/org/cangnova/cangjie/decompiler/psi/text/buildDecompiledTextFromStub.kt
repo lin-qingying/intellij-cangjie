@@ -252,6 +252,7 @@ import org.cangnova.cangjie.name.OperatorNameConventions.asOperatorName
 import org.cangnova.cangjie.name.OperatorNameConventions.asOperatorString
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.quoteIfNeeded
+import org.cangnova.cangjie.psi.stubs.CangJieEnumStub
 import org.cangnova.cangjie.psi.stubs.CangJieFileStubKind
 import org.cangnova.cangjie.psi.stubs.elements.CjTokenSets.FILE_DECLARATION_TYPES
 import org.cangnova.cangjie.psi.stubs.impl.CangJieFileStubImpl
@@ -461,8 +462,7 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                     val members = cenum.body?.declarations ?: emptyList()
 
                     // 检查是否为非穷举枚举
-                    val stub = cenum.greenStub
-                    val isNonExhaustive = stub?.isNonExhaustive() ?: false
+                    val isNonExhaustive = cenum.isNonExhaustive
 
                     // 渲染枚举构造器
                     if (constructors.isNotEmpty()) {

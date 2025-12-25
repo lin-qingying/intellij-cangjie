@@ -76,9 +76,9 @@ class CangJieShortClassNameFileIndex : FileBasedIndexExtension<String, Collectio
             is CangJieFileType -> {
                 val cjFile = fileContent.psiFile as? CjFile ?: return@DataIndexer emptyMap()
                 cjFile.acceptChildren(object : CjTreeVisitorUnit() {
-                    override fun visitEnumEntry(enumEntry: CjEnumConstructor) {
+                    override fun visitEnumConstructor(enumEntry: CjEnumConstructor) {
                         add(enumEntry.name, enumEntry.safeFqNameForLazyResolve()?.asString())
-                        super.visitEnumEntry(enumEntry)
+                        super.visitEnumConstructor(enumEntry)
                     }
 
 

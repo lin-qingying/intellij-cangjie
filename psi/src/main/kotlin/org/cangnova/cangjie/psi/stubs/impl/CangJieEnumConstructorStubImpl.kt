@@ -37,15 +37,22 @@ import com.intellij.util.io.StringRef
  * 枚举构造器的 Stub 实现
  *
  * 只存储名称和参数类型数量，参数类型详情由 PSI 子树（TYPE_LIST）提供。
+ * 存储所属枚举的 FqName 用于索引。
  */
  class CangJieEnumConstructorStubImpl(
     type: CjEnumConstructorElementType,
     parent: StubElement<out PsiElement>?,
     private val name: StringRef?,       // 枚举构造器名称 (例如: Red, Green)
     private val typeCount: Int,         // 参数类型数量
+    private val enumFqName: StringRef?, // 所属枚举的完全限定名
 ) : CangJieStubBaseImpl<CjEnumConstructor>(parent, type), CangJieEnumConstructorStub {
 
     override fun getName() = StringRef.toString(name)
 
     override fun getTypeCount(): Int = typeCount
+
+    override fun getEnumFqName(): FqName? {
+        val fqNameStr = StringRef.toString(enumFqName) ?: return null
+        return FqName(fqNameStr)
+    }
 }

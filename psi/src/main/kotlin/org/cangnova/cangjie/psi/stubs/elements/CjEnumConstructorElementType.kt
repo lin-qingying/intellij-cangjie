@@ -54,11 +54,16 @@ class CjEnumConstructorElementType(debugName: String) : CjStubElementType<CangJi
         // 提取参数类型数量
         val typeCount = psi.typeReferences.size
 
+        // 获取所属枚举的 FqName
+        val parentEnum = psi.parentEnum
+        val enumFqName = parentEnum?.fqName
+
         return CangJieEnumConstructorStubImpl(
             getStubType(),
             parentStub as StubElement<*>?,
             StringRef.fromString(psi.name),
             typeCount,
+            StringRef.fromString(enumFqName?.asString()),
         )
     }
 
@@ -66,18 +71,21 @@ class CjEnumConstructorElementType(debugName: String) : CjStubElementType<CangJi
     override fun serialize(stub: CangJieEnumConstructorStub, dataStream: StubOutputStream) {
         dataStream.writeName(stub.name)
         dataStream.writeVarInt(stub.getTypeCount())
+        dataStream.writeName(stub.getEnumFqName()?.asString())
     }
 
     @Throws(IOException::class)
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?): CangJieEnumConstructorStub {
         val name = dataStream.readName()
         val typeCount = dataStream.readVarInt()
+        val enumFqName = dataStream.readName()
 
         return CangJieEnumConstructorStubImpl(
             getStubType(),
             parentStub,
             name,
             typeCount,
+            enumFqName,
         )
     }
 

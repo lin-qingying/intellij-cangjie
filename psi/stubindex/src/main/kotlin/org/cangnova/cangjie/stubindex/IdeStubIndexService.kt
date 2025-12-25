@@ -267,13 +267,12 @@ internal class IdeStubIndexService : StubIndexService() {
         }
 
         //  按枚举类型索引
-        val parentEnumFqName = stub.getParentEnumFqName()
+        val parentEnumFqName = stub.getEnumFqName()
         if (parentEnumFqName != null) {
             sink.occurrence(CangJieEnumConstructorByEnumTypeIndex.indexKey, parentEnumFqName.asString())
         }
 
-        //  prime 索引
-        indexPrime(stub, sink)
+
     }
 
     override fun indexEnum(stub: CangJieEnumStub, sink: IndexSink) {

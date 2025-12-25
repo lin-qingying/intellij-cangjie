@@ -330,6 +330,11 @@ interface CangJieEnumConstructorStub : NamedStub<CjEnumConstructor> {
      * 获取参数类型数量（用于区分重载的枚举构造器）
      */
     fun getTypeCount(): Int
+
+    /**
+     * 获取所属枚举的完全限定名（用于索引）
+     */
+    fun getEnumFqName(): FqName?
 }
 
 interface CangJieScriptStub : CangJieStubWithFqName<CjScript> {

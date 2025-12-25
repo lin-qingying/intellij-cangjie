@@ -31,6 +31,7 @@ import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNameIdentifierOwner
 import com.intellij.psi.PsiNamedElement
+import org.cangnova.cangjie.lexer.CjKeywordToken
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 
@@ -40,7 +41,7 @@ import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
  * 根据仓颉语言规范，枚举条目是构造器，用于创建枚举实例。
  * 不是声明，只是枚举的组成部分。
  */
-class CjEnumConstructor : CjElementImplStub<CangJieEnumConstructorStub>, PsiNameIdentifierOwner {
+class CjEnumConstructor : CjModifierListOwnerStub<CangJieEnumConstructorStub>,CjModifierListOwner, PsiNameIdentifierOwner, CjAnnotated {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJieEnumConstructorStub) : super(stub, CjStubElementTypes.ENUM_CONSTRUCTOR)
@@ -110,6 +111,33 @@ class CjEnumConstructor : CjElementImplStub<CangJieEnumConstructorStub>, PsiName
         } else {
             typeReferences.size
         }
+    }
+
+    /**
+     * 注解列表（枚举构造器可能有注解）
+     */
+    override val annotations: CjAnnotations?
+        get() = getStubOrPsiChild(CjStubElementTypes.ANNOTATIONS)
+    override val annotationEntries: List<CjAnnotation>
+        get() = annotations?.entries ?: emptyList()
+
+    /**
+     * 修饰符列表（枚举构造器可能有修饰符）
+     */
+    override val modifierList: CjDeclarationModifierList?
+        get() = getStubOrPsiChild(CjStubElementTypes.MODIFIER_LIST)
+
+    override fun hasModifier(modifier: CjKeywordToken): Boolean {
+        val modifierList = modifierList
+        return modifierList != null && modifierList.hasModifier(modifier)
+    }
+
+    override fun addModifier(modifier: CjKeywordToken) {
+        org.cangnova.cangjie.psi.psiUtil.addModifier(this, modifier)
+    }
+
+    override fun removeModifier(modifier: CjKeywordToken) {
+        org.cangnova.cangjie.psi.psiUtil.removeModifier(this, modifier)
     }
 
     override fun toString(): String {
