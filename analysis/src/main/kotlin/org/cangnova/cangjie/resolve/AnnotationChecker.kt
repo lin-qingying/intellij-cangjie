@@ -154,10 +154,8 @@ enum class CangJieTarget(val description: String, val isDefault: Boolean = true)
     ),
     PROPERTY("property"),                      // includes *_PROPERTY (with and without backing field), PROPERTY_PARAMETER, ENUM_CONSTRUCTOR
     VARIABLE("variable"),                      // includes *_PROPERTY (with and without backing field), PROPERTY_PARAMETER, ENUM_CONSTRUCTOR
-    TYPEALIAS("typealias", false), DESTRUCTURING_DECLARATION(
-        "destructuring declaration",
-        false
-    ),
+    TYPEALIAS("typealias", false),
+
     EXPRESSION("expression", false),           // includes FUNCTION_LITERAL, OBJECT_LITERAL
     FIELD("field"),
 
@@ -270,7 +268,7 @@ enum class CangJieTarget(val description: String, val isDefault: Boolean = true)
 
 object AnnotationTargetLists {
     val T_CLASSIFIER = targetList(CLASS)
-    val T_DESTRUCTURING_DECLARATION = targetList(DESTRUCTURING_DECLARATION)
+    // 解构声明已移除，统一使用模式匹配变量
     val T_INITIALIZER = targetList(INITIALIZER)
     val T_VALUE_PARAMETER_WITHOUT_LET = targetList(VALUE_PARAMETER)
     val T_LOCAL_VARIABLE = targetList(LOCAL_VARIABLE)

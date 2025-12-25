@@ -51,7 +51,7 @@ val EXTEND_COLON_ELEMENTS =
     TokenSet.create(TYPE_CONSTRAINT, CLASS, TYPE_PARAMETER, ENUM_CONSTRUCTOR, SECONDARY_CONSTRUCTOR)
 
 val TYPE_COLON_ELEMENTS =
-    TokenSet.create(PROPERTY, FUNC, VALUE_PARAMETER, DESTRUCTURING_DECLARATION_ENTRY, FUNCTION_LITERAL)
+    TokenSet.create(PROPERTY, FUNC, VALUE_PARAMETER, FUNCTION_LITERAL)
 
 
 val DECLARATIONS = TokenSet.create(PROPERTY, FUNC, CLASS, ENUM_CONSTRUCTOR, SECONDARY_CONSTRUCTOR, CLASS_INITIALIZER)
@@ -454,7 +454,7 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
             ).spaceIf(cangjieCommonSettings.SPACE_BEFORE_CATCH_PARENTHESES)
 
             betweenInside(LPAR, VALUE_PARAMETER, FOR).spaces(0)
-            betweenInside(LPAR, DESTRUCTURING_DECLARATION, FOR).spaces(0)
+            // 解构声明已移除，统一使用模式匹配变量
             betweenInside(LOOP_RANGE, RPAR, FOR).spaces(0)
 
 

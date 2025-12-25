@@ -55,7 +55,7 @@ object TrailingCommaHelper {
     fun trailingCommaExists(commaOwner: CjElement): Boolean = when (commaOwner) {
         is CjFunctionLiteral -> commaOwner.valueParameterList?.trailingComma != null
         is CjMatchEntry -> commaOwner.trailingComma != null
-        is CjDestructuringDeclaration -> commaOwner.trailingComma != null
+
         else -> trailingCommaOrLastElement(commaOwner)?.isComma == true
     }
 
@@ -89,7 +89,7 @@ object TrailingCommaHelper {
             if (parent is CjFunctionLiteral) parent.lBrace else commaOwner.leftParenthesis
         }
         is CjMatchEntry -> commaOwner.parent.cast<CjMatchExpression>().openBrace
-        is CjDestructuringDeclaration -> commaOwner.lPar
+
         else -> commaOwner.firstChild?.takeIfIsNotError()
     }
 
@@ -99,7 +99,7 @@ object TrailingCommaHelper {
             if (parent is CjFunctionLiteral) parent.arrow else commaOwner.rightParenthesis
         }
         is CjMatchEntry -> commaOwner.arrow
-        is CjDestructuringDeclaration -> commaOwner.rPar
+
         else -> commaOwner.lastChild?.takeIfIsNotError()
     }
 
@@ -110,7 +110,7 @@ object TrailingCommaHelper {
     private val PsiElement.lastSignificantChild: PsiElement?
         get() = when (this) {
             is CjMatchEntry -> arrow
-            is CjDestructuringDeclaration -> rPar
+
             else -> lastChild
         }
 }

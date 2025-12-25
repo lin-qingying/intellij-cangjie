@@ -739,9 +739,11 @@ class DeclarationsChecker(
         }
 
         // 遍历所有变量，执行变量级别检查
-        for ((variable, variableDescriptor) in bodiesResolveContext.variables.entries) {
-            checkVariable(variable, variableDescriptor)
-            modifiersChecker.checkModifiersForDeclaration(variable, variableDescriptor)
+        for ((variable, variableDescriptors) in bodiesResolveContext.variables.entries) {
+            variableDescriptors.forEach { variableDescriptor ->
+                checkVariable(variable, variableDescriptor)
+                modifiersChecker.checkModifiersForDeclaration(variable, variableDescriptor)
+            }
             identifierChecker.checkDeclaration(variable, trace)
         }
 

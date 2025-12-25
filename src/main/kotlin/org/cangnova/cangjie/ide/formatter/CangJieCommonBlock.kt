@@ -667,19 +667,7 @@ abstract class CangJieCommonBlock(
                 }
             }
 
-            elementType === DESTRUCTURING_DECLARATION -> {
-                nodePsi as CjDestructuringDeclaration
-                if (nodePsi.letOrVarKeyword == null) return defaultTrailingCommaWrappingStrategy(LPAR, RPAR)
-                if (trailingCommaExistsOrCanExist(nodePsi, settings)) {
-                    val check = thisOrPrevIsMultiLineElement(LPAR, RPAR)
-                    return trailingCommaWrappingStrategy(
-                        leftAnchor = LPAR,
-                        rightAnchor = RPAR,
-                        filter = { it.elementType !== EQ }) {
-                        getSiblingWithoutWhitespaceAndComments(it, true) != null && check(it)
-                    }
-                }
-            }
+            // 解构声明已移除，统一使用模式匹配变量
 
             elementType === INDICES -> return defaultTrailingCommaWrappingStrategy(LBRACKET, RBRACKET)
 
@@ -719,9 +707,11 @@ abstract class CangJieCommonBlock(
                         ANNOTATIONS,
                     )
 
-                    is CjVariable -> return getWrappingStrategyForItemList(
-                        if (parent.isLocal) commonSettings.VARIABLE_ANNOTATION_WRAP
-                        else commonSettings.FIELD_ANNOTATION_WRAP,
+                    is CjVariable<*> -> return getWrappingStrategyForItemList(
+                        when (parent) {
+                            is CjPatternVariable -> if (parent.isLocal) commonSettings.VARIABLE_ANNOTATION_WRAP else commonSettings.FIELD_ANNOTATION_WRAP
+                            else -> commonSettings.FIELD_ANNOTATION_WRAP
+                        },
                         ANNOTATIONS,
                     )
                 }
@@ -747,9 +737,11 @@ abstract class CangJieCommonBlock(
                 }
             }
 
-            nodePsi is CjVariable -> return wrap@{ childElement ->
-                val wrapSetting =
-                    if (nodePsi.isLocal) commonSettings.VARIABLE_ANNOTATION_WRAP else commonSettings.FIELD_ANNOTATION_WRAP
+            nodePsi is CjVariable<*> -> return wrap@{ childElement ->
+                val wrapSetting = when (nodePsi) {
+                    is CjPatternVariable -> if (nodePsi.isLocal) commonSettings.VARIABLE_ANNOTATION_WRAP else commonSettings.FIELD_ANNOTATION_WRAP
+                    else -> commonSettings.FIELD_ANNOTATION_WRAP
+                }
                 getWrapAfterAnnotation(childElement, wrapSetting)?.let {
                     return@wrap it
                 }

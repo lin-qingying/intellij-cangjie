@@ -44,7 +44,7 @@ fun trailingCommaIsAllowedOnCallSite(): Boolean = Registry.`is`("cangjie.formatt
 
 private val TYPES_WITH_TRAILING_COMMA_ON_DECLARATION_SITE = TokenSet.create(
     CjNodeTypes.TYPE_PARAMETER_LIST,
-    CjNodeTypes.DESTRUCTURING_DECLARATION,
+
     CjNodeTypes.MATCH_ENTRY,
     CjNodeTypes.FUNCTION_LITERAL,
     CjNodeTypes.VALUE_PARAMETER_LIST,

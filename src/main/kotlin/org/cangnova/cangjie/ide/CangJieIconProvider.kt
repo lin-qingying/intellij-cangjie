@@ -183,7 +183,7 @@ abstract class AbstractCangJieIconProvider : IconProvider(), DumbAware {
                     PARAMETER
             }
 
-            is CjVariable -> if (isVar) FIELD_VAR else FIELD_LET
+            is CjVariable<*> -> if (isVar) FIELD_VAR else FIELD_LET
 
             is CjProperty -> if (isVar) FIELD_MPROP else FIELD_PROP
 

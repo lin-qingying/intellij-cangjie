@@ -267,7 +267,7 @@ class OverloadResolver(
         // 收集模块中具有相同名称的变量，并根据重载过滤器进行处理
         collectModulePackageMembersWithSameName(
             packageMembersByName,
-            c.variables.values + c.variablesByPattern.values.flatten(),
+            c.variables.values.flatten(),
             overloadFilter
         ) { scope, name ->
             // 根据名称获取作用域中的变量和分类器

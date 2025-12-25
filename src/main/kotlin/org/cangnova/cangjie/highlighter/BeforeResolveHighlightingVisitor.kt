@@ -131,7 +131,7 @@ class BeforeResolveHighlightingVisitor(holder: HighlightInfoHolder) : AbstractHi
         super.visitEnumEntry(enumEntry)
     }
 
-    override fun visitVariable(variable: CjVariable) {
+    override fun visitVariable(variable: CjVariable<*>) {
         if (variable.isVar) {
             highlightNamedDeclaration(variable, CangJieHighlightInfoTypeSemanticNames.MUTABLE_VARIABLE)
         } else {

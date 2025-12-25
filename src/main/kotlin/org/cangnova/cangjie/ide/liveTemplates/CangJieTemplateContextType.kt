@@ -89,7 +89,7 @@ abstract class CangJieTemplateContextType(@NlsContexts.Label presentableName: St
         }
         return element != null && isInContext(element)
     }
-    open class Generic :
+    internal class Generic :
         CangJieTemplateContextType(CangJieLiveTemplatesBundle.message("template.context.type.generic")) {
         override fun isInContext(element: PsiElement): Boolean {
             return true
@@ -101,7 +101,7 @@ abstract class CangJieTemplateContextType(@NlsContexts.Label presentableName: St
     }
 
 
-    class TopLevel :
+    internal class TopLevel :
         CangJieTemplateContextType(CangJieLiveTemplatesBundle.message("template.context.type.top.level")) {
         override fun isInContext(element: PsiElement): Boolean {
             var e: PsiElement? = element
@@ -114,7 +114,7 @@ abstract class CangJieTemplateContextType(@NlsContexts.Label presentableName: St
                     }
                     continue
                 }
-                if (e is CjVariable || e is CjNamedFunction || e is CjTypeStatement) {
+                if (e is CjVariable<*>  || e is CjNamedFunction || e is CjTypeStatement) {
                     return false
                 }
 
@@ -125,7 +125,7 @@ abstract class CangJieTemplateContextType(@NlsContexts.Label presentableName: St
     }
 
 
-    class Class :
+    internal class Class :
         CangJieTemplateContextType(CangJieLiveTemplatesBundle.message("template.context.type.class")) {
         override fun isInContext(element: PsiElement): Boolean {
             return getParentClassOrStruct(
@@ -137,7 +137,7 @@ abstract class CangJieTemplateContextType(@NlsContexts.Label presentableName: St
 
 
 
-    class Statement :
+    internal class Statement :
         CangJieTemplateContextType(CangJieLiveTemplatesBundle.message("template.context.type.statement")) {
         override fun isInContext(element: PsiElement): Boolean {
             val parentStatement = PsiTreeUtil.findFirstParent(
@@ -154,7 +154,7 @@ abstract class CangJieTemplateContextType(@NlsContexts.Label presentableName: St
     }
 
 
-    class Expression :
+    internal class Expression :
         CangJieTemplateContextType(CangJieLiveTemplatesBundle.message("template.context.type.expression")) {
         override fun isInContext(element: PsiElement): Boolean {
             return (element.parent is CjExpression && element.parent !is CjConstantExpression &&
@@ -164,7 +164,7 @@ abstract class CangJieTemplateContextType(@NlsContexts.Label presentableName: St
     }
 
 
-    class Comment :
+    internal class Comment :
         CangJieTemplateContextType(CangJieLiveTemplatesBundle.message("template.context.type.comment")) {
         override fun isInContext(element: PsiElement): Boolean {
             return false
@@ -191,7 +191,7 @@ abstract class CangJieTemplateContextType(@NlsContexts.Label presentableName: St
                     }
                     continue
                 }
-                if (e is CjVariable || e is CjNamedFunction) {
+                if (e is CjVariable<*> || e is CjNamedFunction) {
                     return null
                 }
                 e = e.parent

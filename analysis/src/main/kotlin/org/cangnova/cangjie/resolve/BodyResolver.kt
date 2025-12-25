@@ -83,18 +83,18 @@ class BodyResolver(
 
         for ((typeStatement, _) in c.declaredClasses) {
             for (variable in typeStatement.variables) {
-                val variableDescriptor = c.variables[variable]
-                requireNotNull(variableDescriptor)
+                val variableDescriptors = c.variables[variable]
+                requireNotNull(variableDescriptors)
 
-                resolveVariable(c, variable, variableDescriptor)
+                variableDescriptors.forEach { resolveVariable(c, variable, it) }
                 processed.add(variable)
             }
         }
 
         // Top-level properties & properties of objects
-        for ((variable, variableDescriptor) in c.variables) {
+        for ((variable, variableDescriptors) in c.variables) {
             if (variable in processed) continue
-            resolveVariable(c, variable, variableDescriptor)
+            variableDescriptors.forEach { resolveVariable(c, variable, it) }
         }
 
 

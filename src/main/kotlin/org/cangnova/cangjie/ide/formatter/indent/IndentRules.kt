@@ -33,6 +33,7 @@ import org.cangnova.cangjie.lexer.cdoc.lexer.CDocTokens
 import org.cangnova.cangjie.psi.psiUtil.getNextSiblingIgnoringWhitespace
 import com.intellij.formatting.Indent
 import com.intellij.psi.PsiComment
+import org.cangnova.cangjie.resolve.CangJieTarget
 
 /**
  * 定义所有的缩进规则
@@ -136,11 +137,6 @@ object IndentRules {
             .forElement { it.psi is CjExpression }
             .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES),
 
-        // 对解构声明中的表达式应用缩进
-        strategy("Destructuring declaration")
-            .within(DESTRUCTURING_DECLARATION)
-            .forElement { it.psi is CjExpression }
-            .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES),
 
         // 对赋值表达式的右侧部分应用缩进
         strategy("Assignment expressions")
@@ -161,7 +157,7 @@ object IndentRules {
             .within(
                 PROPERTY,
                 FUNC,
-                DESTRUCTURING_DECLARATION,
+
                 PRIMARY_CONSTRUCTOR,
                 SECONDARY_CONSTRUCTOR,
                 END_SECONDARY_CONSTRUCTOR

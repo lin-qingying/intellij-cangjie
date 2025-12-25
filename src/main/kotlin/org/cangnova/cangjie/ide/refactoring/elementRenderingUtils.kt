@@ -231,7 +231,7 @@ fun CjElement.renderTrimmed(): String {
 
         override fun visitForExpression(expression: CjForExpression) {
             builder.append("for (")
-            (expression.loopParameter ?: expression.destructuringDeclaration)?.accept(this)
+            expression.loopParameter?.accept(this)
             builder.append(" in ")
             expression.loopRange?.accept(this)
             builder.append(")")

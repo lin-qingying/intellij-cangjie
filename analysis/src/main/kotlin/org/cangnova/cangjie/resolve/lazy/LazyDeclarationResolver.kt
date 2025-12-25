@@ -128,16 +128,24 @@ open class LazyDeclarationResolver(
     open fun getClassDescriptorIfAny(typeStatement: CjTypeStatement, location: LookupLocation): ClassDescriptor? =
         findClassDescriptorIfAny(typeStatement, location)
 
-    fun resolveToVariableByPattern(variable: CjVariable): List<VariableDescriptor> {
-        val location = lookupLocationFor(variable, variable.isTopLevel)
+    fun resolveToVariableByPattern(variable: CjVariable<*>): List<VariableDescriptor> {
+        val isTopLevel = when (variable) {
+            is CjPatternVariable -> variable.isTopLevel
+            is CjFieldVariable -> false
+            else -> false
+        }
+        val location = lookupLocationFor(variable, isTopLevel)
         val scopeForDeclaration = getMemberScopeDeclaredIn(variable, location)
-        val result = (variable.pattern?.getAllBindings() ?: listOf()).flatMap {
-            scopeForDeclaration.getContributedVariables(it.nameAsSafeName, location)
-
+        val result = when (variable) {
+            is CjPatternVariable -> (variable.pattern?.getAllBindings() ?: listOf()).flatMap {
+                scopeForDeclaration.getContributedVariables(it.nameAsSafeName, location)
+            }
+            is CjFieldVariable -> scopeForDeclaration.getContributedVariables(variable.nameAsSafeName, location)
+            else -> emptyList()
         }
 
 
-        return result
+        return result.toList()
     }
 
     fun lookupLocationFor(declaration: CjDeclaration, isTopLevel: Boolean, track: Boolean = true): LookupLocation =

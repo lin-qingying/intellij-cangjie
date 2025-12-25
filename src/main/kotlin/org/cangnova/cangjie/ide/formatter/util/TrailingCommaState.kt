@@ -81,10 +81,7 @@ private fun isMultiline(cjElement: CjElement): Boolean = when {
         endOffsetGetter = { arrow?.endOffset },
     )
 
-    cjElement is CjDestructuringDeclaration -> cjElement.isMultiline(
-        startOffsetGetter = { lPar?.startOffset },
-        endOffsetGetter = { rPar?.endOffset },
-    )
+
 
     else -> cjElement.isMultiline()
 }

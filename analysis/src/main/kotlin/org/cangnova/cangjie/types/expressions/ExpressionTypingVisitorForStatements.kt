@@ -877,7 +877,7 @@ class ExpressionTypingVisitorForStatements(
      * ## 处理流程
      *
      * ### 简单变量声明
-     * ```kotlin
+     * ```cangjie
      * let x = 42
      * ```
      * 1. 解析变量类型
@@ -885,7 +885,7 @@ class ExpressionTypingVisitorForStatements(
      * 3. 添加到作用域
      *
      * ### 模式匹配声明
-     * ```kotlin
+     * ```cangjie
      * let (a, b) = pair
      * ```
      * 委托给 patterns 访问者处理
@@ -909,20 +909,10 @@ class ExpressionTypingVisitorForStatements(
             }
 
             is CjPatternVariable -> {
-                if (variable.pattern == null) {
-                    // 简单变量声明
-                    val (typeInfo, variableDescriptor) = components.localVariableResolver.process(
-                        variable,
-                        data,
-                        scope,
-                        facade
-                    )
-                    scope.addVariableDescriptor(variableDescriptor)
-                    typeInfo
-                } else {
-                    // 模式匹配声明
-                    patterns.visitVariable(variable, data.replaceScope(scope))
-                }
+                // 模式匹配变量声明（包括简单绑定模式和复杂模式）
+                // 委托给 PatternMatchingTypingVisitor 处理
+                patterns.visitVariable(variable, data.replaceScope(scope))
+                    ?: noTypeInfo(data)
             }
 
             else -> {
@@ -939,46 +929,5 @@ class ExpressionTypingVisitorForStatements(
         }
     }
 
-    // TODO: 解构声明支持
-    // /**
-    //  * 解构声明
-    //  *
-    //  * @param multiDeclaration 解构声明
-    //  * @param context 表达式类型检查上下文
-    //  * @return 类型信息
-    //  */
-    // override fun visitDestructuringDeclaration(
-    //     multiDeclaration: CjDestructuringDeclaration,
-    //     context: ExpressionTypingContext
-    // ): CangJieTypeInfo {
-    //     val initializer = multiDeclaration.initializer
-    //     if (initializer == null) {
-    //         context.trace.report(INITIALIZER_REQUIRED_FOR_DESTRUCTURING_DECLARATION.on(multiDeclaration))
-    //     }
-    //
-    //     val expressionReceiver = initializer?.let {
-    //         ExpressionTypingUtils.getExpressionReceiver(
-    //             facade,
-    //             it,
-    //             context.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(ContextDependency.INDEPENDENT)
-    //         )
-    //     }
-    //
-    //     components.destructuringDeclarationResolver.defineLocalVariablesFromDestructuringDeclaration(
-    //         scope,
-    //         multiDeclaration,
-    //         expressionReceiver,
-    //         initializer,
-    //         context
-    //     )
-    //     components.modifiersChecker.withTrace(context.trace).checkModifiersForDestructuringDeclaration(multiDeclaration)
-    //     components.identifierChecker.checkDeclaration(multiDeclaration, context.trace)
-    //
-    //     return if (expressionReceiver == null) {
-    //         noTypeInfo(context)
-    //     } else {
-    //         facade.getTypeInfo(initializer, context)
-    //             .replaceType(components.dataFlowAnalyzer.checkStatementType(multiDeclaration, context))
-    //     }
-    // }
+
 }

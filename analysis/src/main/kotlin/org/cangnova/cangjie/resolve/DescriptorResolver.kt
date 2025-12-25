@@ -1141,8 +1141,12 @@ class DescriptorResolver(
             variableDeclaration, context
         )
 ////当前声明具有的所有变量声明
-        val variables = variableDeclaration.pattern.getAllBindings().mapNotNull {
-            trace[BindingContext.VARIABLE, it]
+        val variables = when (variableDeclaration) {
+            is CjPatternVariable -> variableDeclaration.pattern.getAllBindings().mapNotNull {
+                trace[BindingContext.VARIABLE, it]
+            }
+            is CjFieldVariable -> listOfNotNull(trace[BindingContext.VARIABLE, variableDeclaration])
+            else -> emptyList()
         }
 
         return variables.filter {
