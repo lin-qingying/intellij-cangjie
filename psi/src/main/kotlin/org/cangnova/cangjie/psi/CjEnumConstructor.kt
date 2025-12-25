@@ -23,26 +23,47 @@
  */
 
 package org.cangnova.cangjie.psi
-import org.cangnova.cangjie.name.*
 
-import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
+import org.cangnova.cangjie.name.*
 import org.cangnova.cangjie.psi.stubs.CangJieEnumConstructorStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNameIdentifierOwner
+import com.intellij.psi.PsiNamedElement
+import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 
 /**
- * 枚举构造器 PSI 元素（全量重构版本）
+ * 枚举构造器 PSI 元素
  *
  * 根据仓颉语言规范，枚举条目是构造器，用于创建枚举实例。
- * 不再继承 CjTypeStatement，而是继承 CjNamedDeclarationStub。
+ * 不是声明，只是枚举的组成部分。
  */
-class CjEnumConstructor : CjNamedDeclarationStub<CangJieEnumConstructorStub> {
+class CjEnumConstructor : CjElementImplStub<CangJieEnumConstructorStub>, PsiNameIdentifierOwner {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJieEnumConstructorStub) : super(stub, CjStubElementTypes.ENUM_CONSTRUCTOR)
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitEnumConstructor(this, data)
+    }
+
+    override fun getName(): String? {
+        val stub = greenStub
+        if (stub != null) {
+            return stub.name
+        }
+        return nameIdentifier?.text
+    }
+
+    override fun setName(name: String): PsiElement {
+        // 枚举构造器名称通常不支持重命名
+        return this
+    }
+
+    override fun getNameIdentifier(): PsiElement? {
+        return findChildByType(CjTokens.IDENTIFIER)
     }
 
     /**
@@ -83,9 +104,9 @@ class CjEnumConstructor : CjNamedDeclarationStub<CangJieEnumConstructorStub> {
      * 获取参数数量
      */
     fun getParameterCount(): Int {
-        val stub = stub
+        val stub = greenStub
         return if (stub != null) {
-            stub.getParameterCount()
+            stub.getTypeCount()
         } else {
             typeReferences.size
         }

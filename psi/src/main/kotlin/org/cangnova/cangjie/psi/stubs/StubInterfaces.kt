@@ -296,7 +296,14 @@ interface CangJieStructStub : CangJieTypeStatementStub<CjStruct>
 
 interface CangJieInterfaceStub : CangJieTypeStatementStub<CjInterface>
 
-interface CangJieEnumStub : CangJieTypeStatementStub<CjEnum>
+interface CangJieEnumStub : CangJieTypeStatementStub<CjEnum>{
+    /**
+     * 是否非穷尽枚举
+     */
+    fun isNonExhaustive(): Boolean
+
+
+}
 
 /**
  * 枚举构造器的 Stub 接口（全量重构版本）
@@ -312,31 +319,17 @@ interface CangJieEnumStub : CangJieTypeStatementStub<CjEnum>
  * }
  * ```
  */
-interface CangJieEnumConstructorStub : CangJieStubWithFqName<CjEnumConstructor> {
+/**
+ * 枚举构造器 Stub 接口
+ *
+ * 枚举构造器不是独立声明，只存储名称和参数类型数量（用于重载区分）。
+ * 参数类型详情通过 TYPE_LIST 子树获取。
+ */
+interface CangJieEnumConstructorStub : NamedStub<CjEnumConstructor> {
     /**
-     * 获取所属枚举类型的完全限定名
+     * 获取参数类型数量（用于区分重载的枚举构造器）
      */
-    fun getParentEnumFqName(): FqName?
-
-    /**
-     * 获取构造器的参数数量（用于区分重载）
-     */
-    fun getParameterCount(): Int
-
-    /**
-     * 获取参数类型名称列表
-     */
-    fun getParameterTypeNames(): List<String>
-
-    /**
-     * 是否为本地枚举条目
-     */
-    fun isLocal(): Boolean
-
-    /**
-     * 获取 ClassId（用于元数据查找）
-     */
-    fun getClassId(): ClassId?
+    fun getTypeCount(): Int
 }
 
 interface CangJieScriptStub : CangJieStubWithFqName<CjScript> {

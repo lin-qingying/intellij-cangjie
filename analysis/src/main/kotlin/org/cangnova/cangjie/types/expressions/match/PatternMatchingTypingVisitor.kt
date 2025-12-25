@@ -532,7 +532,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             callForMatch,
             ControlStructureTypingUtils.ResolveConstruct.MATCH,
             object : AbstractList<String>() {
-                override fun get(index: Int): String = "entry$index"
+                override fun get(index: Int): String = "constructor$index"
                 override val size: Int get() = wrappedArgumentExpressions.size
             },
             Collections.nCopies(wrappedArgumentExpressions.size, false),
@@ -1420,10 +1420,10 @@ object MatchChecker {
 //        val checkedTypes = HashSet<Pair<CangJieType, Boolean>>()
 //        val checkedConstants = mutableMapOf<CompileTimeConstant<*>, Boolean>()
 //        val notTrivialBranches = mutableMapOf<CompileTimeConstant<*>, CjExpression>()
-//        for (entry in expression.entries) {
-//            if (entry.isElse) continue
+//        for (constructor in expression.entries) {
+//            if (constructor.isElse) continue
 //
-//            conditions@ for (condition in entry.conditions) {
+//            conditions@ for (condition in constructor.conditions) {
 //                when (condition) {
 //                    is CjMatchConditionWithExpression -> {
 //                        val constantExpression = condition.expression ?: continue@conditions

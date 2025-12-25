@@ -556,7 +556,7 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
     }
 
     open fun visitEnumConstructor(cjEnumConstructor: CjEnumConstructor, data: D): R? {
-        return visitDeclaration(cjEnumConstructor, data)
+        return visitCjElement(cjEnumConstructor, data)
     }
 
     open fun visitMatchEntry(cjMatchEntry: CjMatchEntry, data: D): R? {

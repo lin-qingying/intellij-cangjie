@@ -56,6 +56,7 @@ class CjEnumElementType(debugName: String) : CjStubElementType<CangJieEnumStub, 
         serializeClassId(dataStream, stub.getClassId())
 
         dataStream.writeBoolean(stub.isLocal())
+        dataStream.writeBoolean(stub.isNonExhaustive())
 //        dataStream.writeBoolean(stub.isTopLevel())
 
         val superNames = stub.getSuperNames()
@@ -75,12 +76,9 @@ class CjEnumElementType(debugName: String) : CjStubElementType<CangJieEnumStub, 
 
         val classId = deserializeClassId(dataStream)
 
-//        bool isTrait = dataStream.readBoolean();
 
-//        bool isTrait = dataStream.readBoolean();
         val isLocal = dataStream.readBoolean()
-//        val isTopLevel = dataStream.readBoolean()
-
+ val isNonExhaustive = dataStream.readBoolean()
         val superCount = dataStream.readVarInt()
         val superNames = StringRef.createArray(superCount)
         for (i in 0 until superCount) {
@@ -95,6 +93,7 @@ class CjEnumElementType(debugName: String) : CjStubElementType<CangJieEnumStub, 
             name,
             superNames,
             isLocal,
+            isNonExhaustive
         )
     }
 
@@ -103,6 +102,7 @@ class CjEnumElementType(debugName: String) : CjStubElementType<CangJieEnumStub, 
 
         val superNames = psi.getSuperNames()
         val classId = createNestedClassId(parentStub!!, psi)
+        val isNonExhaustive = psi.isNonExhaustive
         return CangJieEnumStubImpl(
             CjStubElementTypes.ENUM,
             parentStub as StubElement<*>?,
@@ -111,6 +111,7 @@ class CjEnumElementType(debugName: String) : CjStubElementType<CangJieEnumStub, 
             StringRef.fromString(psi.name),
             wrapStrings(superNames),
             psi.isLocal,
+            isNonExhaustive
         )
     }
 

@@ -757,7 +757,7 @@ class DeclarationsChecker(
 
 //    // 处理解构声明，确保其修饰符和标识符有效
 //    val destructuringDeclarations = bodiesResolveContext.destructuringDeclarationEntries.entries
-//        .map { (entry, _) -> entry.parent }
+//        .map { (constructor, _) -> constructor.parent }
 //        .filterIsInstance<CjDestructuringDeclaration>()
 //        .distinct()
 //

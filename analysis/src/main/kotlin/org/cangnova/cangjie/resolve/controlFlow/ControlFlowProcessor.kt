@@ -1290,7 +1290,7 @@ class ControlFlowProcessor(
                         trace.report(ELSE_MISPLACED_IN_MATCH.on(matchEntry))
                     }
                 }
-                val bodyLabel = builder.createUnboundLabel("'when' entry body")
+                val bodyLabel = builder.createUnboundLabel("'when' constructor body")
 
                 val conditions = matchEntry.conditions
                 for (i in conditions.indices) {
@@ -1302,7 +1302,7 @@ class ControlFlowProcessor(
                 }
 
                 if (!isElse) {
-                    nextLabel = builder.createUnboundLabel("next 'match' entry")
+                    nextLabel = builder.createUnboundLabel("next 'match' constructor")
                     val lastCondition = conditions.lastOrNull()
                     builder.nondeterministicJump(nextLabel, expression, builder.getBoundValue(lastCondition))
                 }
@@ -1317,7 +1317,7 @@ class ControlFlowProcessor(
 
                 if (!isElse && nextLabel != null) {
                     builder.bindLabel(nextLabel)
-                    // For the last entry of exhaustive match,
+                    // For the last constructor of exhaustive match,
                     // attempt to jump further should lead to error, not to "done"
                     if (!iterator.hasNext() && MatchChecker.isMatchExhaustive(expression, trace)) {
                         builder.magic(expression, null, emptyList(), MagicKind.EXHAUSTIVE_MATCH_ELSE)

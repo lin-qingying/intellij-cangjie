@@ -233,7 +233,7 @@ class WrongCountOfTypeArguments(
     override fun report(reporter: DiagnosticReporter) = reporter.onTypeArguments(this)
 }
 
-//type arguments cannot appear after 'enum entry' when enum type 'enum' is given
+//type arguments cannot appear after 'enum constructor' when enum type 'enum' is given
 class TypeArgumentsAfterEnumEntry(val enumEntry: ClassDescriptor, val enum: ClassDescriptor) :
     CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
     override fun report(reporter: DiagnosticReporter) = reporter.onTypeArguments(this)

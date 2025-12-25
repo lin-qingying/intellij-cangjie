@@ -479,7 +479,7 @@ class FileScopeFactory(
 //                val elements = file.declarations.flatMap {
 //                    when(it){
 //                        is CjEnum ->{
-//                            it.entry + listOf(it)
+//                            it.constructor + listOf(it)
 //                        }
 //                        else -> listOf(it)
 //                    }

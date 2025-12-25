@@ -142,7 +142,7 @@ class LibraryInfoCache(project: Project) : Disposable {
         // eagerly. The reason is that some other workspace model listener might access `LibraryInfoCache` and cause first-time
         // initialization (including a call to `subscribe`). Subscribing to workspace model events while a workspace model event is being
         // processed means that that event won't be propagated to the new subscription. Hence, for exactly that event, `LibraryInfoCache`
-        // would not be cleared, as its workspace model listener wouldn't be called. This can lead to cache inconsistency if a cache entry
+        // would not be cleared, as its workspace model listener wouldn't be called. This can lead to cache inconsistency if a cache constructor
         // containing a changing library was added during that event by some other workspace listener.
         override fun subscribe() {}
 

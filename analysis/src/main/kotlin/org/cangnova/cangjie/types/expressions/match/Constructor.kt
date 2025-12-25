@@ -131,7 +131,7 @@ sealed class Constructor {
                 ty.isBoolean -> sequenceOf(true, false).map { ConstantValue(BoolValue(it)) }
                 ty.isUnit -> sequenceOf(true, false).map { ConstantValue(UnitValue) }
                 ty.isEnum ->
-                    (ty.deccriptorClass?.source?.getPsi() as? CjEnum)?.entry?.asSequence()?.map { Enum(it) }
+                    (ty.deccriptorClass?.source?.getPsi() as? CjEnum)?.constructor?.asSequence()?.map { Enum(it) }
                         ?: emptySequence()
 
                 else -> sequenceOf(Single)

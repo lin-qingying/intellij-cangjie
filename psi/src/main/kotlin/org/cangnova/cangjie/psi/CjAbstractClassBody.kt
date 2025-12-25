@@ -45,7 +45,7 @@ class CjEnumBody : CjAbstractClassBody {
 
     constructor(stub: CangJiePlaceHolderStub<CjEnumBody>) : super(stub, ENUM_BODY)
 
-    val entrys get() = getStubOrPsiChildrenAsList(ENUM_CONSTRUCTOR)
+    val constructor get() = getStubOrPsiChildrenAsList(ENUM_CONSTRUCTOR)
 }
 
 class CjClassBody : CjAbstractClassBody {

@@ -34,7 +34,7 @@ import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.incremental.record
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
-import org.cangnova.cangjie.metadata.model.wrapper.EnumEntryWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.EnumConstructorWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.EnumWrapper
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.DeserializedDeclarationsFromSupertypeConflictDataKey
@@ -327,7 +327,7 @@ class DeserializedEnumConstructorDescriptor(
     annotations: Annotations,
 
 
-    override val decl: EnumEntryWrapper,
+    override val decl: EnumConstructorWrapper,
 
     override val containerSource: DeserializedContainerSource?,
     source: SourceElement? = null

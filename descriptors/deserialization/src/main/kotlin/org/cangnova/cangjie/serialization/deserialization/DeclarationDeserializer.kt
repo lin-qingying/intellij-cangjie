@@ -47,7 +47,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
         return Annotations.EMPTY
     }
 
-    fun loadEnumConstructor(decl: EnumEntryWrapper): EnumConstructorDescriptor {
+    fun loadEnumConstructor(decl: EnumConstructorWrapper): EnumConstructorDescriptor {
 
 
         val classDescriptor = c.containingDeclaration as EnumDescriptor

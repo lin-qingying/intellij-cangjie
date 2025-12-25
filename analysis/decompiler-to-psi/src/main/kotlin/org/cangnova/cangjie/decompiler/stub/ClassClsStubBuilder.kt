@@ -34,121 +34,7 @@ import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.stubs.elements.*
 import org.cangnova.cangjie.psi.stubs.impl.*
 
-/**
- * 类 Stub 构建器
- *
- * ## 架构作用
- *
- * ClassClsStubBuilder 负责从 Flatbuffers 元数据构建类声明的 PSI Stub。
- * 它支持仓颉语言的所有类型声明：class、interface、struct、enum。
- *
- * ## 支持的类型声明
- *
- * | 类型 | Stub 类 | 特殊处理 |
- * |------|---------|---------|
- * | class | [CangJieClassStubImpl] | 支持构造函数、属性、方法 |
- * | interface | [CangJieInterfaceStubImpl] | 只有抽象方法 |
- * | struct | [CangJieStructStubImpl] | 值类型，类似 class |
- * | enum | [CangJieEnumStubImpl] | 需要创建枚举项 Stub |
- *
- * ## Stub 构建流程
- *
- * ```
- * ClassClsStubBuilder.build()
- *   ├─ createClassStubAndModifierListStub()
- *   │   ├─ 根据 ClassKind 创建对应的 Stub (Class/Interface/Struct/Enum)
- *   │   ├─ 提取父类型引用（用于快速索引）
- *   │   └─ 创建修饰符列表（可见性、模态）
- *   ├─ createTypeParameterListStub()
- *   │   ├─ 创建类型参数列表 <T, U>
- *   │   └─ createTypeConstraintListStub() - where 子句
- *   ├─ createSuperTypeListStub()
- *   │   └─ 创建父类型完整引用（支持跨包类型）
- *   └─ createClassBodyStub()
- *       ├─ createConstructorStubs() - 构造函数
- *       ├─ createDeclarationsStubs() - 函数和属性
- *       ├─ 创建成员变量
- *       └─ (enum only) createEnumEntryStubs() - 枚举项
- * ```
- *
- * ## PSI 结构示例
- *
- * 对于类 `class Box<T: Comparable<T>>(val value: T) : Container<T>`：
- *
- * ```
- * CangJieClassStub ("Box")
- *   ├─ CangJieModifierListStub (public)
- *   ├─ CjTypeParameterList
- *   │   └─ CjTypeParameter ("T")
- *   ├─ CjTypeConstraintList (where T: Comparable<T>)
- *   │   └─ CjTypeConstraint
- *   │       ├─ NameRef ("T")
- *   │       └─ TypeRef (Comparable<T>)
- *   ├─ CjSuperTypeList
- *   │   └─ CjSuperTypeEntry
- *   │       └─ TypeRef (Container<T>)
- *   └─ CjClassBody
- *       ├─ CjConstructor (primary)
- *       │   └─ CjParameterList
- *       │       └─ CjParameter ("value", T)
- *       └─ ... (其他成员)
- * ```
- *
- * ## 快速索引优化
- *
- * 为了支持快速的符号查找，Stub 中存储了一些冗余信息：
- * - **superTypeRefs**: 父类型的名称数组（[StringRef]），用于快速检查继承关系
- * - **classId**: 类的唯一标识符（包含包名和类名），用于快速定位
- * - **fqName**: 完全限定名，用于索引和搜索
- *
- * ## 类型参数和约束
- *
- * 类型参数的 bounds 不直接存储在 [CjTypeParameter] 中，而是：
- * 1. 创建 [CjTypeParameterList] 时只存储参数名
- * 2. 创建 [CjTypeConstraintList] (where 子句) 存储所有约束
- *
- * 这样设计的原因：
- * - 更贴近仓颉语言的语法（where 子句）
- * - 支持多个约束：`where T: A, T: B`
- * - 简化 PSI 结构
- *
- * ## 嵌套类处理
- *
- * 嵌套类通过 [ClassId.isNestedClass] 识别：
- * - 顶层类: `isTopLevel = true`, 直接在文件 Stub 下创建
- * - 嵌套类: `isTopLevel = false`, 在父类的 ClassBody 下创建
- *
- * ## 枚举特殊处理
- *
- * 枚举类型需要额外处理：
- * 1. 创建 [CjEnumBody] 而不是 [CjClassBody]
- * 2. 调用 [createEnumEntryStubs] 创建所有枚举项
- * 3. 枚举项使用 [CangJieEnumConstructorStubImpl]
- *
- * ## 本地类降级
- *
- * 对于本地类（匿名类、lambda 类）：
- * - `classId.isLocal = true`
- * - Stub 中 `classId` 设置为 `null`
- * - 避免索引冲突和查找错误
- *
- * ## 使用场景
- *
- * 1. **文件级类**: 在 [CangJieMetadataStubBuilder.buildCompatibleFileStub] 中调用
- * 2. **嵌套类**: 在 [createClassBodyStub] 中递归调用
- * 3. **IDE 索引**: 支持类名搜索、继承查找、成员导航
- *
- * @property parentStub 父 Stub 元素（文件 Stub 或外部类 Stub）
- * @property outerContext 外部构建上下文（包含包名、类型表等）
- * @property classDecl 类声明包装器（来自元数据）
- *
- * @see ClassDeclWrapper
- * @see CangJieClassStubImpl
- * @see CangJieInterfaceStubImpl
- * @see CangJieStructStubImpl
- * @see CangJieEnumStubImpl
- */
-class ClassClsStubBuilder(
+abstract class   EnumAndClassClsStubBuilder(
     private val parentStub: StubElement<out PsiElement>,
     private val outerContext: ClsStubBuilderContext,
     private val classDecl: ClassDeclWrapper,
@@ -157,34 +43,6 @@ class ClassClsStubBuilder(
     private val shortName = classId.shortClassName
     private val isTopLevel = !classId.isNestedClass
 
-    /**
-     * 构建类 Stub
-     *
-     * @return 创建的类 Stub，如果类型不支持则返回 null
-     */
-    fun build(): StubElement<out PsiElement>? {
-        val classStub = createClassStubAndModifierListStub() ?: return null
-
-        val typeParameterContext = createTypeParameterListStub(classStub)
-
-        // 注意：PSI 解析顺序是 SUPER_TYPE_LIST -> TYPE_CONSTRAINT_LIST
-        // stub 构建必须保持相同顺序
-        createSuperTypeListStub(classStub, typeParameterContext)
-        createTypeConstraintListStub(classStub, typeParameterContext)
-
-        val classBodyContext = typeParameterContext.child(
-            emptyList(),
-            classDecl.name,
-            metadataContainer = MetadataContainer.Class(
-                classDecl,
-                outerContext.typeTable,
-                outerContext.metadataContainer as? MetadataContainer.Class
-            )
-        )
-        createClassBodyStub(classStub, classBodyContext)
-
-        return classStub
-    }
 
     /**
      * 创建类或对象 Stub 以及修饰符列表 Stub
@@ -193,7 +51,7 @@ class ClassClsStubBuilder(
      *
      * @return 创建的 Stub，如果类型不支持则返回 null
      */
-    private fun createClassStubAndModifierListStub(): StubElement<out PsiElement>? {
+    protected fun createClassStubAndModifierListStub(): StubElement<out PsiElement>? {
         val fqName = outerContext.containerFqName.child(shortName)
 
         val superTypeRefs = classDecl.superTypes
@@ -256,7 +114,9 @@ class ClassClsStubBuilder(
 
         return classStub
     }
-
+    protected fun extractTypeName(typeWrapper: TypeWrapper): org.cangnova.cangjie.name.Name? {
+        return TypeClsStubBuilder.extractTypeName(typeWrapper, outerContext)
+    }
     /**
      * 创建类型参数列表 Stub
      *
@@ -267,7 +127,7 @@ class ClassClsStubBuilder(
      * @param classOrObjectStub 类或对象 Stub
      * @return 包含类型参数的新上下文
      */
-    private fun createTypeParameterListStub(classOrObjectStub: StubElement<out PsiElement>): ClsStubBuilderContext {
+    protected fun createTypeParameterListStub(classOrObjectStub: StubElement<out PsiElement>): ClsStubBuilderContext {
         val typeParameters = classDecl.typeParameters
         if (typeParameters.isEmpty()) {
             return outerContext
@@ -289,11 +149,10 @@ class ClassClsStubBuilder(
 
         return innerContext
     }
-
     /**
      * 创建类型约束列表 Stub（where 子句）
      */
-    private fun createTypeConstraintListStub(
+    protected fun createTypeConstraintListStub(
         classOrObjectStub: StubElement<out PsiElement>,
         context: ClsStubBuilderContext
     ) {
@@ -331,7 +190,7 @@ class ClassClsStubBuilder(
      * @param classOrObjectStub 类或对象 Stub
      * @param context 构建上下文
      */
-    private fun createSuperTypeListStub(
+    protected fun createSuperTypeListStub(
         classOrObjectStub: StubElement<out PsiElement>,
         context: ClsStubBuilderContext
     ) {
@@ -353,12 +212,162 @@ class ClassClsStubBuilder(
             TypeClsStubBuilder(superTypeEntryStub, context).createTypeReferenceStub(superType)
         }
     }
+}
+
+/**
+ * 类 Stub 构建器
+ *
+ * ## 架构作用
+ *
+ * ClassClsStubBuilder 负责从 Flatbuffers 元数据构建类声明的 PSI Stub。
+ * 它支持仓颉语言的类型声明：class、interface、struct。
+ *
+ * **注意**: 枚举类型由专门的 [EnumClsStubBuilder] 处理。
+ *
+ * ## 支持的类型声明
+ *
+ * | 类型 | Stub 类 | 特殊处理 |
+ * |------|---------|---------|
+ * | class | [CangJieClassStubImpl] | 支持构造函数、属性、方法 |
+ * | interface | [CangJieInterfaceStubImpl] | 只有抽象方法 |
+ * | struct | [CangJieStructStubImpl] | 值类型，类似 class |
+ *
+ * ## Stub 构建流程
+ *
+ * ```
+ * ClassClsStubBuilder.build()
+ *   ├─ createClassStubAndModifierListStub()
+ *   │   ├─ 根据 ClassKind 创建对应的 Stub (Class/Interface/Struct)
+ *   │   ├─ 提取父类型引用（用于快速索引）
+ *   │   └─ 创建修饰符列表（可见性、模态）
+ *   ├─ createTypeParameterListStub()
+ *   │   ├─ 创建类型参数列表 <T, U>
+ *   │   └─ createTypeConstraintListStub() - where 子句
+ *   ├─ createSuperTypeListStub()
+ *   │   └─ 创建父类型完整引用（支持跨包类型）
+ *   └─ createClassBodyStub()
+ *       ├─ createConstructorStubs() - 构造函数
+ *       ├─ createDeclarationsStubs() - 函数和属性
+ *       └─ 创建成员变量
+ * ```
+ *
+ * ## PSI 结构示例
+ *
+ * 对于类 `class Box<T: Comparable<T>>(val value: T) : Container<T>`：
+ *
+ * ```
+ * CangJieClassStub ("Box")
+ *   ├─ CangJieModifierListStub (public)
+ *   ├─ CjTypeParameterList
+ *   │   └─ CjTypeParameter ("T")
+ *   ├─ CjTypeConstraintList (where T: Comparable<T>)
+ *   │   └─ CjTypeConstraint
+ *   │       ├─ NameRef ("T")
+ *   │       └─ TypeRef (Comparable<T>)
+ *   ├─ CjSuperTypeList
+ *   │   └─ CjSuperTypeEntry
+ *   │       └─ TypeRef (Container<T>)
+ *   └─ CjClassBody
+ *       ├─ CjConstructor (primary)
+ *       │   └─ CjParameterList
+ *       │       └─ CjParameter ("value", T)
+ *       └─ ... (其他成员)
+ * ```
+ *
+ * ## 快速索引优化
+ *
+ * 为了支持快速的符号查找，Stub 中存储了一些冗余信息：
+ * - **superTypeRefs**: 父类型的名称数组（[StringRef]），用于快速检查继承关系
+ * - **classId**: 类的唯一标识符（包含包名和类名），用于快速定位
+ * - **fqName**: 完全限定名，用于索引和搜索
+ *
+ * ## 类型参数和约束
+ *
+ * 类型参数的 bounds 不直接存储在 [CjTypeParameter] 中，而是：
+ * 1. 创建 [CjTypeParameterList] 时只存储参数名
+ * 2. 创建 [CjTypeConstraintList] (where 子句) 存储所有约束
+ *
+ * 这样设计的原因：
+ * - 更贴近仓颉语言的语法（where 子句）
+ * - 支持多个约束：`where T: A, T: B`
+ * - 简化 PSI 结构
+ *
+ * ## 嵌套类处理
+ *
+ * 嵌套类通过 [ClassId.isNestedClass] 识别：
+ * - 顶层类: `isTopLevel = true`, 直接在文件 Stub 下创建
+ * - 嵌套类: `isTopLevel = false`, 在父类的 ClassBody 下创建
+ *
+ * ## 本地类降级
+ *
+ * 对于本地类（匿名类、lambda 类）：
+ * - `classId.isLocal = true`
+ * - Stub 中 `classId` 设置为 `null`
+ * - 避免索引冲突和查找错误
+ *
+ * ## 使用场景
+ *
+ * 1. **文件级类**: 在 [CangJieMetadataStubBuilder.buildCompatibleFileStub] 中调用
+ * 2. **嵌套类**: 在 [createClassBodyStub] 中递归调用
+ * 3. **IDE 索引**: 支持类名搜索、继承查找、成员导航
+ *
+ * @property parentStub 父 Stub 元素（文件 Stub 或外部类 Stub）
+ * @property outerContext 外部构建上下文（包含包名、类型表等）
+ * @property classDecl 类声明包装器（来自元数据）
+ *
+ * @see ClassDeclWrapper
+ * @see CangJieClassStubImpl
+ * @see CangJieInterfaceStubImpl
+ * @see CangJieStructStubImpl
+ * @see EnumClsStubBuilder
+ */
+class ClassClsStubBuilder(
+    private val parentStub: StubElement<out PsiElement>,
+    private val outerContext: ClsStubBuilderContext,
+    private val classDecl: ClassDeclWrapper,
+) :EnumAndClassClsStubBuilder(parentStub, outerContext, classDecl){
+    private val classId: ClassId = classDecl.classId
+    private val shortName = classId.shortClassName
+    private val isTopLevel = !classId.isNestedClass
+
+    /**
+     * 构建类 Stub
+     *
+     * @return 创建的类 Stub，如果类型不支持则返回 null
+     */
+    fun build(): StubElement<out PsiElement>? {
+        val classStub = createClassStubAndModifierListStub() ?: return null
+
+        val typeParameterContext = createTypeParameterListStub(classStub)
+
+        // 注意：PSI 解析顺序是 SUPER_TYPE_LIST -> TYPE_CONSTRAINT_LIST
+        // stub 构建必须保持相同顺序
+        createSuperTypeListStub(classStub, typeParameterContext)
+        createTypeConstraintListStub(classStub, typeParameterContext)
+
+        val classBodyContext = typeParameterContext.child(
+            emptyList(),
+            classDecl.name,
+            metadataContainer = MetadataContainer.Class(
+                classDecl,
+                outerContext.typeTable,
+                outerContext.metadataContainer as? MetadataContainer.Class
+            )
+        )
+        createClassBodyStub(classStub, classBodyContext)
+
+        return classStub
+    }
+
+
+
+
 
     /**
      * 创建类体 Stub
      *
-     * 根据类的类型创建对应的类体（ClassBody/InterfaceBody/EnumBody），
-     * 并创建所有成员的 Stub（构造函数、函数、属性、变量、枚举项）。
+     * 根据类的类型创建对应的类体（ClassBody/InterfaceBody），
+     * 并创建所有成员的 Stub（构造函数、函数、属性、变量）。
      *
      * @param classOrObjectStub 类或对象 Stub
      * @param context 构建上下文
@@ -372,10 +381,7 @@ class ClassClsStubBuilder(
                 classOrObjectStub,
                 CjStubElementTypes.INTERFACE_BODY
             )
-            ClassKind.ENUM -> CangJiePlaceHolderStubImpl<CjEnumBody>(
-                classOrObjectStub,
-                CjStubElementTypes.ENUM_BODY
-            )
+
             else -> CangJiePlaceHolderStubImpl<CjClassBody>(
                 classOrObjectStub,
                 CjStubElementTypes.CLASS_BODY
@@ -398,11 +404,6 @@ class ClassClsStubBuilder(
         for (variable in classDecl.variables) {
             FieldClsStubBuilder(classBodyStub, context, context.metadataContainer, variable).build()
         }
-
-        // 如果是枚举，创建枚举项 Stubs
-        if (classDecl is EnumWrapper) {
-            createEnumEntryStubs(classBodyStub, context, classDecl)
-        }
     }
 
     private fun createConstructorStubs(
@@ -414,44 +415,206 @@ class ClassClsStubBuilder(
         }
     }
 
-    private fun createEnumEntryStubs(
-        classBodyStub: StubElement<out PsiElement>,
-        context: ClsStubBuilderContext,
-        enumWrapper: EnumWrapper
+}
+
+/**
+ * 枚举 Stub 构建器
+ *
+ * ## 架构作用
+ *
+ * EnumClsStubBuilder 专门负责从 Flatbuffers 元数据构建枚举声明的 PSI Stub。
+ * 与类不同，枚举需要特殊处理枚举构造器（enum constructors），而不是普通的函数。
+ *
+ * ## 枚举特性
+ *
+ * 在仓颉语言中，枚举条目（enum entries）实际上是枚举构造器：
+ * - 每个枚举条目都是一个构造器调用
+ * - 枚举条目可以有参数
+ * - 枚举构造器使用 [CangJieEnumConstructorStubImpl]
+ *
+ * ## Stub 构建流程
+ *
+ * ```
+ * EnumClsStubBuilder.build()
+ *   ├─ createClassStubAndModifierListStub()
+ *   │   ├─ 创建 CangJieEnumStubImpl
+ *   │   ├─ 提取父类型引用（用于快速索引）
+ *   │   └─ 创建修饰符列表（可见性、模态）
+ *   ├─ createTypeParameterListStub()
+ *   │   ├─ 创建类型参数列表 <T, U>
+ *   │   └─ createTypeConstraintListStub() - where 子句
+ *   ├─ createSuperTypeListStub()
+ *   │   └─ 创建父类型完整引用（支持跨包类型）
+ *   └─ createEnumBodyStub()
+ *       ├─ createEnumConstructorStubs() - 枚举构造器（从 constructor 创建）
+ *       ├─ createDeclarationsStubs() - 函数和属性（过滤掉枚举构造器）
+ *       └─ 创建成员变量
+ * ```
+ *
+ * ## PSI 结构示例
+ *
+ * 对于枚举 `enum Color { Red, Green(value: Int), Blue }`：
+ *
+ * ```
+ * CangJieEnumStub ("Color")
+ *   ├─ CangJieModifierListStub (public)
+ *   └─ CjEnumBody
+ *       ├─ CangJieEnumConstructorStub ("Red")
+ *       ├─ CangJieEnumConstructorStub ("Green")
+ *       │   └─ CjParameterList
+ *       │       └─ CjParameter ("value", Int)
+ *       └─ CangJieEnumConstructorStub ("Blue")
+ * ```
+ *
+ * ## 枚举构造器过滤
+ *
+ * 由于枚举条目在元数据中可能同时存在于：
+ * 1. `EnumWrapper.constructor` - 枚举条目列表
+ * 2. `EnumWrapper.functions` - 函数列表（作为构造器函数）
+ *
+ * 构建器需要：
+ * - 从 `constructor` 创建 ENUM_CONSTRUCTOR 类型的 Stub
+ * - 从 `functions` 中过滤掉与枚举条目同名的函数，避免重复创建
+ *
+ * @property parentStub 父 Stub 元素（文件 Stub 或外部类 Stub）
+ * @property outerContext 外部构建上下文（包含包名、类型表等）
+ * @property enumDecl 枚举声明包装器（来自元数据）
+ *
+ * @see EnumWrapper
+ * @see CangJieEnumStubImpl
+ * @see CangJieEnumConstructorStubImpl
+ */
+class EnumClsStubBuilder(
+    private val parentStub: StubElement<out PsiElement>,
+    private val outerContext: ClsStubBuilderContext,
+    private val enumDecl: EnumWrapper,
+) : EnumAndClassClsStubBuilder(parentStub, outerContext, enumDecl) {
+    private val classId: ClassId = enumDecl.classId
+    private val shortName = classId.shortClassName
+    private val isTopLevel = !classId.isNestedClass
+
+    /**
+     * 构建枚举 Stub
+     *
+     * @return 创建的枚举 Stub
+     */
+    fun build(): StubElement<out PsiElement> {
+        val enumStub = createClassStubAndModifierListStub()!!
+
+        val typeParameterContext = createTypeParameterListStub(enumStub)
+
+        // 注意：PSI 解析顺序是 SUPER_TYPE_LIST -> TYPE_CONSTRAINT_LIST
+        // stub 构建必须保持相同顺序
+        createSuperTypeListStub(enumStub, typeParameterContext)
+        createTypeConstraintListStub(enumStub, typeParameterContext)
+
+        val enumBodyContext = typeParameterContext.child(
+            emptyList(),
+            enumDecl.name,
+            metadataContainer = MetadataContainer.Class(
+                enumDecl,
+                outerContext.typeTable,
+                outerContext.metadataContainer as? MetadataContainer.Class
+            )
+        )
+        createEnumBodyStub(enumStub, enumBodyContext)
+
+        return enumStub
+    }
+
+    /**
+     * 创建枚举体 Stub
+     *
+     * 创建枚举体并创建所有成员的 Stub：
+     * 1. 枚举构造器（从 constructor 创建）
+     * 2. 函数和属性（过滤掉枚举构造器）
+     * 3. 成员变量
+     *
+     * @param enumStub 枚举 Stub
+     * @param context 构建上下文
+     */
+    private fun createEnumBodyStub(
+        enumStub: StubElement<out PsiElement>,
+        context: ClsStubBuilderContext
     ) {
-        for (entry in enumWrapper.entrys) {
-            createEnumEntryStub(classBodyStub, context, entry)
+        val enumBodyStub = CangJiePlaceHolderStubImpl<CjEnumBody>(
+            enumStub,
+            CjStubElementTypes.ENUM_BODY
+        )
+
+        // 1. 创建枚举构造器 Stubs（从枚举条目创建）
+        createEnumConstructorStubs(enumBodyStub, context)
+
+        // 2. 创建成员声明 Stubs（函数和属性）
+        // 需要过滤掉枚举构造器（它们已经通过 createEnumConstructorStubs 创建）
+        val enumEntryNames = enumDecl.entrys.map { it.name }.toSet()
+        val functionsToCreate = enumDecl.functions.filterNot { it.name in enumEntryNames }
+
+        createDeclarationsStubs(
+            enumBodyStub,
+            context,
+            context.metadataContainer!!,
+            functionsToCreate,
+            enumDecl.propertys
+        )
+
+        // 3. 创建成员字段 Stubs
+        for (variable in enumDecl.variables) {
+            FieldClsStubBuilder(enumBodyStub, context, context.metadataContainer, variable).build()
         }
     }
 
-    private fun createEnumEntryStub(
-        parent: StubElement<out PsiElement>,
-        context: ClsStubBuilderContext,
-        entry: EnumEntryWrapper
+    /**
+     * 创建枚举构造器 Stubs
+     *
+     * 遍历所有枚举条目（EnumConstructorWrapper），为每个条目创建 ENUM_CONSTRUCTOR 类型的 Stub。
+     */
+    private fun createEnumConstructorStubs(
+        enumBodyStub: StubElement<out PsiElement>,
+        context: ClsStubBuilderContext
     ) {
-        val entryName = entry.name
-        val fqName = context.containerFqName.child(entryName)
-        val parentEnumFqName = context.containerFqName
-
-        // 提取参数信息（如果元数据中有）
-        val parameterCount = 0  // TODO: 从 entry 中提取实际参数数量
-        val parameterTypeNames = emptyList<String>()  // TODO: 从 entry 中提取实际参数类型
-
-        CangJieEnumConstructorStubImpl(
-            CjStubElementTypes.ENUM_CONSTRUCTOR,
-            parent,
-            fqName.ref(),              // 枚举条目 FQN
-            parentEnumFqName.ref(),    // 父枚举 FQN
-            classId = null,
-            name = entryName.ref(),
-            parameterCount,            // 参数数量
-            parameterTypeNames,        // 参数类型名称
-            isLocal = false
-        )
+        for (entry in enumDecl.entrys) {
+            createEnumConstructorStub(enumBodyStub, context, entry)
+        }
     }
 
-    private fun extractTypeName(typeWrapper: TypeWrapper): org.cangnova.cangjie.name.Name? {
-        return TypeClsStubBuilder.extractTypeName(typeWrapper, outerContext)
+    /**
+     * 创建单个枚举构造器 Stub
+     *
+     * @param parent 父 Stub 元素（枚举体）
+     * @param context 构建上下文
+     * @param entry 枚举条目包装器
+     */
+    private fun createEnumConstructorStub(
+        parent: StubElement<out PsiElement>,
+        context: ClsStubBuilderContext,
+        entry: EnumConstructorWrapper
+    ) {
+        val entryName = entry.name
+
+        // 提取参数类型数量
+        val typeCount = entry.valueParameters.size
+
+        // 创建枚举构造器 Stub
+        val constructorStub = CangJieEnumConstructorStubImpl(
+            CjStubElementTypes.ENUM_CONSTRUCTOR,
+            parent,
+            entryName.ref(),
+            typeCount,
+        )
+
+        // 如果有参数类型，创建 TYPE_LIST
+        if (typeCount > 0) {
+            val typeListStub = CangJiePlaceHolderStubImpl<CjEnumConstructorTypeEntry>(
+                constructorStub,
+                CjStubElementTypes.TYPE_LIST
+            )
+
+            // 为每个参数类型创建 TYPE_REFERENCE
+            for (param in entry.valueParameters) {
+                TypeClsStubBuilder(typeListStub, context).createTypeReferenceStub(param.type)
+            }
+        }
     }
 }
 
@@ -478,22 +641,26 @@ class ConstructorClsStubBuilder(
         val name = classDecl.name.ref()
 
         val constructorStub = if (constructor.isPrimary) {
+//            由于主构造函数的参数可能是某个具体的声明，所以标记为从构造函数，渲染时直接渲染声明和从构造函数，i使用isDelegatedCallToThis标记
             CangJieConstructorStubImpl(
                 parentStub,
-                CjStubElementTypes.PRIMARY_CONSTRUCTOR,
+                CjStubElementTypes.SECONDARY_CONSTRUCTOR,
                 name,
-                name,
+
                 hasBody = false,
-                isDelegatedCallToThis = false
+                isDelegatedCallToThis = false,
+                isPrimary = false
+
             )
         } else {
             CangJieConstructorStubImpl(
                 parentStub,
                 CjStubElementTypes.SECONDARY_CONSTRUCTOR,
                 name,
-                name,
+
                 hasBody = true,
-                isDelegatedCallToThis = false
+                isDelegatedCallToThis = false,
+                isPrimary = false
             )
         }
 
@@ -513,7 +680,11 @@ fun createClassStub(
     classDecl: ClassDeclWrapper,
     context: ClsStubBuilderContext
 ): StubElement<out PsiElement>? {
-    return ClassClsStubBuilder(parentStub, context, classDecl).build()
+    return if(classDecl.kind == ClassKind.ENUM){
+        EnumClsStubBuilder(parentStub, context, classDecl as EnumWrapper).build()
+    }else{
+        ClassClsStubBuilder(parentStub, context, classDecl).build()
+    }
 }
 
 /**

@@ -206,7 +206,7 @@ class ControlFlowInstructionsGenerator : ControlFlowBuilderAdapter() {
         override fun enterSubroutine(subroutine: CjElement, eventOccurrencesRange: EventOccurrencesRange?) {
             val blockInfo = SubroutineInfo(
                 subroutine,
-                /* entry point */ createUnboundLabel(),
+                /* constructor point */ createUnboundLabel(),
                 /* exit point  */ createUnboundLabel()
             )
             elementToSubroutineInfo.put(subroutine, blockInfo)
@@ -333,11 +333,11 @@ class ControlFlowInstructionsGenerator : ControlFlowBuilderAdapter() {
 
             val info = LoopInfo(
                 expression,
-                createUnboundLabel("loop entry point"),
+                createUnboundLabel("loop constructor point"),
                 createUnboundLabel("loop exit point"),
-                createUnboundLabel("body entry point"),
+                createUnboundLabel("body constructor point"),
                 createUnboundLabel("body exit point"),
-                createUnboundLabel("condition entry point")
+                createUnboundLabel("condition constructor point")
             )
             bindLabel(info.entryPoint)
             elementToLoopInfo.put(expression, info)

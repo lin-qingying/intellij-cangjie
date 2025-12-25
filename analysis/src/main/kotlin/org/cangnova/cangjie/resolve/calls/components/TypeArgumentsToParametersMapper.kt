@@ -108,7 +108,7 @@ class TypeArgumentsToParametersMapper {
  *
  * 例如
  * enum e<T>{
- *  entry(T)  //该枚举值附带了类型参数  所以是共享的类型参数
+ *  constructor(T)  //该枚举值附带了类型参数  所以是共享的类型参数
  *  }
  */
 fun getSharedTypeParametersByDeclarationDescriptor(vararg descriptor: DeclarationDescriptor?): Set<TypeParameterDescriptor> {

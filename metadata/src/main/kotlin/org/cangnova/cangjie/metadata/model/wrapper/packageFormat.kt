@@ -174,14 +174,14 @@ class EnumWrapper(
         FunctionWrapper(it, declTable, typeTable)
     } ?: emptyList()
 
-    val entrys: List<EnumEntryWrapper> = (declByTypeKind[FbDeclKind.VarDecl]?.map {
-        EnumEntryWrapper(it, declTable, typeTable)
+    val entrys: List<EnumConstructorWrapper> = (declByTypeKind[FbDeclKind.VarDecl]?.map {
+        EnumConstructorWrapper(it, declTable, typeTable)
     } ?: emptyList()) + (declByTypeKind[FbDeclKind.FuncDecl]?.filter {
         !it.attributePack.testAttr(Attribute.CONSTRUCTOR) && !it.attributePack.testAttr(Attribute.PRIMARY_CONSTRUCTOR) && it.attributePack.testAttr(
             Attribute.ENUM_CONSTRUCTOR
         )
     }?.map {
-        EnumEntryWrapper(it, declTable, typeTable)
+        EnumConstructorWrapper(it, declTable, typeTable)
     } ?: emptyList())
 
     override val propertys: List<PropertyWrapper> = declByTypeKind[FbDeclKind.PropDecl]?.map {
@@ -206,7 +206,7 @@ class EnumWrapper(
     val hasArguments = info.hasArguments
 }
 
-class EnumEntryWrapper(
+class EnumConstructorWrapper(
     val original: FbDecl,
     val declTable: DeclTable,
     val typeTable: TypeTable,

@@ -263,8 +263,8 @@ class CjPsiFactory private constructor(
         val function = createFunction("func foo() { match(12) { $entryText } }")
         val matchEntry = PsiTreeUtil.findChildOfType(function, CjMatchEntry::class.java)
 
-        assert(matchEntry != null) { "Couldn't generate match entry" }
-        assert(entryText == matchEntry!!.text) { "Generate when entry text differs from the given text" }
+        assert(matchEntry != null) { "Couldn't generate match constructor" }
+        assert(entryText == matchEntry!!.text) { "Generate when constructor text differs from the given text" }
 
         return matchEntry
     }

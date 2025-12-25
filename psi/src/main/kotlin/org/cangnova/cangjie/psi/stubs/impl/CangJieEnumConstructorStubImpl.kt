@@ -36,38 +36,16 @@ import com.intellij.util.io.StringRef
 /**
  * 枚举构造器的 Stub 实现
  *
- * 根据仓颉语言规范，枚举条目是构造器，不是类型声明。
- * 此实现不再继承 CangJieStubBaseImpl<CjEnumConstructor>，而是直接实现接口。
+ * 只存储名称和参数类型数量，参数类型详情由 PSI 子树（TYPE_LIST）提供。
  */
-open class CangJieEnumConstructorStubImpl(
+ class CangJieEnumConstructorStubImpl(
     type: CjEnumConstructorElementType,
     parent: StubElement<out PsiElement>?,
-    private val fqName: StringRef?,           // 枚举条目的完全限定名 (例如: com.example.Color.Red)
-    private val parentEnumFqName: StringRef?,  // 父枚举的完全限定名 (例如: com.example.Color)
-    private val classId: ClassId?,
-    private val name: StringRef?,
-    private val parameterCount: Int,           // 参数数量(用于区分重载)
-    private val parameterTypeNames: List<String>, // 参数类型名称列表
-    private val isLocal: Boolean,
+    private val name: StringRef?,       // 枚举构造器名称 (例如: Red, Green)
+    private val typeCount: Int,         // 参数类型数量
 ) : CangJieStubBaseImpl<CjEnumConstructor>(parent, type), CangJieEnumConstructorStub {
-
-    override fun getFqName(): FqName? {
-        val stringRef = StringRef.toString(fqName) ?: return null
-        return FqName(stringRef)
-    }
-
-    override fun getParentEnumFqName(): FqName? {
-        val stringRef = StringRef.toString(parentEnumFqName) ?: return null
-        return FqName(stringRef)
-    }
-
-    override fun getParameterCount(): Int = parameterCount
-
-    override fun getParameterTypeNames(): List<String> = parameterTypeNames
-
-    override fun isLocal() = isLocal
 
     override fun getName() = StringRef.toString(name)
 
-    override fun getClassId(): ClassId? = classId
+    override fun getTypeCount(): Int = typeCount
 }

@@ -28,6 +28,8 @@ import org.cangnova.cangjie.psi.stubs.CangJieEnumStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.ENUM_BODY
 import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.lexer.CjTokens
 
 class CjEnum : CjTypeStatement {
     constructor(node: ASTNode) : super(node)
@@ -42,12 +44,25 @@ class CjEnum : CjTypeStatement {
         return visitor.visitEnum(this, data)
     }
 
-    override val body: CjEnumBody? get() {
-        return getStubOrPsiChild(ENUM_BODY)
-    }
-
-    val entry: List<CjEnumConstructor>
+    override val body: CjEnumBody?
         get() {
-            return body?.entrys ?: emptyList()
+            return getStubOrPsiChild(ENUM_BODY)
+        }
+
+    /**
+     * 是否非穷枚举
+     */
+    val isNonExhaustive: Boolean
+        get() {
+            val stub = stub as CangJieEnumStub?
+            if (stub != null) {
+                return stub.isNonExhaustive()
+            }
+            return findChildByType<PsiElement>(CjTokens.ELLIPSIS) != null
+        }
+
+    val constructor: List<CjEnumConstructor>
+        get() {
+            return body?.constructor ?: emptyList()
         }
 }

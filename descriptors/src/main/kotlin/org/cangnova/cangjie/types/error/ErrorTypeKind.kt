@@ -291,7 +291,7 @@ enum class ErrorTypeKind(val debugMessage: String, val isUnresolved: Boolean = f
     NOT_FOUND_UNSIGNED_TYPE("Unsigned type %s not found"),
 
     /** 错误枚举类型：找不到枚举条目对应的枚举类 */
-    ERROR_ENUM_TYPE("Not found the corresponding enum class for given enum entry %s.%s"),
+    ERROR_ENUM_TYPE("Not found the corresponding enum class for given enum constructor %s.%s"),
 
     /** 未记录类型：没有为声明记录类型信息 */
     NO_RECORDED_TYPE("Not found recorded type for %s"),

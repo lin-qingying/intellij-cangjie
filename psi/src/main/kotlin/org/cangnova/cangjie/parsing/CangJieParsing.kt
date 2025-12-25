@@ -50,7 +50,7 @@ class CangJieParsing private constructor(
 ) {
 
     companion object {
-          val PARAMETER_NAME_RECOVERY_SET = TokenSet.create(COLON, EQ, COMMA, RPAR)
+        val PARAMETER_NAME_RECOVERY_SET = TokenSet.create(COLON, EQ, COMMA, RPAR)
         private val GT_COMMA_COLON_SET = TokenSet.create(GT, COMMA, COLON)
         private val LOG = Logger.getInstance(CangJieParsing::class.java)
         private val TOP_LEVEL_DECLARATION_FIRST = TokenSet.create(
@@ -239,7 +239,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) fun parseTypeRef() {
+    context(parseContext: ParsingContext)
+    fun parseTypeRef() {
         parseTypeRef(TokenSet.EMPTY, false)
     }
 
@@ -257,7 +258,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) fun parseTypeRefWithoutIntersections() {
+    context(parseContext: ParsingContext)
+    fun parseTypeRefWithoutIntersections() {
         parseTypeRef(TokenSet.EMPTY)
     }
 
@@ -277,7 +279,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseThisOrSuper() {
+    context(parseContext: ParsingContext)
+    private fun parseThisOrSuper() {
         check(_at(THIS_KEYWORD) || _at(SUPER_KEYWORD))
         val mark = mark()
 
@@ -297,7 +300,8 @@ class CangJieParsing private constructor(
      * ```
      */
 
-    context(parseContext: ParsingContext) private fun parseInitFunctionBlock() {
+    context(parseContext: ParsingContext)
+    private fun parseInitFunctionBlock() {
         val lazyBlock = mark()
 
         builder.enableNewlines()
@@ -334,7 +338,8 @@ class CangJieParsing private constructor(
      *
      * @param collapse 是否折叠代码块以提升解析性能
      */
-    context(parseContext: ParsingContext) fun parseBlock(collapse: Boolean = true) {
+    context(parseContext: ParsingContext)
+    fun parseBlock(collapse: Boolean = true) {
         val lazyBlock = mark()
 
         builder.enableNewlines()
@@ -371,7 +376,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) fun parseBlockExpression() {
+    context(parseContext: ParsingContext)
+    fun parseBlockExpression() {
         parseBlock(false)
     }
 
@@ -386,7 +392,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) private fun parsePreamble() {
+    context(parseContext: ParsingContext)
+    private fun parsePreamble() {
         val firstEntry = mark()
 
         /*
@@ -462,7 +469,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseImportDirectives() {
+    context(parseContext: ParsingContext)
+    private fun parseImportDirectives() {
         val importList = mark()
 
 //        if (!(at(IMPORT_KEYWORD) || atSet(IMPORT_ACCESS_MODIFIER_SET) && lookahead(1) == IMPORT_KEYWORD)) {
@@ -507,7 +515,8 @@ class CangJieParsing private constructor(
      * import some.debug.Module
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseWhenAnnotation(
+    context(parseContext: ParsingContext)
+    private fun parseWhenAnnotation(
 
 
         isCreateAnnotations: Boolean = false
@@ -561,7 +570,8 @@ class CangJieParsing private constructor(
         }
     }
 
-    context(parseContext: ParsingContext) private fun parseAttributeAnnotation(
+    context(parseContext: ParsingContext)
+    private fun parseAttributeAnnotation(
 
 
         isCreateAnnotations: Boolean = false
@@ -660,7 +670,8 @@ class CangJieParsing private constructor(
      * @param errorMessage 错误消息
      * @return 是否处理了错误
      */
-    context(parseContext: ParsingContext) private fun closeImportWithErrorIfNewline(
+    context(parseContext: ParsingContext)
+    private fun closeImportWithErrorIfNewline(
         importDirective: PsiBuilder.Marker?, importAlias: PsiBuilder.Marker?, errorMessage: String
     ): Boolean {
         if (builder.newlineBeforeCurrentToken()) {
@@ -687,7 +698,8 @@ class CangJieParsing private constructor(
      * @return 是否成功解析
      */
 
-    context(parseContext: ParsingContext) private fun parseImportDirectiveItem(isTopLevel: Boolean): Boolean {
+    context(parseContext: ParsingContext)
+    private fun parseImportDirectiveItem(isTopLevel: Boolean): Boolean {
         var importDirectiveItem = mark()
 
         if (!at(IDENTIFIER)) {
@@ -764,7 +776,8 @@ class CangJieParsing private constructor(
      * ```
      */
 
-    context(parseContext: ParsingContext) private fun parseImportDirectiveItem2() {
+    context(parseContext: ParsingContext)
+    private fun parseImportDirectiveItem2() {
         if (!at(IDENTIFIER)) {
             error(
                 CangJieParsingBundle.message(
@@ -820,7 +833,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseImportDirective(): Boolean {
+    context(parseContext: ParsingContext)
+    private fun parseImportDirective(): Boolean {
         assert(_at(IMPORT_KEYWORD) || _atSet(IMPORT_ACCESS_MODIFIER_SET) || isWhenAnnotation())
 
         val doneType = IMPORT_DIRECTIVE
@@ -885,7 +899,8 @@ class CangJieParsing private constructor(
      * ```
      */
 
-    context(parseContext: ParsingContext) private fun parsePackageName() {
+    context(parseContext: ParsingContext)
+    private fun parsePackageName() {
         var qualifiedExpression = mark()
         var simpleName = true
 
@@ -948,7 +963,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) fun parseScript() {
+    context(parseContext: ParsingContext)
+    fun parseScript() {
         val fileMarker = mark()
         fileMarker.done(CJ_SCRIPT)
     }
@@ -990,7 +1006,8 @@ class CangJieParsing private constructor(
      *
      * 检查文件末尾是否有未关闭的块注释，并报告错误。
      */
-    context(parseContext: ParsingContext) private fun checkUnclosedBlockComment() {
+    context(parseContext: ParsingContext)
+    private fun checkUnclosedBlockComment() {
         if (BLOCK_DOC_COMMENT_SET.contains(builder.rawLookup(-1))) {
             val startOffset = builder.rawTokenTypeStart(-1)
             val endOffset = builder.rawTokenTypeStart(0)
@@ -1012,7 +1029,8 @@ class CangJieParsing private constructor(
      *
      * 调用带参数的版本，默认不解析宏。
      */
-    context(parseContext: ParsingContext) private fun parseTopLevelDeclaration() {
+    context(parseContext: ParsingContext)
+    private fun parseTopLevelDeclaration() {
         parseTopLevelDeclaration(false)
     }
 
@@ -1038,7 +1056,8 @@ class CangJieParsing private constructor(
      *
      * @param parseMacro 是否解析宏表达式
      */
-    context(parseContext: ParsingContext) private fun parseTopLevelDeclaration(parseMacro: Boolean) {
+    context(parseContext: ParsingContext)
+    private fun parseTopLevelDeclaration(parseMacro: Boolean) {
         if (at(SEMICOLON)) {
             advance() // SEMICOLON
             return
@@ -1080,7 +1099,8 @@ class CangJieParsing private constructor(
      * @param modifierKeywords 修饰符关键字集合
      * @return 是否成功解析修饰符
      */
-    context(parseContext: ParsingContext) private fun tryParseModifier(
+    context(parseContext: ParsingContext)
+    private fun tryParseModifier(
         tokenConsumer: ((IElementType) -> Unit)?, noModifiersBefore: TokenSet, modifierKeywords: TokenSet
     ): Boolean {
         val marker = mark()
@@ -1132,7 +1152,8 @@ class CangJieParsing private constructor(
      * @param isParseMacro 是否解析宏
      * @return 是否为空列表
      */
-    context(parseContext: ParsingContext) private fun doParseModifierListBody(
+    context(parseContext: ParsingContext)
+    private fun doParseModifierListBody(
         tokenConsumer: ((IElementType) -> Unit)?,
         modifierKeywords: TokenSet,
         noModifiersBefore: TokenSet,
@@ -1172,7 +1193,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) fun parseLambdaExpression() {
+    context(parseContext: ParsingContext)
+    fun parseLambdaExpression() {
         with(
             parseContext.copy(preferBlock = false, collapse = false, isDoubleArrow = false)
         ) {
@@ -1201,7 +1223,8 @@ class CangJieParsing private constructor(
      * @param detector 修饰符检测器
      * @return 解析结果的节点类型
      */
-    context(parseContext: ParsingContext) fun parseAnnotation() {
+    context(parseContext: ParsingContext)
+    fun parseAnnotation() {
 
         if (isBuiltInAnnotation()) {
             parseBuiltAnnotation()
@@ -1276,7 +1299,8 @@ class CangJieParsing private constructor(
         mark.done(ANNOTATION)
     }
 
-    context(parseContext: ParsingContext) fun parseAnnotations() {
+    context(parseContext: ParsingContext)
+    fun parseAnnotations() {
         val set = if (parseContext.disableMacroParsing) {
             TokenSet.create(AT, ATEXCL)
 
@@ -1334,7 +1358,8 @@ class CangJieParsing private constructor(
      * @Deprecated[message:"Use newMethod instead"]
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseBuiltAnnotation() {
+    context(parseContext: ParsingContext)
+    private fun parseBuiltAnnotation() {
         assert(_atSet(AT))
 
         val builtInAnnotation = CjBuiltInAnnotation.fromName(rawTokenText(builder, 1).toString())
@@ -1408,7 +1433,8 @@ class CangJieParsing private constructor(
      * foreign func WinApiFunction(): Int32
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseCallingConvAnnotation() {
+    context(parseContext: ParsingContext)
+    private fun parseCallingConvAnnotation() {
         assert(_atSet(AT))
 
         val mark = mark()
@@ -1479,7 +1505,8 @@ class CangJieParsing private constructor(
      * @Java
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseJavaAnnotation(
+    context(parseContext: ParsingContext)
+    private fun parseJavaAnnotation(
 
     ) {
         assert(_atSet(AT))
@@ -1562,7 +1589,8 @@ class CangJieParsing private constructor(
      *
      * @param builtInAnnotation 内置注解类型
      */
-    context(parseContext: ParsingContext) private fun parseOverflowAnnotation(
+    context(parseContext: ParsingContext)
+    private fun parseOverflowAnnotation(
         builtInAnnotation: CjBuiltInAnnotation
     ) {
         assert(_atSet(AT))
@@ -1638,7 +1666,8 @@ class CangJieParsing private constructor(
      * @Intrinsic
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseBuiltNonArgAnnotation(
+    context(parseContext: ParsingContext)
+    private fun parseBuiltNonArgAnnotation(
         builtInAnnotation: CjBuiltInAnnotation
     ) {
         assert(_atSet(AT))
@@ -1673,7 +1702,8 @@ class CangJieParsing private constructor(
      * @param noModifiersBefore 是一个令牌集，其中包含指示何时满足这些元素的元素。
      *                          必须将前一个令牌解析为标识符，而不是修饰符
      */
-    context(parseContext: ParsingContext) fun parseModifierList(
+    context(parseContext: ParsingContext)
+    fun parseModifierList(
         tokenConsumer: ((IElementType) -> Unit)?, noModifiersBefore: TokenSet, isParseMacro: Boolean = false
     ): Boolean {
 
@@ -1690,7 +1720,8 @@ class CangJieParsing private constructor(
      * @param isParseMacro 是否解析宏
      * @return 是否解析到修饰符
      */
-    context(parseContext: ParsingContext) private fun doParseModifierList(
+    context(parseContext: ParsingContext)
+    private fun doParseModifierList(
         tokenConsumer: ((IElementType) -> Unit)?,
         modifierKeywords: TokenSet,
         noModifiersBefore: TokenSet,
@@ -1716,7 +1747,8 @@ class CangJieParsing private constructor(
      * @param detector 修饰符检测器
      * @return 解析结果的节点类型
      */
-    context(parseContext: ParsingContext) private fun parseClassCommonDeclaration(
+    context(parseContext: ParsingContext)
+    private fun parseClassCommonDeclaration(
         tokenId: Int?, classdetector: ModifierDetector, detector: ModifierDetector
     ): IElementType? {
         return when (getTokenId()) {
@@ -1764,7 +1796,8 @@ class CangJieParsing private constructor(
      *
      * @return 总是返回 null
      */
-    context(parseContext: ParsingContext) private fun parseClassInitializer(): IElementType? {
+    context(parseContext: ParsingContext)
+    private fun parseClassInitializer(): IElementType? {
         return null
     }
 
@@ -1781,7 +1814,8 @@ class CangJieParsing private constructor(
      *
      * @return 是否成功解析
      */
-    context(parseContext: ParsingContext) private fun parsePropertyDelegateOrAssignment(): Boolean {
+    context(parseContext: ParsingContext)
+    private fun parsePropertyDelegateOrAssignment(): Boolean {
         if (at(EQ)) {
             advance() // consume EQ token
 
@@ -1800,7 +1834,8 @@ class CangJieParsing private constructor(
      *
      * @return 最后一个点的位置
      */
-    context(parseContext: ParsingContext) private fun lastDotAfterReceiver(): Int {
+    context(parseContext: ParsingContext)
+    private fun lastDotAfterReceiver(): Int {
         val pattern = if (at(LPAR)) lastDotAfterReceiverLParPattern else lastDotAfterReceiverNotLParPattern
         pattern.reset()
         return matchTokenStreamPredicate(pattern)
@@ -1814,7 +1849,8 @@ class CangJieParsing private constructor(
      * @param nameFollow 名称跟随的令牌集合
      * @return 是否存在接收者类型
      */
-    context(parseContext: ParsingContext) private fun parseReceiverType(
+    context(parseContext: ParsingContext)
+    private fun parseReceiverType(
         title: String,
         nameFollow: TokenSet
     ): Boolean {
@@ -1845,7 +1881,8 @@ class CangJieParsing private constructor(
      * 成员字段使用简单标识符，不支持模式匹配
      * 成员字段必须有类型声明或初始化表达式
      */
-    context(parseContext: ParsingContext) fun parseField(
+    context(parseContext: ParsingContext)
+    fun parseField(
         classdetector: ModifierDetector
     ): IElementType {
         assert(at(LET_KEYWORD) || at(VAR_KEYWORD) || at(CONST_KEYWORD))
@@ -1886,7 +1923,8 @@ class CangJieParsing private constructor(
      *
      * 用于顶层变量和局部变量，支持解构赋值如 let (a, b) = tuple
      */
-    context(parseContext: ParsingContext) fun parseVariable(
+    context(parseContext: ParsingContext)
+    fun parseVariable(
         classdetector: ModifierDetector
     ): IElementType {
         assert(at(LET_KEYWORD) || at(VAR_KEYWORD) || at(CONST_KEYWORD))
@@ -1915,7 +1953,8 @@ class CangJieParsing private constructor(
      *
      * 用于调试和代码片段解析。
      */
-    context(parseContext: ParsingContext) fun parseExpressionCodeFragment() {
+    context(parseContext: ParsingContext)
+    fun parseExpressionCodeFragment() {
         val marker = mark()
         expressionParsing.parseExpression()
 
@@ -1930,7 +1969,8 @@ class CangJieParsing private constructor(
      *
      * 用于调试和代码片段解析。
      */
-    context(parseContext: ParsingContext) fun parseBlockCodeFragment() {
+    context(parseContext: ParsingContext)
+    fun parseBlockCodeFragment() {
         val marker = mark()
         val blockMarker = mark()
 
@@ -1955,7 +1995,8 @@ class CangJieParsing private constructor(
     private interface DeclarationParser {
         fun isValidInScope(scope: DeclarationParsingMode): Boolean
 
-        context(parseContext: ParsingContext) fun parse(
+        context(parseContext: ParsingContext)
+        fun parse(
             parser: CangJieParsing,
             detector: ModifierDetector,
             nameParsingMode: NameParsingMode,
@@ -1970,7 +2011,8 @@ class CangJieParsing private constructor(
             return validScopes.contains(scope)
         }
 
-        context(parseContext: ParsingContext) override fun parse(
+        context(parseContext: ParsingContext)
+        override fun parse(
             parser: CangJieParsing,
             detector: ModifierDetector,
             nameParsingMode: NameParsingMode,
@@ -1982,7 +2024,8 @@ class CangJieParsing private constructor(
             return doParse(parser, detector, nameParsingMode, scope)
         }
 
-        context(parseContext: ParsingContext) protected abstract fun doParse(
+        context(parseContext: ParsingContext)
+        protected abstract fun doParse(
             parser: CangJieParsing,
             detector: ModifierDetector,
             nameParsingMode: NameParsingMode,
@@ -1993,7 +2036,8 @@ class CangJieParsing private constructor(
     private class TypeAliasParser : ScopedDeclarationParser(
         setOf(DeclarationParsingMode.ALL, DeclarationParsingMode.TOPLEVEL)
     ) {
-        context(parseContext: ParsingContext) override fun doParse(
+        context(parseContext: ParsingContext)
+        override fun doParse(
             parser: CangJieParsing,
             detector: ModifierDetector,
             nameParsingMode: NameParsingMode,
@@ -2006,7 +2050,8 @@ class CangJieParsing private constructor(
     private class ForeignParser : ScopedDeclarationParser(
         setOf(DeclarationParsingMode.ALL, DeclarationParsingMode.TOPLEVEL)
     ) {
-        context(parseContext: ParsingContext) override fun doParse(
+        context(parseContext: ParsingContext)
+        override fun doParse(
             parser: CangJieParsing,
             detector: ModifierDetector,
             nameParsingMode: NameParsingMode,
@@ -2019,7 +2064,8 @@ class CangJieParsing private constructor(
     private class MainFuncParser : ScopedDeclarationParser(
         setOf(DeclarationParsingMode.ALL, DeclarationParsingMode.TOPLEVEL)
     ) {
-        context(parseContext: ParsingContext) override fun doParse(
+        context(parseContext: ParsingContext)
+        override fun doParse(
             parser: CangJieParsing,
             detector: ModifierDetector,
             nameParsingMode: NameParsingMode,
@@ -2032,7 +2078,8 @@ class CangJieParsing private constructor(
     private class ClassParser : ScopedDeclarationParser(
         setOf(DeclarationParsingMode.ALL, DeclarationParsingMode.TOPLEVEL)
     ) {
-        context(parseContext: ParsingContext) override fun doParse(
+        context(parseContext: ParsingContext)
+        override fun doParse(
             parser: CangJieParsing,
             detector: ModifierDetector,
             nameParsingMode: NameParsingMode,
@@ -2045,7 +2092,8 @@ class CangJieParsing private constructor(
     private class MacroParser : DeclarationParser {
         override fun isValidInScope(scope: DeclarationParsingMode): Boolean = true
 
-        context(parseContext: ParsingContext) override fun parse(
+        context(parseContext: ParsingContext)
+        override fun parse(
             parser: CangJieParsing,
             detector: ModifierDetector,
             nameParsingMode: NameParsingMode,
@@ -2061,7 +2109,8 @@ class CangJieParsing private constructor(
     private class FunctionParser : DeclarationParser {
         override fun isValidInScope(scope: DeclarationParsingMode): Boolean = true
 
-        context(parseContext: ParsingContext) override fun parse(
+        context(parseContext: ParsingContext)
+        override fun parse(
             parser: CangJieParsing,
             detector: ModifierDetector,
             nameParsingMode: NameParsingMode,
@@ -2075,7 +2124,8 @@ class CangJieParsing private constructor(
         override fun isValidInScope(scope: DeclarationParsingMode): Boolean =
             scope != DeclarationParsingMode.MEMBER // 成员字段由 FieldParser 处理
 
-        context(parseContext: ParsingContext) override fun parse(
+        context(parseContext: ParsingContext)
+        override fun parse(
             parser: CangJieParsing,
             detector: ModifierDetector,
             nameParsingMode: NameParsingMode,
@@ -2089,7 +2139,8 @@ class CangJieParsing private constructor(
         override fun isValidInScope(scope: DeclarationParsingMode): Boolean =
             scope == DeclarationParsingMode.MEMBER
 
-        context(parseContext: ParsingContext) override fun parse(
+        context(parseContext: ParsingContext)
+        override fun parse(
             parser: CangJieParsing,
             detector: ModifierDetector,
             nameParsingMode: NameParsingMode,
@@ -2102,7 +2153,8 @@ class CangJieParsing private constructor(
     private class MacroExpressionParser(private val expressionParsing: CangJieExpressionParsing) : DeclarationParser {
         override fun isValidInScope(scope: DeclarationParsingMode): Boolean = true
 
-        context(parseContext: ParsingContext) override fun parse(
+        context(parseContext: ParsingContext)
+        override fun parse(
             parser: CangJieParsing,
             detector: ModifierDetector,
             nameParsingMode: NameParsingMode,
@@ -2145,7 +2197,8 @@ class CangJieParsing private constructor(
      * @param declarationParsingMode 声明解析模式
      * @return 解析结果的节点类型
      */
-    context(parseContext: ParsingContext) fun parseCommonDeclaration(
+    context(parseContext: ParsingContext)
+    fun parseCommonDeclaration(
         detector: ModifierDetector, nameParsingMode: NameParsingMode, declarationParsingMode: DeclarationParsingMode
     ): IElementType? {
         val tokenId = getTokenId() ?: return null
@@ -2171,7 +2224,8 @@ class CangJieParsing private constructor(
      *
      * @return 解析结果的节点类型
      */
-    context(parseContext: ParsingContext) private fun parseTypeAlias(): IElementType {
+    context(parseContext: ParsingContext)
+    private fun parseTypeAlias(): IElementType {
         assert(_at(TYPE_KEYWORD))
 
         advance() // TYPE_KEYWORD
@@ -2211,7 +2265,8 @@ class CangJieParsing private constructor(
      * @param detector 修饰符检测器
      * @return 解析结果的节点类型
      */
-    context(parseContext: ParsingContext) fun parseProperty(
+    context(parseContext: ParsingContext)
+    fun parseProperty(
         isInterface: Boolean = false, classdetector: ModifierDetector? = null, detector: ModifierDetector? = null
     ): IElementType {
         assert(_at(PROP_KEYWORD))
@@ -2265,7 +2320,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseByType() {
+    context(parseContext: ParsingContext)
+    private fun parseByType() {
         if (at(COLON)) {
             advance() // COLON
             parseTypeRef()
@@ -2285,7 +2341,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) private fun parsePropertyGet() {
+    context(parseContext: ParsingContext)
+    private fun parsePropertyGet() {
         assert(_at(GET_KEYWORD))
 
         val get = mark()
@@ -2317,7 +2374,8 @@ class CangJieParsing private constructor(
      *
      * @param detector 修饰符检测器
      */
-    context(parseContext: ParsingContext) private fun parsePropertySet(detector: ModifierDetector?) {
+    context(parseContext: ParsingContext)
+    private fun parsePropertySet(detector: ModifierDetector?) {
         assert(_at(SET_KEYWORD))
         val set = mark()
 
@@ -2374,7 +2432,8 @@ class CangJieParsing private constructor(
      *
      * @param detector 修饰符检测器
      */
-    context(parseContext: ParsingContext) private fun parsePropertyBody(detector: ModifierDetector?) {
+    context(parseContext: ParsingContext)
+    private fun parsePropertyBody(detector: ModifierDetector?) {
         assert(_at(LBRACE))
 
         val body = mark()
@@ -2411,7 +2470,8 @@ class CangJieParsing private constructor(
     }
 
 
-    context(parseContext: ParsingContext) private fun parsePropertyAccessor() {
+    context(parseContext: ParsingContext)
+    private fun parsePropertyAccessor() {
         if (at(GET_KEYWORD)) {
             parsePropertyGet()
         }
@@ -2433,7 +2493,8 @@ class CangJieParsing private constructor(
      *
      * @return 解析结果的节点类型
      */
-    context(parseContext: ParsingContext) private fun parseEnum(): IElementType {
+    context(parseContext: ParsingContext)
+    private fun parseEnum(): IElementType {
         assert(_at(ENUM_KEYWORD))
         advance()
 
@@ -2445,7 +2506,8 @@ class CangJieParsing private constructor(
     }
 
 
-    context(parseContext: ParsingContext) private fun parseEnumBody() {
+    context(parseContext: ParsingContext)
+    private fun parseEnumBody() {
         val body = mark()
         if (at(LBRACE)) {
             advance() // LBRACE
@@ -2455,7 +2517,7 @@ class CangJieParsing private constructor(
             if (at(IDENTIFIER)) {
                 parseEnumList()
             } else {
-                error(CangJieParsingBundle.message("parsing.error.expecting.element", "enum entry"))
+                error(CangJieParsingBundle.message("parsing.error.expecting.element", "enum constructor"))
             }
 
             parseMembers(null, null)
@@ -2468,7 +2530,8 @@ class CangJieParsing private constructor(
     }
 
 
-    context(parseContext: ParsingContext) private fun parseEnumList() {
+    context(parseContext: ParsingContext)
+    private fun parseEnumList() {
         while (true) {
             // 检查是否为非穷举枚举的省略号
             if (at(ELLIPSIS)) {
@@ -2486,7 +2549,8 @@ class CangJieParsing private constructor(
         }
     }
 
-    context(parseContext: ParsingContext) fun parseTypeCodeFragment() {
+    context(parseContext: ParsingContext)
+    fun parseTypeCodeFragment() {
         val marker = mark()
         parseTypeRef()
 
@@ -2501,7 +2565,8 @@ class CangJieParsing private constructor(
      *
      * 在代码片段解析中检查是否有意外的符号。
      */
-    context(parseContext: ParsingContext) private fun checkForUnexpectedSymbols() {
+    context(parseContext: ParsingContext)
+    private fun checkForUnexpectedSymbols() {
         while (!eof()) {
             errorAndAdvance(CangJieParsingBundle.message("parsing.error.unexpected", "symbol"))
         }
@@ -2521,15 +2586,16 @@ class CangJieParsing private constructor(
      * @param isCreateMark 是否创建标记
      * @return 是否成功解析
      */
-    context(parseContext: ParsingContext) fun parseEnumEntry(isCreateMark: Boolean = true): Boolean {
+    context(parseContext: ParsingContext)
+    fun parseEnumEntry(isCreateMark: Boolean = true): Boolean {
         val entry = if (isCreateMark) mark() else null
 
-        if (!expect(IDENTIFIER, "Expecting enum entry name")) {
+        if (!expect(IDENTIFIER, "Expecting enum constructor name")) {
             entry?.drop()
             return false
         }
 
-//    parseIdentifierByTitle("enum entry", IDENTIFIER_RBRACKET_LBRACKET_SET)
+//    parseIdentifierByTitle("enum constructor", IDENTIFIER_RBRACKET_LBRACKET_SET)
 
 //    处理泛型
 //    parseTypeArgumentList()
@@ -2554,7 +2620,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) fun parseTypeList() {
+    context(parseContext: ParsingContext)
+    fun parseTypeList() {
         val list = mark()
 
         while (true) {
@@ -2580,7 +2647,8 @@ class CangJieParsing private constructor(
      * @param recoverySet 恢复伤口的token集合
      * @return 是否成功解析
      */
-    context(parseContext: ParsingContext) private fun parseTypeParameterList(recoverySet: TokenSet): Boolean {
+    context(parseContext: ParsingContext)
+    private fun parseTypeParameterList(recoverySet: TokenSet): Boolean {
         var result = false
         if (at(LT)) {
             val list = mark()
@@ -2624,7 +2692,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseTypeParameter() {
+    context(parseContext: ParsingContext)
+    private fun parseTypeParameter() {
         if (atSet(TYPE_PARAMETER_GT_RECOVERY_SET)) {
             error(CangJieParsingBundle.message("parsing.error.type.parameter.declaration.expected"))
             return
@@ -2655,7 +2724,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseDelegationSpecifier() {
+    context(parseContext: ParsingContext)
+    private fun parseDelegationSpecifier() {
         val delegator = mark()
         val reference = mark()
         parseTypeRef()
@@ -2675,7 +2745,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseDelegationSpecifierList() {
+    context(parseContext: ParsingContext)
+    private fun parseDelegationSpecifierList() {
         val list = mark()
 
         while (true) {
@@ -2694,7 +2765,8 @@ class CangJieParsing private constructor(
     /**
      * (modifier)*
      */
-    context(parseContext: ParsingContext) fun parseModifierList(noModifiersBefore: TokenSet): Boolean {
+    context(parseContext: ParsingContext)
+    fun parseModifierList(noModifiersBefore: TokenSet): Boolean {
         return parseModifierList(null, noModifiersBefore)
     }
 
@@ -2713,7 +2785,8 @@ class CangJieParsing private constructor(
      * @param detector 修饰符检测器
      * @return 解析结果的节点类型
      */
-    context(parseContext: ParsingContext) fun parseClass(
+    context(parseContext: ParsingContext)
+    fun parseClass(
         detector: ModifierDetector, nameParsingMode: NameParsingMode = NameParsingMode.REQUIRED
     ): IElementType {
         val tokenId = getTokenId()
@@ -2778,7 +2851,8 @@ class CangJieParsing private constructor(
      *   : ("where" typeConstraint{","})?
      *   ;
      */
-    context(parseContext: ParsingContext) private fun parseTypeConstraintsGuarded(
+    context(parseContext: ParsingContext)
+    private fun parseTypeConstraintsGuarded(
         typeParameterListOccurred: Boolean
     ) {
         val error = mark()
@@ -2791,7 +2865,8 @@ class CangJieParsing private constructor(
     }
 
 
-    context(parseContext: ParsingContext) private fun parseTypeConstraints(): Boolean {
+    context(parseContext: ParsingContext)
+    private fun parseTypeConstraints(): Boolean {
         if (at(WHERE_KEYWORD)) {
             parseTypeConstraintList()
             return true
@@ -2810,7 +2885,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseTypeConstraintList() {
+    context(parseContext: ParsingContext)
+    private fun parseTypeConstraintList() {
         assert(_at(WHERE_KEYWORD))
 
         advance() // WHERE_KEYWORD
@@ -2838,7 +2914,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseTypeConstraint() {
+    context(parseContext: ParsingContext)
+    private fun parseTypeConstraint() {
         val constraint = mark()
 
         val reference = mark()
@@ -2866,7 +2943,8 @@ class CangJieParsing private constructor(
      * @param classdetector 类修饰符检测器
      * @param rollbackMacro 是否回滚宏
      */
-    context(parseContext: ParsingContext) private fun parseMemberDeclaration(
+    context(parseContext: ParsingContext)
+    private fun parseMemberDeclaration(
         tokenId: Int?, classdetector: ModifierDetector, rollbackMacro: Boolean = false
     ) {
         if (at(SEMICOLON)) {
@@ -2936,7 +3014,8 @@ class CangJieParsing private constructor(
      * @param detector 修饰符检测器
      * @return 解析结果的节点类型
      */
-    context(parseContext: ParsingContext) private fun parseMemberDeclarationRest(
+    context(parseContext: ParsingContext)
+    private fun parseMemberDeclarationRest(
         tokenId: Int?, classdetector: ModifierDetector, detector: ModifierDetector
     ): IElementType? {
         var declType = parseClassCommonDeclaration(tokenId, classdetector, detector)
@@ -2987,7 +3066,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) fun parsePrimaryInitFunc() {
+    context(parseContext: ParsingContext)
+    fun parsePrimaryInitFunc() {
         assert(_at(IDENTIFIER))
         advance() // IDENTIFIER
 
@@ -3022,7 +3102,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) fun parseInitFunc() {
+    context(parseContext: ParsingContext)
+    fun parseInitFunc() {
         assert(_at(INIT_KEYWORD))
         advance() // INIT_KEYWORD
 
@@ -3077,7 +3158,8 @@ class CangJieParsing private constructor(
      * @param tokenId 令牌 ID
      * @param detector 修饰符检测器
      */
-    context(parseContext: ParsingContext) private fun parseMembers(
+    context(parseContext: ParsingContext)
+    private fun parseMembers(
         tokenId: Int?,
         detector: ModifierDetector?
     ) {
@@ -3100,8 +3182,9 @@ class CangJieParsing private constructor(
      * @param tokenId 令牌 ID
      * @param detector 修饰符检测器
      */
-    context(parseContext: ParsingContext) private fun parseClassBody(
-        tokenId: Int?,
+    context(parseContext: ParsingContext)
+    private fun parseClassBody(
+        tokenId: Int,
         detector: ModifierDetector
     ) {
         val body = mark()
@@ -3115,7 +3198,14 @@ class CangJieParsing private constructor(
 
         builder.restoreNewlinesState()
 
-        body.done(CLASS_BODY)
+        body.done(
+            when (tokenId) {
+                INTERFACE_KEYWORD_Id -> INTERFACE_BODY
+
+                ENUM_KEYWORD_Id -> ENUM_BODY
+                else -> CLASS_BODY
+            }
+        )
     }
 
 
@@ -3131,7 +3221,8 @@ class CangJieParsing private constructor(
      *
      * @return 解析结果的节点类型
      */
-    context(parseContext: ParsingContext) private fun parseMainFunc(): IElementType {
+    context(parseContext: ParsingContext)
+    private fun parseMainFunc(): IElementType {
         assert(_at(MAIN_KEYWORD))
         advance()
 
@@ -3181,7 +3272,8 @@ class CangJieParsing private constructor(
      * @param topTokenId 顶层token ID
      * @return 解析结果的节点类型
      */
-    context(parseContext: ParsingContext) fun parseFunction(
+    context(parseContext: ParsingContext)
+    fun parseFunction(
         isInterfaceMethod: Boolean = false,
         classdetector: ModifierDetector? = null,
         detector: ModifierDetector? = null,
@@ -3287,7 +3379,8 @@ class CangJieParsing private constructor(
      * @param topTokenId 顶层token ID
      * @return 解析结果的节点类型
      */
-    context(parseContext: ParsingContext) fun parseForeignFunction(
+    context(parseContext: ParsingContext)
+    fun parseForeignFunction(
         detector: ModifierDetector, topTokenId: Int = 0
     ): IElementType {
         return parseFunction(
@@ -3304,7 +3397,8 @@ class CangJieParsing private constructor(
      * 解析标识符
      *
      */
-    context(parseContext: ParsingContext) private fun parseIdentifier(
+    context(parseContext: ParsingContext)
+    private fun parseIdentifier(
         nameParsingMode: NameParsingMode = NameParsingMode.REQUIRED, recoverySet: TokenSet = TokenSet.EMPTY
     ) {
 
@@ -3338,7 +3432,8 @@ class CangJieParsing private constructor(
      * @param recoverySet 恢复伤口的令牌集合
      * @param isUnderline 是否允许下划线
      */
-    context(parseContext: ParsingContext) private fun parseIdentifierByTitle(
+    context(parseContext: ParsingContext)
+    private fun parseIdentifierByTitle(
         title: String, recoverySet: TokenSet = TokenSet.EMPTY, isUnderline: Boolean = false
     ) {
         if (isUnderline && expect(CangJieExpressionParsing.IDENTIFIER_RECOVERY_SET)) {
@@ -3362,7 +3457,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) fun parseSynchronizedExpression() {
+    context(parseContext: ParsingContext)
+    fun parseSynchronizedExpression() {
         assert(_at(SYNCHRONIZED_KEYWORD))
         val synchronizedMarker = mark()
         advance()
@@ -3399,7 +3495,8 @@ class CangJieParsing private constructor(
      *
      * @return 解析结果的节点类型
      */
-    context(parseContext: ParsingContext) private fun parseForeign(): IElementType {
+    context(parseContext: ParsingContext)
+    private fun parseForeign(): IElementType {
         assert(_at(FOREIGN_KEYWORD))
         advance()
 
@@ -3423,7 +3520,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseForeignBody() {
+    context(parseContext: ParsingContext)
+    private fun parseForeignBody() {
         assert(_at(LBRACE))
         val mark = mark()
         advance() // LBRACE
@@ -3459,7 +3557,8 @@ class CangJieParsing private constructor(
      * @return 解析结果的节点类型
      */
 
-    context(parseContext: ParsingContext) fun parseMacro(): IElementType {
+    context(parseContext: ParsingContext)
+    fun parseMacro(): IElementType {
         assert(_at(MACRO_KEYWORD))
         advance()
 
@@ -3521,7 +3620,8 @@ class CangJieParsing private constructor(
     /**
      * init 函数体恢复
      */
-    context(parseContext: ParsingContext) fun parseInitFunctionBody() {
+    context(parseContext: ParsingContext)
+    fun parseInitFunctionBody() {
         if (at(COLON)) {
             val error = mark()
             while (!at(LBRACE)) advance()
@@ -3553,7 +3653,8 @@ class CangJieParsing private constructor(
     /**
      * 函数体解析，只支持块
      */
-    context(parseContext: ParsingContext) fun parseFunctionBody() {
+    context(parseContext: ParsingContext)
+    fun parseFunctionBody() {
         if (at(LBRACE)) {
             parseBlock()
         } else {
@@ -3564,7 +3665,8 @@ class CangJieParsing private constructor(
     /**
      * 尝试解析函数参数，类型是否必须由 typeRequired 决定
      */
-    context(parseContext: ParsingContext) fun tryParseValueParameter(typeRequired: Boolean): Boolean {
+    context(parseContext: ParsingContext)
+    fun tryParseValueParameter(typeRequired: Boolean): Boolean {
         return parseValueParameter(true, typeRequired)
     }
 
@@ -3610,7 +3712,8 @@ class CangJieParsing private constructor(
      * @see parseValueParameterList 底层参数列表解析方法
      * @see parseValueParameter 单个参数解析方法
      */
-    context(parseContext: ParsingContext) fun parsePrimaryInitFuncValueParameterList() {
+    context(parseContext: ParsingContext)
+    fun parsePrimaryInitFuncValueParameterList() {
         parseValueParameterList(false, VALUE_PARAMETERS_FOLLOW_SET, true)
     }
 
@@ -3700,7 +3803,8 @@ class CangJieParsing private constructor(
      * class Person(public let name: String, var age: Int)
      * ```
      */
-    context(parseContext: ParsingContext) fun parseValueParameterList(
+    context(parseContext: ParsingContext)
+    fun parseValueParameterList(
         typeRequired: Boolean = false,
         recoverySet: TokenSet = TokenSet.EMPTY,
         isPrimaryInitFunc: Boolean = false
@@ -3741,7 +3845,8 @@ class CangJieParsing private constructor(
      * let handler: (count: Int, message: String) -> Bool
      * ```
      */
-    context(parseContext: ParsingContext) fun parseFunctionTypeParameterList(
+    context(parseContext: ParsingContext)
+    fun parseFunctionTypeParameterList(
         typeRequired: Boolean = true
     ) {
 //   不允许处理注解和宏
@@ -4002,7 +4107,8 @@ class CangJieParsing private constructor(
      * - 主构造函数中缺少 let/var：报错
      * - 类型声明错误：根据 rollbackOnFailure 决定是否回滚
      */
-    context(parseContext: ParsingContext) fun parseValueParameter(
+    context(parseContext: ParsingContext)
+    fun parseValueParameter(
         rollbackOnFailure: Boolean = false, typeRequired: Boolean = false, isPrimaryInitFunc: Boolean = false
     ): Boolean {
         val parameter = mark()
@@ -4046,7 +4152,8 @@ class CangJieParsing private constructor(
      * @return 是否成功解析
      */
 
-    context(parseContext: ParsingContext) private fun parseFunctionParameterRest(
+    context(parseContext: ParsingContext)
+    private fun parseFunctionParameterRest(
         typeRequired: Boolean
     ): Boolean {
         var noErrors = true
@@ -4127,7 +4234,8 @@ class CangJieParsing private constructor(
      * @return 是否成功处理
      */
 
-    context(parseContext: ParsingContext) private fun recoverOnParenthesizedWordForPlatformTypes(
+    context(parseContext: ParsingContext)
+    private fun recoverOnParenthesizedWordForPlatformTypes(
         offset: Int, word: String, consume: Boolean
     ): Boolean {
         // 形如 Array<(out) Foo>! 或 (Mutable)List<Bar>! 的恢复
@@ -4173,7 +4281,8 @@ class CangJieParsing private constructor(
      *
      * @return 是否成功解析
      */
-    context(parseContext: ParsingContext) private fun parseTypeArgumentList(): Boolean {
+    context(parseContext: ParsingContext)
+    private fun parseTypeArgumentList(): Boolean {
         if (!at(LT)) return false
 
         val list = mark()
@@ -4189,7 +4298,8 @@ class CangJieParsing private constructor(
      *
      * 处理平台类型的感叹号后缀。
      */
-    context(parseContext: ParsingContext) private fun recoverOnPlatformTypeSuffix() {
+    context(parseContext: ParsingContext)
+    private fun recoverOnPlatformTypeSuffix() {
         // 平台类型的恢复，遇到感叹号报错
         if (at(EXCL)) {
             val error = mark()
@@ -4211,7 +4321,8 @@ class CangJieParsing private constructor(
      *
      * @param functionType 函数类型标记
      */
-    context(parseContext: ParsingContext) private fun parseFunctionType(functionType: PsiBuilder.Marker) {
+    context(parseContext: ParsingContext)
+    private fun parseFunctionType(functionType: PsiBuilder.Marker) {
         parseFunctionTypeContents(functionType).done(FUNCTION_TYPE)
     }
 
@@ -4248,7 +4359,8 @@ class CangJieParsing private constructor(
      *
      * @return 元组中类型的数量
      */
-    context(parseContext: ParsingContext) private fun parseTupleType(): Int {
+    context(parseContext: ParsingContext)
+    private fun parseTupleType(): Int {
         assert(_at(LPAR))
         var count = 0
 
@@ -4334,7 +4446,8 @@ class CangJieParsing private constructor(
      *
      * @return 是否包含类型参数列表
      */
-    context(parseContext: ParsingContext) fun parseUserType(): Boolean {
+    context(parseContext: ParsingContext)
+    fun parseUserType(): Boolean {
         var isTypeArgumentList = false
 
         var userType = mark()
@@ -4386,7 +4499,8 @@ class CangJieParsing private constructor(
      * @param extraRecoverySet 额外的恢复伤口token集合
      * @return 空的标记
      */
-    context(parseContext: ParsingContext) private fun parseTypeRefContents(extraRecoverySet: TokenSet): PsiBuilder.Marker {
+    context(parseContext: ParsingContext)
+    private fun parseTypeRefContents(extraRecoverySet: TokenSet): PsiBuilder.Marker {
         val typeRefMarker = mark()
 
         // 这里可以继续完善类型引用的解析逻辑，目前是空实现
@@ -4443,7 +4557,8 @@ class CangJieParsing private constructor(
     /**
      * 解析类型参数列表
      */
-    context(parseContext: ParsingContext) fun tryParseTypeArgumentList(extraRecoverySet: TokenSet): Boolean {
+    context(parseContext: ParsingContext)
+    fun tryParseTypeArgumentList(extraRecoverySet: TokenSet): Boolean {
         builder.disableNewlines()
         advance() // LT
 
@@ -4482,7 +4597,8 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) fun parseOptionType() {
+    context(parseContext: ParsingContext)
+    fun parseOptionType() {
         assert(_at(QUEST))
 
         val optionTypeMarker = mark()
@@ -4512,7 +4628,8 @@ class CangJieParsing private constructor(
      * @param extraRecoverySet 额外的恢复伤口token集合
      * @param isConstraint 是否为约束类型
      */
-    context(parseContext: ParsingContext) fun parseTypeRef(
+    context(parseContext: ParsingContext)
+    fun parseTypeRef(
         extraRecoverySet: TokenSet = TokenSet.EMPTY, isConstraint: Boolean = false
     ) {
         val typeRefMarker = mark()
@@ -4532,7 +4649,8 @@ class CangJieParsing private constructor(
      *
      * 根据上下文决定是解析为元组还是函数类型。
      */
-    context(parseContext: ParsingContext) private fun parseTupleOrFunctionType() {
+    context(parseContext: ParsingContext)
+    private fun parseTupleOrFunctionType() {
         var oType = mark()
 
         val count = parseTupleType()
@@ -4557,7 +4675,8 @@ class CangJieParsing private constructor(
      * 根据当前token类型选择合适的类型解析方法。
      */
 
-    context(parseContext: ParsingContext) private fun parseTypeRefContents() {
+    context(parseContext: ParsingContext)
+    private fun parseTypeRefContents() {
         when {
             parseVArrayType() -> return
             parseThisType() -> return

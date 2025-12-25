@@ -457,22 +457,41 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
 
                 appendLine(" {")
                 withIndent {
-                    val entries = cenum.entry
+                    val constructors = cenum.constructor
                     val members = cenum.body?.declarations ?: emptyList()
 
-                    withSuffix("\n") {
-                        "\n\n".separated(
-                            {
-                                printCollection(entries, separator = "|\n\n", postfix = ";") {
-                                    it.accept(explicitThis, Unit)
-                                }
-                            },
-                            {
-                                printCollectionIfNotEmpty(members, separator = "\n\n") {
-                                    it.accept(explicitThis, Unit)
-                                }
-                            },
-                        )
+                    // 检查是否为非穷举枚举
+                    val stub = cenum.greenStub
+                    val isNonExhaustive = stub?.isNonExhaustive() ?: false
+
+                    // 渲染枚举构造器
+                    if (constructors.isNotEmpty()) {
+                        printCollection(constructors, separator = "\n    | ") {
+                            it.accept(explicitThis, Unit)
+                        }
+
+                        // 如果是非穷举枚举，添加省略号
+                        if (isNonExhaustive) {
+                            appendLine()
+                            append("    | ...")
+                        }
+
+                        // 如果有成员，添加分号分隔
+                        if (members.isNotEmpty()) {
+                            append(";")
+                            appendLine()
+                        } else {
+                            appendLine()
+                        }
+                    }
+
+                    // 渲染成员声明
+                    if (members.isNotEmpty()) {
+                        appendLine()
+                        printCollectionIfNotEmpty(members, separator = "\n\n") {
+                            it.accept(explicitThis, Unit)
+                        }
+                        appendLine()
                     }
                 }
                 append('}')
@@ -483,6 +502,15 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
                 withSuffix(" ") { cjEnumConstructor.annotations?.accept(explicitThis, Unit) }
                 withSuffix(" ") { cjEnumConstructor.modifierList?.accept(explicitThis, Unit) }
                 append(cjEnumConstructor.name?.quoteIfNeeded())
+
+                // 如果有类型参数，渲染类型列表
+                val typeRefs = cjEnumConstructor.typeReferences
+                if (typeRefs.isNotEmpty()) {
+                    printCollection(typeRefs, prefix = "(", postfix = ")") {
+                        it.accept(explicitThis, Unit)
+                    }
+                }
+
                 return null
             }
 

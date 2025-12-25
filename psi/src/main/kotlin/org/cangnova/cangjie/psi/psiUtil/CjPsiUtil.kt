@@ -342,6 +342,10 @@ fun isComment(element: PsiElement): Boolean {
     return CommentUtilCore.isComment(element)
 }
 
+fun CjEnumConstructor.safeNameForLazyResolve(): Name {
+    return name?.let { Name.identifier(it) }?.safeNameForLazyResolve() ?: SpecialNames.NO_NAME_PROVIDED
+}
+
 fun CjEnumConstructor.safeFqNameForLazyResolveByParent(): FqName? {
     // 应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
     val parentFqName = (this.parent?.parent as CjEnum).safeFqNameForLazyResolve()

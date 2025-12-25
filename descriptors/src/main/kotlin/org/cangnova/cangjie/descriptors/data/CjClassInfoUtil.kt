@@ -54,12 +54,7 @@ object CjClassInfoUtil {
         throw IllegalArgumentException("Unknown declaration type: $typeStatement ${typeStatement.text}")
     }
 
-    /**
-     * 创建枚举构造器信息
-     */
-    fun createEnumConstructorInfo(entry: CjEnumConstructor): CjEnumConstructorInfo {
-        return CjEnumConstructorInfo(entry)
-    }
+
 
     /**
      * 创建类或对象信息（支持所有命名声明）
@@ -71,7 +66,6 @@ object CjClassInfoUtil {
             is CjStruct -> CjClassInfo(declaration, ClassKind.STRUCT)
             is CjInterface -> CjClassInfo(declaration, ClassKind.INTERFACE)
             is CjExtend -> CjClassInfo(declaration, ClassKind.EXTEND)
-            is CjEnumConstructor -> CjEnumConstructorInfo(declaration)
             else -> throw IllegalArgumentException("Unknown declaration type: $declaration ${declaration.text}")
         }
     }

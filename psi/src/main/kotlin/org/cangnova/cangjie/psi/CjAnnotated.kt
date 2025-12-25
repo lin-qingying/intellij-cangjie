@@ -75,8 +75,8 @@ package org.cangnova.cangjie.psi
  * ### 示例 2: 获取所有 FFI 相关注解
  * ```kotlin
  * fun getFfiAnnotations(element: CjAnnotated): List<CjAnnotation> {
- *     return element.annotationEntries.filter { entry ->
- *         entry.shortName?.asString() in setOf("C", "Java", "ForeignName")
+ *     return element.annotationEntries.filter { constructor ->
+ *         constructor.shortName?.asString() in setOf("C", "Java", "ForeignName")
  *     }
  * }
  * ```

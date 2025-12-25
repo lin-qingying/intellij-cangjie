@@ -220,7 +220,7 @@ class DapClient(
             "breakpoint" -> StopReason.BREAKPOINT
             "exception" -> StopReason.EXCEPTION
             "pause" -> StopReason.PAUSE
-            "entry" -> StopReason.ENTRY
+            "constructor" -> StopReason.ENTRY
             else -> StopReason.UNKNOWN
         }
     }

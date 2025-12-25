@@ -379,7 +379,7 @@ class ModifiersChecker(
 
     private enum class DetailedClassKind(val withCapitalFirstLetter: String) {
 
-        ENUM_ENTRY("Enum entry"),
+        ENUM_ENTRY("Enum constructor"),
 
         INTERFACE("Interface"),
         ENUM("Enum"),

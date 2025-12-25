@@ -29,6 +29,6 @@ enum class DescriptorKind(val kind: String) {
     VARIABLE("variable"),
     FUNCTION("method"),
     ENUM("enum"),
-    ENUM_ENTRY("enum entry"),
+    ENUM_ENTRY("enum constructor"),
     UNKNOWN("unknown")
 }

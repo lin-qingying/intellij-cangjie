@@ -23,16 +23,8 @@
  */
 
 package org.cangnova.cangjie.psi.stubs.elements
-import org.cangnova.cangjie.name.*
 
 import org.cangnova.cangjie.psi.CjEnumConstructor
-import org.cangnova.cangjie.psi.CjEnum
-import org.cangnova.cangjie.psi.CjNamedDeclaration
-import org.cangnova.cangjie.psi.psiUtil.StubUtils.createNestedClassId
-import org.cangnova.cangjie.psi.psiUtil.StubUtils.deserializeClassId
-import org.cangnova.cangjie.psi.psiUtil.StubUtils.serializeClassId
-import org.cangnova.cangjie.psi.psiUtil.safeFqNameForLazyResolve
-import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import org.cangnova.cangjie.psi.stubs.CangJieEnumConstructorStub
 import org.cangnova.cangjie.psi.stubs.elements.StubIndexService.Companion.getInstance
 import org.cangnova.cangjie.psi.stubs.impl.CangJieEnumConstructorStubImpl
@@ -59,100 +51,33 @@ class CjEnumConstructorElementType(debugName: String) : CjStubElementType<CangJi
     }
 
     override fun createStub(psi: CjEnumConstructor, parentStub: StubElement<*>?): CangJieEnumConstructorStub {
-        // 获取枚举条目的完全限定名
-        val fqName: FqName? = (psi as CjNamedDeclaration).safeFqNameForLazyResolve()
-
-        // 获取父枚举的完全限定名
-        val parentEnum = psi.getStrictParentOfType<CjEnum>()
-        val parentEnumFqName = parentEnum?.safeFqNameForLazyResolve()
-
-        // 枚举条目不是类，classId 使用父枚举的 classId
-        val classId = parentEnum?.let { createNestedClassId(parentStub!!, it) }
-
-        // 提取参数信息
-        val typeReferences = psi.typeReferences
-        val parameterCount = typeReferences.size
-        val parameterTypeNames = typeReferences.mapNotNull { it.text }
-
-        // 判断是否为本地枚举条目
-        val isLocal = parentEnum?.isLocal ?: false
+        // 提取参数类型数量
+        val typeCount = psi.typeReferences.size
 
         return CangJieEnumConstructorStubImpl(
             getStubType(),
             parentStub as StubElement<*>?,
-            StringRef.fromString(fqName?.asString()),
-            StringRef.fromString(parentEnumFqName?.asString()),
-            classId,
             StringRef.fromString(psi.name),
-            parameterCount,
-            parameterTypeNames,
-            isLocal,
+            typeCount,
         )
     }
 
     @Throws(IOException::class)
     override fun serialize(stub: CangJieEnumConstructorStub, dataStream: StubOutputStream) {
         dataStream.writeName(stub.name)
-
-        val fqName = stub.getFqName()
-        val parentEnumFqName = stub.getParentEnumFqName()
-
-        dataStream.writeName(fqName?.asString())
-        dataStream.writeName(parentEnumFqName?.asString())
-
-        serializeClassId(dataStream, stub.getClassId())
-
-        dataStream.writeBoolean(stub.isLocal())
-
-        // 序列化参数信息
-        dataStream.writeVarInt(stub.getParameterCount())
-        val paramTypeNames = stub.getParameterTypeNames()
-        dataStream.writeVarInt(paramTypeNames.size)
-        for (typeName in paramTypeNames) {
-            dataStream.writeName(typeName)
-        }
+        dataStream.writeVarInt(stub.getTypeCount())
     }
 
     @Throws(IOException::class)
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?): CangJieEnumConstructorStub {
         val name = dataStream.readName()
-        val fqName = dataStream.readName()
-        val parentEnumFqName = dataStream.readName()
-
-        val classId = deserializeClassId(dataStream)
-
-        val isLocal = try {
-            dataStream.readBoolean()
-        } catch (e: IOException) {
-            false
-        }
-
-        // 反序列化参数信息
-        val parameterCount = try {
-            dataStream.readVarInt()
-        } catch (e: IOException) {
-            0
-        }
-
-        val parameterTypeNames = try {
-            val count = dataStream.readVarInt()
-            (0 until count).map {
-                StringRef.toString(dataStream.readName()) ?: ""
-            }
-        } catch (e: IOException) {
-            emptyList()
-        }
+        val typeCount = dataStream.readVarInt()
 
         return CangJieEnumConstructorStubImpl(
             getStubType(),
             parentStub,
-            fqName,
-            parentEnumFqName,
-            classId,
             name,
-            parameterCount,
-            parameterTypeNames,
-            isLocal,
+            typeCount,
         )
     }
 

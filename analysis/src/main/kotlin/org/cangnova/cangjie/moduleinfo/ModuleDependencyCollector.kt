@@ -137,13 +137,13 @@ class ModuleDependencyCollector(private val project: Project) {
 
         orderEnumerator.forEach { orderEntry ->
             if (isApplicable(orderEntry, isForTests)) {
-                debugInfo?.add("Add entry ${orderEntry.presentableName}")
+                debugInfo?.add("Add constructor ${orderEntry.presentableName}")
                 for (moduleInfo in collectModuleDependenciesForOrderEntry(orderEntry, isForTests)) {
                     debugInfo?.add("Add module ${moduleInfo.displayedName}")
                     result.add(moduleInfo)
                 }
             } else {
-                debugInfo?.add("Skip entry ${orderEntry.presentableName}")
+                debugInfo?.add("Skip constructor ${orderEntry.presentableName}")
             }
 
             return@forEach true
@@ -265,7 +265,7 @@ class ModuleDependencyCollector(private val project: Project) {
             }
 
             else -> {
-                throw IllegalStateException("Unexpected order entry $orderEntry")
+                throw IllegalStateException("Unexpected order constructor $orderEntry")
             }
         }
     }

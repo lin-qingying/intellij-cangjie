@@ -175,7 +175,7 @@ private object DeclarationKindDetector : CjVisitor<AnnotationHostKind?, Unit>() 
     }
 
 //    override fun visitEnumConstructor(declaration: CjEnumConstructor, data: Unit?): AnnotationHostKind {
-//        val kind = CangJieCodeInsightBundle.message("declaration.kind.enum.entry")
+//        val kind = CangJieCodeInsightBundle.message("declaration.kind.enum.constructor")
 //        return AnnotationHostKind(kind, getDeclarationName(declaration), newLineNeeded = true)
 //    }
 

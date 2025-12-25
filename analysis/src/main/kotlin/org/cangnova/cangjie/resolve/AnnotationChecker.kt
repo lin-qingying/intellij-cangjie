@@ -148,7 +148,7 @@ enum class CangJieTarget(val description: String, val isDefault: Boolean = true)
         false
     ),
     ENUM("enum ", false), INTERFACE("interface", false), ENUM_ENTRY(
-        "enum entry",
+        "enum constructor",
         false
     ),
     PROPERTY("property"),                      // includes *_PROPERTY (with and without backing field), PROPERTY_PARAMETER, ENUM_CONSTRUCTOR

@@ -94,10 +94,10 @@ sealed class PatternKind {
                 str.append(")")
 
             }
-//            if (entry.typeReferences.isNotEmpty()) {
+//            if (constructor.typeReferences.isNotEmpty()) {
 //                str.append("(")
 //                str.append(
-//                    entry.typeReferences.joinToString(",") {
+//                    constructor.typeReferences.joinToString(",") {
 //                        it.text
 //                    }
 //                )

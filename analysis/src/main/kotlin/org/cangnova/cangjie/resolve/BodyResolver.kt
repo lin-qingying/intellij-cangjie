@@ -789,7 +789,7 @@ class BodyResolver(
         checkSupertypeList(descriptor, supertypes, typeStatement, sourceSuperClass)
     }
 
-    // Returns a set of enum or sealed types of which supertypeOwner is an entry or a member
+    // Returns a set of enum or sealed types of which supertypeOwner is an constructor or a member
     private fun getAllowedFinalSupertypes(
         descriptor: ClassDescriptor,
         supertypes: Map<CjTypeReference, CangJieType>,

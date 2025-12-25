@@ -150,7 +150,7 @@ class CjAnnotation : CjElementImplStub<CangJieAnnotationStub>, CjCallElement {
             }
             typeReference ?: return null
             val typeReference =
-                checkNotNull(typeReference) { "Annotation entry hasn't typeReference $text" }
+                checkNotNull(typeReference) { "Annotation constructor hasn't typeReference $text" }
             val typeElement = typeReference.typeElement
             if (typeElement is CjUserType) {
                 val shortName = typeElement.referencedName
