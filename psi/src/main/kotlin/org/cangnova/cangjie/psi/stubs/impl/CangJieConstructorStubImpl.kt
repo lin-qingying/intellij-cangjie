@@ -35,8 +35,8 @@ class CangJieConstructorStubImpl<T : CjConstructor<T>>(
     parent: StubElement<out PsiElement>?,
     elementType: CjConstructorElementType<T>,
     private val containingClassName: StringRef?,
-    private val identifierName: StringRef?,
     private val hasBody: Boolean,
+    override val isPrimary: Boolean,
     private val isDelegatedCallToThis: Boolean,
 ) : CangJieStubBaseImpl<T>(parent, elementType), CangJieConstructorStub<T> {
     override fun getFqName() = null
@@ -45,5 +45,4 @@ class CangJieConstructorStubImpl<T : CjConstructor<T>>(
     override fun isExtension() = false
     override fun hasBody() = hasBody
     override fun isDelegatedCallToThis() = isDelegatedCallToThis
-    override fun getIdentifierName() = StringRef.toString(identifierName)
 }

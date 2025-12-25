@@ -36,23 +36,25 @@ class CjPrimaryConstructorElementType(debugName: String) :
     override fun newStub(
         parentStub: StubElement<*>,
         nameRef: StringRef?,
-        identifierNameRef: StringRef?,
         hasBody: Boolean,
+        isPrimary: Boolean,
         isDelegatedCallToThis: Boolean,
     ): CangJieConstructorStub<CjPrimaryConstructor> {
         return CangJieConstructorStubImpl(
             parentStub,
             CjStubElementTypes.PRIMARY_CONSTRUCTOR,
             nameRef,
-            identifierNameRef,
             hasBody,
+            isPrimary,
             isDelegatedCallToThis,
         )
     }
 
-    override fun isDelegatedCallToThis(constructor: CjPrimaryConstructor) = false
+    override val isPrimary: Boolean
+        get() = true
 
-    override fun getIdentifierName(constructor: CjPrimaryConstructor): String? {
-        return constructor.identifier?.text
+    override fun isDelegatedCallToThis(constructor: CjPrimaryConstructor): Boolean {
+        // Primary constructors never have delegation calls
+        return false
     }
 }

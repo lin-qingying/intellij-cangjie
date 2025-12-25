@@ -37,23 +37,23 @@ class CjEndSecondaryConstructorElementType(debugName: String) :
     override fun newStub(
         parentStub: StubElement<*>,
         nameRef: StringRef?,
-        identifierNameRef: StringRef?,
         hasBody: Boolean,
+        isPrimary: Boolean,
         isDelegatedCallToThis: Boolean,
     ): CangJieConstructorStub<CjEndSecondaryConstructor> {
         return CangJieConstructorStubImpl(
             parentStub,
             CjStubElementTypes.END_SECONDARY_CONSTRUCTOR,
             nameRef,
-            identifierNameRef,
             hasBody,
+            isPrimary,
             isDelegatedCallToThis,
         )
     }
 
-    override fun isDelegatedCallToThis(constructor: CjEndSecondaryConstructor) = constructor.getDelegationCallOrNull()?.isCallToThis ?: true
-
-    override fun getIdentifierName(constructor: CjEndSecondaryConstructor): String? = null
+    override fun isDelegatedCallToThis(constructor: CjEndSecondaryConstructor): Boolean {
+        return constructor.getDelegationCallOrNull()?.isCallToThis ?: true
+    }
 }
 
 class CjSecondaryConstructorElementType(debugName: String) :
@@ -61,21 +61,21 @@ class CjSecondaryConstructorElementType(debugName: String) :
     override fun newStub(
         parentStub: StubElement<*>,
         nameRef: StringRef?,
-        identifierNameRef: StringRef?,
         hasBody: Boolean,
+        isPrimary: Boolean,
         isDelegatedCallToThis: Boolean,
     ): CangJieConstructorStub<CjSecondaryConstructor> {
         return CangJieConstructorStubImpl(
             parentStub,
             CjStubElementTypes.SECONDARY_CONSTRUCTOR,
             nameRef,
-            identifierNameRef,
             hasBody,
+            isPrimary,
             isDelegatedCallToThis,
         )
     }
 
-    override fun isDelegatedCallToThis(constructor: CjSecondaryConstructor) = constructor.getDelegationCallOrNull()?.isCallToThis ?: true
-
-    override fun getIdentifierName(constructor: CjSecondaryConstructor): String? = null
+    override fun isDelegatedCallToThis(constructor: CjSecondaryConstructor): Boolean {
+        return constructor.getDelegationCallOrNull()?.isCallToThis ?: true
+    }
 }

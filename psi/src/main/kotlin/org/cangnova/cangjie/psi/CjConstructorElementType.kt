@@ -42,23 +42,23 @@ abstract class CjConstructorElementType<T : CjConstructor<T>>(
     protected abstract fun newStub(
         parentStub: StubElement<*>,
         nameRef: StringRef?,
-        identifierNameRef: StringRef?,
         hasBody: Boolean,
+        isPrimary: Boolean,
         isDelegatedCallToThis: Boolean,
     ): CangJieConstructorStub<T>
 
+    open val isPrimary: Boolean get() = false
+
     protected abstract fun isDelegatedCallToThis(constructor: T): Boolean
-    protected abstract fun getIdentifierName(constructor: T): String?
 
     override fun createStub(psi: T, parentStub: StubElement<*>): CangJieConstructorStub<T> {
         val hasBody = psi.hasBody()
         val isDelegatedCallToThis = isDelegatedCallToThis(psi)
-        val identifierName = getIdentifierName(psi)
         return newStub(
             parentStub,
             StringRef.fromString(psi.name),
-            StringRef.fromString(identifierName),
             hasBody,
+            isPrimary,
             isDelegatedCallToThis
         )
     }
@@ -66,18 +66,18 @@ abstract class CjConstructorElementType<T : CjConstructor<T>>(
     @Throws(IOException::class)
     override fun serialize(stub: CangJieConstructorStub<T>, dataStream: StubOutputStream) {
         dataStream.writeName(stub.name)
-        dataStream.writeName(stub.getIdentifierName())
         dataStream.writeBoolean(stub.hasBody())
+        dataStream.writeBoolean(stub.isPrimary)
         dataStream.writeBoolean(stub.isDelegatedCallToThis())
     }
 
     @Throws(IOException::class)
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieConstructorStub<T> {
         val name = dataStream.readName()
-        val identifierName = dataStream.readName()
         val hasBody = dataStream.readBoolean()
+        val isPrimary = dataStream.readBoolean()
         val isDelegatedCallToThis = dataStream.readBoolean()
-        return newStub(parentStub, name, identifierName, hasBody, isDelegatedCallToThis)
+        return newStub(parentStub, name, hasBody, isPrimary, isDelegatedCallToThis)
     }
 
     override fun indexStub(stub: CangJieConstructorStub<T>, sink: IndexSink) {
