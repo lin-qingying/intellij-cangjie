@@ -50,8 +50,8 @@ class TracingStrategyImpl private constructor(override val reference: CjReferenc
         //        if (resolvedCall instanceof VariableAsFunctionResolvedCall) {
 //            descriptor = ((VariableAsFunctionResolvedCall) resolvedCall).getVariableCall().getDescriptor();
 //        }
-//        if (descriptor instanceof FakeCallableDescriptorForObject) {
-//            FakeCallableDescriptorForObject fakeCallableDescriptorForObject = (FakeCallableDescriptorForObject) descriptor;
+//        if (descriptor instanceof EnumConstructorAccessDescriptor) {
+//            EnumConstructorAccessDescriptor fakeCallableDescriptorForObject = (EnumConstructorAccessDescriptor) descriptor;
 //            descriptor = fakeCallableDescriptorForObject.getReferencedDescriptor();
 //            if (fakeCallableDescriptorForObject.getClassDescriptor().getCompanionObjectDescriptor() != null) {
 //                trace.record(SHORT_REFERENCE_TO_COMPANION_OBJECT, reference, fakeCallableDescriptorForObject.getClassDescriptor());
@@ -95,8 +95,8 @@ class TracingStrategyImpl private constructor(override val reference: CjReferenc
     //        if (resolvedCall instanceof VariableAsFunctionResolvedCall) {
     //            descriptor = ((VariableAsFunctionResolvedCall) resolvedCall).getVariableCall().getDescriptor();
     //        }
-    //        if (descriptor instanceof FakeCallableDescriptorForObject) {
-    //            FakeCallableDescriptorForObject fakeCallableDescriptorForObject = (FakeCallableDescriptorForObject) descriptor;
+    //        if (descriptor instanceof EnumConstructorAccessDescriptor) {
+    //            EnumConstructorAccessDescriptor fakeCallableDescriptorForObject = (EnumConstructorAccessDescriptor) descriptor;
     //            descriptor = fakeCallableDescriptorForObject.getReferencedDescriptor();
     //            if (fakeCallableDescriptorForObject.getClassDescriptor().getCompanionObjectDescriptor() != null) {
     //                trace.record(SHORT_REFERENCE_TO_COMPANION_OBJECT, reference, fakeCallableDescriptorForObject.getClassDescriptor());

@@ -27,8 +27,8 @@ package org.cangnova.cangjie.extensions
 import com.intellij.openapi.extensions.ExtensionPointName
 import org.cangnova.cangjie.types.DefaultTypeAttributeTranslator
 import org.cangnova.cangjie.types.TypeAttributeTranslator
-import org.cangnova.cangjie.types.expressions.TypeAttributeTranslators
 import com.intellij.openapi.project.Project
+import org.cangnova.cangjie.types.expressions.TypeAttributeTranslators
 
 
 interface TypeAttributeTranslatorExtension : TypeAttributeTranslator {

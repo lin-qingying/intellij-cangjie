@@ -61,7 +61,7 @@ import org.cangnova.cangjie.resolve.binding.isUsedAsExpression
 import org.cangnova.cangjie.resolve.binding.isUsedAsResultOfLambda
 import org.cangnova.cangjie.resolve.binding.recordUsedAsExpression
 import org.cangnova.cangjie.resolve.caches.getEffectiveModality
-import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
+import org.cangnova.cangjie.resolve.calls.util.EnumConstructorAccessDescriptor
 import org.cangnova.cangjie.resolve.calls.util.getDispatchReceiverWithSmartCast
 import org.cangnova.cangjie.resolve.calls.util.getResolvedCall
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.Pseudocode
@@ -706,7 +706,7 @@ class ControlFlowInformationProviderImpl private constructor(
                 is ValueParameterDescriptor ->
                     report(UNINITIALIZED_PARAMETER.on(element, variableDescriptor), ctxt)
 
-                is FakeCallableDescriptorForObject -> {
+                is EnumConstructorAccessDescriptor -> {
                     val classDescriptor = variableDescriptor.classDescriptor
                     when (classDescriptor.kind) {
 

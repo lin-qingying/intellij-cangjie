@@ -293,10 +293,27 @@ val CANNOT_BE_IMPORTED: DiagnosticFactory1<CjSimpleNameExpression, Name> =
     DiagnosticFactory1.create(Severity.ERROR)
 
 /**
- * 不能从单例全部导入
+ * 不能从类全量导入
+ *
+ * 仓颉语言只支持从包使用 `import package.*` 全量导入。
+ * 不能从类（包括枚举类）导入其成员，因为：
+ * - 静态成员和方法不能被单独导入
+ * - 枚举构造器不是静态成员，也不能被导入
+ * - 只能导入顶层声明（类、函数等）本身
+ *
+ * 错误示例：
+ * ```cangjie
+ * import MyClass.*        // 错误：不能从类全量导入
+ * import EnumType.*       // 错误：枚举也是类，不能全量导入
+ * ```
+ *
+ * 正确做法：
+ * ```cangjie
+ * import mypackage.*      // 正确：从包全量导入
+ * import MyClass          // 正确：导入类本身
+ * ```
  */
-
-val CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON: DiagnosticFactory1<CjSimpleNameExpression, ClassDescriptor> =
+val CANNOT_ALL_UNDER_IMPORT_FROM_ENUM: DiagnosticFactory1<CjSimpleNameExpression, ClassDescriptor> =
     DiagnosticFactory1.create(Severity.ERROR)
 
 /**

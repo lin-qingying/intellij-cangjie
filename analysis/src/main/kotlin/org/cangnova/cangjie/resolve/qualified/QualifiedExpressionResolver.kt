@@ -680,9 +680,9 @@ class QualifiedExpressionResolver(
                 scopeForFirstPart = null, position = QualifierPosition.IMPORT
             ).classDescriptorFromTypeAlias() ?: return null
 
-            if (packageOrClassDescriptor is ClassDescriptor  /* && packageOrClassDescriptor.kind.isObject */ && lastPart.expression != null) {
+            if (packageOrClassDescriptor is ClassDescriptor && lastPart.expression != null) {
                 trace.report(
-                    CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON.on(
+                    CANNOT_ALL_UNDER_IMPORT_FROM_ENUM.on(
                         lastPart.expression ?: return null,
                         packageOrClassDescriptor
                     )

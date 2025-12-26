@@ -31,7 +31,6 @@ import org.cangnova.cangjie.diagnostics.infos.errors.TYPE_PARAMETER_IS_NOT_AN_EX
 import org.cangnova.cangjie.diagnostics.infos.errors.TYPE_PARAMETER_ON_LHS_OF_DOT
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.binding.BindingContext
-import org.cangnova.cangjie.resolve.classValueTypeDescriptor
 import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 

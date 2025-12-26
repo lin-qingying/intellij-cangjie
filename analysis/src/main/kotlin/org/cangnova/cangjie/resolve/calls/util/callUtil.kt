@@ -72,7 +72,7 @@ import org.cangnova.cangjie.types.FlexibleType
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.isError
-import org.cangnova.cangjie.utils.classValueType
+import org.cangnova.cangjie.utils.enumClassValueType
 import org.cangnova.cangjie.utils.getImplicitReceiversWithInstance
 import org.cangnova.cangjie.utils.getLastLambdaExpression
 import org.cangnova.cangjie.utils.returnIfNoDescriptorForDeclarationException
@@ -385,7 +385,7 @@ fun CallTypeAndReceiver<*, *>.receiverTypesWithIndex(
 
     val resolutionScope = contextElement.getResolutionScope(bindingContext, resolutionFacade)
 
-    fun extractReceiverTypeFrom(descriptor: ClassDescriptor): CangJieType? = descriptor.classValueType
+    fun extractReceiverTypeFrom(descriptor: ClassDescriptor): CangJieType? = descriptor.enumClassValueType
 
     fun tryExtractReceiver(context: BindingContext) =receiverExpression?.let { context.get(BindingContext.QUALIFIER, receiverExpression) }
 

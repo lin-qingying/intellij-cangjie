@@ -790,16 +790,16 @@ class DescriptorResolver(
             val boundTypeReferences = constraint.boundTypeReferences
             for (boundTypeReference in boundTypeReferences) {
                 var bound: CangJieType? = null
-                if (boundTypeReference != null) {
+
                     bound = typeResolver.resolveType(scope, boundTypeReference, trace, false)
                     upperBoundCheckRequests.add(UpperBoundCheckRequest(referencedName, boundTypeReference, bound))
-                }
+
 
                 if (typeParameterDescriptor != null) {
                     trace.record(BindingContext.REFERENCE_TARGET, subjectTypeParameterName, typeParameterDescriptor)
-                    if (bound != null) {
+
                         typeParameterDescriptor.addUpperBound(bound)
-                    }
+
                 }
             }
         }
@@ -1395,12 +1395,6 @@ class DescriptorResolver(
                 if (isSubclass(classDescriptor, target)) {
                     return true
                 }
-
-                if (isStaticNestedClass(classDescriptor)) {
-                    val onReport = reportErrorsOn.reportOnElement()
-                    trace.report(INACCESSIBLE_OUTER_CLASS_EXPRESSION.on(onReport, classDescriptor))
-                    return false
-                }
                 classDescriptor = getParentOfType(
                     classDescriptor,
                     ClassDescriptor::class.java, true
@@ -1416,33 +1410,11 @@ class DescriptorResolver(
             )
         }
 
-        /**
-         * @return true if descriptor is a class inside another class and does not have access to the outer class
-         */
-        fun isStaticNestedClass(descriptor: DeclarationDescriptor): Boolean {
-            val containing = descriptor.containingDeclaration
-            return descriptor is ClassDescriptor &&
-                    containing is ClassDescriptor && !isEnumConstructor(descriptor)
-        }
-
         fun getDefaultVisibility(
             modifierListOwner: CjModifierListOwner?,
             containingDescriptor: DeclarationDescriptor?
         ): DescriptorVisibility {
-//        DescriptorVisibility defaultVisibility;
-//        if (containingDescriptor instanceof ClassDescriptor) {
-//            CjModifierList modifierList = modifierListOwner.getModifierList();
-//            defaultVisibility =
-//                    modifierList != null && modifierList.hasModifier(OVERRIDE_KEYWORD)
-//                    ? DescriptorVisibilities.INHERITED
-//                    :
-//                    DescriptorVisibilities.DEFAULT_VISIBILITY;
-//        } else if (containingDescriptor instanceof FunctionDescriptor /*|| containingDescriptor instanceof PropertyDescriptor*/) {
-//            defaultVisibility = DescriptorVisibilities.LOCAL;
-//        } else {
-//            defaultVisibility = DescriptorVisibilities.DEFAULT_VISIBILITY;
-//        }
-//        return defaultVisibility;
+
 
             if (containingDescriptor is ClassDescriptor && containingDescriptor.kind == ClassKind.INTERFACE) {
                 return DescriptorVisibilities.PUBLIC

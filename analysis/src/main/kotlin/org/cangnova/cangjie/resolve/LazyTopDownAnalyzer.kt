@@ -219,9 +219,7 @@ class LazyTopDownAnalyzer(
 //                    var companionObjectAlreadyFound = false
                     for (cjDeclaration in typeStatement.declarations) {
                         if (cjDeclaration is CjSecondaryConstructor) {
-                            /*  if (DescriptorUtils.isSingletonOrAnonymousObject(classDescriptor)) {
-                                  trace.report(CONSTRUCTOR_IN_OBJECT.on(cjDeclaration))
-                              } else */if (classDescriptor.kind == ClassKind.INTERFACE) {
+                            if (classDescriptor.kind == ClassKind.INTERFACE) {
                                 trace.report(CONSTRUCTOR_IN_INTERFACE.on(cjDeclaration))
                             }
                         }

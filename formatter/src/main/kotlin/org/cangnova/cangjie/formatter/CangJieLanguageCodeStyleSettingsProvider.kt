@@ -39,7 +39,7 @@ import com.intellij.psi.codeStyle.*
 import org.jetbrains.annotations.Nls
 import kotlin.reflect.KProperty
 
-class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvider() {
+internal class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvider() {
     override fun getLanguage(): Language = CangJieLanguage
     override fun getConfigurableDisplayName(): String = CangJieFormatterBundle.message("codestyle.name.cangjie")
     override fun createConfigurable(

@@ -53,12 +53,12 @@ import org.cangnova.cangjie.name.IClassId
  * @see org.cangnova.cangjie.diagnostics.Errors 相关的诊断错误定义
  *
  * @sample
- * ```kotlin
+ * ```cangjie
  * // 示例：检测缺失的枚举值分支
- * when (color) {
- *     Color.RED -> println("红色")
- *     Color.GREEN -> println("绿色")
- *     // 缺少 Color.BLUE，编译器会报告 EnumCheckIsMissing(Color.BLUE)
+ * match (color) {
+ *     case Color.Red => println("红色")
+ *     case Color.Green => println("绿色")
+ *     // 缺少 Color.Blue，编译器会报告 EnumCheckIsMissing(Color.Blue)
  * }
  * ```
  */
@@ -141,20 +141,19 @@ sealed class MatchMissingCase {
      * 这通常用于密封类或接口的子类型检查。
      *
      * @property classId 缺失的类型标识符
-     * @property isSingleton 是否是单例对象（如 object 声明）
-     *                       - true：使用类名直接匹配（如 "MySingleton"）
-     *                       - false：使用 is 检查（如 "is MyClass"）
      *
      * @sample
-     * ```kotlin
+     * ```cangjie
      * // 密封类示例
-     * sealed class Result
-     * object Success : Result()
-     * data class Error(val message: String) : Result()
+     * public sealed class Result {}
+     * public class Success <: Result {}
+     * public class Error <: Result {
+     *     public init(message: String) {}
+     * }
      *
-     * when (result) {
-     *     Success -> println("成功")
-     *     // 缺少 Error 分支，报告 IsTypeCheckIsMissing(Error, false)
+     * match (result) {
+     *     case is Success => println("成功")
+     *     // 缺少 Error 分支，报告 IsTypeCheckIsMissing(Error)
      * }
      * ```
      */
@@ -189,13 +188,15 @@ sealed class MatchMissingCase {
      * @property callableId 缺失的枚举值标识符（包含完整路径）
      *
      * @sample
-     * ```kotlin
-     * enum class Color { RED, GREEN, BLUE }
+     * ```cangjie
+     * public enum Color {
+     *     Red | Green | Blue
+     * }
      *
-     * when (color) {
-     *     Color.RED -> println("红色")
-     *     Color.GREEN -> println("绿色")
-     *     // 缺少 Color.BLUE，报告 EnumCheckIsMissing(Color.BLUE)
+     * match (color) {
+     *     case Color.Red => println("红色")
+     *     case Color.Green => println("绿色")
+     *     // 缺少 Color.Blue，报告 EnumCheckIsMissing(Color.Blue)
      * }
      * ```
      */

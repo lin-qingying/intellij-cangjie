@@ -45,7 +45,7 @@ import org.cangnova.cangjie.utils.Printer
  * - [getContributedFunctions]: 仅返回实例函数（`isStatic == false`）
  * - [getContributedVariables]: 仅返回实例变量
  * - [getContributedPropertys]: 仅返回实例属性
- * - [getContributedClassifier]: 返回所有分类器（嵌套类通过实例也可访问）
+ * - [getContributedClassifier]: 返回 null（仓颉语言不支持类内声明类型）
  *
  * ### 名称集合透传
  *
@@ -130,7 +130,7 @@ import org.cangnova.cangjie.utils.Printer
  * | 函数 | `!isStatic` | 仅保留实例方法 |
  * | 变量 | `!isStatic` | 仅保留实例变量 |
  * | 属性 | `!isStatic` | 仅保留实例属性 |
- * | 分类器 | 无过滤 | 嵌套类可通过实例访问 |
+ * | 分类器 | 返回 null | 仓颉语言不支持类内声明类型 |
  * | 宏 | 返回空 | 当前不支持宏 |
  *
  * ### 性能特性
@@ -166,7 +166,7 @@ import org.cangnova.cangjie.utils.Printer
  * ## 注意事项
  *
  * 1. **继承成员**: 包含从父类继承的实例成员（通过底层 memberScope 提供）
- * 2. **分类器不过滤**: 嵌套类、内部类等分类器不区分静态/实例访问
+ * 2. **类型声明**: 仓颉语言不支持类内声明类型（无嵌套类、内部类等概念），分类器查询始终返回 null
  * 3. **宏支持**: 当前返回空列表，未来可能扩展
  * 4. **名称集合超集**: 需通过 `getContributedXxx` 验证实际存在性
  *
@@ -296,7 +296,8 @@ class InstanceMemberScope(private val memberScope: MemberScope) : MemberScope {
     }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
-        return memberScope.getContributedClassifier(name, location) // 过滤非静态分类器
+        // 仓颉语言不支持类内声明类型（无嵌套类概念）
+        return null
     }
 
     override fun getContributedDescriptors(

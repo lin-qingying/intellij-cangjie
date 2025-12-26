@@ -64,7 +64,7 @@ import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValue
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import org.cangnova.cangjie.resolve.calls.util.CallMaker
-import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
+import org.cangnova.cangjie.resolve.calls.util.EnumConstructorAccessDescriptor
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.LexicalScopeKind
 import org.cangnova.cangjie.resolve.scopes.LexicalWritableScope
@@ -1626,7 +1626,6 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
 
     private fun CjCasePatternElement.isRelevant(checkedDescriptor: ClassifierDescriptorWithTypeParameters) =
         this !is CjMatchConditionWithExpression ||
-//                DescriptorUtils.isObject(checkedDescriptor) ||
                 when (checkedDescriptor) {
                     is ClassDescriptor -> DescriptorUtils.isEnumConstructor(checkedDescriptor)
 
@@ -1658,7 +1657,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
                     when (it) {
 
                         is ClassDescriptor -> it
-                        is FakeCallableDescriptorForObject -> it.classDescriptor
+                        is EnumConstructorAccessDescriptor -> it.classDescriptor
 //                        is EnumEntryConstructorDescriptor -> it
                         is ClassConstructorDescriptor -> {
                             var constructor = it
@@ -1683,7 +1682,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
                 context[REFERENCE_TARGET, reference].let {
                     when (it) {
                         is ClassDescriptor -> it
-                        is FakeCallableDescriptorForObject -> it.classDescriptor
+                        is EnumConstructorAccessDescriptor -> it.classDescriptor
                         else -> {
                             null
                         }

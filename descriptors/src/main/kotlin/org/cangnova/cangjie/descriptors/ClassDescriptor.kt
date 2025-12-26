@@ -93,8 +93,7 @@ interface ClassDescriptor : ClassAndEnumDescriptor {
     val unsubstitutedPrimaryConstructor: ClassConstructorDescriptor?
 
     /**
-     * 如果当前类是 inner 类，则该列表可能与 typeConstructor.parameters 不同；
-     * typeConstructor.parameters 可能包含从外部声明捕获的类型参数。
+     * 返回当前类实际声明的类型参数列表。
      *
      * @return 返回当前类实际声明的类型参数列表
      */

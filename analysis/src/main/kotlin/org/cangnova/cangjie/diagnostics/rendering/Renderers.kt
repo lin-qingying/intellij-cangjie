@@ -35,13 +35,13 @@ import org.cangnova.cangjie.psi.psiUtil.identifier
 import org.cangnova.cangjie.renderer.ClassifierNamePolicy
 import org.cangnova.cangjie.renderer.DescriptorRenderer
 import org.cangnova.cangjie.resolve.DescriptorUtils
-import org.cangnova.cangjie.resolve.MemberComparator
 
 import org.cangnova.cangjie.types.CangJieType
 
 import org.cangnova.cangjie.types.getAbbreviation
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.resolve.MemberComparator
 import org.cangnova.cangjie.types.contains
 import org.cangnova.cangjie.types.fqNameUnsafe
 

@@ -452,13 +452,6 @@ val NON_CONST_LET_USED_IN_CONSTANT_EXPRESSION: DiagnosticFactory0<CjExpression> 
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
- * 通过实例引用访问嵌套类
- */
-
-val NESTED_CLASS_ACCESSED_VIA_INSTANCE_REFERENCE: DiagnosticFactory1<CjExpression, ClassifierDescriptorWithTypeParameters> =
-    DiagnosticFactory1.create(Severity.ERROR)
-
-/**
  * 不允许接收者
  */
 
@@ -702,13 +695,6 @@ val COMPILER_AFFECTED_SYNTAX_ERROR: DiagnosticFactory0<PsiElement> =
 
 val COMPILER_AFFECTED_SYNTAX_ERROR_BY_MESSAGE: DiagnosticFactory1<PsiElement, String> =
     DiagnosticFactory1.create(Severity.ERROR)
-
-/**
- * 不可访问的外部类表达式
- */
-
-val INACCESSIBLE_OUTER_CLASS_EXPRESSION: DiagnosticFactory1<PsiElement, ClassDescriptor> =
-    DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.SECONDARY_CONSTRUCTOR_DELEGATION_CALL)
 
 /**
  * 模糊匿名类型推导

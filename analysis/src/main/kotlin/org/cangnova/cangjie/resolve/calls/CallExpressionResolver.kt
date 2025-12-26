@@ -365,7 +365,7 @@ class CallExpressionResolver(
                 TemporaryTraceAndCache.create(context, "trace to resolveName as local variable or property", nameExpression)
             val resolutionResult = resolveSimpleName(context, nameExpression, temporaryTraceAndCache)
 
-            if (resolutionResult.isSingleResult && resolutionResult.resultingDescriptor is FakeCallableDescriptorForObject) {
+            if (resolutionResult.isSingleResult && resolutionResult.resultingDescriptor is EnumConstructorAccessDescriptor) {
                 false
             } else when (resolutionResult.resultCode) {
                 OverloadResolutionResults.Code.NAME_NOT_FOUND, OverloadResolutionResults.Code.CANDIDATES_WITH_WRONG_RECEIVER -> false
@@ -563,25 +563,6 @@ class CallExpressionResolver(
 
 
 
-    private fun checkNestedClassAccess(
-        expression: CjQualifiedExpression,
-        context: ExpressionTypingContext
-    ) {
-        val selectorExpression = expression.selectorExpression ?: return
-
-        // A.B - if B is a nested class accessed by outer class, 'A' and 'A.B' were marked as qualifiers
-        // a.B - if B is a nested class accessed by instance reference, 'a.B' was marked as a qualifier, but 'a' was not (it's an expression)
-
-        val expressionQualifier = context.trace[BindingContext.QUALIFIER, expression]
-        val receiverQualifier = context.trace[BindingContext.QUALIFIER, expression.receiverExpression]
-
-        if (receiverQualifier == null && expressionQualifier != null) {
-            assert(expressionQualifier is ClassifierQualifier) { "Only class can (package cannot) be accessed by instance reference: $expressionQualifier" }
-            val descriptor = (expressionQualifier as ClassifierQualifier).descriptor
-            context.trace.report(NESTED_CLASS_ACCESSED_VIA_INSTANCE_REFERENCE.on(selectorExpression, descriptor))
-        }
-    }
-
     private fun recordResultTypeInfo(
         qualified: CjQualifiedExpression,
         resultTypeInfo: CangJieTypeInfo,
@@ -604,7 +585,6 @@ class CallExpressionResolver(
         context: ExpressionTypingContext
     ):
             CangJieTypeInfo {
-        checkNestedClassAccess(qualified, context)
         val value = constantExpressionEvaluator.evaluateExpression(qualified, context.trace, context.expectedType)
         return if (value != null && value.isPure) {
             dataFlowAnalyzer.createCompileTimeConstantTypeInfo(value, qualified, context)

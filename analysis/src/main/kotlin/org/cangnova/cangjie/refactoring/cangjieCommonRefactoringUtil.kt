@@ -28,7 +28,3 @@ import org.cangnova.cangjie.psi.CjCallExpression
 import org.cangnova.cangjie.psi.CjLambdaExpression
 import org.cangnova.cangjie.psi.psiUtil.unpackFunctionLiteral
 
-fun CjCallExpression.getLastLambdaExpression(): CjLambdaExpression? {
-    if (lambdaArguments.isNotEmpty()) return null
-    return valueArguments.lastOrNull()?.getArgumentExpression()?.unpackFunctionLiteral()
-}

@@ -37,7 +37,7 @@ import org.cangnova.cangjie.name.FqNameUnsafe
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.BodiesResolveContext
-import org.cangnova.cangjie.resolve.qualified.hasClassValueDescriptor
+import org.cangnova.cangjie.resolve.qualified.isEnumClass
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 
 @DefaultImplementation(impl = ConflictingOverloadsDispatcher.Default::class)
@@ -88,8 +88,9 @@ class OverloadResolver(
 
         // 遍历解析上下文中声明的所有类
         for (cclass in c.declaredClasses.values) {
-            // 跳过单例对象或匿名对象的构造函数，因为它们在代码中不可调用，不应参与重载名称检查
-            if (cclass.hasClassValueDescriptor || cclass.name.isSpecial) {
+            // 跳过枚举类或匿名对象的构造函数，因为它们在代码中不可调用，不应参与重载名称检查
+            // 枚举构造器通过 EnumConstructorDescriptor 表示，不是普通构造函数
+            if (cclass.isEnumClass || cclass.name.isSpecial) {
                 continue
             }
             // 获取当前类所在的包含声明

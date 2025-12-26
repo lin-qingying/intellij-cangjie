@@ -41,7 +41,6 @@ import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.psi.CjLambdaExpression
 import org.cangnova.cangjie.psi.psiUtil.unpackFunctionLiteral
 import org.cangnova.cangjie.resolve.binding.BindingTrace
-import org.cangnova.cangjie.resolve.classValueTypeDescriptor
 import org.cangnova.cangjie.resolve.getSuperClassNotAny
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.DeferredType
@@ -56,9 +55,9 @@ fun ClassDescriptor.getAllSuperclassesWithoutAny() =
         getSuperClassNotAny(),
         ClassDescriptor::getSuperClassNotAny
     ).toCollection(SmartList<ClassDescriptor>())
+
 val VariableDescriptor.isUnderscoreNamed
     get() = !name.isSpecial && name.identifier == "_"
-fun ClassDescriptor.getClassObjectReferenceTarget(): ClassDescriptor = this
 
 fun CallableMemberDescriptor.firstOverridden(
     useOriginal: Boolean = false,
@@ -119,9 +118,17 @@ fun TypeConstructor.supertypesWithAny(): Collection<CangJieType> {
     }
     return if (noSuperClass) supertypes + builtIns.stdlibTypes.anyType else supertypes
 }
-/** If a literal of this class can be used as a value, returns the type of this value */
-val ClassDescriptor.classValueType: CangJieType?
-    get() = classValueTypeDescriptor?.defaultType
+
+/**
+ * 获取枚举类型的类值类型
+ *
+ * 枚举类型的构造器可以作为值直接访问（如 Color.Red），
+ * 这个属性返回枚举类本身的类型，用于类型推导和检查。
+ *
+ * 对于非枚举类型，返回 null。
+ */
+val ClassDescriptor.enumClassValueType: CangJieType?
+    get() = if (kind == ClassKind.ENUM) defaultType else null
 
 fun CjCallExpression.getLastLambdaExpression(): CjLambdaExpression? {
     if (lambdaArguments.isNotEmpty()) return null

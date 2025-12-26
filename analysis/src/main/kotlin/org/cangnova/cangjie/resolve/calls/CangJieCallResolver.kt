@@ -25,8 +25,6 @@
 package org.cangnova.cangjie.resolve.calls
 
 
-import org.cangnova.cangjie.config.LanguageFeature
-import org.cangnova.cangjie.descriptors.ClassKind
 import org.cangnova.cangjie.descriptors.PropertyDescriptor
 import org.cangnova.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import org.cangnova.cangjie.resolve.calls.components.*
@@ -37,7 +35,7 @@ import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.model.CangJieCallKind.*
 import org.cangnova.cangjie.resolve.calls.tower.*
-import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
+import org.cangnova.cangjie.resolve.calls.util.EnumConstructorAccessDescriptor
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.cangnova.cangjie.types.UnwrappedType
 
@@ -264,18 +262,18 @@ class CangJieCallResolver(
             if (maximallySpecificCandidates.size == 2) {
                 val enumEntryCandidate = maximallySpecificCandidates.find {
                     val descriptor = it.resolvedCall.candidateDescriptor
-                    descriptor is FakeCallableDescriptorForObject
+                    descriptor is EnumConstructorAccessDescriptor
                 }
                 if (enumEntryCandidate != null) {
                     val otherCandidate = maximallySpecificCandidates.find {
                         val candidateDescriptor = it.resolvedCall.candidateDescriptor
-                        candidateDescriptor !is FakeCallableDescriptorForObject
+                        candidateDescriptor !is EnumConstructorAccessDescriptor
                     }
                     if (otherCandidate != null) {
                         val propertyDescriptor = otherCandidate.resolvedCall.candidateDescriptor
                         if (propertyDescriptor is PropertyDescriptor) {
                             val enumEntryDescriptor =
-                                (enumEntryCandidate.resolvedCall.candidateDescriptor as FakeCallableDescriptorForObject).classDescriptor
+                                (enumEntryCandidate.resolvedCall.candidateDescriptor as EnumConstructorAccessDescriptor).classDescriptor
                             otherCandidate.addDiagnostic(
                                 EnumEntryAmbiguityWarning(
                                     propertyDescriptor,

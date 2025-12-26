@@ -24,13 +24,12 @@
 
 package org.cangnova.cangjie.resolve.calls.tower
 
-import org.cangnova.cangjie.descriptors.ClassKind
 import org.cangnova.cangjie.descriptors.EnumConstructorDescriptor
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.model.CangJieCall
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
-import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
+import org.cangnova.cangjie.resolve.calls.util.EnumConstructorAccessDescriptor
 import org.cangnova.cangjie.resolve.scopes.receivers.DetailedReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.QualifierReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
@@ -359,7 +358,7 @@ class VariableAndObjectScopeTowerProcessor<out C : Candidate>(
 
     private fun Candidate.isEnumEntryCandidate(): Boolean {
         if (this !is ResolutionCandidate) return false
-        val callableDescriptor = resolvedCall.candidateDescriptor as? FakeCallableDescriptorForObject ?: return false
+        val callableDescriptor = resolvedCall.candidateDescriptor as? EnumConstructorAccessDescriptor ?: return false
         return callableDescriptor.classDescriptor is EnumConstructorDescriptor
     }
 

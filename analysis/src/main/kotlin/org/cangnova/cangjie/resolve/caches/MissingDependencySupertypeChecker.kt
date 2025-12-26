@@ -31,7 +31,7 @@ import org.cangnova.cangjie.resolve.MissingSupertypesResolver
 import org.cangnova.cangjie.resolve.calls.checkers.CallChecker
 import org.cangnova.cangjie.resolve.calls.checkers.CallCheckerContext
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
-import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
+import org.cangnova.cangjie.resolve.calls.util.EnumConstructorAccessDescriptor
 import org.cangnova.cangjie.types.CangJieType
 import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.diagnostics.infos.errors.MISSING_DEPENDENCY_SUPERCLASS
@@ -75,7 +75,7 @@ object MissingDependencySupertypeChecker {
 
 //            val eagerChecksAllowed = context.languageVersionSettings.getFlag(AnalysisFlags.extendedCompilerChecks)
             val unresolvedLazySupertypesByDefault =
-                descriptor is ConstructorDescriptor || descriptor is FakeCallableDescriptorForObject
+                descriptor is ConstructorDescriptor || descriptor is EnumConstructorAccessDescriptor
 
             if (/*eagerChecksAllowed ||*/ !unresolvedLazySupertypesByDefault && !errorReported) {
                 // The constructed class' own supertypes are not resolved after constructor call,

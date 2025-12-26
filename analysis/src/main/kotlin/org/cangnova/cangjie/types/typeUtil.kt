@@ -28,30 +28,9 @@ import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.findClassifier
-import org.cangnova.cangjie.types.checker.ErrorTypesAreEqualToAnything
 import org.cangnova.cangjie.utils.SmartSet
 import org.cangnova.cangjie.utils.canBeReferencedViaImport
-import kotlin.collections.containsAll
-import kotlin.text.replace
 
-/**
- * This is temporary hack for type intersector.
- *
- * It is almost save, because:
- *  - it running only if general algorithm is failed
- *  - returned type is subtype of all [types].
- *
- * But it is hack, because it can give unstable result, but it better than exception.
- */
-internal fun hackForTypeIntersector(types: Collection<CangJieType>): CangJieType? {
-    if (types.size < 2) return types.firstOrNull()
-
-    return types.firstOrNull { candidate ->
-        types.all {
-            ErrorTypesAreEqualToAnything.isSubtypeOf(candidate, it)
-        }
-    }
-}
 
 fun CangJieType.isResolvableInScope(
     scope: LexicalScope?,

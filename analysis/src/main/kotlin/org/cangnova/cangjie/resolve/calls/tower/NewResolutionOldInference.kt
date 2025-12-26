@@ -53,7 +53,7 @@ import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.calls.tasks.OldResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategy
 import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategyForInvoke
-import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
+import org.cangnova.cangjie.resolve.calls.util.EnumConstructorAccessDescriptor
 import org.cangnova.cangjie.resolve.calls.util.isConventionCall
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
 import org.cangnova.cangjie.resolve.hasDynamicExtensionAnnotation
@@ -622,7 +622,7 @@ internal fun reportResolvedUsingDeprecatedVisibility(
 
     val descriptorToLookup: DeclarationDescriptor = when (candidateDescriptor) {
         is ClassConstructorDescriptor -> candidateDescriptor.containingDeclaration
-        is FakeCallableDescriptorForObject -> candidateDescriptor.classDescriptor
+        is EnumConstructorAccessDescriptor -> candidateDescriptor.classDescriptor
         is SyntheticMemberDescriptor<*> -> candidateDescriptor.baseDescriptorForSynthetic
         is PropertyDescriptor, is FunctionDescriptor -> candidateDescriptor
         else -> error(

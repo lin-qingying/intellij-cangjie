@@ -30,8 +30,8 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.DescriptorUtils
-import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
-import org.cangnova.cangjie.resolve.qualified.hasClassValueDescriptor
+import org.cangnova.cangjie.resolve.calls.util.EnumConstructorAccessDescriptor
+import org.cangnova.cangjie.resolve.qualified.isEnumClass
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.cangnova.cangjie.types.CangJieType
@@ -266,25 +266,37 @@ private fun getConstructorsOfClassifier(classifier: ClassifierDescriptor?): List
 }
 
 private val ClassDescriptor.canHaveCallableConstructors: Boolean
-    get() = !ErrorUtils.isError(this) && !hasClassValueDescriptor
+    get() = !ErrorUtils.isError(this) && !isEnumClass
 
 private val TypeAliasDescriptor.canHaveCallableConstructors: Boolean
     get() = classDescriptor != null && !ErrorUtils.isError(classDescriptor) && classDescriptor!!.canHaveCallableConstructors
 
-fun getFakeDescriptorForObject(classifier: ClassifierDescriptor?): FakeCallableDescriptorForObject? =
+/**
+ * 为枚举类型获取假的可调用描述符，用于访问枚举构造器
+ *
+ * 枚举类型的构造器可以作为值直接访问（如 Color.Red），
+ * 这个函数创建一个特殊的描述符来支持这种访问模式。
+ *
+ * @param classifier 分类器描述符
+ * @return 如果是枚举类型，返回 EnumConstructorAccessDescriptor，否则返回 null
+ */
+fun getFakeDescriptorForObject(classifier: ClassifierDescriptor?): EnumConstructorAccessDescriptor? =
     when (classifier) {
-//        is TypeAliasDescriptor ->
-//            classifier.classDescriptor?.let { classDescriptor ->
-//                if (classDescriptor.hasClassValueDescriptor)
-//                    FakeCallableDescriptorForTypeAliasObject(classifier)
-//                else
-//                    null
-//            }
+        // 枚举类：创建假的可调用描述符
         is ClassDescriptor ->
-            if (classifier.hasClassValueDescriptor)
-                FakeCallableDescriptorForObject(classifier)
+            if (classifier.isEnumClass)
+                EnumConstructorAccessDescriptor(classifier)
             else
                 null
+
+        // 类型别名：如果指向枚举类型，为底层枚举创建描述符
+        is TypeAliasDescriptor ->
+            classifier.classDescriptor?.let { classDescriptor ->
+                if (classDescriptor.isEnumClass)
+                    EnumConstructorAccessDescriptor(classDescriptor)
+                else
+                    null
+            }
 
         else -> null
     }

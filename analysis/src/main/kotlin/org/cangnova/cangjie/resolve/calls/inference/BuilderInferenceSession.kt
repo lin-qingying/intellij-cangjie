@@ -51,7 +51,7 @@ import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstituto
 import org.cangnova.cangjie.resolve.calls.inference.model.*
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.tower.*
-import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
+import org.cangnova.cangjie.resolve.calls.util.EnumConstructorAccessDescriptor
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.NewCapturedType
@@ -342,9 +342,9 @@ class BuilderInferenceSession(
     private fun skipCall(callInfo: SingleCallResolutionResult): Boolean {
         val descriptor = callInfo.resultCallAtom.candidateDescriptor
 
-        // FakeCallableDescriptorForObject can't introduce new information for inference,
+        // EnumConstructorAccessDescriptor can't introduce new information for inference,
         // so it's safe to complete it fully
-        return descriptor is FakeCallableDescriptorForObject
+        return descriptor is EnumConstructorAccessDescriptor
     }
 
     fun hasInapplicableCall(): Boolean = hasInapplicableCall

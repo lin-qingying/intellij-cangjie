@@ -58,7 +58,7 @@ class SmartCompletionSession(
         }
 
         if (referenceToConstructorIsApplicable) {
-            filter.withKinds(DescriptorKindFilter.NON_SINGLETON_CLASSIFIERS_MASK)
+            filter.withKinds(DescriptorKindFilter.CLASSES_MASK)
         } else {
             filter
         }

@@ -31,7 +31,6 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjAnnotation
 import org.cangnova.cangjie.resolve.AnnotationResolver
 import org.cangnova.cangjie.resolve.constants.ConstantValue
-import org.cangnova.cangjie.resolve.lazy.LazyEntity
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.AbbreviatedType
@@ -41,6 +40,7 @@ import org.cangnova.cangjie.descriptors.annotations.FilteredByPredicateAnnotatio
 import org.cangnova.cangjie.diagnostics.infos.errors.RECURSIVE_TYPEALIAS_EXPANSION
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.resolve.lazy.LazyEntity
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.replaceAnnotations
 

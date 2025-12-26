@@ -92,7 +92,7 @@ class VariableOrParameterNameWithTypeCompletion(
             val resolutionScope = position.getResolutionScope(bindingContext, resolutionFacade)
             val classifiers =
                 resolutionScope.collectDescriptorsFiltered(
-                    DescriptorKindFilter.NON_SINGLETON_CLASSIFIERS,
+                    DescriptorKindFilter.CLASSIFIERS,
                     classNameMatcher.asNameFilter()
                 )
 

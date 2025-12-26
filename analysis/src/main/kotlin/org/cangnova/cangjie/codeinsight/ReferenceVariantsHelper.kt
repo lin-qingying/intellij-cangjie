@@ -377,7 +377,7 @@ class ReferenceVariantsHelper(
 
         // should process classes if we need constructors
         if (filterToUse.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK)) {
-            filterToUse = filterToUse.withKinds(DescriptorKindFilter.NON_SINGLETON_CLASSIFIERS_MASK)
+            filterToUse = filterToUse.withKinds(DescriptorKindFilter.CLASSES_MASK)
         }
 
         for (descriptor in scope.collectDescriptorsFiltered(filterToUse, nameFilter, changeNamesForAliased = true)) {

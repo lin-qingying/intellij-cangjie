@@ -22,9 +22,8 @@
  *
  */
 
-package org.cangnova.cangjie.resolve.lazy
+package org.cangnova.cangjie.descriptors
 
-interface LazyEntity {
-    fun forceResolveAllContents()
+val DeclarationDescriptor.sourceElement: SourceElement
+    get() = if (this is DeclarationDescriptorWithSource) source else SourceElement.NO_SOURCE
 
-}

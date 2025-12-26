@@ -26,7 +26,6 @@ package org.cangnova.cangjie.resolve
 
 import java.util.ArrayDeque
 import org.cangnova.cangjie.builtins.ReflectionTypes
-import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
@@ -40,7 +39,6 @@ import org.cangnova.cangjie.resolve.calls.context.ResolutionContext
 import org.cangnova.cangjie.resolve.calls.context.TemporaryTraceAndCache
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
-import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
 import org.cangnova.cangjie.resolve.calls.util.createValueParametersForInvokeInFunctionType
 import org.cangnova.cangjie.resolve.calls.util.getResolvedCall
 import org.cangnova.cangjie.resolve.source.toSourceElement
@@ -161,22 +159,6 @@ class DoubleColonExpressionResolver(
         // deparenthesize that expression, as this is undesirable here
         val call = c.trace.bindingContext[BindingContext.CALL, expression.getQualifiedElementSelector() ?: return null]
         val resolvedCall = call?.getResolvedCall(c.trace.bindingContext)
-
-//        if (resolvedCall != null) {
-//            val resultingDescriptor = resolvedCall.resultingDescriptor
-//            if (resultingDescriptor is FakeCallableDescriptorForObject) {
-//                val classDescriptor = resultingDescriptor.classDescriptor
-//
-//                if (DescriptorUtils.isObject(classDescriptor) ||
-//                    (!languageVersionSettings.supportsFeature(LanguageFeature.BoundCallableReferences) &&
-//                            DescriptorUtils.isEnumConstructor(classDescriptor))) {
-//                    return DoubleColonLHS.Expression(typeInfo )
-//                }
-//            }
-//
-//            // Check if this is resolved to a function (with the error "arguments expected"), such as in "Runnable::class"
-//            if (expression.canBeConsideredProperType() && resultingDescriptor !is VariableDescriptor) return null
-//        }
 
         return DoubleColonLHS.Expression(typeInfo)
     }

@@ -27,18 +27,24 @@ package org.cangnova.cangjie.resolve.calls.util
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeSubstitutor
-import org.cangnova.cangjie.utils.classValueType
-import org.cangnova.cangjie.utils.getClassObjectReferenceTarget
 import java.util.*
 
-open class FakeCallableDescriptorForObject(
+/**
+ * 枚举构造器的假可调用描述符
+ *
+ * 用于支持仓颉语言中枚举构造器的值访问（如 Color.Red）。
+ * 这是一个包装类，将枚举类型本身包装为可调用的变量描述符，
+ * 使得枚举构造器可以像变量一样被引用和访问。
+ *
+ * @param classDescriptor 枚举类描述符
+ */
+open class EnumConstructorAccessDescriptor(
     val classDescriptor: ClassDescriptor,
-) : DeclarationDescriptorWithVisibility by classDescriptor.getClassObjectReferenceTarget(), VariableDescriptor {
+) : DeclarationDescriptorWithVisibility by classDescriptor, VariableDescriptor {
 
-    open fun getReferencedDescriptor(): ClassifierDescriptorWithTypeParameters =
-        classDescriptor.getClassObjectReferenceTarget()
+    open fun getReferencedDescriptor(): ClassifierDescriptorWithTypeParameters = classDescriptor
 
-    fun getReferencedObject(): ClassDescriptor = classDescriptor.getClassObjectReferenceTarget()
+    fun getReferencedObject(): ClassDescriptor = classDescriptor
 
     override val contextReceiverParameters: List<ReceiverParameterDescriptor> = emptyList()
 
@@ -58,7 +64,8 @@ open class FakeCallableDescriptorForObject(
 
     override val overriddenDescriptors: Collection<CallableDescriptor> = Collections.emptySet()
 
-    override val type: CangJieType get()= classDescriptor.classValueType!!
+    override val type: CangJieType
+        get() = classDescriptor.defaultType  // 枚举类的默认类型
 
     override val original: CallableDescriptor
         get() = this
@@ -74,12 +81,12 @@ open class FakeCallableDescriptorForObject(
     override val isVar: Boolean = false
 
     override fun equals(other: Any?) =
-        other is FakeCallableDescriptorForObject && classDescriptor == other.classDescriptor
+        other is EnumConstructorAccessDescriptor && classDescriptor == other.classDescriptor
 
     override fun hashCode() = classDescriptor.hashCode()
 
     override val containingDeclaration: DeclarationDescriptor
-        get() = classDescriptor.getClassObjectReferenceTarget().containingDeclaration
+        get() = classDescriptor.containingDeclaration
 
     override val modality: Modality = Modality.FINAL
 

@@ -49,7 +49,7 @@ import com.intellij.psi.scope.PsiScopeProcessor
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
 import org.cangnova.cangjie.resolve.scopes.ChainedMemberScope
-import org.cangnova.cangjie.utils.classValueType
+import org.cangnova.cangjie.utils.enumClassValueType
 import javax.swing.Icon
 
 interface Qualifier : QualifierReceiver {
@@ -363,7 +363,7 @@ class EnumClassQualifier(
     ) : this(EnumCallElement(referenceExpression), descriptor, null)
 
 
-    override val classValueReceiver: EnumClassValueReceiver? = descriptor.classValueType?.let {
+    override val classValueReceiver: EnumClassValueReceiver? = descriptor.enumClassValueType?.let {
         EnumClassValueReceiver(this, it)
     }
 
@@ -389,7 +389,7 @@ class ClassQualifier(
     override val classValueReceiver: ClassValueReceiver? = _cangjieType?.let {
         ClassValueReceiver(this, it)
 
-    } ?: descriptor.classValueType?.let {
+    } ?: descriptor.enumClassValueType?.let {
         ClassValueReceiver(this, it)
     }
 
@@ -453,7 +453,7 @@ class TypeAliasQualifier(
     val classDescriptor: ClassDescriptor
 ) : ClassifierQualifier {
     override val classValueReceiver: ClassValueReceiver?
-        get() = classDescriptor.classValueType?.let {
+        get() = classDescriptor.enumClassValueType?.let {
             ClassValueReceiver(this, it)
         }
 

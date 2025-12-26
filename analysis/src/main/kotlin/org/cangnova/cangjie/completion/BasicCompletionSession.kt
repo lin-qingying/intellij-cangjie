@@ -708,7 +708,7 @@ class BasicCompletionSession(
     }
     private val SUPER_QUALIFIER = object : OneKindCompletionCategory(CangJieCompletionKindName.SUPER_QUALIFIER) {
         override val descriptorKindFilter: DescriptorKindFilter
-            get() = DescriptorKindFilter.NON_SINGLETON_CLASSIFIERS
+            get() = DescriptorKindFilter.CLASSIFIERS
 
         override fun fillResultSet() {
             val classOrObject = position.parents.firstIsInstanceOrNull<CjTypeStatement>() ?: return

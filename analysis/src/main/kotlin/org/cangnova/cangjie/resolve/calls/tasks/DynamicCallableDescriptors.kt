@@ -34,7 +34,6 @@ import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorConventions
 import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.resolve.DescriptorFactory
 import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.storage.getValue

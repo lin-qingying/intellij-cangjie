@@ -169,7 +169,7 @@ com.example.Foo.bar()
 - `INVISIBLE_REFERENCE` - 不可见的引用（可见性冲突）
 - `AMBIGUOUS_REFERENCE_TARGET` - 歧义引用（多个候选）
 - `CANNOT_BE_IMPORTED` - 无法导入的符号（如成员函数）
-- `CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON` - 禁止从单例对象全导入
+- `CANNOT_ALL_UNDER_IMPORT_FROM_ENUM` - 禁止从枚举类全导入（所有类都不能使用 `.*` 全导入）
 - `MODULE_PACKAGE_CANNOT_BE_IMPORTED` - 禁止导入模块名包
 - `ENUM_ENTRY_AS_TYPE` - 枚举条目不能作为类型使用
 
@@ -340,7 +340,7 @@ com.example.Foo.bar()
 - `INVISIBLE_REFERENCE` - 不可见的引用（可见性冲突）
 - `AMBIGUOUS_REFERENCE_TARGET` - 歧义引用（多个候选）
 - `CANNOT_BE_IMPORTED` - 无法导入的符号（如成员函数）
-- `CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON` - 禁止从单例对象全导入
+- `CANNOT_ALL_UNDER_IMPORT_FROM_ENUM` - 禁止从枚举类全导入（所有类都不能使用 `.*` 全导入）
 - `MODULE_PACKAGE_CANNOT_BE_IMPORTED` - 禁止导入模块名包
 - `ENUM_ENTRY_AS_TYPE` - 枚举条目不能作为类型使用
 
