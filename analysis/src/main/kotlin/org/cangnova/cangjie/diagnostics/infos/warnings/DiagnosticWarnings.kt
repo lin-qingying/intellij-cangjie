@@ -250,7 +250,7 @@ val DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES: DiagnosticFactory2<CjT
  * 冲突的继承成员（警告）
  */
 
-val CONFLICTING_INHERITED_MEMBERS_WARNING: DiagnosticFactory2<CjTypeStatement, ClassDescriptor, Collection<CallableMemberDescriptor>> =
+val CONFLICTING_INHERITED_MEMBERS_WARNING: DiagnosticFactory2<CjTypeStatement, InheritableDescriptor, Collection<CallableMemberDescriptor>> =
     DiagnosticFactory2.create(Severity.WARNING, PositioningStrategies.DECLARATION_NAME)
 
 // ========================================

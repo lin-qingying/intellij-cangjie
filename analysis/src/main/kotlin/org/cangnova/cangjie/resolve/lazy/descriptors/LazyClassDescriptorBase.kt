@@ -30,6 +30,7 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.lazy.LazyClassContext
 import org.cangnova.cangjie.resolve.source.toSourceElement
 import org.cangnova.cangjie.descriptors.data.CjClassLikeInfo
+import org.cangnova.cangjie.descriptors.extend.ClassAndExtendDescriptor
 
 abstract class LazyClassDescriptorBase
     (
@@ -42,5 +43,7 @@ abstract class LazyClassDescriptorBase
     isExternal: Boolean
 ) : ClassDescriptorBase(
     c.storageManager, containingDec, name, classLikeInfo.correspondingClass.toSourceElement(),
-), ClassDescriptorWithResolutionScopes
+), ClassDescriptorWithResolutionScopes, ClassAndExtendDescriptor
+
+
 

@@ -234,7 +234,7 @@ val MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_MATCH_NO_EXPLICIT_OVERRIDE: Diag
  * 冲突的继承成员
  */
 
-val CONFLICTING_INHERITED_MEMBERS: DiagnosticFactory2<CjTypeStatement, ClassDescriptor, Collection<CallableMemberDescriptor>> =
+val CONFLICTING_INHERITED_MEMBERS: DiagnosticFactory2<CjTypeStatement, InheritableDescriptor, Collection<CallableMemberDescriptor>> =
     DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
 
 /**

@@ -24,8 +24,10 @@
 
 package org.cangnova.cangjie.resolve.lazy.descriptors
 
+import org.cangnova.cangjie.descriptors.DeclarationDescriptorWithTypeParameters
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.annotations.Annotations
+import org.cangnova.cangjie.descriptors.extend.ClassAndExtendDescriptor
 import org.cangnova.cangjie.descriptors.impl.AbstractLazyTypeParameterDescriptor
 import org.cangnova.cangjie.diagnostics.infos.errors.CYCLIC_GENERIC_UPPER_BOUND
 import org.cangnova.cangjie.psi.*
@@ -40,7 +42,7 @@ import org.cangnova.cangjie.types.isError
 
 class LazyTypeParameterDescriptor(
     val c: LazyClassContext,
-    containingDeclaration: LazyClassDescriptorBase,
+    containingDeclaration: DeclarationDescriptorWithTypeParameters,
     val typeParameter: CjTypeParameter,
     annotations: Annotations = Annotations.EMPTY,
     index: Int
