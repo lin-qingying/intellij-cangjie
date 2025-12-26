@@ -200,7 +200,7 @@ interface IdentifierInfo {
 
     class Qualified(
         val receiverInfo: IdentifierInfo,
-        private val selectorInfo: IdentifierInfo,
+          val selectorInfo: IdentifierInfo,
         val safe: Boolean,
         val receiverType: CangJieType?
     ) : IdentifierInfo {
@@ -241,7 +241,7 @@ interface IdentifierInfo {
         override fun toString() = "$subjectInfo as? ${targetType ?: "???"}"
     }
 
-    data class EnumEntry(val descriptor: ClassDescriptor) : IdentifierInfo {
+    data class EnumEntry(val descriptor: EnumConstructorDescriptor) : IdentifierInfo {
         override val kind: DataFlowValue.Kind = DataFlowValue.Kind.STABLE_VALUE
     }
 
@@ -303,11 +303,9 @@ private fun getIdForSimpleNameExpression(
                 }
             }
         }
-
+is EnumConstructorDescriptor ->   IdentifierInfo.EnumEntry(declarationDescriptor)
         is ClassDescriptor -> {
-            if (declarationDescriptor.kind == ClassKind.ENUM_ENTRY)
-                IdentifierInfo.EnumEntry(declarationDescriptor)
-            else
+
                 IdentifierInfo.PackageOrClass(declarationDescriptor)
         }
 

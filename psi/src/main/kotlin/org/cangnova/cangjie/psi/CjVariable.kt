@@ -52,7 +52,8 @@ import org.cangnova.cangjie.name.Name
 abstract class CjVariable<S : StubElement<*>> : CjDeclarationStub<S>, CjVariableDeclaration {
     constructor(stub: S, type: IStubElementType<S, *>) : super(stub, type)
     constructor(node: ASTNode) : super(node)
-
+    val isLocal: Boolean
+        get() = !isTopLevel && this !is CjFieldVariable
     open val isTopLevel: Boolean get() = false
 }
 
@@ -181,11 +182,7 @@ class CjPatternVariable : CjVariable<CangJieVariableStub> {
             return getTypeReference(this)
         }
 
-    /**
-     * 是否为本地变量
-     */
-    val isLocal: Boolean
-        get() = !isTopLevel
+
 
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {
         return setTypeReference(this, pattern, typeRef)

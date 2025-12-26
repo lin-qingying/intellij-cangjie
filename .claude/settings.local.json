@@ -37,7 +37,12 @@
       "WebFetch(domain:plugins.jetbrains.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(git add:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(grep:*)",
+      "Bash(timeout 60 ./gradlew:*)",
+      "Bash(timeout 120 ./gradlew:*)",
+      "Bash(ls:*)",
+      "Bash(echo:*)"
     ],
     "deny": [],
     "ask": []

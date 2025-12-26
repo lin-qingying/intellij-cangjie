@@ -54,6 +54,7 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitImportDirective(this, data)
     }
+    val firstImportPath get() = items.firstOrNull()?.importPath
 
     /**
      * 对于  {a.b,b.b} 形式

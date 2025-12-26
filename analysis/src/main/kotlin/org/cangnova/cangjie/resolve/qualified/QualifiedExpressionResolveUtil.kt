@@ -89,14 +89,12 @@ fun resolveQualifierAsStandaloneExpression(
         // 类型别名作为独立表达式
         is TypeAliasDescriptor -> {
             referenceTarget.classDescriptor?.let { classDescriptor ->
-                if (!classDescriptor.kind.isObject) {
                     context.trace.report(
                         EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(
                             qualifier.expression,
                             referenceTarget
                         )
                     )
-                }
             }
         }
 
@@ -107,8 +105,8 @@ fun resolveQualifierAsStandaloneExpression(
 
         // 普通类作为独立表达式
         is ClassDescriptor -> {
-            // 如果不是对象类型且没有类值描述符，报告错误
-            if (!context.config.isDotEnumGetType && !referenceTarget.hasClassValueDescriptor) {
+            // 如果不是枚举类型，报告错误（仓颉语言不支持单例对象）
+            if (!context.config.isDotEnumGetType && !referenceTarget.isEnumClass) {
                 context.trace.report(
                     EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(
                         qualifier.expression,
@@ -128,11 +126,13 @@ fun resolveQualifierAsStandaloneExpression(
 }
 
 /**
- * 扩展属性：检查类是否有类值描述符
+ * 扩展属性：检查类是否为枚举类型
  *
- * 类值描述符表示类本身可以作为值使用（如对象、枚举）。
+ * 枚举类型的构造器可以作为值直接访问（如 Color.Red）。
+ * 这是仓颉语言中唯一支持"类值访问"的场景。
  */
-val ClassDescriptor.hasClassValueDescriptor: Boolean get() = classValueDescriptor != null
+val ClassDescriptor.isEnumClass: Boolean
+    get() = kind == ClassKind.ENUM
 
 /**
  * 解析限定符的引用目标
@@ -190,22 +190,17 @@ private fun resolveQualifierReferenceTarget(
         // TODO 简化此代码
         // 当类限定符出现在表达式位置时，
         // 应该提供正确的 REFERENCE_TARGET（带类型），
-        // 并在隐式伴生对象引用的情况下提供 SHORT_REFERENCE_TO_COMPANION_OBJECT。
+        // 并在枚举类型的情况下记录类型信息。
         val receiverClassifierDescriptor = classifier.getCallableReceiverDescriptorRetainingTypeAliasReference()
         if (selectorIsCallable && receiverClassifierDescriptor != null) {
-            val classValueTypeDescriptor = classifier.classValueTypeDescriptor!!
             // 记录引用目标和类型
             context.trace.record(
                 BindingContext.REFERENCE_TARGET,
                 qualifier.referenceExpression,
                 receiverClassifierDescriptor
             )
-            context.trace.recordType(qualifier.expression, classValueTypeDescriptor.defaultType)
-            // 如果有伴生对象，记录短引用（已注释）
-//            if (classifier.hasCompanionObject) {
-//                context.trace.record(BindingContext.SHORT_REFERENCE_TO_COMPANION_OBJECT, qualifier.referenceExpression, classifier)
-//            }
-            return classValueTypeDescriptor
+            context.trace.recordType(qualifier.expression, receiverClassifierDescriptor.defaultType)
+            return receiverClassifierDescriptor
         }
     }
 
@@ -213,38 +208,23 @@ private fun resolveQualifierReferenceTarget(
 }
 
 /**
- * 扩展属性：获取类的类值描述符
- *
- * 类值描述符表示类本身可以作为值使用的描述符。
- * 例如：对象类型、枚举类型。
- *
- * TODO 这里需要实现具体的逻辑，目前简单返回自身
- */
-val ClassDescriptor.classValueDescriptor: ClassDescriptor?
-    get() =
-        // TODO 这里需要实现具体的逻辑
-        this
-
-/**
  * 获取保留类型别名引用的可调用接收器描述符
  *
  * 对于类型别名，在某些情况下需要保留类型别名的引用而不是直接展开到底层类型。
  * 这对于错误消息和 IDE 功能很重要。
  *
+ * 对于枚举类型，返回类本身作为可调用接收器（用于访问枚举构造器）。
+ *
  * @return 可调用接收器描述符，如果不适用则返回 null
  */
-private fun ClassifierDescriptor.getCallableReceiverDescriptorRetainingTypeAliasReference(): DeclarationDescriptor? =
+private fun ClassifierDescriptor.getCallableReceiverDescriptorRetainingTypeAliasReference(): ClassDescriptor? =
     when (this) {
-        // 普通类：返回其类值描述符
-        is ClassDescriptor -> classValueDescriptor
+        // 枚举类：返回类本身作为可调用接收器
+        is ClassDescriptor -> if (isEnumClass) this else null
 
-        // 类型别名：保留类型别名引用
+        // 类型别名：如果指向枚举类型，返回底层枚举类
         is TypeAliasDescriptor ->
-            // TODO 如果底层类有类值描述符，创建假的可调用描述符
-//            if (classDescriptor?.classValueDescriptor != null)
-//                FakeCallableDescriptorForTypeAliasObject(this)
-//            else
-            this
+            classDescriptor?.takeIf { it.isEnumClass }
 
         else -> null
     }

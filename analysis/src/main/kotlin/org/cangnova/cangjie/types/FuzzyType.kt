@@ -31,7 +31,6 @@ import org.cangnova.cangjie.resolve.calls.inference.CallHandle
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilderImpl
 import org.cangnova.cangjie.resolve.calls.inference.constraintPosition.ConstraintPositionKind
 import org.cangnova.cangjie.types.checker.StrictEqualityTypeChecker
-import org.cangnova.cangjie.types.util.*
 
 /**
  * 将模糊类型转换为展示类型
@@ -329,3 +328,4 @@ fun FuzzyType.makeNonOption() = type.makeNonOption().toFuzzyType(freeParameters)
  * @return 模糊扩展接收者类型，如果没有扩展接收者则为 null
  */
 fun CallableDescriptor.fuzzyExtensionReceiverType() = extensionReceiverParameter?.type?.toFuzzyType(typeParameters)
+fun FuzzyType.optionality()  = type.optionality()

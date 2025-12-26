@@ -138,7 +138,7 @@ abstract class TypeCheckerStateForConstraintSystem(
      * Foo <: T! --
      * assert T! == (T..T?)
      *  Foo <: T?
-     *  Foo <: T (optional constraint, needs to preserve nullability)
+     *  Foo <: T (optional constraint, needs to preserve optionality)
      * =>
      *  Foo & Any <: T
      *  Foo <: T
@@ -155,7 +155,7 @@ abstract class TypeCheckerStateForConstraintSystem(
      *  (Foo..Bar) <: (T..T?)
      * =>
      *  Foo <: T?
-     *  Bar <: T (optional constraint, needs to preserve nullability)
+     *  Bar <: T (optional constraint, needs to preserve optionality)
      * =>
      *  (Foo & Any .. Bar) <: T -- (Foo!! .. Bar) <: T
      *
@@ -177,7 +177,7 @@ abstract class TypeCheckerStateForConstraintSystem(
         val lowerConstraint = when (typeVariable) {
             is SimpleTypeMarker ->
                 when {
-                    // Foo? (any type which cannot be used as dispatch receiver because of nullability) <: T & Any => ERROR (for K2 only)
+                    // Foo? (any type which cannot be used as dispatch receiver because of optionality) <: T & Any => ERROR (for K2 only)
                     typeVariable.isDefinitelyNonOptionType() && !subTypeConstructor.isTypeVariable() &&
                             !AbstractNullabilityChecker.isSubtypeOfAny(extensionTypeContext, subType) -> {
                         return false
@@ -384,7 +384,7 @@ abstract class TypeCheckerStateForConstraintSystem(
 //
 //      here we try to add constraint {Any & T} <: S from `id(a)`
 //      Previously we thought that if `Any` isn't a subtype of S => T <: S, which is wrong, now we use weaker upper constraint
-//      TODO: rethink, maybe we should take nullability into account somewhere else
+//      TODO: rethink, maybe we should take optionality into account somewhere else
             if (notTypeVariables.any {
                     AbstractNullabilityChecker.isSubtypeOfAny(
                         this as TypeCheckerProviderContext,

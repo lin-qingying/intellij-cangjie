@@ -31,6 +31,7 @@ import org.cangnova.cangjie.builtins.StandardNames.FUTURE
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.ast
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.core
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.sync
+import org.cangnova.cangjie.builtins.StandardNames.ITERABLE
 import org.cangnova.cangjie.builtins.StandardNames.RANGE
 import org.cangnova.cangjie.builtins.StandardNames.RESOURCE
 import org.cangnova.cangjie.descriptors.ClassDescriptor
@@ -333,7 +334,9 @@ class StdlibTypes(
     val countableType: SimpleType
         get() = countable.defaultType
 
-
+    val iterable get() = getStdCoreClassByName(ITERABLE)
+    val iterableType: SimpleType
+        get() = iterable.defaultType
 
     // ============================== std.sync Types ==============================
 

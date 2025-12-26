@@ -61,7 +61,6 @@ import org.cangnova.cangjie.resolve.scopes.PackageReexportScope
 import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.resolve.source.CangJieSourceElement
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
-import org.cangnova.cangjie.types.expressions.isWithoutValueArguments
 import org.cangnova.cangjie.utils.CallOnceFunction
 
 
@@ -451,7 +450,7 @@ class QualifiedExpressionResolver(
         expression: CjSimpleNameExpression?
     ) {
         expression ?: return
-        if (descriptor != null && DescriptorUtils.isEnumEntry(descriptor)) {
+        if (descriptor != null && DescriptorUtils.isEnumConstructor(descriptor)) {
             val qualifiedParent = expression.getTopmostParentQualifiedExpressionForSelector()
             if (qualifiedParent == null) {
                 trace.report(ENUM_ENTRY_AS_TYPE.on(expression))

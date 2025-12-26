@@ -55,7 +55,7 @@ fun <TCallable : CallableDescriptor> TCallable.substituteExtensionIfCallable(
         }
 
 //        // check if we may fail due to receiver expression being nullable
-//        if (substitutor == null && it.nullability() == TypeNullability.NULLABLE && extensionReceiverType.nullability() == TypeNullability.NOT_NULL) {
+//        if (substitutor == null && it.optionality() == TypeNullability.NULLABLE && extensionReceiverType.optionality() == TypeNullability.NOT_NULL) {
 //            substitutor = extensionReceiverType.checkIsSuperTypeOf(it.makeNonOption())
 //        }
         substitutor

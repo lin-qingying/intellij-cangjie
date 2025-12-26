@@ -281,12 +281,6 @@ class DeserializedClassDescriptor(
     private val primaryConstructor = c.storageManager.createNullableLazyValue { computePrimaryConstructor() }
 
     private fun computePrimaryConstructor(): ClassConstructorDescriptor? {
-        if (kind.isSingleton) {
-            return DescriptorFactory.createPrimaryConstructorForObject(this, SourceElement.NO_SOURCE).apply {
-                setReturnType(defaultType)
-            }
-        }
-
         return `class`.constructors.firstOrNull { it.isPrimary }?.let { constructor ->
             c.declDeserializer.loadConstructor(constructor, true)
         }

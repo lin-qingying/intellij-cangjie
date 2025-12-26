@@ -1102,7 +1102,7 @@ open class DescriptorRendererImpl(
             renderVisibility(cclass.visibility, builder)
 
             if (!(cclass.kind == ClassKind.INTERFACE && cclass.modality == Modality.ABSTRACT ||
-                        cclass.kind.isObject && cclass.modality == Modality.FINAL)
+                         cclass.modality == Modality.FINAL)
             ) {
                 renderModality(cclass.modality, builder, cclass.implicitModalityWithoutExtensions())
             }

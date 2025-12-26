@@ -709,8 +709,6 @@ class ControlFlowInformationProviderImpl private constructor(
                 is FakeCallableDescriptorForObject -> {
                     val classDescriptor = variableDescriptor.classDescriptor
                     when (classDescriptor.kind) {
-                        ClassKind.ENUM_ENTRY ->
-                            report(UNINITIALIZED_ENUM_ENTRY.on(element, classDescriptor), ctxt)
 
                         else -> {
                         }

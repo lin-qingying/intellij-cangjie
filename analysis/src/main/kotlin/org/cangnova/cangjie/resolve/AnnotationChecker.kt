@@ -258,7 +258,7 @@ enum class CangJieTarget(val description: String, val isDefault: Boolean = true)
                 ENUM_LIST
             }
 
-            ClassKind.ENUM_ENTRY -> ENUM_ENTRY_LIST
+
             else -> TODO()
         }
     }

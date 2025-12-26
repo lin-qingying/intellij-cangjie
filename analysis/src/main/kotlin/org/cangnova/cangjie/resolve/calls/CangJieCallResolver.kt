@@ -264,7 +264,7 @@ class CangJieCallResolver(
             if (maximallySpecificCandidates.size == 2) {
                 val enumEntryCandidate = maximallySpecificCandidates.find {
                     val descriptor = it.resolvedCall.candidateDescriptor
-                    descriptor is FakeCallableDescriptorForObject && descriptor.classDescriptor.kind == ClassKind.ENUM_ENTRY
+                    descriptor is FakeCallableDescriptorForObject
                 }
                 if (enumEntryCandidate != null) {
                     val otherCandidate = maximallySpecificCandidates.find {

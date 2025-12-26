@@ -138,7 +138,7 @@ fun ResolutionCandidate.isStaticContext(): Boolean {
         }
 
         is ClassQualifier -> {
-            !(value.descriptor.kind == ClassKind.ENUM || value.descriptor.kind == ClassKind.ENUM_ENTRY)
+            !(value.descriptor.kind == ClassKind.ENUM  )
 
         }
 
@@ -892,7 +892,7 @@ internal object MapArguments : ResolutionPart() {
 //            && cangjieCall.psiCangJieCall.psiCall.callElement !is CjBinaryExpression
 //            && cangjieCall.psiCangJieCall.psiCall.callElement !is CjCollectionLiteralExpression*/
 //            cangjieCall.psiCangJieCall.psiCall.callElement is CjNameReferenceExpression
-//            && !DescriptorUtils.isEnumEntry(this.descriptor)
+//            && !DescriptorUtils.isEnumConstructor(this.descriptor)
 //        ) {
 //            resolvedCall.argumentMappingByOriginal = emptyMap()
 //            return

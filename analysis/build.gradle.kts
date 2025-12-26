@@ -35,12 +35,16 @@ dependencies {
     implementation(project(":analysis:diagnostics"))
     implementation(libs.vavr)
     implementation(project(":psi"))
+    implementation(project(":icon"))
+
     implementation(project(":descriptors"))
     implementation(project(":descriptors:deserialization"))
     implementation(project(":highlighter"))
     implementation(project(":messages"))
     implementation(project(":common"))
     implementation(project(":util"))
+    implementation(project(":formatter"))
+
     implementation(libs.jakarta.inject.api)
     implementation(libs.reflections)
 

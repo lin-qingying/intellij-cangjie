@@ -104,13 +104,13 @@ interface DataFlowInfo {
     fun getStableTypes(key: DataFlowValue, languageVersionSettings: LanguageVersionSettings): Set<CangJieType>
 
     /**
-     * Returns collected nullability for the given value if it's stable.
-     * Otherwise basic value nullability is returned
+     * Returns collected optionality for the given value if it's stable.
+     * Otherwise basic value optionality is returned
      */
     fun getStableNullability(key: DataFlowValue): Nullability
 
     /**
-     * Returns collected nullability for the given value, NOT taking its stability into account.
+     * Returns collected optionality for the given value, NOT taking its stability into account.
      */
     fun getCollectedNullability(key: DataFlowValue): Nullability
 

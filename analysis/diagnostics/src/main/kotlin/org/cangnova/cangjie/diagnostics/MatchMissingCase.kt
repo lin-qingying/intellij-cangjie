@@ -158,16 +158,16 @@ sealed class MatchMissingCase {
      * }
      * ```
      */
-    class IsTypeCheckIsMissing(val classId: IClassId, val isSingleton: Boolean) : MatchMissingCase() {
+    class IsTypeCheckIsMissing(val classId: IClassId) : MatchMissingCase() {
         override val branchConditionText: String = run {
             val fqName = classId.asSingleFqName().toString()
-            if (isSingleton) fqName else "is $fqName"
+            "is $fqName"
         }
 
         override fun toString(): String {
             val className = classId.shortClassName
             val name = if (className.isSpecial) className.asString() else className.identifier
-            return if (isSingleton) name else "is $name"
+            return  "is $name"
         }
     }
 

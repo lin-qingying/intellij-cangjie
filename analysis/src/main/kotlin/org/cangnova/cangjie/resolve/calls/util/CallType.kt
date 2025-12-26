@@ -79,7 +79,7 @@ sealed class CallType<TReceiver : CjElement?>(val descriptorKindFilter: Descript
 
     data object TYPE : CallType<CjExpression?>(
         DescriptorKindFilter(DescriptorKindFilter.CLASSIFIERS_MASK or DescriptorKindFilter.PACKAGES_MASK)
-                exclude DescriptorKindExclude.EnumEntry
+
     )
 
     data object DELEGATE : CallType<CjExpression?>(DescriptorKindFilter.FUNCTIONS exclude NonOperatorExclude)

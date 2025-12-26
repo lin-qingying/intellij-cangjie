@@ -2122,3 +2122,8 @@ fun CangJieType.optionality(): TypeOptionality {
     }
 }
 
+
+  fun CangJieType.isFlexibleRecursive(): Boolean {
+    if (isFlexible()) return true
+    return arguments.any {  it.type.isFlexibleRecursive() }
+}

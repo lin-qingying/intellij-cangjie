@@ -824,7 +824,7 @@ open class CangJieIdeDescriptorRenderer(
             if (renderTypeExpansions) {
                 appendNormalizedTypeAsIs(abbreviated.expandedType)
             } else {
-                // TODO nullability is lost for abbreviated type?
+                // TODO optionality is lost for abbreviated type?
                 appendNormalizedTypeAsIs(abbreviated.abbreviation)
                 if (renderUnabbreviatedType) {
                     appendAbbreviatedTypeExpansion(abbreviated)

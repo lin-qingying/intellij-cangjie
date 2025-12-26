@@ -24,7 +24,15 @@
 
 package org.cangnova.cangjie.types
 
+import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
+import org.cangnova.cangjie.incremental.components.NoLookupLocation
+import org.cangnova.cangjie.resolve.scopes.LexicalScope
+import org.cangnova.cangjie.resolve.scopes.findClassifier
 import org.cangnova.cangjie.types.checker.ErrorTypesAreEqualToAnything
+import org.cangnova.cangjie.utils.SmartSet
+import org.cangnova.cangjie.utils.canBeReferencedViaImport
+import kotlin.collections.containsAll
+import kotlin.text.replace
 
 /**
  * This is temporary hack for type intersector.
@@ -43,4 +51,76 @@ internal fun hackForTypeIntersector(types: Collection<CangJieType>): CangJieType
             ErrorTypesAreEqualToAnything.isSubtypeOf(candidate, it)
         }
     }
+}
+
+fun CangJieType.isResolvableInScope(
+    scope: LexicalScope?,
+    checkTypeParameters: Boolean,
+    allowIntersections: Boolean = false
+): Boolean {
+    if (constructor is IntersectionTypeConstructor) {
+        if (!allowIntersections) {
+            return false
+        }
+        return constructor.supertypes.all {
+            it.isResolvableInScope(
+                scope,
+                checkTypeParameters,
+                allowIntersections = true
+            )
+        }
+    }
+
+    if (canBeReferencedViaImport()) return true
+
+    val descriptor = constructor.declarationDescriptor
+    if (descriptor == null || descriptor.name.isSpecial) return false
+    if (!checkTypeParameters && descriptor is TypeParameterDescriptor) return true
+
+    return scope != null && scope.findClassifier(descriptor.name, NoLookupLocation.FROM_IDE) == descriptor
+}
+
+private fun TypeProjection.fixTypeProjection(
+    scope: LexicalScope?,
+    checkTypeParameters: Boolean,
+    allowIntersections: Boolean,
+
+    ): TypeProjection? {
+    if (!type.isResolvableInScope(scope, checkTypeParameters, allowIntersections)) return null
+    if (type.arguments.isEmpty()) return this
+
+    val resolvableArgs = type.arguments.filterTo(SmartSet.create()) { typeProjection ->
+        typeProjection.type.isResolvableInScope(scope, checkTypeParameters, allowIntersections)
+    }
+
+    if (resolvableArgs.containsAll(type.arguments)) {
+
+        type.asTypeProjection()
+    }
+
+
+    val newArguments = (type.arguments zip type.constructor.parameters).map { (arg, param) ->
+        when {
+            arg in resolvableArgs -> arg
+
+
+            else -> return type.asTypeProjection()
+        }
+    }
+
+    return type.replace(newArguments).asTypeProjection()
+}
+
+fun CangJieType.getResolvableApproximations(
+    scope: LexicalScope?,
+    checkTypeParameters: Boolean,
+    allowIntersections: Boolean = false
+): Sequence<CangJieType> {
+    return (listOf(this) + TypeUtils.getAllSupertypes(this))
+        .asSequence()
+        .mapNotNull {
+            it.asTypeProjection()
+                .fixTypeProjection(scope, checkTypeParameters, allowIntersections)
+                ?.type
+        }
 }

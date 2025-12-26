@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.cjpm.toml
 
-import org.cangnova.cangjie.ide.completion.getElementOfType
 import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
@@ -37,6 +36,7 @@ import org.cangnova.cangjie.messages.CangJieBundle
 import org.cangnova.cangjie.psi.psiUtil.ancestorOrSelf
 import org.cangnova.cangjie.psi.psiUtil.elementType
 import org.cangnova.cangjie.psi.psiUtil.isAncestorOf
+import org.cangnova.cangjie.utils.getElementOfType
 import org.toml.lang.psi.*
 
 fun tomlPluginIsAbiCompatible(): Boolean = computeOnce

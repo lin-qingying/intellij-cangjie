@@ -86,9 +86,7 @@ fun LexicalScope.getImplicitReceiversWithInstanceToExpression(
 
             }
 
-            owner is ClassDescriptor && owner.kind.isSingleton -> {
-                IdeDescriptorRenderers.SOURCE_CODE.renderClassifierName(owner) to false
-            }
+
 
             else -> continue
         }

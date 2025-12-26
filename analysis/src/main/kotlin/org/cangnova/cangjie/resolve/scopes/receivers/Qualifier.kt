@@ -133,12 +133,12 @@ class EnumClassQualifier(
             return null
         }
 
-        override fun <T : Any?> getUserData(key: Key<T>): T? {
+        override fun <T> getUserData(key: Key<T>): T? {
             return null
 
         }
 
-        override fun <T : Any?> putUserData(key: Key<T>, value: T?) {
+        override fun <T> putUserData(key: Key<T>, value: T?) {
 
         }
 
@@ -369,8 +369,7 @@ class EnumClassQualifier(
 
     override val staticScope: MemberScope
         get() =
-            if (descriptor.kind == ClassKind.ENUM_ENTRY) descriptor.staticScope
-            else StaticMemberScope(
+              StaticMemberScope(
                 ChainedMemberScope.create(
                     "Static scope for ${descriptor.name} as class or object",
                     descriptor.staticScope,
@@ -396,8 +395,7 @@ class ClassQualifier(
 
     override val staticScope: MemberScope
         get() =
-            if (descriptor.kind == ClassKind.ENUM_ENTRY) descriptor.staticScope
-            else StaticMemberScope(
+              StaticMemberScope(
                 ChainedMemberScope.create(
                     "Static scope for ${descriptor.name} as class or object",
                     descriptor.staticScope,
@@ -487,12 +485,12 @@ class TypeAliasQualifier(
         ): Collection<DeclarationDescriptor> =
             classDescriptor.unsubstitutedMemberScope
                 .getContributedDescriptors(kindFilter, nameFilter)
-                .filter { DescriptorUtils.isEnumEntry(it) }
+                .filter { DescriptorUtils.isEnumConstructor(it) }
 
         override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
             classDescriptor.unsubstitutedMemberScope
                 .getContributedClassifier(name, location)
-                ?.takeIf { DescriptorUtils.isEnumEntry(it) }
+                ?.takeIf { DescriptorUtils.isEnumConstructor(it) }
 
         override fun printScopeStructure(p: Printer) {
             p.println(this::class.java.simpleName, " {")

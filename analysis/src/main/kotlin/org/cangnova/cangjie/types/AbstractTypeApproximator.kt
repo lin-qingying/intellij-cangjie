@@ -636,9 +636,9 @@ abstract class AbstractTypeApproximator(
         // If it's not `Nothing?`, then the lower bound is indeed non-trivial
         if (!subType.lowerBoundIfFlexible().isOptionNothing()) return true
 
-        // Here the subType is `Nothing?`, and it might be trivial only in cause the nullability is caused by nullability of captured type itself
+        // Here the subType is `Nothing?`, and it might be trivial only in cause the optionality is caused by optionality of captured type itself
 
-        // If captured type is not marked as nullable, then nullability of subType came from the lower bound of the captured type.
+        // If captured type is not marked as nullable, then optionality of subType came from the lower bound of the captured type.
         // Thus, the lower bound is non-trivial for sure
         if (!capturedArgumentType.isMarkedOption()) return true
 

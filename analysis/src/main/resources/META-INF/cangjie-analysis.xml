@@ -23,7 +23,7 @@
   ~
   -->
 
-<ide-plugin>
+<idea-plugin>
     <!-- 扩展点定义 -->
     <extensionPoints>
         <!-- 模块信息提供者扩展 -->
@@ -33,11 +33,6 @@
                 area="IDEA_PROJECT"
                 dynamic="true"/>
 
-
-        <!-- 分析上下文提供者扩展点 -->
-        <extensionPoint qualifiedName="org.cangnova.cangjie.analysisContextProvider"
-                        interface="org.cangnova.cangjie.descriptors.AnalysisContextProvider"
-                        dynamic="true"/>
 
         <!-- 解析优化选项提供者扩展点 -->
         <extensionPoint qualifiedName="org.cangnova.cangjie.caches.resolve.resolveOptimizingOptionsProvider"
@@ -85,7 +80,7 @@
                         dynamic="true"/>
 
         <!-- 类型解析拦截器扩展点（内部非稳定） -->
-        <extensionPoint qualifiedName="org.jetbrains.CangJie.extensions.internal.typeResolutionInterceptorExtension"
+        <extensionPoint qualifiedName="org.cangnova.cangjie.typeResolutionInterceptorExtension"
                         interface="org.cangnova.cangjie.extensions.internal.TypeResolutionInterceptorExtension"
                         dynamic="true"/>
 
@@ -112,6 +107,11 @@
         <extensionPoint qualifiedName="org.cangnova.cangjie.resolveScopeEnlarger"
                         interface="org.cangnova.cangjie.resolve.CangJieResolveScopeEnlarger"
                         dynamic="true"/>
+
+        <extensionPoint
+                qualifiedName="org.cangnova.cangjie.completionInformationProvider"
+                interface="org.cangnova.cangjie.completion.CompletionInformationProvider"
+                dynamic="true"/>
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -119,15 +119,7 @@
                      defaultValue="true"
                      description="Enable experimental static analysis and semantic highlighting features (development mode)"
                      restartRequired="false"/>
-        <!-- 模块信息提供者服务 -->
-        <projectService
-                serviceInterface="org.cangnova.cangjie.moduleinfo.provider.ModuleInfoProvider"
-                serviceImplementation="org.cangnova.cangjie.moduleinfo.provider.ModuleInfoProvider"/>
 
-        <!-- 库信息缓存服务 -->
-        <projectService
-                serviceInterface="org.cangnova.cangjie.moduleinfo.cache.LibraryInfoCache"
-                serviceImplementation="org.cangnova.cangjie.moduleinfo.cache.LibraryInfoCache"/>
         <!-- 库依赖缓存服务 -->
         <projectService
                 serviceInterface="org.cangnova.cangjie.moduleinfo.cache.LibraryDependenciesCache"
@@ -141,10 +133,6 @@
                 serviceInterface="org.cangnova.cangjie.moduleinfo.cache.IdeaModelInfosCache"
                 serviceImplementation="org.cangnova.cangjie.moduleinfo.cache.FineGrainedIdeaModelInfosCache"/>
 
-        <!-- 模块修改追踪服务 -->
-        <projectService
-                serviceInterface="org.cangnova.cangjie.moduleinfo.util.ModuleModificationTracker"
-                serviceImplementation="org.cangnova.cangjie.moduleinfo.util.ModuleModificationTracker"/>
 
         <!-- 诊断系统初始化启动活动 -->
         <postStartupActivity implementation="org.cangnova.cangjie.diagnostics.DiagnosticInitializerStartupActivity"/>
@@ -210,12 +198,7 @@
 
         <projectService
                 serviceInterface="org.cangnova.cangjie.resolve.CangJieModificationTrackerService"
-                serviceImplementation="org.cangnova.cangjie.resolve.CangJieModificationTrackerService"/>
-
-        <projectService
-                serviceInterface="org.cangnova.cangjie.cache.trackers.CangJieIDEModificationTrackerService"
                 serviceImplementation="org.cangnova.cangjie.cache.trackers.CangJieIDEModificationTrackerService"/>
-
 
 
 
@@ -224,8 +207,8 @@
                 serviceImplementation="org.cangnova.cangjie.resolve.IDELanguageSettingsProvider"/>
 
         <projectService
-                serviceInterface="org.cangnova.cangjie.ide.cdoc.CDocLinkResolutionService"
-                serviceImplementation="org.cangnova.cangjie.ide.cdoc.IdeCDocLinkResolutionService"/>
+                serviceInterface="org.cangnova.cangjie.quickDoc.cdoc.CDocLinkResolutionService"
+                serviceImplementation="org.cangnova.cangjie.quickDoc.cdoc.IdeCDocLinkResolutionService"/>
 
         <projectService
                 serviceInterface="org.cangnova.cangjie.references.ReadWriteAccessChecker"
@@ -245,6 +228,21 @@
         <filetype.stubBuilder filetype="cjo" implementationClass="org.cangnova.cangjie.decompiler.psi.compiled.impl.ClassFileStubBuilder"/>
         <filetype.decompiler filetype="cjo" implementationClass="org.cangnova.cangjie.decompiler.psi.compiled.ClassFileDecompiler"/>
 
+        <!--代码补全-->
+        <completion.contributor
+                language="CangJie"
+                id="CangJieCompletionContributor"
+                order="first, after liveTemplates"
+                implementationClass="org.cangnova.cangjie.completion.CangJieCompletionContributor"/>
+        <completion.contributor
+                language="CangJie"
+                implementationClass="org.cangnova.cangjie.completion.CDocCompletionContributor"/>
+        <registryKey
+                key="cangjie.disable.auto.completion.inside.expression"
+                description="Disables auto-completion inside expressions"
+                defaultValue="false"
+                restartRequired="false"/>
+
     </extensions>
 
     <!-- 诊断渲染器提供者注册 -->
@@ -260,4 +258,4 @@
                 implementation="org.cangnova.cangjie.diagnostics.rendering.IdeRenderers"/>
     </extensions>
 
-</ide-plugin>
+</idea-plugin>

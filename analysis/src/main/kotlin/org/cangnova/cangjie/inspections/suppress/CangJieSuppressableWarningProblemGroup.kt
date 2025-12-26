@@ -29,8 +29,8 @@ import com.intellij.codeInspection.SuppressableProblemGroup
 import com.intellij.openapi.util.NlsSafe
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
-import org.cangnova.cangjie.codeinsight.CangJieCodeInsightBundle
 import org.cangnova.cangjie.diagnostics.Severity
+import org.cangnova.cangjie.messages.CangJieCodeInsightBundle
 import org.cangnova.cangjie.psi.CjBlockExpression
 import org.cangnova.cangjie.psi.CjClass
 import org.cangnova.cangjie.psi.CjClassLikeDeclaration

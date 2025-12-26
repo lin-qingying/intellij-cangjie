@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.extensions
 
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.FunctionDescriptor
 import org.cangnova.cangjie.descriptors.Modality
@@ -33,6 +34,9 @@ import org.cangnova.cangjie.psi.CjModifierListOwner
 
 interface DeclarationAttributeAltererExtension {
     companion object {
+        fun getInstances(project: Project) : List<DeclarationAttributeAltererExtension>{
+            return EP_NAME.extensionList
+        }
         val EP_NAME: ExtensionPointName<DeclarationAttributeAltererExtension> =
             ExtensionPointName.create("org.cangnova.cangjie.declarationAttributeAltererExtension")
     }

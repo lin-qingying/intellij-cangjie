@@ -46,14 +46,13 @@ import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.ClassId.Companion.fromString
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.name.Name.Companion.special
 import org.cangnova.cangjie.name.SpecialNames.anonymousParameterName
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
 import org.cangnova.cangjie.resolve.DescriptorUtils.getDispatchReceiverParameterIfNeeded
 import org.cangnova.cangjie.resolve.DescriptorUtils.getParentOfType
 import org.cangnova.cangjie.resolve.DescriptorUtils.isAnonymousObject
-import org.cangnova.cangjie.resolve.DescriptorUtils.isEnumEntry
+import org.cangnova.cangjie.resolve.DescriptorUtils.isEnumConstructor
 import org.cangnova.cangjie.resolve.DescriptorUtils.isLocal
 import org.cangnova.cangjie.resolve.DescriptorUtils.isSubclass
 import org.cangnova.cangjie.resolve.ModifiersChecker.Companion.resolveMemberModalityFromModifiers
@@ -1423,7 +1422,7 @@ class DescriptorResolver(
         fun isStaticNestedClass(descriptor: DeclarationDescriptor): Boolean {
             val containing = descriptor.containingDeclaration
             return descriptor is ClassDescriptor &&
-                    containing is ClassDescriptor && !isEnumEntry(descriptor)
+                    containing is ClassDescriptor && !isEnumConstructor(descriptor)
         }
 
         fun getDefaultVisibility(

@@ -2060,7 +2060,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                 CjParenthesizedExpression::class.java
             )
             if (parent is CjQualifiedExpression) {
-                // so we have to analyze its nullability here
+                // so we have to analyze its optionality here
 
                 return parent.operationSign === CjTokens.DOT &&
                         parent.receiverExpression === CjPsiUtil.deparenthesize(expression)

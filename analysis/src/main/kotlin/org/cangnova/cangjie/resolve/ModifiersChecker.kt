@@ -37,7 +37,6 @@ import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.caches.DeclarationChecker
 import org.cangnova.cangjie.resolve.caches.DeclarationCheckerContext
-import org.cangnova.cangjie.resolve.check.UnderscoreChecker
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
 
 class ModifiersChecker(
@@ -200,7 +199,7 @@ class ModifiersChecker(
 
             // Since 1.3, enum entries can contain inner classes only.
             // Companion objects are reported in ModifierCheckerCore.
-//            if (DescriptorUtils.isEnumEntry(containingClass)   ) {
+//            if (DescriptorUtils.isEnumConstructor(containingClass)   ) {
 //                val diagnostic: DiagnosticFactory1<CjTypeStatement, String> =
 //                    if (languageVersionSettings.supportsFeature( LanguageFeature.NestedClassesInEnumEntryShouldBeInner)
 //                    )  Errors.NESTED_CLASS_NOT_ALLOWED
@@ -391,7 +390,7 @@ class ModifiersChecker(
 
         companion object {
             fun getClassKind(descriptor: ClassDescriptor): DetailedClassKind {
-                if (DescriptorUtils.isEnumEntry(descriptor)) return ENUM_ENTRY
+                if (DescriptorUtils.isEnumConstructor(descriptor)) return ENUM_ENTRY
 
 
                 if (DescriptorUtils.isInterface(descriptor)) return INTERFACE

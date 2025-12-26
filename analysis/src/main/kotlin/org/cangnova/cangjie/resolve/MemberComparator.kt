@@ -59,7 +59,7 @@ object MemberComparator : Comparator<DeclarationDescriptor> {
             val INSTANCE: NameAndTypeMemberComparator = NameAndTypeMemberComparator()
 
             private fun getDeclarationPriority(descriptor: DeclarationDescriptor): Int {
-                if (DescriptorUtils.isEnumEntry(descriptor)) {
+                if (DescriptorUtils.isEnumConstructor(descriptor)) {
                     return 8
                 } else if (descriptor is ConstructorDescriptor) {
                     return 7
@@ -92,7 +92,7 @@ object MemberComparator : Comparator<DeclarationDescriptor> {
                     return prioritiesCompareTo
                 }
 
-                if (DescriptorUtils.isEnumEntry(o1) && DescriptorUtils.isEnumEntry(
+                if (DescriptorUtils.isEnumConstructor(o1) && DescriptorUtils.isEnumConstructor(
                         o2
                     )
                 ) {

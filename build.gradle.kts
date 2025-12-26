@@ -491,7 +491,7 @@ project(":") {
         intellijPlatform {
             bundledPlugins(tomlPlugin, copyright, jsonPlugin)
         }
-        implementation(project(":highlighter"))
+
 
         // 项目内部模块
         implementation(project(":common"))
@@ -501,6 +501,8 @@ project(":") {
         implementation(project(":icon"))
         implementation(project(":psi"))
         implementation(project(":psi:stubindex"))
+        implementation(project(":highlighter"))
+        implementation(project(":formatter"))
 
         implementation(project(":messages"))
         implementation(project(":notifications"))

@@ -28,9 +28,11 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.analysis.MutableDiagnosticsWithSuppression
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.impl.AnonymousFunctionDescriptor
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.diagnostics.infos.errors.AMBIGUOUS_LABEL
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.psiUtil.getNonStrictParentOfType
 import org.cangnova.cangjie.psi.psiUtil.parentsWithSelf
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.AMBIGUOUS_LABEL_TARGET
@@ -38,6 +40,8 @@ import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.AMBIGUOUS_R
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.DATA_FLOW_INFO_BEFORE
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.DECLARATION_TO_DESCRIPTOR
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.EXPRESSION_TYPE_INFO
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.FUNCTION
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.LABEL_TARGET
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.LEXICAL_SCOPE
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.REFERENCE_TARGET
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.TYPE
@@ -57,6 +61,7 @@ import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.expressions.CangJieTypeInfo
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import kotlin.text.get
 
 object BindingContextUtils {
     
@@ -334,4 +339,24 @@ fun getEnclosingDescriptor(context: BindingContext, element: CjElement): Declara
 fun CjElement.recordUsedAsExpression(trace: BindingTrace, value: Boolean) {
     if (isUsedAsExpression(trace.bindingContext)) return
     trace.record(USED_AS_EXPRESSION, this, value)
+}
+
+
+fun CjReturnExpression.getTargetFunctionDescriptor(context: BindingContext): FunctionDescriptor? {
+    val targetLabel = getTargetLabel()
+    if (targetLabel != null) return context[LABEL_TARGET, targetLabel]?.let { context[FUNCTION, it] }
+
+    val declarationDescriptor = context[DECLARATION_TO_DESCRIPTOR, getNonStrictParentOfType<CjDeclarationWithBody>() as PsiElement]
+    val containingFunctionDescriptor =
+        DescriptorUtils.getParentOfType(declarationDescriptor, FunctionDescriptor::class.java, false)
+            ?: return null
+
+    return generateSequence(containingFunctionDescriptor) {
+        DescriptorUtils.getParentOfType(
+            it,
+            FunctionDescriptor::class.java
+        )
+    }
+        .dropWhile { it is AnonymousFunctionDescriptor }
+        .firstOrNull()
 }

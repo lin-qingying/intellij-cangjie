@@ -31,7 +31,7 @@ import com.intellij.util.SmartList
 import org.cangnova.cangjie.FrontendInternals
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
-import org.cangnova.cangjie.ide.cdoc.CDocLinkResolutionService
+import org.cangnova.cangjie.quickDoc.cdoc.CDocLinkResolutionService
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.lexer.cdoc.parser.CDocKnownTag

@@ -97,7 +97,6 @@ open class LazyClassDescriptor(
      */
     private val _modality = c.storageManager.createLazyValue {
         when {
-            kind.isObject -> Modality.FINAL
             else -> {
                 val defaultModality = if (kind == ClassKind.INTERFACE) Modality.ABSTRACT else Modality.FINAL
                 resolveModalityFromModifiers(

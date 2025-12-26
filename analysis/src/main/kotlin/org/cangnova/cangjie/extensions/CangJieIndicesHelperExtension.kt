@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.extensions
 
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
@@ -33,6 +34,10 @@ import org.cangnova.cangjie.types.CangJieType
 
 interface CangJieIndicesHelperExtension {
     companion object {
+        fun getInstances(project: Project) : List<CangJieIndicesHelperExtension>{
+            return EP_NAME.extensionList
+        }
+
         val EP_NAME: ExtensionPointName<CangJieIndicesHelperExtension> =
             ExtensionPointName.create("org.cangnova.cangjie.cangjieIndicesHelperExtension")
     }

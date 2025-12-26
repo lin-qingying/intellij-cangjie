@@ -250,10 +250,8 @@ class OverloadResolver(
             // 根据分类器的类型，决定返回的声明列表
             when (classifier) {
                 is ClassDescriptor ->
-                    if (!classifier.kind.isObject)
+
                         functions + classifier.constructors
-                    else
-                        functions
 
                 is TypeAliasDescriptor ->
                     functions + classifier.constructors

@@ -31,7 +31,7 @@ import com.intellij.codeInspection.SuppressIntentionAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import org.cangnova.cangjie.codeinsight.CangJieCodeInsightBundle
+import org.cangnova.cangjie.messages.CangJieCodeInsightBundle
 
 
 class CangJieSuppressIntentionAction(

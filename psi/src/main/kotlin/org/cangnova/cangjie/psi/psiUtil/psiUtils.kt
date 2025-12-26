@@ -33,7 +33,14 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.findParentInFile
 import com.intellij.psi.util.isAncestor
+import org.cangnova.cangjie.name.FqName
 
+val PsiElement.cangjieFqName: FqName?
+    get() = when (this) {
+
+        is CjNamedDeclaration -> this.fqName
+        else -> null
+    }
 fun TextRange.containsInside(offset: Int): Boolean = startOffset < offset && offset < endOffset
 inline fun <reified T : PsiElement> PsiElement.getLastParentOfTypeInRow() =
     parents.takeWhile { it is T }.lastOrNull() as? T

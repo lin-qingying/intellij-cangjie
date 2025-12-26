@@ -755,10 +755,7 @@ class BodyResolver(
                 if (supertype == null) return
 
                 val superClass = TypeUtils.getClassDescriptor(supertype) ?: return
-                if (superClass.kind.isObject) {
-                    // A "singleton in supertype" diagnostic will be reported later
-                    return
-                }
+
 
                 if (descriptor.kind != ClassKind.INTERFACE &&
                     checkPrimaryConstructor(descriptor.unsubstitutedPrimaryConstructor) &&
@@ -875,16 +872,12 @@ class BodyResolver(
 
             when {
                 classDescriptor.kind.isEnum -> {
-                    if (!DescriptorUtils.isEnumEntry(classDescriptor)) {
+                    if (!DescriptorUtils.isEnumConstructor(classDescriptor)) {
                         trace.report(ENUM_IN_SUPERTYPE.on(typeReference))
                     }
                 }
 
-                classDescriptor.kind.isObject -> {
-                    if (!DescriptorUtils.isEnumEntry(classDescriptor)) {
-                        trace.report(STRUCT_IN_SUPERTYPE.on(typeReference))
-                    }
-                }
+
 
                 constructor !in allowedFinalSupertypes -> {
                     when {

@@ -321,15 +321,7 @@ abstract class DescriptorKindExclude {
         override val fullyExcludedDescriptorKinds: Int get() = 0
     }
 
-    /**
-     * 排除枚举条目的对象
-     */
-    object EnumEntry : DescriptorKindExclude() {
-        override fun excludes(descriptor: DeclarationDescriptor) =
-            descriptor is ClassDescriptor && descriptor.kind == ClassKind.ENUM_ENTRY
 
-        override val fullyExcludedDescriptorKinds: Int get() = 0
-    }
 
     /**
      * 被此 [DescriptorKindExclude] 完全排除的描述符类型的位掩码
@@ -359,7 +351,7 @@ class DescriptorKindFilter(
 
         // 各种描述符类型的掩码常量
         val NON_SINGLETON_CLASSIFIERS_MASK: Int = nextMask()  // 非单例分类器掩码
-        val SINGLETON_CLASSIFIERS_MASK: Int = nextMask()      // 单例分类器掩码
+
 
         val TYPE_ALIASES_MASK: Int = nextMask()               // 类型别名掩码
         val PACKAGES_MASK: Int = nextMask()                   // 包掩码
@@ -373,9 +365,9 @@ class DescriptorKindFilter(
         // 组合掩码常量
         val ALL_KINDS_MASK: Int = nextMask() - 1              // 所有类型掩码
         val CLASSIFIERS_MASK: Int =
-            NON_SINGLETON_CLASSIFIERS_MASK or SINGLETON_CLASSIFIERS_MASK or TYPE_ALIASES_MASK  // 分类器掩码
+            NON_SINGLETON_CLASSIFIERS_MASK  or TYPE_ALIASES_MASK  // 分类器掩码
 
-        val VALUES_MASK: Int = SINGLETON_CLASSIFIERS_MASK or FUNCTIONS_MASK or VARIABLES_MASK or PROPERTYS_MASK  // 值掩码
+        val VALUES_MASK: Int   =FUNCTIONS_MASK or VARIABLES_MASK or PROPERTYS_MASK  // 值掩码
         val CALLABLES_MASK: Int = FUNCTIONS_MASK or VARIABLES_MASK or PROPERTYS_MASK  // 可调用对象掩码
 
         // 预定义的过滤器实例
@@ -389,8 +381,6 @@ class DescriptorKindFilter(
         val NON_SINGLETON_CLASSIFIERS: DescriptorKindFilter =
             DescriptorKindFilter(NON_SINGLETON_CLASSIFIERS_MASK)  // 非单例分类器过滤器
 
-        @JvmField
-        val SINGLETON_CLASSIFIERS: DescriptorKindFilter = DescriptorKindFilter(SINGLETON_CLASSIFIERS_MASK)  // 单例分类器过滤器
 
         @JvmField
         val TYPE_ALIASES: DescriptorKindFilter = DescriptorKindFilter(TYPE_ALIASES_MASK)  // 类型别名过滤器
@@ -481,9 +471,8 @@ class DescriptorKindFilter(
      */
     private fun DeclarationDescriptor.kind(): Int {
         return when (this) {
-            is ClassDescriptor -> if (this.kind.isObject) SINGLETON_CLASSIFIERS_MASK else NON_SINGLETON_CLASSIFIERS_MASK
+            is ClassDescriptor ,is ClassifierDescriptor->   NON_SINGLETON_CLASSIFIERS_MASK
             is TypeAliasDescriptor -> TYPE_ALIASES_MASK
-            is ClassifierDescriptor -> NON_SINGLETON_CLASSIFIERS_MASK
             is PackageFragmentDescriptor, is PackageViewDescriptor -> PACKAGES_MASK
             is FunctionDescriptor -> FUNCTIONS_MASK
             is PropertyDescriptor -> PROPERTYS_MASK

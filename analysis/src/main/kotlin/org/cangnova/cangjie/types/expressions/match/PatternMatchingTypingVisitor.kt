@@ -752,7 +752,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             context.trace.report(DYNAMIC_NOT_ALLOWED.on(typeReferenceAfterIs))
         }
         val targetDescriptor = TypeUtils.getClassDescriptor(targetType)
-        if (targetDescriptor != null && DescriptorUtils.isEnumEntry(targetDescriptor)) {
+        if (targetDescriptor != null && DescriptorUtils.isEnumConstructor(targetDescriptor)) {
             context.trace.report(IS_ENUM_ENTRY.on(typeReferenceAfterIs))
         }
         if (!subjectType.containsError() && !TypeUtils.isOptionType(subjectType) && targetType.isOption) {
@@ -1289,11 +1289,11 @@ fun CjMatchExpression.checkExhaustive(context: BindingContext): List<Pattern>? {
 }
 
 object MatchChecker {
-    
+
     fun getClassDescriptorOfTypeIfSealed(type: CangJieType?): ClassDescriptor? =
         type?.let { TypeUtils.getClassDescriptor(it) }?.takeIf { DescriptorUtils.isSealedClass(it) }
 
-    
+
     fun getClassDescriptorOfTypeIfTuple(type: CangJieType?): ClassDescriptor? {
         if (type == null) return null
         val classDescriptor = TypeUtils.getClassDescriptor(type) ?: return null
@@ -1302,19 +1302,17 @@ object MatchChecker {
         return classDescriptor
     }
 
-    
+
     fun getClassDescriptorOfTypeIfEnum(type: CangJieType?): ClassDescriptor? {
         if (type == null) return null
         var classDescriptor = TypeUtils.getClassDescriptor(type) ?: return null
-        if (classDescriptor.kind == ClassKind.ENUM_ENTRY) {
-            classDescriptor = classDescriptor.containingDeclaration as ClassDescriptor
-        }
+
         if (classDescriptor.kind != ClassKind.ENUM) return null
 
         return classDescriptor
     }
 
-    
+
     fun matchSubjectType(expression: CjMatchExpression, context: BindingContext): CangJieType? {
 //        val subjectVariable = expression.subjectVariable
         val subjectExpression = expression.subjectExpression
@@ -1368,7 +1366,7 @@ object MatchChecker {
     }
 
 
-    
+
     fun MatchSubjectType(expression: CjMatchExpression, context: BindingContext): CangJieType? {
 //        val subjectVariable = expression.subjectVariable
         val subjectExpression = expression.subjectExpression
@@ -1384,7 +1382,7 @@ object MatchChecker {
 
     }
 
-    
+
     fun isMatchExhaustive(expression: CjMatchExpression, trace: BindingTrace) = false
 
     //        if (getMissingCases(expression, trace.bindingContext).isEmpty()) {
@@ -1605,7 +1603,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
     val ClassDescriptor.enumEntries: Set<ClassDescriptor>
         get() = DescriptorUtils.getAllDescriptors(this.unsubstitutedMemberScope)
             .filter {
-                DescriptorUtils.isEnumEntry(it)
+                DescriptorUtils.isEnumConstructor(it)
             }
             .filterIsInstance<ClassDescriptor>()
             .toSet()
@@ -1630,7 +1628,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
         this !is CjMatchConditionWithExpression ||
 //                DescriptorUtils.isObject(checkedDescriptor) ||
                 when (checkedDescriptor) {
-                    is ClassDescriptor -> DescriptorUtils.isEnumEntry(checkedDescriptor)
+                    is ClassDescriptor -> DescriptorUtils.isEnumConstructor(checkedDescriptor)
 
                     else -> false
                 }
@@ -1903,22 +1901,14 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
     private fun createMatchMissingCaseForClassOrEnum(classDescriptor: ClassifierDescriptorWithTypeParameters): MatchMissingCase {
         val classId = when (classDescriptor) {
             is ClassDescriptor -> DescriptorUtils.getClassIdForNonLocalClass(classDescriptor)
-//            is EnumEntryConstructorDescriptor -> ClassIdByConstructor(
-//                classDescriptor.constructedClass.classId!!,
-//                classDescriptor.getConstructorTypes()
-//            )
 
-//            is TupleConstructor -> ClassIdByConstructor(
-//                ClassId(FqName.topLevel(Name.identifier("Tuple")), Name.identifier("Tuple")),
-//                classDescriptor.types
-//            )
 
             else -> error("Unexpected class descriptor")
         }
         val kind = when (classDescriptor) {
+
             is ClassDescriptor -> classDescriptor.kind
-//            is EnumEntryConstructorDescriptor -> ClassKind.ENUM_CONSTRUCTOR
-            is TupleConstructor -> ClassKind.TUPLE
+
             else -> {
                 error("Unexpected class descriptor")
             }
@@ -1928,12 +1918,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
 
                 CallableId(classId.relativeClassName, classId.shortClassName)
             )
-        } else if (kind != ClassKind.ENUM_ENTRY) {
-            MatchMissingCase.IsTypeCheckIsMissing(
-                classId = classId,
-                isSingleton = kind.isSingleton
-            )
-        } else {
+        }  else {
             val enumClassId = classId.outerClassId ?: error("Enum should have class id")
             MatchMissingCase.EnumCheckIsMissing(CallableId(enumClassId, classId.shortClassName))
         }

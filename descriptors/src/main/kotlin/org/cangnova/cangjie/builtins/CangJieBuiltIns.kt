@@ -84,7 +84,23 @@ open class CangJieBuiltIns(
     companion object {
         val DefaultBuiltIns: CangJieBuiltIns =
             CangJieBuiltIns(ProjectDescriptor.ERROR, LockBasedStorageManager("DefaultBuiltIns"))
+        fun isDeprecated(declarationDescriptor: DeclarationDescriptor): Boolean {
+            if (declarationDescriptor.original.annotations.hasAnnotation(StandardNames.FqNames.deprecated)) return true
 
+            if (declarationDescriptor is PropertyDescriptor) {
+                val isVar: Boolean =
+                    declarationDescriptor.isVar
+                val getter =
+                    declarationDescriptor.getter
+                val setter =
+                    declarationDescriptor.setter
+                return getter != null && isDeprecated(getter) && (!isVar || setter != null && isDeprecated(
+                    setter
+                ))
+            }
+
+            return false
+        }
         /**
          * 判断 Descriptor 是否来自内置库
          *

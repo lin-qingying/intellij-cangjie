@@ -169,7 +169,7 @@ class DoubleColonExpressionResolver(
 //
 //                if (DescriptorUtils.isObject(classDescriptor) ||
 //                    (!languageVersionSettings.supportsFeature(LanguageFeature.BoundCallableReferences) &&
-//                            DescriptorUtils.isEnumEntry(classDescriptor))) {
+//                            DescriptorUtils.isEnumConstructor(classDescriptor))) {
 //                    return DoubleColonLHS.Expression(typeInfo )
 //                }
 //            }
