@@ -54,6 +54,7 @@ open class LazyDeclarationResolver(
         get() = trace.bindingContext
     protected lateinit var scopeProvider: DeclarationScopeProvider
     private lateinit var functionDescriptorResolver: FunctionDescriptorResolver
+    private lateinit var extendDescriptorResolver: org.cangnova.cangjie.resolve.ExtendDescriptorResolver
 
     @Inject
     fun setDeclarationScopeProvider(scopeProvider: DeclarationScopeProviderImpl) {
@@ -63,6 +64,11 @@ open class LazyDeclarationResolver(
     @Inject
     fun setFunctionDescriptorResolver(functionDescriptorResolver: FunctionDescriptorResolver) {
         this.functionDescriptorResolver = functionDescriptorResolver
+    }
+
+    @Inject
+    fun setExtendDescriptorResolver(extendDescriptorResolver: org.cangnova.cangjie.resolve.ExtendDescriptorResolver) {
+        this.extendDescriptorResolver = extendDescriptorResolver
     }
 
     init {
@@ -87,8 +93,9 @@ open class LazyDeclarationResolver(
     ): ClassDescriptor? {
 
         if (typeStatement is CjExtend) {
-            // 如果 typeStatement 是扩展声明，则直接获取其类描述符
-            TODO("扩展")
+            // 扩展不是类描述符，返回 null
+            // 扩展通过 visitExtend 方法解析
+            return null
         }
 
         val scope = getMemberScopeDeclaredIn(typeStatement, location)
@@ -277,8 +284,15 @@ open class LazyDeclarationResolver(
             }
 
             override fun visitExtend(extend: CjExtend, data: Nothing?): DeclarationDescriptor {
+                // 扩展不是分类器，需要从 scope 中查找并解析
+                val location = lookupLocationFor(extend, true)
+                val scope = getMemberScopeDeclaredIn(extend, location)
 
-                TODO("扩展")
+                // 尝试从作用域获取扩展（触发解析）
+                // 注意：扩展没有名称查找，我们直接检查 bindingContext
+                val descriptor = bindingContext.get(BindingContext.EXTEND, extend)
+
+                return descriptor ?: error("Extend descriptor not found for: ${extend.text}")
             }
 
             override fun visitEndSecondaryConstructor(

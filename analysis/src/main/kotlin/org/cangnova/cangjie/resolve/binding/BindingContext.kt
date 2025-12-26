@@ -407,6 +407,9 @@ interface BindingContext {
         val TYPE_ALIAS: WritableSlice<PsiElement, TypeAliasDescriptor> = Slices.createSimpleSlice()
 
 
+        val EXTEND: WritableSlice<PsiElement, org.cangnova.cangjie.descriptors.extend.ExtendDescriptor> = Slices.createSimpleSlice()
+
+
         val PROPERTY_ACCESSOR: WritableSlice<CjPropertyAccessor, PropertyAccessorDescriptor> =
             Slices.createSimpleSlice()
 

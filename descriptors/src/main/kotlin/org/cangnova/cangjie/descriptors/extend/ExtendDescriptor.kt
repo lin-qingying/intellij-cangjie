@@ -28,6 +28,7 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.*
+interface ClassAndExtendDescriptor:DeclarationDescriptor
 
 /**
  * 扩展描述符接口
@@ -53,7 +54,7 @@ import org.cangnova.cangjie.types.*
  * - ExtendDescriptor: 不是类型但可继承
  * - 这就是为什么需要分离ClassifierDescriptor和Inheritable的原因
  */
-interface ExtendDescriptor : InheritableDescriptor, HasScopeDescriptor {
+interface ExtendDescriptor :DeclarationDescriptorWithTypeParameters, InheritableDescriptor, HasScopeDescriptor ,ClassAndExtendDescriptor{
 
 
     /**
@@ -67,7 +68,7 @@ interface ExtendDescriptor : InheritableDescriptor, HasScopeDescriptor {
     /**
      * 扩展的类型列表
      */
-    val declaredTypeParameters: List<TypeParameterDescriptor>
+    override val declaredTypeParameters: List<TypeParameterDescriptor>
 
     override val source: SourceElement
         get() = SourceElement.NO_SOURCE
