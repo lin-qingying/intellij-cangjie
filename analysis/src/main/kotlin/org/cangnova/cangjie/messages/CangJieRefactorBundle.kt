@@ -32,7 +32,7 @@ import org.jetbrains.annotations.PropertyKey
 @NonNls
 private const val BUNDLE = "messages.CangJieRefactoringBundle"
 
-object CangJieRefactoringBundle : DynamicBundle(BUNDLE) {
+object CangJieRefactorBundle : AbstractCangJieBundle(BUNDLE) {
     @Nls
     @JvmStatic
     fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =

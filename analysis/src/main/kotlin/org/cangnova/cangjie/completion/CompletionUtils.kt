@@ -171,9 +171,7 @@ private fun CjDeclarationWithBody.returnType(bindingContext: BindingContext): Ca
     return callable.returnType
 }
 
-/**
- * Implementation in K2: [org.cangnova.cangjie.idea.completion.contributors.keywords.ReturnKeywordHandler]
- */
+
 fun returnExpressionItems(bindingContext: BindingContext, position: CjElement): Collection<LookupElement> {
     val result = mutableListOf<LookupElement>()
 

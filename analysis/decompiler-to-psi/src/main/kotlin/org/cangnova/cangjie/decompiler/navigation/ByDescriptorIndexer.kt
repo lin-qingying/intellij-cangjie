@@ -328,7 +328,6 @@ import org.cangnova.cangjie.types.isAny
  * - Fake override（伪覆盖）：这些是编译器自动生成的覆盖方法
  * - 某些合成方法：如枚举类的 values()、valueOf() 等
  *
- * @see org.jetbrains.kotlin.analysis.decompiler.stub.mustNotBeWrittenToStubs
  */
 private fun CallableMemberDescriptor.mustNotBeWrittenToDecompiledText(): Boolean {
     return when (kind) {

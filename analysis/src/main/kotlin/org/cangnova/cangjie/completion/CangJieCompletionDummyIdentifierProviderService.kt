@@ -34,7 +34,7 @@ import com.intellij.openapi.components.Service
 import org.cangnova.cangjie.resolve.binding.getReferenceTargets
 
 
-class CangJieCompletionDummyIdentifierProviderService: AbstractCompletionDummyIdentifierProviderService()  {
+internal class CangJieCompletionDummyIdentifierProviderService: AbstractCompletionDummyIdentifierProviderService()  {
     override fun allTargetsAreFunctionsOrClasses(nameReferenceExpression: CjNameReferenceExpression): Boolean {
         val bindingContext = nameReferenceExpression.getResolutionFacade().analyze(nameReferenceExpression, BodyResolveMode.PARTIAL)
         val targets = nameReferenceExpression.getReferenceTargets(bindingContext)

@@ -23,7 +23,7 @@
  */
 
 package org.cangnova.cangjie.refactoring.move.changePackage
-import org.cangnova.cangjie.messages.CangJieRefactoringBundle
+import org.cangnova.cangjie.messages.CangJieRefactorBundle
 
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.CjFile
@@ -58,7 +58,7 @@ class CangJieChangePackageRefactoring(val file: CjFile) {
 //        val changeInfo = MoveContainerChangeInfo(MoveContainerInfo.Package(currentFqName), MoveContainerInfo.Package(newFqName))
 //        val internalUsages = file.getInternalReferencesToUpdateOnPackageNameChange(changeInfo)
 
-        project.executeCommand(CangJieRefactoringBundle.message("text.change.file.package.to.0", newFqName)) {
+        project.executeCommand(CangJieRefactorBundle.message("text.change.file.package.to.0", newFqName)) {
             runWriteAction {
                 packageDirective.fqName = newFqName.quoteIfNeeded()
 //       //         引用重构

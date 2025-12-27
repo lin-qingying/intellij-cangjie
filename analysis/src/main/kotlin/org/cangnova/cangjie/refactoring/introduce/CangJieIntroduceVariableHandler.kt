@@ -40,6 +40,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.util.CommonRefactoringUtil
 import com.intellij.util.SmartList
+import org.cangnova.cangjie.messages.CangJieRefactorBundle
 import org.cangnova.cangjie.refactoring.CangJieRefactoringSettings
 import org.cangnova.cangjie.refactoring.IntroduceRefactoringException
 import org.cangnova.cangjie.refactoring.chooseContainer.selectContainerIfNeeded
@@ -89,7 +90,7 @@ abstract class CangJieIntroduceVariableHandler : RefactoringActionHandler {
             project: Project,
             editor: Editor?,
             expression: CjExpression,
-            containers: CangJieIntroduceVariableHelper.Containers,
+            containers: Containers,
             isVar: Boolean,
             occurrencesToReplace: List<CjExpression>?,
             onNonInteractiveFinish: ((CjDeclaration) -> Unit)?
@@ -247,8 +248,8 @@ abstract class CangJieIntroduceVariableHandler : RefactoringActionHandler {
     protected fun performRefactoringOnSelectedContainer(
         editor: Editor?,
         targetContainer: CjElement?,
-        candidateContainers: List<CangJieIntroduceVariableHelper.Containers>,
-        doRefactoring: (CangJieIntroduceVariableHelper.Containers) -> Unit,
+        candidateContainers: List<Containers>,
+        doRefactoring: (Containers) -> Unit,
     ) {
         if (targetContainer != null) {
             val foundPair = candidateContainers.find { it.targetContainer.textRange == targetContainer.textRange }
@@ -296,7 +297,7 @@ abstract class CangJieIntroduceVariableHandler : RefactoringActionHandler {
      *
      * @return 候选容器列表，包含所有可能的提取目标容器
      */
-    fun CjExpression.getCandidateContainers(): List<CangJieIntroduceVariableHelper.Containers> {
+    fun CjExpression.getCandidateContainers(): List<Containers> {
         val physicalExpression = substringContextOrThis
         val firstContainer = physicalExpression.getContainer() ?: return emptyList()
         val firstOccurrenceContainer = physicalExpression.getOccurrenceContainer() ?: return emptyList()
@@ -305,7 +306,7 @@ abstract class CangJieIntroduceVariableHandler : RefactoringActionHandler {
         val lambdaContainer = lambda?.getContainer()
 
         if (lambda == null || lambdaContainer == null) return listOf(
-            CangJieIntroduceVariableHelper.Containers(
+            Containers(
                 firstContainer,
                 firstOccurrenceContainer
             )
@@ -329,10 +330,10 @@ abstract class CangJieIntroduceVariableHandler : RefactoringActionHandler {
 
         containersWithContainedLambdas.mapTo(containers) { it.container }
         containersWithContainedLambdas.mapTo(occurrenceContainers) { it.contained.getOccurrenceContainer() }
-        return ArrayList<CangJieIntroduceVariableHelper.Containers>().apply {
+        return ArrayList<Containers>().apply {
             for ((container, occurrenceContainer) in (containers zip occurrenceContainers)) {
                 if (occurrenceContainer == null) continue
-                add(CangJieIntroduceVariableHelper.Containers(container, occurrenceContainer))
+                add(Containers(container, occurrenceContainer))
             }
         }
     }
@@ -399,7 +400,7 @@ abstract class CangJieIntroduceVariableHandler : RefactoringActionHandler {
         project: Project,
         editor: Editor?,
         expression: CjExpression,
-        containers: CangJieIntroduceVariableHelper.Containers,
+        containers: Containers,
         isVar: Boolean,
         occurrencesToReplace: List<CjExpression>? = null,
         onNonInteractiveFinish: ((CjDeclaration) -> Unit)? = null,
@@ -414,8 +415,5 @@ abstract class CangJieIntroduceVariableHandler : RefactoringActionHandler {
  * @property occurrenceContainer 包含所有需要替换表达式的作用域容器
  */
 
+data class Containers(val targetContainer: CjElement, val occurrenceContainer: CjElement)
 
-object CangJieIntroduceVariableHelper {
-    data class Containers(val targetContainer: CjElement, val occurrenceContainer: CjElement)
-
-}

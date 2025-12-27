@@ -23,7 +23,7 @@
  */
 
 package org.cangnova.cangjie.refactoring
-import org.cangnova.cangjie.messages.CangJieRefactoringBundle
+import org.cangnova.cangjie.messages.CangJieRefactorBundle
 
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.impl.LocalVariableDescriptor
@@ -53,7 +53,7 @@ private fun getSuperDescriptors(
     declaration: CjDeclaration,
     ignore: Collection<PsiElement>?
 ): Pair<CallableDescriptor, Map<PsiElement, CallableDescriptor>> {
-    val progressTitle = CangJieRefactoringBundle.message("find.usages.progress.text.declaration.superMethods")
+    val progressTitle = CangJieRefactorBundle.message("find.usages.progress.text.declaration.superMethods")
     return ActionUtil.underModalProgress(declaration.project, progressTitle) {
         val declarationDescriptor = declaration.unsafeResolveToDescriptor() as CallableDescriptor
 

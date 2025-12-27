@@ -23,7 +23,7 @@
  */
 
 package org.cangnova.cangjie.refactoring.move
-import org.cangnova.cangjie.messages.CangJieRefactoringBundle
+import org.cangnova.cangjie.messages.CangJieRefactorBundle
 
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.references.mainReference
@@ -225,7 +225,7 @@ internal fun postProcessMoveUsages(
     val progressStep = 1.0 / sortedUsages.size
     val progressIndicator = ProgressManager.getInstance().progressIndicator
     progressIndicator?.isIndeterminate = false
-    progressIndicator?.text = CangJieRefactoringBundle.message("text.updating.usages.progress")
+    progressIndicator?.text = CangJieRefactorBundle.message("text.updating.usages.progress")
     usageLoop@ for ((i, usage) in sortedUsages.withIndex()) {
         progressIndicator?.fraction = (i + 1) * progressStep
         postProcessMoveUsage(usage, oldToNewElementsMapping, nonCodeUsages, shorteningMode)

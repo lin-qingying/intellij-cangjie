@@ -25,6 +25,10 @@
 <idea-plugin>
     <!-- 扩展点定义 -->
     <extensionPoints>
+        <!-- Turbo 补全建议生成器执行器提供者扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.turboComplete.suggestionGeneratorExecutorProvider"
+                        interface="org.cangnova.cangjie.completion.turboComplete.SuggestionGeneratorExecutorProvider"
+                        dynamic="true"/>
         <!-- 模块信息提供者扩展 -->
         <extensionPoint
                 qualifiedName="org.cangnova.cangjie.moduleInfoProviderExtension"
@@ -251,6 +255,9 @@
         <projectService serviceInterface="org.cangnova.cangjie.refactoring.introduce.CangJieIntroduceVariableService"
                         serviceImplementation="org.cangnova.cangjie.refactoring.introduce.CangJieIntroduceVariableServiceDefault"
         />
+        <applicationService
+                serviceInterface="org.cangnova.cangjie.completion.CompletionDummyIdentifierProviderService"
+                serviceImplementation="org.cangnova.cangjie.completion.CangJieCompletionDummyIdentifierProviderService"/>
 
 
     </extensions>

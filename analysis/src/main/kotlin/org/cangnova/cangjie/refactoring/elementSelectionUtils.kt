@@ -45,6 +45,7 @@ import com.intellij.psi.*
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.cangnova.cangjie.messages.CangJieRefactorBundle
 import org.cangnova.cangjie.refactoring.introduce.CangJieIntroduceVariableService
 import java.util.concurrent.Callable
 

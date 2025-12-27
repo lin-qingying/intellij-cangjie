@@ -27,6 +27,7 @@ package org.cangnova.cangjie.moduleinfo.util
 import com.intellij.injected.editor.VirtualFileWindow
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -162,6 +163,7 @@ private fun getModuleIndex(project: Project): ModuleIndex = CachedValuesManager.
  *
  * 监听模块根变化并更新修改计数，用于缓存失效
  */
+@Service(Service.Level.PROJECT)
 class ModuleModificationTracker(project: Project) :
     SimpleModificationTracker(), ModuleRootListener, Disposable {
 

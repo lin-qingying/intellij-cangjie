@@ -40,7 +40,7 @@ interface CangJieIntroduceVariableService {
         elementKind: ElementKind
     ): PsiElement?
 
-    fun getContainersForExpression(expression: CjExpression): List<CangJieIntroduceVariableHelper.Containers>
+    fun getContainersForExpression(expression: CjExpression): List<Containers>
     fun findOccurrences(expression: CjExpression, occurrenceContainer: CjElement): List<CjExpression>
 
     fun doRefactoringWithContainer(
@@ -56,7 +56,7 @@ interface CangJieIntroduceVariableService {
 
 }
 
-class CangJieIntroduceVariableServiceDefault : CangJieIntroduceVariableService {
+internal class CangJieIntroduceVariableServiceDefault : CangJieIntroduceVariableService {
     override fun findElement(
         file: CjFile,
         startOffset: Int,
@@ -67,7 +67,7 @@ class CangJieIntroduceVariableServiceDefault : CangJieIntroduceVariableService {
         return null
     }
 
-    override fun getContainersForExpression(expression: CjExpression): List<CangJieIntroduceVariableHelper.Containers> {
+    override fun getContainersForExpression(expression: CjExpression): List<Containers> {
         return emptyList()
     }
 

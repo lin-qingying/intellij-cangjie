@@ -31,7 +31,7 @@ import org.cangnova.cangjie.refactoring.introduce.CangJieIntroduceVariableHandle
 /**
  * 重构支持提供者
  */
-class CangJieRefactoringSupportProvider : RefactoringSupportProvider() {
+internal class CangJieRefactoringSupportProvider : RefactoringSupportProvider() {
     override fun getIntroduceVariableHandler(): RefactoringActionHandler? = CangJieIntroduceVariableHandler.DEFAULT
 
 }

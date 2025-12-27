@@ -64,7 +64,7 @@ class TypeResolutionInterceptor(project: Project) {
 
     companion object {
         val EP_NAME =
-            ExtensionPointName.create<TypeResolutionInterceptorExtension>("org.jetbrains.CangJie.extensions.internal.typeResolutionInterceptorExtension")
+            ExtensionPointName.create<TypeResolutionInterceptorExtension>("org.cangnova.cangjie.typeResolutionInterceptorExtension")
     }
 
 }

@@ -37,7 +37,7 @@ import com.intellij.util.xmlb.XmlSerializerUtil
     storages = [Storage("cangjieRefactoring.xml")],
     category = SettingsCategory.CODE
 )
-class CangJieRefactoringSettings : PersistentStateComponent<CangJieRefactoringSettings> {
+internal class CangJieRefactoringSettings : PersistentStateComponent<CangJieRefactoringSettings> {
     @JvmField
     var MOVE_TO_UPPER_LEVEL_SEARCH_IN_COMMENTS = false
 

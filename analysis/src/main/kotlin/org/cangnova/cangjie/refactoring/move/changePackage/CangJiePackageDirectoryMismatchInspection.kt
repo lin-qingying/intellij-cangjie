@@ -23,7 +23,7 @@
  */
 
 package org.cangnova.cangjie.refactoring.move.changePackage
-import org.cangnova.cangjie.messages.CangJieRefactoringBundle
+import org.cangnova.cangjie.messages.CangJieRefactorBundle
 
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.CjFile
@@ -57,7 +57,7 @@ class CangJiePackageDirectoryMismatchInspection : AbstractCangJieInspection() {
             val fixes = mutableListOf<LocalQuickFix>()
             val qualifiedName = directive.qualifiedName
             val dirName = if (qualifiedName.isEmpty())
-                CangJieRefactoringBundle.message("fix.move.file.to.package.dir.name.text")
+                CangJieRefactorBundle.message("fix.move.file.to.package.dir.name.text")
             else
                 "'${qualifiedName.replace('.', '/')}'"
 
@@ -68,7 +68,7 @@ class CangJiePackageDirectoryMismatchInspection : AbstractCangJieInspection() {
             when {
                 fqNameByDirectory.isRoot ->
                     fixes += ChangePackageFix(
-                        CangJieRefactoringBundle.message("fix.move.file.to.package.dir.name.text"),
+                        CangJieRefactorBundle.message("fix.move.file.to.package.dir.name.text"),
                         fqNameByDirectory
                     )
 
@@ -83,15 +83,15 @@ class CangJiePackageDirectoryMismatchInspection : AbstractCangJieInspection() {
             holder.registerProblem(
                 file,
                 textRange,
-                CangJieRefactoringBundle.message("text.package.directive.dont.match.file.location"),
+                CangJieRefactorBundle.message("text.package.directive.dont.match.file.location"),
                 *fixes.toTypedArray()
             )
         })
 
     private class MoveFileToPackageFix(val dirName: String) : LocalQuickFix {
-        override fun getFamilyName() = CangJieRefactoringBundle.message("fix.move.file.to.package.family")
+        override fun getFamilyName() = CangJieRefactorBundle.message("fix.move.file.to.package.family")
 
-        override fun getName() = CangJieRefactoringBundle.message("fix.move.file.to.package.text", dirName)
+        override fun getName() = CangJieRefactorBundle.message("fix.move.file.to.package.text", dirName)
 
         override fun startInWriteAction() = false
 
@@ -128,9 +128,9 @@ class CangJiePackageDirectoryMismatchInspection : AbstractCangJieInspection() {
     }
 
     private class ChangePackageFix(val packageName: String, val packageFqName: FqName) : LocalQuickFix {
-        override fun getFamilyName() = CangJieRefactoringBundle.message("fix.change.package.family")
+        override fun getFamilyName() = CangJieRefactorBundle.message("fix.change.package.family")
 
-        override fun getName() = CangJieRefactoringBundle.message("fix.change.package.text", packageName)
+        override fun getName() = CangJieRefactorBundle.message("fix.change.package.text", packageName)
 
         override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
             val file = descriptor.psiElement as? CjFile ?: return

@@ -17,7 +17,7 @@ interface SuggestionGeneratorExecutorProvider {
 
   companion object {
     val EP_NAME: ExtensionPointName<SuggestionGeneratorExecutorProvider> =
-      ExtensionPointName("org.cangnova.cangjie.ide.turboComplete.suggestionGeneratorExecutorProvider")
+      ExtensionPointName("org.cangnova.cangjie.turboComplete.suggestionGeneratorExecutorProvider")
 
     fun hasAnyToCall(parameters: CompletionParameters): Boolean {
       return EP_NAME.extensionList.any { it.shouldBeCalled(parameters) }

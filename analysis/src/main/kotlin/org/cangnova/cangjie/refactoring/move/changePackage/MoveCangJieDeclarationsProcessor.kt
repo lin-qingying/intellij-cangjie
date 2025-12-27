@@ -23,7 +23,7 @@
  */
 
 package org.cangnova.cangjie.refactoring.move.changePackage
-import org.cangnova.cangjie.messages.CangJieRefactoringBundle
+import org.cangnova.cangjie.messages.CangJieRefactorBundle
 
 import org.cangnova.cangjie.refactoring.move.CangJieMover
 import org.cangnova.cangjie.refactoring.move.CangJieMoveSource
@@ -70,8 +70,8 @@ open class MoveCangJieDeclarationsProcessor(
 
     override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
         val targetContainerFqName = descriptor.moveTarget.targetContainerFqName?.let {
-            if (it.isRoot) CangJieRefactoringBundle.message("default.package.presentable.name") else it.asString()
-        } ?: CangJieRefactoringBundle.message("default.package.presentable.name")
+            if (it.isRoot) CangJieRefactorBundle.message("default.package.presentable.name") else it.asString()
+        } ?: CangJieRefactorBundle.message("default.package.presentable.name")
         return MoveMultipleElementsViewDescriptor(elementsToMove.toTypedArray(), targetContainerFqName)
     }
 
@@ -121,6 +121,6 @@ open class MoveCangJieDeclarationsProcessor(
 
     }
 
-    override fun getCommandName(): String = CangJieRefactoringBundle.message("command.move.declarations")
+    override fun getCommandName(): String = CangJieRefactorBundle.message("command.move.declarations")
 
 }
