@@ -138,9 +138,6 @@ class LexicalWritableScope(
      *
      * @return 总是返回空列表
      */
-    override val contextReceiversGroup: List<ReceiverParameterDescriptor>
-        get() = emptyList()
-
 //    override fun getContributedPackageFqName(name: Name, location: LookupLocation): List<FqName> = emptyList()
 
     /**
@@ -464,8 +461,6 @@ class LexicalWritableScope(
             ownerDescriptor.name,
             " with implicitReceivers: ",
             implicitReceiver?.value ?: "NONE",
-            " with contextReceiversGroup: ",
-            if (contextReceiversGroup.isEmpty()) "NONE" else contextReceiversGroup.joinToString { it.value.toString() },
             " {"
         )
         p.pushIndent()

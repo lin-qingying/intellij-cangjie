@@ -37,33 +37,10 @@ open class SimpleFunctionDescriptorImpl protected constructor(
     kind: CallableMemberDescriptor.Kind,
     source: SourceElement
 ) : FunctionDescriptorImpl(containingDeclaration, original, annotations, name, kind, source), SimpleFunctionDescriptor {
-    @Deprecated(message = "This method is left for binary compatibility with android.nav.safearg plugin. Used in SafeArgSyntheticDescriptorGenerator.kt")
-    fun initialize(
-        extensionReceiverParameter: ReceiverParameterDescriptor?,
-        dispatchReceiverParameter: ReceiverParameterDescriptor?,
-        typeParameters: List<TypeParameterDescriptor>,
-        unsubstitutedValueParameters: List<ValueParameterDescriptor>,
-        unsubstitutedReturnType: CangJieType?,
-        modality: Modality?,
-        visibility: DescriptorVisibility
-    ): SimpleFunctionDescriptorImpl {
-        return initialize(
-            extensionReceiverParameter,
-            dispatchReceiverParameter,
-            mutableListOf(),
-            typeParameters,
-            unsubstitutedValueParameters,
-            unsubstitutedReturnType,
-            modality,
-            visibility,
-            null
-        )
-    }
+
 
     public override fun initialize(
-        extensionReceiverParameter: ReceiverParameterDescriptor?,
         dispatchReceiverParameter: ReceiverParameterDescriptor?,
-        contextReceiverParameters: List<ReceiverParameterDescriptor>,
         typeParameters: List<TypeParameterDescriptor>,
         unsubstitutedValueParameters: List<ValueParameterDescriptor>,
         unsubstitutedReturnType: CangJieType?,
@@ -71,9 +48,7 @@ open class SimpleFunctionDescriptorImpl protected constructor(
         visibility: DescriptorVisibility
     ): SimpleFunctionDescriptorImpl {
         return initialize(
-            extensionReceiverParameter,
             dispatchReceiverParameter,
-            contextReceiverParameters,
             typeParameters,
             unsubstitutedValueParameters,
             unsubstitutedReturnType,
@@ -84,9 +59,7 @@ open class SimpleFunctionDescriptorImpl protected constructor(
     }
 
     open fun initialize(
-        extensionReceiverParameter: ReceiverParameterDescriptor?,
         dispatchReceiverParameter: ReceiverParameterDescriptor?,
-        contextReceiverParameters: List<ReceiverParameterDescriptor>,
         typeParameters: List<TypeParameterDescriptor>,
         unsubstitutedValueParameters: List<ValueParameterDescriptor>,
         unsubstitutedReturnType: CangJieType?,
@@ -95,9 +68,7 @@ open class SimpleFunctionDescriptorImpl protected constructor(
         userData: Map<out CallableDescriptor.UserDataKey<*>, Any>?
     ): SimpleFunctionDescriptorImpl {
         super.initialize(
-            extensionReceiverParameter,
             dispatchReceiverParameter,
-            contextReceiverParameters,
             typeParameters,
             unsubstitutedValueParameters,
             unsubstitutedReturnType,

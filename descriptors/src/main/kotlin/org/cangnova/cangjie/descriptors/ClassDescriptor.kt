@@ -58,10 +58,6 @@ interface ClassDescriptor : ClassAndEnumDescriptor {
      */
     val thisAsReceiverParameter: ReceiverParameterDescriptor
 
-    /**
-     * 类的上下文接收者列表（如上下文接收者参数）。
-     */
-    val contextReceivers: List<ReceiverParameterDescriptor>
 
 
     /**

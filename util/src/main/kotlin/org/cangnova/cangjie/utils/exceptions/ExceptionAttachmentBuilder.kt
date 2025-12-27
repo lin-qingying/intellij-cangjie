@@ -29,10 +29,10 @@ import org.cangnova.cangjie.utils.getElementTextWithContext
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
 
-inline fun CangJieExceptionWithAttachments.buildAttachment(
+inline fun ICangJieExceptionWithAttachments.buildAttachment(
     name: String = "info.txt",
     buildContent: ExceptionAttachmentBuilder.() -> Unit,
-): CangJieExceptionWithAttachments {
+): ICangJieExceptionWithAttachments {
     return withAttachment(name, ExceptionAttachmentBuilder().apply(buildContent).buildString())
 }
 

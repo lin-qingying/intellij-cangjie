@@ -38,11 +38,11 @@ import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext
  */
 fun DeclarationDescriptorWithVisibility.effectiveVisibility(
     visibility: DescriptorVisibility = this.visibility,
-    checkPublishedApi: Boolean = false
+
 ): EffectiveVisibility =
     lowerBound(
-        visibility.effectiveVisibility(this, checkPublishedApi),
-        (this.containingDeclaration as? ClassDescriptor)?.effectiveVisibility(checkPublishedApi)
+        visibility.effectiveVisibility(this),
+        (this.containingDeclaration as? ClassDescriptor)?.effectiveVisibility()
             ?: EffectiveVisibility.Public
     )
 
@@ -54,7 +54,7 @@ fun DeclarationDescriptorWithVisibility.effectiveVisibility(
  */
 data class DescriptorWithRelation(val descriptor: ClassifierDescriptor, private val relation: RelationToType) {
     fun effectiveVisibility() =
-        (descriptor as? ClassDescriptor)?.visibility?.effectiveVisibility(descriptor, false) ?: EffectiveVisibility.Public
+        (descriptor as? ClassDescriptor)?.visibility?.effectiveVisibility(descriptor) ?: EffectiveVisibility.Public
 
     override fun toString() = "$relation ${descriptor.name}"
 }
@@ -65,12 +65,12 @@ data class DescriptorWithRelation(val descriptor: ClassifierDescriptor, private 
  * @param checkPublishedApi 是否检查PublishedApi注解
  * @return 返回计算后的EffectiveVisibility
  */
-private fun ClassDescriptor.effectiveVisibility(classes: Set<ClassDescriptor>, checkPublishedApi: Boolean): EffectiveVisibility =
+private fun ClassDescriptor.effectiveVisibility(classes: Set<ClassDescriptor> ): EffectiveVisibility =
     if (this in classes) EffectiveVisibility.Public
     else with(this.containingDeclaration as? ClassDescriptor) {
         lowerBound(
-            visibility.effectiveVisibility(this@effectiveVisibility, checkPublishedApi),
-            this?.effectiveVisibility(classes + this@effectiveVisibility, checkPublishedApi) ?: EffectiveVisibility.Public
+            visibility.effectiveVisibility(this@effectiveVisibility),
+            this?.effectiveVisibility(classes + this@effectiveVisibility) ?: EffectiveVisibility.Public
         )
     }
 /**
@@ -81,9 +81,9 @@ private fun ClassDescriptor.effectiveVisibility(classes: Set<ClassDescriptor>, c
  */
 fun DescriptorVisibility.effectiveVisibility(
     descriptor: DeclarationDescriptor,
-    checkPublishedApi: Boolean = false
+
 ): EffectiveVisibility {
-    return customEffectiveVisibility() ?: normalize().forVisibility(descriptor, checkPublishedApi)
+    return customEffectiveVisibility() ?: normalize().forVisibility(descriptor)
 }
 
 /**
@@ -101,8 +101,8 @@ private fun lowerBound(first: EffectiveVisibility, second: EffectiveVisibility):
  * @param checkPublishedApi 是否检查PublishedApi注解
  * @return 返回计算后的EffectiveVisibility
  */
-fun ClassDescriptor.effectiveVisibility(checkPublishedApi: Boolean = false) =
-    effectiveVisibility(emptySet(), checkPublishedApi)
+fun ClassDescriptor.effectiveVisibility( ) =
+    effectiveVisibility(emptySet())
 
 /**
  * 根据描述符的可见性计算有效可见性
@@ -112,7 +112,7 @@ fun ClassDescriptor.effectiveVisibility(checkPublishedApi: Boolean = false) =
  */
 private fun DescriptorVisibility.forVisibility(
     descriptor: DeclarationDescriptor,
-    checkPublishedApi: Boolean = false
+
 ): EffectiveVisibility =
     when (this) {
         DescriptorVisibilities.PRIVATE_TO_THIS, DescriptorVisibilities.INVISIBLE_FAKE -> EffectiveVisibility.PrivateInClass
@@ -124,9 +124,7 @@ private fun DescriptorVisibility.forVisibility(
             (descriptor.containingDeclaration as? ClassDescriptor)?.defaultType?.constructor
         )
 
-        DescriptorVisibilities.INTERNAL -> if (!checkPublishedApi ||
-            !descriptor.isPublishedApi()
-        ) EffectiveVisibility.Internal else EffectiveVisibility.Public
+        DescriptorVisibilities.INTERNAL ->  EffectiveVisibility.Internal
 
         DescriptorVisibilities.PUBLIC -> EffectiveVisibility.Public
         DescriptorVisibilities.LOCAL -> EffectiveVisibility.Local
@@ -178,10 +176,4 @@ private fun Set<DescriptorWithRelation>.leastPermissive(base: EffectiveVisibilit
 
 
 
-//===========================================================
 
-
-fun DeclarationDescriptor.isPublishedApi(): Boolean {
-    val descriptor = if (this is CallableMemberDescriptor) DescriptorUtils.getDirectMember(this) else this
-    return descriptor.annotations.hasAnnotation(StandardNames.FqNames.publishedApi)
-}

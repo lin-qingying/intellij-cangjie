@@ -79,7 +79,8 @@ class DeclarationsChecker(
     // 创建一个暴露可见性检查器
     private val exposedChecker = ExposedVisibilityChecker(languageVersionSettings, trace)
 
-    // 创建一个阴影扩展检查器
+    // 在仓颉语言中，extend 成员会遮蔽原始类型的成员
+    // 需要 ShadowedExtensionChecker 检查遮蔽情况
     private val shadowedExtensionChecker = ShadowedExtensionChecker(typeSpecificityComparator, trace)
 
     // 使用trace创建一个修饰符检查器
@@ -436,7 +437,8 @@ class DeclarationsChecker(
         }
 
 
-        // 检查函数是否影射了扩展函数
+        // 在仓颉语言中，extend 成员会遮蔽原始类型的成员
+        // 检查扩展遮蔽
         shadowedExtensionChecker.checkDeclaration(function, functionDescriptor)
     }
 
@@ -562,11 +564,14 @@ class DeclarationsChecker(
         checkAccessors(property, propertyDescriptor)
         checkTypeParameterConstraints(property)
 //        exposedChecker.checkProperty(property, propertyDescriptor)
-        shadowedExtensionChecker.checkDeclaration(property, propertyDescriptor)
 //        checkPropertyTypeParametersAreUsedInReceiverType(propertyDescriptor)
         checkImplicitCallableType(property, propertyDescriptor)
 
         checkBackingField(property)
+
+        // 在仓颉语言中，extend 成员会遮蔽原始类型的成员
+        // 检查扩展遮蔽
+        shadowedExtensionChecker.checkDeclaration(property, propertyDescriptor)
     }
 
     fun checkVariable(variable: CjVariable<*>, variableDescriptor: VariableDescriptor) {
@@ -575,8 +580,10 @@ class DeclarationsChecker(
             checkMemberVariable(variable, variableDescriptor, containingDeclaration)
         }
         checkVariableInitializer(variable, variableDescriptor)
-        shadowedExtensionChecker.checkDeclaration(variable, variableDescriptor)
 
+        // 在仓颉语言中，extend 成员会遮蔽原始类型的成员
+        // 检查扩展遮蔽
+        shadowedExtensionChecker.checkDeclaration(variable, variableDescriptor)
     }
 
     private fun checkVariableInitializer(variable: CjVariable<*>, variableDescriptor: VariableDescriptor) {
@@ -603,11 +610,7 @@ class DeclarationsChecker(
                     )
                 )
 
-                variable.contextReceivers.isNotEmpty() -> trace.report(
-                    CONTEXT_RECEIVERS_WITH_BACKING_FIELD.on(
-                        initializer
-                    )
-                )
+
             }
         } else {
             val isUninitialized = trace.bindingContext.get(IS_UNINITIALIZED, variableDescriptor) ?: false

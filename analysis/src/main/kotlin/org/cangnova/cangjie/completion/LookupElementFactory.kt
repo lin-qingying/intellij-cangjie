@@ -293,7 +293,9 @@ class LookupElementFactory(
 
     private fun LookupElement.boldIfImmediate(weight: CallableWeight?): LookupElement {
         val style = when (weight?.enum) {
-            CallableWeightEnum.thisClassMember, CallableWeightEnum.thisTypeExtension -> Style.BOLD
+            // 在仓颉语言中，类成员和 extend 成员都应该加粗显示
+            CallableWeightEnum.thisClassMember,
+            CallableWeightEnum.thisTypeExtension -> Style.BOLD
             CallableWeightEnum.receiverCastRequired -> Style.GRAYED
             else -> Style.NORMAL
         }
@@ -373,39 +375,30 @@ class LookupElementFactory(
 
         return CallableWeight(bestWeight, receiverIndexToUse)
     }
-    private fun CallableDescriptor.isExtensionForTypeParameter(): Boolean {
-        val receiverParameter = original.extensionReceiverParameter ?: return false
-        val typeParameter = receiverParameter.type.constructor.declarationDescriptor as? TypeParameterDescriptor ?: return false
-        return typeParameter.containingDeclaration == original
-    }
+
     private fun CallableDescriptor.callableWeightForReceiverType(
         receiverType: CangJieType,
         receiverParameterType: CangJieType
     ): CallableWeightEnum? = when {
         TypeUtils.equalTypes(receiverType, receiverParameterType) -> when {
-            isExtensionForTypeParameter() -> CallableWeightEnum.typeParameterExtension
+            // 区分是否在 extend 中声明
             isExtension -> CallableWeightEnum.thisTypeExtension
             else -> CallableWeightEnum.thisClassMember
         }
-        receiverType.isSubtypeOf(receiverParameterType) -> if (isExtension) CallableWeightEnum.baseTypeExtension else CallableWeightEnum.baseClassMember
+        receiverType.isSubtypeOf(receiverParameterType) -> when {
+            isExtension -> CallableWeightEnum.baseTypeExtension
+            else -> CallableWeightEnum.baseClassMember
+        }
         else -> null
     }
     private fun CallableDescriptor.callableWeightBasedOnReceiver(
         receiverTypes: Collection<ReceiverType>,
         onReceiverTypeMismatch: CallableWeight?
     ): CallableWeight? {
+        // 仓颉语言只有 dispatchReceiverParameter（类成员的 this）
+        val receiver = dispatchReceiverParameter ?: return null
 
-        val bothReceivers = listOfNotNull(extensionReceiverParameter, dispatchReceiverParameter)
-
-        val receiverTypesForFirstReceiver = receiverTypes.filterNot { it.implicit }.ifEmpty { receiverTypes }
-
-        val weights = bothReceivers.zip(generateSequence(receiverTypesForFirstReceiver) { receiverTypes }.asIterable())
-            .map { (receiverParameter, receiverTypes) ->
-                callableWeightBasedOnReceiver(receiverTypes, onReceiverTypeMismatch, receiverParameter)
-            }
-
-        if (weights.any { it == onReceiverTypeMismatch }) return onReceiverTypeMismatch
-        return weights.firstOrNull()
+        return callableWeightBasedOnReceiver(receiverTypes, onReceiverTypeMismatch, receiver)
     }
 
     private fun callableWeight(descriptor: DeclarationDescriptor): CallableWeight? {

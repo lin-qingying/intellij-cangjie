@@ -79,11 +79,7 @@ abstract class PropertyAccessorDescriptorImpl(
 
 
 
-    override val contextReceiverParameters: List<ReceiverParameterDescriptor>
-        get() = correspondingProperty.contextReceiverParameters
 
-    override val extensionReceiverParameter: ReceiverParameterDescriptor?
-        get() = correspondingProperty.extensionReceiverParameter
 
 
     override val dispatchReceiverParameter: ReceiverParameterDescriptor?

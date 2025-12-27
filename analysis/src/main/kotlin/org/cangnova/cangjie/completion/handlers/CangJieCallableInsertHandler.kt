@@ -39,6 +39,7 @@ import org.cangnova.cangjie.codeinsight.ShortenReferences
 import org.cangnova.cangjie.imports.ImportInsertHelper
 import org.cangnova.cangjie.resolve.calls.util.CallType
 import org.cangnova.cangjie.utils.importableFqName
+import org.cangnova.cangjie.utils.isExtension
 
 abstract class CangJieCallableInsertHandler(val callType: CallType<*>) : BaseDeclarationInsertHandler() {
     companion object {
@@ -53,7 +54,8 @@ abstract class CangJieCallableInsertHandler(val callType: CallType<*>) : BaseDec
             val o = item.`object`
             if (file is CjFile && o is DescriptorBasedDeclarationLookupObject) {
                 val descriptor = o.descriptor as? CallableDescriptor ?: return
-                if (descriptor.extensionReceiverParameter != null || callType is CallType.CallableReference) {
+                // 在仓颉语言中，extend 成员使用 dispatchReceiver，检查是否需要导入
+                if (descriptor.isExtension || callType is CallType.CallableReference) {
                     if (DescriptorUtils.isTopLevelDeclaration(descriptor) && !descriptor.isArtificialImportAliasedDescriptor) {
                         ImportInsertHelper.getInstance(context.project).importDescriptor(file, descriptor)
                     }

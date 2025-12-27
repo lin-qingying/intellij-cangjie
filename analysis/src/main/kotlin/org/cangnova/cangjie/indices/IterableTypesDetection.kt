@@ -45,6 +45,7 @@ import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 import org.cangnova.cangjie.types.expressions.ForLoopConventionsChecker
 import org.cangnova.cangjie.types.toFuzzyType
 import org.cangnova.cangjie.utils.getOrPutNullable
+import org.cangnova.cangjie.utils.isExtension
 
 class IterableTypesDetection(
     private val project: Project,
@@ -63,10 +64,11 @@ class IterableTypesDetection(
     private inner class Detector(private val scope: LexicalScope) : IterableTypesDetector {
         private val cache = HashMap<FuzzyType, FuzzyType?>()
 
+        // 在仓颉语言中，extend 成员的 iterator() 使用 dispatchReceiver
         private val typesWithExtensionIterator: Collection<CangJieType> = scope
             .collectFunctions(iteratorName, NoLookupLocation.FROM_IDE)
-            .filter { it.isValidOperator() }
-            .mapNotNull { it.extensionReceiverParameter?.type }
+            .filter { it.isValidOperator() && it.isExtension }
+            .mapNotNull { it.dispatchReceiverParameter?.type }
 
         override fun isIterable(type: FuzzyType, loopVarType: CangJieType?): Boolean {
             val elementType = elementType(type) ?: return false

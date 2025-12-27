@@ -30,7 +30,7 @@ import org.cangnova.cangjie.psi.CjNamedDeclaration
 import org.cangnova.cangjie.psi.CjTypeStatement
 import org.cangnova.cangjie.psi.psiUtil.deleteSingle
 import org.cangnova.cangjie.psi.psiUtil.getElementTextWithContext
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 
 
 interface CangJieMover : (CjNamedDeclaration, CjElement) -> CjNamedDeclaration {
@@ -44,7 +44,7 @@ interface CangJieMover : (CjNamedDeclaration, CjElement) -> CjNamedDeclaration {
                 }
 
                 is CjTypeStatement -> targetContainer.addDeclaration(originalElement)
-                else -> throw CangJieExceptionWithAttachmentsImpl("Unexpected element")
+                else -> throw CangJieExceptionWithAttachments("Unexpected element")
                     .withAttachment("context", targetContainer.getElementTextWithContext())
             }.apply {
 

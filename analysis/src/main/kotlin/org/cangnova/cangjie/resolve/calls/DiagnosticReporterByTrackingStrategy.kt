@@ -64,7 +64,6 @@ import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.module
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.TypeUtils
-import org.cangnova.cangjie.types.isExtensionFunctionType
 import org.cangnova.cangjie.types.makeOption
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -306,10 +305,10 @@ class DiagnosticReporterByTrackingStrategy(
     override fun onCallReceiver(callReceiver: SimpleCangJieCallArgument, diagnostic: CangJieCallDiagnostic) {
         when (diagnostic) {
             is UnsafeCallError -> {
+                // 仓颉没有扩展函数类型，只需检查是否为隐式调用
                 val isForImplicitInvoke = when (callReceiver) {
                     is ReceiverExpressionCangJieCallArgument -> callReceiver.isForImplicitInvoke
                     else -> diagnostic.isForImplicitInvoke
-                            || callReceiver.receiver.receiverValue.type.isExtensionFunctionType
                 }
 
                 tracingStrategy.unsafeCall(trace, callReceiver.receiver.receiverValue.type, isForImplicitInvoke)
@@ -380,9 +379,6 @@ class DiagnosticReporterByTrackingStrategy(
         val resolvedCall =
             smartCastDiagnostic.cangjieCall?.psiCangJieCall?.psiCall?.getResolvedCall(trace.bindingContext) as? NewResolvedCallImpl<*>
         if (resolvedCall != null && smartCastResult != null) {
-            if (resolvedCall.extensionReceiver == expressionArgument.receiver.receiverValue) {
-                resolvedCall.updateExtensionReceiverWithSmartCastIfNeeded(smartCastResult.resultType)
-            }
             if (resolvedCall.dispatchReceiver == expressionArgument.receiver.receiverValue) {
                 resolvedCall.smartCastDispatchReceiverType = smartCastResult.resultType
             }

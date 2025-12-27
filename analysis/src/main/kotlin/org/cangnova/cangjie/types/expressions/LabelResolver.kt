@@ -184,11 +184,6 @@ object LabelResolver {
             is CjLambdaExpression -> result.addIfNotNull(getLabelForFunctionalExpression(element))
         }
 
-        if (element is CjClass) {
-            element.contextReceivers
-                .mapNotNullTo(result) { it.name()?.let { s -> Name.identifier(s) } }
-        }
-
         val functionOrProperty = when (element) {
             is CjNamedFunction -> {
                 result.addIfNotNull(element.nameAsName ?: getLabelForFunctionalExpression(element))
@@ -200,8 +195,6 @@ object LabelResolver {
         }
         if (addClassNameLabels) {
             functionOrProperty.receiverTypeReference?.nameForReceiverLabel()?.let { result.add(Name.identifier(it)) }
-            functionOrProperty.contextReceivers
-                .mapNotNullTo(result) { it.name()?.let { s -> Name.identifier(s) } }
         }
         return result
     }
@@ -293,8 +286,8 @@ object LabelResolver {
                 val declarationDescriptor = declarationsByLabel.single()
                 val thisReceiver = when (declarationDescriptor) {
                     is ClassDescriptor -> declarationDescriptor.thisAsReceiverParameter
-                    is FunctionDescriptor -> declarationDescriptor.extensionReceiverParameter
-//                    is PropertyDescriptor -> declarationDescriptor.extensionReceiverParameter
+                    is FunctionDescriptor -> declarationDescriptor.dispatchReceiverParameter
+//                    is PropertyDescriptor -> declarationDescriptor.dispatchReceiverParameter
                     else -> throw UnsupportedOperationException("Unsupported descriptor: $declarationDescriptor") // TODO
                 }
 
@@ -334,21 +327,7 @@ object LabelResolver {
                 }
                 val declarationDescriptor =  element?.let { trace.bindingContext[DECLARATION_TO_DESCRIPTOR, element] }
                 if (declarationDescriptor is FunctionDescriptor || declarationDescriptor is ClassDescriptor) {
-                    val labelNameToReceiverMap = trace.bindingContext[
-                        DESCRIPTOR_TO_CONTEXT_RECEIVER_MAP,
-                        /* if (declarationDescriptor is PropertyAccessorDescriptor) declarationDescriptor.correspondingProperty else */declarationDescriptor
-                    ]
-                    val thisReceivers = labelNameToReceiverMap?.get(labelName.identifier)
-                    val thisReceiver = when {
-                        thisReceivers.isNullOrEmpty() ->
-                            (declarationDescriptor as? FunctionDescriptor)?.extensionReceiverParameter
-
-                        thisReceivers.size == 1 -> thisReceivers.single()
-                        else -> {
-                            BindingContextUtils.reportAmbiguousLabel(trace, targetLabelExpression, declarationsByLabel)
-                            return LabeledReceiverResolutionResult.labelResolutionFailed()
-                        }
-                    }?.also {
+                    val thisReceiver = (declarationDescriptor as? FunctionDescriptor)?.dispatchReceiverParameter?.also {
                         trace.record(LABEL_TARGET, targetLabelExpression, element)
                         trace.record(REFERENCE_TARGET, referenceExpression, declarationDescriptor)
                     }

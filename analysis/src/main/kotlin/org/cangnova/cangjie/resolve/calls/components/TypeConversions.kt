@@ -36,8 +36,6 @@ import org.cangnova.cangjie.types.UnwrappedType
 import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isNothing
 import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isUnit
 import org.cangnova.cangjie.types.createFunctionType
-import org.cangnova.cangjie.types.getContextReceiverTypesFromFunctionType
-import org.cangnova.cangjie.types.getReceiverTypeFromFunctionType
 import org.cangnova.cangjie.types.getReturnTypeFromFunctionType
 import org.cangnova.cangjie.types.getValueParameterTypesFromFunctionType
 import org.cangnova.cangjie.types.isDynamic
@@ -242,11 +240,11 @@ object UnitTypeConversions : ParameterTypeConversion {
         parameter: ParameterDescriptor,
         expectedParameterType: UnwrappedType
     ): UnwrappedType {
+        // 仓颉没有扩展函数类型，接收器类型总是 null
         val nonUnitReturnedParameterType = createFunctionType(
             candidate.callComponents.builtIns,
             expectedParameterType.annotations,
-            expectedParameterType.getReceiverTypeFromFunctionType(),
-            expectedParameterType.getContextReceiverTypesFromFunctionType(),
+            null,
             expectedParameterType.getValueParameterTypesFromFunctionType().map { it.type },
             parameterNames = null,
             candidate.callComponents.builtIns.stdlibTypes.anyType,

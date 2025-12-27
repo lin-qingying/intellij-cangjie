@@ -97,7 +97,7 @@ class CandidateResolver(
         }
 
 //        checkReceiverTypeError()
-//        checkExtensionReceiver()
+
 //        checkDispatchReceiver()
 //
 //        processTypeArguments()

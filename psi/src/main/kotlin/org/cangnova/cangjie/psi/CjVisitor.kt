@@ -404,9 +404,7 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
         return visitCjElement(list, data)
     }
 
-    open fun visitContextReceiverList(contextReceiverList: CjContextReceiverList, data: D): R? {
-        return visitCjElement(contextReceiverList, data)
-    }
+
 
     open fun visitTypeReference(typeReference: CjTypeReference, data: D): R? {
         return visitCjElement(typeReference, data)

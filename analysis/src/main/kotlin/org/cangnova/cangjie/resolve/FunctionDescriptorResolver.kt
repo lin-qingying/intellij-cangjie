@@ -26,7 +26,6 @@ package org.cangnova.cangjie.resolve
 
 import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.builtins.*
-import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.AnnotationSplitter
@@ -74,8 +73,6 @@ import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 import org.cangnova.cangjie.types.expressions.ExpressionTypingServices
 import org.cangnova.cangjie.types.expressions.ExpressionTypingUtils.isFunctionExpression
 import org.cangnova.cangjie.types.expressions.ExpressionTypingUtils.isFunctionLiteral
-import org.cangnova.cangjie.types.getContextReceiverTypesFromFunctionType
-import org.cangnova.cangjie.types.getReceiverTypeFromFunctionType
 import org.cangnova.cangjie.types.getValueParameterTypesFromFunctionType
 import org.cangnova.cangjie.types.isBuiltinFunctionalType
 import org.cangnova.cangjie.types.isError
@@ -365,16 +362,6 @@ class FunctionDescriptorResolver(
 
     }
 
-    private fun CangJieType.getReceiverType(): CangJieType? =
-        if (functionTypeExpected()) this.getReceiverTypeFromFunctionType() else null
-
-    private fun CangJieType.getContextReceiversTypes(): List<ContextReceiverTypeWithLabel> =
-        if (functionTypeExpected()) {
-            this.getContextReceiverTypesFromFunctionType().map { ContextReceiverTypeWithLabel(it, label = null) }
-        } else {
-            emptyList()
-        }
-
     fun resolveMacroReturnType(
         function: CjMacroDeclaration,
         context: ExpressionTypingContext,
@@ -446,29 +433,6 @@ class FunctionDescriptorResolver(
             scope, functionDescriptor, true,
             TraceBasedLocalRedeclarationChecker(trace, overloadChecker), LexicalScopeKind.FUNCTION_HEADER
         )
-//         宏声明没有类型参数
-//        val typeParameterDescriptors =
-//            descriptorResolver.resolveTypeParametersForDescriptor(
-//                functionDescriptor,
-//                headerScope,
-//                scope,
-//                function.typeParameters,
-//                trace
-//            )
-//        descriptorResolver.resolveGenericBounds(
-//            function,
-//            functionDescriptor,
-//            headerScope,
-//            typeParameterDescriptors,
-//            trace
-//        )
-        val contextReceivers = macro.contextReceivers
-        val contextReceiverTypes = contextReceivers
-            .mapNotNull {
-                val typeReference = it.typeReference() ?: return@mapNotNull null
-                val type = typeResolver.resolveType(headerScope, typeReference, trace, true)
-                ContextReceiverTypeWithLabel(type, it.labelNameAsName())
-            }
 
 
         val valueParameterDescriptors =
@@ -503,28 +467,13 @@ class FunctionDescriptorResolver(
             trace.bindingContext, container
         )
 
-        val contextReceiverDescriptors = contextReceiverTypes.mapIndexedNotNull { index, contextReceiver ->
-            val splitter = AnnotationSplitter(
-                storageManager,
-                contextReceiver.type.annotations,
-                EnumSet.of(AnnotationUseSiteTarget.RECEIVER)
-            )
-            DescriptorFactory.createContextReceiverParameterForCallable(
-                functionDescriptor,
-                contextReceiver.type,
-                contextReceiver.label,
-                splitter.getAnnotationsForTarget(AnnotationUseSiteTarget.RECEIVER),
-                index
-            )
-        }
 
 
         functionDescriptor.initialize(
 
             getDispatchReceiverParameterIfNeeded(container),
-            contextReceiverDescriptors,
-
             valueParameterDescriptors,
+
             returnType,
             modality,
             visibility,
@@ -548,21 +497,9 @@ class FunctionDescriptorResolver(
 
 //这是扩展方法
         val receiverTypeRef = function.receiverTypeReference
-        val receiverType =
-            if (receiverTypeRef != null) {
-
-                typeResolver.resolveType(
-                    scope,
-                    receiverTypeRef,
-                    trace,
-                    true,
-
-                    )
-
-
-            } else {
-                if (function is CjFunctionLiteral) expectedFunctionType.getReceiverType() else null
-            }
+        val receiverType = receiverTypeRef?.let {
+            typeResolver.resolveType(scope, it, trace, true)
+        }
 
         val headerScope = LexicalWritableScope(
             scope, functionDescriptor, true,
@@ -587,16 +524,6 @@ class FunctionDescriptorResolver(
             trace
         )
 
-
-        val contextReceivers = function.contextReceivers
-        val contextReceiverTypes =
-            if (function is CjFunctionLiteral) expectedFunctionType.getContextReceiversTypes()
-            else contextReceivers
-                .mapNotNull {
-                    val typeReference = it.typeReference() ?: return@mapNotNull null
-                    val type = typeResolver.resolveType(headerScope, typeReference, trace, true)
-                    ContextReceiverTypeWithLabel(type, it.labelNameAsName())
-                }
 
 
         val valueParameterDescriptors =
@@ -635,32 +562,10 @@ class FunctionDescriptorResolver(
             }
         }
 
-        val extensionReceiver = receiverType?.let {
-            val splitter =
-                AnnotationSplitter(storageManager, it.annotations, EnumSet.of(AnnotationUseSiteTarget.RECEIVER))
-            DescriptorFactory.createExtensionReceiverParameterForCallable(
-                functionDescriptor, it, splitter.getAnnotationsForTarget(AnnotationUseSiteTarget.RECEIVER)
-            )
-        }
-        val contextReceiverDescriptors = contextReceiverTypes.mapIndexedNotNull { index, contextReceiver ->
-            val splitter = AnnotationSplitter(
-                storageManager,
-                contextReceiver.type.annotations,
-                EnumSet.of(AnnotationUseSiteTarget.RECEIVER)
-            )
-            DescriptorFactory.createContextReceiverParameterForCallable(
-                functionDescriptor,
-                contextReceiver.type,
-                contextReceiver.label,
-                splitter.getAnnotationsForTarget(AnnotationUseSiteTarget.RECEIVER),
-                index
-            )
-        }
 
         functionDescriptor.initialize(
-            extensionReceiver,
+
             getDispatchReceiverParameterIfNeeded(container),
-            contextReceiverDescriptors,
             typeParameterDescriptors,
             valueParameterDescriptors,
             returnType,
@@ -829,8 +734,6 @@ class FunctionDescriptorResolver(
         BindingContextUtils.recordFunctionDeclarationToDescriptor(trace, function, functionDescriptor)
         return functionDescriptor
     }
-
-    private data class ContextReceiverTypeWithLabel(val type: CangJieType, val label: Name?)
 
     fun resolveMacroDescriptor(
 

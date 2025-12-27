@@ -661,22 +661,9 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     ): SimpleTypeMarker {
         require(constructor is TypeConstructor, constructor::errorMessage)
 
+        // CangJie does not have extension function types, so we just use the original annotations
         val ourAnnotations = attributes?.firstIsInstanceOrNull<AnnotationsTypeAttribute>()?.annotations?.toList()
-
-        fun createExtensionFunctionAnnotation() =
-            BuiltInAnnotationDescriptor(builtIns, FqNames.extensionFunctionType, emptyMap())
-
-        val resultingAnnotations = when {
-            ourAnnotations.isNullOrEmpty() && isExtensionFunction -> Annotations.create(
-                listOf(
-                    createExtensionFunctionAnnotation()
-                )
-            )
-
-            !ourAnnotations.isNullOrEmpty() && !isExtensionFunction -> Annotations.create(ourAnnotations.filter { it.fqName != FqNames.extensionFunctionType })
-            !ourAnnotations.isNullOrEmpty() && isExtensionFunction -> Annotations.create(ourAnnotations + createExtensionFunctionAnnotation())
-            else -> Annotations.EMPTY
-        }
+        val resultingAnnotations = if (ourAnnotations.isNullOrEmpty()) Annotations.EMPTY else Annotations.create(ourAnnotations)
 
         @Suppress("UNCHECKED_CAST")
         return CangJieTypeFactory.simpleType(
@@ -701,8 +688,8 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
     override fun SimpleTypeMarker.isExtensionFunction(): Boolean {
-        require(this is SimpleType, this::errorMessage)
-        return this.hasAnnotation(FqNames.extensionFunctionType)
+        // CangJie does not have extension function types
+        return false
     }
 
     override fun SimpleTypeMarker.replaceArguments(newArguments: List<TypeArgumentMarker>): SimpleTypeMarker {
@@ -923,11 +910,6 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 //        require(this is CangJieType, this::errorMessage)
 //        return this.isFunctionOrKFunctionTypeWithAnySuspendability
 //    }
-
-    override fun CangJieTypeMarker.isExtensionFunctionType(): Boolean {
-        require(this is CangJieType, this::errorMessage)
-        return this.isBuiltinExtensionFunctionalType
-    }
 
 //    override fun CangJieTypeMarker.extractArgumentsForFunctionTypeOrSubtype(): List<CangJieTypeMarker> {
 //        require(this is CangJieType, this::errorMessage)

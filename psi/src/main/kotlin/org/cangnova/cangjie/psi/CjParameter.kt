@@ -336,8 +336,6 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjParameterBas
     // 以下属性为 CjCallableDeclaration 接口要求，但参数本身不具备这些特性
     // 因此统一返回空值或空列表
 
-    /** 上下文接收者列表（参数不支持） */
-    override val contextReceivers: List<CjContextReceiver> = emptyList()
 
     /** 参数列表（参数本身不包含参数列表） */
     override val valueParameterList: CjParameterList? = null

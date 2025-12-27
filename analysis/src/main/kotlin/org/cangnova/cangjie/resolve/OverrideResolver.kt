@@ -1101,7 +1101,7 @@ class OverrideResolver(
             superDescriptor: CallableDescriptor, subDescriptor: CallableDescriptor
         ): TypeSubstitutor? {
             val superTypeParameters = superDescriptor.typeParameters
-            val subTypeParameters = subDescriptor.typeParametersNotExtend
+            val subTypeParameters = subDescriptor.typeParameters
             if (subTypeParameters.size != superTypeParameters.size) return null
 
             val arguments = ArrayList<TypeProjection>(subTypeParameters.size)

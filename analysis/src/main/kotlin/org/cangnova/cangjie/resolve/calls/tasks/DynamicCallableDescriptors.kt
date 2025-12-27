@@ -108,9 +108,7 @@ class DynamicCallableDescriptors(private val storageManager: StorageManager, bui
         variableDescriptor.setType(
             dynamicType,
             createTypeParameters(variableDescriptor, call),
-            createDynamicDispatchReceiverParameter(variableDescriptor),
-            null,
-            emptyList()
+            createDynamicDispatchReceiverParameter(variableDescriptor)
         )
 
 
@@ -137,9 +135,7 @@ class DynamicCallableDescriptors(private val storageManager: StorageManager, bui
         propertyDescriptor.setType(
             dynamicType,
             createTypeParameters(propertyDescriptor, call),
-            createDynamicDispatchReceiverParameter(propertyDescriptor),
-            null,
-            emptyList()
+            createDynamicDispatchReceiverParameter(propertyDescriptor)
         )
 
 //        val getter = DescriptorFactory.createDefaultGetter(propertyDescriptor, Annotations.EMPTY)
@@ -164,9 +160,7 @@ class DynamicCallableDescriptors(private val storageManager: StorageManager, bui
             SourceElement.NO_SOURCE
         )
         functionDescriptor.initialize(
-            null,
             createDynamicDispatchReceiverParameter(functionDescriptor),
-            emptyList(),
             createTypeParameters(functionDescriptor, call),
             createValueParameters(functionDescriptor, call),
             dynamicType,
@@ -225,7 +219,6 @@ class DynamicCallableDescriptors(private val storageManager: StorageManager, bui
             val funLiteral = funLiteralExpr.functionLiteral
 
             val receiverType = funLiteral.receiverTypeReference?.let { dynamicType }
-            val contextReceiversTypes = funLiteral.contextReceivers.map { dynamicType }
 
             val parameterTypes = funLiteral.valueParameters.map { dynamicType }
 
@@ -233,7 +226,6 @@ class DynamicCallableDescriptors(private val storageManager: StorageManager, bui
                 owner.builtIns,
                 Annotations.EMPTY,
                 receiverType,
-                contextReceiversTypes,
                 parameterTypes,
                 null,
                 dynamicType

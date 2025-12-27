@@ -238,11 +238,13 @@ val CONFLICTING_INHERITED_MEMBERS: DiagnosticFactory2<CjTypeStatement, Inheritab
     DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
 
 /**
- * 扩展被成员遮蔽
+ * extend 成员不允许遮蔽原始类型的成员
+ * 参数1: extend 成员名称
+ * 参数2: 被扩展的类的描述符
  */
 
-val EXTENSION_SHADOWED_BY_MEMBER: DiagnosticFactory1<CjDeclaration, CallableMemberDescriptor> =
-    DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.FOR_REDECLARATION)
+val EXTEND_MEMBER_CANNOT_SHADOW: DiagnosticFactory2<CjDeclaration, String, ClassifierDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.FOR_REDECLARATION)
 
 // ========================================
 // 超类型相关错误

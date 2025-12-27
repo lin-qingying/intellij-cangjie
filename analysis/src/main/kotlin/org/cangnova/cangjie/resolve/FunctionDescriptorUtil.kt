@@ -37,16 +37,17 @@ object FunctionDescriptorUtil {
         descriptor: FunctionDescriptor,
         redeclarationChecker: LocalRedeclarationChecker
     ): LexicalScope = LexicalScopeImpl(
-        outerScope, descriptor, true, descriptor.extensionReceiverParameter,
-        descriptor.contextReceiverParameters, LexicalScopeKind.FUNCTION_INNER_SCOPE, redeclarationChecker, {
-            for (valueParameterDescriptor in descriptor.valueParameters) {
-                when (valueParameterDescriptor) {
-
-                    else -> addVariableDescriptor(valueParameterDescriptor)
-                }
-            }
+        outerScope,
+        descriptor,
+        true,
+        descriptor.dispatchReceiverParameter,
+        LexicalScopeKind.FUNCTION_INNER_SCOPE,
+        redeclarationChecker
+    ) {
+        for (valueParameterDescriptor in descriptor.valueParameters) {
+            addVariableDescriptor(valueParameterDescriptor)
         }
-    )
+    }
 
     fun getFunctionInnerScope(
         outerScope: LexicalScope,

@@ -39,8 +39,6 @@ import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.StubTypeForBuilderInference
 import org.cangnova.cangjie.types.UnwrappedType
-import org.cangnova.cangjie.types.getContextReceiverTypesFromFunctionType
-import org.cangnova.cangjie.types.getReceiverTypeFromFunctionType
 import org.cangnova.cangjie.types.getValueParameterTypesFromFunctionType
 import org.cangnova.cangjie.types.isBuiltinFunctionalType
 import org.cangnova.cangjie.types.model.StubTypeMarker
@@ -66,16 +64,8 @@ class PostponedArgumentsAnalyzer(
         }
     }
 
-    private fun UnwrappedType?.receiver(): UnwrappedType? {
-        return forFunctionalType { getReceiverTypeFromFunctionType()?.unwrap() }
-    }
-
     private inline fun <T> UnwrappedType?.forFunctionalType(f: UnwrappedType.() -> T?): T? {
         return if (this?.isBuiltinFunctionalType == true) f(this) else null
-    }
-
-    private fun UnwrappedType?.contextReceivers(): List<UnwrappedType>? {
-        return forFunctionalType { getContextReceiverTypesFromFunctionType().map { it.unwrap() } }
     }
 
     private fun UnwrappedType?.valueParameters(): List<UnwrappedType>? {
@@ -104,20 +94,15 @@ class PostponedArgumentsAnalyzer(
         val builtIns = c.getBuilder().builtIns
 
         val expectedParameters = lambda.expectedType.valueParameters()
-        val expectedReceiver = lambda.expectedType.receiver()
-        val expectedContextReceivers = lambda.expectedType.contextReceivers()
 
+        // 仓颉没有扩展函数类型，lambda 的接收器从第一个参数推导
         val receiver = lambda.receiver?.let {
-            expectedOrActualType(expectedReceiver ?: expectedParameters?.getOrNull(0), lambda.receiver)
-        }
-        val contextReceivers = lambda.contextReceivers.mapIndexedNotNull { i, contextReceiver ->
-            expectedOrActualType(expectedContextReceivers?.getOrNull(i), contextReceiver)
+            expectedOrActualType(expectedParameters?.getOrNull(0), lambda.receiver)
         }
 
+        // 仓颉没有扩展函数类型，简化参数匹配逻辑
         val expectedParametersToMatchAgainst = when {
-            receiver == null && expectedReceiver != null && expectedParameters != null -> listOf(expectedReceiver) + expectedParameters
-            receiver == null && expectedReceiver != null -> listOf(expectedReceiver)
-            receiver != null && expectedReceiver == null -> expectedParameters?.drop(1)
+            receiver != null -> expectedParameters?.drop(1)
             else -> expectedParameters
         }
 
@@ -137,20 +122,16 @@ class PostponedArgumentsAnalyzer(
             else -> null
         }
 
-        val convertedAnnotations = lambda.expectedType?.annotations?.let { annotations ->
-            if (receiver != null || expectedReceiver == null) annotations
-            else FilteredAnnotations(annotations, true) { it != StandardNames.FqNames.extensionFunctionType }
-        }
+        // 仓颉没有扩展函数类型，直接使用注解
+        val convertedAnnotations = lambda.expectedType?.annotations ?: Annotations.EMPTY
 
         @Suppress("UNCHECKED_CAST")
         val returnArgumentsAnalysisResult = resolutionCallbacks.analyzeAndGetLambdaReturnArguments(
             lambda.atom,
-
             receiver,
-            contextReceivers,
             parameters,
             expectedTypeForReturnArguments,
-            convertedAnnotations ?: Annotations.EMPTY,
+            convertedAnnotations,
             substitutorAndStubsForLambdaAnalysis.stubsForPostponedVariables as Map<NewTypeVariable, StubTypeForBuilderInference>,
         )
         applyResultsOfAnalyzedLambdaToCandidateSystem(

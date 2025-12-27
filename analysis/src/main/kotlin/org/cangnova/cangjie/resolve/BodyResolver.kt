@@ -172,9 +172,10 @@ class BodyResolver(
                 )
             },
             headerScopeFactory = { scope ->
+                // 在仓颉语言中，没有 context receivers
                 LexicalScopeImpl(
                     scope, descriptor, scope.isOwnerDescriptorAccessibleByLabel, scope.implicitReceiver,
-                    scope.contextReceiversGroup, LexicalScopeKind.CONSTRUCTOR_HEADER
+                    LexicalScopeKind.CONSTRUCTOR_HEADER
                 )
             },
             localContext = localContext
@@ -656,15 +657,13 @@ class BodyResolver(
             localContext?.inferenceSession
         )
 
-        if (functionDescriptor is PropertyAccessorDescriptor &&
-            functionDescriptor.extensionReceiverParameter == null &&
-            functionDescriptor.contextReceiverParameters.isEmpty()
+        if (functionDescriptor is PropertyAccessorDescriptor
         ) {
             val property = function.parent.parent as CjProperty
             val propertySourceElement = property.toSourceElement()
             val fieldDescriptor = SyntheticFieldDescriptor(functionDescriptor, propertySourceElement)
             innerScope = LexicalScopeImpl(
-                innerScope, functionDescriptor, true, null, emptyList(),
+                innerScope, functionDescriptor, true, null,
                 LexicalScopeKind.PROPERTY_ACCESSOR_BODY,
                 LocalRedeclarationChecker.DO_NOTHING
             ) {
@@ -703,7 +702,7 @@ class BodyResolver(
     ) {
         // Initializing a scope will report errors if any.
         LexicalScopeImpl(
-            scopeForConstructorResolution, descriptor, true, null, emptyList(),
+            scopeForConstructorResolution, descriptor, true, null,
             LexicalScopeKind.CLASS_HEADER,
             TraceBasedLocalRedeclarationChecker(trace, overloadChecker)
         ) {
@@ -943,7 +942,7 @@ class BodyResolver(
             unsubstitutedPrimaryConstructor: ConstructorDescriptor
         ): LexicalScope = LexicalScopeImpl(
             originalScope, unsubstitutedPrimaryConstructor, false, null,
-            emptyList(), LexicalScopeKind.DEFAULT_VALUE, LocalRedeclarationChecker.DO_NOTHING
+            LexicalScopeKind.DEFAULT_VALUE, LocalRedeclarationChecker.DO_NOTHING
         ) {
             for (valueParameter in unsubstitutedPrimaryConstructor.valueParameters) {
                 addVariableDescriptor(valueParameter)
@@ -958,9 +957,10 @@ class BodyResolver(
             val accessorDeclaringScope = c.getDeclaringScope(accessor)
             requireNotNull(accessorDeclaringScope) { "Scope for accessor ${accessor.text} should exists" }
             val headerScope = ScopeUtils.makeScopeForPropertyHeader(accessorDeclaringScope, descriptor)
+            // 在仓颉语言中，属性访问器使用 dispatchReceiver
             return LexicalScopeImpl(
-                headerScope, descriptor, true, descriptor.extensionReceiverParameter,
-                descriptor.contextReceiverParameters, LexicalScopeKind.PROPERTY_ACCESSOR_BODY
+                headerScope, descriptor, true, descriptor.dispatchReceiverParameter,
+                LexicalScopeKind.PROPERTY_ACCESSOR_BODY
             )
         }
     }

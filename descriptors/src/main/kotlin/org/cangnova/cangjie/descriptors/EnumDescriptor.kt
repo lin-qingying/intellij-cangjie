@@ -233,9 +233,7 @@ interface EnumConstructorDescriptor : CallableMemberDescriptor {
 
         override fun setReturnType(type: CangJieType): CopyBuilder<D>
 
-        fun setContextReceiverParameters(contextReceiverParameters: List<ReceiverParameterDescriptor>): CopyBuilder<D>
 
-        fun setExtensionReceiverParameter(extensionReceiverParameter: ReceiverParameterDescriptor?): CopyBuilder<D>
 
         override fun setDispatchReceiverParameter(dispatchReceiverParameter: ReceiverParameterDescriptor?): CopyBuilder<D>
 

@@ -321,11 +321,6 @@ fun FuzzyType.isAlmostEverything(): Boolean {
  */
 fun FuzzyType.makeNonOption() = type.makeNonOption().toFuzzyType(freeParameters)
 
-/**
- * 获取可调用对象的模糊扩展接收者类型
- *
- * @receiver 可调用描述符
- * @return 模糊扩展接收者类型，如果没有扩展接收者则为 null
- */
-fun CallableDescriptor.fuzzyExtensionReceiverType() = extensionReceiverParameter?.type?.toFuzzyType(typeParameters)
+
+
 fun FuzzyType.optionality()  = type.optionality()

@@ -214,9 +214,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
         super.visitSuperTypeEntry(specifier, Unit)
     }
 
-    fun visitContextReceiverList(contextReceiverList: CjContextReceiverList) {
-        super.visitContextReceiverList(contextReceiverList, Unit)
-    }
+
 
     open fun visitConstructorDelegationCall(call: CjConstructorDelegationCall) {
         super.visitConstructorDelegationCall(call, Unit)

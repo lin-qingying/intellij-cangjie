@@ -44,11 +44,7 @@ object CastDiagnosticsUtil {
      */
     private fun isUpcast(candidateType: CangJieType, targetType: CangJieType): Boolean {
         if (!CangJieTypeChecker.DEFAULT.isSubtypeOf(candidateType, targetType)) return false
-
-        if (candidateType.isFunctionType && targetType.isFunctionType) {
-            return candidateType.isExtensionFunctionType == targetType.isExtensionFunctionType
-        }
-
+        // 仓颉没有扩展函数类型，函数类型的向上转型只需检查子类型关系
         return true
     }
 
@@ -81,7 +77,8 @@ object CastDiagnosticsUtil {
      * @return 如果候选类型和目标类型完全相同，则返回 true，否则返回 false
      */
     private fun isExactTypeCast(candidateType: CangJieType, targetType: CangJieType): Boolean {
-        return candidateType == targetType && candidateType.isExtensionFunctionType == targetType.isExtensionFunctionType
+        // 仓颉没有扩展函数类型，只需检查类型相等性
+        return candidateType == targetType
     }
 
     /**

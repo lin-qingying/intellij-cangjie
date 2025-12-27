@@ -664,44 +664,24 @@ open class CangJieIdeDescriptorRenderer(
 
     private fun StringBuilder.appendFunctionType(type: CangJieType) {
         val lengthBefore = length
-        // we need special renderer to skip @ExtensionFunctionType
+        // 仓颉不需要跳过扩展函数类型注解（因为没有这个特性）
 //        with(functionTypeAnnotationsRenderer) {
 //            appendAnnotations(type)
 //        }
         val hasAnnotations = length != lengthBefore
 
-
         val isNullable = type.isOption
-        val receiverType = type.getReceiverTypeFromFunctionType()
 
-        val needParenthesis = isNullable || (hasAnnotations && receiverType != null)
+        // 仓颉没有扩展函数类型的接收器，简化括号逻辑
+        val needParenthesis = isNullable
         if (needParenthesis) {
-
             if (hasAnnotations) {
                 assert(last().isWhitespace())
                 if (get(lastIndex - 1) != ')') {
-                    // last annotation rendered without parenthesis - need to add them otherwise parsing will be incorrect
                     insert(lastIndex, highlight("()") { asParentheses })
                 }
             }
-
             appendHighlighted("(") { asParentheses }
-
-        }
-
-
-
-        if (receiverType != null) {
-            val surroundReceiver = shouldRenderAsPrettyFunctionType(receiverType) && !receiverType.isOption/* ||
-                    receiverType.hasModifiersOrAnnotations()*/
-            if (surroundReceiver) {
-                appendHighlighted("(") { asParentheses }
-            }
-            appendNormalizedType(receiverType)
-            if (surroundReceiver) {
-                appendHighlighted(")") { asParentheses }
-            }
-            appendHighlighted(".") { asDot }
         }
 
         appendHighlighted("(") { asParentheses }
@@ -1053,14 +1033,12 @@ open class CangJieIdeDescriptorRenderer(
             }
             appendLetVarPrefix(property)
             appendTypeParameters(property.typeParameters, true)
-            appendReceiver(property)
         }
 
         appendName(property, true) { asInstanceProperty }
         appendHighlighted(": ") { asColon }
         append(renderType(property.type))
 
-        appendReceiverAfterName(property)
 
         appendInitializer(property)
 
@@ -1127,14 +1105,12 @@ open class CangJieIdeDescriptorRenderer(
 
             appendMutPropPrefix(property)
             appendTypeParameters(property.typeParameters, true)
-            appendReceiver(property)
         }
 
         appendName(property, true) { asInstanceProperty }
         appendHighlighted(": ") { asColon }
         append(renderType(property.type))
 
-        appendReceiverAfterName(property)
 
         appendInitializer(property)
 
@@ -1162,20 +1138,7 @@ open class CangJieIdeDescriptorRenderer(
         }
     }
 
-    private fun StringBuilder.appendReceiver(callableDescriptor: CallableDescriptor) {
-        val receiver = callableDescriptor.extensionReceiverParameter
-        if (receiver != null) {
-//            appendAnnotations(receiver, target = AnnotationUseSiteTarget.RECEIVER)
 
-            val type = receiver.type
-            var result = renderType(type)
-            if (shouldRenderAsPrettyFunctionType(type) && !TypeUtils.isOptionType(type)) {
-                result = "${highlight("(") { asParentheses }}$result${highlight(")") { asParentheses }}"
-            }
-            append(result)
-            appendHighlighted(".") { asDot }
-        }
-    }
 
     private fun StringBuilder.appendVisibility(visibility: DescriptorVisibility): Boolean {
         @Suppress("NAME_SHADOWING")
@@ -1291,14 +1254,12 @@ open class CangJieIdeDescriptorRenderer(
             }
             append(" ")
 
-            appendReceiver(function)
         }
 
         appendName(function, true) { asFunDeclaration }
         appendTypeParameters(function.typeParameters, true)
         appendValueParameters(function.valueParameters, function.hasSynthesizedParameterNames())
 
-        appendReceiverAfterName(function)
 
         val returnType = function.returnType
         if (!withoutReturnType && (unitReturnType || (returnType == null || !CangJieBuiltIns.isUnit(returnType)))) {
@@ -1334,15 +1295,6 @@ open class CangJieIdeDescriptorRenderer(
         }
     }
 
-    private fun StringBuilder.appendReceiverAfterName(callableDescriptor: CallableDescriptor) {
-        if (!receiverAfterName) return
-
-        val receiver = callableDescriptor.extensionReceiverParameter
-        if (receiver != null) {
-            appendHighlighted(" on ") { asInfo }
-            append(renderType(receiver.type))
-        }
-    }
 
     private fun StringBuilder.appendPackageView(packageView: PackageViewDescriptor) {
         appendPackageHeader(packageView.fqName, "package")

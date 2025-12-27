@@ -83,10 +83,6 @@ internal object CheckSuperExpressionCallPart : ResolutionPart() {
             }
         }
 
-        val extensionReceiver = resolvedCall.extensionReceiverArgument
-        if (extensionReceiver != null && callComponents.statelessCallbacks.isSuperExpression(extensionReceiver)) {
-            addDiagnostic(SuperAsExtensionReceiver(extensionReceiver))
-        }
     }
 
     private fun ResolutionCandidate.checkSuperCandidateDescriptor(candidateDescriptor: CallableMemberDescriptor) {
@@ -203,99 +199,6 @@ internal enum class ImplicitInvokeCheckStatus {
     NO_INVOKE, INVOKE_ON_NOT_NULL_VARIABLE, UNSAFE_INVOKE_REPORTED
 }
 
-//检查扩展接收器
-internal object CheckReceivers : ResolutionPart() {
-    override fun ResolutionCandidate.process(workIndex: Int) {
-        when (workIndex) {
-            0 -> checkReceiver(
-                resolvedCall.dispatchReceiverArgument,
-                candidateDescriptor.dispatchReceiverParameter,
-                shouldCheckImplicitInvoke = true,
-            )
-
-            1 -> {
-                var extensionReceiverArgument = resolvedCall.extensionReceiverArgument
-                if (extensionReceiverArgument == null) {
-                    extensionReceiverArgument = chooseExtensionReceiverCandidate() ?: return
-                    resolvedCall.extensionReceiverArgument = extensionReceiverArgument
-                }
-                // 默认不检查构建器推断限制（启用 NoBuilderInferenceWithoutAnnotationRestriction）
-                val checkBuilderInferenceRestriction = false
-                if (checkBuilderInferenceRestriction &&
-                    extensionReceiverArgument.receiver.receiverValue.type is StubTypeForBuilderInference
-                ) {
-                    addDiagnostic(
-                        StubBuilderInferenceReceiver(
-                            extensionReceiverArgument,
-                            candidateDescriptor.extensionReceiverParameter!!
-                        )
-                    )
-                }
-                checkReceiver(
-                    resolvedCall.extensionReceiverArgument,
-                    candidateDescriptor.extensionReceiverParameter,
-                    shouldCheckImplicitInvoke = false, // reproduce old inference behaviour
-                )
-            }
-        }
-    }
-
-    override fun ResolutionCandidate.workCount() = 2
-
-    private fun ResolutionCandidate.chooseExtensionReceiverCandidate(): SimpleCangJieCallArgument? {
-        val receiverCandidates = resolvedCall.extensionReceiverArgumentCandidates
-        if (receiverCandidates.isNullOrEmpty()) {
-            return null
-        }
-        if (receiverCandidates.size == 1) {
-            return receiverCandidates.single()
-        }
-        val extensionReceiverParameter = candidateDescriptor.extensionReceiverParameter ?: return null
-        val compatible = receiverCandidates.mapNotNull {
-            getReceiverArgumentWithConstraintIfCompatible(
-                it,
-                extensionReceiverParameter
-            )
-        }
-        return when (compatible.size) {
-            0 -> {
-                addDiagnostic(NoMatchingContextReceiver())
-                null
-            }
-
-            1 -> compatible.single().argument
-            else -> {
-                addDiagnostic(ContextReceiverAmbiguity())
-                null
-            }
-        }
-    }
-
-    private fun ResolutionCandidate.checkReceiver(
-        receiverArgument: SimpleCangJieCallArgument?,
-        receiverParameter: ReceiverParameterDescriptor?,
-        shouldCheckImplicitInvoke: Boolean,
-    ) {
-//        TODO 检查接收器会在使用操作符函数报错，所以注释了
-//        if (this !is CallableReferenceResolutionCandidate && (receiverArgument == null) != (receiverParameter == null)) {
-//            error("Inconsistency receiver state for call $cangjieCall and candidate descriptor: $descriptor")
-//        }
-        if (receiverArgument == null || receiverParameter == null) return
-
-        val implicitInvokeState = if (shouldCheckImplicitInvoke) {
-            checkUnsafeImplicitInvokeAfterSafeCall(receiverArgument)
-        } else ImplicitInvokeCheckStatus.NO_INVOKE
-
-        val receiverInfo = ReceiverInfo(
-            isReceiver = true,
-            shouldReportUnsafeCall = implicitInvokeState != ImplicitInvokeCheckStatus.UNSAFE_INVOKE_REPORTED,
-            reportUnsafeCallAsUnsafeImplicitInvoke = implicitInvokeState == ImplicitInvokeCheckStatus.INVOKE_ON_NOT_NULL_VARIABLE,
-            selectorCall = resolvedCall.atom
-        )
-
-        resolveCangJieArgument(receiverArgument, receiverParameter, receiverInfo)
-    }
-}
 
 private fun ResolutionCandidate.checkUnsafeImplicitInvokeAfterSafeCall(argument: SimpleCangJieCallArgument): ImplicitInvokeCheckStatus {
     val variableForInvoke = variableCandidateIfInvoke ?: return ImplicitInvokeCheckStatus.NO_INVOKE
@@ -303,8 +206,6 @@ private fun ResolutionCandidate.checkUnsafeImplicitInvokeAfterSafeCall(argument:
     val receiverArgument = with(variableForInvoke.resolvedCall) {
         when (explicitReceiverKind) {
             ExplicitReceiverKind.DISPATCH_RECEIVER -> dispatchReceiverArgument
-            ExplicitReceiverKind.EXTENSION_RECEIVER,
-            ExplicitReceiverKind.BOTH_RECEIVERS -> extensionReceiverArgument
 
             ExplicitReceiverKind.NO_EXPLICIT_RECEIVER -> return ImplicitInvokeCheckStatus.INVOKE_ON_NOT_NULL_VARIABLE
         }
@@ -332,7 +233,6 @@ internal object CheckExtensionPrivateVisibility : ResolutionPart() {
         val containingDescriptor = scopeTower.lexicalScope.ownerDescriptor  //调用所在声明
 
         val dispatchReceiverArgument = resolvedCall.dispatchReceiverArgument
-        resolvedCall.extensionReceiverArgument ?: return
 
         val callCandidateDescriptor = resolvedCall.candidateDescriptor //被调用声明
         val receiverValue =
@@ -367,19 +267,7 @@ internal object CheckExtensionPrivateVisibility : ResolutionPart() {
         }
 
         if (containingDescriptor is CallableDescriptor) {
-            if (callCandidateDescriptor.extensionReceiverParameter?.value?.type?.let {
-                    containingDescriptor.extensionReceiverParameter?.value?.type?.let { it1 ->
-                        CangJieTypeChecker.DEFAULT.equalTypes(
-                            it, it1
-                        )
-                    }
-                } == true) {
-//                判断扩展id是否相同
-                if (invisibleMember == null && callCandidateDescriptor.visibility == PRIVATE) {
-                    addDiagnostic(VisibilityError(callCandidateDescriptor))
 
-                }
-            }
 
         }
 
@@ -461,33 +349,7 @@ internal object NoTypeArguments : ResolutionPart() {
 }
 
 
-internal object PostponedVariablesInitializerResolutionPart : ResolutionPart() {
-    override fun ResolutionCandidate.process(workIndex: Int) {
-        val csBuilder = getSystem().getBuilder()
-        for ((argument, parameter) in resolvedCall.argumentToCandidateParameter) {
-            if (!callComponents.statelessCallbacks.isBuilderInferenceCall(argument, parameter)) continue
-            val receiverType = parameter.type.getReceiverTypeFromFunctionType() ?: continue
-//            val dontUseBuilderInferenceIfPossible =
-//                callComponents.languageVersionSettings.supportsFeature(LanguageFeature.UseBuilderInferenceOnlyIfNeeded)
 
-            if (argument is LambdaCangJieCallArgument && !argument.hasBuilderInferenceAnnotation) {
-                argument.hasBuilderInferenceAnnotation = true
-            }
-
-//            if (dontUseBuilderInferenceIfPossible) continue
-
-            for (freshVariable in resolvedCall.freshVariablesSubstitutor.freshVariables) {
-                if (resolvedCall.typeArgumentMappingByOriginal.getTypeArgument(freshVariable.originalTypeParameter) is SimpleTypeArgument)
-                    continue
-
-                if (csBuilder.isPostponedTypeVariable(freshVariable)) continue
-                if (receiverType.contains { it.constructor == freshVariable.originalTypeParameter.typeConstructor }) {
-                    csBuilder.markPostponedVariable(freshVariable)
-                }
-            }
-        }
-    }
-}
 
 internal object MapTypeArguments : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {

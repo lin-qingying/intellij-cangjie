@@ -201,7 +201,7 @@ open class LazyClassDescriptor(
         _typeConstructor.parameters.forEach { it.upperBounds }
         unsubstitutedPrimaryConstructor
         visibility
-        contextReceivers
+
     }
 
     override val scopeForConstructorHeaderResolution: LexicalScope
@@ -239,7 +239,7 @@ open class LazyClassDescriptor(
         ) {
             init {
                 initialize(
-                    null, null, emptyList(), emptyList(), emptyList(),
+                    null,  emptyList(), emptyList(),
                     null, Modality.FINAL, DescriptorVisibilities.PRIVATE
                 )
             }

@@ -287,7 +287,7 @@ abstract class DescriptorKindExclude {
      */
     object Extensions : DescriptorKindExclude() {
         override fun excludes(descriptor: DeclarationDescriptor) =
-            descriptor is CallableDescriptor && descriptor.extensionReceiverParameter != null
+            descriptor is CallableDescriptor
 
         override val fullyExcludedDescriptorKinds: Int get() = 0
     }
@@ -299,7 +299,7 @@ abstract class DescriptorKindExclude {
      */
     object NonExtensions : DescriptorKindExclude() {
         override fun excludes(descriptor: DeclarationDescriptor) =
-            descriptor !is CallableDescriptor || descriptor.extensionReceiverParameter == null
+            descriptor !is CallableDescriptor
 
         override val fullyExcludedDescriptorKinds =
             DescriptorKindFilter.ALL_KINDS_MASK and (DescriptorKindFilter.FUNCTIONS_MASK or DescriptorKindFilter.VARIABLES_MASK).inv()

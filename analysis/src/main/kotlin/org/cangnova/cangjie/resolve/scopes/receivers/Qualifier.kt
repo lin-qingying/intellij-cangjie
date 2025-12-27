@@ -52,23 +52,63 @@ import org.cangnova.cangjie.resolve.scopes.ChainedMemberScope
 import org.cangnova.cangjie.utils.enumClassValueType
 import javax.swing.Icon
 
+/**
+ * 限定符（Qualifier）
+ *
+ * Qualifier 表示由简单名称引用组成的限定符，是 [QualifierReceiver] 的一种实现。
+ * 典型的使用场景是包名、类名等静态限定符。
+ *
+ * @property referenceExpression 引用表达式
+ *
+ * @see QualifierReceiver
+ * @see ClassifierQualifier
+ */
 interface Qualifier : QualifierReceiver {
+    /** 简单名称引用表达式 */
     val referenceExpression: CjSimpleNameExpression
 }
 
 /**
- * enum<T,T>
+ * 枚举类限定符（通过调用表达式）
+ *
+ * 用于表示枚举类的泛型调用形式，例如 `enum<T, T>`。
+ *
+ * @property referenceExpression 调用表达式
+ * @property descriptor 带类型参数的类分类符描述符
+ *
+ * @see QualifierReceiver
  */
 interface EnumClassQualifierByCall : QualifierReceiver {
+    /** 调用元素 */
     val referenceExpression: CjCallElement
-    override val descriptor: ClassifierDescriptorWithTypeParameters
 
+    /** 带类型参数的类分类符描述符 */
+    override val descriptor: ClassifierDescriptorWithTypeParameters
 }
 
+/**
+ * 类分类符限定符
+ *
+ * ClassifierQualifier 表示一个类分类符（类、接口、枚举等）的限定符。
+ *
+ * @property descriptor 带类型参数的类分类符描述符
+ *
+ * @see Qualifier
+ */
 interface ClassifierQualifier : Qualifier {
+    /** 带类型参数的类分类符描述符 */
     override val descriptor: ClassifierDescriptorWithTypeParameters
 }
 
+/**
+ * 获取限定符接收器对应的表达式
+ *
+ * 对于不同类型的限定符，返回相应的表达式：
+ * - [Qualifier]: 返回最顶层的限定表达式或引用表达式本身
+ * - [EnumClassQualifierByCall]: 返回调用表达式的被调用者表达式
+ *
+ * @throws IllegalStateException 如果限定符接收器不是 Qualifier 或 EnumClassQualifierByCall
+ */
 val QualifierReceiver.expression: CjExpression
     get() {
         return when (this) {
@@ -79,26 +119,65 @@ val QualifierReceiver.expression: CjExpression
     }
 
 
+/**
+ * 获取限定符对应的表达式
+ *
+ * 返回最顶层的限定表达式或引用表达式本身。
+ */
 val Qualifier.expression: CjExpression
     get() = referenceExpression.getTopmostParentQualifiedExpressionForSelector() ?: referenceExpression
 
 
+/**
+ * 包限定符
+ *
+ * PackageQualifier 表示一个包名限定符。
+ *
+ * @param referenceExpression 简单名称引用表达式
+ * @param descriptor 包视图描述符
+ *
+ * @see Qualifier
+ */
 class PackageQualifier(
     override val referenceExpression: CjSimpleNameExpression,
     override val descriptor: PackageViewDescriptor
 ) : Qualifier {
+    /** 包没有类值接收器，总是返回 null */
     override val classValueReceiver: ReceiverValue? get() = null
+
+    /** 包的静态作用域，即包的成员作用域 */
     override val staticScope: MemberScope get() = descriptor.memberScope
 
     override fun toString() = "Package{$descriptor}"
 }
 
 
+
+/**
+ * 枚举类限定符
+ *
+ * EnumClassQualifier 表示枚举类的限定符。
+ * 它实现了 [EnumClassQualifierByCall] 接口，支持带泛型参数的枚举类。
+ *
+ * @param referenceExpression 调用表达式
+ * @param descriptor 类描述符
+ * @param call 仓颉调用（如果有）
+ *
+ * @see EnumClassQualifierByCall
+ */
 class EnumClassQualifier(
     override val referenceExpression: CjCallElement,
     override val descriptor: ClassDescriptor,
     val call: CangJieCall?
 ) : EnumClassQualifierByCall {
+    /**
+     * 枚举调用元素
+     *
+     * 这是一个轻量级的 [CjCallElement] 实现，用于包装枚举类的简单名称引用。
+     * 它不包含实际的参数列表，仅用于表示枚举类名称本身。
+     *
+     * @param referenceExpression 简单名称引用表达式
+     */
     class EnumCallElement(val referenceExpression: CjSimpleNameExpression) : CjCallElement {
         override val calleeExpression: CjExpression
             get() = referenceExpression
@@ -357,16 +436,26 @@ class EnumClassQualifier(
 
     }
 
+    /**
+     * 次级构造函数
+     *
+     * 从简单名称引用表达式创建枚举类限定符。
+     *
+     * @param referenceExpression 简单名称引用表达式
+     * @param descriptor 类描述符
+     */
     constructor(
         referenceExpression: CjSimpleNameExpression,
         descriptor: ClassDescriptor
     ) : this(EnumCallElement(referenceExpression), descriptor, null)
 
 
+    /** 枚举类值接收器，如果类有枚举类值类型 */
     override val classValueReceiver: EnumClassValueReceiver? = descriptor.enumClassValueType?.let {
         EnumClassValueReceiver(this, it)
     }
 
+    /** 静态作用域，包含枚举类的静态成员和未替换的成员 */
     override val staticScope: MemberScope
         get() =
               StaticMemberScope(
@@ -381,11 +470,23 @@ class EnumClassQualifier(
     override fun toString() = "Class{$descriptor}"
 }
 
+/**
+ * 类限定符
+ *
+ * ClassQualifier 表示一个普通类的限定符。
+ *
+ * @param referenceExpression 简单名称引用表达式
+ * @param descriptor 类描述符
+ * @param _cangjieType 类的类型（可选）
+ *
+ * @see ClassifierQualifier
+ */
 class ClassQualifier(
     override val referenceExpression: CjSimpleNameExpression,
     override val descriptor: ClassDescriptor,
     _cangjieType: CangJieType? = null
 ) : ClassifierQualifier {
+    /** 类值接收器，如果类有类值类型或枚举类值类型 */
     override val classValueReceiver: ClassValueReceiver? = _cangjieType?.let {
         ClassValueReceiver(this, it)
 
@@ -393,6 +494,7 @@ class ClassQualifier(
         ClassValueReceiver(this, it)
     }
 
+    /** 静态作用域，包含类的静态成员和未替换的成员 */
     override val staticScope: MemberScope
         get() =
               StaticMemberScope(
@@ -407,6 +509,19 @@ class ClassQualifier(
     override fun toString() = "Class{$descriptor}"
 }
 
+/**
+ * 枚举类值接收器
+ *
+ * EnumClassValueReceiver 表示枚举类作为值使用时的接收器。
+ * 这允许将枚举类作为一个值传递或使用。
+ *
+ * @param classQualifier 枚举类限定符
+ * @param type 接收器的类型
+ * @param original 原始的接收器值
+ *
+ * @see ExpressionReceiver
+ * @see EnumClassQualifierByCall
+ */
 class EnumClassValueReceiver @JvmOverloads constructor(
     val classQualifier: EnumClassQualifierByCall,
     override val type: CangJieType,
@@ -422,6 +537,19 @@ class EnumClassValueReceiver @JvmOverloads constructor(
 
 }
 
+/**
+ * 类值接收器
+ *
+ * ClassValueReceiver 表示类作为值使用时的接收器。
+ * 这允许将类作为一个值传递或使用，例如访问类的伴生对象成员。
+ *
+ * @param classQualifier 类限定符
+ * @param type 接收器的类型
+ * @param original 原始的接收器值
+ *
+ * @see ExpressionReceiver
+ * @see ClassifierQualifier
+ */
 class ClassValueReceiver @JvmOverloads constructor(
     val classQualifier: ClassifierQualifier,
     override val type: CangJieType,
@@ -437,16 +565,42 @@ class ClassValueReceiver @JvmOverloads constructor(
 
 }
 
+/**
+ * 类型参数限定符
+ *
+ * TypeParameterQualifier 表示一个类型参数的限定符。
+ * 类型参数本身不能作为值使用，因此没有类值接收器和静态作用域。
+ *
+ * @param referenceExpression 简单名称引用表达式
+ * @param descriptor 类型参数描述符
+ *
+ * @see Qualifier
+ */
 class TypeParameterQualifier(
     override val referenceExpression: CjSimpleNameExpression,
     override val descriptor: TypeParameterDescriptor
 ) : Qualifier {
+    /** 类型参数没有类值接收器 */
     override val classValueReceiver: ReceiverValue? get() = null
+
+    /** 类型参数没有静态作用域 */
     override val staticScope: MemberScope get() = MemberScope.Empty
 
     override fun toString() = "TypeParameter{$descriptor}"
 }
 
+/**
+ * 类型别名限定符
+ *
+ * TypeAliasQualifier 表示一个类型别名的限定符。
+ * 它代理到实际的类描述符来提供类值接收器和静态作用域。
+ *
+ * @param referenceExpression 简单名称引用表达式
+ * @param descriptor 类型别名描述符
+ * @param classDescriptor 实际的类描述符
+ *
+ * @see ClassifierQualifier
+ */
 class TypeAliasQualifier(
     override val referenceExpression: CjSimpleNameExpression,
     override val descriptor: TypeAliasDescriptor,

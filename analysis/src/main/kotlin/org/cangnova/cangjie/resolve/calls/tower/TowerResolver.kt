@@ -53,17 +53,10 @@ interface Candidate {
 interface CandidateFactory<out C : Candidate> {
     fun createCandidate(
         towerCandidate: CandidateWithBoundDispatchReceiver,
-        explicitReceiverKind: ExplicitReceiverKind,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
+        explicitReceiverKind: ExplicitReceiverKind
     ): C
 
     fun createErrorCandidate(): C
-
-    fun createCandidate(
-        towerCandidate: CandidateWithBoundDispatchReceiver,
-        explicitReceiverKind: ExplicitReceiverKind,
-        extensionReceiverCandidates: List<ReceiverValueWithSmartCastInfo>
-    ): C
 }
 
 sealed class TowerData {
@@ -465,7 +458,6 @@ class TowerResolver {
 
             val parentScopes = lexicalScope.parentsWithSelf.toList()
 
-            val contextReceiversGroups = mutableListOf<List<ReceiverValueWithSmartCastInfo>>()
             var firstImportingScopeIndex = 0
             for ((i, scope) in parentScopes.withIndex()) {
                 if (scope !is LexicalScope) {
@@ -473,12 +465,7 @@ class TowerResolver {
                     break
                 }
                 addLevelForLexicalScope(scope)
-                val contextReceiversGroup = getContextReceivers(scope)
-                if (contextReceiversGroup.isNotEmpty()) {
-                    contextReceiversGroups.add(contextReceiversGroup)
-                }
             }
-            contextReceiversGroups.forEach(::addLevelForContextReceiverGroup)
             parentScopes.subList(firstImportingScopeIndex, parentScopes.size).forEach(::addLevelForImportingScope)
 
             return mainResult

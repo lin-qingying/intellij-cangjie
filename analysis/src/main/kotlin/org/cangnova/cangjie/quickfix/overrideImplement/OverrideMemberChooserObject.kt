@@ -42,6 +42,7 @@ import org.cangnova.cangjie.template.TemplateKind
 import org.cangnova.cangjie.template.getFunctionBodyTextFromTemplate
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.approximateFlexibleTypes
+import org.cangnova.cangjie.utils.isExtension
 
 interface OverrideMemberChooserObject : ClassMember {
 
@@ -121,8 +122,8 @@ fun OverrideMemberChooserObject.generateMember(
     val descriptor = immediateSuper
 
     val bodyType = when {
-//        targetClass?.hasExpectModifier() == true -> BodyType.NoBody
-        descriptor.extensionReceiverParameter != null && mode == MemberGenerateMode.OVERRIDE -> BodyType.FromTemplate
+
+        descriptor.isExtension && mode == MemberGenerateMode.OVERRIDE -> BodyType.FromTemplate
         else -> bodyType
     }
 

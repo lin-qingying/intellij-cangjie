@@ -24,84 +24,48 @@
 
 package org.cangnova.cangjie.utils.exceptions
 
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments.Companion.withAttachmentsFrom
+
+import org.cangnova.cangjie.utils.exceptions.ICangJieExceptionWithAttachments.Companion.withAttachmentsFrom
+import org.cangnova.cangjie.utils.getElementTextWithContext
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Attachment
-import com.intellij.openapi.diagnostic.ExceptionWithAttachments
-import java.nio.charset.StandardCharsets
+import com.intellij.psi.PsiElement
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
-interface CangJieExceptionWithAttachments : ExceptionWithAttachments {
-    val mutableAttachments: MutableList<Attachment>
-
-    override fun getAttachments(): Array<Attachment> = mutableAttachments.toTypedArray()
-
-    fun withAttachment(name: String, content: Any?): CangJieExceptionWithAttachments {
-        mutableAttachments.add(Attachment(name, content?.toString() ?: "<null>"))
-        return this
-    }
-
-    companion object {
-        internal fun CangJieExceptionWithAttachments.withAttachmentsFrom(from: Throwable?) {
-            if (from is CangJieExceptionWithAttachments) {
-                from.mutableAttachments.mapTo(mutableAttachments) { attachment ->
-                    attachment.copyWithNewName("case_${attachment.path}")
-                }
-            }
-            if (from != null) {
-                withAttachment("causeThrowable", from.stackTraceToString())
-            }
-        }
-
-        private fun Attachment.copyWithNewName(newName: String): Attachment {
-            val content = String(bytes, StandardCharsets.UTF_8)
-            return Attachment(newName, content)
-        }
-    }
-}
-
-open class CangJieIllegalStateExceptionWithAttachments : IllegalStateException, CangJieExceptionWithAttachments {
-    final override val mutableAttachments = mutableListOf<Attachment>()
-
-    constructor(message: String) : super(message)
-
-    constructor(message: String?, cause: Throwable?) : super(message, cause) {
-        withAttachmentsFrom(cause)
-    }
-}
-
-open class CangJieRuntimeExceptionWithAttachments : RuntimeException, CangJieExceptionWithAttachments {
-    final override val mutableAttachments = mutableListOf<Attachment>()
-
-    constructor(message: String) : super(message)
-
-    constructor(message: String?, cause: Throwable?) : super(message, cause) {
-        withAttachmentsFrom(cause)
-    }
-}
-
-open class CangJieIllegalArgumentExceptionWithAttachments : IllegalArgumentException, CangJieExceptionWithAttachments {
-    final override val mutableAttachments = mutableListOf<Attachment>()
-
-    constructor(message: String) : super(message)
-
-    constructor(message: String?, cause: Throwable?) : super(message, cause) {
-        withAttachmentsFrom(cause)
-    }
-}
-
 @OptIn(ExperimentalContracts::class)
-inline fun requireWithAttachment(
-    condition: Boolean,
-    message: () -> String,
-    attachmentName: String = "info.txt",
-    buildAttachment: ExceptionAttachmentBuilder.() -> Unit = {},
+inline fun checkWithAttachment(
+    value: Boolean,
+    lazyMessage: () -> String,
+    attachments: (CangJieExceptionWithAttachments) -> Unit = {}
 ) {
-    contract { returns() implies (condition) }
+    contract { returns() implies (value) }
 
-    if (!condition) {
-        val exception = CangJieIllegalArgumentExceptionWithAttachments(message())
-        exception.buildAttachment(attachmentName) { buildAttachment() }
-        throw exception
+    if (!value) {
+        val e = CangJieExceptionWithAttachments(lazyMessage())
+        attachments(e)
+        throw e
+    }
+}
+
+open class CangJieExceptionWithAttachments : RuntimeException, ICangJieExceptionWithAttachments {
+    override val mutableAttachments = mutableListOf<Attachment>()
+
+    override fun withAttachment(name: String, content: Any?): CangJieExceptionWithAttachments {
+        return super.withAttachment(name, content) as CangJieExceptionWithAttachments
+    }
+
+    constructor(message: String) : super(message)
+
+    constructor(message: String?, cause: Throwable?) : super(message, cause) {
+        withAttachmentsFrom(cause)
+    }
+
+    fun withPsiAttachment(name: String, element: PsiElement?): CangJieExceptionWithAttachments {
+        runCatching {
+            ApplicationManager.getApplication().runReadAction<String> { element?.let(::getElementTextWithContext) }
+        }
+            .getOrNull()?.let { withAttachment(name, it) }
+        return this
     }
 }

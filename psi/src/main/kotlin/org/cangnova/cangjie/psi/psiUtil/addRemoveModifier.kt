@@ -49,7 +49,7 @@ fun addModifier(owner: CjModifierListOwner, modifier: CjKeywordToken) {
 private fun CjModifierListOwner.addModifierList(newModifierList: CjModifierList): CjModifierList {
     val anchor = firstChild!!
         .siblings(forward = true)
-        .dropWhile { it is PsiComment || it is PsiWhiteSpace || it is CjContextReceiverList }
+        .dropWhile { it is PsiComment || it is PsiWhiteSpace  }
         .first()
     return addBefore(newModifierList, anchor) as CjModifierList
 }

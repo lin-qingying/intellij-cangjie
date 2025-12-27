@@ -55,7 +55,6 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
 
     abstract val resolvedCallAtom: ResolvedCallAtom?
     abstract val diagnostics: Collection<CangJieCallDiagnostic>
-    abstract fun updateExtensionReceiverType(newType: CangJieType)
     fun isCompleted() = isCompleted
     protected open val positionDependentApproximation = false
     private var nonTrivialUpdatedResultInfo: DataFlowInfo? = null
@@ -219,10 +218,6 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
                 updateDispatchReceiverType(newType)
             }
 
-//            extensionReceiver?.type?.let {
-//                val newType = substitutor.safeSubstitute(it.unwrap())
-//                updateExtensionReceiverType(newType)
-//            }
         }
     }
 

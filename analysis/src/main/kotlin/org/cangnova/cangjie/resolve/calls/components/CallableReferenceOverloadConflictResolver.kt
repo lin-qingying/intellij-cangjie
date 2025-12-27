@@ -59,13 +59,16 @@ class CallableReferenceOverloadConflictResolver(
 ) {
 
     companion object {
-        private fun createFlatSignature(candidate: CallableReferenceResolutionCandidate) =
-            FlatSignature.createFromReflectionType(
+        private fun createFlatSignature(candidate: CallableReferenceResolutionCandidate): FlatSignature<CallableReferenceResolutionCandidate> {
+            val descriptor = candidate.candidate
+            return FlatSignature(
                 candidate,
-                candidate.candidate,
-                candidate.numDefaults,
-                hasBoundExtensionReceiver = candidate.extensionReceiver != null,
-                candidate.reflectionCandidateType
+                descriptor.typeParameters,
+                emptyList(),
+                hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
+                numDefaults = 0,
+                isSyntheticMember = false
             )
+        }
     }
 }

@@ -105,9 +105,9 @@ class FunctionInvokeDescriptor private constructor(
 
             val result = FunctionInvokeDescriptor(functionClass, null, CallableMemberDescriptor.Kind.DECLARATION)
             result.initialize(
-                null,
+
                 functionClass.thisAsReceiverParameter,
-                listOf(), listOf(),
+                listOf(),
 
                 typeParameters .subList(0, typeParameters.size - 1)
                     .withIndex()

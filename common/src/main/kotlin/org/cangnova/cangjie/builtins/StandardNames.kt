@@ -37,9 +37,6 @@ object StandardNames {
     val DEFAULT_VALUE_PARAMETER = Name.identifier("value")
 
     @JvmField
-    val CONTEXT_FUNCTION_TYPE_PARAMETER_COUNT_NAME = Name.identifier("count")
-
-    @JvmField
     val BUILT_INS_PACKAGE_NAME = Name.identifier("cangjie")
 
     @JvmField
@@ -389,14 +386,11 @@ object StandardNames {
         @JvmField
         val deprecated: FqName = fqName("Deprecated")
 
+        // Internal annotation used by the plugin to store parameter names in function types
+        // CangJie syntax: (name: String, price: Int64) -> Unit
+        // This is not a user-visible annotation, but an internal implementation detail
         @JvmField
-        val publishedApi: FqName = fqName("PublishedApi")
-
-        @JvmField
-        val cloneable: FqNameUnsafe = fqNameUnsafe("Cloneable")
-
-        @JvmField
-        val platformDependent: FqName = FqName("cangjie.internal.PlatformDependent")
+        val parameterName: FqName = fqName("ParameterName")
 
         @JvmField
         val fqNameToPrimitiveType: Map<FqNameUnsafe, PrimitiveType> =
@@ -406,8 +400,6 @@ object StandardNames {
                 }
             }
 
-        @JvmField
-        val deprecatedSinceCangJie: FqName = fqName("DeprecatedSinceCangJie")
 
         @JvmField
         val primitiveArrayTypeShortNames: Set<Name> =
@@ -641,20 +633,12 @@ object StandardNames {
         @JvmField
         val uInt64ClassId: ClassId = ClassId.topLevel(uint64FqName)
 
-        @JvmField
-        val extensionFunctionType: FqName = fqName("ExtensionFunctionType")
 
-        @JvmField
-        val contextFunctionTypeParams: FqName = fqName("ContextFunctionTypeParams")
-
-        @JvmField
-        val parameterName: FqName = fqName("ParameterName")
 
         @JvmField
         val annotation: FqName = fqName("Annotation")
 
-//        @kotlin.jvm.JvmField
-//        val cCallable: FqNameUnsafe = reflect("KCallable")
+
 
         private fun fqNameUnsafe(simpleName: String): FqNameUnsafe {
             return fqName(simpleName).toUnsafe()

@@ -41,7 +41,6 @@ interface CjPureTypeStatement : CjPureElement, CjDeclarationContainer {
     val endSecondaryConstructors: List<CjEndSecondaryConstructor>
     val secondaryConstructors: List<CjSecondaryConstructor>
     val primaryConstructors: List<CjPrimaryConstructor>
-    val contextReceivers: List<CjContextReceiver>
 
     val body: CjAbstractClassBody?
 }

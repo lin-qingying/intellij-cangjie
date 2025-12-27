@@ -27,17 +27,10 @@ package org.cangnova.cangjie.serialization.deserialization
 import org.cangnova.cangjie.builtins.BuiltInsPackageFragment
 import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.descriptors.annotations.Annotations
-import org.cangnova.cangjie.descriptors.impl.ClassDescriptorImpl
-import org.cangnova.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.resolve.builtIns
-
-import org.cangnova.cangjie.resolve.scopes.GivenFunctionsMemberScope
 import org.cangnova.cangjie.storage.StorageManager
-import org.cangnova.cangjie.storage.getValue
 
 interface ClassDescriptorFactory {
     fun shouldCreateClass(packageFqName: FqName, name: Name): Boolean
@@ -49,36 +42,6 @@ interface ClassDescriptorFactory {
     fun getAllContributedClassesIfPossible(packageFqName: FqName): Collection<ClassDescriptor>
 }
 
-class CloneableClassScope(
-    storageManager: StorageManager,
-    containingClass: ClassDescriptor
-) : GivenFunctionsMemberScope(storageManager, containingClass) {
-    override fun computeDeclaredFunctions(): List<FunctionDescriptor> = listOf(
-        SimpleFunctionDescriptorImpl.create(
-            containingClass,
-            Annotations.EMPTY,
-            CLONE_NAME,
-            CallableMemberDescriptor.Kind.DECLARATION,
-            SourceElement.NO_SOURCE
-        ).apply {
-            initialize(
-                null,
-                containingClass.thisAsReceiverParameter,
-                emptyList(),
-                emptyList(),
-                emptyList(),
-                containingClass.builtIns.stdlibTypes.anyType,
-                Modality.OPEN,
-                DescriptorVisibilities.PROTECTED
-            )
-        }
-    )
-
-    companion object {
-        val CLONE_NAME = Name.identifier("clone")
-    }
-}
-
 class CangJieBuiltInClassDescriptorFactory(
     storageManager: StorageManager,
     private val moduleDescriptor: ModuleDescriptor,
@@ -86,41 +49,16 @@ class CangJieBuiltInClassDescriptorFactory(
         module.getPackage(CANGJIE_FQ_NAME).fragments.filterIsInstance<BuiltInsPackageFragment>().first()
     }
 ) : ClassDescriptorFactory {
-    private val cloneable by storageManager.createLazyValue {
-        ClassDescriptorImpl(
-            computeContainingDeclaration(moduleDescriptor),
-            CLONEABLE_NAME, Modality.ABSTRACT, ClassKind.INTERFACE, listOf(moduleDescriptor.builtIns.stdlibTypes.anyType),
-            SourceElement.NO_SOURCE, false, storageManager
-        ).apply {
-            initialize(CloneableClassScope(storageManager, this), emptyList(), null, emptyList())
-        }
-    }
 
-    override fun shouldCreateClass(packageFqName: FqName, name: Name): Boolean =
-        name == CLONEABLE_NAME && packageFqName == CANGJIE_FQ_NAME
+    override fun shouldCreateClass(packageFqName: FqName, name: Name): Boolean = false
 
-    override fun createEnum(classId: ClassId): EnumDescriptor? =
-        when (classId) {
+    override fun createEnum(classId: ClassId): EnumDescriptor? = null
 
-            else -> null
-        }
+    override fun createClass(classId: ClassId): ClassDescriptor? = null
 
-    override fun createClass(classId: ClassId): ClassDescriptor? =
-        when (classId) {
-            CLONEABLE_CLASS_ID -> cloneable
-            else -> null
-        }
-
-    override fun getAllContributedClassesIfPossible(packageFqName: FqName): Collection<ClassDescriptor> =
-        when (packageFqName) {
-            CANGJIE_FQ_NAME -> setOf(cloneable)
-            else -> emptySet()
-        }
+    override fun getAllContributedClassesIfPossible(packageFqName: FqName): Collection<ClassDescriptor> = emptySet()
 
     companion object {
         private val CANGJIE_FQ_NAME = StandardNames.BASIC_PACKAGE_FQ_NAME
-        private val CLONEABLE_NAME = StandardNames.FqNames.cloneable.shortName()
-        val CLONEABLE_CLASS_ID = ClassId.topLevel(StandardNames.FqNames.cloneable.toSafe())
-
     }
 }

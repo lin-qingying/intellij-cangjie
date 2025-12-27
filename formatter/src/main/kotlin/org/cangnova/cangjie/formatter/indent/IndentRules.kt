@@ -172,7 +172,7 @@ object IndentRules {
                 INIT_KEYWORD,
                 RPAR,
                 EOL_COMMENT,
-                CONTEXT_RECEIVER_LIST,
+
                 MODIFIER_LIST
             )
             .set(Indent.getContinuationWithoutFirstIndent()),

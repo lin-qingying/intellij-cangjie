@@ -246,7 +246,6 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
     fun CangJieTypeMarker.isSignedOrUnsignedNumberType(): Boolean
     fun CangJieTypeMarker.isFunctionWithAny(): Boolean
     fun CangJieTypeMarker.functionTypeKind(): FunctionTypeKind?
-    fun CangJieTypeMarker.isExtensionFunctionType(): Boolean
     fun CangJieTypeMarker.getFunctionTypeFromSupertypes(): CangJieTypeMarker
     fun getNonReflectFunctionTypeConstructor(parametersNumber: Int, kind: FunctionTypeKind): TypeConstructorMarker
     fun getReflectFunctionTypeConstructor(parametersNumber: Int, kind: FunctionTypeKind): TypeConstructorMarker

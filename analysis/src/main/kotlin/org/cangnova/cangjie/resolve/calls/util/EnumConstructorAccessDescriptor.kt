@@ -46,9 +46,7 @@ open class EnumConstructorAccessDescriptor(
 
     fun getReferencedObject(): ClassDescriptor = classDescriptor
 
-    override val contextReceiverParameters: List<ReceiverParameterDescriptor> = emptyList()
 
-    override val extensionReceiverParameter: ReceiverParameterDescriptor? = null
 
     override val dispatchReceiverParameter: ReceiverParameterDescriptor? = null
 

@@ -39,7 +39,7 @@ by (
             CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE,
             /*false, false, false, false, false, false*/
         ).apply {
-            setType(ErrorUtils.errorPropertyType, emptyList(), null, null, emptyList())
+            setType(ErrorUtils.errorPropertyType, emptyList(), null)
         }
         )
 
@@ -59,6 +59,6 @@ by (
             ErrorUtils.errorClass,   Name.special(ErrorEntity.ERROR_VARIABLE.debugText),DescriptorVisibilities.PUBLIC, false,
             SourceElement.NO_SOURCE,
         ).apply {
-            setType(ErrorUtils.errorVariableType, emptyList(), null, null, emptyList())
+            setType(ErrorUtils.errorVariableType, emptyList(), null)
         }
         )

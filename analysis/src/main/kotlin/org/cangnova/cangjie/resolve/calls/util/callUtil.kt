@@ -336,7 +336,7 @@ fun CallTypeAndReceiver<*, *>.receiverTypes(
     )?.map { it.type }
 }
 
-fun CallableDescriptor.receiverType(): CangJieType? = (dispatchReceiverParameter ?: extensionReceiverParameter)?.type
+fun CallableDescriptor.receiverType(): CangJieType? = (dispatchReceiverParameter  )?.type
 fun CallTypeAndReceiver<*, *>.receiverTypesWithIndex(
     bindingContext: BindingContext,
     contextElement: PsiElement,

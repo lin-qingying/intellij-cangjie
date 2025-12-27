@@ -109,19 +109,7 @@ interface ResolvedCall<out D : CallableDescriptor> {
      */
     val dispatchReceiver: ReceiverValue?
 
-    /**
-     * 扩展接收者
-     *
-     * 如果目标是扩展函数或属性，这是其接收者参数的值
-     */
-    val extensionReceiver: ReceiverValue?
 
-    /**
-     * 上下文接收者列表
-     *
-     * 如果目标是具有上下文接收者的函数或属性，这是其上下文接收者参数的值列表
-     */
-    val contextReceivers: List<ReceiverValue>
 
     /**
      * 显式接收者类型

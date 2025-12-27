@@ -1547,9 +1547,6 @@ class ControlFlowProcessor(
                 //noinspection EnumSwitchStatementWhichMissesCases
                 when (resolvedCall.explicitReceiverKind) {
                     ExplicitReceiverKind.DISPATCH_RECEIVER -> explicitReceiver = resolvedCall.dispatchReceiver
-                    ExplicitReceiverKind.EXTENSION_RECEIVER, ExplicitReceiverKind.BOTH_RECEIVERS -> explicitReceiver =
-                        resolvedCall.extensionReceiver
-
                     ExplicitReceiverKind.NO_EXPLICIT_RECEIVER -> {
                     }
                 }
@@ -1561,7 +1558,6 @@ class ControlFlowProcessor(
             }
             val callElement = resolvedCall.call.callElement
             receiverValues = getReceiverValues(callElement, resolvedCall.dispatchReceiver, receiverValues)
-            receiverValues = getReceiverValues(callElement, resolvedCall.extensionReceiver, receiverValues)
             return receiverValues
         }
 

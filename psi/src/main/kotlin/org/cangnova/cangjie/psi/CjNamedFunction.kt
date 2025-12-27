@@ -153,12 +153,7 @@ open class CjNamedFunction : CjFunctionImpl<CangJieNamedFunctionStub, CjNamedFun
         return node.elementType.toString() + ": " + name
     }
 
-    override val contextReceivers: List<CjContextReceiver>
-        get() {
-            val contextReceiverList: CjContextReceiverList? =
-                getStubOrPsiChild(CjStubElementTypes.CONTEXT_RECEIVER_LIST)
-            return contextReceiverList?.contextReceivers() ?: emptyList()
-        }
+
 
     override val typeReference: CjTypeReference?
         get() {

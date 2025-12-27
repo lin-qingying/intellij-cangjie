@@ -161,8 +161,6 @@ import org.cangnova.cangjie.types.isAny
         declaration: CjCallableDeclaration,
         original: CallableDescriptor
     ): Boolean {
-        // 1. 检查接收者类型是否匹配（扩展函数/属性）
-        if (!receiverTypesMatch(declaration.receiverTypeReference, original.extensionReceiverParameter)) return false
 
         // 2. 检查返回类型是否匹配
         if (!returnTypesMatch(declaration, original)) return false

@@ -29,9 +29,6 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.SpecialNames
 import org.cangnova.cangjie.resolve.builtIns
-import org.cangnova.cangjie.resolve.scopes.receivers.ContextReceiver
-import org.cangnova.cangjie.resolve.scopes.receivers.ExtensionReceiver
-import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitContextReceiver
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.utils.SmartSet
 
@@ -76,7 +73,7 @@ open class PropertyDescriptorImpl(
         dispatchReceiverParameter: ReceiverParameterDescriptor?,
         extensionReceiverParameter: ReceiverParameterDescriptor?
     ) {
-        setType(outType, typeParameters, dispatchReceiverParameter, extensionReceiverParameter, emptyList())
+        setType(outType, typeParameters, dispatchReceiverParameter)
     }
 
     fun initialize(getter: PropertyGetterDescriptorImpl?, setter: PropertySetterDescriptor?) {
@@ -166,23 +163,15 @@ open class PropertyDescriptorImpl(
             dispatchReceiver.substitute(substitutor) ?: return null
         }
 
-        // 替换扩展接收器
-        val substitutedExtensionReceiver = extensionReceiverParameter?.let {
-            substituteParameterDescriptor(substitutor, substitutedDescriptor, it)
-        }
 
-        // 替换上下文接收器
-        val substitutedContextReceivers = contextReceiverParameters.mapNotNull { contextReceiverParameter ->
-            substituteContextParameterDescriptor(substitutor, substitutedDescriptor, contextReceiverParameter)
-        }
+
 
         // 设置替代描述符的类型信息
         substitutedDescriptor.setType(
             outType,
             substitutedTypeParameters,
             substitutedDispatchReceiver,
-            substitutedExtensionReceiver,
-            substitutedContextReceivers
+
         )
 
         // 创建并初始化替代的getter描述符
@@ -412,28 +401,12 @@ initialSignatureDescriptor = getSubstitutedInitialSignatureDescriptor(substituto
         ): ReceiverParameterDescriptor? {
             val substitutedType =
                 substitutor.substitute(receiverParameterDescriptor.type, Variance.INVARIANT) ?: return null
-            return ReceiverParameterDescriptorImpl(
-                substitutedPropertyDescriptor,
-                ExtensionReceiver(substitutedPropertyDescriptor, substitutedType, receiverParameterDescriptor.value),
-                receiverParameterDescriptor.annotations
-            )
-        }
 
-        private fun substituteContextParameterDescriptor(
-            substitutor: TypeSubstitutor,
-            substitutedPropertyDescriptor: PropertyDescriptor,
-            receiverParameterDescriptor: ReceiverParameterDescriptor
-        ): ReceiverParameterDescriptor? {
-            val substitutedType =
-                substitutor.substitute(receiverParameterDescriptor.type, Variance.INVARIANT) ?: return null
+            // 对于 extend 接收者，保持其 ImplicitExtendReceiver 类型
+            val receiverValue = receiverParameterDescriptor.value
             return ReceiverParameterDescriptorImpl(
                 substitutedPropertyDescriptor,
-                ContextReceiver(
-                    substitutedPropertyDescriptor,
-                    substitutedType,
-                    (receiverParameterDescriptor.value as ImplicitContextReceiver).customLabelName,
-                    receiverParameterDescriptor.value
-                ),
+                receiverValue.replaceType(substitutedType),
                 receiverParameterDescriptor.annotations
             )
         }

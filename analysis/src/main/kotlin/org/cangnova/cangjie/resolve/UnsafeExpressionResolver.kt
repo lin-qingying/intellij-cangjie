@@ -207,7 +207,7 @@ class UnsafeExpressionResolver(
 
 
             initialize(
-                null, null, listOf(),
+                null,
 
                 listOf(T),
                 listOf(
@@ -220,7 +220,7 @@ class UnsafeExpressionResolver(
                         false,
 
                         createFunctionType(
-                            module.builtIns, Annotations.EMPTY, null, emptyList(), emptyList(), null, T.defaultType
+                            module.builtIns, Annotations.EMPTY, null, emptyList(), emptyList(), T.defaultType
                         ),
                         false,
                         SourceElement.NO_SOURCE,

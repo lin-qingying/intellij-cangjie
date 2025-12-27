@@ -804,10 +804,7 @@ enum class CompileTimeType {
 private fun getReceiverExpressionType(resolvedCall: ResolvedCall<*>): CangJieType? {
     return when (resolvedCall.explicitReceiverKind) {
         ExplicitReceiverKind.DISPATCH_RECEIVER -> resolvedCall.dispatchReceiver!!.type
-        ExplicitReceiverKind.EXTENSION_RECEIVER -> resolvedCall.extensionReceiver!!.type
         ExplicitReceiverKind.NO_EXPLICIT_RECEIVER -> null
-        ExplicitReceiverKind.BOTH_RECEIVERS -> null
-
     }
 }
 

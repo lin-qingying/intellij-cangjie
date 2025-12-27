@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.resolve.calls.tower
 
-import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.diagnostics.infos.errors.*
@@ -87,7 +86,7 @@ import org.cangnova.cangjie.types.isError
 import org.cangnova.cangjie.types.isFunctionType
 import org.cangnova.cangjie.types.model.TypeSystemInferenceExtensionContext
 import org.cangnova.cangjie.utils.compactIfPossible
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 import org.cangnova.cangjie.utils.firstIsInstanceOrNull
 import org.cangnova.cangjie.utils.isUnderscoreNamed
 
@@ -533,8 +532,6 @@ class PSICallResolver(
         override val dynamicScope: MemberScope =
             dynamicCallableDescriptors.createDynamicDescriptorScope(context.call, context.scope.ownerDescriptor)
 
-        override fun getContextReceivers(scope: LexicalScope): List<ReceiverValueWithSmartCastInfo> =
-            scope.contextReceiversGroup.map { cache.getOrPut(it) { context.transformToReceiverWithSmartCastInfo(it.value) } }
 
         override val typeApproximator: TypeApproximator get() = this@PSICallResolver.typeApproximator
 
@@ -824,7 +821,7 @@ class PSICallResolver(
                 "Unexpected lambda parameters for call $oldCall"
             }
             if (allValueArguments.isEmpty()) {
-                throw CangJieExceptionWithAttachmentsImpl("Can not find an external argument for 'set' method")
+                throw CangJieExceptionWithAttachments("Can not find an external argument for 'set' method")
                     .withPsiAttachment("callElement.cj", oldCall.callElement)
                     .withPsiAttachment("file.cj", oldCall.callElement.takeIf { it.isValid }?.containingFile)
             }

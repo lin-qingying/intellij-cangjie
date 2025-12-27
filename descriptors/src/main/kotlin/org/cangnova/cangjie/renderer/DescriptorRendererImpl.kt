@@ -67,10 +67,8 @@ open class DescriptorRendererImpl(
 
     private val functionTypeAnnotationsRenderer: DescriptorRendererImpl by lazy {
         withOptions {
-            /*     excludedTypeAnnotationClasses += */listOf(
-            StandardNames.FqNames.extensionFunctionType,
-            StandardNames.FqNames.contextFunctionTypeParams
-        )
+            // CangJie does not have extension function types or context function types
+            /*     excludedTypeAnnotationClasses += */emptyList<FqName>()
         } as DescriptorRendererImpl
     }
 
@@ -258,9 +256,7 @@ open class DescriptorRendererImpl(
         }
 
         val cangjieCollectionsPrefix = ""
-//            classifierNamePolicy.renderClassifier(builtIns.collection, this).substringBefore("Collection")
         val mutablePrefix = "Mutable"
-        // java.util.List<Foo> -> (Mutable)List<Foo!>!
         val simpleCollection = replacePrefixesInTypeRepresentations(
             lowerRendered,
             cangjieCollectionsPrefix + mutablePrefix,
@@ -269,7 +265,6 @@ open class DescriptorRendererImpl(
             "$cangjieCollectionsPrefix($mutablePrefix)"
         )
         if (simpleCollection != null) return simpleCollection
-        // java.util.Map.Entry<Foo, Bar> -> (Mutable)Map.(Mutable)Entry<Foo!, Bar!>!
         val mutableEntry = replacePrefixesInTypeRepresentations(
             lowerRendered,
             cangjieCollectionsPrefix + "MutableMap.MutableEntry",
@@ -280,8 +275,6 @@ open class DescriptorRendererImpl(
         if (mutableEntry != null) return mutableEntry
 
         val cangjiePrefix = ""
-//            classifierNamePolicy.renderClassifier(builtIns.array, this).substringBefore("Array")
-        // Foo[] -> Array<(out) Foo!>!
         val array = replacePrefixesInTypeRepresentations(
             lowerRendered,
             cangjiePrefix + escape("Array<"),
@@ -314,7 +307,6 @@ open class DescriptorRendererImpl(
 
         when {
             type is OptionType -> renderSimpleType(type.innerType as SimpleType)
-//            type.isMarkedOption -> renderSimpleType(type.arguments[0].type as SimpleType)
 
             type.isError -> {
                 if (isUnresolvedType(type) && presentableUnresolvedTypes) {
@@ -392,77 +384,41 @@ open class DescriptorRendererImpl(
 
     private fun StringBuilder.renderFunctionType(type: CangJieType) {
         val lengthBefore = length
-        // we need special renderer to skip @ExtensionFunctionType and @ContextFunctionTypeParams
+        // 仓颉不需要跳过扩展函数类型注解（因为没有这个特性）
         with(functionTypeAnnotationsRenderer) {
             renderAnnotations(type)
         }
         val hasAnnotations = length != lengthBefore
 
-        val receiverType = type.getReceiverTypeFromFunctionType()
-        val contextReceiversTypes = type.getContextReceiverTypesFromFunctionType()
-
-
         val isOption = type.isOption
 
-        val needParenthesis = isOption || (hasAnnotations && receiverType != null)
+        // 仓颉没有扩展函数类型的接收器，简化括号逻辑
+        val needParenthesis = isOption
         if (needParenthesis) {
-
             if (hasAnnotations) {
                 assert(last().isWhitespace())
                 if (get(lastIndex - 1) != ')') {
-                    // last annotation rendered without parenthesis - need to add them otherwise parsing will be incorrect
                     insert(lastIndex, "()")
                 }
             }
-
             append("(")
-
-        }
-
-        if (contextReceiversTypes.isNotEmpty()) {
-            append("context(")
-            val withoutLast = contextReceiversTypes.subList(0, contextReceiversTypes.lastIndex)
-            for (contextReceiverType in withoutLast) {
-                renderNormalizedType(contextReceiverType)
-                append(", ")
-            }
-            renderNormalizedType(contextReceiversTypes.last())
-            append(") ")
-        }
-
-
-        if (receiverType != null) {
-            val surroundReceiver = shouldRenderAsPrettyFunctionType(receiverType) && !receiverType.isOption ||
-//                    receiverType.hasModifiersOrAnnotations() ||
-                    receiverType is DefinitelyNonOptionType
-            if (surroundReceiver) {
-                append("(")
-            }
-            renderNormalizedType(receiverType)
-            if (surroundReceiver) {
-                append(")")
-            }
-            append(".")
         }
 
         append("(")
 
-        if (type.isBuiltinExtensionFunctionalType && type.arguments.size <= 1) {
-            append("???")
-        } else {
-            val parameterTypes = type.getValueParameterTypesFromFunctionType()
-            for ((index, typeProjection) in parameterTypes.withIndex()) {
-                if (index > 0) append(", ")
+        // 仓颉没有扩展函数类型，直接渲染参数类型
+        val parameterTypes = type.getValueParameterTypesFromFunctionType()
+        for ((index, typeProjection) in parameterTypes.withIndex()) {
+            if (index > 0) append(", ")
 
-                val name =
-                    if (parameterNamesInFunctionalTypes) typeProjection.type.extractParameterNameFromFunctionTypeArgument() else null
-                if (name != null) {
-                    append(renderName(name, false))
-                    append(": ")
-                }
-
-                append(renderTypeProjection(typeProjection))
+            val name =
+                if (parameterNamesInFunctionalTypes) typeProjection.type.extractParameterNameFromFunctionTypeArgument() else null
+            if (name != null) {
+                append(renderName(name, false))
+                append(": ")
             }
+
+            append(renderTypeProjection(typeProjection))
         }
 
         append(") ").append(arrow()).append(" ")
@@ -500,12 +456,12 @@ open class DescriptorRendererImpl(
     private fun StringBuilder.renderAnnotations(annotated: Annotated, target: AnnotationUseSiteTarget? = null) {
         if (DescriptorRendererModifier.ANNOTATIONS !in modifiers) return
 
-        val excluded =/* if (annotated is CangJieType) excludedTypeAnnotationClasses else*/ excludedAnnotationClasses
+        val excluded = excludedAnnotationClasses
 
         val annotationFilter = annotationFilter
         for (annotation in annotated.annotations) {
             if (annotation.fqName !in excluded
-                && !annotation.isParameterName()
+
                 && (annotationFilter == null || annotationFilter(annotation))
             ) {
                 append(renderAnnotation(annotation, target))
@@ -518,9 +474,6 @@ open class DescriptorRendererImpl(
         }
     }
 
-    private fun AnnotationDescriptor.isParameterName(): Boolean {
-        return fqName == StandardNames.FqNames.parameterName
-    }
 
     override fun renderAnnotation(annotation: AnnotationDescriptor, target: AnnotationUseSiteTarget?): String {
         return buildString {
@@ -539,7 +492,6 @@ open class DescriptorRendererImpl(
             }
 
             if (verbose && (annotationType.isError
-//                        || annotationType.constructor.declarationDescriptor is NotFoundClasses.MockClassDescriptor
                         )
             ) {
                 append(" /* annotation class not found */")
@@ -661,8 +613,7 @@ open class DescriptorRendererImpl(
 
     private fun renderAdditionalModifiers(functionDescriptor: FunctionDescriptor, builder: StringBuilder) {
         val isOperator =
-            functionDescriptor.isOperator /*&& (functionDescriptor.overriddenDescriptors.none { it.isOperator } || alwaysRenderModifiers)*/
-
+            functionDescriptor.isOperator
 
 
 
@@ -698,29 +649,7 @@ open class DescriptorRendererImpl(
         builder.renderAnnotations(typeParameter)
 
         renderName(typeParameter, builder, topLevel)
-//        val upperBoundsCount = typeParameter.upperBounds.size
-//        if ((upperBoundsCount > 1 && !topLevel) || upperBoundsCount == 1) {
-//            val upperBound = typeParameter.upperBounds.iterator().next()
-//            if (!CangJieBuiltIns.isDefaultBound(upperBound)) {
-//                builder.append(" : ").append(renderType(upperBound))
-//            }
-//        } else if (topLevel) {
-//            var first = true
-//            for (upperBound in typeParameter.upperBounds) {
-//                if (CangJieBuiltIns.isDefaultBound(upperBound)) {
-//                    continue
-//                }
-//                if (first) {
-//                    builder.append(" : ")
-//                } else {
-//                    builder.append(" & ")
-//                }
-//                builder.append(renderType(upperBound))
-//                first = false
-//            }
-//        } else {
-//            // rendered with "where"
-//        }
+
 
         if (topLevel) {
             builder.append(gt())
@@ -738,9 +667,7 @@ open class DescriptorRendererImpl(
             builder.append(lt())
             renderTypeParameterList(builder, typeParameters)
             builder.append(gt())
-//            if (withSpace) {
-//                builder.append(" ")
-//            }
+
         }
     }
 
@@ -759,7 +686,6 @@ open class DescriptorRendererImpl(
     private fun renderFunction(function: FunctionDescriptor, builder: StringBuilder) {
         if (!startFromName) {
             if (!startFromDeclarationKeyword) {
-                renderContextReceivers(function.contextReceiverParameters, builder)
                 builder.renderAnnotations(function)
                 renderVisibility(function.visibility, builder)
 
@@ -775,9 +701,7 @@ open class DescriptorRendererImpl(
 
                 if (includeAdditionalModifiers) {
                     renderAdditionalModifiers(function, builder)
-                }/* else {
-                    renderSuspendModifier(function, builder)
-                }*/
+                }
 
                 renderMemberKind(function, builder)
 
@@ -810,7 +734,6 @@ open class DescriptorRendererImpl(
             } else {
                 builder.append(renderKeyword("func"))
             }.append(" ")
-            renderReceiver(function, builder)
         }
 
         renderName(function, builder, true)
@@ -818,7 +741,6 @@ open class DescriptorRendererImpl(
 
         renderValueParameters(function.valueParameters, builder, false/*function.hasSynthesizedParameterNames()*/)
 
-        renderReceiverAfterName(function, builder)
 
         val returnType = function.returnType
 //        if (!withoutReturnType && (unitReturnType || (returnType == null /*|| !CangJieBuiltIns.isUnit(returnType)*/))) {
@@ -828,14 +750,6 @@ open class DescriptorRendererImpl(
         renderWhereSuffix(function.typeParameters, builder)
     }
 
-    private fun renderReceiverAfterName(callableDescriptor: CallableDescriptor, builder: StringBuilder) {
-        if (!receiverAfterName) return
-
-        val receiver = callableDescriptor.extensionReceiverParameter
-        if (receiver != null) {
-            builder.append(" on ").append(renderType(receiver.type))
-        }
-    }
 
     private fun CangJieType.renderForReceiver(): String {
         var result = renderType(this)
@@ -845,33 +759,6 @@ open class DescriptorRendererImpl(
         return result
     }
 
-    private fun renderContextReceivers(contextReceivers: List<ReceiverParameterDescriptor>, builder: StringBuilder) {
-        if (contextReceivers.isNotEmpty()) {
-            builder.append("context(")
-        } else {
-            return
-        }
-        for ((i, contextReceiver) in contextReceivers.withIndex()) {
-            builder.renderAnnotations(contextReceiver, AnnotationUseSiteTarget.RECEIVER)
-            val typeString = contextReceiver.type.renderForReceiver()
-            builder.append(typeString)
-            if (i == contextReceivers.lastIndex) {
-                builder.append(") ")
-            } else {
-                builder.append(", ")
-            }
-        }
-    }
-
-    private fun renderReceiver(callableDescriptor: CallableDescriptor, builder: StringBuilder) {
-        val receiver = callableDescriptor.extensionReceiverParameter
-        if (receiver != null) {
-            builder.renderAnnotations(receiver, AnnotationUseSiteTarget.RECEIVER)
-
-            val typeString = receiver.type.renderForReceiver()
-            builder.append(typeString).append(".")
-        }
-    }
 
 
     private fun renderWhereSuffix(typeParameters: List<TypeParameterDescriptor>, builder: StringBuilder) {
@@ -1102,7 +989,7 @@ open class DescriptorRendererImpl(
             renderVisibility(cclass.visibility, builder)
 
             if (!(cclass.kind == ClassKind.INTERFACE && cclass.modality == Modality.ABSTRACT ||
-                         cclass.modality == Modality.FINAL)
+                        cclass.modality == Modality.FINAL)
             ) {
                 renderModality(cclass.modality, builder, cclass.implicitModalityWithoutExtensions())
             }
@@ -1383,15 +1270,10 @@ open class DescriptorRendererImpl(
                 renderPropertyKeyword(property, builder)
 //                renderLetVarPrefix(property, builder)
                 renderTypeParameters(property.typeParameters, builder, true)
-                renderReceiver(property, builder)
             }
 
             renderName(property, builder, true)
             builder.append(": ").append(renderType(property.type))
-
-            renderReceiverAfterName(property, builder)
-//
-//            renderInitializer(property, builder)
 
             renderWhereSuffix(property.typeParameters, builder)
         }

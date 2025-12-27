@@ -97,8 +97,6 @@ abstract class ResolvedCallAtom : ResolvedAtom() {
     abstract val candidateDescriptor: CallableDescriptor
     abstract val explicitReceiverKind: ExplicitReceiverKind
     abstract val dispatchReceiverArgument: SimpleCangJieCallArgument?
-    abstract var extensionReceiverArgument: SimpleCangJieCallArgument?
-    abstract val extensionReceiverArgumentCandidates: List<SimpleCangJieCallArgument>?
     abstract var contextReceiversArguments: List<SimpleCangJieCallArgument>
     abstract val typeArgumentMappingByOriginal: TypeArgumentsToParametersMapper.TypeArgumentsMapping
 
@@ -252,7 +250,6 @@ class ResolvedLambdaAtom(
     override val atom: LambdaCangJieCallArgument,
 
     val receiver: UnwrappedType?,
-    val contextReceivers: List<UnwrappedType>,
     val parameters: List<UnwrappedType>,
     val returnType: UnwrappedType,
     val typeVariableForLambdaReturnType: TypeVariableForLambdaReturnType?,
@@ -277,11 +274,11 @@ class ResolvedLambdaAtom(
 
     override val inputTypes: Collection<UnwrappedType>
         get() {
-            if (receiver == null && contextReceivers.isEmpty()) return parameters
-            return ArrayList<UnwrappedType>(parameters.size + contextReceivers.size + (if (receiver != null) 1 else 0)).apply {
+            if (receiver == null ) return parameters
+            return ArrayList<UnwrappedType>(parameters.size +1).apply {
                 addAll(parameters)
                 addIfNotNull(receiver)
-                addAll(contextReceivers)
+
             }
         }
 

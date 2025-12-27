@@ -49,8 +49,7 @@ object CastReceiverInsertHandler {
             val descriptor = (item.`object` as? DescriptorBasedDeclarationLookupObject)?.descriptor as CallableDescriptor
             val project = context.project
 
-            val thisObj =
-                if (descriptor.extensionReceiverParameter != null) descriptor.extensionReceiverParameter else descriptor.dispatchReceiverParameter
+            val thisObj = descriptor.dispatchReceiverParameter
             val fqName = IdeDescriptorRenderers.SOURCE_CODE.renderClassifierName(thisObj!!.type.constructor.declarationDescriptor!!)
 
             val parentCast = CjPsiFactory(project).createExpression("(expr as $fqName)") as CjParenthesizedExpression

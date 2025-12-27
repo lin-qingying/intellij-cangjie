@@ -291,13 +291,13 @@ object CangJiePlatformConfigurator : PlatformConfiguratorBase() {
     /**
      * 配置模块组件
      *
-     * 仓颉平台目前没有需要特殊配置的模块组件。
-     * 所有标准组件都通过父类的 `platformSpecificContainer` 配置。
+     * 注册仓颉平台特定的模块组件，包括：
+     * - SyntheticScopes: 合成作用域，用于提供合成的构造函数和扩展
      *
      * @param container 存储组件容器
      */
     override fun configureModuleComponents(container: StorageComponentContainer) {
-
+        container.useImpl<org.cangnova.cangjie.resolve.scopes.synthetic.FunInterfaceConstructorsScopeProvider>()
     }
 
     /**

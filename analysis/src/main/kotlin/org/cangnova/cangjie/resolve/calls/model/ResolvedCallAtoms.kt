@@ -64,8 +64,6 @@ open class MutableResolvedCallAtom(
     originalCandidateDescriptor: CallableDescriptor, // original candidate descriptor
     override val explicitReceiverKind: ExplicitReceiverKind,
     override val dispatchReceiverArgument: SimpleCangJieCallArgument?,
-    override var extensionReceiverArgument: SimpleCangJieCallArgument?,
-    override val extensionReceiverArgumentCandidates: List<SimpleCangJieCallArgument>?,
     open val reflectionCandidateType: UnwrappedType? = null,
     open val candidate: CallableReferenceResolutionCandidate? = null
 ) : ResolvedCallAtom() {
@@ -170,7 +168,6 @@ class ResolvedCallableReferenceCallAtom(
     candidateDescriptor: CallableDescriptor,
     explicitReceiverKind: ExplicitReceiverKind,
     dispatchReceiverArgument: SimpleCangJieCallArgument?,
-    extensionReceiverArgument: SimpleCangJieCallArgument?,
     reflectionCandidateType: UnwrappedType? = null,
     candidate: CallableReferenceResolutionCandidate? = null
 ) : MutableResolvedCallAtom(
@@ -178,8 +175,7 @@ class ResolvedCallableReferenceCallAtom(
     candidateDescriptor,
     explicitReceiverKind,
     dispatchReceiverArgument,
-    extensionReceiverArgument,
-    emptyList(),
+
     reflectionCandidateType,
     candidate
 ), ResolvedCallableReferenceAtom

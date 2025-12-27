@@ -277,7 +277,7 @@ class CollectionLiteralResolver(
 
 //            arrayType.arguments
             initialize(
-                null, null, listOf(), listOf(
+                null,     listOf(
 
                 ), listOf(
                     ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
@@ -319,7 +319,7 @@ class CollectionLiteralResolver(
 
 //            arrayType.arguments
             initialize(
-                null, null, listOf(), listOf(
+                 null,  listOf(
                     t
                 ), listOf(
                     ValueParameterDescriptorImpl.createWithDestructuringDeclarations(

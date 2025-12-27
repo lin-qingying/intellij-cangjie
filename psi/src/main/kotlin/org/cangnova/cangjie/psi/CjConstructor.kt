@@ -62,7 +62,6 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
 
     override val receiverTypeReference: CjTypeReference? = null
 
-    override val contextReceivers: List<CjContextReceiver> = emptyList()
 
     override val valueParameters: List<CjParameter>
         get() = valueParameterList?.parameters ?: emptyList()

@@ -30,10 +30,10 @@ import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.source.getPsi
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 
 
-class CheckMatchException(message: String) : CangJieExceptionWithAttachmentsImpl(message)
+class CheckMatchException(message: String) : CangJieExceptionWithAttachments(message)
 typealias Matrix = List<List<Pattern>>
 
 /** Calculates the pattern matrix by splitting or-patterns across different rows */

@@ -52,7 +52,6 @@ import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
 import org.cangnova.cangjie.resolve.DescriptorUtils.getDispatchReceiverParameterIfNeeded
 import org.cangnova.cangjie.resolve.DescriptorUtils.getParentOfType
 import org.cangnova.cangjie.resolve.DescriptorUtils.isAnonymousObject
-import org.cangnova.cangjie.resolve.DescriptorUtils.isEnumConstructor
 import org.cangnova.cangjie.resolve.DescriptorUtils.isLocal
 import org.cangnova.cangjie.resolve.DescriptorUtils.isSubclass
 import org.cangnova.cangjie.resolve.ModifiersChecker.Companion.resolveMemberModalityFromModifiers
@@ -66,7 +65,6 @@ import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfoFactory
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import org.cangnova.cangjie.resolve.calls.util.isSingleUnderscore
-import org.cangnova.cangjie.resolve.calls.util.reportOnElement
 import org.cangnova.cangjie.resolve.lazy.ForceResolveUtil.forceResolveAllContents
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyTypeAliasDescriptor.Companion.create
 import org.cangnova.cangjie.resolve.scopes.*
@@ -165,8 +163,7 @@ class DescriptorResolver(
 
         )
         variableDescriptor.setType(
-            type, emptyList(), getDispatchReceiverParameterIfNeeded(classDescriptor), null,
-            emptyList()
+            type, emptyList(), getDispatchReceiverParameterIfNeeded(classDescriptor)
         )
 
 
@@ -441,40 +438,14 @@ class DescriptorResolver(
         }
 
         val receiverTypeRef = variableDeclaration.receiverTypeReference
-        var receiverDescriptor: ReceiverParameterDescriptor? = null
         if (receiverTypeRef != null) {
             receiverType =
                 typeResolver.resolveType(scopeForDeclarationResolutionWithTypeParameters, receiverTypeRef, trace, true)
-            val splitter = AnnotationSplitter(
-                storageManager, receiverType.annotations, EnumSet.of(AnnotationUseSiteTarget.RECEIVER)
-            )
-            receiverDescriptor = DescriptorFactory.createExtensionReceiverParameterForCallable(
-                propertyDescriptor, receiverType, splitter.getAnnotationsForTarget(AnnotationUseSiteTarget.RECEIVER)
-            )
+            // 在仓颉语言中，extend 成员使用 dispatchReceiver，不需要创建 extensionReceiver
+            // dispatchReceiver 会通过 getDispatchReceiverParameterIfNeeded(container) 设置
         }
 
-        val contextReceivers = variableDeclaration.contextReceivers
-        val contextReceiverDescriptors = contextReceivers.mapIndexedNotNull { index, contextReceiver ->
-            val typeReference = contextReceiver.typeReference() ?: return@mapIndexedNotNull null
-            val type = typeResolver.resolveType(
-                scopeForDeclarationResolutionWithTypeParameters,
-                typeReference,
-                trace,
-                true
-            )
-            val splitter = AnnotationSplitter(
-                storageManager,
-                type.annotations,
-                EnumSet.of(AnnotationUseSiteTarget.RECEIVER)
-            )
-            DescriptorFactory.createContextReceiverParameterForCallable(
-                propertyDescriptor,
-                type,
-                contextReceiver.labelNameAsName(),
-                splitter.getAnnotationsForTarget(AnnotationUseSiteTarget.RECEIVER),
-                index
-            )
-        }
+
 
 
         val scopeForInitializer = makeScopeForPropertyInitializer(
@@ -509,8 +480,7 @@ class DescriptorResolver(
         )
 
         propertyDescriptor.setType(
-            type, typeParameterDescriptors, getDispatchReceiverParameterIfNeeded(container), receiverDescriptor,
-            contextReceiverDescriptors
+            type, typeParameterDescriptors, getDispatchReceiverParameterIfNeeded(container)
         )
 
         val setter = resolvePropertySetterDescriptor(
@@ -1257,7 +1227,6 @@ class DescriptorResolver(
         }
 
         val receiverTypeRef = variableDeclaration.receiverTypeReference
-        var receiverDescriptor: ReceiverParameterDescriptor? = null
         if (receiverTypeRef != null) {
             receiverType = typeResolver.resolveType(
                 scopeForDeclarationResolutionWithTypeParameters!!,
@@ -1265,38 +1234,10 @@ class DescriptorResolver(
                 trace,
                 true
             )
-            val splitter = AnnotationSplitter(
-                storageManager, receiverType.annotations, EnumSet.of(AnnotationUseSiteTarget.RECEIVER)
-            )
-            receiverDescriptor = DescriptorFactory.createExtensionReceiverParameterForCallable(
-                variableDescriptor, receiverType, splitter.getAnnotationsForTarget(AnnotationUseSiteTarget.RECEIVER)
-            )
+            // 在仓颉语言中，extend 成员使用 dispatchReceiver，不需要创建 extensionReceiver
+            // dispatchReceiver 会通过 getDispatchReceiverParameterIfNeeded(container) 设置
         }
 
-        val contextReceivers = variableDeclaration.contextReceivers
-
-        val contextReceiverDescriptors: List<ReceiverParameterDescriptor> =
-            contextReceivers.mapIndexedNotNull { index, contextReceiver ->
-                val typeReference = contextReceiver.typeReference() ?: return@mapIndexedNotNull null
-                val type = typeResolver.resolveType(
-                    scopeForDeclarationResolutionWithTypeParameters!!,
-                    typeReference,
-                    trace,
-                    true
-                )
-                val splitter = AnnotationSplitter(
-                    storageManager,
-                    type.annotations,
-                    EnumSet.of(AnnotationUseSiteTarget.RECEIVER)
-                )
-                DescriptorFactory.createContextReceiverParameterForCallable(
-                    variableDescriptor,
-                    type,
-                    contextReceiver.labelNameAsName(),
-                    splitter.getAnnotationsForTarget(AnnotationUseSiteTarget.RECEIVER),
-                    index
-                )
-            }
 
         val scopeForInitializer = makeScopeForVariableInitializer(
             scopeForInitializerResolutionWithTypeParameters!!, variableDescriptor
@@ -1315,8 +1256,7 @@ class DescriptorResolver(
         )
 
         variableDescriptor.setType(
-            type, typeParameterDescriptors, getDispatchReceiverParameterIfNeeded(container), receiverDescriptor,
-            contextReceiverDescriptors
+            type, typeParameterDescriptors, getDispatchReceiverParameterIfNeeded(container)
         )
 
 

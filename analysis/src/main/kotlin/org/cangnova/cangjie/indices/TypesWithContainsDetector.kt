@@ -35,10 +35,10 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.FuzzyType
 import org.cangnova.cangjie.types.TypeOptionality
 import org.cangnova.cangjie.types.TypeSubstitutor
-import org.cangnova.cangjie.types.fuzzyExtensionReceiverType
 import org.cangnova.cangjie.types.optionality
 import org.cangnova.cangjie.types.toFuzzyType
 import org.cangnova.cangjie.utils.addIfNotNull
+import org.cangnova.cangjie.utils.isExtension
 
 class TypesWithContainsDetector(
     scope: LexicalScope,
@@ -73,7 +73,7 @@ abstract class TypesWithOperatorDetector(
 
         val extensionsFromScope = scope
             .collectFunctions(name, NoLookupLocation.FROM_IDE)
-            .filter { it.extensionReceiverParameter != null }
+            .filter { it.isExtension }
         result.addSuitableOperators(extensionsFromScope)
 
         indicesHelper?.getTopLevelExtensionOperatorsByName(name.asString())?.let { result.addSuitableOperators(it) }
@@ -123,7 +123,9 @@ abstract class TypesWithOperatorDetector(
         }
 
         for (operator in extensionOperators) {
-            val substitutor = type.checkIsSubtypeOf(operator.fuzzyExtensionReceiverType()!!) ?: continue
+            // 在仓颉语言中，extend 成员使用 dispatchReceiver
+            val receiverType = operator.dispatchReceiverParameter?.type?.toFuzzyType(operator.typeParameters) ?: continue
+            val substitutor = type.checkIsSubtypeOf(receiverType) ?: continue
             val substituted = operator.substitute(substitutor) ?: continue
             return substituted to substitutor
         }

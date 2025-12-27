@@ -62,6 +62,12 @@ interface ExtendDescriptor :DeclarationDescriptorWithTypeParameters, Inheritable
      */
     val extendId: String
 
+    /**
+     * 扩展的 this 接收者参数描述符，用于表示扩展内成员函数的接收者类型。
+     * 类型为被扩展的类型 (extendType)
+     */
+    val thisAsReceiverParameter: ReceiverParameterDescriptor
+
     override val name: Name
         get() = Name.identifier(extendId)
 

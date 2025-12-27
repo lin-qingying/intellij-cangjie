@@ -246,8 +246,6 @@ class ControlStructureTypingUtils(
                 if (construct != ResolveConstruct.ELVIS) type else type.replaceAnnotations(Annotations.EMPTY /*  AnnotationsForResolveUtils.getExactInAnnotations()*/)
             function.initialize(
                 null,
-                null,
-                emptyList(),
                 listOf(typeParameter),
                 valueParameters,
                 returnType,

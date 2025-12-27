@@ -70,8 +70,7 @@ class FlowOperatorResolver(
         ) {
             initialize(
                 null,
-                null,
-                emptyList(),
+
                 typeParameters,
                 valueParameters,
                 returnType,
@@ -106,7 +105,7 @@ class FlowOperatorResolver(
                 false, L.defaultType, false, SourceElement.NO_SOURCE,
             )
             val reightType = createFunctionType(
-                builtIns, Annotations.EMPTY, null, emptyList(), listOf(L.defaultType), listOf(L.name), R.defaultType
+                builtIns, Annotations.EMPTY, null,   listOf(L.defaultType), listOf(L.name), R.defaultType
             )
             val reight = ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                 this, null, 1, Annotations.EMPTY, Name.identifier("right"),
@@ -140,7 +139,7 @@ class FlowOperatorResolver(
             )
             val typeParameters = mutableListOf(L, R, RR)
             val leftType = createFunctionType(
-                builtIns, Annotations.EMPTY, null, emptyList(), listOf(L.defaultType), listOf(L.name), R.defaultType
+                builtIns, Annotations.EMPTY, null, listOf(L.defaultType), listOf(L.name), R.defaultType
             )
 
 
@@ -149,7 +148,7 @@ class FlowOperatorResolver(
                 false, leftType, false, SourceElement.NO_SOURCE,
             )
             val rightType = createFunctionType(
-                builtIns, Annotations.EMPTY, null, emptyList(), listOf(R.defaultType), listOf(R.name), RR.defaultType
+                builtIns, Annotations.EMPTY, null, listOf(R.defaultType), listOf(R.name), RR.defaultType
             )
             val right = ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                 this, null, 1, Annotations.EMPTY, Name.identifier("right"),

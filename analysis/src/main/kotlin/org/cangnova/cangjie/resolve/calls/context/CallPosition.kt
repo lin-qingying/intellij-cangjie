@@ -33,7 +33,6 @@ import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 sealed class CallPosition {
     object Unknown : CallPosition()
 
-    class ExtensionReceiverPosition(val resolvedCall: ResolvedCall<*>) : CallPosition()
 
     class ValueArgumentPosition(
         val resolvedCall: ResolvedCall<*>,

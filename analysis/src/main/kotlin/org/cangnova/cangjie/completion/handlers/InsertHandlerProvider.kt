@@ -36,7 +36,6 @@ import com.intellij.openapi.editor.ex.EditorSettingsExternalizable
 import org.cangnova.cangjie.indices.ExpectedInfo
 import org.cangnova.cangjie.indices.fuzzyType
 import org.cangnova.cangjie.resolve.calls.util.CallType
-import org.cangnova.cangjie.types.getReceiverTypeFromFunctionType
 import org.cangnova.cangjie.types.getReturnTypeFromFunctionType
 import org.cangnova.cangjie.types.getValueParameterTypesFromFunctionType
 import org.cangnova.cangjie.types.isBuiltinFunctionalType
@@ -177,8 +176,8 @@ class InsertHandlerProvider(
                 val typesToProcess = if (onlyCollectReturnTypeOfFunctionalType) {
                     listOf(type.getReturnTypeFromFunctionType())
                 } else {
-                    listOfNotNull(type.getReceiverTypeFromFunctionType()) +
-                            type.getReturnTypeFromFunctionType() +
+                    // 仓颉没有扩展函数类型的接收器
+                    listOf(type.getReturnTypeFromFunctionType()) +
                             type.getValueParameterTypesFromFunctionType().map { it.type }
                 }
                 typesToProcess.forEach { addPotentiallyInferred(it, onlyCollectReturnTypeOfFunctionalType) }
@@ -192,12 +191,7 @@ class InsertHandlerProvider(
             }
         }
 
-        originalFunction.extensionReceiverParameter?.type?.let {
-            addPotentiallyInferred(
-                it,
-                onlyCollectReturnTypeOfFunctionalType = false
-            )
-        }
+
         originalFunction.valueParameters.forEach {
             addPotentiallyInferred(
                 it.type,

@@ -88,6 +88,24 @@ import kotlin.collections.isNullOrEmpty
 import kotlin.getValue
 
 
+/**
+ * 基础代码补全会话
+ *
+ * 处理标准的代码补全请求,包括:
+ * - 关键字补全
+ * - 引用补全(变量、函数、类等)
+ * - 命名参数补全
+ * - 运算符名称补全
+ * - 声明名称补全
+ * - super 限定符补全
+ * - 扩展函数补全
+ * - 静态成员补全
+ *
+ * @property configuration 补全会话配置
+ * @property completionParameters 补全参数
+ * @property policyController 策略控制器(控制补全项的添加策略)
+ * @property suggestionGeneratorConsumer 建议生成器消费者(接收并执行建议生成器)
+ */
 class BasicCompletionSession(
     configuration: CompletionSessionConfiguration,
     completionParameters: CompletionParameters,
@@ -95,21 +113,46 @@ class BasicCompletionSession(
     private val suggestionGeneratorConsumer: SuggestionGeneratorConsumer,
 ) : CompletionSession(configuration, completionParameters, policyController.getObeyingResultSet()) {
 
+    /**
+     * 补全类别接口
+     *
+     * 定义不同类型的补全场景(如关键字、引用、声明名称等)
+     */
     private interface CompletionCategory {
+        /** 此类别接受的描述符类型过滤器 */
         val descriptorKindFilter: DescriptorKindFilter?
+
+        /** 生成此类别的补全项 */
         fun generateCategories()
+
+        /** 是否应该禁用自动弹出 */
         fun shouldDisableAutoPopup(): Boolean = false
+
+        /** 添加自定义权重器到排序器 */
         fun addWeighers(sorter: CompletionSorter): CompletionSorter = sorter
     }
 
+    /** 结果集是否为空 */
     val isNothingAddedToResult: Boolean
         get() = collector.isResultEmpty
+
+    /** 仅命名参数补全类别(用于函数调用中仅期望命名参数的情况) */
     private val NAMED_ARGUMENTS_ONLY = object : OneKindCompletionCategory(CangJieCompletionKindName.NAMED_ARGUMENT) {
         override val descriptorKindFilter: DescriptorKindFilter? get() = null
         override fun fillResultSet(): Unit =
             NamedArgumentCompletion.complete(collector, expectedInfos, callTypeAndReceiver.callType)
     }
 
+    /**
+     * 检测当前位置的补全类别
+     *
+     * 根据上下文判断应该使用哪种补全策略:
+     * - 声明名称
+     * - 运算符名称
+     * - 命名参数
+     * - super 限定符
+     * - 完整补全(默认)
+     */
     private fun detectCompletionCategory(): CompletionCategory {
         if (nameExpression == null) {
             return if ((position.parent as? CjNamedDeclaration)?.nameIdentifier == position) DECLARATION_NAME else KEYWORDS_ONLY
@@ -122,7 +165,7 @@ class BasicCompletionSession(
         if (NamedArgumentCompletion.isOnlyNamedArgumentExpected(nameExpression, resolutionFacade)) {
             return NAMED_ARGUMENTS_ONLY
         }
-//
+
         if (nameExpression.getStrictParentOfType<CjSuperExpression>() != null) {
             return SUPER_QUALIFIER
         }
@@ -130,15 +173,34 @@ class BasicCompletionSession(
         return ALL
     }
 
+    /**
+     * 完整补全类别
+     *
+     * 提供最全面的补全支持,包括:
+     * - 关键字
+     * - 引用(变量、函数、类等)
+     * - 扩展函数
+     * - 智能补全
+     * - 命名参数
+     * - 包名
+     * - 静态成员
+     * - 未导入的符号
+     */
     private val ALL = object : CompletionCategory {
         override val descriptorKindFilter: DescriptorKindFilter by lazy {
             callTypeAndReceiver.callType.descriptorKindFilter.let { filter ->
+                // 排除顶层包(因为它们会单独处理)
                 filter.takeIf { it.kindMask.and(DescriptorKindFilter.PACKAGES_MASK) != 0 }
                     ?.exclude(DescriptorKindExclude.TopLevelPackages)
                     ?: filter
             }
         }
 
+        /**
+         * 判断是否在扩展接收者类型的开始位置
+         *
+         * 例如: fun String.ext() 中的 "String" 位置
+         */
         private fun isStartOfExtensionReceiverFor(): CjCallableDeclaration? {
             val userType = nameExpression!!.parent as? CjUserType ?: return null
             if (userType.qualifier != null) return null
@@ -152,20 +214,33 @@ class BasicCompletionSession(
         }
 
         override fun generateCategories() {
-
-
+            /**
+             * 添加引用变体到补全结果
+             *
+             * @param lookupElementFactory LookupElement 工厂
+             * @param referenceVariants 引用变体(包含导入和未导入的扩展)
+             */
             fun addReferenceVariants(lookupElementFactory: LookupElementFactory, referenceVariants: ReferenceVariants) {
+                // 添加已导入的符号(排除未初始化的变量)
                 collector.addDescriptorElements(
                     referenceVariantsHelper.excludeNonInitializedVariable(referenceVariants.imported, position),
                     lookupElementFactory, prohibitDuplicates = true
                 )
 
+                // 添加未导入的扩展
                 collector.addDescriptorElements(
                     referenceVariants.notImportedExtensions, lookupElementFactory,
                     notImported = true, prohibitDuplicates = true
                 )
             }
 
+            /**
+             * 创建引用建议生成器
+             *
+             * @param descriptors 描述符过滤器列表
+             * @param lookupElementFactory LookupElement 工厂
+             * @return 建议生成器列表
+             */
             fun makeReferenceSuggestionGenerators(
                 descriptors: List<DescriptorKindFilter>,
                 lookupElementFactory: LookupElementFactory
@@ -535,8 +610,8 @@ class BasicCompletionSession(
                             if (!desc.isAncestorOf(lookupDescriptor, false)) return@copy lookupElement
 
                             if (lookupDescriptor is CallableMemberDescriptor &&
-                                lookupDescriptor.isExtension &&
-                                lookupDescriptor.extensionReceiverParameter?.importableFqName != desc.fqNameSafe
+                                lookupDescriptor.isExtension
+
                             ) {
                                 return@copy lookupElement
                             }

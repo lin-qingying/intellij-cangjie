@@ -114,13 +114,9 @@ fun getFunctionTypeForAbstractMethod(
     val parameterTypes = ArrayList<CangJieType>(valueParameters.size)
     val parameterNames = ArrayList<Name>(valueParameters.size)
 
-    val contextReceiversTypes = function.contextReceiverParameters.map { it.type }
     var startIndex = 0
     var receiverType: CangJieType? = null
-    val extensionReceiver = function.extensionReceiverParameter
-    if (extensionReceiver != null) {
-        receiverType = extensionReceiver.type
-    } else if (shouldConvertFirstParameterToDescriptor && function.valueParameters.isNotEmpty()) {
+ if (shouldConvertFirstParameterToDescriptor && function.valueParameters.isNotEmpty()) {
         receiverType = valueParameters[0].type
         startIndex = 1
     }
@@ -132,7 +128,7 @@ fun getFunctionTypeForAbstractMethod(
     }
 
     return createFunctionType(
-        function.builtIns, Annotations.EMPTY, receiverType, contextReceiversTypes, parameterTypes,
+        function.builtIns, Annotations.EMPTY, receiverType, parameterTypes,
         parameterNames, returnType
     )
 }

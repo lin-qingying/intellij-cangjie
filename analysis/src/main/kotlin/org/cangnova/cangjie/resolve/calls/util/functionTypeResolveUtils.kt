@@ -32,7 +32,6 @@ import org.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeProjection
-import org.cangnova.cangjie.types.isBuiltinExtensionFunctionalType
 import org.cangnova.cangjie.types.isBuiltinFunctionalType
 
 
@@ -55,6 +54,6 @@ fun createValueParametersForInvokeInFunctionType(
 
 fun getValueParametersCountFromFunctionType(type: CangJieType): Int {
     assert(type.isBuiltinFunctionalType) { "Not a function type: $type" }
-    // Function type arguments = receiver? + parameters + return-type
-    return type.arguments.size - (if (type.isBuiltinExtensionFunctionalType) 1 else 0) - 1
+    // 仓颉没有扩展函数类型，函数类型参数 = 参数 + 返回类型
+    return type.arguments.size - 1
 }

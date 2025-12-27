@@ -130,8 +130,6 @@ fun ResolutionContext<*>.reportTypeMismatchDueToTypeProjection(
                 )
             }
 
-        is CallPosition.ExtensionReceiverPosition ->
-            callPosition.resolvedCall to { f: CallableDescriptor -> f.extensionReceiverParameter?.type }
 
         is CallPosition.VariableAssignment -> {
             if (callPosition.isLeft) return false

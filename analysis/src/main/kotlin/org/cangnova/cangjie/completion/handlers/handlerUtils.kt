@@ -53,7 +53,7 @@ import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.createSmartPointer
 import org.cangnova.cangjie.resolve.calls.util.CallType
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 
 fun removeRedundantBracesInStringTemplate(context: InsertionContext) {
     val document = context.document
@@ -544,7 +544,7 @@ private data class KeywordConstructLookupObject(
     private val constructToInsert: String
 ) : KeywordLookupObject()
 private fun throwElementIsNotFound(charsSequence: CharSequence, startOffset: Int, tailOffset: Int): Nothing {
-    throw CangJieExceptionWithAttachmentsImpl("brace is not found").apply {
+    throw CangJieExceptionWithAttachments("brace is not found").apply {
         withAttachment("element.cj", charsSequence.subSequence(startOffset, tailOffset))
         withAttachment(
             "tail.cj",

@@ -113,7 +113,7 @@ class RangeLiteralResolver(
 
 
             initialize(
-                null, null, listOf(), listOf(
+                null,   listOf(
                     t
                 ), listOfNotNull(
                     ValueParameterDescriptorImpl.createWithDestructuringDeclarations(

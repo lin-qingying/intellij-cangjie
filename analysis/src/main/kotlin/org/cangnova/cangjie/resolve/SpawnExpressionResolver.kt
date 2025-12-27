@@ -201,7 +201,7 @@ class SpawnExpressionResolver(
 
             val futureType = module.builtIns.stdlibTypes.futureType
             initialize(
-                null, null, listOf(),
+                null,
 
                 listOf(T),
                 listOf(
@@ -214,7 +214,7 @@ class SpawnExpressionResolver(
                     false,
 
                     createFunctionType(
-                        module.builtIns, Annotations.EMPTY, null, emptyList(), emptyList(), null, T.defaultType
+                        module.builtIns, Annotations.EMPTY, null, emptyList(),   null, T.defaultType
                     ),
                     false,
                     SourceElement.NO_SOURCE,

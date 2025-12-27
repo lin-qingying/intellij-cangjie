@@ -118,11 +118,11 @@ typealias NameFilter = (Name) -> Boolean
 
 enum class CallableWeightEnum {
     local, // local non-extension
-    thisClassMember,
-    baseClassMember,
-    thisTypeExtension,
-    baseTypeExtension,
-    typeParameterExtension,
+    thisClassMember,  // 当前类的成员
+    baseClassMember,  // 基类的成员
+    thisTypeExtension,  // 当前类型的 extend 成员（精确类型匹配）
+    baseTypeExtension,  // 基类型的 extend 成员
+
     globalOrStatic, // global non-extension
     receiverCastRequired
 }
@@ -289,8 +289,6 @@ fun LookupElement.decorateAsStaticMember(
     val qualifierPresentation = container.name.asString()
 
     return object : LookupElementDecorator<LookupElement>(this) {
-        private val descriptorIsCallableExtension =
-            (memberDescriptor as? CallableDescriptor)?.extensionReceiverParameter != null
 
         override fun getAllLookupStrings(): Set<String> {
             return if (classNameAsLookupString) setOf(
@@ -302,9 +300,7 @@ fun LookupElement.decorateAsStaticMember(
         override fun renderElement(presentation: LookupElementPresentation) {
             delegate.renderElement(presentation)
 
-            if (!descriptorIsCallableExtension) {
-                presentation.itemText = qualifierPresentation + "." + presentation.itemText
-            }
+
 
             val tailText = " (" + DescriptorUtils.getFqName(container.containingDeclaration) + ")"
             if (memberDescriptor is FunctionDescriptor) {
@@ -326,7 +322,7 @@ fun LookupElement.decorateAsStaticMember(
                 !it.isAllUnder && it.importPath?.fqName?.parent() == containerFqName
             }
 
-            val addMemberImport = descriptorIsCallableExtension || importFromSameParentIsPresent()
+            val addMemberImport =  importFromSameParentIsPresent()
 
             if (addMemberImport) {
                 psiDocumentManager.commitDocument(context.document)

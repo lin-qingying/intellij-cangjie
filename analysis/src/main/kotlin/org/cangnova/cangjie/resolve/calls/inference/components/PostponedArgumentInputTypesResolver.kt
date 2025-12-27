@@ -95,7 +95,6 @@ class PostponedArgumentInputTypesResolver(
         argument: PostponedAtomWithRevisableExpectedType,
         postponedArguments: List<PostponedAtomWithRevisableExpectedType>,
         dependencyProvider: TypeVariableDependencyInformationProvider,
-        extensionFunctionTypePresentInConstraints: Boolean,
         parameterTypesFromConstraints: Set<List<TypeWithKind>>?,
         parameterTypesFromDeclaration: List<CangJieTypeMarker?>?,
     ): Triple<Set<List<CangJieTypeMarker?>>?, Boolean, Int> = with(resolutionTypeSystemContext) {
@@ -143,9 +142,10 @@ class PostponedArgumentInputTypesResolver(
             considerExtensionReceiverFromConstrainsInLambda()
 
         parameterTypesFromDeclarationOfRelatedLambdas.mapTo(declaredParameterTypes) { (types, isLambda) ->
+            // 仓颉没有扩展函数类型，直接使用类型列表
             if (
                 isFeatureEnabled && isLambda &&
-                (extensionFunctionTypePresentInConstraints || isAnyFunctionExpressionWithReceiver) &&
+                isAnyFunctionExpressionWithReceiver &&
                 types.size + 1 == maxParameterCount
             )
                 listOf(null) + types
@@ -182,16 +182,12 @@ class PostponedArgumentInputTypesResolver(
 
         val annotations = functionalTypesFromConstraints.map { it.type.getAttributes() }.flatten().distinct()
 
-        val extensionFunctionTypePresentInConstraints =
-            functionalTypesFromConstraints.any { it.type.isExtensionFunctionType() }
-
-        // An extension function flag can only come from a declaration of anonymous function: `select({ this + it }, fun Int.(x: Int) = 10)`
+        // 仓颉没有扩展函数类型，直接计算参数信息
         val (parameterTypesFromDeclarationOfRelatedLambdas, isThereExtensionFunctionAmongRelatedLambdas, maxParameterCount) =
             computeParameterInfoFromRelatedLambdas(
                 argument,
                 postponedArguments,
                 variableDependencyProvider,
-                extensionFunctionTypePresentInConstraints,
                 parameterTypesFromConstraints,
                 parameterTypesFromDeclaration,
             )
@@ -213,8 +209,8 @@ class PostponedArgumentInputTypesResolver(
             argument.isLambda()
         }
 
-        val isExtensionFunction =
-            isThereExtensionFunctionAmongRelatedLambdas || extensionFunctionTypePresentInConstraints
+        // 仓颉没有扩展函数类型，isExtensionFunction 只依赖于相关 lambda 的接收器信息
+        val isExtensionFunction = isThereExtensionFunctionAmongRelatedLambdas
         return ParameterTypesInfo(
             if (parameterTypesFromDeclaration != null && isLambda &&
                 parameterTypesFromDeclaration.size + 1 == maxParameterCount &&

@@ -101,7 +101,7 @@ class VArrayTypeDescriptor(
                         ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                             this, null, 0, Annotations.EMPTY, Name.identifier("initElement"),
                             false, createFunctionType(
-                                builtIns, Annotations.EMPTY, null, emptyList(), listOf(argumentType), null, argumentType
+                                builtIns, Annotations.EMPTY, null,  listOf(argumentType), null, argumentType
                             ), false, SourceElement.NO_SOURCE
                         )
                     ),

@@ -254,7 +254,6 @@ class ReferenceVariantsCollector(
     private object TopLevelExtensionsExclude : DescriptorKindExclude() {
         override fun excludes(descriptor: DeclarationDescriptor): Boolean {
             if (descriptor !is CallableMemberDescriptor) return false
-            if (descriptor.extensionReceiverParameter == null) return false
             if (descriptor.kind != CallableMemberDescriptor.Kind.DECLARATION) return false /* do not filter out synthetic extensions */
             if (descriptor.isArtificialImportAliasedDescriptor) return false // do not exclude aliased descriptors - they cannot be completed via indices
             val containingPackage = descriptor.containingDeclaration as? PackageFragmentDescriptor ?: return false

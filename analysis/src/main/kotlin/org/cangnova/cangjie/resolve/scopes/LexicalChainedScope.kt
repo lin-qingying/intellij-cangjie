@@ -36,7 +36,6 @@ class LexicalChainedScope private constructor(
     override val ownerDescriptor: DeclarationDescriptor,
     override val isOwnerDescriptorAccessibleByLabel: Boolean,
     override val implicitReceiver: ReceiverParameterDescriptor?,
-    override val contextReceiversGroup: List<ReceiverParameterDescriptor>,
     override val kind: LexicalScopeKind,
     // NB. Here can be very special subtypes of MemberScope (e.g., DeprecatedMemberScope).
     // Please, do not leak them outside of LexicalChainedScope, because other parts of compiler are not ready to work with them
@@ -107,8 +106,6 @@ class LexicalChainedScope private constructor(
             ownerDescriptor.name,
             " with implicitReceiver: ",
             implicitReceiver?.value ?: "NONE",
-            " with contextReceiversGroup: ",
-            if (contextReceiversGroup.isEmpty()) "NONE" else contextReceiversGroup.joinToString { it.value.toString() },
             " {"
         )
         p.pushIndent()
@@ -140,7 +137,6 @@ class LexicalChainedScope private constructor(
             ownerDescriptor: DeclarationDescriptor,
             isOwnerDescriptorAccessibleByLabel: Boolean,
             implicitReceiver: ReceiverParameterDescriptor?,
-            contextReceiversGroup: List<ReceiverParameterDescriptor>,
             kind: LexicalScopeKind,
             vararg memberScopes: MemberScope?,
             isStaticScope: Boolean = false
@@ -150,7 +146,6 @@ class LexicalChainedScope private constructor(
                 ownerDescriptor,
                 isOwnerDescriptorAccessibleByLabel,
                 implicitReceiver,
-                contextReceiversGroup,
                 kind,
                 listOfNonEmptyScopes(*memberScopes).toTypedArray(),
                 isStaticScope

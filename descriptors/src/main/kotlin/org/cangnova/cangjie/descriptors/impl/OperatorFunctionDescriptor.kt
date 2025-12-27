@@ -52,9 +52,7 @@ class OperatorFunctionDescriptor(
     init {
 
         initialize(
-            null, null, listOf(), listOf(
-
-            ),
+            null,   listOf(),
             values.mapIndexed {
 
                     index, it ->
@@ -70,22 +68,7 @@ class OperatorFunctionDescriptor(
                     SourceElement.NO_SOURCE
                 )
             }
-            /*
-                        listOfNotNull(
-                            rightType?.let {
-                                ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
-                                    this,
-                                    null,
-                                    0,
-                                    Annotations.EMPTY,
-                                    Name.identifier("right"),
-                                    false,
-                                    rightType,
-                                    false,
-                                    SourceElement.NO_SOURCE
-                                ) { emptyList() }
-                            }
-                        )*/,
+            ,
             returnType,
             Modality.FINAL,
             PUBLIC

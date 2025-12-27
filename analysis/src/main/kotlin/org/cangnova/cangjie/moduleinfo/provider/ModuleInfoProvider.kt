@@ -51,7 +51,7 @@ import org.cangnova.cangjie.projectStructure.RootKindFilter
 import org.cangnova.cangjie.projectStructure.matches
 import org.cangnova.cangjie.psi.CjCodeFragment
 import org.cangnova.cangjie.psi.CjFile
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 
 
 suspend fun SequenceScope<Result<IdeaModuleInfo>>.register(moduleInfo: IdeaModuleInfo): Unit = yield(Result.success(moduleInfo))
@@ -129,7 +129,7 @@ class ModuleInfoProvider(private val project: Project) {
 
         if (containingFile == null) {
             val message = "Analyzing element of type ${element::class.java} with no containing file"
-            reportError(CangJieExceptionWithAttachmentsImpl(message).withAttachment("element.cj", element.text))
+            reportError(CangJieExceptionWithAttachments(message).withAttachment("element.cj", element.text))
             return
         }
 
@@ -141,7 +141,7 @@ class ModuleInfoProvider(private val project: Project) {
                     collectByElement(context, config)
                 } else {
                     val message = "Analyzing code fragment of type ${containingCjFile::class.java} with no context"
-                    val error = CangJieExceptionWithAttachmentsImpl(message).withAttachment("file.cj", containingCjFile.text)
+                    val error = CangJieExceptionWithAttachments(message).withAttachment("file.cj", containingCjFile.text)
                     reportError(error)
                 }
             }
@@ -158,7 +158,7 @@ class ModuleInfoProvider(private val project: Project) {
             }
         } else {
             val message = "Analyzing element of type ${element::class.java} in non-physical file of type ${containingFile::class.java}"
-            reportError(CangJieExceptionWithAttachmentsImpl(message).withAttachment("file.cj", containingFile.text))
+            reportError(CangJieExceptionWithAttachments(message).withAttachment("file.cj", containingFile.text))
         }
     }
 

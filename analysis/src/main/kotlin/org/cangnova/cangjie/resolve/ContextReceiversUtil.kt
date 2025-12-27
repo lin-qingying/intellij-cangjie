@@ -28,49 +28,9 @@ import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.diagnostics.infos.errors.SUBTYPING_BETWEEN_CONTEXT_RECEIVERS
 import org.cangnova.cangjie.diagnostics.infos.errors.UNSUPPORTED_FEATURE
-import org.cangnova.cangjie.psi.CjContextReceiverList
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.checker.NewCangJieTypeChecker
 import org.cangnova.cangjie.types.isTypeParameter
 import org.cangnova.cangjie.types.supertypes
-
-fun checkContextReceiversAreEnabled(
-    trace: BindingTrace,
-    languageVersionSettings: LanguageVersionSettings,
-    contextReceiverList: CjContextReceiverList
-) {
-    TODO()
-//    if (!languageVersionSettings.supportsFeature(LanguageFeature.ContextReceivers)) {
-//        trace.report(
-//            UNSUPPORTED_FEATURE.on(
-//                contextReceiverList,
-//                LanguageFeature.ContextReceivers to languageVersionSettings
-//            )
-//        )
-//    }
-}
-fun checkSubtypingBetweenContextReceivers(
-    trace: BindingTrace,
-    contextReceiverList: CjContextReceiverList,
-    contextReceiverTypes: List<CangJieType>
-) {
-    fun CangJieType.prepared(): CangJieType = when {
-        isTypeParameter() -> supertypes().first()
-//        containsTypeParameter() -> replaceArgumentsWithStarProjections()
-        else -> this
-    }
-    for (i in 0 until contextReceiverTypes.lastIndex) {
-        val contextReceiverType = contextReceiverTypes[i].prepared()
-        for (j in (i + 1) until contextReceiverTypes.size) {
-            val anotherContextReceiverType = contextReceiverTypes[j].prepared()
-            if (NewCangJieTypeChecker.Default.isSubtypeOf(contextReceiverType, anotherContextReceiverType) ||
-                NewCangJieTypeChecker.Default.isSubtypeOf(anotherContextReceiverType, contextReceiverType)
-            ) {
-                trace.report(SUBTYPING_BETWEEN_CONTEXT_RECEIVERS.on(contextReceiverList))
-                return
-            }
-        }
-    }
-}
 

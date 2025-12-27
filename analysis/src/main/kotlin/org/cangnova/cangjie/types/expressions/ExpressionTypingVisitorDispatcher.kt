@@ -53,7 +53,7 @@ import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import org.cangnova.cangjie.utils.CangJieFrontEndException
 import org.cangnova.cangjie.utils.PerformanceCounter
 import org.cangnova.cangjie.utils.PerformanceCounter.Companion.create
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 
 abstract class ExpressionTypingVisitorDispatcher private constructor(
     override val components: ExpressionTypingComponents,
@@ -661,7 +661,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
                 }
                 // This trows AssertionError in CLI and reports the error in the IDE
                 LOG.error(
-                    CangJieExceptionWithAttachmentsImpl("Exception while analyzing expression$location", e)
+                    CangJieExceptionWithAttachments("Exception while analyzing expression$location", e)
                         .withPsiAttachment("expression.cj", expression)
                 )
             } catch (errorFromLogger: AssertionError) {

@@ -59,7 +59,7 @@ import org.cangnova.cangjie.resolve.ResolverForProject.Companion.resolverForLibr
 import org.cangnova.cangjie.resolve.ResolverForProject.Companion.resolverForModulesName
 import org.cangnova.cangjie.resolve.ResolverForProject.Companion.resolverForSpecialInfoName
 import org.cangnova.cangjie.storage.LockBasedStorageManager
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 import org.cangnova.cangjie.utils.sumByLong
 
 
@@ -596,7 +596,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
      *
      * - 区分控制流异常（ControlFlowException）：
      *   - 控制流异常（如 ProcessCanceledException）需要立即抛出
-     *   - 其他异常包装为 CangJieExceptionWithAttachments，附带详细的上下文信息
+     *   - 其他异常包装为 ICangJieExceptionWithAttachments，附带详细的上下文信息
      *   - 附件信息包括：出错的元素、所属文件、原始错误消息
      *   - 这些信息对于调试 PSI 相关问题非常有用
      */
@@ -606,7 +606,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
         getContainingCjFile() ?: throw IllegalStateException("containingCjFile was null for $this of ${this.javaClass}")
     } catch (e: Exception) {
         if (e is ControlFlowException) throw e
-        throw CangJieExceptionWithAttachmentsImpl("Couldn't get containingCjFile for cjElement", e)
+        throw CangJieExceptionWithAttachments("Couldn't get containingCjFile for cjElement", e)
             .withPsiAttachment("element", this)
             .withPsiAttachment("file", this.containingFile)
             .withAttachment("original", e.message)

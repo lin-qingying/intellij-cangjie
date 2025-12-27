@@ -104,7 +104,7 @@ import org.cangnova.cangjie.moduleinfo.ModuleInfo
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.caches.ModuleContent
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
 
 
@@ -375,7 +375,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
      * 生成详细的错误报告并抛出异常。
      *
      * @param contexts 未知的上下文列表
-     * @throws CangJieExceptionWithAttachmentsImpl 带有诊断信息的异常
+     * @throws CangJieExceptionWithAttachments 带有诊断信息的异常
      */
 
 
@@ -604,7 +604,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
      *
      * 当此方法检测到无效上下文时，会触发 [diagnoseUnknownModuleInfo]，导致异常：
      * ```
-     * CangJieExceptionWithAttachmentsImpl:
+     * CangJieExceptionWithAttachments:
      *   Resolver for 'completion/highlighting in ...' does not know how to resolveName
      * ```
      *
@@ -625,7 +625,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
      *   ↓
      * DiagnoseUnknownContextReporter.report()
      *   ↓
-     * 抛出 CangJieExceptionWithAttachmentsImpl
+     * 抛出 CangJieExceptionWithAttachments
      *   附件: contexts.txt, allModules.txt
      * ```
      *
@@ -639,7 +639,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
      * // 错误情况
      * val unknownContext = SomeOtherContext()
      * checkModuleIsCorrect(unknownContext)  // 抛出异常
-     * // CangJieExceptionWithAttachmentsImpl: ... does not know how to resolveName
+     * // CangJieExceptionWithAttachments: ... does not know how to resolveName
      * ```
      *
      * ## 调试建议
@@ -651,7 +651,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
      * 4. 对于派生上下文，检查 `originalContext` 是否有效
      *
      * @param context 要验证的分析上下文
-     * @throws CangJieExceptionWithAttachmentsImpl 如果上下文不在 [allModules] 中
+     * @throws CangJieExceptionWithAttachments 如果上下文不在 [allModules] 中
      *
      * @see isCorrectContext
      * @see diagnoseUnknownModuleInfo
@@ -802,7 +802,7 @@ class InvalidResolverException(message: String) : IllegalStateException(message)
  * }
  * ```
  *
- * @see CangJieExceptionWithAttachmentsImpl
+ * @see CangJieExceptionWithAttachments
  * @see ResolverForProject
  */
 private object DiagnoseUnknownContextReporter {
@@ -814,7 +814,7 @@ private object DiagnoseUnknownContextReporter {
      * @param name 解析器名称，用于判断错误类型
      * @param contexts 未知的上下文列表
      * @param allModules 解析器管理的所有模块
-     * @throws CangJieExceptionWithAttachmentsImpl 带诊断信息的异常
+     * @throws CangJieExceptionWithAttachments 带诊断信息的异常
      */
     fun report(name: String, contexts: List<ModuleInfo>, allModules: Collection<ModuleInfo>): Nothing {
         val message = "$name does not know how to resolveName"
@@ -857,35 +857,35 @@ private object DiagnoseUnknownContextReporter {
     // 以下方法不要内联，它们用于避免异常分析器合并这些错误
 
     /** SDK 解析器错误 */
-    private fun errorInSdkResolver(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun errorInSdkResolver(message: String) = CangJieExceptionWithAttachments(message)
 
     /** 库解析器错误 */
-    private fun errorInLibrariesResolver(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun errorInLibrariesResolver(message: String) = CangJieExceptionWithAttachments(message)
 
     /** 模块解析器错误 */
-    private fun errorInModulesResolver(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun errorInModulesResolver(message: String) = CangJieExceptionWithAttachments(message)
 
     /** 模块解析器错误 - 空上下文列表 */
-    private fun errorInModulesResolverWithEmptyInfos(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun errorInModulesResolverWithEmptyInfos(message: String) = CangJieExceptionWithAttachments(message)
 
     /** 模块解析器错误 - 脚本依赖 */
     private fun errorInModulesResolverWithScriptDependencies(message: String) =
-        CangJieExceptionWithAttachmentsImpl(message)
+        CangJieExceptionWithAttachments(message)
 
     /** 模块解析器错误 - 库信息 */
-    private fun errorInModulesResolverWithLibraryInfo(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun errorInModulesResolverWithLibraryInfo(message: String) = CangJieExceptionWithAttachments(message)
 
     /** 脚本依赖信息解析器错误 */
-    private fun errorInScriptDependenciesInfoResolver(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun errorInScriptDependenciesInfoResolver(message: String) = CangJieExceptionWithAttachments(message)
 
     /** 脚本模块信息解析器错误 */
-    private fun errorInScriptModuleInfoResolver(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun errorInScriptModuleInfoResolver(message: String) = CangJieExceptionWithAttachments(message)
 
     /** 特殊模块信息解析器错误 */
-    private fun errorInSpecialModuleInfoResolver(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun errorInSpecialModuleInfoResolver(message: String) = CangJieExceptionWithAttachments(message)
 
     /** 其他未分类错误 */
-    private fun otherError(message: String) = CangJieExceptionWithAttachmentsImpl(message)
+    private fun otherError(message: String) = CangJieExceptionWithAttachments(message)
 }
 
 /**

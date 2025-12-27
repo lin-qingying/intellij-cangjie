@@ -41,7 +41,6 @@ import org.cangnova.cangjie.types.UnwrappedType
 class CallableReferenceResolutionCandidate(
     val candidate: CallableDescriptor,
     val dispatchReceiver: CallableReceiver?,
-    val extensionReceiver: CallableReceiver?,
     val explicitReceiverKind: ExplicitReceiverKind,
     val reflectionCandidateType: UnwrappedType,
     val callableReferenceAdaptation: CallableReferenceAdaptation?,
@@ -60,7 +59,6 @@ class CallableReferenceResolutionCandidate(
     override val resolvedCall = ResolvedCallableReferenceCallAtom(
         cangjieCall.call, candidate, explicitReceiverKind,
         if (dispatchReceiver != null) ReceiverExpressionCangJieCallArgument(dispatchReceiver.receiver) else null,
-        if (extensionReceiver != null) ReceiverExpressionCangJieCallArgument(extensionReceiver.receiver) else null,
         reflectionCandidateType,
         candidate = this
     )

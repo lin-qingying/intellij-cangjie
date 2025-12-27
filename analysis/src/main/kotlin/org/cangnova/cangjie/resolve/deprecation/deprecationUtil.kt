@@ -164,24 +164,8 @@ interface DeprecationSettings {
 fun DescriptorBasedDeprecationInfo.deprecatedByAnnotationReplaceWithExpression(): String? =
     (this as? DeprecatedByAnnotation)?.replaceWithValue
 
-fun computeLevelForDeprecatedSinceCangJie(
-    annotation: AnnotationDescriptor,
-    apiVersion: ApiVersion
-): DeprecationLevelValue? {
-    val hiddenSince = annotation.getSinceVersion("hiddenSince")
-    if (hiddenSince != null && apiVersion >= hiddenSince) return DeprecationLevelValue.HIDDEN
-
-    val errorSince = annotation.getSinceVersion("errorSince")
-    if (errorSince != null && apiVersion >= errorSince) return DeprecationLevelValue.ERROR
-
-    val warningSince = annotation.getSinceVersion("warningSince")
-    if (warningSince != null && apiVersion >= warningSince) return DeprecationLevelValue.WARNING
-
-    return null
-}
-
-fun AnnotationDescriptor.getSinceVersion(name: String): ApiVersion? =
-    (argumentValue(name) as? StringValue)?.value?.takeUnless(String::isEmpty)?.let(ApiVersion.Companion::parse)
+// CangJie does not have DeprecatedSinceCangJie annotation
+// Deprecation is handled differently in CangJie
 
 
 

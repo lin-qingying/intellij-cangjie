@@ -87,10 +87,7 @@ object MissingDependencySupertypeChecker {
                     context.trace,
                     context.missingSupertypesResolver
                 )
-                checkSupertypes(
-                    descriptor.extensionReceiverParameter?.declaration, reportOn,
-                    context.trace, context.missingSupertypesResolver
-                )
+
             }
         }
 

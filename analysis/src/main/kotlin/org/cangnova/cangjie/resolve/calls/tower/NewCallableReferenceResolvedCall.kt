@@ -67,11 +67,7 @@ class NewCallableReferenceResolvedCall<D : CallableDescriptor>(
 
     // ========== 接收者相关 ==========
 
-    /** 扩展接收者（私有字段，带下划线前缀避免与属性冲突） */
-    private var _extensionReceiver: ReceiverValue? = when (resolvedAtom) {
-        is ResolvedCallableReferenceCallAtom -> resolvedAtom.extensionReceiverArgument?.receiverValue
-        is ResolvedCallableReferenceArgumentAtom -> resolvedAtom.candidate?.extensionReceiver?.receiver?.receiverValue
-    }
+
 
     /** 调度接收者（私有字段，带下划线前缀避免与属性冲突） */
     private var _dispatchReceiver = when (resolvedAtom) {
@@ -150,12 +146,6 @@ class NewCallableReferenceResolvedCall<D : CallableDescriptor>(
             is ResolvedCallableReferenceCallAtom -> resolvedAtom.explicitReceiverKind
         }
 
-    /**
-     * 扩展接收者
-     * 返回可调用引用的扩展接收者
-     */
-    override val extensionReceiver: ReceiverValue?
-        get() = _extensionReceiver
 
     /**
      * 结果描述符
@@ -171,12 +161,6 @@ class NewCallableReferenceResolvedCall<D : CallableDescriptor>(
     override val status
         get() = CandidateApplicability.RESOLVED.toResolutionStatus()
 
-    /**
-     * 上下文接收者列表
-     * 可调用引用不支持上下文接收者，总是返回空列表
-     */
-    override val contextReceivers
-        get() = emptyList<ReceiverValue>()
 
     /**
      * 参数的数据流信息
@@ -203,13 +187,7 @@ class NewCallableReferenceResolvedCall<D : CallableDescriptor>(
      */
     override fun getArgumentMapping(valueArgument: ValueArgument): ArgumentMapping = ArgumentUnmapped
 
-    /**
-     * 更新扩展接收者类型
-     */
-    override fun updateExtensionReceiverType(newType: CangJieType) {
-        if (_extensionReceiver?.type == newType) return
-        _extensionReceiver = _extensionReceiver?.replaceType(newType)
-    }
+
 
     /**
      * 更新调度接收者类型

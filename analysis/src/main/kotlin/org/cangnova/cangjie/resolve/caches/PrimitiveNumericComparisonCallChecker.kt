@@ -121,8 +121,7 @@ object PrimitiveNumericComparisonCallChecker : CallChecker {
     }
 
     private fun ResolvedCall<*>.isStandardComparison(): Boolean =
-        extensionReceiver == null &&
-                dispatchReceiver != null
+        dispatchReceiver != null
 //                &&  CangJieBuiltIns.isUnderCangJiePackage(resultingDescriptor)
 
     private val comparisonOperatorTokens =

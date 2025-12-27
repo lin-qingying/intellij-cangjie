@@ -479,8 +479,7 @@ class NewResolutionOldInference(
     ) : CandidateFactory<MyCandidate> {
         override fun createCandidate(
             towerCandidate: CandidateWithBoundDispatchReceiver,
-            explicitReceiverKind: ExplicitReceiverKind,
-            extensionReceiver: ReceiverValueWithSmartCastInfo?
+            explicitReceiverKind: ExplicitReceiverKind
         ): MyCandidate {
 
             val candidateTrace = TemporaryBindingTrace.create(basicCallContext.trace, "Context for resolveName candidate")
@@ -488,7 +487,6 @@ class NewResolutionOldInference(
                 basicCallContext.call,
                 towerCandidate.descriptor,
                 towerCandidate.dispatchReceiver?.receiverValue,
-                extensionReceiver?.receiverValue,
                 explicitReceiverKind,
                 null,
                 candidateTrace,
@@ -496,20 +494,7 @@ class NewResolutionOldInference(
                 basicCallContext.dataFlowInfoForArguments // todo may be we should create new mutable info for arguments
             )
 
-            /**
-             * See https://jetbrains.quip.com/qcTDAFcgFLEM
-             *
-             * For now we have only 2 functions with dynamic receivers: iterator() and unsafeCast()
-             * Both this function are marked via @kotlin.internal.DynamicExtension.
-             */
-            if (extensionReceiver != null) {
-                val parameterIsDynamic = towerCandidate.descriptor.extensionReceiverParameter!!.value.type.isDynamic()
-                val argumentIsDynamic = extensionReceiver.receiverValue.type.isDynamic()
 
-                if (parameterIsDynamic != argumentIsDynamic || (parameterIsDynamic && !towerCandidate.descriptor.hasDynamicExtensionAnnotation())) {
-                    return MyCandidate(listOf(HiddenExtensionRelatedToDynamicTypes), candidateCall)
-                }
-            }
 
             if (deprecationResolver.isHiddenInResolution(
                     towerCandidate.descriptor,
@@ -540,17 +525,6 @@ class NewResolutionOldInference(
                 createDiagnosticsForCandidate(towerCandidate, candidateCall)
             }
         }
-
-        /**
-         * The function is called only inside [NoExplicitReceiverScopeTowerProcessor] with [TowerData.BothTowerLevelAndContextReceiversGroup].
-         * This case involves only [SimpleCandidateFactory].
-         */
-        override fun createCandidate(
-            towerCandidate: CandidateWithBoundDispatchReceiver,
-            explicitReceiverKind: ExplicitReceiverKind,
-            extensionReceiverCandidates: List<ReceiverValueWithSmartCastInfo>
-        ): MyCandidate =
-            error("${this::class.simpleName} doesn't support candidates with multiple extension receiver candidates")
 
         override fun createErrorCandidate(): MyCandidate {
             throw IllegalStateException("Not supported creating error candidate for the old type inference candidate factory")

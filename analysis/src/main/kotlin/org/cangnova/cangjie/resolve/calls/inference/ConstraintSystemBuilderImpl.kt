@@ -518,25 +518,23 @@ internal fun createTypeForFunctionPlaceholder(
 
     val functionPlaceholderTypeConstructor = functionPlaceholder.constructor as FunctionPlaceholderTypeConstructor
 
-    val isExtension = expectedType.isBuiltinExtensionFunctionalType
+    // 仓颉没有扩展函数类型，函数参数大小计算不需要考虑接收器
     val newArgumentTypes = if (!functionPlaceholderTypeConstructor.hasDeclaredArguments) {
         val typeParamSize = expectedType.constructor.parameters.size
-        // the first parameter is receiver (if present), the last one is return type,
-        // the remaining are function arguments
-        val functionArgumentsSize = if (isExtension) typeParamSize - 2 else typeParamSize - 1
+        // 类型参数：函数参数 + 返回类型
+        val functionArgumentsSize = typeParamSize - 1
         val result = arrayListOf<CangJieType>()
         (1..functionArgumentsSize).forEach { result.add(DONT_CARE) }
         result
     } else {
         functionPlaceholderTypeConstructor.argumentTypes
     }
-    val receiverType = if (isExtension) DONT_CARE else null
-    val contextReceiverTypes = (0 until expectedType.contextFunctionTypeParamsCount()).map { DONT_CARE }
+
+    // 仓颉没有扩展函数类型，接收器总是 null
     return createFunctionType(
         functionPlaceholder.builtIns,
         Annotations.EMPTY,
-        receiverType,
-        contextReceiverTypes,
+        null,
         newArgumentTypes,
         null,
         DONT_CARE,

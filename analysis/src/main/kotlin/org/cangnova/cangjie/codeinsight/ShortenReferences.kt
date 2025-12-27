@@ -73,8 +73,90 @@ import org.cangnova.cangjie.utils.canBeReferencedViaImport
 import org.cangnova.cangjie.utils.getImportableTargets
 import java.awt.EventQueue.isDispatchThread
 
-// 元素缩短
+/**
+ * 引用缩短器
+ *
+ * 用于将仓颉代码中的全限定引用缩短为简短形式，提高代码可读性。
+ * 这是 IntelliJ IDEA 插件中的核心重构功能之一，在多种场景中使用。
+ *
+ * **核心功能**：
+ * - 缩短类型引用：`std.collection.ArrayList` → `ArrayList`
+ * - 缩短限定表达式：`obj.Companion.method()` → `obj.method()`
+ * - 移除不必要的 this 表达式：`this.property` → `property`
+ * - 移除显式 Companion 引用：`MyClass.Companion.foo()` → `MyClass.foo()`
+ * - 简化字符串模板：`"${value}"` → `"$value"`
+ *
+ * **使用场景**：
+ * - 代码生成后自动优化引用
+ * - 用户手动调用"缩短引用"重构
+ * - 自动导入后清理全限定名
+ * - 代码粘贴后的格式优化
+ *
+ * **工作原理**：
+ * 1. 收集所有可能缩短的元素（类型、限定表达式、this 表达式等）
+ * 2. 分析每个元素，判断缩短后是否会改变语义
+ * 3. 对可以安全缩短的元素，自动添加必要的导入语句
+ * 4. 执行缩短操作，替换原有的长引用
+ *
+ * **安全性保证**：
+ * - 使用 [analyzeAsReplacement] 模拟缩短后的解析
+ * - 比较缩短前后的解析目标是否一致
+ * - 处理被遮蔽声明、过时符号等边界情况
+ * - 避免引入歧义或语义变化
+ *
+ * **性能优化**：
+ * - 批量处理多个元素，共享绑定上下文
+ * - 分层处理策略，避免重复解析
+ * - 智能过滤，跳过不需要处理的元素
+ * - 支持在后台线程中执行（非 UI 线程）
+ *
+ * **示例**：
+ * ```kotlin
+ * // 缩短前：
+ * val list: std.collection.ArrayList<std.lang.String> = std.collection.ArrayList()
+ * val value = MyClass.Companion.CONSTANT
+ *
+ * // 缩短后（假设已导入）：
+ * val list: ArrayList<String> = ArrayList()
+ * val value = MyClass.CONSTANT
+ * ```
+ *
+ * @property options 缩短选项配置函数，根据元素动态决定缩短策略
+ */
 class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT }) {
+    /**
+     * 缩短选项
+     *
+     * 控制引用缩短行为的配置选项，允许细粒度控制哪些类型的引用需要缩短。
+     *
+     * **选项说明**：
+     * - [removeThisLabels] - 是否移除 this 表达式的标签（如 `this@MyClass` → `this`）
+     * - [removeThis] - 是否移除不必要的 this 表达式（如 `this.property` → `property`）
+     * - [removeExplicitCompanion] - 是否移除显式的 Companion 引用（如 `MyClass.Companion.foo()` → `MyClass.foo()`）
+     * - [dropBracesInStringTemplates] - 是否简化字符串模板的花括号（如 `"${value}"` → `"$value"`）
+     *
+     * **使用场景**：
+     * - **DEFAULT**：默认配置，适用于大多数情况（不移除 this 和标签，移除 Companion 和字符串模板花括号）
+     * - **ALL_ENABLED**：激进配置，移除所有可以移除的引用（适用于生成代码的清理）
+     * - **自定义配置**：根据具体需求调整选项
+     *
+     * **示例**：
+     * ```kotlin
+     * // 使用默认配置
+     * ShortenReferences().process(element)
+     *
+     * // 使用激进配置（移除所有 this）
+     * ShortenReferences { Options.ALL_ENABLED }.process(element)
+     *
+     * // 自定义配置
+     * ShortenReferences { Options(removeThis = true, removeExplicitCompanion = false) }.process(element)
+     * ```
+     *
+     * @property removeThisLabels 是否移除 this 表达式的标签
+     * @property removeThis 是否移除不必要的 this 表达式
+     * @property removeExplicitCompanion 是否移除显式 Companion 引用
+     * @property dropBracesInStringTemplates 是否简化字符串模板的花括号
+     */
     data class Options(
         val removeThisLabels: Boolean = false,
         val removeThis: Boolean = false,
@@ -82,19 +164,89 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
         val dropBracesInStringTemplates: Boolean = true
     ) {
         companion object {
+            /**
+             * 默认选项配置
+             *
+             * 适用于大多数场景，保留 this 表达式和标签，移除显式 Companion 引用和字符串模板的多余花括号。
+             */
             val DEFAULT = Options()
+
+            /**
+             * 全启用选项配置
+             *
+             * 移除所有可以移除的引用，包括 this 表达式、this 标签、显式 Companion 引用和字符串模板花括号。
+             * 适用于生成代码的激进清理场景。
+             */
             val ALL_ENABLED = Options(removeThisLabels = true, removeThis = true)
         }
     }
 
     companion object {
+        /**
+         * 日志记录器
+         */
         private val LOG = Logger.getInstance(ShortenReferences::class.java)
 
+        /**
+         * 默认引用缩短器实例
+         *
+         * 使用默认选项配置的缩短器，适用于大多数场景。
+         */
         @JvmField
         val DEFAULT = ShortenReferences()
 
+        /**
+         * 保留 Companion 的引用缩短器实例
+         *
+         * 不移除显式 Companion 引用的缩短器，用于需要保留 Companion 可见性的场景。
+         */
         val RETAIN_COMPANION = ShortenReferences { Options(removeExplicitCompanion = false) }
 
+        /**
+         * 检查是否可能移除接收器
+         *
+         * 判断点限定表达式的接收器是否可以被移除。
+         * 这是缩短引用的预检查步骤，用于快速过滤不可能缩短的表达式。
+         *
+         * **可以移除接收器的情况**：
+         * 1. **this 表达式接收器**：`this.property` 可以缩短为 `property`
+         * 2. **包引用接收器**：`package.Class` 可以缩短为 `Class`（需导入）
+         * 3. **对象引用作为 dispatch receiver**：`Object.member` 可以缩短为 `member`（在对象内部）
+         * 4. **根前缀接收器**：IDE 解析模式的根前缀可以移除
+         *
+         * **不能移除接收器的情况**：
+         * - 接收器是扩展接收器（extension receiver）
+         * - 接收器是必需的限定符（如外部类成员访问）
+         * - 移除后会导致歧义或语义变化
+         *
+         * **dispatch receiver vs extension receiver**：
+         * ```kotlin
+         * class MyClass {
+         *     fun foo() { }           // dispatch receiver
+         * }
+         * fun MyClass.bar() { }       // extension receiver
+         *
+         * val obj = MyClass()
+         * obj.foo()  // dispatch - 可能可以缩短（在 MyClass 内部）
+         * obj.bar()  // extension - 通常不能缩短
+         * ```
+         *
+         * **示例**：
+         * ```kotlin
+         * // 在 MyClass 内部：
+         * this.property    // 可以缩短 → property
+         * std.collection.List  // 可以缩短 → List（需导入）
+         * Companion.foo()  // 可以缩短 → foo()
+         *
+         * // 不能缩短：
+         * otherObj.property  // extension receiver
+         * OuterClass.InnerClass.member  // 必需限定符
+         * ```
+         *
+         * @param element 点限定表达式
+         * @param bindingContext 绑定上下文，用于解析引用和调用
+         * @return Boolean true 表示可能可以移除接收器，false 表示不能移除
+         */
         fun canBePossibleToDropReceiver(element: CjDotQualifiedExpression, bindingContext: BindingContext): Boolean {
             val nameRef = when (val receiver = element.receiverExpression) {
                 is CjThisExpression -> return true
@@ -786,7 +938,6 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                     selectorAfterShortening.getResolvedCall(newContext) ?: return AnalyzeQualifiedElementResult.Skip
                 val receiverKind = originalCall.explicitReceiverKind
                 val newReceiver = when (receiverKind) {
-                    ExplicitReceiverKind.BOTH_RECEIVERS, ExplicitReceiverKind.EXTENSION_RECEIVER -> newCall.extensionReceiver
                     ExplicitReceiverKind.DISPATCH_RECEIVER -> newCall.dispatchReceiver
                     else -> return AnalyzeQualifiedElementResult.Skip
                 } as? ImplicitReceiver ?: return AnalyzeQualifiedElementResult.Skip

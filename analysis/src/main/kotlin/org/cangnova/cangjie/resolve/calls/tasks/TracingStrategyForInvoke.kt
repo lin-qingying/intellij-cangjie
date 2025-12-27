@@ -36,7 +36,7 @@ import org.cangnova.cangjie.diagnostics.infos.errors.FUNCTION_EXPECTED
 import org.cangnova.cangjie.diagnostics.infos.errors.NO_RECEIVER_ALLOWED
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
-import org.cangnova.cangjie.types.isNonExtensionFunctionType
+import org.cangnova.cangjie.types.isFunctionType
 
 
 class TracingStrategyForInvoke(
@@ -79,7 +79,8 @@ class TracingStrategyForInvoke(
 
 
     private fun functionExpectedOrNoReceiverAllowed(trace: BindingTrace) {
-        if (calleeType.isNonExtensionFunctionType) {
+        // 仓颉没有扩展函数类型，所有函数类型都是非扩展的
+        if (calleeType.isFunctionType) {
             trace.report(NO_RECEIVER_ALLOWED.on(reference))
         } else {
             trace.report(FUNCTION_EXPECTED.on(reference, reference, calleeType))

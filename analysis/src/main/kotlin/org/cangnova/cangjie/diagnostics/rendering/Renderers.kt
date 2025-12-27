@@ -409,7 +409,7 @@ private fun collectMentionedClassifiersFqNames(contextObjects: Iterable<Any?>, r
                 it.returnType,
                 it.valueParameters,
                 it.dispatchReceiverParameter?.type,
-                it.extensionReceiverParameter?.type
+
             ), result
         )
     }

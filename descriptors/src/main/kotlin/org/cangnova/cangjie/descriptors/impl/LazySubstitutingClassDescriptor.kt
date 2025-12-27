@@ -225,8 +225,7 @@ class LazySubstitutingClassDescriptor(
     override val thisAsReceiverParameter: ReceiverParameterDescriptor
         get() = TODO("Not yet implemented")
 
-    override val contextReceivers: List<ReceiverParameterDescriptor>
-        get() = emptyList()
+
 
     override val staticScope: MemberScope
         get() = original.staticScope

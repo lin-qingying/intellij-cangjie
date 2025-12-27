@@ -131,7 +131,7 @@ private inline fun <T : Any> HierarchicalScope.collectFromMeAndParent(
  * Adds receivers to the list in order of locality, so that the closest (the most local) receiver goes first
  */
 fun LexicalScope.getImplicitReceiversHierarchy(): List<ReceiverParameterDescriptor> = collectFromMeAndParent {
-    if (it is LexicalScope) listOfNotNull(it.implicitReceiver) + it.contextReceiversGroup else null
+    if (it is LexicalScope) listOfNotNull(it.implicitReceiver)  else null
 }.flatten()
 
 fun HierarchicalScope.findVariable(
@@ -515,7 +515,7 @@ object ScopeUtils {
             variableDescriptor,
             false,
             null,
-            emptyList(),
+
             LexicalScopeKind.VARIABLE_INITIALIZER_OR_DELEGATE
         )
     }
@@ -545,7 +545,6 @@ object ScopeUtils {
             variableDescriptor,
             false,
             null,
-            emptyList(),
             LexicalScopeKind.PROPERTY_HEADER,  // redeclaration on type parameters should be reported early, see: DescriptorResolver.resolvePropertyDescriptor()
             LocalRedeclarationChecker.DO_NOTHING
         ) {
@@ -616,7 +615,6 @@ class ErrorLexicalScope : LexicalScope {
         ErrorClassDescriptor(Name.special(ErrorEntity.ERROR_CLASS.debugText.format("unknown")))
     override val isOwnerDescriptorAccessibleByLabel: Boolean = false
     override val implicitReceiver: ReceiverParameterDescriptor? = null
-    override val contextReceiversGroup: List<ReceiverParameterDescriptor> = emptyList()
     override val kind: LexicalScopeKind = LexicalScopeKind.THROWING
 //    override fun getContributedPackageFqName(name: Name, location: LookupLocation): List<FqName> {
 //        return mutableListOf()

@@ -60,8 +60,9 @@ import org.cangnova.cangjie.stubindex.CangJieTopLevelTypeAliasFqNameIndex
 import org.cangnova.cangjie.stubindex.CangJieTopLevelVariableFqNameIndex
 import org.cangnova.cangjie.stubindex.CangJieTypeAliasByExpansionShortNameIndex
 import org.cangnova.cangjie.stubindex.CangJieVariableShortNameIndex
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 import org.cangnova.cangjie.utils.importableFqName
+import org.cangnova.cangjie.utils.isExtension
 import kotlin.collections.filter
 
 
@@ -193,7 +194,7 @@ class CangJieIndicesHelper(
                 ProgressManager.checkCanceled()
                 it.resolveToDescriptors<FunctionDescriptor>()
             }
-            .filter { descriptorFilter(it) && it.extensionReceiverParameter == null }
+            .filter { descriptorFilter(it) && !it.isExtension }
             .distinct()
     }
 
@@ -205,7 +206,7 @@ class CangJieIndicesHelper(
                 ProgressManager.checkCanceled()
                 it.resolveToDescriptors<FunctionDescriptor>()
             }
-            .filter { descriptorFilter(it) && it.extensionReceiverParameter != null }
+            .filter { descriptorFilter(it) && it.isExtension }
             .distinct()
     }
 
@@ -352,7 +353,7 @@ class CangJieIndicesHelper(
         if (cjFile !is CjFile) {
             // https://ea.jetbrains.com/browser/ea_problems/219256
             LOG.error(
-                CangJieExceptionWithAttachmentsImpl("CjElement not inside CjFile ($cjFile, is valid: ${cjFile.isValid})")
+                CangJieExceptionWithAttachments("CjElement not inside CjFile ($cjFile, is valid: ${cjFile.isValid})")
                     .withAttachment("file", cjFile)
                     .withAttachment("virtualFile", containingFile.virtualFile)
 

@@ -78,12 +78,6 @@ class NewVariableAsFunctionResolvedCallImpl(
     override val status
         get() = functionCall.status
 
-    /**
-     * 上下文接收者列表
-     * 委托给函数调用的上下文接收者
-     */
-    override val contextReceivers
-        get() = functionCall.contextReceivers
 
     /**
      * 类型参数映射
@@ -113,12 +107,7 @@ class NewVariableAsFunctionResolvedCallImpl(
     override val explicitReceiverKind
         get() = functionCall.explicitReceiverKind
 
-    /**
-     * 扩展接收者
-     * 委托给函数调用的扩展接收者
-     */
-    override val extensionReceiver
-        get() = functionCall.extensionReceiver
+
 
     /**
      * 结果描述符
@@ -151,11 +140,6 @@ class NewVariableAsFunctionResolvedCallImpl(
         valueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument>
     ) = functionCall.argumentToParameterMap(resultingDescriptor, valueArguments)
 
-    /**
-     * 更新扩展接收者类型
-     * 委托给函数调用
-     */
-    override fun updateExtensionReceiverType(newType: CangJieType) = functionCall.updateExtensionReceiverType(newType)
 
     /**
      * 设置结果替换器

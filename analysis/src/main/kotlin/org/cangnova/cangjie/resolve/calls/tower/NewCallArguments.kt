@@ -387,8 +387,6 @@ fun processFunctionalExpression(
             // if function is a not anonymous function, resolveName it as simple expression
             if (!postponedExpression.isFunctionalExpression()) return null
             val receiverType = resolveType(outerCallContext, postponedExpression.receiverTypeReference, typeResolver)
-            val contextReceiversTypes =
-                resolveContextReceiversTypes(outerCallContext, postponedExpression, typeResolver)
             val parametersTypes =
                 resolveParametersTypes(outerCallContext, postponedExpression, typeResolver) ?: emptyArray()
             val returnType = resolveType(outerCallContext, postponedExpression.typeReference, typeResolver)
@@ -401,7 +399,6 @@ fun processFunctionalExpression(
                 argumentExpression,
                 postponedExpression,
                 receiverType,
-                contextReceiversTypes,
                 parametersTypes,
                 returnType
             )
@@ -437,7 +434,6 @@ class FunctionExpressionImpl(
     val containingBlockForFunction: CjExpression,
     override val cjFunction: CjNamedFunction,
     override val receiverType: UnwrappedType?,
-    override val contextReceiversTypes: Array<UnwrappedType?>,
     override val parametersTypes: Array<UnwrappedType?>,
     override val returnType: UnwrappedType?
 ) : FunctionExpression,
@@ -457,17 +453,6 @@ private fun resolveParametersTypes(
     }
 }
 
-private fun resolveContextReceiversTypes(
-    context: BasicCallResolutionContext,
-    cjFunction: CjFunction,
-    typeResolver: TypeResolver
-): Array<UnwrappedType?> {
-    val contextReceivers = cjFunction.contextReceivers
-
-    return Array(contextReceivers.size) {
-        contextReceivers[it].typeReference()?.let { typeRef -> resolveType(context, typeRef, typeResolver) }
-    }
-}
 
 fun checkNoSpread(context: BasicCallResolutionContext, valueArgument: ValueArgument) {
     valueArgument.getSpreadElement()?.let {

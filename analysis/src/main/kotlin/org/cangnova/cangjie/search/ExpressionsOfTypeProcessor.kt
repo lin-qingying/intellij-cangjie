@@ -51,7 +51,7 @@ import org.cangnova.cangjie.projectStructure.RootKindFilter
 import org.cangnova.cangjie.projectStructure.matches
 import org.cangnova.cangjie.scope.everythingScopeExcludeFileTypes
 import org.cangnova.cangjie.scope.restrictToCangJieSources
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 import org.cangnova.cangjie.utils.isUnitTestMode
 import org.jetbrains.annotations.TestOnly
 import java.util.*
@@ -595,7 +595,7 @@ class ExpressionsOfTypeProcessor(
                         return@searchReferences false
                     }
 
-                    throw CangJieExceptionWithAttachmentsImpl("Unsupported reference")
+                    throw CangJieExceptionWithAttachments("Unsupported reference")
                         .withPsiAttachment("reference.txt", element)
                         .withAttachment("diagnostic_message.txt", getFallbackDiagnosticsMessage(reference, debugInfo))
                 }

@@ -124,17 +124,6 @@ interface CjCallableDeclaration : CjNamedDeclaration, CjTypeParameterListOwner {
      */
     val receiverTypeReference: CjTypeReference?
 
-    /**
-     * 获取上下文接收者列表
-     *
-     * 上下文接收者是一种实验性特性,允许函数在特定上下文中可用。
-     * 使用 `context(Type1, Type2)` 语法声明。
-     *
-     * @return 上下文接收者列表,默认为空列表
-     * @see CjContextReceiver
-     */
-    val contextReceivers: List<CjContextReceiver>
-        get() = emptyList()
 
     /**
      * 获取返回类型引用

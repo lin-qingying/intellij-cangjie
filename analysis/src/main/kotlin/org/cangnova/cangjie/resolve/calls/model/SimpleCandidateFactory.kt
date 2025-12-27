@@ -114,27 +114,19 @@ class SimpleCandidateFactory(
     private fun CangJieCall.getExplicitDispatchReceiver(explicitReceiverKind: ExplicitReceiverKind) =
         when (explicitReceiverKind) {
             ExplicitReceiverKind.DISPATCH_RECEIVER -> explicitReceiver
-            ExplicitReceiverKind.BOTH_RECEIVERS -> dispatchReceiverForInvokeExtension
             else -> null
         }
 
-    private fun CangJieCall.getExplicitExtensionReceiver(explicitReceiverKind: ExplicitReceiverKind) =
-        when (explicitReceiverKind) {
-            ExplicitReceiverKind.EXTENSION_RECEIVER, ExplicitReceiverKind.BOTH_RECEIVERS -> explicitReceiver
-            else -> null
-        }
 
     override fun createCandidate(
         towerCandidate: CandidateWithBoundDispatchReceiver,
-        explicitReceiverKind: ExplicitReceiverKind,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
+        explicitReceiverKind: ExplicitReceiverKind
     ): SimpleResolutionCandidate {
         val dispatchArgumentReceiver = createReceiverArgument(
             cangjieCall.getExplicitDispatchReceiver(explicitReceiverKind),
             towerCandidate.dispatchReceiver
         )
-        val extensionArgumentReceiver =
-            createReceiverArgument(cangjieCall.getExplicitExtensionReceiver(explicitReceiverKind), extensionReceiver)
+        val extensionArgumentReceiver = null
         val descriptor = towerCandidate.descriptor
         var diagnostics: List<CangJieCallDiagnostic> = towerCandidate.diagnostics
         if (descriptor is PropertyDescriptor && descriptor.isSyntheticEnumEntries()) {
@@ -158,7 +150,7 @@ class SimpleCandidateFactory(
     ): SimpleResolutionCandidate {
         val resolvedCjCall = MutableResolvedCallAtom(
             cangjieCall, descriptor, explicitReceiverKind,
-            dispatchArgumentReceiver, extensionArgumentReceiver, extensionArgumentReceiverCandidates
+            dispatchArgumentReceiver
         )
 
         if (ErrorUtils.isError(descriptor)) {
@@ -187,17 +179,6 @@ class SimpleCandidateFactory(
 //            candidate.addDiagnostic(HiddenDescriptor)
 //        }
 
-        if (extensionArgumentReceiver != null) {
-            val parameterIsDynamic = descriptor.extensionReceiverParameter!!.value.type.isDynamic()
-            val argumentIsDynamic = extensionArgumentReceiver.receiver.receiverValue.type.isDynamic()
-
-//            if (parameterIsDynamic != argumentIsDynamic ||
-//                (parameterIsDynamic && !descriptor.hasDynamicExtensionAnnotation())
-//            ) {
-//                candidate.addDiagnostic(HiddenExtensionRelatedToDynamicTypes)
-//            }
-        }
-
         return candidate
     }
 
@@ -214,29 +195,10 @@ class SimpleCandidateFactory(
             listOf(), givenCandidate.knownTypeParametersResultingSubstitutor
         )
     }
-
-    override fun createCandidate(
-        towerCandidate: CandidateWithBoundDispatchReceiver,
-        explicitReceiverKind: ExplicitReceiverKind,
-        extensionReceiverCandidates: List<ReceiverValueWithSmartCastInfo>
-    ): SimpleResolutionCandidate {
-        val dispatchArgumentReceiver = createReceiverArgument(
-            cangjieCall.getExplicitDispatchReceiver(explicitReceiverKind),
-            towerCandidate.dispatchReceiver
-        )
-        val extensionArgumentReceiverCandidates = extensionReceiverCandidates.mapNotNull {
-            createReceiverArgument(cangjieCall.getExplicitExtensionReceiver(explicitReceiverKind), it)
-        }
-
-        return createCandidate(
-            towerCandidate.descriptor, explicitReceiverKind, dispatchArgumentReceiver,
-            null, extensionArgumentReceiverCandidates, towerCandidate.diagnostics, knownSubstitutor = null
-        )
-    }
 }
 
 fun PropertyDescriptor.isSyntheticEnumEntries(): Boolean {
-    return isSynthesized && dispatchReceiverParameter == null && extensionReceiverParameter == null &&
+    return isSynthesized && dispatchReceiverParameter == null &&
             (containingDeclaration as? ClassDescriptor)?.kind == ClassKind.ENUM
 }
 

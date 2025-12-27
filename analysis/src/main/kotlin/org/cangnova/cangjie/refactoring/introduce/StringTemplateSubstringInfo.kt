@@ -33,7 +33,7 @@ import org.cangnova.cangjie.psi.UserDataProperty
 import org.cangnova.cangjie.psi.psiUtil.endOffset
 import org.cangnova.cangjie.psi.psiUtil.nextSiblingOfSameType
 import org.cangnova.cangjie.psi.psiUtil.startOffset
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
@@ -106,11 +106,11 @@ abstract class StringTemplateSubstringInfo(
      * 如果子串为纯字符串，则添加引号；否则直接使用内容。
      *
      * @return 新创建的表达式
-     * @throws CangJieExceptionWithAttachmentsImpl 如果模板缺少引号
+     * @throws CangJieExceptionWithAttachments 如果模板缺少引号
      */
     fun createExpression(): CjExpression {
         val quote = template.node.findChildByType(CjTokens.OPEN_QUOTE)?.text
-            ?: throw CangJieExceptionWithAttachmentsImpl("Missing opening quote in a string template").withPsiAttachment("template", template)
+            ?: throw CangJieExceptionWithAttachments("Missing opening quote in a string template").withPsiAttachment("template", template)
         val literalValue = if (isString) "$quote$content$quote" else content
         return CjPsiFactory(template.project).createExpression(literalValue)
             .apply { extractableSubstringInfo = this@StringTemplateSubstringInfo }
@@ -121,7 +121,7 @@ abstract class StringTemplateSubstringInfo(
      *
      * @param newTemplate 新的字符串模板表达式
      * @return 新的子串信息
-     * @throws CangJieExceptionWithAttachmentsImpl 如果新旧模板的条目不匹配
+     * @throws CangJieExceptionWithAttachments 如果新旧模板的条目不匹配
      */
     fun copy(newTemplate: CjStringTemplateExpression): StringTemplateSubstringInfo {
         val oldEntries = template.entries
@@ -129,7 +129,7 @@ abstract class StringTemplateSubstringInfo(
         val startIndex = oldEntries.indexOf(startEntry)
         val endIndex = oldEntries.indexOf(endEntry)
         if (startIndex < 0 || startIndex >= newEntries.size || endIndex < 0 || endIndex >= newEntries.size) {
-            throw CangJieExceptionWithAttachmentsImpl("Old template($startIndex..$endIndex): $template, new template: $newTemplate")
+            throw CangJieExceptionWithAttachments("Old template($startIndex..$endIndex): $template, new template: $newTemplate")
                 .withPsiAttachment("template", template)
                 .withPsiAttachment("newTemplate", newTemplate)
         }

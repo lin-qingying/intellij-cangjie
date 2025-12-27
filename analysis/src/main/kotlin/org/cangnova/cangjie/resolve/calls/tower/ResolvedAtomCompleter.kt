@@ -150,7 +150,6 @@ class ResolvedAtomCompleter(
 
     private data class CallableReferenceResultTypeInfo(
         val dispatchReceiver: ReceiverValue?,
-        val extensionReceiver: ReceiverValue?,
         val explicitReceiver: ReceiverValue?,
         val substitutor: NewTypeSubstitutor,
         val resultType: CangJieType
@@ -162,17 +161,13 @@ class ResolvedAtomCompleter(
     ): CallableReferenceResultTypeInfo {
         val dispatchReceiver = recordedDescriptor.dispatchReceiverParameter?.value
             ?: callableCandidate.dispatchReceiver?.receiver?.receiverValue
-        val extensionReceiver = recordedDescriptor.extensionReceiverParameter?.value
-            ?: callableCandidate.extensionReceiver?.receiver?.receiverValue
         val explicitCallableReceiver = when (callableCandidate.explicitReceiverKind) {
             ExplicitReceiverKind.DISPATCH_RECEIVER -> dispatchReceiver
-            ExplicitReceiverKind.EXTENSION_RECEIVER -> extensionReceiver
             else -> null
         }
 
         return CallableReferenceResultTypeInfo(
             dispatchReceiver,
-            extensionReceiver,
             explicitCallableReceiver,
             EmptySubstitutor,
             callableCandidate.reflectionCandidateType.replaceFunctionTypeArgumentsByDescriptor(recordedDescriptor)
@@ -183,7 +178,6 @@ class ResolvedAtomCompleter(
         when (descriptor) {
             is CallableMemberDescriptor -> {
                 val newArgumentTypes = buildList {
-                    descriptor.extensionReceiverParameter?.let { add(it.type) }
                     addAll(descriptor.valueParameters.map { it.type })
                     add(descriptor.returnType)
                 }
@@ -282,20 +276,10 @@ class ResolvedAtomCompleter(
         resolvedCall: NewAbstractResolvedCall<*>,
         additionalDataFlowInfo: DataFlowInfo? = null,
     ): CangJieType? {
-        val rawExtensionReceiver = callableCandidate.extensionReceiver
-//        val unrestrictedBuilderInferenceSupported =
-//            topLevelCallContext.languageVersionSettings.supportsFeature(LanguageFeature.UnrestrictedBuilderInference)
         val callableReferenceExpression =
             callableCandidate.resolvedCall.atom.psiCangJieCall.extractCallableReferenceExpression() ?: return null
 
-        if (rawExtensionReceiver != null /* && !unrestrictedBuilderInferenceSupported*/ && rawExtensionReceiver.receiver.receiverValue.type.contains { it is StubTypeForBuilderInference }) {
-            topLevelTrace.reportDiagnosticOnce(
-                TYPE_INFERENCE_POSTPONED_VARIABLE_IN_RECEIVER_TYPE.on(
-                    callableReferenceExpression
-                )
-            )
-            return null
-        }
+
 
         val resultTypeInfo = if (recordedDescriptor != null) {
             extractCallableReferenceResultTypeInfoFromDescriptor(callableCandidate, recordedDescriptor)
@@ -309,9 +293,7 @@ class ResolvedAtomCompleter(
             if (resultTypeInfo.dispatchReceiver != null) {
                 updateDispatchReceiverType(resultTypeInfo.dispatchReceiver.type)
             }
-            if (resultTypeInfo.extensionReceiver != null) {
-                updateExtensionReceiverType(resultTypeInfo.extensionReceiver.type)
-            }
+
             setResultingSubstitutor(resultTypeInfo.substitutor)
         }
 
@@ -380,8 +362,6 @@ class ResolvedAtomCompleter(
 
         val dispatchReceiver =
             callableCandidate.dispatchReceiver?.receiver?.receiverValue?.updateReceiverValue(resultSubstitutor)
-        val extensionReceiver =
-            callableCandidate.extensionReceiver?.receiver?.receiverValue?.updateReceiverValue(resultSubstitutor)
 
         when (callableCandidate.candidate) {
             is FunctionDescriptor -> doubleColonExpressionResolver.bindFunctionReference(
@@ -398,22 +378,15 @@ class ResolvedAtomCompleter(
 //            )
         }
 
-//        doubleColonExpressionResolver.checkReferenceIsToAllowedMember(
-//            callableCandidate.candidate,
-//            topLevelCallContext.trace,
-//            callableReferenceExpression
-//        )
 
         val explicitCallableReceiver = when (callableCandidate.explicitReceiverKind) {
             ExplicitReceiverKind.DISPATCH_RECEIVER -> callableCandidate.dispatchReceiver
-            ExplicitReceiverKind.EXTENSION_RECEIVER -> callableCandidate.extensionReceiver
             else -> null
         }
         val explicitReceiver = explicitCallableReceiver?.receiver?.receiverValue?.updateReceiverValue(resultSubstitutor)
 
         return CallableReferenceResultTypeInfo(
             dispatchReceiver,
-            extensionReceiver,
             explicitReceiver,
             resultSubstitutor,
             resultType
@@ -423,26 +396,7 @@ class ResolvedAtomCompleter(
     internal fun checkReferenceIsToAllowedMember(
         descriptor: CallableDescriptor, trace: BindingTrace, expression: CjCallableReference
     ) {
-//        val simpleName = expression.callableReference
-//        if (!languageVersionSettings.supportsFeature(LanguageFeature.CallableReferencesToClassMembersWithEmptyLHS)) {
-//            if (expression.isEmptyLHS &&
-//                (descriptor.dispatchReceiverParameter != null || descriptor.extensionReceiverParameter != null)) {
-//                trace.report(
-//                    UNSUPPORTED_FEATURE.on(
-//                        simpleName, LanguageFeature.CallableReferencesToClassMembersWithEmptyLHS to languageVersionSettings
-//                    )
-//                )
-//            }
-//        }
-//        if (descriptor is ConstructorDescriptor && DescriptorUtils.isAnnotationClass(descriptor.containingDeclaration)) {
-//            trace.report(CALLABLE_REFERENCE_TO_ANNOTATION_CONSTRUCTOR.on(simpleName))
-//        }
-//        if (descriptor is CallableMemberDescriptor && isMemberExtension(descriptor)) {
-//            trace.report(EXTENSION_IN_CLASS_REFERENCE_NOT_ALLOWED.on(simpleName, descriptor))
-//        }
-//        if (descriptor is VariableDescriptor && descriptor !is PropertyDescriptor) {
-//            trace.report(UNSUPPORTED_REFERENCES_TO_VARIABLES_AND_PARAMETERS.on(simpleName))
-//        }
+
     }
 
     fun completeResolvedCall(
@@ -525,7 +479,7 @@ class ResolvedAtomCompleter(
         missingSupertypesResolver: MissingSupertypesResolver,
         trace: BindingTrace
     ) {
-        val receiverValue = resolvedCall.dispatchReceiver ?: resolvedCall.extensionReceiver
+        val receiverValue = resolvedCall.dispatchReceiver
         receiverValue?.type?.let { receiverType ->
             MissingDependencySupertypeChecker.checkSupertypes(
                 receiverType,

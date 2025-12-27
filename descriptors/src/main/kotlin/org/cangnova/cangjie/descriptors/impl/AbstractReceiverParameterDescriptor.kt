@@ -73,14 +73,10 @@ abstract class AbstractReceiverParameterDescriptor(annotations: Annotations, nam
     override val valueParameters: List<ValueParameterDescriptor>
         get() = emptyList()
 
-    override val contextReceiverParameters: List<ReceiverParameterDescriptor>
-        get() = emptyList()
 
     override val returnType: CangJieType?
         get() = type
 
-    override val extensionReceiverParameter: ReceiverParameterDescriptor?
-        get() = null
 
     override val overriddenDescriptors: Collection<CallableDescriptor>
         get() = emptySet()

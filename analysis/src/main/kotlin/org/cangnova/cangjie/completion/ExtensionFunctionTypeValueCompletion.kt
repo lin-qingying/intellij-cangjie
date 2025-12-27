@@ -34,7 +34,6 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation
 import org.cangnova.cangjie.name.OperatorNameConventions
 import org.cangnova.cangjie.resolve.calls.util.CallType
 import org.cangnova.cangjie.resolve.calls.util.ReceiverType
-import org.cangnova.cangjie.utils.substituteExtensionIfCallable
 
 
 class ExtensionFunctionTypeValueCompletion(
@@ -54,7 +53,8 @@ class ExtensionFunctionTypeValueCompletion(
 
             val invokes = variableType.memberScope.getContributedFunctions(OperatorNameConventions.INVOKE, NoLookupLocation.FROM_IDE)
             for (invoke in createSynthesizedInvokes(invokes)) {
-                for (substituted in invoke.substituteExtensionIfCallable(receiverTypes.map { it.type }, callType)) {
+                // 在仓颉语言中，invoke 操作符也是普通成员，不需要类型替换
+                for (substituted in listOf(invoke)) {
                     val factory = object : AbstractLookupElementFactory {
                         override fun createStandardLookupElementsForDescriptor(
                             descriptor: DeclarationDescriptor,

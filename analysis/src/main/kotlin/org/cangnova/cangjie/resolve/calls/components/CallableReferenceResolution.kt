@@ -46,7 +46,6 @@ import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.UnwrappedType
 import org.cangnova.cangjie.types.checker.captureFromExpression
 import org.cangnova.cangjie.types.expressions.CoercionStrategy
-import org.cangnova.cangjie.types.getReceiverTypeFromFunctionType
 import org.cangnova.cangjie.types.getReturnTypeFromFunctionType
 import org.cangnova.cangjie.types.getValueParameterTypesFromFunctionType
 import org.cangnova.cangjie.types.isFunctionType
@@ -132,12 +131,7 @@ fun CallableReferenceResolutionCandidate.addConstraints(
             candidate.dispatchReceiverParameter,
             position
         )
-        constraintSystem.addReceiverConstraint(
-            substitutor,
-            extensionReceiver,
-            candidate.extensionReceiverParameter,
-            position
-        )
+
     }
 
     if (expectedType != null && !TypeUtils.noExpectedType(expectedType) && !constraintSystem.hasContradiction) {
@@ -199,13 +193,11 @@ fun extractInputOutputTypesFromCallableReferenceExpectedType(expectedType: Unwra
 }
 
 private fun extractInputOutputTypesFromFunctionType(functionType: UnwrappedType): InputOutputTypes {
-    val receiver = functionType.getReceiverTypeFromFunctionType()?.unwrap()
+    // 仓颉没有扩展函数类型，输入类型只包含参数类型
     val parameters = functionType.getValueParameterTypesFromFunctionType().map { it.type.unwrap() }
-
-    val inputTypes = listOfNotNull(receiver) + parameters
     val outputType = functionType.getReturnTypeFromFunctionType().unwrap()
 
-    return InputOutputTypes(inputTypes, outputType)
+    return InputOutputTypes(parameters, outputType)
 }
 
 

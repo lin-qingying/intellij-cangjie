@@ -474,15 +474,7 @@ class TypeResolver(
                 val receiverTypeRef = type.receiverTypeReference
                 val receiverType = if (receiverTypeRef == null) null else resolveType(c.noBareTypes(), receiverTypeRef)
 
-                val contextReceiverList = type.contextReceiverList
-                val contextReceiversTypes = if (contextReceiverList != null) {
-                    checkContextReceiversAreEnabled(c.trace, languageVersionSettings, contextReceiverList)
-                    val types = contextReceiverList.typeReferences().map { typeRef ->
-                        resolveType(c.noBareTypes(), typeRef)
-                    }
-                    checkSubtypingBetweenContextReceivers(c.trace, contextReceiverList, types)
-                    types
-                } else emptyList()
+
 
                 val parameterDescriptors = resolveParametersOfFunctionType(type.parameters)
                 checkParametersOfFunctionType(parameterDescriptors)
@@ -498,7 +490,7 @@ class TypeResolver(
 
                 result = type(
                     createFunctionType(
-                        moduleDescriptor.builtIns, annotations, receiverType, contextReceiversTypes,
+                        moduleDescriptor.builtIns, annotations, receiverType,
                         parameterDescriptors.map { it.type },
                         parameterDescriptors.map { it.name },
                         returnType,

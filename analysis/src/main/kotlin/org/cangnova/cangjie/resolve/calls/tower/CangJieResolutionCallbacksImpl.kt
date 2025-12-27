@@ -121,7 +121,6 @@ class CangJieResolutionCallbacksImpl(
     override fun analyzeAndGetLambdaReturnArguments(
         lambdaArgument: LambdaCangJieCallArgument,
         receiverType: UnwrappedType?,
-        contextReceiversTypes: List<UnwrappedType>,
         parameters: List<UnwrappedType>,
         expectedReturnType: UnwrappedType?,
         annotations: Annotations,
@@ -198,12 +197,10 @@ class CangJieResolutionCallbacksImpl(
         val refinedReceiverType = receiverType?.let {
             callComponents.cangjieTypeChecker.cangjieTypeRefiner.refineType(it)
         }
-        val refinedContextReceiverTypes = contextReceiversTypes.map {
-            callComponents.cangjieTypeChecker.cangjieTypeRefiner.refineType(it)
-        }
+
 
         val expectedType = createFunctionType(
-            builtIns, annotations, refinedReceiverType, refinedContextReceiverTypes, parameters, null,
+            builtIns, annotations, refinedReceiverType, parameters, null,
             lambdaInfo.expectedType
         )
 

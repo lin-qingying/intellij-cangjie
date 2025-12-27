@@ -61,7 +61,7 @@ class ValueParameterResolver(
                 declaringScope.ownerDescriptor,
                 false,
                 null,
-                listOf(),
+
                 LexicalScopeKind.DEFAULT_VALUE
             )
 

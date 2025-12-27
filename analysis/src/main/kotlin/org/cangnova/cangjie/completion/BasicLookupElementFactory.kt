@@ -265,27 +265,6 @@ class BasicLookupElementFactory(
             return
         }
 
-        val extensionReceiver = descriptor.original.extensionReceiverParameter
-        if (extensionReceiver != null) {
-            when (descriptor) {
-//                is SamAdapterExtensionFunctionDescriptor -> {
-//                    // no need to show them as extensions
-//                    return
-//                }
-//
-//                is SyntheticJavaPropertyDescriptor -> {
-//                    var from = descriptor.getMethod.name.asString() + "()"
-//                    descriptor.setMethod?.let { from += "/" + it.name.asString() + "()" }
-//                    appendTailText(CangJieCompletionBundle.message("presentation.tail.from.0", from))
-//                    return
-//                }
-
-                else -> {
-                    val receiverPresentation = SHORT_NAMES_RENDERER.renderType(extensionReceiver.type)
-                    appendTailText(CangJieCompletionBundle.message("presentation.tail.for.0", receiverPresentation))
-                }
-            }
-        }
 
         val containerPresentation = containerPresentation(descriptor)
         if (containerPresentation != null) {

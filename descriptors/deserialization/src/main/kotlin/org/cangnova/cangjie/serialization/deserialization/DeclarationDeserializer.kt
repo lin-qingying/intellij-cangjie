@@ -134,9 +134,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
         property.setType(
             local.typeDeserializer.type(decl.returnType),
             local.typeDeserializer.ownTypeParameters,
-            getDispatchReceiverParameter(),
-            null,
-            emptyList()
+            getDispatchReceiverParameter()
 
         )
 
@@ -244,9 +242,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
         variable.setType(
             local.typeDeserializer.type(decl.returnType),
             local.typeDeserializer.ownTypeParameters,
-            getDispatchReceiverParameter(),
-            null,
-            emptyList()
+            getDispatchReceiverParameter()
         )
         return variable
     }
@@ -274,9 +270,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
     }
 
     private fun DeserializedSimpleFunctionDescriptor.initializeWithCoroutinesExperimentalityStatus(
-        extensionReceiverParameter: ReceiverParameterDescriptor? = null,
         dispatchReceiverParameter: ReceiverParameterDescriptor? = null,
-        contextReceiverParameters: List<ReceiverParameterDescriptor> = emptyList(),
         typeParameters: List<TypeParameterDescriptor> = emptyList(),
         unsubstitutedValueParameters: List<ValueParameterDescriptor> = emptyList(),
         unsubstitutedReturnType: CangJieType? = null,
@@ -285,9 +279,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
         userDataMap: Map<out CallableDescriptor.UserDataKey<*>, Any>? = null
     ) {
         initialize(
-            extensionReceiverParameter,
             dispatchReceiverParameter,
-            contextReceiverParameters,
             typeParameters,
             unsubstitutedValueParameters,
             unsubstitutedReturnType,

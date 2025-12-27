@@ -35,8 +35,6 @@ import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.UnwrappedType
 import org.cangnova.cangjie.types.createFunctionType
 import org.cangnova.cangjie.types.error.ErrorTypeKind
-import org.cangnova.cangjie.types.getContextReceiverTypesFromFunctionType
-import org.cangnova.cangjie.types.getReceiverTypeFromFunctionType
 import org.cangnova.cangjie.types.getReturnTypeFromFunctionType
 import org.cangnova.cangjie.types.getValueParameterTypesFromFunctionType
 import org.cangnova.cangjie.types.isBuiltinFunctionalType
@@ -93,7 +91,7 @@ private fun preprocessLambdaArgument(
 
     if (expectedType != null) {
         val lambdaType = createFunctionType(
-            csBuilder.builtIns, Annotations.EMPTY, resolvedArgument.receiver, resolvedArgument.contextReceivers,
+            csBuilder.builtIns, Annotations.EMPTY, resolvedArgument.receiver ,
             resolvedArgument.parameters, null, resolvedArgument.returnType
         )
         csBuilder.addSubtypeConstraint(lambdaType, expectedType, ArgumentConstraintPositionImpl(argument))
@@ -110,59 +108,25 @@ private fun extractLambdaInfoFromFunctionalType(
     if (expectedType == null || !expectedType.isBuiltinFunctionalType) return null
     val parametersTypes = argument.parametersTypes
     val expectedParameters = expectedType.getValueParameterTypesFromFunctionType()
-    val expectedReceiver = expectedType.getReceiverTypeFromFunctionType()?.unwrap()
-    val expectedContextReceivers =
-        expectedType.getContextReceiverTypesFromFunctionType().map { it.unwrap() }.toTypedArray()
     val argumentAsFunctionExpression = argument as? FunctionExpression
-
-    val receiverFromExpected = argumentAsFunctionExpression?.receiverType == null && expectedReceiver != null
 
     fun UnwrappedType?.orExpected(index: Int) =
         this ?: expectedParameters.getOrNull(index)?.type?.unwrap() ?: expectedType.builtIns.stdlibTypes.anyType
 
-    // Extracting parameters and receiver type, taking into account the actual lambda definition and expected lambda type
-    val (parameters, receiver) = when {
-        argumentAsFunctionExpression != null -> {
-            // lambda has explicit functional type - use types from it if available
-            (parametersTypes?.mapIndexed { index, type ->
-                type.orExpected(index)
-            } ?: emptyList()) to argumentAsFunctionExpression.receiverType
-        }
+    // 仓颉没有扩展函数类型，简化参数提取逻辑
+    // 从实际 lambda 定义或期望的函数类型中提取参数类型
+    val parameters = parametersTypes?.mapIndexed { index, type ->
+        type.orExpected(index)
+    } ?: expectedParameters.map { it.type.unwrap() }
 
-        (parametersTypes?.size ?: 0) == expectedParameters.size && receiverFromExpected -> {
-            // expected type has receiver, but arguments sizes are the same in actual and expected, so assuming missing (maybe unused) receiver in lambda
-            // TODO: in case of implicit parameters in lambda ("this" and "it") this case assumes "this", probably we should generate two possible overloads and choose among them later
-            (parametersTypes?.mapIndexed { index, type ->
-                type.orExpected(index)
-            } ?: expectedParameters.map { it.type.unwrap() }) to expectedReceiver
-        }
-
-        (parametersTypes?.size ?: 0) - expectedParameters.size == 1 && receiverFromExpected -> {
-            // one "missing" parameter in the expected parameters - first lambda parameter should be mapped to expected receiver
-            // TODO: same "this" or "it" case from above could be applicable here as well
-
-            (parametersTypes?.mapIndexed { index, type ->
-                type ?: run {
-                    expectedParameters.getOrNull(index)?.type?.unwrap()
-                } ?: expectedType.builtIns.stdlibTypes.anyType
-            } ?: expectedParameters.map { it.type.unwrap() }) to expectedReceiver?.unwrap()
-        }
-
-        else ->
-            (parametersTypes?.mapIndexed { index, type ->
-                type.orExpected(index)
-            } ?: expectedParameters.map { it.type.unwrap() }) to (if (receiverFromExpected) expectedReceiver else null)
-    }
-    val contextReceivers =
-        (argumentAsFunctionExpression?.contextReceiversTypes ?: expectedContextReceivers).filterNotNull()
+    // 仓颉没有扩展函数类型，接收器只能来自显式的函数表达式类型
+    val receiver = argumentAsFunctionExpression?.receiverType
 
     val returnType = argumentAsFunctionExpression?.returnType ?: expectedType.getReturnTypeFromFunctionType().unwrap()
 
     return ResolvedLambdaAtom(
         argument,
-
         receiver,
-        contextReceivers,
         parameters,
         returnType,
         typeVariableForLambdaReturnType = returnTypeVariable,
@@ -191,15 +155,6 @@ private fun extraLambdaInfo(
             ?.takeIf { isFunctionSupertype }
         ?: typeVariable.defaultType
 
-    val contextReceiversTypes =
-        argumentAsFunctionExpression?.contextReceiversTypes?.mapIndexed { index, contextReceiverType ->
-            if (contextReceiverType != null) {
-                contextReceiverType
-            } else {
-                diagnosticsHolder.addDiagnostic(NotEnoughInformationForLambdaParameter(argument, index))
-                ErrorUtils.createErrorType(ErrorTypeKind.UNINFERRED_LAMBDA_CONTEXT_RECEIVER_TYPE)
-            }
-        } ?: emptyList()
     val parameters = argument.parametersTypes?.mapIndexed { index, parameterType ->
         if (parameterType != null) {
             parameterType
@@ -216,7 +171,6 @@ private fun extraLambdaInfo(
         argument,
 
         receiverType,
-        contextReceiversTypes,
         parameters,
         returnType,
         typeVariable.takeIf { newTypeVariableUsed },

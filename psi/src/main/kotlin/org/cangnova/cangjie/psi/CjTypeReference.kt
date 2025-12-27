@@ -101,10 +101,6 @@ class CjTypeReference :
             }
 
             is CjFunctionType -> buildString {
-                val contextReceivers = typeElement.contextReceiversTypeReferences
-                if (contextReceivers.isNotEmpty()) {
-                    append(contextReceivers.joinToString(", ", "context(", ")") { getTypeText(it.typeElement) ?: "" })
-                }
                 typeElement.receiverTypeReference?.let { append(getTypeText(it.typeElement)) }
                 append(
                     typeElement.parameters.joinToString(", ", "(", ")") { param ->

@@ -96,7 +96,6 @@ import org.cangnova.cangjie.resolve.constants.*
 import org.cangnova.cangjie.resolve.scopes.LexicalScopeKind
 import org.cangnova.cangjie.resolve.scopes.findFirstClassifierWithDeprecationStatus
 import org.cangnova.cangjie.resolve.scopes.getImplicitReceiversHierarchy
-import org.cangnova.cangjie.resolve.scopes.receivers.ContextReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver.Companion.create
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.CangJieType
@@ -1763,13 +1762,8 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                     }
                 }
             } else if (receivers.isNotEmpty()) {
-                // `this` cannot point to context receiver
-                for (receiver in receivers) {
-                    if (receiver.value !is ContextReceiver) {
-                        result = receiver
-                        break
-                    }
-                }
+                // 仓颉不支持 context receiver，直接取第一个接收器
+                result = receivers.first()
             }
             if (result != null) {
                 context.trace.record(

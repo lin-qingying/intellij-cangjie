@@ -30,6 +30,7 @@ import org.cangnova.cangjie.builtins.StandardNames.FqNames.fromByName
 import org.cangnova.cangjie.builtins.UnsignedTypes
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.descriptors.impl.*
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.lexer.CjModifierKeywordToken
@@ -66,7 +67,7 @@ import kotlin.io.normalize
  * 包含类型检查、层级关系判断、可见性计算、模块关系等常用功能。
  */
 object DescriptorUtils {
-    fun isEnumConstructor(descriptor: DeclarationDescriptor): Boolean{
+    fun isEnumConstructor(descriptor: DeclarationDescriptor): Boolean {
         return descriptor is EnumConstructorDescriptor
     }
 
@@ -265,7 +266,7 @@ object DescriptorUtils {
         freedomForSealedInterfacesSupported: Boolean
     ): DescriptorVisibility {
         val classKind: ClassKind = classDescriptor.kind
-        if (classKind == ClassKind.ENUM ) {
+        if (classKind == ClassKind.ENUM) {
             return DescriptorVisibilities.PRIVATE
         }
         if (isSealedClass(classDescriptor)) {
@@ -684,17 +685,18 @@ object DescriptorUtils {
 
     /**
      * 获取调度接收者参数(如果需要)
-     * 对于类成员,返回类的this接收者参数
+     * 对于类成员和扩展成员,返回对应的this接收者参数
      *
      * @param containingDeclaration 包含声明
      * @return 接收者参数描述符,如果不需要则返回null
      */
     @JvmStatic
     fun getDispatchReceiverParameterIfNeeded(containingDeclaration: DeclarationDescriptor): ReceiverParameterDescriptor? {
-        if (containingDeclaration is ClassDescriptor) {
-            return containingDeclaration.thisAsReceiverParameter
+        return when (containingDeclaration) {
+            is ClassDescriptor -> containingDeclaration.thisAsReceiverParameter
+            is ExtendDescriptor -> containingDeclaration.thisAsReceiverParameter
+            else -> null
         }
-        return null
     }
 
 
@@ -702,6 +704,8 @@ object DescriptorUtils {
     private fun isKindOf(descriptor: DeclarationDescriptor?, classKind: ClassKind): Boolean {
         return when (descriptor) {
             is ClassDescriptor -> descriptor.kind == classKind
+            is EnumDescriptor -> classKind == ClassKind.ENUM
+            is ExtendDescriptor -> classKind == ClassKind.EXTEND
             else -> false
         }
     }
@@ -1200,13 +1204,11 @@ private fun <D : CallableDescriptor> D.containsStubTypes() =
     valueParameters.any { parameter -> parameter.type.contains { it is StubTypeForBuilderInference } }
             || returnType?.contains { it is StubTypeForBuilderInference } == true
             || dispatchReceiverParameter?.type?.contains { it is StubTypeForBuilderInference } == true
-            || extensionReceiverParameter?.type?.contains { it is StubTypeForBuilderInference } == true
 
 fun <D : CallableDescriptor> D.shouldBeSubstituteWithStubTypes() =
     valueParameters.none { it.type.isError }
             && returnType?.isError != true
             && dispatchReceiverParameter?.type?.isError != true
-            && extensionReceiverParameter?.type?.isError != true
             && containsStubTypes()
 
 val ClassifierDescriptorWithTypeParameters.kind: ClassKind?
@@ -1241,6 +1243,7 @@ fun <D : CallableDescriptor> D.overriddenTreeUniqueAsSequence(useOriginal: Boole
 
     return doBuildOverriddenTreeAsSequence()
 }
+
 fun DescriptorVisibility.toKeywordToken(): CjModifierKeywordToken = when (val normalized = normalize()) {
     DescriptorVisibilities.PUBLIC -> CjTokens.PUBLIC_KEYWORD
     DescriptorVisibilities.PROTECTED -> CjTokens.PROTECTED_KEYWORD

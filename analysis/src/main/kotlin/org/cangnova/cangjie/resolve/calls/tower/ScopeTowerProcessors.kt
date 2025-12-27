@@ -40,22 +40,11 @@ internal abstract class AbstractSimpleScopeTowerProcessor<C : Candidate>(
 ) : SimpleScopeTowerProcessor<C> {
     fun createCandidates(
         collector: Collection<CandidateWithBoundDispatchReceiver>,
-        kind: ExplicitReceiverKind,
-        receiver: ReceiverValueWithSmartCastInfo?
+        kind: ExplicitReceiverKind
     ): Collection<C> {
-        val result = mutableListOf<C>()
-        for (candidate in collector) {
-            if (candidate.requiresExtensionReceiver == (receiver != null)) {
-                result.add(
-                    candidateFactory.createCandidate(
-                        candidate,
-                        kind,
-                        extensionReceiver = receiver
-                    )
-                )
-            }
+        return collector.map { candidate ->
+            candidateFactory.createCandidate(candidate, kind)
         }
-        return result
     }
 }
 
@@ -72,14 +61,12 @@ internal class ExplicitReceiverScopeTowerProcessor<C : Candidate>(
         return when (data) {
             TowerData.Empty -> createCandidates(
                 MemberScopeTowerLevel(scopeTower, explicitReceiver).collectCandidates(null),
-                ExplicitReceiverKind.DISPATCH_RECEIVER,
-                null
+                ExplicitReceiverKind.DISPATCH_RECEIVER
             )
 
             is TowerData.TowerLevel -> createCandidates(
                 data.level.collectCandidates(explicitReceiver),
-                ExplicitReceiverKind.EXTENSION_RECEIVER,
-                explicitReceiver
+                ExplicitReceiverKind.DISPATCH_RECEIVER
             )
 
             else -> emptyList()
@@ -106,8 +93,7 @@ private class QualifierScopeTowerProcessor<C : Candidate>(
 
         return createCandidates(
             QualifierScopeTowerLevel(scopeTower, qualifier).collectCandidates(null),
-            ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
-            null
+            ExplicitReceiverKind.NO_EXPLICIT_RECEIVER
         )
     }
 
@@ -122,36 +108,13 @@ private class NoExplicitReceiverScopeTowerProcessor<C : Candidate>(
     override fun simpleProcess(data: TowerData): Collection<C> = when (data) {
         is TowerData.TowerLevel -> createCandidates(
             data.level.collectCandidates(null),
-            ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
-            null
+            ExplicitReceiverKind.NO_EXPLICIT_RECEIVER
         )
 
         is TowerData.BothTowerLevelAndImplicitReceiver -> createCandidates(
             data.level.collectCandidates(data.implicitReceiver),
-            ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
-            data.implicitReceiver
+            ExplicitReceiverKind.NO_EXPLICIT_RECEIVER
         )
-
-        is TowerData.BothTowerLevelAndContextReceiversGroup -> {
-            val groupsOfDuplicateCandidates = data.contextReceiversGroup.flatMap { receiver ->
-                data.level.collectCandidates(receiver).map { it to receiver }
-            }.filter { (candidate, _) ->
-                candidate.requiresExtensionReceiver
-            }.groupBy { it.first.descriptor }.values
-
-            val candidateToReceivers = groupsOfDuplicateCandidates.map { l ->
-                val candidate = l.first().first
-                val receivers = l.map { it.second }
-                candidate to receivers
-            }
-            candidateToReceivers.map {
-                candidateFactory.createCandidate(
-                    it.first,
-                    ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
-                    it.second
-                )
-            }
-        }
 
         else -> emptyList()
     }
@@ -161,7 +124,6 @@ private class NoExplicitReceiverScopeTowerProcessor<C : Candidate>(
             when (data) {
                 is TowerData.TowerLevel -> data.level.recordLookup(name)
                 is TowerData.BothTowerLevelAndImplicitReceiver -> data.level.recordLookup(name)
-                is TowerData.BothTowerLevelAndContextReceiversGroup -> data.level.recordLookup(name)
                 is TowerData.ForLookupForNoExplicitReceiver -> data.level.recordLookup(name)
                 else -> {}
             }

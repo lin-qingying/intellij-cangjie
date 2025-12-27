@@ -36,7 +36,6 @@ interface MacroDescriptor : FunctionDescriptor {
     override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<MacroDescriptor>
     fun initialize(
         dispatchReceiverParameterIfNeeded: ReceiverParameterDescriptor?,
-        contextReceiverDescriptors: List<ReceiverParameterDescriptor>,
         valueParameterDescriptors: List<ValueParameterDescriptor>,
         returnType: CangJieType,
         modality: Modality,
@@ -72,16 +71,14 @@ open class MacroDescriptorImpl(
 
     override fun initialize(
         dispatchReceiverParameterIfNeeded: ReceiverParameterDescriptor?,
-        contextReceiverDescriptors: List<ReceiverParameterDescriptor>,
         valueParameterDescriptors: List<ValueParameterDescriptor>,
         returnType: CangJieType,
         modality: Modality,
         visibility: DescriptorVisibility
     ) {
         super.initialize(
-            null,
+
             dispatchReceiverParameterIfNeeded,
-            contextReceiverDescriptors,
             emptyList(),
             valueParameterDescriptors,
             returnType,

@@ -1002,7 +1002,7 @@ class OverridingUtil private constructor(
         val superValueParameters = compiledValueParameters(superDescriptor)
         val subValueParameters = compiledValueParameters(subDescriptor)
         val superTypeParameters = superDescriptor.typeParameters
-        val subTypeParameters = subDescriptor.typeParametersNotExtend
+        val subTypeParameters = subDescriptor.typeParameters
 
         // 类型参数数量检查
         if (superTypeParameters.size != subTypeParameters.size) {

@@ -184,7 +184,7 @@ private fun resolveQualifierReferenceTarget(
         val classifier = qualifier.descriptor
         // 检查选择器是否为可调用的成员（有接收器参数）
         val selectorIsCallable = selector is CallableDescriptor &&
-                (selector.dispatchReceiverParameter != null || selector.extensionReceiverParameter != null)
+                (selector.dispatchReceiverParameter != null  )
 
         // TODO 简化此代码
         // 当类限定符出现在表达式位置时，

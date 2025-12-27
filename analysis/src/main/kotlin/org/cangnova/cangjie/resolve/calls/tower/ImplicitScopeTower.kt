@@ -137,7 +137,6 @@ interface ImplicitScopeTower {
 
     val typeApproximator: TypeApproximator
     val isNewInferenceEnabled: Boolean
-    fun getContextReceivers(scope: LexicalScope): List<ReceiverValueWithSmartCastInfo>
 
     fun interceptVariableCandidates(
         resolutionScope: ResolutionScope,

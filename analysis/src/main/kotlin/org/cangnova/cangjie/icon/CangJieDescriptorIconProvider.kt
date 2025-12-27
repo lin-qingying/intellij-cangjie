@@ -89,13 +89,7 @@ object CangJieDescriptorIconProvider {
             is PackageFragmentDescriptor, is PackageViewDescriptor -> AllIcons.Nodes.Package
             is FunctionDescriptor -> {
                 when {
-                    descriptor.extensionReceiverParameter != null -> {
-                        if (Modality.ABSTRACT == getModalitySafe(descriptor)) {
-                            CangJieIcons.ABSTRACT_EXTENSION_FUNCTION
-                        } else {
-                            CangJieIcons.EXTENSION_FUNCTION
-                        }
-                    }
+
 
                     descriptor.containingDeclaration is ClassDescriptor -> {
                         if (Modality.ABSTRACT == getModalitySafe(descriptor)) {

@@ -31,8 +31,7 @@ import org.cangnova.cangjie.resolve.DescriptorFactory
 import org.cangnova.cangjie.resolve.scopes.InstanceMemberScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.scopes.StaticMemberScope
-import org.cangnova.cangjie.resolve.scopes.receivers.ExtensionReceiver
-import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitContextReceiver
+
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
@@ -182,15 +181,7 @@ abstract class AbstractEnumConstructorDescriptor(
     override val returnType: CangJieType?
         get() = unsubstitutedReturnType
 
-    /**
-     * 扩展接收器参数（枚举构造函数不支持）
-     */
-    override var extensionReceiverParameter: ReceiverParameterDescriptor? = null
 
-    /**
-     * 上下文接收器参数（枚举构造函数通常不支持）
-     */
-    override var contextReceiverParameters: List<ReceiverParameterDescriptor> = emptyList()
 
     /**
      * 调度接收器参数（枚举构造函数不支持）
@@ -292,8 +283,6 @@ abstract class AbstractEnumConstructorDescriptor(
         var newVisibility: DescriptorVisibility,
         var kind: CallableMemberDescriptor.Kind,
         var newValueParameterDescriptors: List<ValueParameterDescriptor>,
-        var newContextReceiverParameters: List<ReceiverParameterDescriptor>,
-        var newExtensionReceiverParameter: ReceiverParameterDescriptor?,
         var newReturnType: CangJieType,
         var name: Name?
     ) : EnumConstructorDescriptor.CopyBuilder<EnumConstructorDescriptor> {
@@ -359,15 +348,9 @@ abstract class AbstractEnumConstructorDescriptor(
         }
 
 
-        override fun setContextReceiverParameters(contextReceiverParameters: List<ReceiverParameterDescriptor>): EnumConstructorDescriptor.CopyBuilder<EnumConstructorDescriptor> {
-            newContextReceiverParameters = contextReceiverParameters
-            return this
-        }
 
-        override fun setExtensionReceiverParameter(extensionReceiverParameter: ReceiverParameterDescriptor?): CopyConfiguration {
-            newExtensionReceiverParameter = extensionReceiverParameter
-            return this
-        }
+
+
 
         override fun setDispatchReceiverParameter(dispatchReceiverParameter: ReceiverParameterDescriptor?): CopyConfiguration {
             this.dispatchReceiverParameter = dispatchReceiverParameter
@@ -440,8 +423,8 @@ abstract class AbstractEnumConstructorDescriptor(
     protected fun newCopyBuilder(substitutor: TypeSubstitutor): CopyConfiguration {
         return CopyConfiguration(
             substitutor.substitution,
-            containingDeclaration, modality, visibility, kind, valueParameters, contextReceiverParameters,
-            extensionReceiverParameter, returnType!!, null
+            containingDeclaration, modality, visibility, kind, valueParameters,
+            returnType!!, null
         )
     }
 
@@ -465,9 +448,7 @@ abstract class AbstractEnumConstructorDescriptor(
     }
 
     open fun initialize(
-        extensionReceiverParameter: ReceiverParameterDescriptor? = null,
         dispatchReceiverParameter: ReceiverParameterDescriptor?= null,
-        contextReceiverParameters: List<ReceiverParameterDescriptor> = emptyList(),
         typeParameters: List<TypeParameterDescriptor> = emptyList(),
 
         unsubstitutedValueParameters: List<ValueParameterDescriptor> = emptyList(),
@@ -482,9 +463,7 @@ abstract class AbstractEnumConstructorDescriptor(
         this.unsubstitutedReturnType = unsubstitutedReturnType
         this.modality = modality
         this.visibility = visibility
-        this.extensionReceiverParameter = extensionReceiverParameter
         this.dispatchReceiverParameter = dispatchReceiverParameter
-        this.contextReceiverParameters = contextReceiverParameters
 
 
         for (i in unsubstitutedValueParameters.indices) {
@@ -541,50 +520,8 @@ abstract class AbstractEnumConstructorDescriptor(
         )
         if (substitutor == null) return null
 
-        // 替换上下文接收者参数
-        val substitutedContextReceiverParameters = mutableListOf<ReceiverParameterDescriptor>()
 
-        if (configuration.newContextReceiverParameters.isNotEmpty()) {
-            var index = 0
-            for (newContextReceiverParameter in configuration.newContextReceiverParameters) {
-                val substitutedContextReceiverType =
-                    substitutor.substitute(newContextReceiverParameter.type, Variance.INVARIANT)
-                if (substitutedContextReceiverType == null) {
-                    return null
-                }
-                val substitutedContextReceiverParameter =
-                    DescriptorFactory.createContextReceiverParameterForCallable(
-                        substitutedDescriptor, substitutedContextReceiverType,
-                        (newContextReceiverParameter.value as ImplicitContextReceiver).customLabelName,
-                        newContextReceiverParameter.annotations,
-                        index
-                    )
-                index++
-//                substitutedContextReceiverParameters方法是根据substitutedContextReceiverType是否返回null的，所以这里已经判断过substitutedContextReceiverType，所以这里一定不为null，使用?let是为了好看
-                substitutedContextReceiverParameter?.let { substitutedContextReceiverParameters.add(it) }
 
-                wereChanges[0] = wereChanges[0] or (substitutedContextReceiverType != newContextReceiverParameter.type)
-            }
-        }
-
-        // 替换扩展接收者参数
-        var substitutedReceiverParameter: ReceiverParameterDescriptor? = null
-        configuration.newExtensionReceiverParameter?.let { newExtensionReceiverParameter ->
-            val substitutedExtensionReceiverType =
-                substitutor.substitute(newExtensionReceiverParameter.type, Variance.INVARIANT)
-            if (substitutedExtensionReceiverType == null) {
-                return null
-            }
-            substitutedReceiverParameter = ReceiverParameterDescriptorImpl(
-                substitutedDescriptor,
-                ExtensionReceiver(
-                    substitutedDescriptor, substitutedExtensionReceiverType, newExtensionReceiverParameter.value
-                ),
-                newExtensionReceiverParameter.annotations
-            )
-
-            wereChanges[0] = wereChanges[0] or (substitutedExtensionReceiverType != newExtensionReceiverParameter.type)
-        }
 
         // 替换分发接收者参数
         var substitutedExpectedThis: ReceiverParameterDescriptor? = null
@@ -635,7 +572,7 @@ abstract class AbstractEnumConstructorDescriptor(
 
         // 初始化替换后的描述符
         substitutedDescriptor.initialize(
-            substitutedReceiverParameter, substitutedExpectedThis, substitutedContextReceiverParameters,
+            substitutedExpectedThis,
             substitutedTypeParameters,
             substitutedValueParameters,
             substitutedReturnType,

@@ -746,7 +746,7 @@ class CallResolver(
                         parameterTypes.add(NO_EXPECTED_TYPE)
                     }
                     expectedType = createFunctionType(
-                        builtIns, Annotations.EMPTY, null, emptyList(), parameterTypes, null, context.expectedType
+                        builtIns, Annotations.EMPTY, null,   parameterTypes, null, context.expectedType
                     )
                 }
                 val calleeType = expressionTypingServices.safeGetType(

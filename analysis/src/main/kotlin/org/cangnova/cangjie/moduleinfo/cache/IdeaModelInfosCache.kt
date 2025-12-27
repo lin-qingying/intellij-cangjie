@@ -49,11 +49,10 @@ import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.launch
 import org.cangnova.cangjie.moduleinfo.IdeaModuleInfo
 import org.cangnova.cangjie.moduleinfo.LibraryInfo
-import org.cangnova.cangjie.moduleinfo.ModuleInfo
 import org.cangnova.cangjie.moduleinfo.ModuleSourceInfo
 import org.cangnova.cangjie.moduleinfo.checkValidity
 import org.cangnova.cangjie.moduleinfo.sourceModuleInfos
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 
 /**
  * 模块信息缓存接口
@@ -336,7 +335,7 @@ fun Collection<IdeaModuleInfo>.checkValidity(lazyMessage: () -> String) {
         }
     }
     if (disposed.isNotEmpty()) {
-        throw CangJieExceptionWithAttachmentsImpl(lazyMessage())
+        throw CangJieExceptionWithAttachments(lazyMessage())
             .withAttachment("disposedInfos.txt", disposed.joinToString("\n") { it.name.asString() })
     }
 }

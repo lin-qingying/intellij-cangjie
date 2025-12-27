@@ -25,10 +25,8 @@
 package org.cangnova.cangjie.moduleinfo.cache
 
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.OrderRootType
@@ -38,34 +36,21 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.newvfs.NewVirtualFileSystem
 import com.intellij.platform.workspace.jps.entities.LibraryDependency
 import com.intellij.platform.workspace.jps.entities.LibraryEntity
 import com.intellij.platform.workspace.jps.entities.LibraryTableId
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.storage.VersionedStorageChange
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.serviceContainer.AlreadyDisposedException
-import com.intellij.util.PathUtil
 import com.intellij.util.concurrency.ThreadingAssertions
 import org.cangnova.cangjie.moduleinfo.LibraryInfo
 import org.cangnova.cangjie.moduleinfo.LibraryInfoImpl
 import org.cangnova.cangjie.moduleinfo.LibraryInfoListener
-import org.cangnova.cangjie.moduleinfo.cache.LibraryDependenciesCache
 import org.cangnova.cangjie.moduleinfo.checkValidity
 import org.cangnova.cangjie.moduleinfo.getChanges
 import org.cangnova.cangjie.moduleinfo.rootEquals
 import org.cangnova.cangjie.moduleinfo.urlsByType
-import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.projectStructure.scope.CombinableSourceAndClassRootsScope
-import org.cangnova.cangjie.projectStructure.scope.PoweredLibraryScopeBase
-import org.cangnova.cangjie.projectStructure.scope.calculateEntriesVirtualFileSystems
-import org.cangnova.cangjie.projectStructure.scope.calculateTopPackageNames
-import org.cangnova.cangjie.resolve.PlatformDependentAnalyzerServices
-import org.cangnova.cangjie.resolve.PlatformDependentAnalyzerServicesImpl
 import org.cangnova.cangjie.utils.addIfNotNull
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 import org.cangnova.cangjie.utils.flattenTo
 
 /**
@@ -270,7 +255,7 @@ class LibraryInfoCache(project: Project) : Disposable {
             val deduplicatedLibrary = deduplicatedLibraries.find { keyUrlsByType.rootEquals(it) } ?: return null
             val cachedValue = cache[deduplicatedLibrary]
             if (cachedValue == null) {
-                val exception = CangJieExceptionWithAttachmentsImpl(
+                val exception = CangJieExceptionWithAttachments(
                     """
                         inconsistent state:
                         is the same key: ${deduplicatedLibrary === key}

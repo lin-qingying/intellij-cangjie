@@ -72,9 +72,7 @@ open class ClassConstructorDescriptorImpl protected constructor(
 
     ): ClassConstructorDescriptorImpl {
         super.initialize(
-            null,
             calculateDispatchReceiverParameter(),
-            calculateContextReceiverParameters(),
             typeParameterDescriptors,
             unsubstitutedValueParameters, returnType,
             Modality.FINAL, visibility
@@ -118,13 +116,7 @@ open class ClassConstructorDescriptorImpl protected constructor(
         return null
     }
 
-    private fun calculateContextReceiverParameters(): List<ReceiverParameterDescriptor> {
-        val classDescriptor = containingDeclaration
-        if (classDescriptor.contextReceivers.isNotEmpty()) {
-            return classDescriptor.contextReceivers
-        }
-        return emptyList()
-    }
+
 
 
     override val containingDeclaration: ClassDescriptor

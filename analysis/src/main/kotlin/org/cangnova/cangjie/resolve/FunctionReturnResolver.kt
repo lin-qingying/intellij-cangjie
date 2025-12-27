@@ -188,7 +188,7 @@ class FunctionReturnResolver(
             )
 //            arrayType.arguments
             initialize(
-                null, null, listOf(), listOf(
+                null,   listOf(
                     t
                 ), listOf(
                     ValueParameterDescriptorImpl.createWithDestructuringDeclarations(

@@ -346,12 +346,6 @@ class StaticContextAccessNonStaticMemberDiagnostic(val kind: DescriptorKind, val
     }
 }
 
-class SuperAsExtensionReceiver(val receiver: SimpleCangJieCallArgument) :
-    CangJieCallDiagnostic(CandidateApplicability.RUNTIME_ERROR) {
-    override fun report(reporter: DiagnosticReporter) {
-        reporter.onCallReceiver(receiver, this)
-    }
-}
 
 class NoCallOperatorFunction(val descriptor: DeclarationDescriptor) :
     CangJieCallDiagnostic(CandidateApplicability.UNSAFE_CALL) {

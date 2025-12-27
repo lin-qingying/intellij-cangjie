@@ -29,7 +29,6 @@ import org.cangnova.cangjie.descriptors.CallableMemberDescriptor.Kind.DECLARATIO
 import org.cangnova.cangjie.descriptors.CallableMemberDescriptor.Kind.SYNTHESIZED
 import org.cangnova.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
 import org.cangnova.cangjie.psi.CjCallableDeclaration
-import org.cangnova.cangjie.resolve.scopes.receivers.ExtensionReceiver
 import org.cangnova.cangjie.resolve.source.getPsi
 
 object DescriptorToSourceUtils {
@@ -37,7 +36,7 @@ object DescriptorToSourceUtils {
     @JvmStatic
     private fun getSourceForExtensionReceiverParameterDescriptor(descriptor: ReceiverParameterDescriptor): PsiElement? {
         // Only for extension receivers
-        if (descriptor.source != SourceElement.NO_SOURCE || descriptor.value !is ExtensionReceiver) return null
+        if (descriptor.source != SourceElement.NO_SOURCE ) return null
         val containingDeclaration = descriptor.containingDeclaration as? CallableDescriptor ?: return null
         val psi = containingDeclaration.source.getPsi() as? CjCallableDeclaration ?: return null
         return psi.receiverTypeReference

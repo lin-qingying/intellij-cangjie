@@ -27,9 +27,6 @@ package org.cangnova.cangjie.descriptors.impl
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.resolve.scopes.receivers.ContextReceiver
-import org.cangnova.cangjie.resolve.scopes.receivers.ExtensionReceiver
-import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitContextReceiver
 import org.cangnova.cangjie.types.*
 
 
@@ -287,29 +284,10 @@ open class VariableDescriptorImpl(
         } else {
             substitutedDispatchReceiver = null
         }
-        val substitutedExtensionReceiver = if (extensionReceiverParameter != null) {
-            substituteParameterDescriptor(
-                substitutor, substitutedDescriptor,
-                extensionReceiverParameter!!
-            )
-        } else {
-            null
-        }
 
-        val substitutedContextReceivers: MutableList<ReceiverParameterDescriptor> = ArrayList()
-        for (contextReceiverParameter in contextReceiverParameters) {
-            val substitutedContextReceiver = substituteContextParameterDescriptor(
-                substitutor, substitutedDescriptor,
-                contextReceiverParameter
-            )
-            if (substitutedContextReceiver != null) {
-                substitutedContextReceivers.add(substitutedContextReceiver)
-            }
-        }
 
         substitutedDescriptor.setType(
-            outType, substitutedTypeParameters, substitutedDispatchReceiver, substitutedExtensionReceiver,
-            substitutedContextReceivers
+            outType, substitutedTypeParameters, substitutedDispatchReceiver
         )
         return substitutedDescriptor
 
@@ -327,25 +305,6 @@ open class VariableDescriptorImpl(
 
     }
     companion object {
-        private fun substituteContextParameterDescriptor(
-            substitutor: TypeSubstitutor,
-            substitutedPropertyDescriptor: VariableDescriptorImpl,
-            receiverParameterDescriptor: ReceiverParameterDescriptor
-        ): ReceiverParameterDescriptor? {
-            val substitutedType = substitutor.substitute(receiverParameterDescriptor.type, Variance.INVARIANT)
-                ?: return null
-            return ReceiverParameterDescriptorImpl(
-                substitutedPropertyDescriptor,
-                ContextReceiver(
-                    substitutedPropertyDescriptor,
-                    substitutedType,
-                    (receiverParameterDescriptor.value as ImplicitContextReceiver).customLabelName,
-                    receiverParameterDescriptor.value
-                ),
-                receiverParameterDescriptor.annotations
-            )
-        }
-
         private fun substituteParameterDescriptor(
             substitutor: TypeSubstitutor,
             substitutedPropertyDescriptor: VariableDescriptor,
@@ -353,9 +312,12 @@ open class VariableDescriptorImpl(
         ): ReceiverParameterDescriptor? {
             val substitutedType = substitutor.substitute(receiverParameterDescriptor.type, Variance.INVARIANT)
                 ?: return null
+
+            // 对于 extend 接收者，保持其 ImplicitExtendReceiver 类型
+            val receiverValue = receiverParameterDescriptor.value
             return ReceiverParameterDescriptorImpl(
                 substitutedPropertyDescriptor,
-                ExtensionReceiver(substitutedPropertyDescriptor, substitutedType, receiverParameterDescriptor.value),
+                receiverValue.replaceType(substitutedType),
                 receiverParameterDescriptor.annotations
             )
         }

@@ -129,10 +129,7 @@ abstract class CjTypeStatement :
         get() =
             secondaryConstructors + primaryConstructors + endSecondaryConstructors
 
-    fun getContextReceiverList(): CjContextReceiverList? = getStubOrPsiChild(CjStubElementTypes.CONTEXT_RECEIVER_LIST)
 
-    override val contextReceivers: List<CjContextReceiver>
-        get() = getContextReceiverList()?.let { return it.contextReceivers() } ?: emptyList()
 
     private val BODY_TYPE = listOf(
         CjStubElementTypes.CLASS_BODY,

@@ -32,7 +32,6 @@ import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.calls.util.getResolvedCall
 import org.cangnova.cangjie.resolve.calls.util.isSafeCall
-import org.cangnova.cangjie.resolve.scopes.receivers.ContextReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.CangJieType
@@ -151,9 +150,9 @@ internal fun getIdForStableIdentifier(
 
 private fun getIdForThisReceiver(descriptorOfThisReceiver: DeclarationDescriptor?) = when (descriptorOfThisReceiver) {
     is CallableDescriptor -> {
-        val receiverParameter = descriptorOfThisReceiver.extensionReceiverParameter
-            ?: error("'This' refers to the callable member without a receiver parameter: $descriptorOfThisReceiver")
-        IdentifierInfo.Receiver(receiverParameter.value)
+        descriptorOfThisReceiver.dispatchReceiverParameter?.let {
+            IdentifierInfo.Receiver(it.value)
+        } ?: IdentifierInfo.NO
     }
 
     is ClassDescriptor -> IdentifierInfo.Receiver(descriptorOfThisReceiver.thisAsReceiverParameter.value)
@@ -337,7 +336,7 @@ private fun getIdForThisReceiver(
         is CallableDescriptor -> {
             val receiverParameter = findReceiverByLabelOrGetDefault(
                 descriptorOfThisReceiver,
-                descriptorOfThisReceiver.extensionReceiverParameter,
+                descriptorOfThisReceiver.dispatchReceiverParameter,
                 bindingContext,
                 labelName
             )
@@ -359,7 +358,6 @@ private fun getIdForThisReceiver(
 
 private fun getIdForImplicitReceiver(receiverValue: ReceiverValue?): IdentifierInfo? =
     when (receiverValue) {
-        is ContextReceiver -> IdentifierInfo.Receiver(receiverValue)
         is ImplicitReceiver -> getIdForThisReceiver(receiverValue.declarationDescriptor)
         else -> null
     }

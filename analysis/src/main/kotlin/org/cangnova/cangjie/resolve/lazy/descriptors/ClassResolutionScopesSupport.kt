@@ -51,7 +51,7 @@ class ClassResolutionScopesSupport(
         createLazyValue(compute, onRecursion)
 
     private fun scopeWithGenerics(parent: LexicalScope): LexicalScopeImpl {
-        return LexicalScopeImpl(parent, classDescriptor, false, null, emptyList(), LexicalScopeKind.CLASS_HEADER) {
+        return LexicalScopeImpl(parent, classDescriptor, false, null, LexicalScopeKind.CLASS_HEADER, LocalRedeclarationChecker.DO_NOTHING) {
             classDescriptor.declaredTypeParameters.forEach { addClassifierDescriptor(it) }
         }
     }
@@ -91,7 +91,6 @@ class ClassResolutionScopesSupport(
             parent, ownerDescriptor,
             isOwnerDescriptorAccessibleByLabel = false,
             implicitReceiver = null,
-            contextReceiversGroup = emptyList(),
             kind = LexicalScopeKind.CLASS_INHERITANCE,
             classDescriptor.staticScope,
             classDescriptor.unsubstitutedMemberScope,
@@ -110,8 +109,8 @@ class ClassResolutionScopesSupport(
                 classDescriptor,
                 true,
                 classDescriptor.thisAsReceiverParameter,
-                classDescriptor.contextReceivers,
-                LexicalScopeKind.CLASS_MEMBER_SCOPE
+                LexicalScopeKind.CLASS_MEMBER_SCOPE,
+                LocalRedeclarationChecker.DO_NOTHING
             )
         }
 
@@ -127,7 +126,6 @@ fun scopeForInitializerResolution(
         parentDescriptor,
         false,
         null,
-        emptyList(),
         LexicalScopeKind.CLASS_MEMBER_SCOPE
     ) {
         if (primaryConstructorParameters.isNotEmpty()) {

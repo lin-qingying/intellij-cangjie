@@ -453,8 +453,7 @@ fun SimpleFunctionDescriptor.createFunctionType(
     return createFunctionType(
         builtIns,
         Annotations.EMPTY,
-        extensionReceiverParameter?.type,
-        contextReceiverParameters.map { it.type },
+        dispatchReceiverParameter?.type,
         valueParameters.map { it.type },
         null,
         returnType ?: return null,

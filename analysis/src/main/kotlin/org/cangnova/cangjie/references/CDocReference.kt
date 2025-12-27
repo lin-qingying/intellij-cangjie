@@ -53,7 +53,6 @@ import org.cangnova.cangjie.resolve.source.PsiSourceElement
 import org.cangnova.cangjie.utils.Printer
 import org.cangnova.cangjie.utils.addIfNotNull
 import org.cangnova.cangjie.utils.isExtension
-import org.cangnova.cangjie.utils.substituteExtensionIfCallable
 
 
 abstract class CDocReference(element: CDocName) : CjMultiReference<CDocName>(element) {
@@ -122,7 +121,8 @@ private fun resolveLocal(
     descriptorsByName.addAll(contextScope.collectVariables(shortName, NoLookupLocation.FROM_IDE))
 
     if (fromDescriptor is FunctionDescriptor && shortName.asString() == "this") {
-        return listOfNotNull(fromDescriptor.extensionReceiverParameter)
+        // 在仓颉语言中，this 引用的是 dispatchReceiver，包括 extend 成员
+        return listOfNotNull(fromDescriptor.dispatchReceiverParameter)
     }
 
     // Try to find a matching local descriptor (parameter or type parameter) first
@@ -156,17 +156,18 @@ private fun getOuterScope(
 }
 
 private fun getClassInnerScope(outerScope: LexicalScope, descriptor: ClassDescriptor): LexicalScope {
-
+    // 在仓颉语言中，没有 context receivers
     val headerScope = LexicalScopeImpl(
         outerScope, descriptor, false, descriptor.thisAsReceiverParameter,
-        descriptor.contextReceivers, LexicalScopeKind.SYNTHETIC
+        LexicalScopeKind.SYNTHETIC
     ) {
         descriptor.declaredTypeParameters.forEach { addClassifierDescriptor(it) }
         descriptor.constructors.forEach { addFunctionDescriptor(it) }
     }
 
     return LexicalChainedScope.create(
-        headerScope, descriptor, false, null, emptyList(), LexicalScopeKind.SYNTHETIC,
+        headerScope, descriptor, false, null,
+        LexicalScopeKind.SYNTHETIC,
         descriptor.defaultType.memberScope,
         descriptor.staticScope,
         null
@@ -312,12 +313,9 @@ private class ExtensionsScope(
 
     override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
         return contextScope.collectVariables(name, location).flatMap {
+            // 在仓颉语言中，extend 成员使用 dispatchReceiver，不需要类型替换
             if (it is PropertyDescriptor && it.isExtension) {
-                it.substituteExtensionIfCallable(
-                    receiverTypes = receiverTypes,
-                    callType = CallType.DOT,
-                    ignoreTypeParameters = true,
-                )
+                listOf(it)
             } else {
                 emptyList()
             }
@@ -327,12 +325,9 @@ private class ExtensionsScope(
 
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
         return contextScope.collectVariables(name, location).flatMap {
+            // 在仓颉语言中，extend 成员使用 dispatchReceiver，不需要类型替换
             if (it.isExtension) {
-                it.substituteExtensionIfCallable(
-                    receiverTypes = receiverTypes,
-                    callType = CallType.DOT,
-                    ignoreTypeParameters = true,
-                )
+                listOf(it)
             } else {
                 emptyList()
             }
@@ -355,12 +350,9 @@ private class ExtensionsScope(
             nameFilter,
             changeNamesForAliased = true
         ).flatMap {
+            // 在仓颉语言中，extend 成员使用 dispatchReceiver，不需要类型替换
             if (it is CallableDescriptor && it.isExtension) {
-                it.substituteExtensionIfCallable(
-                    receiverTypes = receiverTypes,
-                    callType = CallType.DOT,
-                    ignoreTypeParameters = true,
-                )
+                listOf(it)
             } else {
                 emptyList()
             }

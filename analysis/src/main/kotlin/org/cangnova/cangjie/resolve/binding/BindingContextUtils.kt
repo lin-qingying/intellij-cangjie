@@ -60,8 +60,7 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.expressions.CangJieTypeInfo
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
-import kotlin.text.get
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 
 object BindingContextUtils {
     
@@ -325,13 +324,13 @@ fun <T : PsiElement> CjElement.getParentOfTypeCodeFragmentAware(vararg parentCla
 fun getEnclosingDescriptor(context: BindingContext, element: CjElement): DeclarationDescriptor {
     val declaration =
         element.getParentOfTypeCodeFragmentAware(CjNamedDeclaration::class.java)
-            ?: throw CangJieExceptionWithAttachmentsImpl("No parent CjNamedDeclaration for of type ${element.javaClass}")
+            ?: throw CangJieExceptionWithAttachments("No parent CjNamedDeclaration for of type ${element.javaClass}")
                 .withPsiAttachment("element.cj", element)
     return if (declaration is CjFunctionLiteral) {
         getEnclosingDescriptor(context, declaration)
     } else {
         context[DECLARATION_TO_DESCRIPTOR, declaration]
-            ?: throw CangJieExceptionWithAttachmentsImpl("No descriptor for named declaration of type ${declaration.javaClass}")
+            ?: throw CangJieExceptionWithAttachments("No descriptor for named declaration of type ${declaration.javaClass}")
                 .withPsiAttachment("declaration.cj", declaration)
     }
 }

@@ -70,5 +70,4 @@ interface MutableResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
 
     fun setSmartCastDispatchReceiverType(smartCastDispatchReceiverType: CangJieType)
 
-    fun updateExtensionReceiverWithSmartCastIfNeeded(smartCastExtensionReceiverType: CangJieType)
 }

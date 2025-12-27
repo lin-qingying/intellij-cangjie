@@ -48,7 +48,7 @@ import org.cangnova.cangjie.resolve.ResolverForProject
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.findModuleDescriptor
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 
 private class ResolutionFacadeWithDebugInfo(
     private val delegate: ResolutionFacade,
@@ -185,7 +185,7 @@ private class CangJieIdeaResolutionException(
     cause: Throwable,
     resolvingWhat: ResolvingWhat,
     creationPlace: CreationPlace
-) : CangJieExceptionWithAttachmentsImpl(
+) : CangJieExceptionWithAttachments(
     "CangJie resolution encountered a problem while ${resolvingWhat.shortDescription()}${cause.message?.let { ":\n$it" } ?: ""}",
     cause
 ) {

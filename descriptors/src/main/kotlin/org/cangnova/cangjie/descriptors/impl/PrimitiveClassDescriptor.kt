@@ -65,7 +65,6 @@ class PrimitiveClassDescriptor(
 
     // 类型参数和接收者
     override val declaredTypeParameters: List<TypeParameterDescriptor> = emptyList()
-    override val contextReceivers: List<ReceiverParameterDescriptor> = emptyList()
 
     // 作用域
     override val staticScope: MemberScope = MemberScope.Empty

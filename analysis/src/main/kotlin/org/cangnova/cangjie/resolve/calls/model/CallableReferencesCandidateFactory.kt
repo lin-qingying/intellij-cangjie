@@ -32,6 +32,7 @@ import org.cangnova.cangjie.resolve.calls.components.CallableReceiver
 import org.cangnova.cangjie.resolve.calls.components.CallableReferenceAdaptation
 import org.cangnova.cangjie.resolve.calls.components.CangJieResolutionCallbacks
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
+import org.cangnova.cangjie.resolve.calls.components.stableType
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.calls.tower.CandidateFactory
@@ -82,22 +83,18 @@ class CallableReferencesCandidateFactory(
     private fun buildReflectionType(
         descriptor: CallableDescriptor,
         dispatchReceiver: CallableReceiver?,
-        extensionReceiver: CallableReceiver?,
+
         expectedType: UnwrappedType?,
         builtins: CangJieBuiltIns,
     ): Pair<UnwrappedType, CallableReferenceAdaptation?> {
         val argumentsAndReceivers =
-            ArrayList<CangJieType>(descriptor.valueParameters.size + 2 + descriptor.contextReceiverParameters.size)
+            ArrayList<CangJieType>(descriptor.valueParameters.size + 2  )
 
-        val contextReceiversTypes = descriptor.contextReceiverParameters.map { it.type }
-        argumentsAndReceivers.addAll(contextReceiversTypes)
-//
-//        if (dispatchReceiver is CallableReceiver.UnboundReference) {
-//            argumentsAndReceivers.add(dispatchReceiver.receiver.stableType)
-//        }
-//        if (extensionReceiver is CallableReceiver.UnboundReference) {
-//            argumentsAndReceivers.add(extensionReceiver.receiver.stableType)
-//        }
+
+        if (dispatchReceiver is CallableReceiver.UnboundReference) {
+            argumentsAndReceivers.add(dispatchReceiver.receiver.stableType)
+        }
+
 
         val descriptorReturnType = descriptor.returnType
             ?: ErrorUtils.createErrorType(ErrorTypeKind.RETURN_TYPE, descriptor.toString())
@@ -140,7 +137,7 @@ class CallableReferencesCandidateFactory(
     override fun createCandidate(
         towerCandidate: CandidateWithBoundDispatchReceiver,
         explicitReceiverKind: ExplicitReceiverKind,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
+
     ): CallableReferenceResolutionCandidate {
         val dispatchCallableReceiver =
             towerCandidate.dispatchReceiver?.let {
@@ -149,26 +146,21 @@ class CallableReferencesCandidateFactory(
                     explicitReceiverKind == ExplicitReceiverKind.DISPATCH_RECEIVER
                 )
             }
-        val extensionCallableReceiver = extensionReceiver?.let {
-            toCallableReceiver(
-                it,
-                explicitReceiverKind == ExplicitReceiverKind.EXTENSION_RECEIVER
-            )
-        }
+
         val candidateDescriptor = towerCandidate.descriptor
         val diagnostics = SmartList<CangJieCallDiagnostic>()
 //
         val (reflectionCandidateType, callableReferenceAdaptation) = buildReflectionType(
             candidateDescriptor,
             dispatchCallableReceiver,
-            extensionCallableReceiver,
+
             expectedType,
             callComponents.builtIns,
         )
 
         fun createCallableReferenceCallCandidate(diagnostics: List<CangJieCallDiagnostic>) =
             CallableReferenceResolutionCandidate(
-                candidateDescriptor, dispatchCallableReceiver, extensionCallableReceiver,
+                candidateDescriptor, dispatchCallableReceiver,
                 explicitReceiverKind, reflectionCandidateType, callableReferenceAdaptation,
                 cangjieCall, expectedType, callComponents, scopeTower, resolutionCallbacks, baseSystem
             ).also { diagnostics.forEach(it::addDiagnostic) }
@@ -217,24 +209,15 @@ class CallableReferencesCandidateFactory(
         val (reflectionCandidateType, callableReferenceAdaptation) = buildReflectionType(
             errorDescriptor,
             dispatchReceiver = null,
-            extensionReceiver = null,
+
             expectedType,
             callComponents.builtIns,
         )
 
         return CallableReferenceResolutionCandidate(
-            errorDescriptor, dispatchReceiver = null, extensionReceiver = null,
+            errorDescriptor, dispatchReceiver = null,
             ExplicitReceiverKind.NO_EXPLICIT_RECEIVER, reflectionCandidateType, callableReferenceAdaptation,
             cangjieCall, expectedType, callComponents, scopeTower, resolutionCallbacks, baseSystem
         )
-    }
-
-    override fun createCandidate(
-        towerCandidate: CandidateWithBoundDispatchReceiver,
-        explicitReceiverKind: ExplicitReceiverKind,
-        extensionReceiverCandidates: List<ReceiverValueWithSmartCastInfo>
-    ): CallableReferenceResolutionCandidate {
-        error("${this::class.simpleName} doesn't support candidates with multiple extension receiver candidates")
-
     }
 }

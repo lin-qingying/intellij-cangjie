@@ -51,8 +51,6 @@ import org.cangnova.cangjie.FrontendInternals
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.getDataFlowInfoBefore
 import org.cangnova.cangjie.utils.ShadowedDeclarationsFilter
-import org.cangnova.cangjie.utils.isExtension
-import org.cangnova.cangjie.utils.substituteExtensionIfCallable
 
 fun DeclarationDescriptor.findPsi(): PsiElement? {
     val psi = (this as? DeclarationDescriptorWithSource)?.source?.getPsi()
@@ -305,13 +303,10 @@ class ReferenceVariantsHelper(
         if (kindFilter.excludes.contains(DescriptorKindExclude.Extensions)) return
         if (receiverTypes.isEmpty()) return
 
-        fun process(extensionOrSyntheticMember: CallableDescriptor) {
-            if (kindFilter.accepts(extensionOrSyntheticMember) && nameFilter(extensionOrSyntheticMember.name)) {
-                if (extensionOrSyntheticMember.isExtension) {
-                    addAll(extensionOrSyntheticMember.substituteExtensionIfCallable(receiverTypes, callType))
-                } else {
-                    add(extensionOrSyntheticMember)
-                }
+        fun process(syntheticMember: CallableDescriptor) {
+            // 在仓颉语言中，extend 成员就是普通的类成员，不需要特殊处理
+            if (kindFilter.accepts(syntheticMember) && nameFilter(syntheticMember.name)) {
+                add(syntheticMember)
             }
         }
 
@@ -440,10 +435,12 @@ class ReferenceVariantsHelper(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
     ) {
+        // 在仓颉语言中，extend 成员就是普通的类成员
+        // 不需要像 Kotlin 那样处理 extension receiver
         val memberFilter = kindFilter exclude DescriptorKindExclude.NonExtensions
         for (dispatchReceiverType in dispatchReceiverTypes) {
             for (member in dispatchReceiverType.memberScope.getDescriptorsFiltered(memberFilter, nameFilter)) {
-                addAll((member as CallableDescriptor).substituteExtensionIfCallable(extensionReceiverTypes, callType))
+                add(member as CallableDescriptor)
             }
         }
     }

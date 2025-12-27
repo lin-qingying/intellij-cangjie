@@ -32,7 +32,7 @@ import org.cangnova.cangjie.psi.CjTypeStatement
 import org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactory
 import org.cangnova.cangjie.stubindex.resolve.PluginDeclarationProviderFactory
 import org.cangnova.cangjie.stubindex.resolve.StubBasedPackageMemberDeclarationProvider
-import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 import org.cangnova.cangjie.utils.safeAs
 
 @DefaultImplementation(BasicAbsentDescriptorHandler::class)
@@ -49,7 +49,7 @@ class NoDescriptorForDeclarationException @JvmOverloads constructor(
     declaration: CjDeclaration,
     additionalDetails: String? = null
 ) :
-    CangJieExceptionWithAttachmentsImpl(
+    CangJieExceptionWithAttachments(
         "Descriptor wasn't found for declaration $declaration"
                 + (additionalDetails?.let { "\n---------------------------------------------------\n$it" } ?: "")
     ) {

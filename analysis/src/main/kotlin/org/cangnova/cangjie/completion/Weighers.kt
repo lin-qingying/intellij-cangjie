@@ -163,8 +163,7 @@ object KindWeigher : LookupElementWeigher("kotlin.kind") {
 object CallableWeigher : LookupElementWeigher("cangjie.callableWeight") {
     private enum class Weight1 {
         local,
-        memberOrExtension,
-        typeParameterExtension,
+        memberOrExtension,  // 类成员和 extend 成员
         globalOrStatic,
         receiverCastRequired
     }
@@ -197,8 +196,6 @@ object CallableWeigher : LookupElementWeigher("cangjie.callableWeight") {
             CallableWeightEnum.baseTypeExtension -> Weight1.memberOrExtension
 
             CallableWeightEnum.globalOrStatic -> Weight1.globalOrStatic
-
-            CallableWeightEnum.typeParameterExtension -> Weight1.typeParameterExtension
 
             CallableWeightEnum.receiverCastRequired -> Weight1.receiverCastRequired
         }

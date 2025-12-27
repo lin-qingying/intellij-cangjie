@@ -60,7 +60,7 @@ import org.cangnova.cangjie.resolve.caches.resolveToDescriptorIfAny
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.FuzzyType
-import org.cangnova.cangjie.types.fuzzyExtensionReceiverType
+
 import org.cangnova.cangjie.types.toFuzzyType
 import org.cangnova.cangjie.utils.CangJiePsiDeclarationRenderer
 import org.cangnova.cangjie.utils.isExtension
@@ -159,7 +159,7 @@ private fun PsiElement.extractReceiverType(): FuzzyType? {
     val descriptor = resolveTargetToDescriptor()?.takeIf { it.isValidOperator() } ?: return null
 
     return if (descriptor.isExtension) {
-        descriptor.fuzzyExtensionReceiverType()!!
+       TODO()
     } else {
         val classDescriptor = descriptor.containingDeclaration as? ClassDescriptor ?: return null
         classDescriptor.defaultType.toFuzzyType(classDescriptor.typeConstructor.parameters)

@@ -24,15 +24,11 @@
 
 package org.cangnova.cangjie.resolve.deprecation
 
-import com.google.protobuf.EnumValue
-import org.cangnova.cangjie.config.ApiVersion
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
 import org.cangnova.cangjie.resolve.argumentValue
-import org.cangnova.cangjie.resolve.constants.ConstantValue
 import org.cangnova.cangjie.resolve.constants.StringValue
 import org.cangnova.cangjie.types.BuiltInAnnotationDescriptor
-import org.cangnova.cangjie.utils.rethrow
 
 internal sealed class DeprecatedByAnnotation(
     val annotation: AnnotationDescriptor,
@@ -91,46 +87,14 @@ internal sealed class DeprecatedByAnnotation(
         }
     }
 
-    class DeprecatedSince(
-        annotation: AnnotationDescriptor,
-        target: DeclarationDescriptor,
-        propagatesToOverrides: Boolean,
-        override val deprecationLevel: DeprecationLevelValue
-    ) : DeprecatedByAnnotation(annotation, target, propagatesToOverrides) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other !is DeprecatedSince) return false
-
-            if (annotation != other.annotation) return false
-            if (target != other.target) return false
-            if (propagatesToOverrides != other.propagatesToOverrides) return false
-            if (deprecationLevel != other.deprecationLevel) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var hash = annotation.hashCode()
-            hash = hash * 31 + target.hashCode()
-            hash = hash * 31 + propagatesToOverrides.hashCode()
-            hash = hash * 31 + deprecationLevel.hashCode()
-            return hash
-        }
-    }
-
     companion object {
+        // CangJie does not have DeprecatedSinceCangJie annotation
+        // Only StandardDeprecated is supported
         fun create(
             deprecatedAnnotation: AnnotationDescriptor,
-            deprecatedSinceKotlinAnnotation: AnnotationDescriptor?,
             target: DeclarationDescriptor,
-            propagatesToOverrides: Boolean,
-            apiVersion: ApiVersion
-        ): DeprecatedByAnnotation? {
-            if (deprecatedSinceKotlinAnnotation != null) {
-                val level =
-                    computeLevelForDeprecatedSinceCangJie(deprecatedSinceKotlinAnnotation, apiVersion) ?: return null
-                return DeprecatedSince(deprecatedAnnotation, target, propagatesToOverrides, level)
-            }
+            propagatesToOverrides: Boolean
+        ): DeprecatedByAnnotation {
             val forcePropagationToOverrides =
                 (deprecatedAnnotation as? BuiltInAnnotationDescriptor)?.forcePropagationDeprecationToOverrides == true
             return StandardDeprecated(

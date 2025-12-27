@@ -132,10 +132,6 @@ object ErrorUtils {
      * @return 如果函数的参数类型中包含错误类型，则返回 true；否则返回 false
      */
     fun containsErrorTypeInParameters(function: FunctionDescriptor): Boolean {
-        // 检查扩展接收器参数是否包含错误类型
-        val receiverParameter = function.extensionReceiverParameter
-        if (receiverParameter != null && containsErrorType(receiverParameter.type))
-            return true
 
         // 检查值参数是否包含错误类型
         for (parameter in function.valueParameters) {

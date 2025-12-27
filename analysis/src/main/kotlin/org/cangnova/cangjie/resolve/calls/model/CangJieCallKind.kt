@@ -49,9 +49,9 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
         CreateFreshVariablesSubstitutor,
 //        CollectionTypeVariableUsagesInfo,
 //        CheckExplicitReceiverKindConsistency,
-        CheckReceivers,
 
-        PostponedVariablesInitializerResolutionPart,
+
+
 //        CheckContextReceiversResolutionPart,
         CheckIncompatibleTypeVariableUpperBounds,
         CheckStaticCall,
@@ -75,12 +75,12 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
         CreateFreshVariablesSubstitutor,
 //        CollectionTypeVariableUsagesInfo,
 //        CheckExplicitReceiverKindConsistency,
-        CheckReceivers,
+
         CheckArgumentsInParenthesis,
         CheckExternalArgument,
         EagerResolveOfCallableReferences,
 //        CompatibilityOfPartiallyApplicableSamConversion,
-        PostponedVariablesInitializerResolutionPart,
+
 //        CheckContextReceiversResolutionPart,
         CheckIncompatibleTypeVariableUpperBounds,
         CheckStaticCall,
@@ -135,7 +135,7 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
         NoArguments,
         CreateFreshVariablesSubstitutor,
         CollectionTypeVariableUsagesInfo,
-        CheckReceivers,
+
         CheckCallableReference,
         CheckIncompatibleTypeVariableUpperBounds,
         CheckStaticCall,

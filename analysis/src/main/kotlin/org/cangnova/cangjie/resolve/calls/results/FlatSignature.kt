@@ -48,16 +48,11 @@ fun <T> FlatSignature.Companion.create(
     numDefaults: Int,
     parameterTypes: List<TypeWithConversion?>,
 ): FlatSignature<T> {
-    val extensionReceiverType = descriptor.extensionReceiverParameter?.type
-    val contextReceiverTypes = descriptor.contextReceiverParameters.mapNotNull { TypeWithConversion(it.type) }
 
     return FlatSignature(
         origin,
         descriptor.typeParameters,
-        valueParameterTypes = contextReceiverTypes + extensionReceiverType?.let { listOf(TypeWithConversion(it)) }
-            .orEmpty() + parameterTypes,
-        hasExtensionReceiver = extensionReceiverType != null,
-        contextReceiverCount = contextReceiverTypes.size,
+        valueParameterTypes =   parameterTypes,
         hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
         numDefaults = numDefaults,
         isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>
@@ -67,8 +62,6 @@ fun <T> FlatSignature.Companion.create(
 class FlatSignature<out T>(
     val origin: T,
     val typeParameters: Collection<TypeParameterMarker>,
-    val hasExtensionReceiver: Boolean,
-    val contextReceiverCount: Int,
     val hasVarargs: Boolean,
 
     val numDefaults: Int,
@@ -82,15 +75,13 @@ class FlatSignature<out T>(
         origin: T,
         typeParameters: Collection<TypeParameterMarker>,
         valueParameterTypes: List<CangJieTypeMarker?>,
-        hasExtensionReceiver: Boolean,
-        contextReceiverCount: Int,
         hasVarargs: Boolean,
 
         numDefaults: Int,
 
         isSyntheticMember: Boolean,
     ) : this(
-        origin, typeParameters, hasExtensionReceiver, contextReceiverCount, hasVarargs, numDefaults,
+        origin, typeParameters, hasVarargs, numDefaults,
         isSyntheticMember, valueParameterTypes.map(::TypeWithConversion)
     )
 
@@ -113,8 +104,6 @@ fun <D : CallableDescriptor> FlatSignature.Companion.createForPossiblyShadowedEx
         descriptor,
         descriptor.typeParameters,
         valueParameterTypes = descriptor.valueParameters.map { it.argumentValueType },
-        hasExtensionReceiver = false,
-        contextReceiverCount = 0,
         hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
         numDefaults = descriptor.valueParameters.count { it.hasDefaultValue() },
         isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>
@@ -124,11 +113,8 @@ fun <D : CallableDescriptor> FlatSignature.Companion.createFromCallableDescripto
     FlatSignature(
         descriptor,
         descriptor.typeParameters,
-        valueParameterTypes = descriptor.contextReceiverParameters.map { it.type }
-                + listOfNotNull(descriptor.extensionReceiverParameter?.type)
-                + descriptor.valueParameters.map { it.argumentValueType },
-        hasExtensionReceiver = descriptor.extensionReceiverParameter?.type != null,
-        contextReceiverCount = descriptor.contextReceiverParameters.size,
+        valueParameterTypes =
+                 descriptor.valueParameters.map { it.argumentValueType },
         hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
 
         numDefaults = 0,
@@ -143,9 +129,7 @@ fun <T> SimpleConstraintSystem.isSignatureNotLessSpecific(
     specificityComparator: TypeSpecificityComparator,
     useOriginalSamTypes: Boolean = false
 ): Boolean {
-    if (specific.hasExtensionReceiver != general.hasExtensionReceiver) return false
-    if (specific.contextReceiverCount > general.contextReceiverCount) return false
-    if (specific.valueParameterTypes.size - specific.contextReceiverCount != general.valueParameterTypes.size - general.contextReceiverCount)
+    if (specific.valueParameterTypes.size   != general.valueParameterTypes.size  )
         return false
 
     if (!isValueParameterTypeNotLessSpecific(specific, general, callbacks, specificityComparator) { it?.resultType }) {
@@ -172,16 +156,10 @@ private fun <T> SimpleConstraintSystem.isValueParameterTypeNotLessSpecific(
     val typeParameters = general.typeParameters
     val typeSubstitutor = registerTypeVariables(typeParameters)
 
-    val specificContextReceiverCount = specific.contextReceiverCount
-    val generalContextReceiverCount = general.contextReceiverCount
 
     var specificValueParameterTypes = specific.valueParameterTypes
     var generalValueParameterTypes = general.valueParameterTypes
 
-    if (specificContextReceiverCount != generalContextReceiverCount) {
-        specificValueParameterTypes = specificValueParameterTypes.drop(specificContextReceiverCount)
-        generalValueParameterTypes = generalValueParameterTypes.drop(generalContextReceiverCount)
-    }
 
     for (index in specificValueParameterTypes.indices) {
         val specificType = typeKindSelector(specificValueParameterTypes[index]) ?: continue
@@ -235,20 +213,14 @@ fun <T> FlatSignature.Companion.createFromReflectionType(
     hasBoundExtensionReceiver: Boolean,
     reflectionType: UnwrappedType
 ): FlatSignature<T> {
-    // 接收者类型从描述符中获取，而不是反射类型
-    // 这是因为扩展接收者不能有默认值、变长参数或强制转换，因此不需要使用反射类型
-    // 此外，当前反射类型的接收者是从 *候选* 中获取的，这个候选可能有临时接收者，这与签名中的接收者不同
-    val receiver = descriptor.extensionReceiverParameter?.type
 
-    // 获取上下文接收者类型
-    val contextReceiversTypes = descriptor.contextReceiverParameters.mapNotNull { it.type }
 
     // 根据描述符类型确定参数列表
     val parameters = if (descriptor is VariableDescriptor) {
         emptyList()
     } else {
         reflectionType.getValueParameterTypesFromCallableReflectionType(
-            receiver != null && !hasBoundExtensionReceiver
+            !hasBoundExtensionReceiver
         ).map { it.type }
     }
 
@@ -256,9 +228,7 @@ fun <T> FlatSignature.Companion.createFromReflectionType(
     return FlatSignature(
         origin,
         descriptor.typeParameters,
-        contextReceiversTypes + listOfNotNull(receiver) + parameters,
-        hasExtensionReceiver = receiver != null,
-        contextReceiverCount = contextReceiversTypes.size,
+ parameters,
         hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
         numDefaults = numDefaults,
         isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>

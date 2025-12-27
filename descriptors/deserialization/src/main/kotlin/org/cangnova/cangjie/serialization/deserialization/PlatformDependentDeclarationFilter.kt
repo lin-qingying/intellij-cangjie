@@ -24,11 +24,8 @@
 
 package org.cangnova.cangjie.serialization.deserialization
 
-import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.descriptors.InheritableDescriptor
 import org.cangnova.cangjie.descriptors.SimpleFunctionDescriptor
-
-import org.cangnova.cangjie.name.FqName
 
 interface PlatformDependentDeclarationFilter {
 
@@ -43,14 +40,4 @@ interface PlatformDependentDeclarationFilter {
             functionDescriptor: SimpleFunctionDescriptor
         ) = true
     }
-
-    object NoPlatformDependent : PlatformDependentDeclarationFilter {
-        override fun isFunctionAvailable(
-            classDescriptor: InheritableDescriptor,
-            functionDescriptor: SimpleFunctionDescriptor
-        ) =
-            !functionDescriptor.annotations.hasAnnotation(PLATFORM_DEPENDENT_ANNOTATION_FQ_NAME)
-    }
 }
-
-val PLATFORM_DEPENDENT_ANNOTATION_FQ_NAME: FqName get() = StandardNames.FqNames.platformDependent

@@ -41,14 +41,10 @@ interface CallableDescriptor : DeclarationDescriptorWithVisibility, DeclarationD
     /** 原始描述符（用于在替换场景中回溯到未替换的声明） */
     override val original: CallableDescriptor
 
-    /** 上下文接收者参数列表 */
-    val contextReceiverParameters: List<ReceiverParameterDescriptor>
 
     /** 返回类型，可能为 null（如尚未初始化或出错时） */
     val returnType: CangJieType?
 
-    /** 扩展接收器参数（扩展函数的接收者） */
-    val extensionReceiverParameter: ReceiverParameterDescriptor?
 
     /** 被覆盖的描述符集合（用于覆盖关系和继承解析） */
     val overriddenDescriptors: Collection<CallableDescriptor>
@@ -62,9 +58,6 @@ interface CallableDescriptor : DeclarationDescriptorWithVisibility, DeclarationD
     /** 类型参数列表（泛型参数） */
     val typeParameters: List<TypeParameterDescriptor>
 
-    /** 非扩展形式的类型参数列表，默认返回可变空列表 */
-    val typeParametersNotExtend: MutableList<TypeParameterDescriptor>
-        get() = mutableListOf()
 
     /** 检查参数名称是否稳定（不会在编译过程中变化） */
     fun hasStableParameterNames(): Boolean

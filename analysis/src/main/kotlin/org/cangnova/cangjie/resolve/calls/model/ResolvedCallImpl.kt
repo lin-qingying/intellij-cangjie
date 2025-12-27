@@ -57,7 +57,6 @@ import java.util.*
  * @property call 调用对象，包含调用的PSI信息
  * @property candidateDescriptor 候选描述符，表示被调用的函数或属性
  * @property dispatchReceiver 调度接收者（方法调用的对象实例）
- * @property extensionReceiver 扩展接收者（扩展函数的接收者）
  * @property explicitReceiverKind 显式接收者类型
  * @property knownTypeParametersSubstitutor 已知类型参数的替换器
  * @property trace 委托绑定追踪
@@ -90,8 +89,6 @@ class ResolvedCallImpl<D : CallableDescriptor> : MutableResolvedCall<D> {
     /** 调度接收者 */
     private var _dispatchReceiver: ReceiverValue?
 
-    /** 扩展接收者 */
-    private var _extensionReceiver: ReceiverValue?
 
     /** 委托绑定追踪 */
     private var _trace: DelegatingBindingTrace?
@@ -134,7 +131,6 @@ class ResolvedCallImpl<D : CallableDescriptor> : MutableResolvedCall<D> {
         this.call = candidate.call
         this.candidateDescriptor = candidate.descriptor
         this._dispatchReceiver = candidate.dispatchReceiver
-        this._extensionReceiver = null // 解析候选只能有调度接收者
         this.explicitReceiverKind = candidate.explicitReceiverKind
         this.knownTypeParametersSubstitutor = candidate.knownTypeParametersResultingSubstitutor
         this._trace = trace
@@ -152,7 +148,6 @@ class ResolvedCallImpl<D : CallableDescriptor> : MutableResolvedCall<D> {
         call: Call,
         candidateDescriptor: D,
         dispatchReceiver: ReceiverValue?,
-        extensionReceiver: ReceiverValue?,
         explicitReceiverKind: ExplicitReceiverKind,
         knownTypeParametersSubstitutor: TypeSubstitutor?,
         trace: DelegatingBindingTrace,
@@ -162,7 +157,6 @@ class ResolvedCallImpl<D : CallableDescriptor> : MutableResolvedCall<D> {
         this.call = call
         this.candidateDescriptor = candidateDescriptor
         this._dispatchReceiver = dispatchReceiver
-        this._extensionReceiver = extensionReceiver
         this.explicitReceiverKind = explicitReceiverKind
         this.knownTypeParametersSubstitutor = knownTypeParametersSubstitutor
         this._trace = trace
@@ -242,12 +236,7 @@ class ResolvedCallImpl<D : CallableDescriptor> : MutableResolvedCall<D> {
             )
         }
 
-        // 更新扩展接收者类型
-        if (_extensionReceiver is ExtensionReceiver) {
-            _extensionReceiver = (_extensionReceiver ?: return).replaceType(
-                substitutor.safeSubstitute((_extensionReceiver ?: return).type, Variance.INVARIANT)
-            )
-        }
+
 
         // 更新值参数映射
         if (candidateDescriptor.valueParameters.isEmpty()) return
@@ -329,14 +318,12 @@ class ResolvedCallImpl<D : CallableDescriptor> : MutableResolvedCall<D> {
 
     // ========== 接收者管理 ==========
 
-    override val extensionReceiver: ReceiverValue?
-        get() = _extensionReceiver
+
 
     override val dispatchReceiver: ReceiverValue?
         get() = _dispatchReceiver
 
-    override val contextReceivers: List<ReceiverValue>
-        get() = emptyList()
+
 
     override val smartCastDispatchReceiverType: CangJieType?
         get() = _smartCastDispatchReceiverType
@@ -345,14 +332,6 @@ class ResolvedCallImpl<D : CallableDescriptor> : MutableResolvedCall<D> {
         _smartCastDispatchReceiverType = smartCastDispatchReceiverType
     }
 
-    override fun updateExtensionReceiverWithSmartCastIfNeeded(smartCastExtensionReceiverType: CangJieType) {
-        if (_extensionReceiver is ImplicitClassReceiver) {
-            _extensionReceiver = CastImplicitClassReceiver(
-                (_extensionReceiver as ImplicitClassReceiver).classDescriptor,
-                smartCastExtensionReceiverType
-            )
-        }
-    }
 
     // ========== 类型参数管理 ==========
 

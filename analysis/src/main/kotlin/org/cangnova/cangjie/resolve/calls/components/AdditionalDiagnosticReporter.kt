@@ -98,14 +98,6 @@ class AdditionalDiagnosticReporter(
         cangjieDiagnosticsHolder.addDiagnosticIfNotNull(
             reportSmartCastOnReceiver(
                 candidate,
-                candidate.extensionReceiverArgument,
-                resultingDescriptor.extensionReceiverParameter,
-                diagnostics
-            )
-        )
-        cangjieDiagnosticsHolder.addDiagnosticIfNotNull(
-            reportSmartCastOnReceiver(
-                candidate,
                 candidate.dispatchReceiverArgument,
                 resultingDescriptor.dispatchReceiverParameter,
                 diagnostics

@@ -29,7 +29,6 @@ import org.cangnova.cangjie.psi.CjLambdaExpression
 import org.cangnova.cangjie.psi.ValueArgument
 import org.cangnova.cangjie.resolve.calls.ArgumentTypeResolver
 import org.cangnova.cangjie.types.expressions.ExpressionTypingServices
-import org.cangnova.cangjie.types.getReceiverTypeFromFunctionType
 import org.cangnova.cangjie.types.isBuiltinFunctionalType
 
 class BuilderInferenceSupport(
@@ -56,6 +55,8 @@ fun isBuilderInferenceCall(
 //            parameterDescriptor.type.let { it.isBuiltinFunctionalType && it.getReceiverTypeFromFunctionType() != null }
 
 
+    // 仓颉的 Builder 推断不依赖扩展函数类型的接收器
+    // 只需检查参数是 lambda 且类型是函数类型
     return pureExpression is CjLambdaExpression &&
-            parameterDescriptor.type.let { it.isBuiltinFunctionalType && it.getReceiverTypeFromFunctionType() != null }
+            parameterDescriptor.type.isBuiltinFunctionalType
 }

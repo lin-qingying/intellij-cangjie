@@ -323,7 +323,7 @@ class BuiltInsMemberScope(
             val returnType = determineReturnType(operatorName, ownerType)
 
             initialize(
-                null, null, emptyList(), emptyList(),
+                null,  emptyList(),
                 listOf(rightParameter),
                 returnType,
                 Modality.FINAL,
@@ -373,8 +373,7 @@ class BuiltInsMemberScope(
             val returnType = determineReturnType(operatorName, ownerType)
 
             initialize(
-                null, null, emptyList(), emptyList(),
-                emptyList(),
+                null,   emptyList(), emptyList(),
                 returnType,
                 Modality.FINAL,
                 DescriptorVisibilities.PUBLIC

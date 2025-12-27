@@ -30,7 +30,6 @@ import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.calls.tasks.createSynthesizedInvokes
 import org.cangnova.cangjie.resolve.scopes.receivers.DetailedReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
-import org.cangnova.cangjie.types.isBuiltinExtensionFunctionalType
 import java.util.ArrayList
 
 
@@ -119,8 +118,7 @@ private class InvokeExtensionScopeTowerProcessor<C : Candidate>(
             return listOf(
                 candidateFactory.createCandidate(
                     invokeCandidateDescriptor,
-                    ExplicitReceiverKind.BOTH_RECEIVERS,
-                    explicitReceiver
+                    ExplicitReceiverKind.DISPATCH_RECEIVER
                 )
             )
         }
@@ -129,8 +127,7 @@ private class InvokeExtensionScopeTowerProcessor<C : Candidate>(
             return listOf(
                 candidateFactory.createCandidate(
                     invokeCandidateDescriptor,
-                    ExplicitReceiverKind.DISPATCH_RECEIVER,
-                    data.implicitReceiver
+                    ExplicitReceiverKind.DISPATCH_RECEIVER
                 )
             )
         }
@@ -142,20 +139,11 @@ private class InvokeExtensionScopeTowerProcessor<C : Candidate>(
     override fun recordLookups(skippedData: Collection<TowerData>, name: Name) {}
 }
 
-// todo debug info
+// 仓颉没有扩展函数类型，不支持扩展 invoke
 private fun ImplicitScopeTower.getExtensionInvokeCandidateDescriptor(
     extensionFunctionReceiver: ReceiverValueWithSmartCastInfo
 ): CandidateWithBoundDispatchReceiver? {
-    val type = extensionFunctionReceiver.receiverValue.type
-    if (!type.isBuiltinExtensionFunctionalType) return null // todo: missing smart cast?
-
-    val invokeDescriptor = type.memberScope.getContributedFunctions(OperatorNameConventions.INVOKE, location).single()
-    val synthesizedInvokes = createSynthesizedInvokes(listOf(invokeDescriptor))
-    val synthesizedInvoke = synthesizedInvokes.singleOrNull()
-        ?: error("No single synthesized invoke for $invokeDescriptor: $synthesizedInvokes")
-
-    // here we don't add SynthesizedDescriptor diagnostic because it should has priority as member
-    return CandidateWithBoundDispatchReceiver(extensionFunctionReceiver, synthesizedInvoke, listOf())
+    return null
 }
 
 // case 1.(foo())() or (foo())()

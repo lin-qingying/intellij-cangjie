@@ -55,15 +55,11 @@ fun <T> FlatSignature.Companion.create(
     numDefaults: Int,
     parameterTypes: List<CangJieType?>
 ): FlatSignature<T> {
-    val extensionReceiverType = descriptor.extensionReceiverParameter?.type
-    val contextReceiverTypes = descriptor.contextReceiverParameters.mapNotNull { it.type }
 
     return FlatSignature(
         origin,
         descriptor.typeParameters,
-        valueParameterTypes = contextReceiverTypes + listOfNotNull(extensionReceiverType) + parameterTypes,
-        hasExtensionReceiver = extensionReceiverType != null,
-        contextReceiverCount = contextReceiverTypes.size,
+        valueParameterTypes =   parameterTypes,
         hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
         numDefaults = numDefaults,
         isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>
@@ -374,8 +370,6 @@ open class OverloadingConflictResolver<C : Any>(
 
 
 
-        if (call1.contextReceiverCount > call2.contextReceiverCount) return true
-        if (call1.contextReceiverCount < call2.contextReceiverCount) return false
 
         return createEmptyConstraintSystem().isSignatureNotLessSpecific(
             call1,

@@ -89,7 +89,6 @@ class BuiltinsClassDescriptor(
 
 
         }
-    override val contextReceivers: List<ReceiverParameterDescriptor> = emptyList()
 
     // 作用域
     override val staticScope: MemberScope = MemberScope.Empty

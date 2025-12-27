@@ -29,10 +29,35 @@ import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.types.CangJieType
 
+/**
+ * 表达式接收器
+ *
+ * ExpressionReceiver 表示由一个具体的表达式计算得出的接收器值。
+ * 与隐式接收器不同，表达式接收器对应源代码中的一个显式表达式。
+ *
+ * 例如在以下代码中：
+ * ```
+ * val obj = MyClass()
+ * obj.foo()  // obj 是表达式接收器
+ * ```
+ *
+ * @property expression 产生此接收器的表达式
+ *
+ * @see ReceiverValue
+ * @see ImplicitReceiver
+ */
 interface ExpressionReceiver : ReceiverValue {
+    /** 产生此接收器的表达式 */
     val expression: CjExpression
 
     companion object {
+        /**
+         * 基础的表达式接收器实现
+         *
+         * @param expression 产生接收器的表达式
+         * @param type 接收器的类型
+         * @param original 原始的接收器值
+         */
         private open class ExpressionReceiverImpl(
             override val expression: CjExpression, type: CangJieType, original: ReceiverValue?
         ) : AbstractReceiverValue(type, original), ExpressionReceiver {
@@ -41,6 +66,16 @@ interface ExpressionReceiver : ReceiverValue {
             override fun toString() = "$type {$expression: ${expression.text}}"
         }
 
+        /**
+         * This 表达式的类接收器
+         *
+         * 专门用于 this 表达式的类接收器实现。
+         *
+         * @param classDescriptor 类的描述符
+         * @param expression this 表达式
+         * @param type 接收器的类型
+         * @param original 原始的接收器值
+         */
         private class ThisExpressionClassReceiver(
             override val classDescriptor: ClassDescriptor,
             expression: CjExpression,
@@ -51,6 +86,16 @@ interface ExpressionReceiver : ReceiverValue {
                 ThisExpressionClassReceiver(classDescriptor, expression, newType, original)
         }
 
+        /**
+         * Super 表达式的接收器
+         *
+         * 专门用于 super 表达式的接收器实现。
+         *
+         * @param thisType 实际的接收器类型（this 的类型）
+         * @param expression super 表达式
+         * @param type 父类型
+         * @param original 原始的接收器值
+         */
         private class SuperExpressionReceiver(
             override val thisType: CangJieType,
             expression: CjExpression,
@@ -61,6 +106,19 @@ interface ExpressionReceiver : ReceiverValue {
                 SuperExpressionReceiver(thisType, expression, newType, original)
         }
 
+        /**
+         * 创建表达式接收器
+         *
+         * 根据表达式的类型创建相应的表达式接收器实例：
+         * - 对于 this 表达式，创建 [ThisExpressionClassReceiver]
+         * - 对于 super 表达式，创建 [SuperExpressionReceiver]
+         * - 对于其他表达式，创建普通的 [ExpressionReceiverImpl]
+         *
+         * @param expression 产生接收器的表达式
+         * @param type 接收器的类型
+         * @param bindingContext 绑定上下文，用于解析表达式引用
+         * @return 对应的表达式接收器实例
+         */
         fun create(
             expression: CjExpression,
             type: CangJieType,
@@ -75,12 +133,12 @@ interface ExpressionReceiver : ReceiverValue {
 
             if (referenceExpression != null) {
                 val descriptor = bindingContext[BindingContext.REFERENCE_TARGET, referenceExpression]
-                if (descriptor is ClassDescriptor && !referenceExpression.isContextClassReceiverReference(bindingContext)) {
+                if (descriptor is ClassDescriptor) {
                     return ThisExpressionClassReceiver(descriptor.original, expression, type, original = null)
                 }
             } else if (expression is CjSuperExpression) {
-                // if there is no THIS_TYPE_FOR_SUPER_EXPRESSION in binding context, we fall through into more restrictive option
-                // i.e. just return common ExpressionReceiverImpl
+                // 如果 binding context 中没有 THIS_TYPE_FOR_SUPER_EXPRESSION，则使用更严格的选项
+                // 即返回普通的 ExpressionReceiverImpl
                 bindingContext[BindingContext.THIS_TYPE_FOR_SUPER_EXPRESSION, expression]?.let { thisType ->
                     return SuperExpressionReceiver(thisType, expression, type, original = null)
                 }
@@ -88,8 +146,5 @@ interface ExpressionReceiver : ReceiverValue {
 
             return ExpressionReceiverImpl(expression, type, original = null)
         }
-
-        private fun CjReferenceExpression.isContextClassReceiverReference(bindingContext: BindingContext): Boolean =
-            bindingContext[BindingContext.THIS_REFERENCE_TARGET, this]?.value is ContextClassReceiver
     }
 }

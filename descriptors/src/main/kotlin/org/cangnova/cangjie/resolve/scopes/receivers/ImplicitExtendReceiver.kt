@@ -24,21 +24,32 @@
 
 package org.cangnova.cangjie.resolve.scopes.receivers
 
-import org.cangnova.cangjie.descriptors.ClassDescriptor
-import org.cangnova.cangjie.descriptors.DeclarationDescriptor
-import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.types.CangJieType
 
-class ContextClassReceiver(
-    val classDescriptor: ClassDescriptor,
-    receiverType: CangJieType,
-    override val customLabelName: Name?,
-    original: ReceiverValue?
-): AbstractReceiverValue(receiverType, original), ImplicitContextReceiver {
-    override val declarationDescriptor: DeclarationDescriptor
-        get() = classDescriptor
+/**
+ * 表示扩展（extend）内的隐式接收器
+ *
+ * 用于扩展块内成员函数的 this 接收器，类型为被扩展的类型（extendType）
+ */
+open class ImplicitExtendReceiver(
+    val extendDescriptor: ExtendDescriptor,
+    original: ImplicitExtendReceiver? = null
+) : ImplicitReceiver {
 
-    override fun replaceType(newType: CangJieType): ReceiverValue = ContextClassReceiver(classDescriptor, newType, customLabelName, original)
+    override val original = original ?: this
 
-    override fun toString(): String = "$type: Ctx { $classDescriptor }"
+    override val type: CangJieType
+        get() = extendDescriptor.extendType
+
+    override val declarationDescriptor = extendDescriptor
+
+    override fun equals(other: Any?) = extendDescriptor == (other as? ImplicitExtendReceiver)?.extendDescriptor
+
+    override fun hashCode() = extendDescriptor.hashCode()
+
+    override fun toString() = "Extend{$type}"
+
+    override fun replaceType(newType: CangJieType) =
+        throw UnsupportedOperationException("Replace type should not be called for extend receiver")
 }

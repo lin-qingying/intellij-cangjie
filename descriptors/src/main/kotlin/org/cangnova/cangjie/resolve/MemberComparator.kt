@@ -64,17 +64,9 @@ object MemberComparator : Comparator<DeclarationDescriptor> {
                 } else if (descriptor is ConstructorDescriptor) {
                     return 7
                 } else if (descriptor is PropertyDescriptor) {
-                    return if (descriptor.extensionReceiverParameter == null) {
-                        6
-                    } else {
-                        5
-                    }
+                    return 5
                 } else if (descriptor is FunctionDescriptor) {
-                    return if (descriptor.extensionReceiverParameter == null) {
-                        4
-                    } else {
-                        3
-                    }
+                    return 3
                 } else if (descriptor is ClassDescriptor) {
                     return 2
                 } else if (descriptor is TypeAliasDescriptor) {
@@ -135,21 +127,7 @@ object MemberComparator : Comparator<DeclarationDescriptor> {
             val c2: CallableDescriptor =
                 o2
 
-            val c1ReceiverParameter =
-                c1.extensionReceiverParameter
-            val c2ReceiverParameter =
-                c2.extensionReceiverParameter
-            assert((c1ReceiverParameter != null) == (c2ReceiverParameter != null))
-            if (c1ReceiverParameter != null) {
-                val r1: String =
-                    RENDERER.renderType(c1ReceiverParameter.type)
-                val r2: String =
-                    RENDERER.renderType(c2ReceiverParameter!!.type)
-                val receiversCompareTo = r1.compareTo(r2)
-                if (receiversCompareTo != 0) {
-                    return receiversCompareTo
-                }
-            }
+
 
             val c1ValueParameters: List<ValueParameterDescriptor> =
                 c1.valueParameters

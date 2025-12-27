@@ -210,14 +210,7 @@ interface LexicalScope : HierarchicalScope {
      */
     val implicitReceiver: ReceiverParameterDescriptor?
 
-    /**
-     * 上下文接收者组
-     *
-     * 支持多个上下文接收者的语法,按声明顺序排列。
-     */
-    val contextReceiversGroup: List<ReceiverParameterDescriptor>
-
-    /**
+     /**
      * 作用域类型
      *
      * 标识该词法作用域对应的语法结构类型。
@@ -256,8 +249,6 @@ interface LexicalScope : HierarchicalScope {
 
         override val implicitReceiver: ReceiverParameterDescriptor?
             get() = null
-        override val contextReceiversGroup: List<ReceiverParameterDescriptor>
-            get() = emptyList()
 
         override val kind: LexicalScopeKind
             get() = LexicalScopeKind.EMPTY

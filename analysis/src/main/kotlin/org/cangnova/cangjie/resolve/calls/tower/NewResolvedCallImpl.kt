@@ -73,8 +73,6 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
     /** 调度接收者(dispatch receiver)，即调用的对象实例 */
     private var _dispatchReceiver = resolvedCallAtom.dispatchReceiverArgument?.receiver?.receiverValue
 
-    /** 扩展接收者(extension receiver)，用于扩展函数 */
-    private var _extensionReceiver = resolvedCallAtom.extensionReceiverArgument?.receiver?.receiverValue
 
     /** 智能转换后的调度接收者类型 */
     override var smartCastDispatchReceiverType: CangJieType? = null
@@ -129,27 +127,9 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
 
     // ========== 公共方法 ==========
 
-    /**
-     * 更新扩展接收者类型
-     * 如果新类型与当前类型相同则不做任何操作
-     */
-    override fun updateExtensionReceiverType(newType: CangJieType) {
-        if (_extensionReceiver?.type == newType) return
-        _extensionReceiver = _extensionReceiver?.replaceType(newType)
-    }
 
-    /**
-     * 使用智能转换更新扩展接收者
-     * 如果扩展接收者是隐式类接收者，则创建一个带有智能转换类型的新接收者
-     */
-    fun updateExtensionReceiverWithSmartCastIfNeeded(smartCastExtensionReceiverType: CangJieType) {
-        if (_extensionReceiver is ImplicitClassReceiver) {
-            _extensionReceiver = CastImplicitClassReceiver(
-                (_extensionReceiver as ImplicitClassReceiver).classDescriptor,
-                smartCastExtensionReceiverType,
-            )
-        }
-    }
+
+
 
     /**
      * 更新调度接收者类型
@@ -177,12 +157,7 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
     override val explicitReceiverKind: ExplicitReceiverKind
         get() = resolvedCallAtom.explicitReceiverKind
 
-    /**
-     * 扩展接收者
-     * 返回扩展函数调用中的接收者值
-     */
-    override val extensionReceiver: ReceiverValue?
-        get() = _extensionReceiver
+
 
     /**
      * 调度接收者
@@ -191,12 +166,7 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
     override val dispatchReceiver: ReceiverValue?
         get() = _dispatchReceiver
 
-    /**
-     * 上下文接收者列表
-     * 返回所有上下文接收者的列表
-     */
-    override val contextReceivers: List<ReceiverValue>
-        get() = _contextReceivers
+
 
     /**
      * 解析状态
