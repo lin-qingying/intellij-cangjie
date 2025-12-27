@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.ide.refactoring.introduce
+package org.cangnova.cangjie.refactoring.introduce
 
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjExpression
@@ -53,40 +53,42 @@ interface CangJieIntroduceVariableService {
     fun hasUnitType(element: CjExpression): Boolean
 
 
-    object DEFAULT : CangJieIntroduceVariableService {
-        override fun findElement(
-            file: CjFile,
-            startOffset: Int,
-            endOffset: Int,
-            failOnNoExpression: Boolean,
-            elementKind: ElementKind
-        ): PsiElement? {
-            return null
-        }
 
-        override fun getContainersForExpression(expression: CjExpression): List<CangJieIntroduceVariableHelper.Containers> {
-            return emptyList()
-        }
+}
 
-        override fun findOccurrences(
-            expression: CjExpression,
-            occurrenceContainer: CjElement
-        ): List<CjExpression> {
-            return emptyList()
-        }
+class CangJieIntroduceVariableServiceDefault : CangJieIntroduceVariableService {
+    override fun findElement(
+        file: CjFile,
+        startOffset: Int,
+        endOffset: Int,
+        failOnNoExpression: Boolean,
+        elementKind: ElementKind
+    ): PsiElement? {
+        return null
+    }
 
-        override fun doRefactoringWithContainer(
-            editor: Editor?,
-            expressionToExtract: CjExpression,
-            container: CjElement,
-            occurrencesToReplace: List<CjExpression>?
-        ) {
+    override fun getContainersForExpression(expression: CjExpression): List<CangJieIntroduceVariableHelper.Containers> {
+        return emptyList()
+    }
 
-        }
+    override fun findOccurrences(
+        expression: CjExpression,
+        occurrenceContainer: CjElement
+    ): List<CjExpression> {
+        return emptyList()
+    }
 
-        override fun hasUnitType(element: CjExpression): Boolean {
-            return false
-        }
+    override fun doRefactoringWithContainer(
+        editor: Editor?,
+        expressionToExtract: CjExpression,
+        container: CjElement,
+        occurrencesToReplace: List<CjExpression>?
+    ) {
 
     }
+
+    override fun hasUnitType(element: CjExpression): Boolean {
+        return false
+    }
+
 }

@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.ide.refactoring.introduce
+package org.cangnova.cangjie.refactoring.introduce
 
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.CjExpression

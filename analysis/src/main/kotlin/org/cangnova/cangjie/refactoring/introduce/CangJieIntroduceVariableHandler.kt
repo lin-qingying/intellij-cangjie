@@ -25,8 +25,6 @@
 package org.cangnova.cangjie.refactoring.introduce
 
 
-import org.cangnova.cangjie.ide.refactoring.CangJieRefactoringSettings
-import org.cangnova.cangjie.messages.CangJieBundle
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.collectDescendantsOfType
 import org.cangnova.cangjie.psi.psiUtil.isFunctionalExpression
@@ -42,6 +40,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.util.CommonRefactoringUtil
 import com.intellij.util.SmartList
+import org.cangnova.cangjie.refactoring.CangJieRefactoringSettings
 import org.cangnova.cangjie.refactoring.IntroduceRefactoringException
 import org.cangnova.cangjie.refactoring.chooseContainer.selectContainerIfNeeded
 import org.cangnova.cangjie.refactoring.selectElement
@@ -99,7 +98,7 @@ abstract class CangJieIntroduceVariableHandler : RefactoringActionHandler {
     }
 
     protected companion object {
-        val INTRODUCE_VARIABLE get() = CangJieBundle.message("introduce.variable")
+        val INTRODUCE_VARIABLE get() = CangJieRefactorBundle.message("introduce.variable")
 
         /**
          * 显示错误提示
@@ -261,7 +260,7 @@ abstract class CangJieIntroduceVariableHandler : RefactoringActionHandler {
         } else {
             selectContainerIfNeeded(
                 candidateContainers, editor,
-                CangJieBundle.message("text.select.target.code.block"), true, null, { it.targetContainer },
+                CangJieRefactorBundle.message("text.select.target.code.block"), true, null, { it.targetContainer },
                 doRefactoring
             )
         }
@@ -360,12 +359,12 @@ abstract class CangJieIntroduceVariableHandler : RefactoringActionHandler {
         onNonInteractiveFinish: ((CjDeclaration) -> Unit)? = null
     ) {
         val expression = expressionToExtract?.let { CjPsiUtil.safeDeparenthesize(it) }
-            ?: return showErrorHint(project, editor, CangJieBundle.message("cannot.refactor.no.expression"))
+            ?: return showErrorHint(project, editor, CangJieRefactorBundle.message("cannot.refactor.no.expression"))
         if (expression.isAssignmentLHS()) {
             return showErrorHint(
                 project,
                 editor,
-                CangJieBundle.message("cannot.refactor.no.expression")
+                CangJieRefactorBundle.message("cannot.refactor.no.expression")
             )
         }
         if (!CommonRefactoringUtil.checkReadOnlyStatus(project, expression)) return
@@ -373,7 +372,7 @@ abstract class CangJieIntroduceVariableHandler : RefactoringActionHandler {
             return showErrorHint(
                 project,
                 editor,
-                CangJieBundle.message("cannot.refactor.no.container")
+                CangJieRefactorBundle.message("cannot.refactor.no.container")
             )
         }
         performRefactoringOnSelectedContainer(editor, targetContainer, candidateContainers) { containers ->

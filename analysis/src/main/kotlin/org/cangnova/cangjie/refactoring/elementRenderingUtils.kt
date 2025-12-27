@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.ide.refactoring
+package org.cangnova.cangjie.refactoring
 
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.*

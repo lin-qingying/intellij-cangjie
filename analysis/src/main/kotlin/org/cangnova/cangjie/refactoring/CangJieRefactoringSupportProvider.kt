@@ -22,11 +22,11 @@
  *
  */
 
-package org.cangnova.cangjie.ide.refactoring
+package org.cangnova.cangjie.refactoring
 
-import org.cangnova.cangjie.ide.refactoring.introduce.CangJieIntroduceVariableHandler
 import com.intellij.lang.refactoring.RefactoringSupportProvider
 import com.intellij.refactoring.RefactoringActionHandler
+import org.cangnova.cangjie.refactoring.introduce.CangJieIntroduceVariableHandler
 
 /**
  * 重构支持提供者

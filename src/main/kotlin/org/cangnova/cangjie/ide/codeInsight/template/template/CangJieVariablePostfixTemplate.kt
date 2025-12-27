@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.ide.codeInsight.template.template
 
-import org.cangnova.cangjie.ide.refactoring.introduce.CangJieIntroduceVariableHandler
+import org.cangnova.cangjie.refactoring.introduce.CangJieIntroduceVariableHandler
 import org.cangnova.cangjie.lang.CangJieLanguage
 import org.cangnova.cangjie.psi.CjExpression
 import com.intellij.codeInsight.template.postfix.templates.PostfixTemplateProvider
@@ -34,7 +34,7 @@ import com.intellij.psi.PsiElement
 
 internal enum class VaribaleKind(val kind: String) {
     VAR("var"),
-    VAL("val"),
+    LET("let"),
     CONST("const");
 
     override fun toString(): String {

@@ -1,4 +1,3 @@
-
 <!--
   ~ Copyright 2025 LinQingYing. and contributors.
   ~
@@ -152,7 +151,7 @@
                 serviceImplementation="org.cangnova.cangjie.decompiler.psi.IdeCangJieBuiltInDecompilationInterceptor"
         />
         <applicationService serviceInterface="org.cangnova.cangjie.decompiler.psi.BuiltinsVirtualFileProvider"
-                        serviceImplementation="org.cangnova.cangjie.decompiler.psi.IdeBuiltInsVirtualFileProviderImpl"/>
+                            serviceImplementation="org.cangnova.cangjie.decompiler.psi.IdeBuiltInsVirtualFileProviderImpl"/>
 
         <projectService
                 serviceInterface="org.cangnova.cangjie.highlighter.CangJieQuickFixProvider"
@@ -160,7 +159,6 @@
 
 
         <highlightVisitor implementation="org.cangnova.cangjie.analysis.CangJieHighlightVisitor"/>
-
 
 
         <projectService
@@ -201,7 +199,6 @@
                 serviceImplementation="org.cangnova.cangjie.cache.trackers.CangJieIDEModificationTrackerService"/>
 
 
-
         <projectService
                 serviceInterface="org.cangnova.cangjie.resolve.LanguageSettingsProvider"
                 serviceImplementation="org.cangnova.cangjie.resolve.IDELanguageSettingsProvider"/>
@@ -225,8 +222,10 @@
                                     implementationClass="org.cangnova.cangjie.quickDoc.CangJieDocumentationProvider"
                                     order="first"/>
 
-        <filetype.stubBuilder filetype="cjo" implementationClass="org.cangnova.cangjie.decompiler.psi.compiled.impl.ClassFileStubBuilder"/>
-        <filetype.decompiler filetype="cjo" implementationClass="org.cangnova.cangjie.decompiler.psi.compiled.ClassFileDecompiler"/>
+        <filetype.stubBuilder filetype="cjo"
+                              implementationClass="org.cangnova.cangjie.decompiler.psi.compiled.impl.ClassFileStubBuilder"/>
+        <filetype.decompiler filetype="cjo"
+                             implementationClass="org.cangnova.cangjie.decompiler.psi.compiled.ClassFileDecompiler"/>
 
         <!--代码补全-->
         <completion.contributor
@@ -242,6 +241,17 @@
                 description="Disables auto-completion inside expressions"
                 defaultValue="false"
                 restartRequired="false"/>
+
+
+        <applicationService serviceImplementation="org.cangnova.cangjie.refactoring.CangJieRefactoringSettings"/>
+
+        <lang.refactoringSupport
+                language="CangJie"
+                implementationClass="org.cangnova.cangjie.refactoring.CangJieRefactoringSupportProvider"/>
+        <projectService serviceInterface="org.cangnova.cangjie.refactoring.introduce.CangJieIntroduceVariableService"
+                        serviceImplementation="org.cangnova.cangjie.refactoring.introduce.CangJieIntroduceVariableServiceDefault"
+        />
+
 
     </extensions>
 

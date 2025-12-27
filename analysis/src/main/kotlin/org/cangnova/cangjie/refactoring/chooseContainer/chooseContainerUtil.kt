@@ -47,7 +47,7 @@ import com.intellij.psi.*
 import com.intellij.psi.impl.file.PsiPackageBase
 import com.intellij.psi.impl.light.LightElement
 import org.cangnova.cangjie.lang.CangJieLanguage
-import org.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.messages.CangJieRefactorBundle
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.allChildren
 import org.cangnova.cangjie.utils.collapseSpaces
@@ -266,7 +266,7 @@ fun containerPopupPresentationProvider(): TargetPresentationProvider<PsiElement>
 
         @NlsSafe
         private fun PsiElement.renderText(): String = when (this) {
-            is SeparateFileWrapper -> CangJieBundle.message("refactoring.extract.to.separate.file.text")
+            is SeparateFileWrapper -> CangJieRefactorBundle.message("refactoring.extract.to.separate.file.text")
             is PsiPackageBase -> qualifiedName
             is PsiFile -> name
             is CjTypeStatement -> {

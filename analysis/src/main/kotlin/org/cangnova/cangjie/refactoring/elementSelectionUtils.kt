@@ -22,11 +22,9 @@
  *
  */
 
-package org.cangnova.cangjie.ide.refactoring
+package org.cangnova.cangjie.refactoring
 
-import org.cangnova.cangjie.ide.refactoring.introduce.CangJieIntroduceVariableService
 import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.messages.CangJieBundle
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.lexer.cdoc.psi.CDoc
 import org.cangnova.cangjie.psi.psiUtil.getNextSiblingIgnoringWhitespaceAndComments
@@ -47,6 +45,7 @@ import com.intellij.psi.*
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.cangnova.cangjie.refactoring.introduce.CangJieIntroduceVariableService
 import java.util.concurrent.Callable
 
 /**
@@ -169,7 +168,7 @@ private fun smartSelectElement(
     val elements = elementKinds.flatMap { getSmartSelectSuggestions(file, offset, it) }
     if (elements.isEmpty()) {
         if (failOnEmptySuggestion) throw IntroduceRefactoringException(
-            CangJieBundle.message("cannot.refactor.not.expression")
+            CangJieRefactorBundle.message("cannot.refactor.not.expression")
         )
         callback(null)
         return
@@ -183,11 +182,11 @@ private fun smartSelectElement(
     val highlighter = ScopeHighlighter(editor)
     val title = if (elementKinds.size == 1) {
         when (elementKinds.iterator().next()) {
-            ElementKind.EXPRESSION -> CangJieBundle.message("popup.title.expressions")
-            ElementKind.TYPE_ELEMENT, ElementKind.TYPE_CONSTRUCTOR -> CangJieBundle.message("popup.title.types")
+            ElementKind.EXPRESSION -> CangJieRefactorBundle.message("popup.title.expressions")
+            ElementKind.TYPE_ELEMENT, ElementKind.TYPE_CONSTRUCTOR -> CangJieRefactorBundle.message("popup.title.types")
         }
     } else {
-        CangJieBundle.message("popup.title.elements")
+        CangJieRefactorBundle.message("popup.title.elements")
     }
 
     PsiTargetNavigator(elements)
