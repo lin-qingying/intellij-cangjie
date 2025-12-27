@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.ide.refactoring.chooseContainer
+package org.cangnova.cangjie.refactoring.chooseContainer
 
 import com.intellij.codeInsight.navigation.PsiTargetNavigator
 import com.intellij.codeInsight.navigation.TargetPresentationProvider

@@ -22,13 +22,10 @@
  *
  */
 
-package org.cangnova.cangjie.ide.refactoring.introduce
+package org.cangnova.cangjie.refactoring.introduce
 
 
 import org.cangnova.cangjie.ide.refactoring.CangJieRefactoringSettings
-import org.cangnova.cangjie.ide.refactoring.IntroduceRefactoringException
-import org.cangnova.cangjie.ide.refactoring.chooseContainer.selectContainerIfNeeded
-import org.cangnova.cangjie.ide.refactoring.selectElement
 import org.cangnova.cangjie.messages.CangJieBundle
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.collectDescendantsOfType
@@ -45,6 +42,9 @@ import com.intellij.psi.PsiFile
 import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.util.CommonRefactoringUtil
 import com.intellij.util.SmartList
+import org.cangnova.cangjie.refactoring.IntroduceRefactoringException
+import org.cangnova.cangjie.refactoring.chooseContainer.selectContainerIfNeeded
+import org.cangnova.cangjie.refactoring.selectElement
 
 
 /**
@@ -221,7 +221,7 @@ abstract class CangJieIntroduceVariableHandler : RefactoringActionHandler {
 
             }
         } catch (e: IntroduceRefactoringException) {
-            CangJieIntroduceVariableHandler.Companion.showErrorHint(
+            showErrorHint(
                 project,
                 editor,
                 e.message!!
