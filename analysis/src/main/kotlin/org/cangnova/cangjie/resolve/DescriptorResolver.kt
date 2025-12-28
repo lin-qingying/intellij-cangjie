@@ -1089,7 +1089,7 @@ class DescriptorResolver(
         container: DeclarationDescriptor,
         scopeForDeclarationResolution: LexicalScope,
 //        scopeForInitializerResolution: LexicalScope,
-        variableDeclaration: CjVariable<*>,
+        variableDeclaration: CjPatternVariable,
         trace: BindingTrace,
         dataFlowInfo: DataFlowInfo,
         inferenceSession: InferenceSession
@@ -1099,40 +1099,17 @@ class DescriptorResolver(
 
 
 
-        expressionTypingServices.expressionTypingComponents.patternMatchingTypingVisitor.visitVariable(
+        expressionTypingServices.expressionTypingComponents.patternMatchingTypingVisitor.visitPatternVariable(
             variableDeclaration, context
         )
 ////当前声明具有的所有变量声明
-        val variables = when (variableDeclaration) {
-            is CjPatternVariable -> variableDeclaration.pattern.getAllBindings().mapNotNull {
-                trace[BindingContext.VARIABLE, it]
-            }
-            is CjFieldVariable -> listOfNotNull(trace[BindingContext.VARIABLE, variableDeclaration])
-            else -> emptyList()
+        val variables = variableDeclaration.pattern.getAllBindings().mapNotNull {
+            trace[BindingContext.VARIABLE, it]
         }
-
         return variables.filter {
             it.name == name
         }
 
-//        模式会返回多个声明
-        /*、
-          1.获取期望类型
-          2.获取表达式类型
-         */
-//
-//        val expectedType = variableDeclaration.typeReference?.let {
-//            typeResolver.resolveType(
-//                scopeForDeclarationResolution, it, trace, true
-//            )
-//        } ?: NO_EXPECTED_TYPE
-//
-//        val expressionType = variableDeclaration.initializer?.let {
-//            expressionTypingServices.getTypeInfo(scopeForInitializerResolution, it, trace)
-//        } ?: ErrorUtils.errorVariableType
-//        val type = if (expectedType != NO_EXPECTED_TYPE) expressionType else expressionType
-//
-//        TODO()
     }
 
     fun resolveVariableDescriptor(

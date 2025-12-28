@@ -25,6 +25,7 @@ import org.cangnova.cangjie.resolve.LocalVariableResolver
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.LexicalWritableScope
+import org.cangnova.cangjie.resolve.visibility
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.expressions.ExpressionTypingComponents
 
@@ -133,6 +134,32 @@ class BindingCollector(private val components: ExpressionTypingComponents) {
     }
 
     /**
+     * 记录绑定的变量描述符（不添加到作用域）
+     *
+     * 用于顶层变量声明等场景，作用域不可写但仍需记录变量描述符到 BindingTrace。
+     *
+     * @param bindings 要记录的绑定列表
+     * @param scope 作用域（用于获取 owner）
+     * @param trace 绑定跟踪器
+     * @param localVariableResolver 局部变量解析器
+     * @param isLocal 是否为局部变量
+     */
+    fun recordBindings(
+        bindings: List<PatternBinding>,
+        scope: LexicalScope,
+        trace: BindingTrace,
+        localVariableResolver: LocalVariableResolver,
+        isLocal: Boolean = true
+    ) {
+        for (binding in bindings) {
+            if (!binding.isValid) continue
+
+            // 仅创建描述符并记录到 trace，不添加到作用域
+            createVariableDescriptor(binding, scope, trace, localVariableResolver, isLocal)
+        }
+    }
+
+    /**
      * 收集并声明变量（组合操作）
      *
      * 便捷方法，同时完成收集和声明。
@@ -155,6 +182,32 @@ class BindingCollector(private val components: ExpressionTypingComponents) {
     ): List<PatternBinding> {
         val bindings = collectBindings(pattern, context)
         declareBindings(bindings, scope, trace, localVariableResolver, isLocal)
+        return bindings
+    }
+
+    /**
+     * 收集并记录变量（不添加到作用域）
+     *
+     * 用于顶层变量声明等场景，作用域不可写但仍需记录变量描述符到 BindingTrace。
+     *
+     * @param pattern 要分析的模式
+     * @param context 模式分析上下文
+     * @param scope 作用域（用于获取 owner）
+     * @param trace 绑定跟踪器
+     * @param localVariableResolver 局部变量解析器
+     * @param isLocal 是否为局部变量
+     * @return 收集到的绑定列表
+     */
+    fun collectAndRecord(
+        pattern: Pattern,
+        context: ExtendedPatternContext,
+        scope: LexicalScope,
+        trace: BindingTrace,
+        localVariableResolver: LocalVariableResolver,
+        isLocal: Boolean = true
+    ): List<PatternBinding> {
+        val bindings = collectBindings(pattern, context)
+        recordBindings(bindings, scope, trace, localVariableResolver, isLocal)
         return bindings
     }
 
@@ -188,7 +241,8 @@ class BindingCollector(private val components: ExpressionTypingComponents) {
                         name = kind.name,
                         type = kind.type,
                         element = element,
-                        isMutable = false
+                        isMutable = false,
+                        visibility = ( element as CjBindingPattern).variable?.visibility
                     )
                 )
             }

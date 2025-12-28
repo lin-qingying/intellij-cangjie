@@ -128,10 +128,16 @@ class LazyTopDownAnalyzer(
                 override fun visitProperty(property: CjProperty) {
                     properties.add(property)
                 }
+//
+//                override fun visitVariable(variable: CjVariable<*>) {
+//                    variables.add(variable)
+//                }
 
-                override fun visitVariable(variable: CjVariable<*>) {
+                override fun visitPatternVariable(variable: CjPatternVariable) {
                     variables.add(variable)
+
                 }
+
 
                 override fun visitFieldVariable(field: CjFieldVariable) {
                     variables.add(field)
@@ -150,7 +156,7 @@ class LazyTopDownAnalyzer(
                 override fun visitImportDirectiveItem(importDirective: CjImportDirectiveItem) {
                     val importResolver = fileScopeProvider.getImportResolver(importDirective.getContainingCjFile())
 
-//                    xTODO 修改该语句，添加重导出回调，返回包名映射
+//                    TODO 修改该语句，添加重导出回调，返回包名映射
                     importResolver.forceResolveImport(importDirective)
 
 

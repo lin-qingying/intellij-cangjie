@@ -144,6 +144,10 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
     ExpressionTypingVisitor(facade) {
 
     private val patternAnalyzer = PatternAnalyzer(components, facade)
+    override fun visitVariable(variable: CjVariable<*>, data: ExpressionTypingContext): CangJieTypeInfo? {
+
+        error("please use visitPatternVariable for pattern variables")
+    }
 
     /**
      * 访问模式变量声明

@@ -533,10 +533,21 @@ class PatternAnalyzer(
             )
             val resolvedPattern = resolver.resolve(it, patternContext, config)
 
-            // 收集并声明模式中的变量绑定
+            // 收集并声明/记录模式中的变量绑定
             val scope = newContext.scope
             if (scope is LexicalWritableScope) {
+                // 局部变量：添加到作用域
                 bindingCollector.collectAndDeclare(
+                    pattern = resolvedPattern,
+                    context = patternContext,
+                    scope = scope,
+                    trace = newContext.trace,
+                    localVariableResolver = components.localVariableResolver,
+                    isLocal = variable.isLocal
+                )
+            } else {
+                // 顶层变量：仅记录到 trace，不添加到作用域
+                bindingCollector.collectAndRecord(
                     pattern = resolvedPattern,
                     context = patternContext,
                     scope = scope,

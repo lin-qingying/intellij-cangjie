@@ -145,7 +145,7 @@ open class LazyDeclarationResolver(
         val scopeForDeclaration = getMemberScopeDeclaredIn(variable, location)
         val result = when (variable) {
             is CjPatternVariable -> (variable.pattern?.getAllBindings() ?: listOf()).flatMap {
-                scopeForDeclaration.getContributedVariables(it.nameAsSafeName, location)
+               scopeForDeclaration.getContributedVariables(it.nameAsSafeName, location)
             }
             is CjFieldVariable -> scopeForDeclaration.getContributedVariables(variable.nameAsSafeName, location)
             else -> emptyList()

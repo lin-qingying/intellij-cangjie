@@ -458,7 +458,9 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
 
     }
 
-
+    override fun visitPatternVariable(variable: CjPatternVariable, data: Unit?) {
+       visitPatternVariable(variable)
+    }
 
     override fun visitFieldVariable(field: CjFieldVariable, data: Unit?): Unit {
         visitFieldVariable(field)

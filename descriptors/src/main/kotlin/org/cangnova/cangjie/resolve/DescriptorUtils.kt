@@ -36,8 +36,11 @@ import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.lexer.CjModifierKeywordToken
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.*
+import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.psi.CjDeclarationStub
 import org.cangnova.cangjie.psi.CjImportDirectiveItem
+import org.cangnova.cangjie.psi.CjNamedDeclaration
+import org.cangnova.cangjie.psi.CjPackageDirective
 import org.cangnova.cangjie.resolve.DescriptorUtils.getContainingModule
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScope
@@ -1116,7 +1119,7 @@ val DeclarationDescriptor.fqNameSafe: FqName
  * - protected: PROTECTED
  * - public或无修饰符: PUBLIC(默认)
  */
-val <T : StubElement<*>>CjDeclarationStub<T>.modifierVisibility: DescriptorVisibility
+val <T : StubElement<*>> CjDeclarationStub<T>.modifierVisibility: DescriptorVisibility
     get() {
 
         if (hasModifier(CjTokens.PRIVATE_KEYWORD)) return DescriptorVisibilities.PRIVATE
@@ -1258,3 +1261,11 @@ fun DescriptorVisibility.toKeywordToken(): CjModifierKeywordToken = when (val no
         }
     }
 }
+
+val CjDeclaration.visibility: DescriptorVisibility
+    get() = when (this) {
+        is CjDeclarationStub<*> -> this.modifierVisibility
+        is CjImportDirectiveItem -> this.importVisibility
+
+        else -> DescriptorVisibilities.INTERNAL
+    }

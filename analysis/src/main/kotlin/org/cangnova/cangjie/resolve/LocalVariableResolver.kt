@@ -320,7 +320,7 @@ class LocalVariableResolver(
             type,
             isVar,
             (pattern as? CjElement)?.toSourceElement() ?: SourceElement.NO_SOURCE,
-            visibility ?: DescriptorVisibilities.LOCAL
+            visibility ?: DescriptorVisibilities.INTERNAL
         )
         if (pattern is CjElement) {
             trace.record(BindingContext.VARIABLE, pattern, variableDescriptor)
@@ -328,13 +328,6 @@ class LocalVariableResolver(
         return variableDescriptor
     }
 
-//    private fun VariableAccessorDescriptor.updateAccessorFlagsFromResolvedCallForDelegatedVariable(trace: BindingTrace) {
-//        if (this is FunctionDescriptorImpl) {
-//            val resultingDescriptor = trace.bindingContext.get(BindingContext.DELEGATED_PROPERTY_RESOLVED_CALL, this)?.resultingDescriptor
-//            if (resultingDescriptor != null) {
-//                setSuspend(resultingDescriptor.isSuspend)
-//            }
-//        }
-//    }
+
 
 }
