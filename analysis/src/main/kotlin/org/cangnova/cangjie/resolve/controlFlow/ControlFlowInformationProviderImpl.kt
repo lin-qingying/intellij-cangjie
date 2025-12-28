@@ -81,7 +81,7 @@ import org.cangnova.cangjie.types.TypeUtils.DONT_CARE
 import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
 import org.cangnova.cangjie.types.TypeUtils.noExpectedType
 import org.cangnova.cangjie.types.error.MultipleSupertypeTypeInferenceFailure
-import org.cangnova.cangjie.types.expressions.match.MatchChecker
+import org.cangnova.cangjie.types.expressions.match.PatternAnalyzer
 import org.cangnova.cangjie.types.expressions.match.checkExhaustive
 import org.cangnova.cangjie.types.isBoolean
 import org.cangnova.cangjie.utils.firstOverridden
@@ -486,7 +486,7 @@ class ControlFlowInformationProviderImpl private constructor(
                 val elseEntry = element.entries.find { it.isElse }
                 val subjectExpression = element.subjectExpression
 //                检查连接符
-                MatchChecker.checkConnector(element, trace)
+                // TODO: 实现连接符检查
 
 
                 if (subjectExpression != null) {
@@ -501,7 +501,8 @@ class ControlFlowInformationProviderImpl private constructor(
 
                 } else {
 //                    非模式匹配 match表达式  when
-                    val missingCases = MatchChecker.getMissingCases(element, context)
+                    // TODO: 实现 getMissingCases 检查
+                    val missingCases = emptyList<MatchMissingCase>()
 
                     if (/*usedAsExpression && */ missingCases.isNotEmpty()) {
                         if (elseEntry != null) continue
@@ -528,9 +529,9 @@ class ControlFlowInformationProviderImpl private constructor(
         if (missingCases.isEmpty()) return
         val kind = when {
             missingCases.all { it is MatchMissingCase.OtherCheckIsMissing } -> AlgebraicTypeKind.Constant
-            MatchChecker.getClassDescriptorOfTypeIfTuple(subjectType) != null -> AlgebraicTypeKind.Tuple
-            MatchChecker.getClassDescriptorOfTypeIfSealed(subjectType) != null -> AlgebraicTypeKind.Sealed
-            MatchChecker.getClassDescriptorOfTypeIfEnum(subjectType) != null -> AlgebraicTypeKind.Enum
+            PatternAnalyzer.getClassDescriptorOfTypeIfTuple(subjectType) != null -> AlgebraicTypeKind.Tuple
+            PatternAnalyzer.getClassDescriptorOfTypeIfSealed(subjectType) != null -> AlgebraicTypeKind.Sealed
+            PatternAnalyzer.getClassDescriptorOfTypeIfEnum(subjectType) != null -> AlgebraicTypeKind.Enum
             subjectType?.isBoolean == true -> AlgebraicTypeKind.Boolean
 
             else -> null

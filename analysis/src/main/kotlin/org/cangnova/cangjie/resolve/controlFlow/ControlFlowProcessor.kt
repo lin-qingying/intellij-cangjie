@@ -48,7 +48,7 @@ import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.eval.Acc
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.eval.InstructionWithValue
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.eval.MagicKind
 import org.cangnova.cangjie.resolve.scopes.receivers.*
-import org.cangnova.cangjie.types.expressions.match.MatchChecker
+
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
@@ -61,6 +61,9 @@ import org.cangnova.cangjie.name.OperatorConventions
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.slicedMap.ReadOnlySlice
+import org.cangnova.cangjie.types.expressions.match.PatternAnalyzer
+import org.cangnova.cangjie.types.expressions.match.PatternAnalyzer.Companion.checkDuplicatedLabels
+import org.cangnova.cangjie.types.expressions.match.exhaustive.ExhaustivenessAnalyzer
 import java.util.*
 
 class ControlFlowProcessor(
@@ -1290,7 +1293,7 @@ class ControlFlowProcessor(
                         trace.report(ELSE_MISPLACED_IN_MATCH.on(matchEntry))
                     }
                 }
-                val bodyLabel = builder.createUnboundLabel("'when' constructor body")
+                val bodyLabel = builder.createUnboundLabel("'match' constructor body")
 
                 val conditions = matchEntry.conditions
                 for (i in conditions.indices) {
@@ -1319,7 +1322,7 @@ class ControlFlowProcessor(
                     builder.bindLabel(nextLabel)
                     // For the last constructor of exhaustive match,
                     // attempt to jump further should lead to error, not to "done"
-                    if (!iterator.hasNext() && MatchChecker.isMatchExhaustive(expression, trace)) {
+                    if (!iterator.hasNext() && ExhaustivenessAnalyzer.checkMatch(expression, trace.bindingContext).isExhaustive) {
                         builder.magic(expression, null, emptyList(), MagicKind.EXHAUSTIVE_MATCH_ELSE)
                     }
                 }
@@ -1327,11 +1330,7 @@ class ControlFlowProcessor(
             builder.bindLabel(doneLabel)
 
             mergeValues(branches, expression)
-            MatchChecker.checkDuplicatedLabels(
-                expression,
-                trace,
-                languageVersionSettings
-            )
+            checkDuplicatedLabels(expression, trace,languageVersionSettings)
         }
 
 

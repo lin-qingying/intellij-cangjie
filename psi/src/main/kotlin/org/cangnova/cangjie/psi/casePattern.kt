@@ -126,7 +126,7 @@ class CjBindingPattern : CjCasePattern<CangJieBindingPatternStub>, CjSimpleNameE
         if (stub != null) {
             return stub.name
         }
-        return expression?.name
+        return expression?.referencedName
     }
 
     override fun getNameIdentifier(): PsiElement? {

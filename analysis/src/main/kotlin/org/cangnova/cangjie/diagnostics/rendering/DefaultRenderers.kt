@@ -28,7 +28,9 @@ import org.cangnova.cangjie.diagnostics.infos.errors.EXPRESSION_EXPECTED
 import org.cangnova.cangjie.diagnostics.infos.errors.FUNCTION_CALL_EXPECTED
 import org.cangnova.cangjie.diagnostics.infos.errors.FUNCTION_EXPECTED
 import org.cangnova.cangjie.diagnostics.infos.errors.INVALID_BINARY_OPERATOR
+import org.cangnova.cangjie.diagnostics.infos.errors.NO_ELSE_IN_MATCH_BY_PATTERN
 import org.cangnova.cangjie.diagnostics.infos.errors.TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS
+import org.cangnova.cangjie.types.expressions.match.Pattern
 import org.cangnova.cangjie.types.isError
 
 /**
@@ -132,26 +134,18 @@ class DefaultRenderers : DiagnosticRendererProvider {
                 )
             }
 
-            // ========================================
-            // 警告诊断
-            // ========================================
 
-            // 大多数警告使用自动推断，无需配置
-            // 只有复杂警告需要在此添加配置
+            register(NO_ELSE_IN_MATCH_BY_PATTERN) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                renderers(
+                    renderer { patterns: List<Pattern> ->
+                        patterns.joinToString(", ") { pattern ->
+                            "'case ${pattern.text(null)}'"
+                        }
+                    }
+                )
+            }
 
-            // ========================================
-            // 弃用诊断
-            // ========================================
-
-            // 大多数弃用诊断使用自动推断，无需配置
-            // 只有复杂弃用诊断需要在此添加配置
-
-            // ========================================
-            // 信息诊断
-            // ========================================
-
-            // 大多数信息诊断使用自动推断，无需配置
-            // 只有复杂信息诊断需要在此添加配置
         }
     }
 }

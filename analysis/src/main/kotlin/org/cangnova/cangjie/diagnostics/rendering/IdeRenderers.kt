@@ -24,6 +24,9 @@
 
 package org.cangnova.cangjie.diagnostics.rendering
 
+import org.cangnova.cangjie.diagnostics.infos.errors.NO_ELSE_IN_MATCH_BY_PATTERN
+import org.cangnova.cangjie.types.expressions.match.Pattern
+
 /**
  * IDE 诊断渲染器配置
  *
@@ -54,7 +57,21 @@ package org.cangnova.cangjie.diagnostics.rendering
 class IdeRenderers : DiagnosticRendererProvider {
     override fun register() {
         DiagnosticRendererRegistry.configureIde {
-            // TODO: 在这里配置需要 HTML 格式的诊断渲染器
+            // match 表达式穷举性错误 - 使用 HTML 列表格式化缺失的模式
+            register(NO_ELSE_IN_MATCH_BY_PATTERN) {
+                message { IDECangJieDiagnosisBundle.rawMessage(it) }
+                renderers(
+                    renderer { patterns: List<Pattern> ->
+                        buildString {
+                            append("<ul>")
+                            for (pattern in patterns) {
+                                append("<li><code>case ${pattern.text(null)}</code></li>")
+                            }
+                            append("</ul>")
+                        }
+                    }
+                )
+            }
 
             // 示例：类型不匹配错误可以使用表格格式
             // register(TYPE_MISMATCH) {

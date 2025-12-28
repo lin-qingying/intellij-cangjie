@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.types.expressions.match
 
+import org.cangnova.cangjie.psi.CjCasePatternElement
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjEnumConstructor
 import org.cangnova.cangjie.types.CangJieType
@@ -67,10 +68,15 @@ private fun CjEnumConstructor.initializer(subPatterns: List<Pattern>, ctx: CjEle
  *
  * @property type 模式匹配的类型
  * @property kind 模式的种类，决定模式的具体行为
+ * @property psiElement 模式对应的 PSI 元素，用于错误报告和变量声明
  * @see PatternKind
  * @see Constructor
  */
-data class Pattern(val type: CangJieType, val kind: PatternKind) {
+data class Pattern(
+    val type: CangJieType,
+    val kind: PatternKind,
+    val psiElement: CjCasePatternElement? = null
+) {
 
     /**
      * 生成模式的文本表示
@@ -142,14 +148,18 @@ data class Pattern(val type: CangJieType, val kind: PatternKind) {
          *
          * 表示解析失败或类型错误的模式。
          */
-        val Error = Pattern(ErrorUtils.errorVariableType, PatternKind.Error)
+        val Error = Pattern(ErrorUtils.errorVariableType, PatternKind.Error, null)
 
         /**
          * 创建通配符模式
          *
          * @param ty 模式的类型，默认为错误类型
+         * @param psiElement 模式对应的 PSI 元素
          * @return 通配符模式实例
          */
-        fun wild(ty: CangJieType = ErrorUtils.errorVariableType): Pattern = Pattern(ty, PatternKind.Wild)
+        fun wild(
+            ty: CangJieType = ErrorUtils.errorVariableType,
+            psiElement: CjCasePatternElement? = null
+        ): Pattern = Pattern(ty, PatternKind.Wild, psiElement)
     }
 }

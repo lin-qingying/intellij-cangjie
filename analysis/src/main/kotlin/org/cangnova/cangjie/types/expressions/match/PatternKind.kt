@@ -31,10 +31,7 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 
 
-data class PatternContext(
-    val subject: Subject,
-    val context: ExpressionTypingContext
-)
+
 /**
  * 模式种类（PatternKind）
  *

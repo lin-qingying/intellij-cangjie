@@ -123,15 +123,15 @@ class CallResolver(
     private val dataFlowValueFactory: DataFlowValueFactory
 ) {
     @set:Inject
-    private lateinit var expressionTypingServices: ExpressionTypingServices
+      lateinit var expressionTypingServices: ExpressionTypingServices
     @set:Inject
-    private lateinit var syntheticScopes: SyntheticScopes
+      lateinit var syntheticScopes: SyntheticScopes
     @set:Inject
-    private lateinit var argumentTypeResolver: ArgumentTypeResolver
+      lateinit var argumentTypeResolver: ArgumentTypeResolver
     @set:Inject
-    private lateinit var newResolutionOldInference: NewResolutionOldInference
+      lateinit var newResolutionOldInference: NewResolutionOldInference
     @set:Inject
-    private lateinit var psiCallResolver: PSICallResolver
+      lateinit var psiCallResolver: PSICallResolver
 
     @set:Inject
     lateinit var typeResolver: TypeResolver
@@ -966,11 +966,11 @@ class CallResolver(
         tracing.bindCall(context.trace, call)
 
         // 默认使用改进的类型推断系统
-        val newInferenceEnabled = true
+
         val resolutionKind = resolutionTask.resolutionKind
 
         // 如果启用新推断功能且解析种类在默认解析种类列表中，则执行新的解析和推断过程
-        if (newInferenceEnabled &&
+        if (
             psiCallResolver.defaultResolutionKinds.contains(resolutionKind)
         ) {
             checkNotNull(resolutionTask.name)
@@ -979,7 +979,7 @@ class CallResolver(
         }
 
         // 如果启用新推断功能且解析种类为给定候选，则执行针对给定候选的解析和推断过程
-        if (newInferenceEnabled && resolutionKind is NewResolutionOldInference.ResolutionKind.GivenCandidates) {
+        if ( resolutionKind is NewResolutionOldInference.ResolutionKind.GivenCandidates) {
             checkNotNull(resolutionTask.givenCandidates)
             context.trace.recordScope(context.scope, context.call.calleeExpression)
             return psiCallResolver.runResolutionAndInferenceForGivenCandidates(

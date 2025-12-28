@@ -43,6 +43,7 @@ import com.intellij.usageView.UsageViewLongNameLocation
 import com.intellij.usageView.UsageViewShortNameLocation
 import com.intellij.usageView.UsageViewTypeLocation
 import org.cangnova.cangjie.messages.CangJieSearchBundle
+import org.cangnova.cangjie.name.SpecialNames.NO_NAME_PROVIDED
 
 
 open class CangJieElementDescriptionProviderBase : ElementDescriptionProvider {
@@ -52,7 +53,7 @@ open class CangJieElementDescriptionProviderBase : ElementDescriptionProvider {
         return parent
     }
 
-    private fun CjNamedDeclaration.name() = nameAsName ?: Name.special("<no name provided>")
+    private fun CjNamedDeclaration.name() = nameAsName ?: NO_NAME_PROVIDED
 
     private fun CjNamedDeclaration.fqName(): FqNameUnsafe {
         containingTypeStatement?.let {
