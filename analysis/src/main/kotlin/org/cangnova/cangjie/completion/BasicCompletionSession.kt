@@ -188,12 +188,12 @@ class BasicCompletionSession(
      */
     private val ALL = object : CompletionCategory {
         override val descriptorKindFilter: DescriptorKindFilter by lazy {
-            callTypeAndReceiver.callType.descriptorKindFilter.let { filter ->
+            callTypeAndReceiver.callType.descriptorKindFilter/*.let { filter ->
                 // 排除顶层包(因为它们会单独处理)
                 filter.takeIf { it.kindMask.and(DescriptorKindFilter.PACKAGES_MASK) != 0 }
-                    ?.exclude(DescriptorKindExclude.TopLevelPackages)
+                    ?.exclude(DescriptorKindExclude.Module)
                     ?: filter
-            }
+            }*/
         }
 
         /**
@@ -271,15 +271,15 @@ class BasicCompletionSession(
                 val lookupElementFactory = createLookupElementFactory(provider)
                 val generators = makeReferenceSuggestionGenerators(descriptors, lookupElementFactory)
                 /**
-                 * Acknowledge the generators' existence, passing them to the consumer.
-                 * So the consumer (which is a [com.intellij.turboComplete.SuggestionGeneratorExecutor])
-                 * could use it at its discretion.
+                 * 确认生成器的存在，并将其传递给消费者。
+                 * 消费者（即 [com.intellij.turboComplete.SuggestionGeneratorExecutor]）
+                 * 可以根据需要使用它。
                  */
                 generators.forEach { suggestionGeneratorConsumer.pass(it) }
                 return lazy {
                     /**
-                     * Make that all generators generated their artifacts by the moment, when
-                     * the one who addressed this function's return value
+                     * 确保在访问此函数返回值时，
+                     * 所有生成器都已生成其产物
                      */
                     generators.forEach { it.getArtifact() }
                     referenceVariantsCollector!!.collectingFinished()
@@ -294,7 +294,7 @@ class BasicCompletionSession(
                         lookupElementFactory
                     )
 
-                    // all additional items should have SMART_COMPLETION_ITEM_PRIORITY_KEY to be recognized by SmartCompletionInBasicWeigher
+                    // 所有附加项都应该有 SMART_COMPLETION_ITEM_PRIORITY_KEY，以便被 SmartCompletionInBasicWeigher 识别
                     for (item in additionalItems) {
                         if (item.getUserData(SMART_COMPLETION_ITEM_PRIORITY_KEY) == null) {
                             item.putUserData(SMART_COMPLETION_ITEM_PRIORITY_KEY, SmartCompletionItemPriority.DEFAULT)
@@ -310,11 +310,11 @@ class BasicCompletionSession(
                 completeDeclarationNameFromUnresolvedOrOverride(declaration)
 
 
-                // no auto-popup on typing after "let", "var" and "fun" because it's likely the name of the declaration which is being typed by user
+                // 在 "let"、"var" 和 "func" 后不自动弹出补全，因为用户很可能正在输入声明名称
                 if (parameters.invocationCount == 0 && (
                             // suppressOtherCompletion
                             declaration !is CjNamedFunction && declaration !is CjVariable<*> ||
-                                    prefixMatcher.prefix.let { it.isEmpty() || it[0].isLowerCase() /* function name usually starts with lower case letter */ }
+                                    prefixMatcher.prefix.let { it.isEmpty() || it[0].isLowerCase() /* 函数名通常以小写字母开头 */ }
                             )
                 ) {
                     if (declaration is CjNamedFunction &&
@@ -358,12 +358,12 @@ class BasicCompletionSession(
                 }
             }
             val references = collectReferences(descriptors)
-            // getting root packages from scope is very slow so we do this in alternative way
+            // 从作用域获取根包非常慢，所以我们使用另一种方式处理
             if (callTypeAndReceiver.receiver == null &&
                 callTypeAndReceiver.callType.descriptorKindFilter.kindMask.and(DescriptorKindFilter.PACKAGES_MASK) != 0
             ) {
                 addKind(CangJieCompletionKindName.PACKAGE_NAME) {
-                    //TODO: move this code somewhere else?
+                    // TODO: 将此代码移到其他地方？
                     val packageNames = CangJiePackageIndexUtils.getSubPackageFqNames(
                         FqName.ROOT,
                         GlobalSearchScope.allScope(project),
@@ -465,7 +465,7 @@ class BasicCompletionSession(
                 }
 
                 if (!receiverTypes.isNullOrEmpty()) {
-                    // N.B.: callable references to member extensions are forbidden
+                    // 注意：禁止对成员扩展进行可调用引用
                     val shouldCompleteExtensionsFromObjects = when (callTypeAndReceiver.callType) {
                         CallType.DEFAULT, CallType.DOT, CallType.SAFE -> true
                         else -> false
@@ -908,13 +908,13 @@ class BasicCompletionSession(
                     val lookupElement = factory()
                     val matched = expectedInfos.any {
                         val match = expectedInfoMatcher(it)
-                        assert(!match.makeNotNullable) { "Nullable keyword values not supported" }
+                        assert(!match.makeNotNullable) { "不支持可空的关键字值" }
                         match.isMatch()
                     }
 
-                    // 'expectedInfos' is filled with the compiler's insight.
-                    // In cases like missing import statement or undeclared variable desired data cannot be retrieved. Here is where we can
-                    // analyse PSI and calling 'suitableOnPsiLevel()' does the trick.
+                    // 'expectedInfos' 由编译器分析填充。
+                    // 在缺少导入语句或未声明变量等情况下，无法获取所需数据。
+                    // 这时我们可以分析 PSI，调用 'suitableOnPsiLevel()' 来解决问题。
                     if (matched || (expectedInfos.isEmpty() && position.suitableOnPsiLevel())) {
                         lookupElement.putUserData(SmartCompletionInBasicWeigher.KEYWORD_VALUE_MATCHED_KEY, Unit)
                         lookupElement.putUserData(SMART_COMPLETION_ITEM_PRIORITY_KEY, priority)
@@ -945,7 +945,7 @@ class BasicCompletionSession(
                 }
 
                 when (keyword) {
-                    // if "this" is parsed correctly in the current context - insert it and all this@xxx items
+                    // 如果 "this" 在当前上下文中正确解析 - 插入它以及所有 this@xxx 项
                     "this" -> {
                         if (expression != null) {
                             collector.addElements(
@@ -956,12 +956,12 @@ class BasicCompletionSession(
                                     resolutionFacade
                                 ).map { it.createLookupElement() })
                         } else {
-                            // for completion in secondary constructor delegation call
+                            // 用于次构造函数委托调用中的补全
                             collector.addElement(lookupElement)
                         }
                     }
 
-                    // if "return" is parsed correctly in the current context - insert it and all return
+                    // 如果 "return" 在当前上下文中正确解析 - 插入它以及所有 return
                     "return" -> {
                         if (expression != null) {
                             collector.addElements(returnExpressionItems(bindingContext, expression))
@@ -975,7 +975,7 @@ class BasicCompletionSession(
                     }
 
                     "class" -> {
-                        if (callTypeAndReceiver !is CallTypeAndReceiver.CALLABLE_REFERENCE) { // otherwise it should be handled by KeywordValues
+                        if (callTypeAndReceiver !is CallTypeAndReceiver.CALLABLE_REFERENCE) { // 否则应由 KeywordValues 处理
                             collector.addElement(lookupElement)
                         }
                     }
@@ -1064,14 +1064,14 @@ var LookupElement.suppressItemSelectionByCharsOnTyping: Boolean by NotNullableUs
     defaultValue = false,
 )
 private val USUALLY_START_LOWER_CASE = DescriptorKindFilter(
-    DescriptorKindFilter.CALLABLES_MASK or DescriptorKindFilter.PACKAGES_MASK,
+    DescriptorKindFilter.CALLABLES_MASK or DescriptorKindFilter.PACKAGES_MASK or DescriptorKindFilter.MODULES_MASK,
     listOf(SamConstructorDescriptorKindExclude)
 )
 private val USUALLY_START_UPPER_CASE = DescriptorKindFilter(
     DescriptorKindFilter.CLASSIFIERS_MASK or DescriptorKindFilter.FUNCTIONS_MASK,
     listOf(
         NonSamConstructorFunctionExclude,
-        DescriptorKindExclude.Extensions /* needed for faster getReferenceVariants */
+        DescriptorKindExclude.Extensions /* 用于加速 getReferenceVariants */
     )
 )
 

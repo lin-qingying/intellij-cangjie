@@ -77,6 +77,11 @@ open class ModuleDescriptorImpl(
         setDependencies(descriptors.toList())
     }
 
+
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
+        return visitor.visitModuleDeclaration(this, data)
+    }
+
     private fun setDependencies(descriptors: List<ModuleDescriptorImpl>) {
         setDependencies(descriptors, emptySet())
     }
@@ -110,10 +115,6 @@ open class ModuleDescriptorImpl(
         packageViewDescriptorFactory.compute(this, fqName, storageManager)
     }
 
-    override fun getPackage(fqName: FqName): PackageViewDescriptor {
-        assertValid()
-        return packages(fqName)
-    }
 
     private val packageFragmentProviderForWholeModuleWithDependencies by lazy {
         getProvider()
@@ -236,6 +237,43 @@ open class ModuleDescriptorImpl(
 
     override fun <T> getCapability(capability: ModuleCapability<T>): T? {
         return capabilities[capability] as? T
+    }
+
+    override val allDependencyModules: List<ModuleDescriptor>
+        get() {
+            val moduleDependencies = dependencies ?: return emptyList()
+            // 返回所有依赖模块，排除当前模块自身
+            return moduleDependencies.allDependencies.filter { it != this }
+        }
+
+    override fun getModule(name: Name): ModuleDescriptor? {
+        // 在依赖模块中查找指定名称的模块
+        return allDependencyModules.find { it.name == name }
+    }
+
+    override fun getPackage(fqName: FqName): PackageViewDescriptor {
+        assertValid()
+        return getPackageOrModule(fqName) as? PackageViewDescriptor ?: packages(fqName)
+    }
+
+    override fun getPackageOrModule(fqName: FqName): PackageAndModuleDescriptor? {
+        if (fqName.isRoot) return null
+
+        // 第一段是模块名
+        val moduleName = fqName.pathSegments().first()
+        val module = getModule(moduleName) ?: return null
+
+        // 如果只有一段，返回模块本身
+        if (fqName.pathSegments().size == 1) {
+            return module
+        }
+
+        // 否则在模块中查找包（去掉模块名后的部分）
+//        val packageFqName = FqName(fqName.pathSegments().drop(1).joinToString(".") { it.asString() })
+        val packageView = module.getPackage(fqName)
+
+        // 检查包是否存在（非空包）
+        return if (packageView.isEmpty()) null else packageView
     }
 
 

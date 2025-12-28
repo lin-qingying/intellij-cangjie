@@ -36,6 +36,9 @@ object ErrorModuleDescriptor: ModuleDescriptor {
         get() = ProjectDescriptor.ERROR
     override val isValid: Boolean = false
     override fun getPackage(fqName: FqName): PackageViewDescriptor  = throw IllegalStateException("Should not be called!")
+    override val allDependencyModules: List<ModuleDescriptor> = emptyList()
+    override fun getModule(name: Name): ModuleDescriptor? = null
+    override fun getPackageOrModule(fqName: FqName): PackageAndModuleDescriptor? = null
     override val builtIns: CangJieBuiltIns  by lazy { DefaultBuiltIns }
     override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> = emptyList()
     override val expectedByModules: List<ModuleDescriptor> = emptyList()

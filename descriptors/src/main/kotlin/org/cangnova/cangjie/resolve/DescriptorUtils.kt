@@ -734,9 +734,11 @@ object DescriptorUtils {
 
     @JvmStatic
     private fun getFqNameSafeIfPossible(descriptor: DeclarationDescriptor): FqName? {
-        if (descriptor is ModuleDescriptor || isError(descriptor)) {
+        if (isError(descriptor)) {
             return FqName.ROOT
         }
+        if (descriptor is ModuleDescriptor) return FqName.topLevel(descriptor.name)
+
         if (descriptor is PrimitiveClassDescriptor) {
 
             return fromByName(descriptor.name)

@@ -432,7 +432,7 @@ open class DescriptorRendererImpl(
 
     /* METHODS FOR ALL KINDS OF DESCRIPTORS */
     private fun StringBuilder.appendDefinedIn(descriptor: DeclarationDescriptor) {
-        if (descriptor is PackageFragmentDescriptor || descriptor is PackageViewDescriptor) {
+        if ( descriptor is ModuleDescriptor || descriptor is PackageFragmentDescriptor || descriptor is PackageViewDescriptor) {
             return
         }
 

@@ -52,7 +52,7 @@ import org.cangnova.cangjie.utils.Printer
  *
  * ### 顶级包排除
  *
- * 可选地排除顶级包（根包的直接子包），通过 `DescriptorKindExclude.TopLevelPackages` 控制。
+ * 可选地排除顶级包（根包的直接子包），通过 `DescriptorKindExclude.Module` 控制。
  *
  * ## 使用场景
  *
@@ -175,7 +175,7 @@ import org.cangnova.cangjie.utils.Printer
  *
  * ### 顶级包过滤
  *
- * 当 `fqName.isRoot` 且过滤器包含 `TopLevelPackages` 排除时：
+ * 当 `fqName.isRoot` 且过滤器包含 `Module` 排除时：
  * - 不返回顶级包（如 `com`, `org`, `java` 等）
  * - 用于某些场景下隐藏顶级包结构
  *
@@ -312,7 +312,7 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
         if (!kindFilter.acceptsKinds(DescriptorKindFilter.PACKAGES_MASK)) return listOf()
-        if (fqName.isRoot && kindFilter.excludes.contains(DescriptorKindExclude.TopLevelPackages)) return listOf()
+        if (fqName.isRoot && kindFilter.excludes.contains(DescriptorKindExclude.Module)) return listOf()
 
         val subFqNames = moduleDescriptor.getSubPackagesOf(fqName, nameFilter)
         val result = ArrayList<DeclarationDescriptor>(subFqNames.size)

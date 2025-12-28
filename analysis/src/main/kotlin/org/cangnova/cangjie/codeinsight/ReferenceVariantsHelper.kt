@@ -52,6 +52,14 @@ import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.getDataFlowInfoBefore
 import org.cangnova.cangjie.utils.ShadowedDeclarationsFilter
 
+/**
+ * 查找声明描述符对应的 PSI 元素
+ *
+ * 对于带有源码的描述符，直接获取其 PSI。
+ * 对于伪覆盖（FAKE_OVERRIDE）的可调用成员，递归查找被覆盖描述符的 PSI。
+ *
+ * @return 对应的 PSI 元素，如果找不到则返回 null
+ */
 fun DeclarationDescriptor.findPsi(): PsiElement? {
     val psi = (this as? DeclarationDescriptorWithSource)?.source?.getPsi()
     return if (psi == null && this is CallableMemberDescriptor && kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE) {
@@ -61,6 +69,32 @@ fun DeclarationDescriptor.findPsi(): PsiElement? {
     }
 }
 
+/**
+ * 引用变体辅助类
+ *
+ * 用于代码补全时收集当前上下文中可用的声明描述符。
+ * 根据不同的调用类型（import 指令、类型引用、成员访问等）收集相应的补全候选项。
+ *
+ * ## 主要功能
+ *
+ * 1. **import/package 指令补全**: 返回当前模块的依赖模块列表
+ * 2. **类型引用补全**: 收集作用域内可见的类型
+ * 3. **成员访问补全**: 收集接收者类型的成员和扩展
+ * 4. **隐式接收者补全**: 收集当前作用域内可用的声明
+ *
+ * ## 过滤机制
+ *
+ * - **可见性过滤**: 通过 [visibilityFilter] 过滤不可见的声明
+ * - **弃用过滤**: 过滤在解析中隐藏的弃用声明
+ * - **遮蔽过滤**: 可选过滤被遮蔽的声明
+ * - **未初始化变量过滤**: 可选过滤初始化器中的变量自身
+ *
+ * @property bindingContext 绑定上下文，包含类型解析信息
+ * @property resolutionFacade 解析门面，提供解析服务
+ * @property moduleDescriptor 当前模块描述符
+ * @property visibilityFilter 可见性过滤器
+ * @property notProperties 不作为属性处理的完全限定名集合
+ */
 @OptIn(FrontendInternals::class)
 class ReferenceVariantsHelper(
     private val bindingContext: BindingContext,
@@ -69,6 +103,19 @@ class ReferenceVariantsHelper(
     private val visibilityFilter: (DeclarationDescriptor) -> Boolean,
     private val notProperties: Set<FqNameUnsafe> = setOf()
 ) {
+    /**
+     * 获取引用变体（简化版本）
+     *
+     * 自动检测表达式的调用类型，然后收集相应的补全候选项。
+     *
+     * @param expression 简单名称表达式
+     * @param kindFilter 描述符类型过滤器
+     * @param nameFilter 名称过滤器
+     * @param filterOutShadowed 是否过滤被遮蔽的声明
+     * @param excludeNonInitializedVariable 是否排除未初始化的变量
+     * @param useReceiverType 指定的接收者类型（可选）
+     * @return 匹配的声明描述符集合
+     */
     fun getReferenceVariants(
         expression: CjSimpleNameExpression,
         kindFilter: DescriptorKindFilter,
@@ -82,6 +129,20 @@ class ReferenceVariantsHelper(
         kindFilter, nameFilter, filterOutShadowed, excludeNonInitializedVariable, useReceiverType
     )
 
+    /**
+     * 获取引用变体（完整版本）
+     *
+     * 根据指定的调用类型和接收者收集补全候选项，并应用各种过滤器。
+     *
+     * @param contextElement 上下文元素
+     * @param callTypeAndReceiver 调用类型和接收者
+     * @param kindFilter 描述符类型过滤器
+     * @param nameFilter 名称过滤器
+     * @param filterOutShadowed 是否过滤被遮蔽的声明
+     * @param excludeNonInitializedVariable 是否排除未初始化的变量
+     * @param useReceiverType 指定的接收者类型（可选）
+     * @return 匹配的声明描述符集合
+     */
     fun getReferenceVariants(
         contextElement: PsiElement,
         callTypeAndReceiver: CallTypeAndReceiver<*, *>,
@@ -120,6 +181,19 @@ class ReferenceVariantsHelper(
         return variants
     }
 
+    /**
+     * 获取 import 或 package 指令的补全变体
+     *
+     * 仓颉的 import 语句格式为: `import <模块名>.<包名>`，如 `import std.core`
+     *
+     * - 如果有接收者表达式（如 `std.`），则返回该限定符作用域内的静态成员
+     * - 如果没有接收者表达式（import 语句开头），则返回当前模块的所有依赖模块
+     *
+     * @param receiverExpression 接收者表达式（限定符部分）
+     * @param kindFilter 描述符类型过滤器
+     * @param nameFilter 名称过滤器
+     * @return 匹配的声明描述符集合
+     */
     private fun getVariantsForImportOrPackageDirective(
         receiverExpression: CjExpression?,
         kindFilter: DescriptorKindFilter,
@@ -134,12 +208,30 @@ class ReferenceVariantsHelper(
 
             return staticDescriptors /*+ objectDescriptor.defaultType.memberScope.getDescriptorsFiltered(kindFilter, nameFilter)*/
         } else {
-            val rootPackage = resolutionFacade.moduleDescriptor.getPackage(FqName.ROOT)
-            return rootPackage.memberScope.getDescriptorsFiltered(kindFilter, nameFilter)
+            // 仓颉的 import 语句格式为: import <模块名>.<包名>，如 import std.core
+            // 这里需要返回当前模块可以访问的所有依赖模块
+            return moduleDescriptor.allDependencyModules
+                .filter { kindFilter.accepts(it) && nameFilter(it.name) }
         }
     }
 
 
+    /**
+     * 获取引用变体（无可见性过滤）
+     *
+     * 根据调用类型分发到不同的处理逻辑：
+     * - IMPORT_DIRECTIVE / PACKAGE_DIRECTIVE: 处理导入语句补全
+     * - TYPE / ANNOTATION: 处理类型引用补全
+     * - DOT / SAFE / SUPER_MEMBERS: 处理成员访问补全
+     * - DEFAULT: 处理隐式接收者补全
+     *
+     * @param contextElement 上下文元素
+     * @param kindFilter 描述符类型过滤器
+     * @param nameFilter 名称过滤器
+     * @param callTypeAndReceiver 调用类型和接收者
+     * @param useReceiverType 指定的接收者类型（可选）
+     * @return 匹配的声明描述符集合
+     */
     private fun getReferenceVariantsNoVisibilityFilter(
         contextElement: PsiElement,
         kindFilter: DescriptorKindFilter,
@@ -278,6 +370,17 @@ class ReferenceVariantsHelper(
         return descriptors
     }
 
+    /**
+     * 获取用户类型引用的补全变体
+     *
+     * 用于类型注解位置的补全，如变量类型、函数返回类型等。
+     *
+     * @param receiverExpression 接收者表达式（限定符部分）
+     * @param contextElement 上下文元素
+     * @param kindFilter 描述符类型过滤器
+     * @param nameFilter 名称过滤器
+     * @return 匹配的声明描述符集合
+     */
     private fun getVariantsForUserType(
         receiverExpression: CjExpression?,
         contextElement: PsiElement,
@@ -293,6 +396,19 @@ class ReferenceVariantsHelper(
         }
     }
 
+    /**
+     * 添加作用域扩展和合成扩展
+     *
+     * 收集当前作用域内对接收者类型可用的扩展成员。
+     * 在仓颉语言中，extend 成员作为普通类成员处理。
+     *
+     * @receiver 待添加描述符的可变集合
+     * @param scope 词法作用域
+     * @param receiverTypes 接收者类型集合
+     * @param callType 调用类型
+     * @param kindFilter 描述符类型过滤器
+     * @param nameFilter 名称过滤器
+     */
     private fun MutableSet<DeclarationDescriptor>.addScopeAndSyntheticExtensions(
         scope: LexicalScope,
         receiverTypes: Collection<CangJieType>,
@@ -337,6 +453,23 @@ class ReferenceVariantsHelper(
         }
     }
 
+    /**
+     * 综合处理所有成员收集逻辑
+     *
+     * 依次添加：
+     * 1. 非扩展成员（接收者类型的直接成员）
+     * 2. 成员扩展（隐式接收者类型中定义的扩展）
+     * 3. 作用域扩展和合成扩展
+     * 4. 最后过滤掉操作符函数
+     *
+     * @receiver 待添加描述符的可变集合
+     * @param implicitReceiverTypes 隐式接收者类型集合
+     * @param receiverTypes 接收者类型集合
+     * @param resolutionScope 解析作用域
+     * @param callType 调用类型
+     * @param kindFilter 描述符类型过滤器
+     * @param nameFilter 名称过滤器
+     */
     private fun MutableSet<DeclarationDescriptor>.processAll(
         implicitReceiverTypes: Collection<CangJieType>,
         receiverTypes: Collection<CangJieType>,
@@ -353,11 +486,29 @@ class ReferenceVariantsHelper(
 
     }
 
+    /**
+     * 过滤结果集
+     *
+     * 移除操作符函数，因为操作符函数不应出现在普通代码补全中。
+     */
     private fun MutableSet<DeclarationDescriptor>.filtration() {
-//        过滤掉操作符函数
+        // 过滤掉操作符函数
         removeIf { it is FunctionDescriptor && it.isOperator }
     }
 
+    /**
+     * 添加非扩展可调用成员和构造函数
+     *
+     * 从作用域中收集可调用成员（函数、属性）和类的构造函数。
+     * 对于抽象类和密封类，跳过其构造函数。
+     *
+     * @receiver 待添加描述符的可变集合
+     * @param scope 层级作用域
+     * @param kindFilter 描述符类型过滤器
+     * @param nameFilter 名称过滤器
+     * @param constructorFilter 构造函数过滤器
+     * @param classesOnly 是否只处理类（用于父类型处理）
+     */
     private fun MutableSet<DeclarationDescriptor>.addNonExtensionCallablesAndConstructors(
         scope: HierarchicalScope,
         kindFilter: DescriptorKindFilter,
@@ -386,6 +537,18 @@ class ReferenceVariantsHelper(
         }
     }
 
+    /**
+     * 添加成员作用域的非扩展成员
+     *
+     * 收集成员作用域中的成员，并递归处理父类型的成员。
+     *
+     * @receiver 待添加描述符的可变集合
+     * @param memberScope 成员作用域
+     * @param typeConstructor 类型构造器（用于获取父类型）
+     * @param kindFilter 描述符类型过滤器
+     * @param nameFilter 名称过滤器
+     * @param constructorFilter 构造函数过滤器
+     */
     private fun MutableSet<DeclarationDescriptor>.addNonExtensionMembers(
         memberScope: MemberScope,
         typeConstructor: TypeConstructor,
@@ -407,6 +570,17 @@ class ReferenceVariantsHelper(
         }
     }
 
+    /**
+     * 为多个接收者类型添加非扩展成员
+     *
+     * 遍历所有接收者类型，收集每个类型的成员。
+     *
+     * @receiver 待添加描述符的可变集合
+     * @param receiverTypes 接收者类型集合
+     * @param kindFilter 描述符类型过滤器
+     * @param nameFilter 名称过滤器
+     * @param constructorFilter 构造函数过滤器
+     */
     private fun MutableSet<DeclarationDescriptor>.addNonExtensionMembers(
         receiverTypes: Collection<CangJieType>,
         kindFilter: DescriptorKindFilter,
@@ -428,6 +602,19 @@ class ReferenceVariantsHelper(
         }
     }
 
+    /**
+     * 添加成员扩展
+     *
+     * 在仓颉语言中，extend 成员作为普通类成员处理，
+     * 不需要像 Kotlin 那样特殊处理 extension receiver。
+     *
+     * @receiver 待添加描述符的可变集合
+     * @param dispatchReceiverTypes 分发接收者类型集合
+     * @param extensionReceiverTypes 扩展接收者类型集合（在仓颉中未使用）
+     * @param callType 调用类型
+     * @param kindFilter 描述符类型过滤器
+     * @param nameFilter 名称过滤器
+     */
     private fun MutableSet<DeclarationDescriptor>.addMemberExtensions(
         dispatchReceiverTypes: Collection<CangJieType>,
         extensionReceiverTypes: Collection<CangJieType>,
@@ -446,7 +633,19 @@ class ReferenceVariantsHelper(
     }
 
 
-    // filters out variable inside its initializer
+    /**
+     * 排除未初始化的变量
+     *
+     * 过滤掉在变量初始化器内部引用自身的情况，以及在参数列表中引用后续参数的情况。
+     *
+     * 例如：
+     * - `var x = x + 1` 中的 `x` 不应在补全中出现
+     * - `fun test(a: Int = b, b: Int)` 中的 `b` 不应在 `a` 的默认值补全中出现
+     *
+     * @param variants 候选描述符集合
+     * @param contextElement 上下文元素
+     * @return 过滤后的描述符集合
+     */
     fun excludeNonInitializedVariable(
         variants: Collection<DeclarationDescriptor>,
         contextElement: PsiElement
@@ -456,11 +655,9 @@ class ReferenceVariantsHelper(
             if (parent is CjVariableDeclaration && element == parent.initializer) {
                 return variants.filter { it.findPsi() != parent }
             } else if (element is CjParameter) {
-                // Filter out parameters initialized after the current parameter. For example
-                // ```
-                // fun test(a: Int = <caret>, b: Int) {}
-                // ```
-                // `b` should not show up in completion.
+                // 过滤掉在当前参数之后初始化的参数
+                // 例如: fun test(a: Int = <光标>, b: Int) {}
+                // 此时 b 不应出现在补全列表中
                 return variants.filter {
                     val candidatePsi = it.findPsi()
                     if (candidatePsi is CjParameter && candidatePsi.parent == parent) {
@@ -469,13 +666,24 @@ class ReferenceVariantsHelper(
                     true
                 }
             }
-            if (element is CjDeclaration) break // we can use variable inside lambda or anonymous object located in its initializer
+            // 可以在 lambda 或匿名对象内部使用位于其初始化器中的变量
+            if (element is CjDeclaration) break
         }
         return variants
     }
 
 }
 
+/**
+ * 收集合成静态成员和构造函数
+ *
+ * 从解析作用域中收集合成的静态函数和构造函数。
+ *
+ * @param resolutionFacade 解析门面
+ * @param kindFilter 描述符类型过滤器
+ * @param nameFilter 名称过滤器
+ * @return 匹配的函数描述符列表
+ */
 @OptIn(FrontendInternals::class)
 fun ResolutionScope.collectSyntheticStaticMembersAndConstructors(
     resolutionFacade: ResolutionFacade,
@@ -501,11 +709,27 @@ fun ResolutionScope.collectSyntheticStaticMembersAndConstructors(
         .filter { kindFilter.accepts(it) && nameFilter(it.name) }
 }
 
+/**
+ * 强制启用 SAM 适配器
+ *
+ * 返回启用 SAM 适配器的合成作用域。
+ * 在仓颉语言中直接返回原始作用域。
+ */
 fun SyntheticScopes.forceEnableSamAdapters(): SyntheticScopes {
     return this
 
 }
 
+/**
+ * 收集静态成员
+ *
+ * 从成员作用域中收集静态成员，包括合成的静态成员和构造函数。
+ *
+ * @param resolutionFacade 解析门面
+ * @param kindFilter 描述符类型过滤器
+ * @param nameFilter 名称过滤器
+ * @return 匹配的声明描述符集合
+ */
 private fun MemberScope.collectStaticMembers(
     resolutionFacade: ResolutionFacade,
     kindFilter: DescriptorKindFilter,
@@ -518,5 +742,10 @@ private fun MemberScope.collectStaticMembers(
     )
 }
 
+/**
+ * 获取声明描述符的源元素
+ *
+ * 如果描述符带有源码信息，返回其源元素；否则返回 NO_SOURCE。
+ */
 val DeclarationDescriptor.toSourceElement: SourceElement
     get() = if (this is DeclarationDescriptorWithSource) source else SourceElement.NO_SOURCE

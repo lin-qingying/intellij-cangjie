@@ -86,13 +86,20 @@ class ModuleCapability<T>(val name: String) {
 }
 
 /**
+ * 包和模块描述符接口，继承自声明描述符
+ */
+interface PackageAndModuleDescriptor : DeclarationDescriptor {
+
+}
+
+/**
  * 模块描述符接口，继承自声明描述符
  * 用于描述和管理仓颉语言的模块信息
  *
  * 模块是仓颉项目的组成部分，一个 [ProjectDescriptor] 包含多个 [ModuleDescriptor]。
  * 每个模块拥有自己的包结构、类型定义和依赖关系。
  */
-interface ModuleDescriptor : DeclarationDescriptor{
+interface ModuleDescriptor : DeclarationDescriptor, PackageAndModuleDescriptor {
 
     /**
      * 所属的仓颉项目
@@ -122,6 +129,39 @@ interface ModuleDescriptor : DeclarationDescriptor{
      * @return 包视图描述符
      */
     fun getPackage(fqName: FqName): PackageViewDescriptor
+
+    /**
+     * 获取当前模块的所有依赖模块
+     *
+     * 返回当前模块可以访问的所有依赖模块列表，包括直接依赖和传递依赖。
+     * 用于 import 语句补全时提供可用的模块列表。
+     *
+     * @return 依赖模块列表
+     */
+    val allDependencyModules: List<ModuleDescriptor>
+
+    /**
+     * 根据名称获取依赖的模块描述符
+     *
+     * 在当前模块的依赖中查找指定名称的模块。
+     *
+     * @param name 模块名称
+     * @return 对应的模块描述符，如果不存在则返回 null
+     */
+    fun getModule(name: Name): ModuleDescriptor?
+
+    /**
+     * 根据完全限定名称获取包视图描述符或依赖的模块描述符
+     *
+     * 用于解析 import 语句的各个部分：
+     * - 如果 fqName 只有一个部分（如 "std"），则尝试查找模块
+     * - 如果 fqName 有多个部分（如 "std.core"），则先查找模块再查找包
+     *
+     * @param fqName 完全限定名称
+     * @return 包视图描述符或模块描述符，如果不存在则返回 null
+     */
+    fun getPackageOrModule(fqName: FqName): PackageAndModuleDescriptor?
+
 
     /** 仓颉内置类型和函数集合 */
     /**
