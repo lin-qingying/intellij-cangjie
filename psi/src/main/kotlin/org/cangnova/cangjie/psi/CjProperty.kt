@@ -134,23 +134,6 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
             return parent?.receiverTypeReceiver
         }
 
-    override val receiverTypeReference: CjTypeReference?
-        get() {
-
-            val stub = stub
-            if (stub != null) {
-                if (!stub.isExtension()) {
-                    return null
-                }
-
-                val parent = this.getStrictParentOfType<CjExtend>()
-
-                return parent?.receiverTypeReceiver
-            }
-//            return null
-            return receiverTypeRefByTree
-        }
-
     override val valueParameterList: CjParameterList? = null
     override val valueParameters: List<CjParameter> = emptyList()
 

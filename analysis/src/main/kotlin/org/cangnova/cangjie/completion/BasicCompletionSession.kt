@@ -199,18 +199,11 @@ class BasicCompletionSession(
         /**
          * 判断是否在扩展接收者类型的开始位置
          *
-         * 例如: fun String.ext() 中的 "String" 位置
+         * 仓颉语言使用 extend 块语法实现扩展，不使用 receiverTypeReference
          */
         private fun isStartOfExtensionReceiverFor(): CjCallableDeclaration? {
-            val userType = nameExpression!!.parent as? CjUserType ?: return null
-            if (userType.qualifier != null) return null
-            val typeRef = userType.parent as? CjTypeReference ?: return null
-            if (userType != typeRef.typeElement) return null
-            return when (val parent = typeRef.parent) {
-                is CjNamedFunction -> parent.takeIf { typeRef == it.receiverTypeReference }
-                is CjVariable<*> -> parent.takeIf { typeRef == it.receiverTypeReference }
-                else -> null
-            }
+            // 仓颉语言使用 extend {} 块语法，不使用 receiverTypeReference
+            return null
         }
 
         override fun generateCategories() {

@@ -408,7 +408,7 @@ class FunctionDescriptorResolver(
                     RETURN_TYPE_NOT_SPECIFIED_ERROR.on(it)
                 )
             }
-            return builtIns.unitType
+            builtIns.unitType
 
 //            return functionReturnResolver.resolveFunctionReturn(function, context)
 //            return NO_EXPECTED_TYPE
@@ -495,11 +495,7 @@ class FunctionDescriptorResolver(
     ) {
 
 
-//这是扩展方法
-        val receiverTypeRef = function.receiverTypeReference
-        val receiverType = receiverTypeRef?.let {
-            typeResolver.resolveType(scope, it, trace, true)
-        }
+
 
         val headerScope = LexicalWritableScope(
             scope, functionDescriptor, true,
@@ -557,7 +553,7 @@ class FunctionDescriptorResolver(
         )
 
         val userData = mutableMapOf<CallableDescriptor.UserDataKey<*>, Any>().apply {
-            if (receiverType != null && expectedFunctionType.functionTypeExpected() && !expectedFunctionType.annotations.isEmpty()) {
+            if (  expectedFunctionType.functionTypeExpected() && !expectedFunctionType.annotations.isEmpty()) {
                 put(DslMarkerUtils.FunctionTypeAnnotationsKey, expectedFunctionType.annotations)
             }
         }
@@ -576,7 +572,6 @@ class FunctionDescriptorResolver(
 
         functionDescriptor.setIsOperator(function.hasModifier(CjTokens.OPERATOR_KEYWORD))
 
-        receiverType?.let { ForceResolveUtil.forceResolveAllContents(it.annotations) }
         for (valueParameterDescriptor in valueParameterDescriptors) {
             ForceResolveUtil.forceResolveAllContents(valueParameterDescriptor.type.annotations)
         }

@@ -133,6 +133,10 @@ class LazyTopDownAnalyzer(
                     variables.add(variable)
                 }
 
+                override fun visitFieldVariable(field: CjFieldVariable) {
+                    variables.add(field)
+                }
+
 
                 override fun visitTypeAlias(typeAlias: CjTypeAlias) {
                     typeAliases.add(typeAlias)

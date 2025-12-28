@@ -89,13 +89,12 @@ class CjFieldVariable : CjVariable<CangJieFieldStub>  {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitFieldVariable(this, data)
     }
+    //需要实现textOffset
+    override fun getTextOffset(): Int {
+        val identifier = nameIdentifier
+        return identifier?.textRange?.startOffset ?: textRange.startOffset
+    }
 
-    override val receiverTypeReference: CjTypeReference?
-        get() {
-            // Field 通过所属类型获取 receiver
-            val parent = this.getStrictParentOfType<CjExtend>()
-            return parent?.receiverTypeReceiver
-        }
 
     override val typeReference: CjTypeReference?
         get() {

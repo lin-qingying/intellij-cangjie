@@ -155,8 +155,6 @@ abstract class AbstractCangJieIconProvider : IconProvider(), DumbAware {
             is CjFile -> FILE
 
             is CjNamedFunction -> when {
-                receiverTypeReference != null ->
-                    if (CjPsiUtil.isAbstract(this)) ABSTRACT_EXTENSION_FUNCTION else EXTENSION_FUNCTION
 
                 getStrictParentOfType<CjNamedDeclaration>() is CjClass ->
                     if (CjPsiUtil.isAbstract(this)) PlatformIcons.ABSTRACT_METHOD_ICON else

@@ -193,9 +193,6 @@ object LabelResolver {
             is CjPropertyAccessor -> element.property
             else -> return result
         }
-        if (addClassNameLabels) {
-            functionOrProperty.receiverTypeReference?.nameForReceiverLabel()?.let { result.add(Name.identifier(it)) }
-        }
         return result
     }
 
@@ -221,12 +218,6 @@ object LabelResolver {
             val names = getLabelNamesIfAny(parent, classNameLabelsEnabled)
             if (names.contains(labelName)) {
                 elements.add(getExpressionUnderLabel(parent as CjExpression))
-            } else if (parent is CjCallableDeclaration && typedElement == null) {
-                val receiverTypeReference = parent.receiverTypeReference
-                val nameForReceiverLabel = receiverTypeReference?.nameForReceiverLabel()
-                if (nameForReceiverLabel == labelName.asString()) {
-                    typedElement = parent
-                }
             }
             parent = if (parent is CjCodeFragment) parent.context else parent.parent
         }

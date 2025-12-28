@@ -50,8 +50,6 @@ abstract class CjFunctionNotStubbed(node: ASTNode) :
         return false
     }
 
-    override val receiverTypeReference: CjTypeReference?
-        get() = null
 
 
     override val typeReference: CjTypeReference?

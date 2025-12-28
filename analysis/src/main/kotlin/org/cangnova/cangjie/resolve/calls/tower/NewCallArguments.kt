@@ -386,7 +386,7 @@ fun processFunctionalExpression(
         is CjNamedFunction -> {
             // if function is a not anonymous function, resolveName it as simple expression
             if (!postponedExpression.isFunctionalExpression()) return null
-            val receiverType = resolveType(outerCallContext, postponedExpression.receiverTypeReference, typeResolver)
+            val receiverType = null
             val parametersTypes =
                 resolveParametersTypes(outerCallContext, postponedExpression, typeResolver) ?: emptyArray()
             val returnType = resolveType(outerCallContext, postponedExpression.typeReference, typeResolver)

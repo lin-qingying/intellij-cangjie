@@ -84,8 +84,7 @@ class CjPatternVariable : CjVariable<CangJieVariableStub> {
     override val valueParameters: List<CjParameter>
         get() = emptyList()
 
-    override val receiverTypeReference: CjTypeReference?
-        get() = null
+
 
     // Variables don't have type parameters
     override val typeParameterList: CjTypeParameterList?
@@ -238,34 +237,25 @@ class CjPatternVariable : CjVariable<CangJieVariableStub> {
 
         return initializer != null
     }
-
+// CjVariable 是模式匹配声明，可能包含多个绑定。请从 CjBindingPattern 获取 fqName。
     override val nameAsSafeName: Name
         get() = throw UnsupportedOperationException(
             "CjVariable 是模式匹配声明，可能包含多个绑定。请使用 pattern.getAllBindings() 获取所有变量名。"
         )
 
     override val fqName: FqName?
-        get() = throw UnsupportedOperationException(
-            "CjVariable 是模式匹配声明，可能包含多个绑定。请从 CjBindingPattern 获取 fqName。"
-        )
+        get() = null
 
     override fun getNameIdentifier(): PsiElement? {
-        throw UnsupportedOperationException(
-            "CjVariable 是模式匹配声明，可能包含多个绑定。请使用 pattern.getAllBindings() 获取名称标识符。"
-        )
+      return  null
     }
 
     override fun setName(name: @NlsSafe String): PsiElement? {
-        throw UnsupportedOperationException(
-            "CjVariable 是模式匹配声明，不支持直接重命名。请重命名具体的绑定模式。"
-        )
+       return null
     }
 
     override val nameAsName: Name?
-        get() = throw UnsupportedOperationException(
-            "CjVariable 是模式匹配声明，可能包含多个绑定。请使用 pattern.getAllBindings() 获取所有变量名。"
-        )
-
+        get() = null
     companion object {
         private val LOG = Logger.getInstance(
             CjVariable::class.java,

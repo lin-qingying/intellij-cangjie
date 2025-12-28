@@ -12,22 +12,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The use of this source code is governed by the Apache License 2.0,
- * which allows users to freely use, modify, and distribute the code,
- * provided they adhere to the terms of the license.
- *
- * The software is provided "as-is", and the authors are not responsible for
- * any damages or issues arising from its use.
- *
  */
 
-package org.cangnova.cangjie.types.expressions.match
+package org.cangnova.cangjie.types.expressions.match.exhaustive.inria
 
-import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 
-
-data class PatternContext(
-    val subject: Subject,
-    val context: ExpressionTypingContext
-)
+/**
+ * Maranget 算法执行过程中的异常
+ *
+ * 当算法遇到无法处理的情况时抛出此异常
+ *
+ * @property message 异常消息
+ */
+class MarangetException(message: String) : CangJieExceptionWithAttachments(message)

@@ -180,11 +180,6 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 getDefaultVisibility(variable, data.scope.ownerDescriptor)
             )
 
-        // 检查接收器类型引用并报告诊断信息
-        val receiverTypeRef = variable.receiverTypeReference
-        if (receiverTypeRef != null) {
-            context.trace.report(LOCAL_EXTENSION_VARIABLE.on(receiverTypeRef))
-        }
 
 //        模式
         val pattern = variable.pattern

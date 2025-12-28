@@ -437,13 +437,6 @@ class DescriptorResolver(
             }
         }
 
-        val receiverTypeRef = variableDeclaration.receiverTypeReference
-        if (receiverTypeRef != null) {
-            receiverType =
-                typeResolver.resolveType(scopeForDeclarationResolutionWithTypeParameters, receiverTypeRef, trace, true)
-            // 在仓颉语言中，extend 成员使用 dispatchReceiver，不需要创建 extensionReceiver
-            // dispatchReceiver 会通过 getDispatchReceiverParameterIfNeeded(container) 设置
-        }
 
 
 
@@ -1226,17 +1219,6 @@ class DescriptorResolver(
             }
         }
 
-        val receiverTypeRef = variableDeclaration.receiverTypeReference
-        if (receiverTypeRef != null) {
-            receiverType = typeResolver.resolveType(
-                scopeForDeclarationResolutionWithTypeParameters!!,
-                receiverTypeRef,
-                trace,
-                true
-            )
-            // 在仓颉语言中，extend 成员使用 dispatchReceiver，不需要创建 extensionReceiver
-            // dispatchReceiver 会通过 getDispatchReceiverParameterIfNeeded(container) 设置
-        }
 
 
         val scopeForInitializer = makeScopeForVariableInitializer(

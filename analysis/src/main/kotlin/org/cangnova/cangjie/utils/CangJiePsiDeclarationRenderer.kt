@@ -121,11 +121,6 @@ object CangJiePsiDeclarationRenderer {
                     }
                     append(" ")
 
-                    // 如果是扩展属性，渲染接收器类型
-                    declaration.receiverTypeReference?.let {
-                        append(it.referenceName())
-                        append(".")
-                    }
 
                     append(declaration.name)
 
@@ -178,11 +173,7 @@ object CangJiePsiDeclarationRenderer {
                     append(" ")
                 }
 
-                // 如果是扩展函数，渲染接收器类型
-                declaration.receiverTypeReference?.let {
-                    append(it.referenceName())
-                    append(".")
-                }
+
 
                 append(declaration.name)
                 appendValueParameters(declaration)

@@ -47,12 +47,12 @@ inline fun <reified T : PsiElement> PsiElement.getLastParentOfTypeInRow() =
 
 fun PsiElement.isExtensionDeclaration(): Boolean {
     val callable: CjCallableDeclaration? = when (this) {
-        is CjNamedFunction, is CjProperty, is CjVariable<*> -> this as CjCallableDeclaration
+        is CjNamedFunction, is CjProperty   -> this as CjCallableDeclaration
         is CjPropertyAccessor -> getNonStrictParentOfType<CjProperty>()
         else -> null
     }
 
-    return callable?.receiverTypeReference != null
+    return callable ?.getParentOfType<CjExtend>(false) != null
 }
 
 fun getElementTextWithContext(psiElement: PsiElement): String {

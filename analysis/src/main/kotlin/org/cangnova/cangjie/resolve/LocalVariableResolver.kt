@@ -99,11 +99,6 @@ class LocalVariableResolver(
         // 更新上下文依赖关系和作用域
         val context = typingContext.replaceContextDependency(ContextDependency.INDEPENDENT).replaceScope(scope)
 
-        // 检查接收器类型引用并报告诊断信息
-        val receiverTypeRef = variable.receiverTypeReference
-        if (receiverTypeRef != null) {
-            context.trace.report(LOCAL_EXTENSION_VARIABLE.on(receiverTypeRef))
-        }
 
         // 解析局部变量描述符
         val variableDescriptor =

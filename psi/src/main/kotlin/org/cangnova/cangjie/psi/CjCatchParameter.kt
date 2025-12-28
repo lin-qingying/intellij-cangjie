@@ -48,7 +48,6 @@ class CjCatchParameter : CjNamedDeclarationStub<CangJieCatchParameterStub>, CjPa
 
     override val valueParameterList: CjParameterList? = null
     override val valueParameters: List<CjParameter> = emptyList()
-    override val receiverTypeReference: CjTypeReference? get() = typeReference
     override val typeReference: CjTypeReference? get() = null
 
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {

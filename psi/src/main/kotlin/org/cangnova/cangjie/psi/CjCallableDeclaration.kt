@@ -62,23 +62,11 @@ import com.intellij.psi.PsiElement
  * }
  *
  * // 泛型函数
- * public func <T> identity(value: T): T {
+ * public func  identity<T>(value: T): T {
  *     return value
  * }
  *
- * // 扩展函数 (带接收者)
- * public func String.reverse(): String {
- *     // this 是 String 类型的接收者
- *     return this.reversed()
- * }
  *
- * // 带上下文接收者的函数 (实验性)
- * context(Logger)
- * public func logAndCompute(value: Int64): Int64 {
- *     // 可以访问 Logger 上下文
- *     log("Computing with: $value")
- *     return value * 2
- * }
  * ```
  *
  * @see CjFunction 函数声明接口
@@ -108,21 +96,6 @@ interface CjCallableDeclaration : CjNamedDeclaration, CjTypeParameterListOwner {
      */
     val valueParameters: List<CjParameter>
 
-    /**
-     * 获取接收者类型引用
-     *
-     * 接收者类型用于定义扩展函数/属性,表示该可调用声明扩展的类型。
-     * 例如,在 `func String.isEmpty(): Bool` 中,`String` 就是接收者类型。
-     *
-     * **扩展函数特性**:
-     * - 接收者类型在函数内部可以通过 `this` 访问
-     * - 接收者类型必须在调用点明确
-     * - 扩展函数不能访问接收者类型的私有成员
-     *
-     * @return 接收者类型引用,如果不是扩展函数/属性则返回 null
-     * @see CjTypeReference
-     */
-    val receiverTypeReference: CjTypeReference?
 
 
     /**

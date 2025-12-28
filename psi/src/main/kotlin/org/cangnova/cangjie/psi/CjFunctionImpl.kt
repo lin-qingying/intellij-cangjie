@@ -66,22 +66,7 @@ abstract class CjFunctionImpl<Stub: CangJieFunctionStub<F>,F: CjFunction> :
         return nameIdentifier.textOffset > typeParameterList.textOffset
     }
 
-    override val receiverTypeReference: CjTypeReference?
-        get() {
 
-            val stub = stub
-            if (stub != null) {
-                if (!stub.isExtension()) {
-                    return null
-                }
-
-                val parent = this.getStrictParentOfType<CjExtend>()
-
-                return parent?.receiverTypeReceiver
-            }
-//            return null
-            return receiverTypeRefByTree
-        }
     val originalTypeParameterList: CjTypeParameterList? get() = super.typeParameterList
 
     override val typeParameterList: CjTypeParameterList?

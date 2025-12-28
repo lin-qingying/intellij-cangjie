@@ -77,7 +77,6 @@ import org.jetbrains.annotations.Nls
 import java.util.function.Consumer
 
 
-
 /**
  * 仓颉语言的文档提供者。
  *
@@ -518,14 +517,9 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
         private fun buildCangJieDeclaration(declaration: CjExpression, quickNavigation: Boolean): CDocTemplate {
             val resolutionFacade = declaration.getResolutionFacade()
             val context = declaration.safeAnalyzeNonSourceRootCode(resolutionFacade, BodyResolveMode.PARTIAL)
-            val declarationDescriptor = if (declaration is CjBindingPattern) {
-                // For binding patterns, get the descriptor of the parent variable
-                declaration.variable?.let {
-                    context[BindingContext.DECLARATION_TO_DESCRIPTOR, it]
-                }
-            } else {
+            val declarationDescriptor =
                 context[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration]
-            }
+
 
             if (declarationDescriptor == null) {
                 LOG.info("Failed to find descriptor for declaration " + declaration.getElementTextWithContext())
@@ -788,6 +782,26 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
         }
 
         /**
+         * 渲染绑定模式的文档。
+         *
+         * 绑定模式（如 `let a = expr` 中的 `a`）本身不是声明，但在模式匹配中会创建变量。
+         * 该方法从 [BindingContext.VARIABLE] 中获取绑定模式对应的变量描述符并渲染文档。
+         *
+         * @param pattern 绑定模式元素
+         * @param quickNavigation 是否为快速导航模式
+         * @return HTML 格式的文档字符串；如果无法获取变量描述符则返回 `null`
+         */
+        @NlsSafe
+        private fun renderBindingPattern(pattern: CjBindingPattern, quickNavigation: Boolean): String? {
+            val resolutionFacade = pattern.getResolutionFacade()
+            val context = pattern.safeAnalyzeNonSourceRootCode(resolutionFacade, BodyResolveMode.PARTIAL)
+            val variableDescriptor = context[BindingContext.VARIABLE, pattern] ?: return null
+            return buildString {
+                insert(buildCangJie(context, variableDescriptor, quickNavigation, pattern, resolutionFacade)) {}
+            }
+        }
+
+        /**
          * 获取元素的文档文本（内部实现）。
          *
          * 该方法是文档生成的统一入口，根据元素类型分发到不同的渲染方法。
@@ -833,7 +847,7 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
             }
             if (element is CjTypeReference) {
                 val declaration = element.parent
-                if (declaration is CjCallableDeclaration && declaration.receiverTypeReference == element) {
+                if (declaration is CjCallableDeclaration) {
                     val thisElement = findElementWithText(originalElement, "this")
                     if (thisElement != null) {
                         return getTextImpl(declaration, originalElement, quickNavigation)
@@ -867,6 +881,8 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
 //                        }
 //                    }
 //                }
+            } else if (element is CjBindingPattern) {
+                return renderBindingPattern(element, quickNavigation)
             } else if (element is CjDeclaration) {
                 return renderCangJieDeclaration(element, quickNavigation)
             } /*else if (element is CjNameReferenceExpression && element.getReferencedNameAsName() == StandardNames.IMPLICIT_LAMBDA_PARAMETER_NAME) {

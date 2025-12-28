@@ -193,7 +193,6 @@ open class CangJieElementDescriptionProviderBase : ElementDescriptionProvider {
                             namedElement.valueParameters.joinTo(this, prefix = "(", postfix = ")") {
                                 (if (it.isVarArg) "vararg " else "") + (it.typeReference?.renderShort() ?: "")
                             }
-                            namedElement.receiverTypeReference?.let { append(" on ").append(it.renderShort()) }
                         }
                         val parentFqName = if (renderFqName) namedElement.fqName().parent() else null
                         if (parentFqName?.isRoot != false) baseText else "${parentFqName.asString()}.$baseText"

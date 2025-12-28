@@ -218,14 +218,13 @@ class DynamicCallableDescriptors(private val storageManager: StorageManager, bui
         fun getFunctionType(funLiteralExpr: CjLambdaExpression): CangJieType {
             val funLiteral = funLiteralExpr.functionLiteral
 
-            val receiverType = funLiteral.receiverTypeReference?.let { dynamicType }
 
             val parameterTypes = funLiteral.valueParameters.map { dynamicType }
 
             return createFunctionType(
                 owner.builtIns,
                 Annotations.EMPTY,
-                receiverType,
+                null,
                 parameterTypes,
                 null,
                 dynamicType

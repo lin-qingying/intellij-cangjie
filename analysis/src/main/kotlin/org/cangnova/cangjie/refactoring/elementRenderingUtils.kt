@@ -269,11 +269,8 @@ fun CjElement.renderTrimmed(): String {
         // Declarations
 
         override fun visitNamedFunction(function: CjNamedFunction) {
-            builder.append("fun")
-            function.receiverTypeReference?.let {
-                builder.append('.')
-                it.accept(this)
-            }
+            builder.append("func")
+
             function.name?.let { builder.append(" $it") }
             function.valueParameterList?.accept(this)
             function.equalsToken?.let { builder.append(" = ") }

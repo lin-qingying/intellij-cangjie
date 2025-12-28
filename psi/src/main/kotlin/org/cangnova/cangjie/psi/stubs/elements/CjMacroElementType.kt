@@ -40,6 +40,7 @@ import com.intellij.util.io.StringRef
 import org.jetbrains.annotations.NonNls
 import java.io.IOException
 import org.cangnova.cangjie.name.*
+import org.cangnova.cangjie.psi.psiUtil.isExtensionDeclaration
 
 class CjMacroElementType(debugName: @NonNls String) :
     CjStubElementType<CangJieMacroStub, CjMacroDeclaration>(
@@ -49,7 +50,7 @@ class CjMacroElementType(debugName: @NonNls String) :
     ) {
     override fun createStub(psi: CjMacroDeclaration, parentStub: StubElement<out PsiElement?>): CangJieMacroStub {
         val isTopLevel = psi.parent is CjFile
-        val isExtension = psi.receiverTypeReference != null
+        val isExtension = psi.isExtensionDeclaration()
         val fqName = psi.safeFqNameForLazyResolve()
         val hasBlockBody = psi.hasBlockBody()
         val hasBody = psi.hasBody()

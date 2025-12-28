@@ -911,7 +911,7 @@ class ExpressionTypingVisitorForStatements(
             is CjPatternVariable -> {
                 // 模式匹配变量声明（包括简单绑定模式和复杂模式）
                 // 委托给 PatternMatchingTypingVisitor 处理
-                patterns.visitVariable(variable, data.replaceScope(scope))
+                patterns.visitPatternVariable(variable, data.replaceScope(scope))
                     ?: noTypeInfo(data)
             }
 

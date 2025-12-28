@@ -69,7 +69,6 @@ object CDocTagCompletionProvider : CompletionProvider<CompletionParameters>() {
 
         CDocKnownTag.RETURN -> declaration is CjNamedFunction
 
-        CDocKnownTag.RECEIVER -> declaration is CjNamedFunction && declaration.receiverTypeReference != null
 
         CDocKnownTag.AUTHOR,
         CDocKnownTag.THROWS,

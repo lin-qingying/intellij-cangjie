@@ -604,11 +604,7 @@ class DeclarationsChecker(
             when {
                 inInterface -> trace.report(VARIABLE_INITIALIZER_IN_INTERFACE.on(initializer))
 
-                variable.receiverTypeReference != null -> trace.report(
-                    EXTENSION_VARIABLE_WITH_BACKING_FIELD.on(
-                        initializer
-                    )
-                )
+
 
 
             }

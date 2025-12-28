@@ -31,7 +31,6 @@ enum class CDocKnownTag(val isReferenceRequired: Boolean, val isSectionStart: Bo
     THROWS(true, false),
     EXCEPTION(true, false),
     PARAM(true, false),
-    RECEIVER(false, false),
     RETURN(false, false),
     SEE(true, false),
     SINCE(false, false),

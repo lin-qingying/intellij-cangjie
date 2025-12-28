@@ -102,7 +102,6 @@ class CangJieIndicesHelper(
 
     fun processTopLevelCallables(nameFilter: (String) -> Boolean, processor: (CallableDescriptor) -> Unit) {
         val callableDeclarationProcessor = Processor<CjCallableDeclaration> { declaration ->
-            if (declaration.receiverTypeReference != null) return@Processor true
             if (filterOutPrivate && declaration.hasModifier(CjTokens.PRIVATE_KEYWORD)) return@Processor true
             ProgressManager.checkCanceled()
             declaration.resolveToDescriptors<CallableDescriptor>().forEach { descriptor ->
@@ -133,7 +132,7 @@ class CangJieIndicesHelper(
     ) {
         helper.processElements(name, project, scope) {
             ProgressManager.checkCanceled()
-            if (it.parent is CjFile && it is CjCallableDeclaration && it.receiverTypeReference == null) {
+            if (it.parent is CjFile && it is CjCallableDeclaration ) {
                 add(it)
             }
             true
@@ -188,7 +187,7 @@ class CangJieIndicesHelper(
 
     fun getMemberOperatorsByName(name: String): Collection<FunctionDescriptor> {
         return CangJieFunctionShortNameIndex.getAllElements(name, project, scope) {
-            it.parent is CjAbstractClassBody && it.receiverTypeReference == null && it.hasModifier(CjTokens.OPERATOR_KEYWORD)
+            it.parent is CjAbstractClassBody && it.hasModifier(CjTokens.OPERATOR_KEYWORD)
         }
             .flatMap {
                 ProgressManager.checkCanceled()
@@ -200,7 +199,7 @@ class CangJieIndicesHelper(
 
     fun getTopLevelExtensionOperatorsByName(name: String): Collection<FunctionDescriptor> {
         return CangJieFunctionShortNameIndex.getAllElements(name, project, scope) {
-            it.parent is CjFile && it.receiverTypeReference != null && it.hasModifier(CjTokens.OPERATOR_KEYWORD)
+            it.parent is CjFile  && it.hasModifier(CjTokens.OPERATOR_KEYWORD)
         }
             .flatMap {
                 ProgressManager.checkCanceled()

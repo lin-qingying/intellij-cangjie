@@ -423,11 +423,7 @@ class ExpressionsOfTypeProcessor(
                         return true
                     }
 
-                    typeRefParent.receiverTypeReference -> { // usage in receiver type of callable declaration
-                        // we must use plain search inside extensions because implicit 'this' can happen anywhere
-                        usePlainSearch(typeRefParent)
-                        return true
-                    }
+
                 }
             }
 

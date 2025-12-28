@@ -343,8 +343,6 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjParameterBas
     /** 值参数列表（参数本身不包含参数） */
     override val valueParameters: List<CjParameter> = emptyList()
 
-    /** 接收者类型引用（参数不支持） */
-    override val receiverTypeReference: CjTypeReference? = null
 
     /** 类型参数列表（参数不支持泛型） */
     override val typeParameterList: CjTypeParameterList? = null

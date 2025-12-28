@@ -76,7 +76,7 @@ import org.jetbrains.annotations.PropertyKey
  */
 @NonNls
 private const val BUNDLE = "messages.IDECangJieDiagnosisBundle"
-
+//只渲染html
 object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle {
     /**
      * 获取 IDE 格式的消息（带参数）
@@ -89,7 +89,7 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
     
     fun message(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String {
         return try {
-            getMessage(key, *params)
+            htmlMessage(key, *params)
         } catch (e: Exception) {
             // 回退到默认 Bundle
             CangJieDiagnosisBundle.message(key, *params)
@@ -140,16 +140,21 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
      * @return HTML 格式的消息
      */
     @Nls
-    
+
     fun htmlMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String {
-        return message(key, *params)
+        return try {
+            super<AbstractCangJieBundle>.getMessage(key, *params).withHtml()
+        } catch (e: Exception) {
+            // 回退到默认 Bundle
+            CangJieDiagnosisBundle.htmlMessage(key, *params)
+        }
     }
 
     // 实现 MessageBundle 接口
     @Nls
     override fun getMessage(@NonNls key: String): String {
         return try {
-         super< AbstractCangJieBundle>.   getMessage(key)
+         htmlMessage(key)
         } catch (e: Exception) {
             // 回退到默认 Bundle
             CangJieDiagnosisBundle.getMessage(key)

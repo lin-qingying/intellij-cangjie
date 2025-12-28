@@ -60,8 +60,6 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
         return findChildByClass(CjInitBlockExpression::class.java)
     }
 
-    override val receiverTypeReference: CjTypeReference? = null
-
 
     override val valueParameters: List<CjParameter>
         get() = valueParameterList?.parameters ?: emptyList()

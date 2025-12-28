@@ -200,7 +200,7 @@ class StdlibTypes(
      * 保持原有行为以兼容现有代码
      */
     val string: ClassDescriptor
-        get() = getStdCoreClassByName("Any")  // TODO: 这里可能是 bug，应该是 "String"
+        get() = getStdCoreClassByName("String")
 
     /**
      * std.core.String 类型

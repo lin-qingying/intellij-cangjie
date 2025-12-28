@@ -436,9 +436,7 @@ class KeywordCompletion(private val languageVersionSettingProvider: LanguageVers
                 is CjTypeReference -> {
                     val shouldIntroduceTypeReferenceContext = when {
 
-                        // it can be a receiver type, or it can be a declaration's name,
-                        // so we don't want to change the context
-                        parent.isExtensionReceiverInCallableDeclaration -> false
+
 
                         // it is probably an annotation entry, or a super class constructor's invocation,
                         // in this case we don't want to change the context
@@ -485,11 +483,7 @@ class KeywordCompletion(private val languageVersionSettingProvider: LanguageVers
         return buildFilterWithReducedContext("", null, position)
     }
 
-    private val CjTypeReference.isExtensionReceiverInCallableDeclaration: Boolean
-        get() {
-            val parent = parent
-            return parent is CjCallableDeclaration && parent.receiverTypeReference == this
-        }
+
 
     private val CjTypeReference.isTypeArgumentOfOuterCjTypeReference: Boolean
         get() {
