@@ -149,8 +149,6 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
     }
 }
 
-@Deprecated("Use CjImportDirective")
-class CjMultiImportDirective(node: ASTNode) : CjElementImpl(node)
 
 // import
 //       item*
@@ -289,3 +287,90 @@ class CjImportDirectiveItem : CjDeclarationStub<CangJieImportDirectiveItemStub>,
             return !PsiTreeUtil.hasErrorElements(this)
         }
 }
+
+
+
+class CjImportDirective1 : CjDeclarationStub<CangJieImportDirectiveStub> {
+    @Deprecated("")
+    constructor(node: ASTNode) : super(node)
+
+    @Deprecated("")
+    constructor(stub: CangJieImportDirectiveStub) : super(
+        stub,
+        CjStubElementTypes.IMPORT_DIRECTIVE,
+    )
+
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
+        return visitor.visitImportDirective(this, data)
+    }
+
+
+    fun getModifier(tokenType: CjKeywordToken): PsiElement? {
+        return findChildByType(tokenType)
+    }
+
+
+    val imports :List<CjImportInfo> get()
+        {
+
+        }
+
+    override fun hasModifier(modifier: CjKeywordToken): Boolean {
+        return getModifier(modifier) != null
+    }
+
+    companion object {
+        fun fqNameFromExpression(expression: CjExpression?): FqName? {
+            if (expression == null) {
+                return null
+            }
+
+            when (expression) {
+                is CjDotQualifiedExpression -> {
+                    val parentFqn = fqNameFromExpression(expression.receiverExpression)
+                    val child =
+                        nameFromExpression(expression.selectorExpression) ?: return parentFqn
+                    if (parentFqn != null) {
+                        return parentFqn.child(child)
+                    }
+                    return null
+                }
+
+                is CjSynthesisQualifiedExpression -> {
+                    return fqNameFromExpression(expression.selectorExpression)?.let {
+                        fqNameFromExpression(expression.receiverExpression)?.child(
+                            it,
+                        )
+                    }
+                }
+
+                is CjSimpleNameExpression -> {
+                    return topLevel(expression.referencedNameAsName)
+                }
+
+                else -> {
+                    throw IllegalArgumentException("Can't construct fqn for: " + expression.javaClass)
+                }
+            }
+        }
+
+        private fun nameFromExpression(expression: CjExpression?): Name? {
+            if (expression == null) {
+                return null
+            }
+
+            if (expression is CjSimpleNameExpression) {
+                return expression.referencedNameAsName
+            } else {
+                throw IllegalArgumentException("Can't construct name for: " + expression.javaClass)
+            }
+        }
+    }
+}
+data class CangJieImportField(
+    override val isAllUnder: Boolean,
+    override val importContent: CjImportInfo.ImportContent?,
+    override val importedFqName: FqName?,
+    override val aliasName: String?
+) : CjImportInfo
+

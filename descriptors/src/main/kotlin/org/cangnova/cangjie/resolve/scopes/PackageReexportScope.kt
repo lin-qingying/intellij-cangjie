@@ -239,7 +239,7 @@ class PackageReexportScope(
 
         // 查找并包装函数
         targetPackage.memberScope.getContributedFunctions(searchName, NoLookupLocation.FROM_REEXPORT).forEach { function ->
-            if (function is SimpleFunctionDescriptor) {
+
                 result.add(
                     ReexportedDeclarationDescriptor.Function(
                         function,
@@ -249,7 +249,7 @@ class PackageReexportScope(
                         aliasName
                     )
                 )
-            }
+
         }
 
         // 查找并包装变量
@@ -435,9 +435,9 @@ class PackageReexportScope(
 
                 // 收集目标包的所有名称
                 names.addAll(targetPackage.memberScope.classifierNames ?: emptySet())
-                names.addAll(targetPackage.memberScope.functionNames ?: emptySet())
-                names.addAll(targetPackage.memberScope.variableNames ?: emptySet())
-                names.addAll(targetPackage.memberScope.propertyNames ?: emptySet())
+                names.addAll(targetPackage.memberScope.functionNames)
+                names.addAll(targetPackage.memberScope.variableNames)
+                names.addAll(targetPackage.memberScope.propertyNames)
             } else {
                 // 命名导入: public import a.B 或 public import a.B as C
                 val effectiveName = importDirective.aliasName?.let { Name.identifier(it) }

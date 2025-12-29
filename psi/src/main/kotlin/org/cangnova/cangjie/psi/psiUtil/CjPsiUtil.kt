@@ -485,11 +485,7 @@ fun CjStringTemplateExpression.getContentRange(): TextRange {
 fun CjStringTemplateExpression.isSingleQuoted(): Boolean = node.firstChildNode.textLength == 1
 fun CjStringTemplateExpression.isPlain() = entries.all { it is CjLiteralStringTemplateEntry }
 
-fun List<CangJieImportField>.addIf(element: CangJieImportField) {
-    if (!this.contains(element)) {
-        this + element // 如果不存在，则返回新列表
-    }
-}
+
 
 fun CjDeclaration.modalityModifier() = modifierFromTokenSet(CjTokens.MODALITY_MODIFIERS)
 private fun CjModifierListOwner.modifierFromTokenSet(set: TokenSet) = modifierList?.modifierFromTokenSet(set)
