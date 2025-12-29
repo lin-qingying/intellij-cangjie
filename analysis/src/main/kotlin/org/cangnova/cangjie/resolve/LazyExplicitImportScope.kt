@@ -63,8 +63,8 @@ package org.cangnova.cangjie.resolve
  * |------|------|
  * | [LazyExplicitImportScope] | 单个导入的符号解析（不处理重导出可见性） |
  * | [PackageReexportScope] | 包级别重导出声明的聚合和可见性检查 |
- * | [CjImportDirectiveItem.isReexport] | 判断导入是否为重导出 |
- * | [CjImportDirectiveItem.importVisibility] | 获取导入的可见性修饰符 |
+ * | [CjImportItem.isReexport] | 判断导入是否为重导出 |
+ * | [CjImportItem.importVisibility] | 获取导入的可见性修饰符 |
  *
  * @see AllUnderImportScope 全通配导入作用域
  * @see LazyImportScope 懒加载导入作用域
@@ -322,7 +322,7 @@ class LazyExplicitImportScope(
         // 不持有导入指令的可见性修饰符信息。
         // 重导出功能由 PackageReexportScope 在包级别统一处理：
         // - 它收集包中所有带有 public/internal/protected 修饰符的导入
-        // - 通过 CjImportDirectiveItem.isReexport 判断是否为重导出
+        // - 通过 CjImportItem.isReexport 判断是否为重导出
         // - 根据访问位置检查可见性并提供重导出的声明
         if (kindFilter.acceptsKinds(DescriptorKindFilter.PACKAGES_MASK)) {
             getContributedPackage(aliasName)?.let {

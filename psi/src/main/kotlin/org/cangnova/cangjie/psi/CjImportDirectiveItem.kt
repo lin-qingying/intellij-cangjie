@@ -32,7 +32,6 @@ import org.cangnova.cangjie.name.Name.Companion.identifier
 
 import org.cangnova.cangjie.psi.CjImportDirective.Companion.fqNameFromExpression
 import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
-import org.cangnova.cangjie.psi.stubs.CangJieImportDirectiveItemStub
 import org.cangnova.cangjie.psi.stubs.CangJieImportDirectiveStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import org.cangnova.cangjie.psi.stubs.elements.CjTokenSets
@@ -42,10 +41,8 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ArrayFactory
 
 class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
-    @Deprecated("")
     constructor(node: ASTNode) : super(node)
 
-    @Deprecated("")
     constructor(stub: CangJieImportDirectiveStub) : super(
         stub,
         CjStubElementTypes.IMPORT_DIRECTIVE,
@@ -54,37 +51,29 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitImportDirective(this, data)
     }
-    val firstImportPath get() = items.firstOrNull()?.importPath
 
     /**
-     * 对于  {a.b,b.b} 形式
+     * 获取所有导入项
+     *
+     * 新实现：直接获取 IMPORT_ITEM 类型的子元素
      */
-    val items: List<CjImportDirectiveItem>
-        get() {
-            val items = getStubOrPsiChildren(
-                CjStubElementTypes.IMPORT_DIRECTIVE_ITEM,
-                CjImportDirectiveItem.ARRAY_FACTORY,
-            ).mapNotNull {
-                it
-            }
+    val importItems: List<CjImportItem>
+        get() = findChildrenByClass(CjImportItem::class.java).toList()
 
-            val a = items.flatMap {
-                it.items.ifEmpty {
-                    listOf(it)
-                }
-            }
 
-            return a
-        }
+
 
     fun getModifier(tokenType: CjKeywordToken): PsiElement? {
         return findChildByType(tokenType)
     }
 
+    /**
+     * 获取导入的引用表达式（用于同包多项导入的基础路径）
+     * 例如: import a.b.{c, d} -> 返回 a.b
+     */
     @get:IfNotParsed
     val importedReference: CjExpression?
         get() {
-
             val references =
                 getStubOrPsiChildren(
                     CjTokenSets.INSIDE_DIRECTIVE_EXPRESSIONS,
@@ -150,223 +139,110 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
 }
 
 
-// import
-//       item*
-//           item*
-class CjImportDirectiveItem : CjDeclarationStub<CangJieImportDirectiveItemStub>, CjImportInfo {
+/**
+ * 新的导入项类（轻量级，不使用 Stub）
+ *
+ * 用于表示单个导入项，例如:
+ * - import a.b       -> 一个 CjImportItem
+ * - import {a.b, c.d} -> 两个 CjImportItem
+ * - import a.{b, c}  -> 两个 CjImportItem
+ */
+class CjImportItem(node: ASTNode) : CjElementImpl(node), CjImportInfo {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
-        return visitor.visitImportDirectiveItem(this, data)
+        return visitor.visitImportItem(this, data)
     }
+
+    @Volatile
+    private var _importedFqName: FqName? = null
 
     override fun subtreeChanged() {
         super.subtreeChanged()
         _importedFqName = null
     }
 
-    //    是否为多导入但是并非 *
-    private val isMultiUnder: Boolean
-        get() {
-            //    判断父节点是否为 CjImportDirective
-            return parent is CjImportDirective && parentImportedReference != null
-        }
-
-    constructor(node: ASTNode) : super(node)
-
-    constructor(stub: CangJieImportDirectiveItemStub) : super(stub, CjStubElementTypes.IMPORT_DIRECTIVE_ITEM)
-
-    companion object {
-        @JvmStatic
-        val EMPTY_ARRAY = arrayOf<CjImportDirectiveItem>()
-
-        @JvmStatic
-        val ARRAY_FACTORY =
-            ArrayFactory { count: Int ->
-                if (count == 0) EMPTY_ARRAY else arrayOfNulls<CjImportDirectiveItem>(count)
-            }
-    }
+    /**
+     * 获取导入的引用表达式
+     */
+    val importedReference: CjExpression?
+        get() = findChildByType(CjTokenSets.INSIDE_DIRECTIVE_EXPRESSIONS)
 
     /**
-     * 对于  a.{a,b} 形式
+     * 获取导入的完全限定名
      */
-    val items: List<CjImportDirectiveItem> =
-        getStubOrPsiChildren(CjStubElementTypes.IMPORT_DIRECTIVE_ITEM, ARRAY_FACTORY)
-            .mapNotNull { it }
-
-    private val parentImportedReference: CjExpression?
+    override val importedFqName: FqName?
         get() {
-            return (parent as? CjImportDirective)?.importedReference
+            _importedFqName?.let { return it }
+
+            val reference = importedReference ?: return null
+            val fqName = CjImportDirective.fqNameFromExpression(reference)
+            _importedFqName = fqName
+            return fqName
         }
 
-    @get:IfNotParsed
-    val importedReference: CjExpression?
-        get() {
-            val references =
-                getStubOrPsiChildren(
-                    CjTokenSets.INSIDE_DIRECTIVE_EXPRESSIONS,
-                    CjExpression.ARRAY_FACTORY,
-                ).firstOrNull()
-
-            if (isMultiUnder) {
-                return CjSynthesisQualifiedExpression(
-                    parentImportedReference!!,
-                    references,
-                )
-            }
-
-            return references
-        }
-
-    val alias: CjImportAlias?
-        get() = getStubOrPsiChild(CjStubElementTypes.IMPORT_ALIAS)
-
-    override val aliasName: String?
-        get() {
-            val alias = alias
-            return alias?.name
-        }
-
-    val importDirective: CjImportDirective
-        get() = getStrictParentOfType<CjImportDirective>() ?: throw IllegalStateException()
-
-    @Volatile
-    private var _importedFqName: FqName? = null
-
+    /**
+     * 是否为通配符导入 (a.b.*)
+     */
     override val isAllUnder: Boolean
-        get() {
-            val stub = stub
-            if (stub != null) {
-                return stub.isAllUnder()
-            }
-            return node.findChildByType(CjTokens.MUL) != null
-        }
+        get() = node.findChildByType(CjTokens.MUL) != null
 
+    /**
+     * 获取别名
+     */
+    val alias: CjImportAlias?
+        get() = findChildByClass(CjImportAlias::class.java)
+
+    /**
+     * 获取别名名称
+     */
+    override val aliasName: String?
+        get() = alias?.name
+
+    /**
+     * 导入内容
+     */
     override val importContent: CjImportInfo.ImportContent?
         get() {
             val reference = importedReference ?: return null
             return CjImportInfo.ImportContent.ExpressionBased(reference)
         }
 
-    @get:IfNotParsed
-    override val importedFqName: FqName?
-        get() {
+    /**
+     * 导入的名称
+     */
+    override val importedName: Name?
+        get() = importedFqName?.shortName()
 
-            val stub = stub
-            if (stub != null) {
-                return stub.getImportedFqName()
-            }
+    /**
+     * 是否为有效导入（无语法错误）
+     */
+    val isValidImport: Boolean
+        get() = !PsiTreeUtil.hasErrorElements(this)
 
-            var importedFqName = this._importedFqName
-            if (importedFqName != null) return importedFqName
-            val importedReference = importedReference ?: return null
+    /**
+     * 获取父导入指令
+     */
+    val importDirective: CjImportDirective
+        get() = getStrictParentOfType<CjImportDirective>()
+            ?: throw IllegalStateException("CjImportItem must have a parent CjImportDirective")
 
-            importedFqName =
-                fqNameFromExpression(importedReference)
-
-            this._importedFqName = importedFqName
-            return importedFqName
-        }
-    @get:IfNotParsed
+    /**
+     * 转换为 ImportPath（兼容性方法）
+     */
     val importPath: ImportPath?
         get() {
-            val importFqn = _importedFqName ?: return null
-
-            var alias: Name? = null
-            val aliasName = aliasName
-            if (aliasName != null) {
-                alias = identifier(aliasName)
-            }
-
-            return ImportPath(importFqn, isAllUnder, alias)
-        }
-    val isValidImport: Boolean
-        get() {
-            val stub = stub
-            if (stub != null) {
-                return stub.isValid()
-            }
-            return !PsiTreeUtil.hasErrorElements(this)
-        }
-}
-
-
-
-class CjImportDirective1 : CjDeclarationStub<CangJieImportDirectiveStub> {
-    @Deprecated("")
-    constructor(node: ASTNode) : super(node)
-
-    @Deprecated("")
-    constructor(stub: CangJieImportDirectiveStub) : super(
-        stub,
-        CjStubElementTypes.IMPORT_DIRECTIVE,
-    )
-
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
-        return visitor.visitImportDirective(this, data)
-    }
-
-
-    fun getModifier(tokenType: CjKeywordToken): PsiElement? {
-        return findChildByType(tokenType)
-    }
-
-
-    val imports :List<CjImportInfo> get()
-        {
-
-        }
-
-    override fun hasModifier(modifier: CjKeywordToken): Boolean {
-        return getModifier(modifier) != null
-    }
-
-    companion object {
-        fun fqNameFromExpression(expression: CjExpression?): FqName? {
-            if (expression == null) {
-                return null
-            }
-
-            when (expression) {
-                is CjDotQualifiedExpression -> {
-                    val parentFqn = fqNameFromExpression(expression.receiverExpression)
-                    val child =
-                        nameFromExpression(expression.selectorExpression) ?: return parentFqn
-                    if (parentFqn != null) {
-                        return parentFqn.child(child)
-                    }
-                    return null
-                }
-
-                is CjSynthesisQualifiedExpression -> {
-                    return fqNameFromExpression(expression.selectorExpression)?.let {
-                        fqNameFromExpression(expression.receiverExpression)?.child(
-                            it,
-                        )
-                    }
-                }
-
-                is CjSimpleNameExpression -> {
-                    return topLevel(expression.referencedNameAsName)
-                }
-
-                else -> {
-                    throw IllegalArgumentException("Can't construct fqn for: " + expression.javaClass)
-                }
-            }
-        }
-
-        private fun nameFromExpression(expression: CjExpression?): Name? {
-            if (expression == null) {
-                return null
-            }
-
-            if (expression is CjSimpleNameExpression) {
-                return expression.referencedNameAsName
+            val importFqn = importedFqName ?: return null
+            val identifier = if (aliasName != null) {
+                identifier(aliasName!!)
             } else {
-                throw IllegalArgumentException("Can't construct name for: " + expression.javaClass)
+                null
             }
+
+            return ImportPath(importFqn, isAllUnder, identifier)
         }
-    }
 }
+
+
+
 data class CangJieImportField(
     override val isAllUnder: Boolean,
     override val importContent: CjImportInfo.ImportContent?,

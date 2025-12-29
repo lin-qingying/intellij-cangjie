@@ -43,6 +43,7 @@ import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.formatter.CangJieCodeStyleSettings
 import org.cangnova.cangjie.formatter.cangjieCustomSettings
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import org.cangnova.cangjie.utils.ClassImportFilter
 import org.cangnova.cangjie.utils.addImport
 import org.cangnova.cangjie.utils.getImportableDescriptor
@@ -167,7 +168,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
                 return if (it.fqNameSafe == targetFqName) ImportDescriptorResult.ALREADY_IMPORTED else ImportDescriptorResult.FAIL
             }
 
-            val imports = file.importDirectivesItem
+            val imports = file.importDirectives.flatMap { it.importItems }
 
             if (imports.any { !it.isAllUnder && (it.importPath?.alias == name || it.importPath?.fqName == targetFqName) }) {
                 return ImportDescriptorResult.FAIL
@@ -247,7 +248,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
 //                return if (it.fqNameSafe == targetFqName) ImportDescriptorResult.ALREADY_IMPORTED else ImportDescriptorResult.FAIL
 //            }
 //
-//            val imports = file.importDirectivesItem
+//            val imports = file.getStrictParentOfType<CjImportDirective>()sItem
 //
 //            if (imports.any { !it.isAllUnder && (it.importPath?.alias == name || it.importPath?.fqName == targetFqName) }) {
 //                return ImportDescriptorResult.FAIL
@@ -271,7 +272,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
 
             alreadyImported(target, scope, targetFqName, name)?.let { return it }
 
-            val imports = file.importDirectivesItem
+            val imports = file.importDirectives.flatMap { it.importItems }
             for (import in imports) {
                 val importPath = import.importPath ?: continue
                 if (!importPath.isAllUnder && importPath.alias == aliasName && importPath.fqName == targetFqName) {
@@ -321,7 +322,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
 
         private fun DeclarationDescriptor.explicitlyImported(
             name: Name,
-            imports: List<CjImportDirectiveItem>
+            imports: List<CjImportItem>
         ) = imports.any {
             !it.isAllUnder && it.importPath?.fqName == importableFqName && it.importPath?.importedName == name
         }
@@ -331,7 +332,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
 
             val fqName = target.importableFqName ?: return ImportDescriptorResult.FAIL
             val containerFqName = fqName.parent()
-            val imports = file.importDirectivesItem
+            val imports = file.importDirectives.flatMap { it.importItems }
 
             val starImportPath = ImportPath(containerFqName, true)
             if (imports.any { it.importPath == starImportPath }) {
@@ -347,7 +348,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
         private fun shouldTryStarImport(
             containerFqName: FqName,
             target: DeclarationDescriptor,
-            imports: Collection<CjImportDirectiveItem>,
+            imports: Collection<CjImportItem>,
         ): Boolean {
             if (!canImportWithStar(containerFqName, target)) return false
 
@@ -444,7 +445,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
                 .toSet()
 
             fun isNotImported(fqName: FqName): Boolean {
-                return file.importDirectivesItem.none { directive ->
+                return file.importDirectives.flatMap { it.importItems }.none { directive ->
                     !directive.isAllUnder && directive.alias == null && directive.importedFqName == fqName
                 }
             }
@@ -495,7 +496,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
         }
 
         private fun dropRedundantExplicitImports(packageFqName: FqName) {
-            val dropCandidates = file.importDirectivesItem.filter {
+            val dropCandidates = file.importDirectives.flatMap { it.importItems }.filter {
                 !it.isAllUnder && it.aliasName == null && it.importPath?.fqName?.parent() == packageFqName
             }
 
@@ -506,7 +507,10 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
                 if (targets.any { it is PackageViewDescriptor }) continue // do not drop import of package
                 val classDescriptor = targets.filterIsInstance<ClassDescriptor>().firstOrNull()
                 importsToCheck.addIfNotNull(classDescriptor?.importableFqName)
-                runAction(runImmediately) { import.delete() }
+                // 删除整个导入项 - 因为 CjImportItem 可能不支持直接删除，需要删除其父 CjImportDirective
+                runAction(runImmediately) {
+                    import.getStrictParentOfType<CjImportDirective>()?.delete()
+                }
             }
 
             if (importsToCheck.isNotEmpty()) {

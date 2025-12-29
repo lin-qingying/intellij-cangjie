@@ -73,9 +73,9 @@ class CjDotQualifiedExpression :
         }
 
     private fun getChildExpressionsByStub(stub: CangJiePlaceHolderStub<CjDotQualifiedExpression>): Array<out CjExpression?>? {
-        if (stub.getParentStubOfType(CjImportDirectiveItem::class.java) == null && stub.getParentStubOfType(
-                CjPackageDirective::class.java,
-            ) == null && stub.getParentStubOfType(CjValueArgument::class.java) == null
+        if (stub.getParentStubOfType(CjImportItem::class.java) == null &&
+            stub.getParentStubOfType(CjPackageDirective::class.java) == null &&
+            stub.getParentStubOfType(CjValueArgument::class.java) == null
         ) {
             LOG.error(
                 "CjDotQualifiedExpression should only have stubs inside import, argument or package directives.\n" + "Stubs were created for:\n$text\nFile text:\n${containingFile.text}",

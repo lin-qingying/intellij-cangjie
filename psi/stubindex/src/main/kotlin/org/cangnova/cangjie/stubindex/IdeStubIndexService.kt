@@ -249,9 +249,6 @@ internal class IdeStubIndexService : StubIndexService() {
         indexTypeStatementStub(stub, sink)
     }
 
-    override fun indexImports(stub: CangJieImportDirectiveItemStub, sink: IndexSink) {
-
-    }
 
     override fun indexEnumConstructor(stub: CangJieEnumConstructorStub, sink: IndexSink) {
 

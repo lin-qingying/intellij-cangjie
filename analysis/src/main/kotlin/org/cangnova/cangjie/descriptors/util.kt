@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.descriptors
 
-import org.cangnova.cangjie.psi.CjImportDirectiveItem
+import org.cangnova.cangjie.psi.CjImportItem
 import org.cangnova.cangjie.psi.CjSimpleNameExpression
 import org.cangnova.cangjie.psi.doNotAnalyze
 import org.cangnova.cangjie.psi.psiUtil.getQualifiedElementSelector
@@ -32,7 +32,7 @@ import org.cangnova.cangjie.references.mainReference
 import org.cangnova.cangjie.resolve.ResolutionFacade
 import org.cangnova.cangjie.resolve.caches.getResolutionFacade
 
-fun CjImportDirectiveItem.getPackageDatas(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): List<PackageData> {
+fun CjImportItem.getPackageDatas(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): List<PackageData> {
     val targets = targetDescriptors(resolutionFacade)
 
 
@@ -47,7 +47,7 @@ fun CjImportDirectiveItem.getPackageDatas(resolutionFacade: ResolutionFacade = t
 
 }
 
-fun CjImportDirectiveItem.targetPackageView(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): PackageViewDescriptor? {
+fun CjImportItem.targetPackageView(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): PackageViewDescriptor? {
     return when (val packageData = getPackageDatas(resolutionFacade).firstOrNull()) {
         is PackageViewDescriptor -> packageData
         is PackageFragmentDescriptor -> packageData.getPackageViewDescriptor()
@@ -65,7 +65,7 @@ fun CjImportDirectiveItem.targetPackageView(resolutionFacade: ResolutionFacade =
  * @param resolutionFacade 分析表达式所用的解析工具，如果未显式提供，则使用当前指令的解析工具
  * @return 解析得到的描述符集合，如果解析失败或不应分析，则返回空集合
  */
-fun CjImportDirectiveItem.targetDescriptors(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): Collection<DeclarationDescriptor> {
+fun CjImportItem.targetDescriptors(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): Collection<DeclarationDescriptor> {
     // For codeFragments imports are created in dummy file
     // 如果当前文件不应进行分析（例如，代码片段），直接返回空集合，避免不必要的处理
     if (this.getContainingCjFile().doNotAnalyze != null) return emptyList()

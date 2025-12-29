@@ -47,7 +47,7 @@ import org.cangnova.cangjie.descriptors.DescriptorToSourceUtils
 import org.cangnova.cangjie.descriptors.FunctionDescriptor
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.CjImportDirectiveItem
+import org.cangnova.cangjie.psi.CjImportItem
 import org.cangnova.cangjie.psi.psiUtil.containingTypeStatement
 import org.cangnova.cangjie.psi.psiUtil.getNonStrictParentOfType
 import org.cangnova.cangjie.references.util.DescriptorToSourceUtilsIde
@@ -126,7 +126,7 @@ inline fun <R> calculateInModalWindow(
 }
 
 fun PsiReference.isImportUsage(): Boolean =
-    element.getNonStrictParentOfType<CjImportDirectiveItem>() != null
+    element.getNonStrictParentOfType<CjImportItem>() != null
 
 fun PsiElement.getReceiverTypeSearcherInfo(): ReceiverTypeSearcherInfo? {
     val receiverType = runReadAction { extractReceiverType() } ?: return null

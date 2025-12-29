@@ -506,8 +506,10 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
         return visitQualifiedExpression(expression, data)
     }
 
-    open fun visitImportDirectiveItem(importDirectiveItem: CjImportDirectiveItem, data: D): R? {
-        return visitCjElement(importDirectiveItem, data)
+
+
+    open fun visitImportItem(importItem: CjImportItem, data: D): R? {
+        return visitCjElement(importItem, data)
     }
 
     open fun visitImportDirective(importDirective: CjImportDirective, data: D): R? {

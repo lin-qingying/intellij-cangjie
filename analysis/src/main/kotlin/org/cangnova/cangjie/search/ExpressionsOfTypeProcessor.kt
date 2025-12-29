@@ -546,7 +546,7 @@ class ExpressionsOfTypeProcessor(
 
                 }
 
-                if (element.getStrictParentOfType<CjImportDirectiveItem>() != null) return true // ignore usage in import
+                if (element.getStrictParentOfType<CjImportItem>() != null) return true // ignore usage in import
 
                 processSuspiciousExpression(element)
                 return true

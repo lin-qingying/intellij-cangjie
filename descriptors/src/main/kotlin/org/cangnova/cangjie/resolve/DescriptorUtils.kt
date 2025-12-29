@@ -39,9 +39,11 @@ import org.cangnova.cangjie.name.*
 import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.psi.CjDeclarationStub
 import org.cangnova.cangjie.psi.CjImportDirective
-import org.cangnova.cangjie.psi.CjImportDirectiveItem
+
+import org.cangnova.cangjie.psi.CjImportItem
 import org.cangnova.cangjie.psi.CjNamedDeclaration
 import org.cangnova.cangjie.psi.CjPackageDirective
+import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import org.cangnova.cangjie.resolve.DescriptorUtils.getContainingModule
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScope
@@ -1150,9 +1152,9 @@ val CjImportDirective.importVisibility: DescriptorVisibility
         // 导入语句默认为 PRIVATE（不重导出）
         return DescriptorVisibilities.PRIVATE
     }
-val CjImportDirectiveItem.importVisibility: DescriptorVisibility
+val CjImportItem.importVisibility: DescriptorVisibility
     get() {
-       return this.importDirective.importVisibility
+       return this.getStrictParentOfType<CjImportDirective>()?.importVisibility ?: DescriptorVisibilities.PRIVATE
     }
 
 /**
@@ -1161,8 +1163,8 @@ val CjImportDirectiveItem.importVisibility: DescriptorVisibility
  * 如果导入语句带有 internal/protected/public 修饰符，则为重导出。
  * private 导入（包括默认无修饰符）不是重导出。
  */
-val CjImportDirectiveItem.isReexport: Boolean
-    get() = this.importDirective.importVisibility != DescriptorVisibilities.PRIVATE
+val CjImportItem.isReexport: Boolean
+    get() = this.getStrictParentOfType<CjImportDirective>()?.importVisibility != DescriptorVisibilities.PRIVATE
 
 /**
  * 获取表示的类描述符

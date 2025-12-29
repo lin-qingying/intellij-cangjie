@@ -27,7 +27,7 @@ package org.cangnova.cangjie.utils
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.parentOrNull
 import org.cangnova.cangjie.psi.CjElement
-import org.cangnova.cangjie.psi.CjImportDirectiveItem
+import org.cangnova.cangjie.psi.CjImportItem
 import org.cangnova.cangjie.psi.CjPackageDirective
 import org.cangnova.cangjie.psi.psiUtil.getParentOfTypes2
 import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolverFacade
@@ -67,7 +67,7 @@ fun FqName.canAddRootPrefix(): Boolean {
  * - 包声明中的路径（package 语句定义的是当前文件的包名）
  *
  * **实现逻辑**：
- * 检查当前元素的父元素链，如果包含 [CjImportDirectiveItem] 或 [CjPackageDirective]，
+ * 检查当前元素的父元素链，如果包含 [CjImportItem] 或 [CjPackageDirective]，
  * 则不应该添加根前缀。
  *
  * **使用场景**：
@@ -79,8 +79,8 @@ fun FqName.canAddRootPrefix(): Boolean {
  * @return Boolean true 表示可以添加根前缀，false 表示不能添加
  */
 fun CjElement.canAddRootPrefix(): Boolean {
-    // 获取当前元素的父元素，如果父元素是 CjImportDirectiveItem 或 CjPackageDirective 类型，则返回 false
-    return getParentOfTypes2<CjImportDirectiveItem, CjPackageDirective>() == null
+    // 获取当前元素的父元素，如果父元素是 CjImportItem 或 CjPackageDirective 类型，则返回 false
+    return getParentOfTypes2<CjImportItem, CjPackageDirective>() == null
 }
 
 /**

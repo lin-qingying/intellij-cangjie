@@ -115,9 +115,7 @@ class CompilerConfiguration {
     }
 
     fun <T> addAll(key: CompilerConfigurationKey<MutableList<T>>, values: MutableCollection<T>) {
-        if (values != null) {
-            addAll(key, getList(key).size, values)
-        }
+        addAll(key, getList(key).size, values)
     }
 
     fun <T> addAll(key: CompilerConfigurationKey<MutableList<T>>, index: Int, values: MutableCollection<T>) {

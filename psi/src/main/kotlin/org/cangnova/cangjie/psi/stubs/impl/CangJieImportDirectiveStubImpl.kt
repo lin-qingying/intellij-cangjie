@@ -23,45 +23,24 @@
  */
 
 package org.cangnova.cangjie.psi.stubs.impl
-import org.cangnova.cangjie.name.*
 
+import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.CjImportDirective
-import org.cangnova.cangjie.psi.CjImportDirectiveItem
-import org.cangnova.cangjie.psi.stubs.CangJieImportDirectiveItemStub
 import org.cangnova.cangjie.psi.stubs.CangJieImportDirectiveStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.psi.stubs.StubElement
-import com.intellij.util.io.StringRef
-
-class CangJieImportDirectiveItemStubImpl(
-    parent: StubElement<*>,
-    private val isAllUnder: Boolean,
-    private val importedFqName: StringRef? = null,
-
-    private val isValid: Boolean,
-
-) : CangJieStubBaseImpl<CjImportDirectiveItem>(parent, CjStubElementTypes.IMPORT_DIRECTIVE_ITEM), CangJieImportDirectiveItemStub {
-    override fun isAllUnder(): Boolean = isAllUnder
-
-    override fun getImportedFqName(): FqName? {
-        val fqNameString = StringRef.toString(importedFqName)
-        return if (fqNameString != null) FqName(fqNameString) else null
-    }
-
-    override fun isValid(): Boolean = isValid
-
-    override fun getPackageFqName(): FqName {
-        return psi.getContainingCjFile().packageFqName
-    }
-}
 
 class CangJieImportDirectiveStubImpl(
     parent: StubElement<*>,
-
+    private val importItems: List<CangJieImportDirectiveStub.ImportItemInfo>
 ) : CangJieStubBaseImpl<CjImportDirective>(parent, CjStubElementTypes.IMPORT_DIRECTIVE),
     CangJieImportDirectiveStub {
 
     override fun getPackageFqName(): FqName {
-        return psi.getContainingCjFile().packageFqName
+        return psi.containingCjFile.packageFqName
+    }
+
+    override fun getImportItems(): List<CangJieImportDirectiveStub.ImportItemInfo> {
+        return importItems
     }
 }

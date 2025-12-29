@@ -33,7 +33,9 @@ import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.psi.CjConstructor
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjImportAlias
+import org.cangnova.cangjie.psi.CjImportItem
 import org.cangnova.cangjie.psi.psiUtil.containingTypeStatement
+import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import org.cangnova.cangjie.references.util.unwrappedTargets
 import org.cangnova.cangjie.resolve.binding.BindingContext
 
@@ -55,10 +57,10 @@ abstract class AbstractCjReference<T : CjElement>(element: T) : PsiPolyVariantRe
 
     protected open fun canBeReferenceTo(candidateTarget: PsiElement): Boolean = true
     protected open fun isReferenceToImportAlias(alias: CjImportAlias): Boolean {
-        val importDirective = alias.importDirective ?: return false
-        val importedFqName = importDirective.importedFqName ?: return false
+        val importItem = alias.getStrictParentOfType<CjImportItem>() ?: return false
+        val importedFqName = importItem.importedFqName ?: return false
         val helper = CjReferenceResolutionHelper.getInstance()
-        val importedDescriptors = helper.resolveImportReference(importDirective.getContainingCjFile(), importedFqName)
+        val importedDescriptors = helper.resolveImportReference(importItem.getContainingCjFile(), importedFqName)
         val importableTargets = unwrappedTargets.mapNotNull {
             when {
                 it is CjConstructor<*> -> it.containingTypeStatement

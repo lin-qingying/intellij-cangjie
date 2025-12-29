@@ -40,7 +40,7 @@ import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjFile
-import org.cangnova.cangjie.psi.CjImportDirectiveItem
+import org.cangnova.cangjie.psi.CjImportItem
 import org.cangnova.cangjie.resolve.importVisibility
 import org.cangnova.cangjie.resolve.isReexport
 import org.cangnova.cangjie.utils.Printer
@@ -94,18 +94,18 @@ class PackageReexportScope(
      * 2. 直接从 PSI 获取数据，保证实时性
      * 3. 与仓颉编译器的实现方式一致
      */
-    private val reexportImports: Collection<CjImportDirectiveItem> by lazy {
+    private val reexportImports: Collection<CjImportItem> by lazy {
         collectReexportImportsFromFragments()
     }
 
     /**
      * 从包的所有 fragments 收集重导出导入指令
      */
-    private fun collectReexportImportsFromFragments(): List<CjImportDirectiveItem> {
+    private fun collectReexportImportsFromFragments(): List<CjImportItem> {
         val packageView = moduleDescriptor.getPackage(packageFqName)
         if (packageView.isEmpty()) return emptyList()
 
-        val result = mutableListOf<CjImportDirectiveItem>()
+        val result = mutableListOf<CjImportItem>()
 
         for (fragment in packageView.fragments) {
             // 尝试从 declarationProvider 获取源文件
@@ -124,9 +124,9 @@ class PackageReexportScope(
     /**
      * 从单个文件收集重导出导入指令
      */
-    private fun collectReexportImportsFromFile(file: CjFile, result: MutableList<CjImportDirectiveItem>) {
+    private fun collectReexportImportsFromFile(file: CjFile, result: MutableList<CjImportItem>) {
         for (importDirective in file.importDirectives) {
-            for (importItem in importDirective.items) {
+            for (importItem in importDirective.importItems) {
                 if (importItem.isReexport) {
                     result.add(importItem)
                 }
@@ -169,7 +169,7 @@ class PackageReexportScope(
     /**
      * 解析命名导入的目标声明: public import a.B 或 public import a.B as C
      */
-    private fun resolveNamedImportTarget(importDirective: CjImportDirectiveItem, effectiveName: Name): List<DeclarationDescriptor> {
+    private fun resolveNamedImportTarget(importDirective: CjImportItem, effectiveName: Name): List<DeclarationDescriptor> {
         val importedFqName = importDirective.importedFqName ?: return emptyList()
 
         // 解析导入的目标
@@ -196,7 +196,7 @@ class PackageReexportScope(
     /**
      * 解析通配符导入的目标声明: public import a.*
      */
-    private fun resolveWildcardImportTarget(importDirective: CjImportDirectiveItem, requestedName: Name): List<DeclarationDescriptor> {
+    private fun resolveWildcardImportTarget(importDirective: CjImportItem, requestedName: Name): List<DeclarationDescriptor> {
         val importedFqName = importDirective.importedFqName ?: return emptyList()
 
         // 对于通配符导入，importedFqName 是包名
@@ -219,7 +219,7 @@ class PackageReexportScope(
         searchName: Name,
         reexportVisibility: org.cangnova.cangjie.descriptors.DescriptorVisibility,
         sourceFile: CjFile,
-        importDirective: CjImportDirectiveItem,
+        importDirective: CjImportItem,
         aliasName: Name?
     ): List<DeclarationDescriptor> {
         val result = mutableListOf<DeclarationDescriptor>()

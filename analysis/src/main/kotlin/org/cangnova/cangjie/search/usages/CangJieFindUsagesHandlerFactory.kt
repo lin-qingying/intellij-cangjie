@@ -39,6 +39,7 @@ import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.search.usages.handlers.CangJieTypeParameterFindUsagesHandler
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.getQualifiedElementSelector
+import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import org.cangnova.cangjie.references.mainReference
 
 class CangJieFindUsagesHandlerFactory(project: Project) : FindUsagesHandlerFactory() {
@@ -58,14 +59,14 @@ class CangJieFindUsagesHandlerFactory(project: Project) : FindUsagesHandlerFacto
                 element is CjConstructor<*> ||
                 (element is CjImportAlias &&
                         // TODO: it is ambiguous case: ImportAlias does not have any reference to be resolved
-                        element.importDirective?.importedReference?.getQualifiedElementSelector()?.mainReference?.resolve() != null)
+                        element.getStrictParentOfType<CjImportItem>()?.importedReference?.getQualifiedElementSelector()?.mainReference?.resolve() != null)
 
 
     override fun createFindUsagesHandler(element: PsiElement, forHighlightUsages: Boolean): FindUsagesHandler? {
         when (element) {
             is CjImportAlias -> {
                 return when (val resolvedElement =
-                    element.importDirective?.importedReference?.getQualifiedElementSelector()?.mainReference?.resolve()) {
+                    element.getStrictParentOfType<CjImportItem>()?.importedReference?.getQualifiedElementSelector()?.mainReference?.resolve()) {
                     is CjTypeStatement ->
                         if (!forHighlightUsages) {
                             createFindUsagesHandler(resolvedElement, forHighlightUsages = false)

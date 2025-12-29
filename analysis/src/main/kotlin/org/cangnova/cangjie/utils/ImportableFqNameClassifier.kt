@@ -106,8 +106,8 @@ class ImportableFqNameClassifier(private val file: CjFile, private val isImporte
     private val excludedImports = HashSet<FqName>()
 
     init {
-        // 遍历文件的所有导入语句，构建导入信息
-        for (import in file.importDirectivesItem) {
+        // 遍历文件的所有导入语句,构建导入信息
+        for (import in file.importDirectives.flatMap { it.importItems }) {
             val importPath = import.importPath ?: continue
             val fqName = importPath.fqName
             when {

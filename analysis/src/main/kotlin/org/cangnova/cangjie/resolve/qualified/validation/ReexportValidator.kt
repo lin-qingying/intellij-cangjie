@@ -16,12 +16,15 @@
 
 package org.cangnova.cangjie.resolve.qualified.validation
 
+import org.cangnova.cangjie.descriptors.DescriptorVisibilities
 import org.cangnova.cangjie.descriptors.DescriptorVisibility
 import org.cangnova.cangjie.descriptors.PackageViewDescriptor
 import org.cangnova.cangjie.diagnostics.infos.errors.PACKAGE_CANNOT_BE_REEXPORTED
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.psi.CjImportDirectiveItem
+import org.cangnova.cangjie.psi.CjImportDirective
+import org.cangnova.cangjie.psi.CjImportItem
+import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import org.cangnova.cangjie.resolve.importVisibility
 import org.cangnova.cangjie.resolve.isReexport
 import org.cangnova.cangjie.resolve.qualified.context.ResolutionContext
@@ -63,7 +66,7 @@ class ReexportValidator {
     fun validate(
         qualifier: org.cangnova.cangjie.descriptors.DeclarationDescriptor,
         importedName: Name,
-        importDirective: CjImportDirectiveItem,
+        importDirective: CjImportItem,
         context: ResolutionContext
     ): ReexportError? {
         // 只检查重导出语句
@@ -75,7 +78,8 @@ class ReexportValidator {
             if (!childPackage.isEmpty()) {
                 return ReexportError.PackageCannotBeReexported(
                     packageFqName = childPackage.fqName,
-                    visibility = importDirective.importDirective.importVisibility,
+                    visibility = importDirective.getStrictParentOfType<CjImportDirective>()?.importVisibility
+                        ?: DescriptorVisibilities.PRIVATE,
                     importDirective = importDirective
                 )
             }
@@ -119,6 +123,6 @@ sealed class ReexportError {
     data class PackageCannotBeReexported(
         val packageFqName: FqName,
         val visibility: DescriptorVisibility,
-        val importDirective: CjImportDirectiveItem
+        val importDirective: CjImportItem
     ) : ReexportError()
 }

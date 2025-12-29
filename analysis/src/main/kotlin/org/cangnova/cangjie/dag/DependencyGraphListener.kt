@@ -33,7 +33,7 @@ import com.intellij.psi.PsiTreeChangeEvent
 import org.cangnova.cangjie.descriptors.targetPackageView
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.CjFile
-import org.cangnova.cangjie.psi.CjImportDirectiveItem
+import org.cangnova.cangjie.psi.CjImportItem
 import org.cangnova.cangjie.stubindex.CangJieExactPackagesIndex
 import kotlin.text.get
 
@@ -89,7 +89,7 @@ class CangJieDependencyGraph(val project: Project) {
     }
 
     // 新增：存储 CjFile -> FqName -> List<CjImport> 的映射
-    private val fileDependencyMap = mutableMapOf<CjFile, MutableMap<FqName, MutableList<CjImportDirectiveItem>>>()
+    private val fileDependencyMap = mutableMapOf<CjFile, MutableMap<FqName, MutableList<CjImportItem>>>()
 
     // 删除文件中的特定依赖信息，如果依赖为空，则删除整个文件键
     private fun removeFileDependencies(file: CjFile) {
@@ -98,7 +98,7 @@ class CangJieDependencyGraph(val project: Project) {
 
     }
 
-    fun getImportItems(file: CjFile, fqName: FqName): List<CjImportDirectiveItem> {
+    fun getImportItems(file: CjFile, fqName: FqName): List<CjImportItem> {
         return fileDependencyMap[file]?.get(fqName) ?: emptyList()
     }
 
@@ -210,7 +210,7 @@ class CangJieDependencyGraph(val project: Project) {
     private fun addFileDependencies(
         file: CjFile?,
         fqName: FqName?,
-        imports: List<CjImportDirectiveItem> = emptyList()
+        imports: List<CjImportItem> = emptyList()
     ) {
         if (file != null && fqName != null) {
             val fqNameMap = fileDependencyMap.computeIfAbsent(file) { mutableMapOf() }
@@ -233,7 +233,7 @@ class CangJieDependencyGraph(val project: Project) {
         val dependencies = mutableListOf<FqName>()
 
         val files = CangJieExactPackagesIndex[fqName.asString(), project]
-        val imports = files.flatMap { it.importDirectivesItem }
+        val imports = files.flatMap { it.importDirectives.flatMap { directive -> directive.importItems } }
         imports.forEach {
 
 

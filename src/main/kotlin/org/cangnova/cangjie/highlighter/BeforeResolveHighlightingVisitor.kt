@@ -172,9 +172,9 @@ class BeforeResolveHighlightingVisitor(holder: HighlightInfoHolder) : AbstractHi
         super.visitTypeAlias(typeAlias)
     }
 
-    override fun visitClass(klass: CjClass) {
-        highlightNamedDeclaration(klass, CangJieHighlightInfoTypeSemanticNames.CLASS)
-        super.visitClass(klass)
+    override fun visitClass(cclass: CjClass) {
+        highlightNamedDeclaration(cclass, CangJieHighlightInfoTypeSemanticNames.CLASS)
+        super.visitClass(cclass)
     }
 
     override fun visitStruct(cstruct: CjStruct) {

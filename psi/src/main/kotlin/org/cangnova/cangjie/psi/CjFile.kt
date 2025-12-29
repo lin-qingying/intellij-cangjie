@@ -123,8 +123,11 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
         if (!hasImportAlias()) return null
 
         return importDirectivesItem.firstOrNull {
-            it.alias != null && fqName == it.importedFqName
-        }?.alias
+            it.aliasName != null && fqName == it.importedFqName
+        }?.let { item ->
+            // 从 CjImportItem 中获取 alias
+            (item as? CjImportItem)?.alias
+        }
     }
     
     /**
@@ -208,10 +211,12 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
     
     /**
      * 返回此文件中的所有导入指令项。
+     *
+     * 新实现：从 CjImportDirective 的 importItems 中获取
      * @return 导入指令项的列表
      */
-    open val importDirectivesItem: List<CjImportDirectiveItem>
-        get() = importLists.flatMap { it.importItems }
+    open val importDirectivesItem: List<CjImportInfo>
+        get() = importDirectives.flatMap { it.importItems }
     
     /**
      * 返回此文件中的所有导入指令。
@@ -232,7 +237,7 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
      * @param name 要搜索的别名名称
      * @return 如果找到导入指令项，则返回该项，否则返回null
      */
-    fun findImportByAlias(name: String): CjImportDirectiveItem? {
+    fun findImportByAlias(name: String): CjImportInfo? {
         if (!hasImportAlias()) return null
 
         return importDirectivesItem.firstOrNull { name == it.aliasName }
@@ -387,12 +392,10 @@ open class CjFile(viewProvider: FileViewProvider, isCompiled: Boolean = false, v
 private fun CjImportList.computeHasImportAlias(): Boolean {
     var child: PsiElement? = firstChild
     while (child != null) {
-        if (child is CjImportDirectiveItem && child.alias != null) {
-            return true
+        when (child) {
+            is CjImportItem -> if (child.alias != null) return true
         }
-
         child = child.nextSibling
     }
-
     return false
 }

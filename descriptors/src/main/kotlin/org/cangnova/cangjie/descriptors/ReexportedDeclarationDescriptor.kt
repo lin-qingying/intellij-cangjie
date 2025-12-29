@@ -28,7 +28,7 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjFile
-import org.cangnova.cangjie.psi.CjImportDirectiveItem
+import org.cangnova.cangjie.psi.CjImportItem
 import org.cangnova.cangjie.resolve.source.CangJieSourceElement
 
 /**
@@ -57,7 +57,7 @@ sealed class ReexportedDeclarationDescriptor {
         val originalDescriptor: ClassifierDescriptor,
         val reexportVisibility: DescriptorVisibility,
         val sourceFile: CjFile,
-        val importDirective: CjImportDirectiveItem,
+        val importDirective: CjImportItem,
         val aliasName: Name? = null
     ) : ClassifierDescriptor by originalDescriptor {
 
@@ -93,7 +93,7 @@ sealed class ReexportedDeclarationDescriptor {
         val originalDescriptor: SimpleFunctionDescriptor,
         val reexportVisibility: DescriptorVisibility,
         val sourceFile: CjFile,
-        val importDirective: CjImportDirectiveItem,
+        val importDirective: CjImportItem,
         val aliasName: Name? = null
     ) : SimpleFunctionDescriptor by originalDescriptor {
 
@@ -128,7 +128,7 @@ sealed class ReexportedDeclarationDescriptor {
         val originalDescriptor: VariableDescriptor,
         val reexportVisibility: DescriptorVisibility,
         val sourceFile: CjFile,
-        val importDirective: CjImportDirectiveItem,
+        val importDirective: CjImportItem,
         val aliasName: Name? = null
     ) : VariableDescriptor by originalDescriptor {
 
@@ -163,7 +163,7 @@ sealed class ReexportedDeclarationDescriptor {
         val originalDescriptor: PropertyDescriptor,
         val reexportVisibility: DescriptorVisibility,
         val sourceFile: CjFile,
-        val importDirective: CjImportDirectiveItem,
+        val importDirective: CjImportItem,
         val aliasName: Name? = null
     ) : PropertyDescriptor by originalDescriptor {
 
@@ -198,7 +198,7 @@ sealed class ReexportedDeclarationDescriptor {
         val originalDescriptor: MacroDescriptor,
         val reexportVisibility: DescriptorVisibility,
         val sourceFile: CjFile,
-        val importDirective: CjImportDirectiveItem,
+        val importDirective: CjImportItem,
         val aliasName: Name? = null
     ) : MacroDescriptor by originalDescriptor {
 

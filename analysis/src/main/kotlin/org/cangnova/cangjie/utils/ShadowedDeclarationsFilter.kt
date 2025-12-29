@@ -189,7 +189,7 @@ class ShadowedDeclarationsFilter(
      *
      * **使用示例**：
      * ```kotlin
-     * val importedFunctions = file.importDirectivesItem.mapNotNull { it.resolveToDescriptor() }
+     * val importedFunctions = file.getStrictParentOfType<CjImportDirective>()sItem.mapNotNull { it.resolveToDescriptor() }
      * val filter = shadowedFilter.createNonImportedDeclarationsFilter(importedFunctions, false)
      *
      * val allCandidates = findAllFunctionsNamed("foo")

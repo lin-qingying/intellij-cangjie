@@ -85,7 +85,7 @@ import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.psi.CjImportDirectiveItem
+import org.cangnova.cangjie.psi.CjImportItem
 import org.cangnova.cangjie.psi.CjFile
 
 import org.cangnova.cangjie.psi.CjImportInfo
@@ -344,7 +344,7 @@ class FileScopeFactory(
     )
 
     private fun createImportResolver(
-        indexedImports: IndexedImports<CjImportDirectiveItem>,
+        indexedImports: IndexedImports<CjImportItem>,
         trace: BindingTrace,
         aliasImportNames: Collection<FqName>,
         packageFragment: PackageFragmentDescriptor?,
@@ -361,7 +361,7 @@ class FileScopeFactory(
         private val createDefaultImportingScopes: Boolean,
     ) {
 
-        val imports = file.importDirectivesItem
+        val imports = file.importDirectives.flatMap { it.importItems }
 
 
         val aliasImportNames = imports.mapNotNull {
@@ -404,7 +404,7 @@ class FileScopeFactory(
                 allUnderImportResolver.forceResolveNonDefaultImports()
             }
 
-            override fun forceResolveImport(importDirective: CjImportDirectiveItem) {
+            override fun forceResolveImport(importDirective: CjImportItem) {
                 if (importDirective.isAllUnder) {
                     allUnderImportResolver.forceResolveImport(importDirective)
                 } else {

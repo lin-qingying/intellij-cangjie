@@ -698,93 +698,26 @@ class CangJieParsing private constructor(
      * @return 是否成功解析
      */
 
-    context(parseContext: ParsingContext)
-    private fun parseImportDirectiveItem(isTopLevel: Boolean): Boolean {
-        var importDirectiveItem = mark()
-
-        if (!at(IDENTIFIER)) {
-            error(
-                CangJieParsingBundle.message(
-                    "parsing.error.package.name.after.dot", builder.tokenText ?: "<unknown>"
-                )
-            )
-            importDirectiveItem.done(IMPORT_DIRECTIVE_ITEM)
-            consumeIf(SEMICOLON)
-            return true
-        }
-
-        var qualifiedName = mark()
-        var reference = mark()
-        advance() // IDENTIFIER
-        reference.done(REFERENCE_EXPRESSION)
-
-        while (at(DOT) && lookahead(1) != MUL) {
-            advance() // DOT
-
-            // 同一个包多个导入项
-            if (at(LBRACE) && isTopLevel) {
-                qualifiedName.rollbackTo()
-                importDirectiveItem.rollbackTo()
-                return false // parseImportDirectiveItem2() 将被调用
-            } else {
-                reference = mark()
-                if (expect(
-                        IDENTIFIER, "Qualified name must be a '.'-separated identifier list", IMPORT_RECOVERY_SET
-                    )
-                ) {
-                    reference.done(REFERENCE_EXPRESSION)
-                } else {
-                    reference.drop()
-                }
-
-                val precede = qualifiedName.precede()
-                qualifiedName.done(DOT_QUALIFIED_EXPRESSION)
-                qualifiedName = precede
-            }
-        }
-
-        qualifiedName.drop()
-
-        when {
-            at(DOT) -> {
-                advance()
-                assert(_at(MUL))
-                advance()
-                if (at(AS_KEYWORD)) {
-                    errorAndAdvance(CangJieParsingBundle.message("parsing.error.aliases.not.allowed.for.all.imports"))
-                }
-            }
-
-            at(AS_KEYWORD) -> {
-                val alias = mark()
-                advance() // AS_KEYWORD
-                expect(IDENTIFIER, "Expecting identifier", SEMICOLON_SET)
-                alias.done(IMPORT_ALIAS)
-            }
-        }
-
-        importDirectiveItem.done(IMPORT_DIRECTIVE_ITEM)
-        return true
-    }
-
     /**
-     * 解析导入指令项（第二种格式）
+     * 解析单个导入项
      *
-     * 处理包含大括号的导入语句，如：
-     * ```
-     * import package.{item1, item2, item3}
-     * ```
+     * 支持:
+     * - a.b.c
+     * - a.b.*
+     * - a.b as AB
      */
-
     context(parseContext: ParsingContext)
-    private fun parseImportDirectiveItem2() {
+    private fun parseImportItem() {
+        val item = mark()
+
         if (!at(IDENTIFIER)) {
             error(
                 CangJieParsingBundle.message(
-                    "parsing.error.package.name.after.dot", builder.tokenText ?: "<unknown>"
+                    "parsing.error.package.name.after.dot",
+                    builder.tokenText ?: "<unknown>"
                 )
             )
-            consumeIf(SEMICOLON)
+            item.done(IMPORT_ITEM)
             return
         }
 
@@ -793,11 +726,15 @@ class CangJieParsing private constructor(
         advance() // IDENTIFIER
         reference.done(REFERENCE_EXPRESSION)
 
+        // 解析点号分隔的标识符链
         while (at(DOT) && lookahead(1) != MUL && lookahead(1) != LBRACE) {
-            advance()
+            advance() // DOT
+
             reference = mark()
             if (expect(
-                    IDENTIFIER, "Qualified name must be a '.'-separated identifier list", IMPORT_RECOVERY_SET
+                    IDENTIFIER,
+                    "Qualified name must be a '.'-separated identifier list",
+                    IMPORT_RECOVERY_SET
                 )
             ) {
                 reference.done(REFERENCE_EXPRESSION)
@@ -812,24 +749,63 @@ class CangJieParsing private constructor(
 
         qualifiedName.drop()
 
-        expect(DOT, "Expecting '.'")
-        expect(LBRACE, "Expecting '{'")
+        // 处理通配符或别名
+        when {
+            at(DOT) && lookahead(1) == MUL -> {
+                advance() // DOT
+                advance() // MUL
 
-        do {
-            expect(COMMA)
-            parseImportDirectiveItem(false)
-        } while (at(COMMA))
+                if (at(AS_KEYWORD)) {
+                    errorAndAdvance(
+                        CangJieParsingBundle.message("parsing.error.aliases.not.allowed.for.all.imports")
+                    )
+                }
+            }
 
-        expect(RBRACE, "Expecting '}'")
+            at(AS_KEYWORD) -> {
+                val alias = mark()
+                advance() // AS_KEYWORD
+                expect(IDENTIFIER, "Expecting identifier", SEMICOLON_SET)
+                alias.done(IMPORT_ALIAS)
+            }
+        }
+
+        item.done(IMPORT_ITEM)
+    }
+
+    /**
+     * 解析导入项列表 (逗号分隔)
+     *
+     * 用于:
+     * - import {a.b, c.d, ...}
+     * - import a.{b, c, ...}
+     */
+    context(parseContext: ParsingContext)
+    private fun parseImportItemList() {
+        parseImportItem()
+
+        while (at(COMMA)) {
+            advance() // COMMA
+            parseImportItem()
+        }
     }
 
     /**
      * 解析导入指令
      *
+     * 支持的语法形式:
+     * 1. import a.b
+     * 2. import a.{b, c}
+     * 3. import {a.b, a.c}
+     * 4. import {a.*, b.c}
+     * 5. import {a.*, b.c as BC}
+     * 6. import a.*
+     * 7. public/internal/protected import ...
+     *
      * Grammar:
      * ```
      * importDirective
-     *   : modifier* "import" importDirectiveItem (";")?
+     *   : modifier* "import" (importItem | "{" importItemList "}" | qualifiedName "." "{" importItemList "}") (";")?
      *   ;
      * ```
      */
@@ -837,21 +813,19 @@ class CangJieParsing private constructor(
     private fun parseImportDirective(): Boolean {
         assert(_at(IMPORT_KEYWORD) || _atSet(IMPORT_ACCESS_MODIFIER_SET) || isWhenAnnotation())
 
-        val doneType = IMPORT_DIRECTIVE
         val importDirective = mark()
 
-
+        // 1. 解析注解 (when annotation)
         if (isWhenAnnotation()) {
             parseWhenAnnotation(true)
         }
 
-
-
-
+        // 2. 解析访问修饰符 (public/internal/protected/private)
         if (_atSet(IMPORT_ACCESS_MODIFIER_SET)) {
-            advance() // PUBLIC_KEYWORD
+            advance() // 访问修饰符
         }
 
+        // 3. 检查 import 关键字
         if (!at(IMPORT_KEYWORD)) {
             error(CangJieParsingBundle.message("parsing.error.expecting.keyword", "import"))
             importDirective.rollbackTo()
@@ -860,29 +834,85 @@ class CangJieParsing private constructor(
 
         advance() // IMPORT_KEYWORD
 
+        // 4. 检查换行错误
         if (closeImportWithErrorIfNewline(importDirective, null, "Expecting qualified name")) {
             return true
         }
 
+        // 5. 解析导入项
         if (at(LBRACE)) {
-            advance()
-            parseImportDirectiveItem(false)
-
-            // 多个导入语句
-            while (at(COMMA)) {
-                advance()
-                parseImportDirectiveItem(false)
-            }
-
+            // 形式: import {a.b, c.d, ...}
+            advance() // LBRACE
+            parseImportItemList()
             expect(RBRACE, "Expecting '}'")
         } else {
-            if (!parseImportDirectiveItem(true)) {
-                parseImportDirectiveItem2()
+            // 需要先解析限定名，然后判断是单项导入还是同包多项导入
+            // 使用 marker 来实现回溯
+            val pathStart = builder.currentOffset
+
+            // 解析限定名
+            if (!at(IDENTIFIER)) {
+                error("Expecting qualified name")
+                importDirective.done(IMPORT_DIRECTIVE)
+                importDirective.setCustomEdgeTokenBinders(null, TrailingCommentsBinder)
+                return true
+            }
+
+            var qualifiedName = mark()
+            var reference = mark()
+            advance() // IDENTIFIER
+            reference.done(REFERENCE_EXPRESSION)
+
+            // 解析点号分隔的标识符链
+            while (at(DOT) && lookahead(1) == IDENTIFIER) {
+                advance() // DOT
+
+                reference = mark()
+                advance() // IDENTIFIER
+                reference.done(REFERENCE_EXPRESSION)
+
+                val precede = qualifiedName.precede()
+                qualifiedName.done(DOT_QUALIFIED_EXPRESSION)
+                qualifiedName = precede
+            }
+
+            // 检查是否为同包多项导入 import a.{b, c}
+            if (at(DOT) && lookahead(1) == LBRACE) {
+                qualifiedName.drop()
+                advance() // DOT
+                advance() // LBRACE
+                parseImportItemList()
+                expect(RBRACE, "Expecting '}'")
+            } else {
+                // 单项导入: import a.b 或 import a.b.*
+                qualifiedName.drop()
+
+                val item = mark()
+
+                // 处理通配符
+                if (at(DOT) && lookahead(1) == MUL) {
+                    advance() // DOT
+                    advance() // MUL
+
+                    if (at(AS_KEYWORD)) {
+                        errorAndAdvance(
+                            CangJieParsingBundle.message("parsing.error.aliases.not.allowed.for.all.imports")
+                        )
+                    }
+                } else if (at(AS_KEYWORD)) {
+                    // 处理别名
+                    val alias = mark()
+                    advance() // AS_KEYWORD
+                    expect(IDENTIFIER, "Expecting identifier", SEMICOLON_SET)
+                    alias.done(IMPORT_ALIAS)
+                }
+
+                item.done(IMPORT_ITEM)
             }
         }
 
         consumeIf(SEMICOLON)
-        importDirective.done(doneType)
+        importDirective.done(IMPORT_DIRECTIVE)
         importDirective.setCustomEdgeTokenBinders(null, TrailingCommentsBinder)
         return true
     }

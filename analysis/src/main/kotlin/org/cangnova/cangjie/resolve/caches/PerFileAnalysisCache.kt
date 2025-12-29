@@ -536,7 +536,7 @@ object CangJieResolveDataProvider {
         val topmostElement = element.findTopmostParentInFile {
             it is CjNamedFunction ||
                     it is CjProperty ||
-                    it is CjImportDirectiveItem ||
+                    it is CjImportItem ||
                     it is CjPackageDirective ||
                     it is CjCodeFragment ||
                     // TODO: Non-analyzable so far, add more granular analysis

@@ -68,14 +68,21 @@ fun CjCallElement.getCallNameExpression(): CjSimpleNameExpression? {
 }
 
 fun getImportedSimpleNameByImportAlias(file: CjFile, aliasName: String): String? {
-    val directive = file.findImportByAlias(aliasName) ?: return null
+    val importInfo = file.findImportByAlias(aliasName) ?: return null
 
-    var reference = directive.importedReference
-    while (reference is CjDotQualifiedExpression) {
-        reference = reference.selectorExpression
+    // 获取导入的引用表达式
+    val reference = when (importInfo) {
+        is CjImportItem -> importInfo.importedReference
+
+        else -> null
     }
-    if (reference is CjSimpleNameExpression) {
-        return reference.referencedName
+
+    var currentRef = reference
+    while (currentRef is CjDotQualifiedExpression) {
+        currentRef = currentRef.selectorExpression
+    }
+    if (currentRef is CjSimpleNameExpression) {
+        return currentRef.referencedName
     }
 
     return null
@@ -141,7 +148,8 @@ fun CjSimpleNameExpression.isPackageDirectiveExpression(): Boolean {
 
 fun CjSimpleNameExpression.isImportDirectiveExpression(): Boolean {
     val parent = parent
-    return parent is CjImportDirectiveItem || parent!!.parent is CjImportDirectiveItem
+    return parent is CjImportItem ||
+            parent!!.parent is CjImportItem
 }
 
 fun CjSimpleNameExpression.getQualifiedElementOrCallableRef(): CjElement {
@@ -199,9 +207,7 @@ fun CjSimpleNameExpression.getReceiverExpression(): CjExpression? {
                 }
             }
         }
-//        parent is CjBinaryExpression && parent.operationReference == this -> {
-//            return if (parent.operationToken in OperatorConventions.IN_OPERATIONS) parent.right else parent.left
-//        }
+
         parent is CjUnaryExpression && parent.operationReference == this -> {
             return parent.baseExpression
         }
@@ -303,12 +309,16 @@ fun StubBasedPsiElementBase<out CangJieTypeStatementStub<out CjTypeStatement>>.g
         if (file is CjFile) {
             val directive = file.findImportByAlias(referencedName)
             if (directive != null) {
-                var reference = directive.importedReference
-                while (reference is CjDotQualifiedExpression) {
-                    reference = reference.selectorExpression
+                val reference = when (directive) {
+                    is CjImportItem -> directive.importedReference
+                    else -> null
                 }
-                if (reference is CjSimpleNameExpression) {
-                    result.add(reference.referencedName)
+                var currentRef = reference
+                while (currentRef is CjDotQualifiedExpression) {
+                    currentRef = currentRef.selectorExpression
+                }
+                if (currentRef is CjSimpleNameExpression) {
+                    result.add(currentRef.referencedName)
                 }
             }
         }

@@ -56,7 +56,8 @@ import org.cangnova.cangjie.icon.CangJieIcons
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.messages.CangJieBundle
-import org.cangnova.cangjie.parsing.CangJieParserDefinition.Util.STD_SCRIPT_SUFFIX
+import org.cangnova.cangjie.parsing.CangJieParserDefinitionUtil.STD_SCRIPT_SUFFIX
+
 import org.cangnova.cangjie.psi.CjClass
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjNamedDeclaration

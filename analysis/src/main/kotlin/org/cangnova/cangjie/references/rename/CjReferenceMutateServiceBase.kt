@@ -268,7 +268,7 @@ class CangJieReferenceMutateService : CjReferenceMutateServiceBase() {
 
         val needToShorten = PsiTreeUtil.getParentOfType(
             expression,
-            CjImportDirectiveItem::class.java,
+            CjImportItem::class.java,
             CjPackageDirective::class.java
         ) == null
         if (!needToShorten) {

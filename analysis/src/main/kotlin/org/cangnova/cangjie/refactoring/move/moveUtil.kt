@@ -69,7 +69,7 @@ internal fun processInternalReferencesToUpdateOnPackageNameChange(
 ) {
     val file = element.containingFile as? CjFile ?: return
 
-    val importPaths = file.importDirectivesItem.mapNotNull { it.importPath }
+    val importPaths = file.importDirectives.flatMap { it.importItems }.mapNotNull { it.importPath }
 
     tailrec fun isImported(descriptor: DeclarationDescriptor): Boolean {
         val fqName =

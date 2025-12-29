@@ -318,7 +318,7 @@ fun LookupElement.decorateAsStaticMember(
             val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
             val file = context.file as CjFile
 
-            fun importFromSameParentIsPresent() = file.importDirectivesItem.any {
+            fun importFromSameParentIsPresent() = file.importDirectives.flatMap { it.importItems }.any {
                 !it.isAllUnder && it.importPath?.fqName?.parent() == containerFqName
             }
 

@@ -26,6 +26,7 @@ import org.cangnova.cangjie.progress.ProgressIndicatorAndCompilationCanceledStat
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.codeFragmentUtil.suppressDiagnosticsInDebugMode
 import org.cangnova.cangjie.psi.psiUtil.getParentOfType
+import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import org.cangnova.cangjie.resolve.AllUnderImportScope
 import org.cangnova.cangjie.resolve.LazyExplicitImportScope
 import org.cangnova.cangjie.resolve.importVisibility
@@ -202,13 +203,14 @@ class ImportResolver(
                 val packageDescriptor = context.moduleDescriptor.getPackage(packageOrClassDescriptor.fqName.child(lastName))
                 if (!packageDescriptor.isEmpty()) {
                     // 检查是否尝试重导出包
-                    val importDirective = lastPartExpression.getParentOfType<CjImportDirectiveItem>(true)
+                    val importDirective = lastPartExpression.getParentOfType<CjImportItem>(true)
                     if (importDirective != null && importDirective.isReexport) {
                         context.trace.report(
                             PACKAGE_CANNOT_BE_REEXPORTED.on(
                                 importDirective,
                                 packageDescriptor.fqName,
-                                importDirective.importDirective.importVisibility
+                                importDirective.getStrictParentOfType<CjImportDirective>()?.importVisibility
+                                    ?: DescriptorVisibilities.PRIVATE
                             )
                         )
                     }
@@ -295,7 +297,7 @@ class ImportResolver(
         importDirective: CjImportInfo,
         context: ResolutionContext
     ): PackageFragmentDescriptor? {
-        if (importDirective !is CjImportDirectiveItem) return null
+        if (importDirective !is CjImportItem) return null
 
         val containingFile = importDirective.getContainingCjFile()
         if (containingFile.suppressDiagnosticsInDebugMode) return null

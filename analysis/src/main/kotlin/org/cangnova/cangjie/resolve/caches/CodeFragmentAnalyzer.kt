@@ -265,10 +265,9 @@ class CodeFragmentAnalyzer(
     }
 
     private fun createImportScopes(importList: CjImportList): List<ImportingScope> {
-        return importList.importItems.mapNotNull {
-
+        return importList.imports.flatMap { it.importItems }.mapNotNull { importItem ->
             qualifierResolver.processImportReference(
-                it, resolveSession.moduleDescriptor, resolveSession.trace,
+                importItem, resolveSession.moduleDescriptor, resolveSession.trace,
                 excludedImportNames = emptyList(), packageFragmentForVisibilityCheck = null
             )
         }

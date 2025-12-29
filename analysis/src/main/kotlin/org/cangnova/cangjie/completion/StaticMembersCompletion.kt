@@ -79,7 +79,7 @@ class StaticMembersCompletion(
         }
 
     fun membersFromImports(file: CjFile): Collection<DeclarationDescriptor> {
-        val containers = file.importDirectivesItem.filter { !it.isAllUnder }.mapNotNull {
+        val containers = file.importDirectives.flatMap { it.importItems }.filter { !it.isAllUnder }.mapNotNull {
             it.targetDescriptors(resolutionFacade).map { descriptor ->
                 descriptor.containingDeclaration
             }.distinct().singleOrNull() as? ClassDescriptor

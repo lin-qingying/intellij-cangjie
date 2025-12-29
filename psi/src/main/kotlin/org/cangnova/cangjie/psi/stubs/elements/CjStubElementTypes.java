@@ -68,11 +68,9 @@ public interface CjStubElementTypes {
     CjPlaceHolderStubElementType<CjImportList> IMPORT_LIST =
             new CjPlaceHolderStubElementType<>("IMPORT_LIST", CjImportList.class);
 
-
-    CjImportDirectiveItemElementType IMPORT_DIRECTIVE_ITEM = new CjImportDirectiveItemElementType("IMPORT_DIRECTIVE_ITEM");
-    CjImportDirectiveElementType IMPORT_DIRECTIVE= new CjImportDirectiveElementType("IMPORT_DIRECTIVE");
-
-       CjImportAliasElementType IMPORT_ALIAS = new CjImportAliasElementType("IMPORT_ALIAS");
+    CjImportItemElementType IMPORT_ITEM = new CjImportItemElementType("IMPORT_ITEM");
+    CjImportDirectiveElementType IMPORT_DIRECTIVE = new CjImportDirectiveElementType("IMPORT_DIRECTIVE");
+    CjImportAliasElementType IMPORT_ALIAS = new CjImportAliasElementType("IMPORT_ALIAS");
 
 
     CjPackageDirectiveElementType PACKAGE_DIRECTIVE =

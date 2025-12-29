@@ -26,7 +26,7 @@ package org.cangnova.cangjie.references
 
 import com.intellij.psi.PsiReference
 import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.psi.CjImportDirectiveItem
+import org.cangnova.cangjie.psi.CjImportItem
 import org.cangnova.cangjie.psi.CjNameReferenceExpression
 import org.cangnova.cangjie.psi.CjPackageDirective
 import org.cangnova.cangjie.psi.CjUserType
@@ -49,7 +49,7 @@ class CangJieReferenceContributor : CangJieReferenceProviderContributor {
                 if (nameReferenceExpression.referencedNameElementType != CjTokens.IDENTIFIER) {
                     return@registerMultiProvider PsiReference.EMPTY_ARRAY
                 }
-                if (nameReferenceExpression.parents.any { it is CjImportDirectiveItem || it is CjPackageDirective || it is CjUserType }) {
+                if (nameReferenceExpression.parents.any { it is CjImportItem || it is CjPackageDirective || it is CjUserType }) {
                     return@registerMultiProvider PsiReference.EMPTY_ARRAY
                 }
                 when (nameReferenceExpression.readWriteAccess(useResolveForReadWrite = false)) {

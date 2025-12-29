@@ -250,19 +250,7 @@ fun CjFile.addImport(
             }
         } else {
 
-            // 如果已有导入，按字母顺序插入新导入
-            val importPathComparator = CangJieImportPathComparator.create(this)
-            val insertAfter = imports.lastOrNull {
-                val directivePath = it.firstImportPath
-                directivePath != null && importPathComparator.compare(directivePath, importPath) <= 0
-            }
-
-            // 如果导入已存在，直接返回已存在的导入
-            if (insertAfter is CjImportDirective && newDirective.firstImportPath == insertAfter.firstImportPath) return insertAfter
-
-            (importList.addAfter(newDirective, insertAfter) as CjImportDirective ).also {
-                importList.addBefore(psiFactory.createNewLine(1), it)
-            }
+          TODO()
         }
     } else {
         error("Trying to insert import $fqName into a file $name of type ${this::class.java} with no import list.")

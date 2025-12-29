@@ -431,7 +431,7 @@ val REDUNDANT_OPEN_IN_INTERFACE: DiagnosticFactory0<CjModifierListOwner> =
  * 冲突的导入
  */
 
-val CONFLICTING_IMPORT: DiagnosticFactory1<CjImportDirectiveItem, String> =
+val CONFLICTING_IMPORT: DiagnosticFactory1<CjImportItem, String> =
     DiagnosticFactory1.create(Severity.WARNING, PositioningStrategies.IMPORT_ALIAS)
 
 // ========================================

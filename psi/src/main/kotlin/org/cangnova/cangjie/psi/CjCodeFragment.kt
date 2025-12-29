@@ -196,8 +196,8 @@ abstract class CjCodeFragment(
         return null
     }
 
-    override val importDirectivesItem: List<CjImportDirectiveItem>
-        get() = importsAsImportList()?.importItems ?: emptyList()
+    override val importDirectivesItem: List<CjImportInfo>
+        get() = importsAsImportList()?.imports?.flatMap { it.importItems } ?: emptyList()
 
     fun getContextContainingFile(): CjFile? {
         return getOriginalContext()?.takeIf { it.isValid }?.getContainingCjFile()

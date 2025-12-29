@@ -282,7 +282,7 @@ val MODULE_CANNOT_BE_USED_AS_TYPE: DiagnosticFactory1<CjSimpleNameExpression, Na
  * 例如：public import std.core 是非法的
  */
 
-val PACKAGE_CANNOT_BE_REEXPORTED: DiagnosticFactory2<CjImportDirectiveItem, FqName, DescriptorVisibility> =
+val PACKAGE_CANNOT_BE_REEXPORTED: DiagnosticFactory2<CjImportItem, FqName, DescriptorVisibility> =
     DiagnosticFactory2.create(Severity.ERROR)
 
 /**
@@ -320,14 +320,14 @@ val CANNOT_ALL_UNDER_IMPORT_FROM_ENUM: DiagnosticFactory1<CjSimpleNameExpression
  * 自导入不允许
  */
 
-val SELF_IMPORT_NOT_ALLOWED: DiagnosticFactory1<CjImportDirectiveItem, FqName> =
+val SELF_IMPORT_NOT_ALLOWED: DiagnosticFactory1<CjImportItem, FqName> =
     DiagnosticFactory1.create(Severity.ERROR)
 
 /**
  * 导入的包修改不允许
  */
 
-val IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED: DiagnosticFactory2<CjImportDirectiveItem, FqName, DescriptorVisibility> =
+val IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED: DiagnosticFactory2<CjImportItem, FqName, DescriptorVisibility> =
     DiagnosticFactory2.create(Severity.ERROR)
 
 /**

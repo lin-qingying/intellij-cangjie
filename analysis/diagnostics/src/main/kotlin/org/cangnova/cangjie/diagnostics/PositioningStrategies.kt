@@ -93,9 +93,9 @@ object PositioningStrategies {
      * ```
      */
     
-    val IMPORT_ALIAS: PositioningStrategy<CjImportDirectiveItem> =
-        object : PositioningStrategy<CjImportDirectiveItem>() {
-            override fun mark(element: CjImportDirectiveItem): List<TextRange> {
+    val IMPORT_ALIAS: PositioningStrategy<CjImportItem> =
+        object : PositioningStrategy<CjImportItem>() {
+            override fun mark(element: CjImportItem): List<TextRange> {
                 element.alias?.nameIdentifier?.let { return markElement(it) }
                 element.importedReference?.let {
                     if (it is CjQualifiedExpression) {
@@ -291,7 +291,7 @@ object PositioningStrategies {
                     is CjElement -> return mark(selectorExpression)
                 }
             }
-            if (element is CjImportDirectiveItem) {
+            if (element is CjImportItem) {
                 element.alias?.nameIdentifier?.let { return mark(it) }
                 element.importedReference?.let { return mark(it) }
             }

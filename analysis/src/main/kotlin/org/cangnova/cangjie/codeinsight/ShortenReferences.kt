@@ -695,7 +695,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                 ?: return AnalyzeQualifiedElementResult.Skip
 
 
-            val import = file.importList?.importItems?.filter {
+            val import = file.importDirectives.flatMap { it.importItems }.filter {
                 it.importedFqName == target.fqNameSafe.parent()
             }
 
@@ -715,7 +715,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
 //                isDeprecated = false
 //            }
 
-            val canShortenNow = !import.isNullOrEmpty()
+            val canShortenNow = import.isNotEmpty()
             return if (canShortenNow) {
                 AnalyzeQualifiedElementResult.ShortenNow
             } else {
@@ -861,7 +861,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
         ): AnalyzeQualifiedElementResult {
             if (PsiTreeUtil.getParentOfType(
                     element,
-                    CjImportDirectiveItem::class.java,
+                    CjImportItem::class.java,
                     CjPackageDirective::class.java
                 ) != null ||
                 !canBePossibleToDropReceiver(element, bindingContext)
@@ -1094,7 +1094,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
 
             if (PsiTreeUtil.getParentOfType(
                     element,
-                    CjImportDirectiveItem::class.java,
+                    CjImportItem::class.java,
                     CjPackageDirective::class.java
                 ) != null
             ) {

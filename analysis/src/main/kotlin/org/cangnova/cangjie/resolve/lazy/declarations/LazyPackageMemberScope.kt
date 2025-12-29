@@ -31,7 +31,9 @@ import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.incremental.record
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjDeclaration
-import org.cangnova.cangjie.psi.CjImportDirectiveItem
+import org.cangnova.cangjie.psi.CjImportDirective
+import org.cangnova.cangjie.psi.CjImportItem
+import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import org.cangnova.cangjie.resolve.isReexport
 import org.cangnova.cangjie.resolve.lazy.ResolveSession
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
@@ -63,20 +65,20 @@ class LazyPackageMemberScope(
      *
      * 从当前包的所有文件中收集 public/protected/internal import 语句
      */
-    private val reexportImports: Collection<CjImportDirectiveItem> by lazy {
+    private val reexportImports: Collection<CjImportItem> by lazy {
         collectReexportImports()
     }
 
     /**
      * 从当前包的所有文件收集重导出导入指令
      */
-    private fun collectReexportImports(): List<CjImportDirectiveItem> {
-        val result = mutableListOf<CjImportDirectiveItem>()
+    private fun collectReexportImports(): List<CjImportItem> {
+        val result = mutableListOf<CjImportItem>()
         val packageFiles = declarationProvider.getPackageFiles()
 
         for (file in packageFiles) {
             for (importDirective in file.importDirectives) {
-                for (importItem in importDirective.items) {
+                for (importItem in importDirective.importItems) {
                     if (importItem.isReexport) {
                         result.add(importItem)
                     }
@@ -90,7 +92,7 @@ class LazyPackageMemberScope(
     /**
      * 解析重导出的导入目标，返回实际的声明描述符
      */
-    private fun resolveReexportTarget(importDirective: CjImportDirectiveItem): List<DeclarationDescriptor> {
+    private fun resolveReexportTarget(importDirective: CjImportItem): List<DeclarationDescriptor> {
         val importedFqName = importDirective.importedFqName ?: return emptyList()
 
         // 解析导入的目标

@@ -24,17 +24,15 @@
 package org.cangnova.cangjie.psi.stubs.elements
 
 import org.cangnova.cangjie.psi.CjImportDirective
-import org.cangnova.cangjie.psi.CjImportDirectiveItem
-import org.cangnova.cangjie.psi.stubs.CangJieImportDirectiveItemStub
+import org.cangnova.cangjie.psi.CjImportItem
 import org.cangnova.cangjie.psi.stubs.CangJieImportDirectiveStub
 import org.cangnova.cangjie.psi.stubs.elements.StubIndexService.Companion.getInstance
-import org.cangnova.cangjie.psi.stubs.impl.CangJieImportDirectiveItemStubImpl
 import org.cangnova.cangjie.psi.stubs.impl.CangJieImportDirectiveStubImpl
 import com.intellij.psi.stubs.IndexSink
 import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
-import com.intellij.util.io.StringRef
+import org.cangnova.cangjie.psi.CjNodeType
 import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
@@ -45,14 +43,43 @@ class CjImportDirectiveElementType(debugName: @NonNls String) :
         CangJieImportDirectiveStub::class.java,
     ) {
     override fun createStub(psi: CjImportDirective, parentStub: StubElement<*>?): CangJieImportDirectiveStub {
+        // 从 PSI 收集所有导入项信息
+        val importItems = psi.importItems.map { item ->
+            CangJieImportDirectiveStub.ImportItemInfo(
+                importedFqName = item.importedFqName,
+                isAllUnder = item.isAllUnder,
+                aliasName = item.aliasName
+            )
+        }
+
         return CangJieImportDirectiveStubImpl(
             parentStub!!,
-
+            importItems
         )
     }
 
     @Throws(IOException::class)
     override fun serialize(stub: CangJieImportDirectiveStub, dataStream: StubOutputStream) {
+        val items = stub.getImportItems()
+        dataStream.writeInt(items.size)
+
+        for (item in items) {
+            // 序列化 FqName (可能为 null)
+            val fqName = item.importedFqName?.asString()
+            dataStream.writeBoolean(fqName != null)
+            if (fqName != null) {
+                dataStream.writeName(fqName)
+            }
+
+            // 序列化 isAllUnder
+            dataStream.writeBoolean(item.isAllUnder)
+
+            // 序列化 aliasName (可能为 null)
+            dataStream.writeBoolean(item.aliasName != null)
+            if (item.aliasName != null) {
+                dataStream.writeName(item.aliasName)
+            }
+        }
     }
 
     override fun indexStub(stub: CangJieImportDirectiveStub, sink: IndexSink) {
@@ -61,51 +88,40 @@ class CjImportDirectiveElementType(debugName: @NonNls String) :
 
     @Throws(IOException::class)
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieImportDirectiveStub {
+        val itemCount = dataStream.readInt()
+        val items = mutableListOf<CangJieImportDirectiveStub.ImportItemInfo>()
+
+        for (i in 0 until itemCount) {
+            // 反序列化 FqName
+            val hasFqName = dataStream.readBoolean()
+            val fqName = if (hasFqName) {
+                val fqNameStr = dataStream.readNameString()
+                if (fqNameStr != null) org.cangnova.cangjie.name.FqName(fqNameStr) else null
+            } else {
+                null
+            }
+
+            // 反序列化 isAllUnder
+            val isAllUnder = dataStream.readBoolean()
+
+            // 反序列化 aliasName
+            val hasAlias = dataStream.readBoolean()
+            val aliasName = if (hasAlias) dataStream.readNameString() else null
+
+            items.add(CangJieImportDirectiveStub.ImportItemInfo(fqName, isAllUnder, aliasName))
+        }
+
         return CangJieImportDirectiveStubImpl(
             parentStub,
+            items
         )
     }
 }
 
-class CjImportDirectiveItemElementType(debugName: @NonNls String) :
-    CjStubElementType<CangJieImportDirectiveItemStub, CjImportDirectiveItem>(
-        debugName,
-        CjImportDirectiveItem::class.java,
-        CangJieImportDirectiveItemStub::class.java,
-    ) {
-    override fun createStub(psi: CjImportDirectiveItem, parentStub: StubElement<*>?): CangJieImportDirectiveItemStub {
-        val importedFqName = psi.importedFqName
-        val fqName = StringRef.fromString(importedFqName?.asString())
-        return CangJieImportDirectiveItemStubImpl(
-            parentStub!!,
-            psi.isAllUnder,
-            fqName,
-            psi.isValidImport,
-        )
-    }
-
-    @Throws(IOException::class)
-    override fun serialize(stub: CangJieImportDirectiveItemStub, dataStream: StubOutputStream) {
-        dataStream.writeBoolean(stub.isAllUnder())
-        val importedFqName = stub.getImportedFqName()
-        dataStream.writeName(importedFqName?.asString())
-        dataStream.writeBoolean(stub.isValid())
-    }
-
-    override fun indexStub(stub: CangJieImportDirectiveItemStub, sink: IndexSink) {
-        getInstance().indexImports(stub, sink)
-    }
-
-    @Throws(IOException::class)
-    override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieImportDirectiveItemStub {
-        val isAllUnder = dataStream.readBoolean()
-        val importedName = dataStream.readName()
-        val isValid = dataStream.readBoolean()
-        return CangJieImportDirectiveItemStubImpl(
-            parentStub,
-            isAllUnder,
-            importedName,
-            isValid,
-        )
-    }
-}
+/**
+ * 导入项元素类型（轻量级，不使用 Stub）
+ *
+ * CjImportItem 不需要索引，因为索引由父 CjImportDirective 处理
+ */
+class CjImportItemElementType(debugName: @NonNls String) :
+    CjNodeType(debugName, CjImportItem::class.java)

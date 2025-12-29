@@ -37,6 +37,7 @@ import org.cangnova.cangjie.diagnostics.infos.errors.PACKAGE_ACCESS_VIOLATION
 import org.cangnova.cangjie.incremental.CangJieLookupLocation
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.lazy.*
@@ -110,7 +111,7 @@ class LazyTopDownAnalyzer(
         val typeAliases = mutableListOf<CjTypeAlias>()
 //        val destructuringDeclarations = mutableListOf<CjDestructuringDeclaration>()
 
-        val reexports = mutableListOf<CjImportDirectiveItem>()
+        val reexports = mutableListOf<CjImportItem>()
 
         val topLevelFqNames = HashMultimap.create<FqName, CjElement>()
 
@@ -153,16 +154,16 @@ class LazyTopDownAnalyzer(
                     throw IllegalArgumentException("Unsupported declaration: " + dcl + " " + dcl.text)
                 }
 
-                override fun visitImportDirectiveItem(importDirective: CjImportDirectiveItem) {
-                    val importResolver = fileScopeProvider.getImportResolver(importDirective.getContainingCjFile())
+                override fun visitImportItem(importItem: CjImportItem, data: Unit?) {
+                    val importResolver = fileScopeProvider.getImportResolver(importItem.getContainingCjFile())
 
 //                    TODO 修改该语句，添加重导出回调，返回包名映射
-                    importResolver.forceResolveImport(importDirective)
+                    importResolver.forceResolveImport(importItem)
 
 
 
-                    if (importDirective.modifierVisibility != DescriptorVisibilities.PRIVATE) {
-                        reexports.add(importDirective)
+                    if (importItem.getStrictParentOfType<CjImportDirective>()?.modifierVisibility != DescriptorVisibilities.PRIVATE) {
+                        reexports.add(importItem)
                     }
                 }
 
@@ -372,7 +373,7 @@ class LazyTopDownAnalyzer(
 //        runReadAction {
 //            val packageFqname = file.packageFqName
 //
-//            for (importDirective in file.importDirectivesItem) {
+//            for (importDirective in file.getStrictParentOfType<CjImportDirective>()sItem) {
 //                val result =
 //                    importDirective.importedFqName
 //                        ?.let { CangJieImportFqNameForPackageNameIndex.contains(packageFqname, it, file.project) }
@@ -416,7 +417,7 @@ class LazyTopDownAnalyzer(
     private fun createReexportsDescriptors(
         c: TopDownAnalysisContext,
         topLevelFqNames: Multimap<FqName, CjElement>,
-        reexports: List<CjImportDirectiveItem>
+        reexports: List<CjImportItem>
     ) {
 //        for (reexport in reexports) {
 //            val descriptor = lazyDeclarationResolver.resolveToDescriptor(typeAlias) as TypeAliasDescriptor

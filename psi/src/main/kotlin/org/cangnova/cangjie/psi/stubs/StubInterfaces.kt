@@ -395,17 +395,31 @@ interface CangJiePackageDirectiveStub : StubElement<CjPackageDirective>
 
 
 interface CangJieImportDirectiveStub : StubElement<CjImportDirective> {
-
+    /**
+     * 获取包的完全限定名
+     */
     fun getPackageFqName(): FqName?
+
+    /**
+     * 获取所有导入项的信息
+     * 返回 List<ImportItemInfo>，每个元素包含：
+     * - importedFqName: 导入的完全限定名
+     * - isAllUnder: 是否是通配符导入
+     * - aliasName: 别名(如果有)
+     */
+    fun getImportItems(): List<ImportItemInfo>
+
+    /**
+     * 导入项信息数据类
+     */
+    data class ImportItemInfo(
+        val importedFqName: FqName?,
+        val isAllUnder: Boolean,
+        val aliasName: String?
+    )
 }
 
-interface CangJieImportDirectiveItemStub : StubElement<CjImportDirectiveItem> {
-    fun isAllUnder(): Boolean
-    fun getImportedFqName(): FqName?
-    fun isValid(): Boolean
 
-    fun getPackageFqName(): FqName?
-}
 
 interface CangJieTypeProjectionStub : StubElement<CjTypeProjection> {
     fun getProjectionKind(): CjProjectionKind

@@ -44,8 +44,8 @@ class CjImportAlias : CjElementImplStub<CangJieImportAliasStub>, PsiNameIdentifi
         return visitor.visitImportAlias(this, data)
     }
 
-    val importDirective: CjImportDirectiveItem?
-        get() = parent as? CjImportDirectiveItem
+    val importDirective: CjImportInfo?
+        get() = parent as? CjImportInfo
 
     override fun getName() = stub?.getName() ?: nameIdentifier?.text
 

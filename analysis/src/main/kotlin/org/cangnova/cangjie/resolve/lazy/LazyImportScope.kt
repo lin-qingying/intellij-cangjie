@@ -130,7 +130,7 @@ interface ImportForceResolver {
      *
      * @param importDirective 要解析的导入指令
      */
-    fun forceResolveImport(importDirective: CjImportDirectiveItem)
+    fun forceResolveImport(importDirective: CjImportItem)
 }
 
 /**
@@ -375,7 +375,7 @@ open class LazyImportResolver<I : CjImportInfo>(
 
 
 /**
- * LazyImportResolverForCjImportDirective 是用于解析 CjImportDirectiveItem 的 LazyImportResolver 实现。
+ * LazyImportResolverForCjImportDirective 是用于解析 CjImportItem 的 LazyImportResolver 实现。
  * 它负责在需要时解析导入语句，处理特定的导入逻辑。
  *
  * @param components 提供解析导入所需的各种组件。
@@ -386,11 +386,11 @@ open class LazyImportResolver<I : CjImportInfo>(
  */
 class LazyImportResolverForCjImportDirective(
     components: ImportResolutionComponents,
-    indexedImports: IndexedImports<CjImportDirectiveItem>,
+    indexedImports: IndexedImports<CjImportItem>,
     excludedImportNames: Collection<FqName>,
     traceForImportResolve: BindingTrace,
     packageFragment: PackageFragmentDescriptor?
-) : LazyImportResolver<CjImportDirectiveItem>(
+) : LazyImportResolver<CjImportItem>(
     components, indexedImports, excludedImportNames, traceForImportResolve, packageFragment
 ), ImportForceResolver {
     /**
@@ -407,7 +407,7 @@ class LazyImportResolverForCjImportDirective(
      * @param importDirective 要检查的导入指令信息。
      */
     private fun checkResolvedImportDirective(importDirective: CjImportInfo) {
-        if (importDirective !is CjImportDirectiveItem) return
+        if (importDirective !is CjImportItem) return
         val importedReference = CjPsiUtil.getLastReference(importDirective.importedReference ?: return) ?: return
         val importedDescriptor =
             traceForImportResolve.bindingContext[BindingContext.REFERENCE_TARGET, importedReference] ?: return
@@ -426,7 +426,7 @@ class LazyImportResolverForCjImportDirective(
      * 这个值是懒加载的，以提高性能。
      */
     private val forceResolveNonDefaultImportsTask: NotNullLazyValue<Unit> = components.storageManager.createLazyValue {
-        val explicitClassImports = HashMultimap.create<String, CjImportDirectiveItem>()
+        val explicitClassImports = HashMultimap.create<String, CjImportItem>()
         for (importInfo in indexedImports.imports) {
             forceResolveImport(importInfo)
 
@@ -470,7 +470,7 @@ class LazyImportResolverForCjImportDirective(
      * 它确保相同地导入指令不会被多次解析。
      */
     private val forceResolveImportDirective =
-        components.storageManager.createMemoizedFunction { directive: CjImportDirectiveItem ->
+        components.storageManager.createMemoizedFunction { directive: CjImportItem ->
             val scope = getImportScope(directive)
             if (scope is LazyExplicitImportScope) {
                 val allDescriptors = scope.storeReferencesToDescriptors()
@@ -487,7 +487,7 @@ class LazyImportResolverForCjImportDirective(
      *
      * @param importDirective 要解析的导入指令。
      */
-    override fun forceResolveImport(importDirective: CjImportDirectiveItem) {
+    override fun forceResolveImport(importDirective: CjImportItem) {
 
         forceResolveImportDirective(importDirective)
     }

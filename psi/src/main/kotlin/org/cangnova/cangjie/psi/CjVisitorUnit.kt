@@ -84,8 +84,8 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
         super.visitTypeStatement(typeStatement, Unit)
     }
 
-    open fun visitClass(klass: CjClass) {
-        super.visitClass(klass, Unit)
+    open fun visitClass(cclass: CjClass) {
+        super.visitClass(cclass, Unit)
     }
 
     override fun visitExtend(extend: CjExtend, data: Unit?): Unit {
@@ -158,9 +158,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
         super.visitImportDirective(importDirective, Unit)
     }
 
-    open fun visitImportDirectiveItem(importDirective: CjImportDirectiveItem) {
-        super.visitImportDirectiveItem(importDirective, Unit)
-    }
+
 
     open fun visitImportList(importList: CjImportList) {
         super.visitImportList(importList, Unit)
@@ -501,10 +499,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
 
     }
 
-    override fun visitImportDirectiveItem(importDirectiveItem: CjImportDirectiveItem, data: Unit?): Unit {
-        visitImportDirectiveItem(importDirectiveItem)
 
-    }
 
     override fun visitImportDirective(importDirective: CjImportDirective, data: Unit?): Unit {
         visitImportDirective(importDirective)

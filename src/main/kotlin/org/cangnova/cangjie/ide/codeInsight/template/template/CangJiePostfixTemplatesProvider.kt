@@ -141,7 +141,7 @@ object CangJiePostfixTemplateInfo {
 internal object NonPackageAndNonImportFilter : (CjExpression) -> Boolean {
     override fun invoke(expression: CjExpression): Boolean {
         val parent = expression.parent
-        return parent !is CjPackageDirective && parent !is CjImportDirective && parent !is CjImportDirectiveItem
+        return parent !is CjPackageDirective && parent !is CjImportDirective && parent !is CjImportItem
     }
 }
 
