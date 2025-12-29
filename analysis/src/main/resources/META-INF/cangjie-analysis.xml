@@ -248,6 +248,11 @@
                 description="Disables auto-completion inside expressions"
                 defaultValue="false"
                 restartRequired="false"/>
+        <registryKey
+                key="cangjie.auto.completion.insert.constructor.parenthesis"
+                description="Automatically insert parentheses after constructor completion"
+                defaultValue="true"
+                restartRequired="false"/>
 
 
         <applicationService serviceImplementation="org.cangnova.cangjie.refactoring.CangJieRefactoringSettings"/>

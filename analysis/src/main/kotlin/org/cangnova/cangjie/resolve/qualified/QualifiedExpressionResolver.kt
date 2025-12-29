@@ -1067,6 +1067,17 @@ class QualifiedExpressionResolver(
             return Pair(classifierDescriptor, 1)
         }
 
+        // 尝试从导入作用域中查找包
+        // 例如: import std.core 后，可以使用 core.String
+        // 此时 core 需要从导入中解析，而不是从模块的直接包中
+        val importedPackage = scopeForFirstPart?.findPackage(firstPart.name)
+        if (importedPackage != null && !importedPackage.isEmpty()) {
+            storeResult(
+                trace, firstPart.expression, importedPackage, shouldBeVisibleFrom, position,
+                scope = scopeForFirstPart
+            )
+            return Pair(importedPackage, 1)
+        }
 
         val (prefixDescriptor, nextIndexAfterPrefix) = moduleDescriptor.quickResolveToPackage(
             shouldBeVisibleFrom,

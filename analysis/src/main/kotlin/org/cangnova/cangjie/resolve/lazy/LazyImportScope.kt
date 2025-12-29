@@ -671,10 +671,32 @@ class LazyImportScope(
     /**
      * 获取贡献的包视图描述符
      *
+     * 当使用 `import pkg.subpkg` 语法导入包时，此方法用于解析包名称。
+     * 例如：`import std.core` 后，可以使用 `core.String` 访问 core 包中的类型。
+     *
      * @param name 名称
      * @return 包视图描述符，如果找不到则返回null
      */
-    override fun getContributedPackage(name: Name): PackageViewDescriptor? = null
+    override fun getContributedPackage(name: Name): PackageViewDescriptor? {
+        return importResolver.getPackage(name) ?: secondaryImportResolver?.getPackage(name)
+    }
+
+    /**
+     * 从导入解析器中获取包
+     *
+     * @param name 包名称
+     * @return 匹配的包视图描述符，如果没有找到则返回null
+     */
+    private fun LazyImportResolver<*>.getPackage(name: Name): PackageViewDescriptor? =
+        components.storageManager.compute {
+            for (directive in indexedImports.importsForName(name)) {
+                val packageDescriptor = getImportScope(directive).getContributedPackage(name)
+                if (packageDescriptor != null) {
+                    return@compute packageDescriptor
+                }
+            }
+            null
+        }
 
     /**
      * 获取贡献的变量描述符集合

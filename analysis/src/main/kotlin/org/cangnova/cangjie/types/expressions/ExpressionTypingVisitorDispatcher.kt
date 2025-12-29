@@ -311,7 +311,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
 
                     context.trace.record(BindingContext.EXPRESSION_TYPE_INFO, expression, result)
                 } catch (e: ReenteringLazyValueComputationException) {
-                    TODO()
+//                    TODO()
 //                    context.trace.report(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM.onError(expression))
                     result = noTypeInfo(context)
                 }
