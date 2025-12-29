@@ -390,10 +390,14 @@ open class CjFile(viewProvider: FileViewProvider, isCompiled: Boolean = false, v
  * @return 如果导入列表包含任何导入别名，则为true，否则为false
  */
 private fun CjImportList.computeHasImportAlias(): Boolean {
+    // 需要检查 CjImportDirective 的子元素 CjImportItem
     var child: PsiElement? = firstChild
     while (child != null) {
         when (child) {
-            is CjImportItem -> if (child.alias != null) return true
+            is CjImportDirective -> {
+                // 检查导入指令中的所有导入项
+                if (child.importItems.any { it.alias != null }) return true
+            }
         }
         child = child.nextSibling
     }

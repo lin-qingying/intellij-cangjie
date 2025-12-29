@@ -847,9 +847,6 @@ class CangJieParsing private constructor(
             expect(RBRACE, "Expecting '}'")
         } else {
             // 需要先解析限定名，然后判断是单项导入还是同包多项导入
-            // 使用 marker 来实现回溯
-            val pathStart = builder.currentOffset
-
             // 解析限定名
             if (!at(IDENTIFIER)) {
                 error("Expecting qualified name")
@@ -878,16 +875,17 @@ class CangJieParsing private constructor(
 
             // 检查是否为同包多项导入 import a.{b, c}
             if (at(DOT) && lookahead(1) == LBRACE) {
-                qualifiedName.drop()
+                // 保留 qualifiedName 作为基础路径，让 CjImportDirective.importedReference 可以访问
+                qualifiedName.drop()  // 虽然 drop，但表达式已经在 AST 中
                 advance() // DOT
                 advance() // LBRACE
                 parseImportItemList()
                 expect(RBRACE, "Expecting '}'")
             } else {
                 // 单项导入: import a.b 或 import a.b.*
+                // 需要将表达式放入 IMPORT_ITEM 中
+                val item = qualifiedName.precede()
                 qualifiedName.drop()
-
-                val item = mark()
 
                 // 处理通配符
                 if (at(DOT) && lookahead(1) == MUL) {

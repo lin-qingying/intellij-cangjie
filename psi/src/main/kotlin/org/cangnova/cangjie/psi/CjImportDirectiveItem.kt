@@ -168,15 +168,47 @@ class CjImportItem(node: ASTNode) : CjElementImpl(node), CjImportInfo {
 
     /**
      * 获取导入的完全限定名
+     *
+     * 对于同包多项导入 (import a.{b, c})，需要组合基础路径和项路径
      */
     override val importedFqName: FqName?
         get() {
             _importedFqName?.let { return it }
 
-            val reference = importedReference ?: return null
-            val fqName = CjImportDirective.fqNameFromExpression(reference)
-            _importedFqName = fqName
-            return fqName
+            val reference = importedReference
+            val fqName = if (reference != null) {
+                // 项自身有表达式，直接从表达式构建 FqName
+                CjImportDirective.fqNameFromExpression(reference)
+            } else {
+                // 项没有表达式，可能是通配符导入
+                null
+            }
+
+            // 检查父级 ImportDirective 是否有基础路径
+            val directive = getStrictParentOfType<CjImportDirective>()
+            val basePath = directive?.importedReference?.let {
+                CjImportDirective.fqNameFromExpression(it)
+            }
+
+            // 组合基础路径和项路径
+            val finalFqName = when {
+                basePath != null && fqName != null -> {
+                    // 有基础路径，组合: a + b.C = a.b.C
+                    basePath.child(fqName)
+                }
+                fqName != null -> {
+                    // 只有项路径，直接使用
+                    fqName
+                }
+                basePath != null -> {
+                    // 只有基础路径（通配符导入: a.*）
+                    basePath
+                }
+                else -> null
+            }
+
+            _importedFqName = finalFqName
+            return finalFqName
         }
 
     /**

@@ -53,7 +53,26 @@ class CjImportParsingTest : CangJieTestBase() {
         assertFalse(item.isAllUnder)
         assertNull(item.aliasName)
     }
+    fun `test single public import with wildcard`() {
+        val file = factory.createFile("""
+            package test
+           public import a.b.*
 
+            main() {}
+        """.trimIndent())
+
+        val importDirectives = file.importDirectives
+        assertEquals(1, importDirectives.size)
+
+        val directive = importDirectives[0]
+        val items = directive.importItems
+        assertEquals(1, items.size)
+
+        val item = items[0]
+        assertEquals(FqName("a.b"), item.importedFqName)
+        assertTrue(item.isAllUnder)
+        assertNull(item.aliasName)
+    }
     fun `test single import with wildcard`() {
         val file = factory.createFile("""
             package test
@@ -382,11 +401,11 @@ class CjImportParsingTest : CangJieTestBase() {
         // 测试查找别名
         val myC = file.findImportByAlias("MyC")
         assertNotNull(myC)
-        assertEquals(FqName("a.b.C"), myC?.importedFqName)
+        assertEquals(FqName("a.b.C"), myC.importedFqName)
 
         val myZ = file.findImportByAlias("MyZ")
         assertNotNull(myZ)
-        assertEquals(FqName("x.y.Z"), myZ?.importedFqName)
+        assertEquals(FqName("x.y.Z"), myZ.importedFqName)
 
         // 测试查找不存在的别名
         val notFound = file.findImportByAlias("NotExists")
@@ -409,15 +428,15 @@ class CjImportParsingTest : CangJieTestBase() {
         // 测试带别名的 ImportPath
         val path1 = items[0].importPath
         assertNotNull(path1)
-        assertEquals(FqName("a.b.C"), path1?.fqName)
-        assertFalse(path1?.isAllUnder ?: true)
-        assertEquals("MyC", path1?.alias?.asString())
+        assertEquals(FqName("a.b.C"), path1.fqName)
+        assertFalse(path1.isAllUnder )
+        assertEquals("MyC", path1.alias?.asString())
 
         // 测试通配符的 ImportPath
         val path2 = items[1].importPath
         assertNotNull(path2)
-        assertEquals(FqName("x.y"), path2?.fqName)
-        assertTrue(path2?.isAllUnder ?: false)
-        assertNull(path2?.alias)
+        assertEquals(FqName("x.y"), path2.fqName)
+        assertTrue(path2.isAllUnder)
+        assertNull(path2.alias)
     }
 }

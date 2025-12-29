@@ -33,6 +33,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # 清理构建产物
 ./gradlew clean
 ```
+不要进行编译测试，除非明确要求
 
 ### 词法分析器生成
 

@@ -291,14 +291,14 @@ class CjPsiFactoryTest : CangJieTestBase() {
         // 测试基本导入
         val basicImport = ImportPath(FqName("test.package.Class"), isAllUnder = false)
         val importDirective = factory.createImportDirective(basicImport)
-        check(importDirective.items.size == 1)
-        check(importDirective.items[0].importedFqName?.asString() == "test.package.Class")
+        check(importDirective.importItems.size == 1)
+        check(importDirective.importItems[0].importedFqName?.asString() == "test.package.Class")
 
         // 测试全部导入
         val allImport = ImportPath(FqName("test.package"), isAllUnder = true)
         val allImportDirective = factory.createImportDirective(allImport)
-        check(allImportDirective.items.size == 1)
-        check(allImportDirective.items[0].isAllUnder)
+        check(allImportDirective.importItems.size == 1)
+        check(allImportDirective.importItems[0].isAllUnder)
 
         // 测试带别名的导入
         val aliasImport = ImportPath(
@@ -307,9 +307,9 @@ class CjPsiFactoryTest : CangJieTestBase() {
             alias = Name.identifier("MyClass")
         )
         val aliasImportDirective = factory.createImportDirective(aliasImport)
-        check(aliasImportDirective.items.size == 1)
-        check(aliasImportDirective.items[0].aliasName == "MyClass")
-        check(aliasImportDirective.items[0].isValidImport)
+        check(aliasImportDirective.importItems.size == 1)
+        check(aliasImportDirective.importItems[0].aliasName == "MyClass")
+        check(aliasImportDirective.importItems[0].isValidImport)
 
         // 测试非法导入（根路径）
         try {
