@@ -38,6 +38,7 @@ import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.*
 import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.psi.CjDeclarationStub
+import org.cangnova.cangjie.psi.CjImportDirective
 import org.cangnova.cangjie.psi.CjImportDirectiveItem
 import org.cangnova.cangjie.psi.CjNamedDeclaration
 import org.cangnova.cangjie.psi.CjPackageDirective
@@ -1140,7 +1141,7 @@ val <T : StubElement<*>> CjDeclarationStub<T>.modifierVisibility: DescriptorVisi
  *
  * 注意：与普通声明不同，导入语句默认为 PRIVATE
  */
-val CjImportDirectiveItem.importVisibility: DescriptorVisibility
+val CjImportDirective.importVisibility: DescriptorVisibility
     get() {
         if (hasModifier(CjTokens.PRIVATE_KEYWORD)) return DescriptorVisibilities.PRIVATE
         if (hasModifier(CjTokens.INTERNAL_KEYWORD)) return DescriptorVisibilities.INTERNAL
@@ -1148,6 +1149,10 @@ val CjImportDirectiveItem.importVisibility: DescriptorVisibility
         if (hasModifier(CjTokens.PUBLIC_KEYWORD)) return DescriptorVisibilities.PUBLIC
         // 导入语句默认为 PRIVATE（不重导出）
         return DescriptorVisibilities.PRIVATE
+    }
+val CjImportDirectiveItem.importVisibility: DescriptorVisibility
+    get() {
+       return this.importDirective.importVisibility
     }
 
 /**
@@ -1157,7 +1162,7 @@ val CjImportDirectiveItem.importVisibility: DescriptorVisibility
  * private 导入（包括默认无修饰符）不是重导出。
  */
 val CjImportDirectiveItem.isReexport: Boolean
-    get() = importVisibility != DescriptorVisibilities.PRIVATE
+    get() = this.importDirective.importVisibility != DescriptorVisibilities.PRIVATE
 
 /**
  * 获取表示的类描述符
@@ -1265,7 +1270,7 @@ fun DescriptorVisibility.toKeywordToken(): CjModifierKeywordToken = when (val no
 val CjDeclaration.visibility: DescriptorVisibility
     get() = when (this) {
         is CjDeclarationStub<*> -> this.modifierVisibility
-        is CjImportDirectiveItem -> this.importVisibility
+        is CjImportDirective -> this.importVisibility
 
         else -> DescriptorVisibilities.INTERNAL
     }

@@ -51,7 +51,7 @@ import org.cangnova.cangjie.types.expressions.ExpressionTypingServices
 import jakarta.inject.Inject
 import org.cangnova.cangjie.psi.codeFragmentUtil.suppressDiagnosticsInDebugMode
 import org.cangnova.cangjie.resolve.binding.BindingContext
-import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolverFacade
 import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
 import org.cangnova.cangjie.types.expressions.CangJieTypeInfo
 
@@ -73,7 +73,7 @@ private fun CangJieTypeRefiner.refineBareType(type: PossiblyBareType): PossiblyB
 
 class DoubleColonExpressionResolver(
     val callResolver: CallResolver,
-    val qualifiedExpressionResolver: QualifiedExpressionResolver,
+    val qualifiedExpressionResolver: QualifiedExpressionResolverFacade,
     val dataFlowAnalyzer: DataFlowAnalyzer,
     val reflectionTypes: ReflectionTypes,
     val typeResolver: TypeResolver,

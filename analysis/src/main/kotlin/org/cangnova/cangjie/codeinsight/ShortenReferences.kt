@@ -68,7 +68,7 @@ import org.cangnova.cangjie.messages.CangJieCodeInsightBundle
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.deprecation.unwrapIfFakeOverride
 import org.cangnova.cangjie.resolve.fqNameSafe
-import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver.Companion.ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolverFacade.Companion.ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE
 import org.cangnova.cangjie.utils.canBeReferencedViaImport
 import org.cangnova.cangjie.utils.getImportableTargets
 import java.awt.EventQueue.isDispatchThread

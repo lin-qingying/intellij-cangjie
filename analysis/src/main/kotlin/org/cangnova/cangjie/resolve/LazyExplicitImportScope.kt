@@ -150,13 +150,7 @@ class LazyExplicitImportScope(
     private val declaredName: Name,
     private val aliasName: Name,
     private val storeReferences: CallOnceFunction<Collection<DeclarationDescriptor>, Unit>,
-    /**
-     * 重导出作用域，用于查找包中被重导出的声明
-     *
-     * 当从包中导入单个声明时（如 `import pkg.a.Foo`），如果 `Foo` 不是 `pkg.a` 的直接成员，
-     * 而是 `pkg.a` 重导出的声明（如 `public import other.Foo`），则需要在此作用域中查找。
-     */
-    private val reexportScope: MemberScope? = null
+
 ) : BaseImportingScope(null) {
 
     /**
@@ -188,10 +182,7 @@ class LazyExplicitImportScope(
             else -> throw IllegalStateException("Should be class or package: $packageOrClassDescriptor")
         }
 
-        // 如果在成员作用域中没找到，尝试在重导出作用域中查找
-        if (result == null && reexportScope != null) {
-            return reexportScope.getContributedClassifier(declaredName, location)
-        }
+
 
         return result
     }
@@ -446,10 +437,6 @@ class LazyExplicitImportScope(
             else -> throw IllegalStateException("Should be class or package: $packageOrClassDescriptor")
         }
 
-        // 如果在成员作用域中没找到，尝试从重导出作用域中查找
-        if (descriptors.isEmpty() && reexportScope != null) {
-            descriptors.addAll(reexportScope.getDescriptors(declaredName, location))
-        }
 
         // 返回所有收集到的描述符，经过可见性过滤
         return descriptors.choseOnlyVisibleOrAll()

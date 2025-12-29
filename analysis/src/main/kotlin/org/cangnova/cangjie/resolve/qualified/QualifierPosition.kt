@@ -76,7 +76,7 @@ import org.cangnova.cangjie.resolve.qualified.QualifierPosition.*
  * - 支持隐式伴生对象引用
  * - 应用标准可见性规则
  */
-internal enum class QualifierPosition {
+ enum class QualifierPosition {
     /** 包声明位置：`package com.example` */
     PACKAGE_HEADER,
 

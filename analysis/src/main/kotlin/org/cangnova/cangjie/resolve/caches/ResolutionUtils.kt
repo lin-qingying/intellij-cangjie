@@ -43,7 +43,7 @@ import org.cangnova.cangjie.resolve.calls.util.getResolvedCall
 import org.cangnova.cangjie.resolve.calls.util.safeAnalyze
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.resolve.lazy.NoDescriptorForDeclarationException
-import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolverFacade
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.utils.actionUnderSafeAnalyzeBlock
 import org.cangnova.cangjie.utils.returnIfNoDescriptorForDeclarationException
@@ -76,7 +76,7 @@ fun ResolutionFacade.resolveImportReference(
     fqName: FqName,
 ): Collection<DeclarationDescriptor> {
     val importDirective = CjPsiFactory(project).createImportDirective(ImportPath(fqName, false))
-    val qualifiedExpressionResolver = this.getFrontendService(QualifiedExpressionResolver::class.java)
+    val qualifiedExpressionResolver = this.getFrontendService(QualifiedExpressionResolverFacade::class.java)
     return importDirective.items.flatMap {
         qualifiedExpressionResolver.processImportReference(
             it,

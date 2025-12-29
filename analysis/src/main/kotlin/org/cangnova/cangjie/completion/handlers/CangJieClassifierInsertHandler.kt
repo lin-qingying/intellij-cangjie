@@ -53,7 +53,7 @@ import org.cangnova.cangjie.imports.ImportInsertHelper
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.calls.util.CallType
 import org.cangnova.cangjie.resolve.calls.util.CallTypeAndReceiver
-import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver.Companion.ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE_WITH_DOT
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolverFacade.Companion.ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE_WITH_DOT
 import org.cangnova.cangjie.utils.isUnitTestMode
 
 

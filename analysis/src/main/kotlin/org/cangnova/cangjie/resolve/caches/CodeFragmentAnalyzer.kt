@@ -47,7 +47,7 @@ import org.cangnova.cangjie.resolve.binding.getDataFlowInfoAfter
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.resolve.lazy.ResolveSession
-import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolverFacade
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeUtils
@@ -56,7 +56,7 @@ import org.cangnova.cangjie.utils.externalDescriptors
 
 class CodeFragmentAnalyzer(
     private val resolveSession: ResolveSession,
-    private val qualifierResolver: QualifiedExpressionResolver,
+    private val qualifierResolver: QualifiedExpressionResolverFacade,
     private val typeResolver: TypeResolver,
     private val expressionTypingServices: ExpressionTypingServices
 ) {

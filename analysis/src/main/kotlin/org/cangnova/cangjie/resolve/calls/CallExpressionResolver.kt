@@ -52,7 +52,7 @@ import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValue
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import org.cangnova.cangjie.resolve.calls.util.*
 import org.cangnova.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
-import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolverFacade
 import org.cangnova.cangjie.resolve.qualified.resolveQualifierAsReceiverInExpression
 import org.cangnova.cangjie.resolve.qualified.resolveQualifierAsStandaloneExpression
 import org.cangnova.cangjie.resolve.scopes.receivers.*
@@ -77,7 +77,7 @@ class CallExpressionResolver(
     private val argumentTypeResolver: ArgumentTypeResolver,
     private val dataFlowAnalyzer: DataFlowAnalyzer,
     private val builtIns: CangJieBuiltIns,
-    private val qualifiedExpressionResolver: QualifiedExpressionResolver,
+    private val qualifiedExpressionResolver: QualifiedExpressionResolverFacade,
     private val languageVersionSettings: LanguageVersionSettings,
     private val dataFlowValueFactory: DataFlowValueFactory,
     private val cangjieTypeRefiner: CangJieTypeRefiner

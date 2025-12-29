@@ -51,7 +51,7 @@ import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.recordScope
 import org.cangnova.cangjie.resolve.calls.NewCommonSuperTypeCalculator.commonSuperType
 import org.cangnova.cangjie.resolve.qualified.ExpressionQualifierPart
-import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolverFacade
 import org.cangnova.cangjie.resolve.qualified.TypeQualifierResolutionResult
 
 import org.cangnova.cangjie.resolve.scopes.*
@@ -74,7 +74,7 @@ class TypeResolver(
     private val identifierChecker: IdentifierChecker,
 
     private val languageVersionSettings: LanguageVersionSettings,
-    private val qualifiedExpressionResolver: QualifiedExpressionResolver,
+    private val qualifiedExpressionResolver: QualifiedExpressionResolverFacade,
     private val typeAttributeTranslators: TypeAttributeTranslators,
     private val upperBoundChecker: UpperBoundChecker,
 //    private val platformToCangJieClassMapper: PlatformToCangJieClassMapper,

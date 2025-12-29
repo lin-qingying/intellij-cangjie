@@ -47,7 +47,7 @@ import org.cangnova.cangjie.resolve.*
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.caches.CangJieCacheService
 import org.cangnova.cangjie.resolve.calls.util.CallType
-import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolverFacade
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.source.PsiSourceElement
 import org.cangnova.cangjie.utils.Printer
@@ -243,7 +243,7 @@ private fun resolveDefaultCDocLink(
     contextScope: LexicalScope
 ): Collection<DeclarationDescriptor> {
     @OptIn(FrontendInternals::class)
-    val qualifiedExpressionResolver = resolutionFacade.getFrontendService(QualifiedExpressionResolver::class.java)
+    val qualifiedExpressionResolver = resolutionFacade.getFrontendService(QualifiedExpressionResolverFacade::class.java)
 
     val factory = CjPsiFactory(resolutionFacade.project)
     // TODO escape identifiers

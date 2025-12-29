@@ -71,7 +71,7 @@ import org.cangnova.cangjie.resolve.calls.util.*
 import org.cangnova.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
 import org.cangnova.cangjie.resolve.lazy.ForceResolveUtil
-import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolverFacade
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.resolve.source.getPsi
@@ -93,7 +93,7 @@ import org.cangnova.cangjie.utils.isUnderscoreNamed
 class PSICallResolver(
     private val typeResolver: TypeResolver,
     private val expressionTypingServices: ExpressionTypingServices,
-    private val qualifiedExpressionResolver: QualifiedExpressionResolver,
+    private val qualifiedExpressionResolver: QualifiedExpressionResolverFacade,
     private val doubleColonExpressionResolver: DoubleColonExpressionResolver,
 
     private val languageVersionSettings: LanguageVersionSettings,

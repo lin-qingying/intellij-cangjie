@@ -90,12 +90,13 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorConventions
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.LazyExplicitImportScope
-import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
 import org.cangnova.cangjie.resolve.qualified. QualifierPart
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
 import org.cangnova.cangjie.resolve.qualified.ExpressionQualifierPart
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolverFacade
+import org.cangnova.cangjie.resolve.qualified.asQualifierPartList
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.ImportingScope
 import org.cangnova.cangjie.resolve.scopes.concat
@@ -146,7 +147,7 @@ interface ImportForceResolver {
  */
 class ImportResolutionComponents(
     val storageManager: StorageManager,
-    val qualifiedExpressionResolver: QualifiedExpressionResolver,
+    val qualifiedExpressionResolver: QualifiedExpressionResolverFacade,
     val moduleDescriptor: ModuleDescriptor,
 //    val platformToCangJieClassMapper: PlatformToCangJieClassMapper,
     val languageVersionSettings: LanguageVersionSettings,
@@ -330,15 +331,7 @@ open class LazyImportResolver<I : CjImportInfo>(
      * @return 如果肯定不包含该名称返回 true，否则返回 false
      */
     fun definitelyDoesNotContainName(name: Name): Boolean {
-        // Calculation of all names is undesirable for cases when the scope doesn't live long and is big enough.
-        // In such cases we often do the same work twice - first time for computing definitelyDoesNotContainName
-        // and second time for resolution itself. Results seem to be not reused.
-        // This optimization is used in CangJie Notebooks
-//        return if (components.optimizingOptions.shouldCalculateAllNamesForLazyImportScopeOptimizing(packageFragment?.containingDeclaration)) {
-//            allNames?.let { name !in it } == true
-//        } else {
-//            false
-//        }
+
         return false
     }
 
@@ -928,48 +921,3 @@ fun CjImportInfo.ImportContent.asQualifierPartList(): List<QualifierPart> =
     }
 
 
-/**
- * 将表达式转换为限定符部分列表
- *
- * 递归遍历限定表达式，提取出所有的名称部分。
- * 例如：`a.b.c` -> [ExpressionQualifierPart(a), ExpressionQualifierPart(b), ExpressionQualifierPart(c)]
- *
- * @param doubleColonLHS 是否是双冒号左侧（用于可调用引用）
- * @return 限定符部分列表
- */
-fun CjExpression.asQualifierPartList(doubleColonLHS: Boolean = false): List< ExpressionQualifierPart> {
-    val result = SmartList< ExpressionQualifierPart>()
-
-    fun addQualifierPart(expression: CjExpression?): Boolean {
-        if (expression is CjSimpleNameExpression) {
-            result.add( ExpressionQualifierPart(expression))
-            return true
-        }
-        if (doubleColonLHS && expression is CjCallExpression && expression.isWithoutValueArguments) {
-            val simpleName = expression.calleeExpression
-            if (simpleName is CjSimpleNameExpression) {
-                result.add(
-                    ExpressionQualifierPart(
-                        simpleName.referencedNameAsName,
-                        simpleName,
-                        expression.typeArgumentList
-                    )
-                )
-                return true
-            }
-        }
-        return false
-    }
-
-    var expression: CjExpression? = this
-    while (true) {
-        if (addQualifierPart(expression)) break
-        if (expression !is CjQualifiedExpression) break
-
-        addQualifierPart(expression.selectorExpression)
-
-        expression = expression.receiverExpression
-    }
-
-    return result.asReversed()
-}

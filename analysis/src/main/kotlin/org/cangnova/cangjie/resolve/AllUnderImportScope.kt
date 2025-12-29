@@ -185,54 +185,9 @@ class AllUnderImportScope private constructor(
          * @return 导入作用域
          */
         fun create(descriptor: DeclarationDescriptor, excludedImportNames: Collection<FqName>): ImportingScope {
-            return create(descriptor, excludedImportNames, reexportScope = null)
+            return create(descriptor, excludedImportNames )
         }
 
-        /**
-         * 创建包含重导出支持的全通配导入作用域
-         *
-         * @param descriptor 导入目标（包或类）
-         * @param excludedImportNames 要排除的导入名称
-         * @param reexportScope 重导出作用域，用于访问包重导出的声明
-         * @return 导入作用域
-         */
-        fun create(
-            descriptor: DeclarationDescriptor,
-            excludedImportNames: Collection<FqName>,
-            reexportScope: MemberScope?
-        ): ImportingScope {
-            val scope1 =
-                if (descriptor is ClassDescriptor) {
-                    descriptor.staticScope
-                } else {
-                    assert(descriptor is PackageViewDescriptor) {
-                        "Must be class or package view descriptor: $descriptor"
-                    }
-                    (descriptor as PackageViewDescriptor).memberScope
-                }
 
-            val scope2 =
-                if (descriptor is ClassDescriptor) {
-                    descriptor.unsubstitutedMemberScope.takeIf { it !== MemberScope.Empty }
-                } else null
-
-            // 只有从包全量导入时才考虑重导出（import foo.*）
-            // 从类全量导入（import MyClass.*）不涉及重导出机制
-            val effectiveReexportScope = if (descriptor is PackageViewDescriptor) reexportScope else null
-
-            return if (scope1 === MemberScope.Empty) {
-                if (scope2 == null || scope2 === MemberScope.Empty) {
-                    if (effectiveReexportScope == null || effectiveReexportScope === MemberScope.Empty) {
-                        ImportingScope.Empty
-                    } else {
-                        AllUnderImportScope(descriptor, excludedImportNames, effectiveReexportScope, null, null)
-                    }
-                } else {
-                    AllUnderImportScope(descriptor, excludedImportNames, scope2, null, effectiveReexportScope)
-                }
-            } else {
-                AllUnderImportScope(descriptor, excludedImportNames, scope1, scope2, effectiveReexportScope)
-            }
-        }
     }
 }

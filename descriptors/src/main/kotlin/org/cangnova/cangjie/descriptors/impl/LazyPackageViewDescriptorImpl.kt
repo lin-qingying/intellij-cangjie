@@ -30,6 +30,7 @@ import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.resolve.scopes.ChainedMemberScope
 import org.cangnova.cangjie.resolve.scopes.LazyScopeAdapter
 import org.cangnova.cangjie.resolve.scopes.MemberScope
+import org.cangnova.cangjie.resolve.scopes.PackageReexportScope
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.storage.getValue
 
@@ -91,13 +92,8 @@ import org.cangnova.cangjie.storage.getValue
  *
  * ### 2. 跨源码和库的包合并
  *
- * 同一个包可能在多个位置定义（源码、依赖库、JDK 等）：
+ * 同一个包可能在多个位置定义（源码、依赖库）：
  *
- * ```kotlin
- * // 项目包结构：
- * // 源码: src/com/example/MyClass.cj
- * // 库 A: lib-a.jar!/com/example/UtilA.cj
- * // 库 B: lib-b.jar!/com/example/UtilB.cj
  *
  * val packageView = module.getPackage(FqName("com.example"))
  *
@@ -576,7 +572,16 @@ class LazyPackageViewDescriptorImpl(
         if (isEmpty()) {
             MemberScope.Empty
         } else {
-            val scopes = fragments.map { it.getMemberScope() } + SubpackagesScope(module, fqName)
+            // 包成员作用域由以下部分组成：
+            // 1. 所有 fragment 的成员作用域（直接声明的成员）
+            // 2. 重导出作用域（通过 public/protected/internal import 重导出的成员）
+            // 3. 子包作用域
+            val scopes = fragments.map { it.getMemberScope() } +
+                    PackageReexportScope(
+                        fqName,
+                        module,
+                    ) +
+                SubpackagesScope(module, fqName)
             ChainedMemberScope.create("package view scope for $fqName in ${module.name}", scopes)
         }
     }

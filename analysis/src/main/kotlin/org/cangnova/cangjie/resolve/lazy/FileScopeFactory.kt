@@ -363,14 +363,7 @@ class FileScopeFactory(
 
         val imports = file.importDirectivesItem
 
-        //        val aliasImportNames = file.importListsField.mapNotNull {
-//
-//            if (it.aliasName != null) {
-//                it.fqName
-//            } else {
-//                null
-//            }
-//        }
+
         val aliasImportNames = imports.mapNotNull {
 
             if (it.aliasName != null) {
@@ -631,119 +624,18 @@ class FileScopeFactory(
         filteringKind: FilteringKind,
         parentScope: ImportingScope
     ): ImportingScope {
-        return CurrentPackageScope(
+        return org.cangnova.cangjie.resolve.scopes.CurrentPackageScope(
             packageView,
             packageFragment,
             aliasImportNames,
             fromDescriptor,
-            filteringKind,
+            when (filteringKind) {
+                FilteringKind.VISIBLE_CLASSES -> org.cangnova.cangjie.resolve.scopes.CurrentPackageScope.FilteringKind.VISIBLE_CLASSES
+                FilteringKind.INVISIBLE_CLASSES -> org.cangnova.cangjie.resolve.scopes.CurrentPackageScope.FilteringKind.INVISIBLE_CLASSES
+            },
             parentScope,
             components.languageVersionSettings
         )
-    }
-
-    /**
-     * 当前包作用域
-     *
-     * 只负责当前包自身成员的访问，不处理重导出逻辑。
-     * 重导出逻辑由 [PackageReexportScope] 在单独的作用域层处理。
-     *
-     * ## 职责
-     *
-     * - 提供当前包中声明的类型、函数、变量等的访问
-     * - 根据可见性规则过滤成员
-     * - 处理别名导入导致的名称排除
-     *
-     * @see PackageReexportScope 处理重导出声明的作用域
-     */
-    inner class CurrentPackageScope(
-        val packageView: PackageViewDescriptor,
-        val packageFragment: PackageFragmentDescriptor,
-        val aliasImportNames: Collection<FqName>,
-        val fromDescriptor: DummyContainerDescriptor,
-        val filteringKind: FilteringKind,
-        val parentScope: ImportingScope,
-        val languageVersionSettings: LanguageVersionSettings
-    ) : ImportingScope {
-        val scope = packageView.memberScope
-        val names by lazy(LazyThreadSafetyMode.PUBLICATION) { scope.computeAllNames()?.let(::ObjectOpenHashSet) }
-        val packageName = packageView.fqName
-        val excludedNames = aliasImportNames.mapNotNull { if (it.parent() == packageName) it.shortName() else null }
-
-        override val parent: ImportingScope = parentScope
-
-        override fun getContributedPackage(name: Name): Nothing? = null
-
-        override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
-            if (name in excludedNames) return null
-            val classifier = scope.getContributedClassifier(name, location) ?: return null
-
-            val visible = DescriptorVisibilityUtils.isVisibleIgnoringReceiver(
-                classifier as DeclarationDescriptorWithVisibility,
-                fromDescriptor,
-                languageVersionSettings
-            )
-            return classifier.takeIf { filteringKind == if (visible) FilteringKind.VISIBLE_CLASSES else FilteringKind.INVISIBLE_CLASSES }
-        }
-
-        override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
-            if (name in excludedNames) return emptyList()
-            return scope.getContributedClassifiers(name, location)
-        }
-
-
-
-        override fun getContributedVariables(
-            name: Name,
-            location: LookupLocation
-        ): Collection<@JvmWildcard VariableDescriptor> {
-            if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
-            if (name in excludedNames) return emptyList()
-            return scope.getContributedVariables(name, location)
-        }
-
-        override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
-            if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
-            if (name in excludedNames) return emptyList()
-            return scope.getContributedPropertys(name, location)
-        }
-
-        override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> {
-            if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
-            if (name in excludedNames) return emptyList()
-            return scope.getContributedFunctions(name, location)
-        }
-
-        override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
-            if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
-            if (name in excludedNames) return emptyList()
-            return scope.getContributedMacros(name, location)
-        }
-
-        override fun getContributedDescriptors(
-            kindFilter: DescriptorKindFilter,
-            nameFilter: (Name) -> Boolean,
-            changeNamesForAliased: Boolean
-        ): Collection<DeclarationDescriptor> {
-            // we do not perform any filtering by visibility here because all descriptors from both visible/invisible filter scopes are to be added anyway
-            if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
-            return scope.getContributedDescriptors(
-                kindFilter.withoutKinds(DescriptorKindFilter.PACKAGES_MASK)
-            ) { name -> name !in excludedNames && nameFilter(name) }
-                .filter { it !is PackageViewDescriptor } // subpackages of the current package not accessible by the short name
-        }
-
-        override fun computeImportedNames() = packageView.memberScope.computeAllNames()
-
-        override fun definitelyDoesNotContainName(name: Name) = names?.let { name !in it } == true
-
-        override fun toString() = "Scope for current package (${filteringKind.name})"
-
-        override fun printStructure(p: Printer) {
-            p.println(this.toString())
-        }
-
-
     }
 
 

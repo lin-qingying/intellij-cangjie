@@ -30,7 +30,7 @@ import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjImportDirectiveItem
 import org.cangnova.cangjie.psi.CjPackageDirective
 import org.cangnova.cangjie.psi.psiUtil.getParentOfTypes2
-import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
+import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolverFacade
 
 /**
  * 判断全限定名是否可以添加根前缀
@@ -55,7 +55,7 @@ import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolver
  */
 fun FqName.canAddRootPrefix(): Boolean {
     // 如果全限定名不以根前缀开头，并且不是顶层包（parentOrNull()?.isRoot == false）
-    return !asString().startsWith(QualifiedExpressionResolver.ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE_WITH_DOT)
+    return !asString().startsWith(QualifiedExpressionResolverFacade.ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE_WITH_DOT)
             && parentOrNull()?.isRoot == false
 }
 
@@ -111,7 +111,7 @@ fun FqName.withRootPrefixIfNeeded(targetElement: CjElement? = null): FqName {
     // 如果当前 FqName 可以添加根前缀，并且目标元素也可以添加根前缀
     if (canAddRootPrefix() && targetElement?.canAddRootPrefix() != false) {
         // 返回带有根前缀的 FqName
-        return FqName(QualifiedExpressionResolver.ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE_WITH_DOT + asString())
+        return FqName(QualifiedExpressionResolverFacade.ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE_WITH_DOT + asString())
     }
 
     // 否则返回当前 FqName

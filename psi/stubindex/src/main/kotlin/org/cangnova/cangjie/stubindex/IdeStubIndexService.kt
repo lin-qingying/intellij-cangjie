@@ -251,11 +251,6 @@ internal class IdeStubIndexService : StubIndexService() {
 
     override fun indexImports(stub: CangJieImportDirectiveItemStub, sink: IndexSink) {
 
-        val fqName: FqName? = stub.getPackageFqName()
-        if (fqName != null) {
-            sink.occurrence(CangJieImportFqNameForPackageNameIndex.indexKey, fqName.asString())
-
-        }
     }
 
     override fun indexEnumConstructor(stub: CangJieEnumConstructorStub, sink: IndexSink) {

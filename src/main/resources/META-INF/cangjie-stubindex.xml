@@ -69,7 +69,6 @@
         <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieVariableNothingVariableShortNameIndex"/>
         <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTypeAliasShortNameIndex"/>
         <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTypeAliasByExpansionShortNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieImportFqNameForPackageNameIndex"/>
         <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieExtendNameIndex"/>
 
 
