@@ -75,10 +75,6 @@ open class MoveCangJieDeclarationsProcessor(
         return MoveMultipleElementsViewDescriptor(elementsToMove.toTypedArray(), targetContainerFqName)
     }
 
-    fun execute(usages: List<UsageInfo>) {
-        execute(usages.toTypedArray())
-    }
-
     override fun getRefactoringId() = REFACTORING_ID
 
     public override fun findUsages(): Array<UsageInfo> {

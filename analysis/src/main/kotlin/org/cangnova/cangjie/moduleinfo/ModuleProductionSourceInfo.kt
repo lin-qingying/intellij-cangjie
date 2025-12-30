@@ -83,6 +83,7 @@ import org.cangnova.cangjie.resolve.CangJieResolveScopeEnlarger
  * @see ModuleTestSourceInfo
  * @see CangJieResolveScopeEnlarger
  */
+@ConsistentCopyVisibility
 data class ModuleProductionSourceInfo internal constructor(
     override val module: Module
 ) : ModuleSourceInfoWithExpectedBy(forProduction = true) {

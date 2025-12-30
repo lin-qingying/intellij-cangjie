@@ -294,8 +294,8 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
      * @return 包装后的模块 ResolutionFacade
      */
     override fun getResolutionFacadeByModuleInfo(context: IdeaModuleInfo): ResolutionFacade {
-//        val settings = moduleInfo.platformSettings(platform)
-        val projectFacade = facadeForModules(/*settings*/)
+
+        val projectFacade = facadeForModules()
 
         return ModuleResolutionFacadeImpl(projectFacade, context)
     }

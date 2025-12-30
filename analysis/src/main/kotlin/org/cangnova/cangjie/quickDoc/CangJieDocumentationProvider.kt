@@ -35,6 +35,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsSafe
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.text.HtmlChunk
 import com.intellij.psi.PsiDocCommentBase
 import com.intellij.psi.PsiElement
@@ -42,6 +43,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.FrontendInternals
+import org.cangnova.cangjie.analysis.ANALYSISI_KEY
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.lexer.cdoc.CDocTemplate
@@ -151,7 +153,11 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
      */
     @Nls
     override fun generateDoc(element: PsiElement, originalElement: PsiElement?): String? {
+        // 检查实验性静态分析功能是否启用
+        if (!Registry.`is`(ANALYSISI_KEY)) {
 
+            return  null
+        }
         return getText(element, originalElement, false)
     }
 

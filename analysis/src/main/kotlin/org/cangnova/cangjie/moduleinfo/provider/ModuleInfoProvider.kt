@@ -163,7 +163,7 @@ class ModuleInfoProvider(private val project: Project) {
     }
 
     private inline fun callExtensions(block: ModuleInfoProviderExtension.() -> Unit) {
-        for (extension in project.extensionArea.getExtensionPoint(ModuleInfoProviderExtension.EP_NAME).extensionList) {
+        for (extension in ModuleInfoProviderExtension.EP_NAME.extensionList) {
             with(extension, block)
         }
     }

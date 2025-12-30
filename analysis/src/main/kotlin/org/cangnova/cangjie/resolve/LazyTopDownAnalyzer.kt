@@ -47,7 +47,7 @@ import org.cangnova.cangjie.stubindex.CangJieExactPackagesIndex
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 
 /**
- * LazyTopDownAnalyzer类负责按需分析和解析Kotlin程序中的声明、表达式和语句
+ * LazyTopDownAnalyzer类负责按需分析和解析程序中的声明、表达式和语句
  * 它采用惰性分析方式，即仅在需要时才进行相应的解析和分析，以提高性能和效率
  *
  * @param trace 用于记录绑定过程中的跟踪信息，帮助调试和验证分析过程
@@ -109,7 +109,6 @@ class LazyTopDownAnalyzer(
         val macroDeclarations = mutableListOf<CjMacroDeclaration>()
         val mainFunctions = mutableListOf<CjMainFunction>()
         val typeAliases = mutableListOf<CjTypeAlias>()
-//        val destructuringDeclarations = mutableListOf<CjDestructuringDeclaration>()
 
         val reexports = mutableListOf<CjImportItem>()
 
@@ -117,7 +116,7 @@ class LazyTopDownAnalyzer(
 
         // 填充上下文
         for (declaration in declarations) {
-            //  在内部使用‘VIRECTOR’变量
+ 
             var visitor: CjVisitorUnit? = null
             visitor = ExceptionWrappingCjVisitorUnit(object : CjVisitorUnit() {
                 private fun registerDeclarations(declarations: List<CjDeclaration>) {
@@ -129,10 +128,7 @@ class LazyTopDownAnalyzer(
                 override fun visitProperty(property: CjProperty) {
                     properties.add(property)
                 }
-//
-//                override fun visitVariable(variable: CjVariable<*>) {
-//                    variables.add(variable)
-//                }
+
 
                 override fun visitPatternVariable(variable: CjPatternVariable) {
                     variables.add(variable)
@@ -161,15 +157,9 @@ class LazyTopDownAnalyzer(
                     importResolver.forceResolveImport(importItem)
 
 
-
-                    if (importItem.getStrictParentOfType<CjImportDirective>()?.modifierVisibility != DescriptorVisibilities.PRIVATE) {
-                        reexports.add(importItem)
-                    }
                 }
 
                 override fun visitTypeStatement(typeStatement: CjTypeStatement) {
-//                    val location =
-//                        if (typeStatement.isTopLevel()) CangJieLookupLocation(typeStatement) else NoLookupLocation.MATCH_RESOLVE_DECLARATION
                     val location = CangJieLookupLocation(typeStatement)
 
                     val descriptor =
@@ -191,20 +181,8 @@ class LazyTopDownAnalyzer(
 
                 override fun visitClass(cclass: CjClass) {
                     visitTypeStatement(cclass)
-//                    registerPrimaryConstructorParameters(cclass)
                 }
 
-                // TODO 注册主构造函数
-//                private fun registerPrimaryConstructorParameters(cclass: CjClass) {
-//                    for (cjParameter in cclass.primaryConstructorParameters) {
-//                        if (cjParameter.hasLetOrVar()) {
-//                            c.primaryConstructorParameterProperties.put(
-//                                cjParameter,
-//                                lazyDeclarationResolver.resolveToDescriptor(cjParameter) as PropertyDescriptor
-//                            )
-//                        }
-//                    }
-//                }
                 override fun visitPrimaryConstructor(constructor: CjPrimaryConstructor) {
                     c.primaryConstructors[constructor] =
                         lazyDeclarationResolver.resolveToDescriptor(constructor) as ClassConstructorDescriptor
@@ -227,7 +205,6 @@ class LazyTopDownAnalyzer(
                     typeStatement: CjTypeStatement,
                     classDescriptor: ClassDescriptor
                 ) {
-//                    var companionObjectAlreadyFound = false
                     for (cjDeclaration in typeStatement.declarations) {
                         if (cjDeclaration is CjSecondaryConstructor) {
                             if (classDescriptor.kind == ClassKind.INTERFACE) {
@@ -265,7 +242,6 @@ class LazyTopDownAnalyzer(
                     qualifiedExpressionResolver.resolvePackageHeader(directive, moduleDescriptor, trace)
 
 
-//                    checkPackagelevel(directive)
                 }
 
 
@@ -280,7 +256,6 @@ class LazyTopDownAnalyzer(
 
         createVariableDescriptors(c, topLevelFqNames, variables)
         createTypeAliasDescriptors(c, topLevelFqNames, typeAliases)
-        createReexportsDescriptors(c, topLevelFqNames, reexports)
 
 
         resolveAllHeadersInClasses(c)
@@ -309,7 +284,7 @@ class LazyTopDownAnalyzer(
 
 
     fun resolveImportsInFile(file: CjFile) {
-        checkForCycles(file)
+
         fileScopeProvider.getImportResolver(file).forceResolveNonDefaultImports()
     }
 
@@ -354,48 +329,6 @@ class LazyTopDownAnalyzer(
         }
     }
 
-    //    由于该操作过于耗时，导致这里还没检查完成，整个文件已经分析完成了，所以先返回了分析结果，导致错误无法被报告
-//    这里应该写一个单独的分析线程，并报告错误，但是现在就先这样吧
-    //    检查循环导入
-    private fun checkForCycles(file: CjFile) {
-//        操作是非常耗时的操作，在后台执行
-//        executeOnPooledThread(object : Disposable {
-//            override fun dispose() {
-//
-//            }
-//        }) {
-
-
-//            流程
-//            1 获取该包所有导入语句
-//            2 获取被导入语句的包的导入语句
-//            3 检查是否包含该包名称
-//        runReadAction {
-//            val packageFqname = file.packageFqName
-//
-//            for (importDirective in file.getStrictParentOfType<CjImportDirective>()sItem) {
-//                val result =
-//                    importDirective.importedFqName
-//                        ?.let { CangJieImportFqNameForPackageNameIndex.contains(packageFqname, it, file.project) }
-//
-//
-//                if (result != null) {
-//                    if (result.first) {
-//
-//                        trace.report(CYCLIC_IMPORT.on(importDirective, packageFqname, result.second))
-//
-//
-//                    }
-//                }
-//
-//
-//            }
-//        }
-
-
-//        }
-
-    }
 
     private fun resolveImportsInAllFiles(c: TopDownAnalysisContext) {
         for (file in c.files.map { it.getContainingCjFile() }) {
@@ -414,19 +347,6 @@ class LazyTopDownAnalyzer(
         }
     }
 
-    private fun createReexportsDescriptors(
-        c: TopDownAnalysisContext,
-        topLevelFqNames: Multimap<FqName, CjElement>,
-        reexports: List<CjImportItem>
-    ) {
-//        for (reexport in reexports) {
-//            val descriptor = lazyDeclarationResolver.resolveToDescriptor(typeAlias) as TypeAliasDescriptor
-//
-//            c.reexports[typeAlias] = descriptor
-//            ForceResolveUtil.forceResolveAllContents(descriptor.annotations)
-//            registerTopLevelFqName(topLevelFqNames, typeAlias, descriptor)
-//        }
-    }
 
     private fun createTypeAliasDescriptors(
         c: TopDownAnalysisContext,

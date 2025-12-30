@@ -125,6 +125,14 @@ fun getIdeJvmArgs(): List<String> = listOf(
     "-ea",
     "-esa",
 
+    // ===== JNA 配置 (修复 IDEA 2025.3 问题) =====
+    "-Djna.nosys=false",              // 允许使用系统库
+    "-Djna.nounpack=false",           // 允许解包本地库
+    "-Djna.boot.library.path=",       // 清空，使用默认路径
+    "-Djna.debug_load=false",         // 生产环境关闭调试
+    "-Djna.debug_load.jna=false",     // 生产环境关闭 JNA 库调试
+    // "-Djna.tmpdir=${System.getProperty("java.io.tmpdir")}/jna", // 可选：自定义临时目录
+
     // Kotlin 协程调试
     "-Dkotlinx.coroutines.debug=on",
     "-Dkotlinx.coroutines.stacktrace.recovery=true",
@@ -153,7 +161,6 @@ fun getIdeJvmArgs(): List<String> = listOf(
     "-Djdk.attach.allowAttachSelf=true",
     "-Dsun.io.useCanonCaches=false"
 )
-
 
 
 plugins {

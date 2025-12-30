@@ -382,15 +382,31 @@ class CjpmSourceSetImpl(
     override val isTest: Boolean
 ) : CjSourceSet {
 
+    companion object {
+        private val LOG = com.intellij.openapi.diagnostic.logger<CjpmSourceSetImpl>()
+    }
+
     override val sourceRoots: List<VirtualFile>
         get() {
-            if (!rootDir.isValid) return emptyList()
-            val srcFile = rootDir.findFileByRelativePath(srcDir)
-            return if (srcFile != null && srcFile.isValid && srcFile.isDirectory) {
-                listOf(srcFile)
-            } else {
-                emptyList()
+            if (!rootDir.isValid) {
+                LOG.debug("Source roots check: rootDir is invalid for $srcDir")
+                return emptyList()
             }
+            val srcFile = rootDir.findFileByRelativePath(srcDir)
+            if (srcFile == null) {
+                LOG.debug("Source roots check: srcFile not found at path: ${rootDir.path}/$srcDir")
+                return emptyList()
+            }
+            if (!srcFile.isValid) {
+                LOG.debug("Source roots check: srcFile is invalid: ${srcFile.path}")
+                return emptyList()
+            }
+            if (!srcFile.isDirectory) {
+                LOG.debug("Source roots check: srcFile is not a directory: ${srcFile.path}")
+                return emptyList()
+            }
+            LOG.debug("Source roots check: found valid source root: ${srcFile.path}")
+            return listOf(srcFile)
         }
 
     override val resourceRoots: List<VirtualFile>
@@ -406,13 +422,25 @@ class CjpmSourceSetImpl(
 
     override val outputDirectory: List<VirtualFile>
         get() {
-            if (!rootDir.isValid) return emptyList()
-            val targetDirFile = rootDir.findFileByRelativePath(targetDir)
-            return if (targetDirFile != null && targetDirFile.isValid && targetDirFile.isDirectory) {
-                listOf(targetDirFile)
-            } else {
-                emptyList()
+            if (!rootDir.isValid) {
+                LOG.debug("Output directory check: rootDir is invalid for $targetDir")
+                return emptyList()
             }
+            val targetDirFile = rootDir.findFileByRelativePath(targetDir)
+            if (targetDirFile == null) {
+                LOG.debug("Output directory check: targetDir not found at path: ${rootDir.path}/$targetDir")
+                return emptyList()
+            }
+            if (!targetDirFile.isValid) {
+                LOG.debug("Output directory check: targetDir is invalid: ${targetDirFile.path}")
+                return emptyList()
+            }
+            if (!targetDirFile.isDirectory) {
+                LOG.debug("Output directory check: targetDir is not a directory: ${targetDirFile.path}")
+                return emptyList()
+            }
+            LOG.debug("Output directory check: found valid output directory: ${targetDirFile.path}")
+            return listOf(targetDirFile)
         }
 }
 

@@ -159,7 +159,6 @@ class NoneCandidatesCallDiagnostic : CangJieCallDiagnostic(CandidateApplicabilit
 
 class StubBuilderInferenceReceiver(
     val receiver: SimpleCangJieCallArgument,
-    val extensionReceiverParameter: ReceiverParameterDescriptor,
 ) : CangJieCallDiagnostic(CandidateApplicability.RESOLVED) {
     override fun report(reporter: DiagnosticReporter) = reporter.onCallReceiver(receiver, this)
 }

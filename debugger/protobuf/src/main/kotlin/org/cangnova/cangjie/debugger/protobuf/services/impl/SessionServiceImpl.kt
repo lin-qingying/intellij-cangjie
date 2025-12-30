@@ -33,6 +33,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.util.SystemInfo
 import com.pty4j.unix.Pty
+import com.sun.jna.platform.win32.Kernel32
 import kotlinx.coroutines.sync.Mutex
 import lldbprotobuf.Model
 import lldbprotobuf.RequestOuterClass
@@ -430,10 +431,28 @@ class IOResourceManager(
         }
     }
 
-    fun setupWindowsPipe(name: String): WindowsPipe {
-        cleanup()
-        return WindowsPipe.createOutboundPipe(name).also {
-            input = it.outputStream
+    fun setupWindowsPipe(name: String): WindowsPipe? {
+        return try {
+            // 尝试访问 Kernel32.INSTANCE，可能抛出 UnsatisfiedLinkError 或 NoClassDefFoundError
+            val kernel32 = Kernel32.INSTANCE
+            if (kernel32 == null) {
+                LOG.warn("Kernel32.INSTANCE is null, Windows pipe not available")
+                return null
+            }
+
+            cleanup()
+            WindowsPipe.createOutboundPipe(name).also {
+                input = it.outputStream
+            }
+        } catch (e: UnsatisfiedLinkError) {
+            LOG.warn("Failed to load Kernel32 native library: ${e.message}", e)
+            null
+        } catch (e: NoClassDefFoundError) {
+            LOG.warn("Kernel32 class not found: ${e.message}", e)
+            null
+        } catch (e: Exception) {
+            LOG.error("Unexpected error while setting up Windows pipe: ${e.message}", e)
+            null
         }
     }
 
@@ -636,7 +655,7 @@ private data class StreamConfiguration(
             !useExternalConsole -> setupInteractiveStreams(ioResources)
             else -> StreamPaths()
         }
-        if (paths.stdout == null && !useExternalConsole) {
+        if (paths.stdout == null && !useExternalConsole && isLoadKernel32()) {
 
             val readers = ioResources.setupOutputReader(
                 LocalHost,
@@ -687,7 +706,7 @@ private data class StreamConfiguration(
             } else {
                 null to null
             }
-            StreamPaths(stdin = pipe.name, stdout = stdout, stderr = stderr)
+            StreamPaths(stdin = pipe?.name, stdout = stdout, stderr = stderr)
         } else {
             val pty = ioResources.setupPty()
 
@@ -703,7 +722,18 @@ private data class StreamConfiguration(
 
 
 }
-
+fun isLoadKernel32(): Boolean {
+    return try {
+        val kernel32 = Kernel32.INSTANCE
+        kernel32 != null
+    } catch (e: UnsatisfiedLinkError) {
+        false
+    } catch (e: NoClassDefFoundError) {
+        false
+    } catch (e: Exception) {
+        false
+    }
+}
 /**
  * 流路径配置
  */

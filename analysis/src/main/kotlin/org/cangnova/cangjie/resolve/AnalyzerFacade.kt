@@ -117,11 +117,15 @@ package org.cangnova.cangjie.resolve
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
+import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.config.LanguageVersionSettingsImpl
 import org.cangnova.cangjie.container.ComponentProvider
 import org.cangnova.cangjie.container.get
 import org.cangnova.cangjie.context.ModuleContext
+import org.cangnova.cangjie.context.ProjectContext
+import org.cangnova.cangjie.context.withModule
+import org.cangnova.cangjie.descriptors.CjProjectDescriptorService
 import org.cangnova.cangjie.descriptors.ModuleCapability
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.PackageFragmentProvider
@@ -129,10 +133,15 @@ import org.cangnova.cangjie.descriptors.impl.CompositePackageFragmentProvider
 import org.cangnova.cangjie.descriptors.impl.ModuleDependencies
 import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import org.cangnova.cangjie.frontend.createContainerForLazyResolve
+import org.cangnova.cangjie.moduleinfo.DependencyOnBuiltIns
 import org.cangnova.cangjie.moduleinfo.ModuleInfo
+import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.resolve.LazyModuleDependencies.Companion.assertModuleDependencyIsCorrect
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.caches.ModuleContent
 import org.cangnova.cangjie.resolve.calls.util.languageVersionSettings
+import org.cangnova.cangjie.resolve.extensions.AnalysisHandlerExtension
 import org.cangnova.cangjie.resolve.lazy.AbsentDescriptorHandler
 import org.cangnova.cangjie.resolve.lazy.ResolveSession
 import org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService
@@ -893,6 +902,208 @@ class CangJieResolverForModuleFactory : ResolverForModuleFactory() {
         )
     }
 
+    /**
+     * 源模块信息
+     *
+     * 用于 analyzeFiles 方法的内部模块信息类。
+     * 表示要分析的源文件集合及其基本配置。
+     *
+     * @param name 模块名称
+     * @param capabilities 模块能力映射
+     * @param dependencies 依赖的模块列表
+     * @param dependOnOldBuiltIns 是否依赖旧版内置类型
+     */
+    private class SourceModuleInfo(
+        override val name: Name,
+        override val capabilities: Map<ModuleCapability<*>, Any?>,
+        dependencies: Iterable<ModuleInfo>,
+        private val dependOnOldBuiltIns: Boolean
+    ) : ModuleInfo {
+        override val dependencies = listOf(this, *dependencies.toList().toTypedArray())
+        override val analyzerServices: PlatformDependentAnalyzerServices
+            get() = PlatformDependentAnalyzerServicesImpl
+
+        override fun modulesWhoseInternalsAreVisible(): Collection<ModuleInfo> = emptySet()
+
+        override fun dependencyOnBuiltIns(): DependencyOnBuiltIns =
+            if (dependOnOldBuiltIns) DependencyOnBuiltIns.LAST
+            else DependencyOnBuiltIns.NONE
+    }
+
+    companion object {
+        /**
+         * 分析文件集合
+         *
+         * 该方法用于分析一组仓颉源文件，创建必要的模块和解析器，并执行完整的代码分析。
+         * 这是一个静态方法，主要用于独立的文件分析场景，如命令行编译器、测试工具等。
+         *
+         * ## 功能说明
+         *
+         * 1. **创建模块信息**: 根据提供的参数创建 SourceModuleInfo
+         * 2. **初始化项目上下文**: 使用文件的项目或创建新的项目上下文
+         * 3. **创建解析器工厂**: 使用 CangJieResolverForModuleFactory
+         * 4. **创建单模块项目解析器**: 使用 ResolverForSingleModuleProject
+         * 5. **执行分析**: 通过扩展点或默认分析器进行代码分析
+         *
+         * ## 参数说明
+         *
+         * @param files 要分析的仓颉源文件集合
+         * @param moduleName 模块名称
+         * @param dependOnBuiltIns 是否依赖内置类型（通常为 true）
+         * @param languageVersionSettings 语言版本设置
+         * @param targetEnvironment 目标环境配置
+         * @param capabilities 模块能力映射，用于扩展模块功能
+         * @param explicitProjectContext 显式的项目上下文（可选）
+         *
+         * @return 分析结果，包含绑定上下文和模块描述符
+         *
+         * ## 工作流程
+         *
+         * ```
+         * 1. 创建 SourceModuleInfo
+         *    - 包含模块名称、能力、依赖关系
+         *   ↓
+         * 2. 获取项目实例
+         *    - 从文件或显式上下文
+         *   ↓
+         * 3. 创建 ResolverForModuleFactory
+         *    - 使用 CangJieResolverForModuleFactory
+         *   ↓
+         * 4. 创建 ProjectContext
+         *    - 如果未提供则创建新的
+         *   ↓
+         * 5. 创建 ResolverForSingleModuleProject
+         *    - 配置搜索范围、语言版本等
+         *   ↓
+         * 6. 获取模块描述符
+         *    - resolver.descriptorForModule(moduleInfo)
+         *   ↓
+         * 7. 获取分析容器
+         *    - resolver.resolverForModule(moduleInfo).componentProvider
+         *   ↓
+         * 8. 执行扩展点分析（如果有）
+         *    - AnalysisHandlerExtension.doAnalysis
+         *   ↓
+         * 9. 执行默认分析
+         *    - LazyTopDownAnalyzer.analyzeDeclarations
+         *   ↓
+         * 10. 执行分析完成回调
+         *    - AnalysisHandlerExtension.analysisCompleted
+         *   ↓
+         * 11. 返回分析结果
+         * ```
+         *
+         * ## 使用示例
+         *
+         * ```kotlin
+         * val files = listOf(cjFile1, cjFile2)
+         * val result = CangJieResolverForModuleFactory.analyzeFiles(
+         *     files = files,
+         *     moduleName = Name.identifier("myModule"),
+         *     dependOnBuiltIns = true,
+         *     languageVersionSettings = LanguageVersionSettingsImpl.DEFAULT,
+         *     targetEnvironment = CompilerEnvironment,
+         *     explicitProjectContext = null,
+         *     metadataPartProviderFactory = { EmptyMetadataPartProvider }
+         * )
+         *
+         * if (result.isError()) {
+         *     result.throwIfError()
+         * } else {
+         *     val bindingContext = result.bindingContext
+         *     // 使用分析结果
+         * }
+         * ```
+         *
+         * @see SourceModuleInfo
+         * @see ResolverForSingleModuleProject
+         * @see AnalysisHandlerExtension
+         * @see LazyTopDownAnalyzer
+         */
+        fun analyzeFiles(
+            files: Collection<CjFile>,
+            moduleName: Name,
+            dependOnBuiltIns: Boolean,
+            languageVersionSettings: LanguageVersionSettings,
+            targetEnvironment: TargetEnvironment,
+            capabilities: Map<ModuleCapability<*>, Any?> = emptyMap(),
+            explicitProjectContext: ProjectContext? = null,
+        ): AnalysisResult {
+            // 创建源模块信息
+            val moduleInfo = SourceModuleInfo(
+                moduleName,
+                capabilities,
+                emptyList(), // 依赖列表
+                dependOnBuiltIns
+            )
+
+            // 获取项目实例
+            val project = files.firstOrNull()?.project
+                ?: throw AssertionError("No files to analyze")
+            val projectDescriptor = CjProjectDescriptorService.getInstance(project).projectDescriptor
+
+            // 创建解析器工厂
+            val resolverForModuleFactory = CangJieResolverForModuleFactory()
+
+            // 创建或使用提供的项目上下文
+            val projectContext = explicitProjectContext
+                ?: ProjectContext(project, "analyze files")
+
+            // 创建单模块项目解析器
+            val resolver = ResolverForSingleModuleProject(
+                debugName = "sources for analyze files",
+                projectContext = projectContext,
+                projectDescriptor = projectDescriptor,
+                module = moduleInfo,
+                resolverForModuleFactory = resolverForModuleFactory,
+                searchScope = GlobalSearchScope.allScope(project),
+                languageVersionSettings = languageVersionSettings,
+                syntheticFiles = files,
+                knownDependencyModuleDescriptors = emptyMap()
+            )
+
+            // 获取模块描述符
+            val moduleDescriptor = resolver.descriptorForModule(moduleInfo)
+
+            // 获取分析容器
+            val container = resolver.resolverForModule(moduleInfo).componentProvider
+
+            // 获取分析处理扩展
+            val analysisHandlerExtensions = AnalysisHandlerExtension.EP_NAME.extensionList
+
+            // 获取绑定追踪器
+            val trace = container.get<BindingTrace>()
+
+            // 尝试通过扩展点执行分析
+            // 如果任何扩展返回非空结果，使用该结果；否则执行默认分析
+            var result = analysisHandlerExtensions.firstNotNullOfOrNull { extension ->
+                extension.doAnalysis(
+                    project,
+                    moduleDescriptor,
+                    projectContext,
+                    files,
+                    trace,
+                    container
+                )
+            } ?: run {
+                // 默认分析：使用 LazyTopDownAnalyzer
+                val analyzer = container.get<LazyTopDownAnalyzer>()
+                analyzer.analyzeDeclarations(
+                    TopDownAnalysisMode.TopLevelDeclarations,
+                    files
+                )
+                AnalysisResult.success(trace.bindingContext, moduleDescriptor)
+            }
+
+            // 允许扩展覆盖分析结果
+            result = analysisHandlerExtensions.firstNotNullOfOrNull { extension ->
+                extension.analysisCompleted(project, moduleDescriptor, trace, files)
+            } ?: result
+
+            return result
+        }
+    }
+
 }
 
 /**
@@ -1221,6 +1432,7 @@ class LazyModuleDependencies<M : ModuleInfo>(
 
         moduleDescriptors.toList()
     }
+
     /**
      * 所有依赖模块
      *

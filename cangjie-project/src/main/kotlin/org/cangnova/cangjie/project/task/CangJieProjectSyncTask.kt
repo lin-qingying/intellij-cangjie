@@ -164,6 +164,7 @@ class CangJieProjectSyncTask(
                         try {
                             val workspaceSync = projectService.intellijProject.service<CjWorkspaceModelSync>()
 
+
                             // 在后台线程中使用 runBlocking 执行协程
                             // runBlocking 会创建协程上下文，允许调用 suspend 函数
                             kotlinx.coroutines.runBlocking {

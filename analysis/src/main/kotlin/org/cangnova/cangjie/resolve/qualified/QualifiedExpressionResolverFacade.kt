@@ -80,7 +80,7 @@ class QualifiedExpressionResolverFacade(
     val languageVersionSettings: LanguageVersionSettings
 ) {
     @set:Inject
-    private lateinit var typeResolver: TypeResolver
+      lateinit var typeResolver: TypeResolver
 
     companion object {
         /**

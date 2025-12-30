@@ -35,9 +35,10 @@ import org.cangnova.cangjie.resolve.binding.BindingTrace
 
 interface AnalysisHandlerExtension {
 
-companion object{
-    val EP_NAME = ExtensionPointName.create<AnalysisHandlerExtension>("org.cangnova.cangjie.analyzeComplete")
-}
+    companion object {
+        val EP_NAME = ExtensionPointName.create<AnalysisHandlerExtension>("org.cangnova.cangjie.analyzeComplete")
+    }
+
     fun doAnalysis(
         project: Project,
         module: ModuleDescriptor,

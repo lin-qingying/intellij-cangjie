@@ -38,9 +38,9 @@ class MainFunctionResolver(
     fun check(c: BodiesResolveContext) {
 
 
-        c.files.firstOrNull()?.let {
-            checkMainFunctionNumber(it.packageFqName.moduleName.asString(), it.project)
-        }
+//        c.files.firstOrNull()?.let {
+//            checkMainFunctionNumber(it.packageFqName.moduleName.asString(), it.project)
+//        }
     }
 
     //    检查main方法数量

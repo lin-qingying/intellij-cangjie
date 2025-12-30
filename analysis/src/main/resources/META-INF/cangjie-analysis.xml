@@ -38,8 +38,12 @@
                 interface="org.cangnova.cangjie.moduleinfo.provider.ModuleInfoProviderExtension"
                 area="IDEA_PROJECT"
                 dynamic="true"/>
-
-
+        <extensionPoint qualifiedName="org.cangnova.cangjie.assignResolutionAltererExtension"
+                        interface="org.cangnova.cangjie.resolve.extensions.AssignResolutionAltererExtension"
+                        dynamic="true"/>
+        <extensionPoint qualifiedName="org.cangnova.cangjie.analyzeComplete"
+                        interface="org.cangnova.cangjie.resolve.extensions.AnalysisHandlerExtension"
+                        dynamic="true"/>
         <!-- 解析优化选项提供者扩展点 -->
         <extensionPoint qualifiedName="org.cangnova.cangjie.caches.resolve.resolveOptimizingOptionsProvider"
                         interface="org.cangnova.cangjie.resolve.caches.ResolveOptimizingOptionsProvider"
@@ -122,7 +126,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <registryKey key="org.cangnova.cangjie.analysis"
-                     defaultValue="true"
+                     defaultValue="false"
                      description="Enable experimental static analysis and semantic highlighting features (development mode)"
                      restartRequired="false"/>
 

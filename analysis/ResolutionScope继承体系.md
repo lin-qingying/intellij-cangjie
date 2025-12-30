@@ -2,7 +2,7 @@
 
 > **文档版本**: 1.0
 > **生成日期**: 2025-12-29
-> **作者**: 仓颉语言 IntelliJ 插件开发团队
+ 
 
 ## 目录
 
@@ -975,4 +975,4 @@ override fun getContributedFunctions(name: Name, location: LookupLocation) =
 
 ---
 
-**文档维护**: 如有任何问题或建议,请联系插件开发团队。
+ 
