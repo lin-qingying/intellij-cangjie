@@ -12,6 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
  */
 
 package org.cangnova.cangjie.resolve.imports
@@ -124,7 +132,7 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
             assertEquals("应该有 3 个导入语句", 3, importDirectives.size)
 
             // 验证导入的符号可以使用
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
+            val properties = PsiTreeUtil.findChildrenOfType(file, CjVariable::class.java)
             assertTrue("应该有变量声明", properties.isNotEmpty())
         }
     }
@@ -259,7 +267,7 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
             val importDirectives = PsiTreeUtil.findChildrenOfType(file, CjImportDirective::class.java)
             assertEquals("应该有 2 个导入语句", 2, importDirectives.size)
 
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
+            val properties = PsiTreeUtil.findChildrenOfType(file, CjVariable::class.java)
             assertEquals("应该有 2 个变量", 2, properties.size)
         }
     }

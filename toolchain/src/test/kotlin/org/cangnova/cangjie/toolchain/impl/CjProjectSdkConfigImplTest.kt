@@ -30,6 +30,7 @@ import org.cangnova.cangjie.toolchain.CangJieSdkVersion
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.api.CjSdk
 import org.cangnova.cangjie.toolchain.api.CjSdkRegistry
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -42,12 +43,36 @@ class CjProjectSdkConfigImplTest : CangJieTestBase() {
 
     private lateinit var projectConfig: CjProjectSdkConfig
     private lateinit var sdkRegistry: CjSdkRegistry
+    private val registeredSdkIds = mutableListOf<String>()
 
     @Before
    public override fun setUp() {
         super.setUp()
         projectConfig = CjProjectSdkConfig.getInstance(project)
         sdkRegistry = CjSdkRegistry.getInstance()
+
+        // 记录测试开始前已存在的 SDK
+        val existingSdks = sdkRegistry.getAllSdks().map { it.id }
+        registeredSdkIds.clear()
+        registeredSdkIds.addAll(existingSdks)
+    }
+
+    @After
+    public override fun tearDown() {
+        try {
+            // 清理测试中注册的 SDK（只清理新增的）
+            val currentSdks = sdkRegistry.getAllSdks().map { it.id }
+            for (sdkId in currentSdks) {
+                if (sdkId !in registeredSdkIds) {
+                    sdkRegistry.unregisterSdk(sdkId)
+                }
+            }
+
+            // 清理项目配置
+            projectConfig.setProjectSdkId(null)
+        } finally {
+            super.tearDown()
+        }
     }
 
     @Test

@@ -12,6 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
  */
 
 package org.cangnova.cangjie.resolve.declaration
@@ -76,13 +84,13 @@ class ClassDeclarationTest : CangJieAnalysisTestBase() {
             assertEquals("Foo", classDecl!!.name)
 
             // 验证类描述符
-            val classDescriptor = bindingContext[BindingContext.CLASS, classDecl!!]
+            val classDescriptor = bindingContext[BindingContext.CLASS, classDecl]
             // 注意：如果还没有实现完整的描述符系统，这里可能需要调整
             // assertNotNull("应该创建类描述符", classDescriptor)
             // assertEquals("Foo", classDescriptor?.name?.asString())
 
             // 验证成员变量
-            val members = PsiTreeUtil.findChildrenOfType(classDecl, CjProperty::class.java)
+            val members = PsiTreeUtil.findChildrenOfType(classDecl, CjVariable::class.java)
             assertEquals("应该有 1 个成员变量", 1, members.size)
             assertEquals("bar", members.first().name)
         }
@@ -499,7 +507,7 @@ class ClassDeclarationTest : CangJieAnalysisTestBase() {
             assertNotNull("应该找到 Base 类", baseClass)
 
             // 验证 Base 有两个成员变量
-            val baseMembers = PsiTreeUtil.findChildrenOfType(baseClass!!, CjProperty::class.java)
+            val baseMembers = PsiTreeUtil.findChildrenOfType(baseClass!!, CjVariable::class.java)
             assertEquals("Base 应该有 2 个成员变量", 2, baseMembers.size)
 
             val childClass = PsiTreeUtil.findChildrenOfType(file, CjClass::class.java)

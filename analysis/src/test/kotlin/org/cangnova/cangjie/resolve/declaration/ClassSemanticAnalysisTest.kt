@@ -12,6 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
  */
 
 package org.cangnova.cangjie.resolve.declaration
@@ -271,7 +279,9 @@ class ClassSemanticAnalysisTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            class Point(public var x: Int64, public var y: Int64) {
+            class Point  {
+            Point(public var x: Int64, public var y: Int64){
+            }
                 public func distance(): Float64 {
                     return 0.0
                 }
@@ -405,17 +415,20 @@ class ClassSemanticAnalysisTest : CangJieAnalysisTestBase() {
      *
      * 验证：
      * 1. sealed 类的 modality 为 SEALED
-     * 2. sealed 类的子类限制（如果有相关语义）
+     * 2. sealed 类的子类可以正常继承
+     *
+     * 注意：仓颉不支持嵌套类，sealed 类的子类必须定义在顶层
      */
     fun `test sealed class semantics`() {
         val file = createFile(
             """
             package test
 
-            sealed abstract class Result {
-                class Success <: Result
-                class Failure <: Result
-            }
+            sealed abstract class Result {}
+
+            class Success <: Result {}
+
+            class Failure <: Result {}
             """.trimIndent()
         )
 
@@ -434,19 +447,20 @@ class ClassSemanticAnalysisTest : CangJieAnalysisTestBase() {
                 resultDescriptor!!.modality
             )
 
-            // 验证嵌套的子类
-            val nestedClasses = PsiTreeUtil.findChildrenOfType(resultClass, CjClass::class.java)
-            assertEquals("应该有 2 个嵌套子类", 2, nestedClasses.size)
+            // 验证子类（在顶层定义）
+            val allClasses = PsiTreeUtil.findChildrenOfType(file, CjClass::class.java).toList()
+            val subClasses = allClasses.filter { it.name == "Success" || it.name == "Failure" }
+            assertEquals("应该有 2 个子类", 2, subClasses.size)
 
-            // 验证嵌套子类的描述符
-            nestedClasses.forEach { nestedClass ->
-                val nestedDescriptor = bindingContext[BindingContext.CLASS, nestedClass!!]
-                assertNotNull("嵌套类应该有描述符", nestedDescriptor)
+            // 验证子类的描述符
+            subClasses.forEach { subClass ->
+                val subDescriptor = bindingContext[BindingContext.CLASS, subClass]
+                assertNotNull("${subClass.name} 应该有描述符", subDescriptor)
 
                 // 验证它们继承 Result
-                val superTypes = nestedDescriptor!!.typeConstructor.supertypes
+                val superTypes = subDescriptor!!.typeConstructor.supertypes
                 assertTrue(
-                    "${nestedClass.name} 应该继承 Result",
+                    "${subClass.name} 应该继承 Result",
                     superTypes.any { it.toString().contains("Result") }
                 )
             }

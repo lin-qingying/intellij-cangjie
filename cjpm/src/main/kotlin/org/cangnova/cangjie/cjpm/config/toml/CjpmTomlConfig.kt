@@ -176,7 +176,7 @@ data class PackageConfig(
     val srcDir: String = "src",
 
     /** 指定产物存放路径 */
-    @field:JsonProperty("targetPlatform-dir")
+    @field:JsonProperty("target-dir")
     @field:JsonDeserialize(using = EmptyStringToTargetDirDeserializer::class)
     val targetDir: String = "target",
 
