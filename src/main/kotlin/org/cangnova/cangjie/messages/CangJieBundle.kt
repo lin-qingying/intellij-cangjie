@@ -68,3 +68,4 @@ object CangJieIdeBundle : AbstractCangJieBundle(BUNDLE_IDE) {
     fun lazyMessage(@PropertyKey(resourceBundle = BUNDLE_IDE) key: String, vararg params: Any): () -> String =
         { getMessage(key, *params) }
 }
+

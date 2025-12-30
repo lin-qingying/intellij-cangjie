@@ -46,8 +46,7 @@ class ErrorFunctionDescriptor(containingDeclaration: ClassDescriptor) : SimpleFu
     init {
         initialize(
             null,
-            null,
-            emptyList(),
+
             emptyList(),
             emptyList(),
             ErrorUtils.createErrorType(ErrorTypeKind.RETURN_TYPE_FOR_FUNCTION),
@@ -110,14 +109,8 @@ class ErrorFunctionDescriptor(containingDeclaration: ClassDescriptor) : SimpleFu
             override fun setReturnType(type: CangJieType): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> =
                 this
 
-            override fun setContextReceiverParameters(
-                contextReceiverParameters: List<ReceiverParameterDescriptor>
-            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> = this
 
-            override fun setExtensionReceiverParameter(
-                extensionReceiverParameter: ReceiverParameterDescriptor?
-            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> = this
-
+        
             override fun setDispatchReceiverParameter(
                 dispatchReceiverParameter: ReceiverParameterDescriptor?
             ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> = this

@@ -28,5 +28,4 @@ import org.cangnova.cangjie.descriptors.PackageFragmentDescriptor
 
 interface BuiltInsPackageFragment : PackageFragmentDescriptor
 {
-    val isFallback: Boolean
 }

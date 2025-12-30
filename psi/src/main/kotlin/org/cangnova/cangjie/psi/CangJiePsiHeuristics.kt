@@ -28,6 +28,7 @@ import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorConventions
 import com.google.common.collect.HashMultimap
+import kotlin.collections.orEmpty
 
 object CangJiePsiHeuristics {
     @JvmStatic
@@ -66,10 +67,12 @@ object CangJiePsiHeuristics {
 
     private val CjFile.aliasImportMap by userDataCached("ALIAS_IMPORT_MAP_KEY") { file ->
         HashMultimap.create<String, String>().apply {
-            for (import in file.importList?.importItems.orEmpty()) {
-                val aliasName = import.aliasName ?: continue
-                val name = import.importPath?.fqName?.shortName()?.asString() ?: continue
-                put(aliasName, name)
+            for (directive in file.importDirectives) {
+                for (item in directive.importItems) {
+                    val aliasName = item.aliasName ?: continue
+                    val name = item.importPath?.fqName?.shortName()?.asString() ?: continue
+                    put(aliasName, name)
+                }
             }
         }
     }

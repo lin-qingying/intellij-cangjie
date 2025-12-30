@@ -52,7 +52,7 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
     override val isStatic: Boolean
         get() = hasModifier(CjTokens.STATIC_KEYWORD)
 
-    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitProperty(this, data)
     }
 
@@ -134,31 +134,14 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
             return parent?.receiverTypeReceiver
         }
 
-    override val receiverTypeReference: CjTypeReference?
-        get() {
-
-            val stub = stub
-            if (stub != null) {
-                if (!stub.isExtension()) {
-                    return null
-                }
-
-                val parent = this.getStrictParentOfType<CjExtend>()
-
-                return parent?.receiverTypeReceiver
-            }
-//            return null
-            return receiverTypeRefByTree
-        }
-
     override val valueParameterList: CjParameterList? = null
     override val valueParameters: List<CjParameter> = emptyList()
 
-    val body: CjPropertyBody? get() = findChildByClass(CjPropertyBody::class.java)
+    val body: CjPropertyBody?
+        get() = getStubOrPsiChild(CjStubElementTypes.PROPERTY_BODY)
+
     val accessors: List<CjPropertyAccessor>
-        get() {
-            return body?.accessors ?: emptyList()
-        }
+        get() = body?.accessors ?: emptyList()
 
     val getter: CjPropertyAccessor?
         get() {

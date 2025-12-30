@@ -446,8 +446,8 @@ abstract class DeclarationDescriptorImpl(
         }
     }
 
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
-        accept(visitor, null)
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {
+        accept(visitor, Unit)
     }
 
 }

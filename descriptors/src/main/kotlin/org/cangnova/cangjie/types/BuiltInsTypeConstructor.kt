@@ -66,13 +66,11 @@ class BuiltInsTypeConstructor(
 
 
             // 其他基本类型都继承自 Any
-            else -> listOf(builtIns.anyType)
+            else -> listOf(builtIns.stdlibTypes.anyType)
         }
     }
 
-    override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
-        TODO("Not yet implemented")
-    }
+
 
 
     /**

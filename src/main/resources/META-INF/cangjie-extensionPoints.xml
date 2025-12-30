@@ -26,14 +26,9 @@
 
     <extensionPoints>
 
-
-        <!--        工具链  多平台支持-->
-        <extensionPoint qualifiedName="org.cangnova.cangjie.toolchainProvider"
-                        interface="org.cangnova.cangjie.toolchain.CjToolchainProvider"
-                        dynamic="true"/>
-
-        <extensionPoint qualifiedName="org.cangnova.cangjie.toolchainFlavor"
-                        interface="org.cangnova.cangjie.toolchain.flavors.CjToolchainFlavor"
+        <!-- CJO 文件提供者扩展点 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.cjoProvider"
+                        interface="org.cangnova.cangjie.cjo.CjoProvider"
                         dynamic="true"/>
 
 
@@ -52,18 +47,17 @@
                 interface="org.cangnova.cangjie.ide.configuration.CangJieProjectConfigurator"
                 dynamic="true"/>
 
-        <!--        解析范围-->
-        <extensionPoint qualifiedName="org.cangnova.cangjie.resolveScopeEnlarger"
-                        dynamic="true"
-                        interface="org.cangnova.cangjie.ide.projectStructure.CangJieResolveScopeEnlarger"/>
 
 
-        <extensionPoint qualifiedName="org.cangnova.cangjie.classFileDecompiler"
-                        interface="org.cangnova.cangjie.psi.compiled.ClassFileDecompilers$Decompiler"
-                        dynamic="true"/>
+
 
         <extensionPoint qualifiedName="org.cangnova.cangjie.sdkDownload"
                         interface="org.cangnova.cangjie.ide.project.structure.download.SdkDownloadEp"/>
+
+        <!-- 诊断渲染器提供者 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.diagnosticRendererProvider"
+                        interface="org.cangnova.cangjie.diagnostics.rendering.DiagnosticRendererProvider"
+                        dynamic="true"/>
 
 
     </extensionPoints>

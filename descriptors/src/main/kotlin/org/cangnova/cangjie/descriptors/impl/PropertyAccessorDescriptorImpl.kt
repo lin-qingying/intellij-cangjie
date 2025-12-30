@@ -57,10 +57,7 @@ abstract class PropertyAccessorDescriptorImpl(
     override var initialSignatureDescriptor: FunctionDescriptor? = null
 
 
-
-
-
-    override fun substitute(substitutor: TypeSubstitutor): FunctionDescriptor {
+    override fun substitute(substitutor: TypeSubstitutor): PropertyAccessorDescriptorImpl? {
         return this // no substitution since we work with originals of accessors in the backend anyway
     }
 
@@ -82,11 +79,7 @@ abstract class PropertyAccessorDescriptorImpl(
 
 
 
-    override val contextReceiverParameters: List<ReceiverParameterDescriptor>
-        get() = correspondingProperty.contextReceiverParameters
 
-    override val extensionReceiverParameter: ReceiverParameterDescriptor?
-        get() = correspondingProperty.extensionReceiverParameter
 
 
     override val dispatchReceiverParameter: ReceiverParameterDescriptor?

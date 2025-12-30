@@ -45,7 +45,7 @@ import org.cangnova.cangjie.utils.Printer
  * - [getContributedFunctions]: 仅返回静态函数（`isStatic == true`）
  * - [getContributedVariables]: 仅返回静态变量
  * - [getContributedPropertys]: 仅返回静态属性
- * - [getContributedClassifier]: 返回所有分类器（类、接口等总是可通过类型访问）
+ * - [getContributedClassifier]: 返回 null（仓颉语言不支持类内声明类型）
  *
  * ### 名称集合透传
  *
@@ -141,10 +141,9 @@ import org.cangnova.cangjie.utils.Printer
  *
  * ## 注意事项
  *
- * 1. **分类器处理**: 嵌套类、内部类等分类器总是可通过外部类型访问，不进行过滤
+ * 1. **类型声明**: 仓颉语言不支持类内声明类型（无嵌套类、内部类等概念），分类器查询始终返回 null
  * 2. **宏描述符**: 当前实现返回空列表，宏不支持静态/实例区分
  * 3. **名称集合超集**: 调用者必须通过 `getContributedXxx` 验证实际存在性
- * 4. **打印错误**: `printScopeStructure` 中的文本显示为 "InstanceMemberScope"，应为 "StaticMemberScope"（代码错误）
  *
  * ## 典型用法组合
  *
@@ -233,19 +232,19 @@ class StaticMemberScope(val memberScope: MemberScope) : MemberScope {
     }
 
     override fun printScopeStructure(p: Printer) {
-        p.println("InstanceMemberScope:") // 打印作用域结构
+        p.println("StaticMemberScope:") // 打印作用域结构
         memberScope.printScopeStructure(p) // 打印基础成员作用域的结构
     }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
-        return memberScope.getContributedClassifier(name, location)
-        // 过滤非静态分类器
+        // 仓颉语言不支持类内声明类型（无嵌套类概念）
+        return null
     }
 
 
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
-        return memberScope.getContributedClassifiers(name, location)
-
+        // 仓颉语言不支持类内声明类型（无嵌套类概念）
+        return emptyList()
     }
 
 

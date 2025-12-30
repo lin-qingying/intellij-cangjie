@@ -97,7 +97,7 @@ class CangJieExternalSystemProjectAware(
      *
      * 当检测到配置文件变更或用户手动触发刷新时调用此方法，
      * 负责重新解析项目配置、更新依赖关系和刷新项目结构。
-     * 使用新的 CangJieSyncTask 进行异步刷新，提供更好的用户体验。
+     * 使用新的 CangJieProjectSyncTask 进行异步刷新，提供更好的用户体验。
      *
      * @param context 项目重新加载的上下文信息，包含刷新状态和相关设置
      */

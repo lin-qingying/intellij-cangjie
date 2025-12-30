@@ -76,7 +76,7 @@ object UnitValue : ConstantValue<Unit>(Unit) {
 
 class StringValue(value: String) : ConstantValue<String>(value) {
     //    override fun getType(module: ModuleDescriptor) = module.builtIns.stringType
-    override fun getType(module: ModuleDescriptor) = module.builtIns.stringType
+    override fun getType(module: ModuleDescriptor) = module.builtIns.stdlibTypes.stringType
 
     override fun <R, D> accept(visitor: AnnotationArgumentVisitor<R, D>, data: D) = visitor.visitStringValue(this, data)
 

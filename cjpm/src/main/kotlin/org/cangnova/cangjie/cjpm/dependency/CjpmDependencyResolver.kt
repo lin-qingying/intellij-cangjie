@@ -181,7 +181,7 @@ class CjpmDependencyResolver : CjDependencyResolver {
                         } else {
                             "No cjpm.lock found. Please run 'cjpm update' to generate lock file."
                         }
-                        LOG.warn("Cannot resolve ${dependency::class.simpleName} dependency: ${dependency.name} - $errorMsg")
+                        LOG.warn("Cannot resolveName ${dependency::class.simpleName} dependency: ${dependency.name} - $errorMsg")
                         return CjPackage.Failed(
                             PackageId(
                                 dependency.name,
@@ -192,7 +192,7 @@ class CjpmDependencyResolver : CjDependencyResolver {
                     }
                 }
         } catch (e: Exception) {
-            LOG.warn("Failed to resolve dependency: ${dependency.name}", e)
+            LOG.warn("Failed to resolveName dependency: ${dependency.name}", e)
             CjPackage.Failed(
                 PackageId(
                     dependency.name,

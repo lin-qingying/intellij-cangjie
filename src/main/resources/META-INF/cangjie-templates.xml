@@ -24,8 +24,16 @@
 
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
+    <!-- Live Templates -->
     <defaultLiveTemplates file="liveTemplates/CangJie.xml"/>
 
+    <!-- Internal File Templates -->
+    <internalFileTemplate name="CangJie Class"/>
+    <internalFileTemplate name="CangJie Enum"/>
+    <internalFileTemplate name="CangJie Extend"/>
+    <internalFileTemplate name="CangJie File"/>
+    <internalFileTemplate name="CangJie Interface"/>
+    <internalFileTemplate name="CangJie Struct"/>
 
     <codeInsight.template.postfixTemplateProvider
             language="CangJie"

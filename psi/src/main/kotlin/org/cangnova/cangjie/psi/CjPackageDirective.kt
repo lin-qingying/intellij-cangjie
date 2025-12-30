@@ -52,9 +52,10 @@ class CjPackageDirective : CjDeclarationStub<CangJiePackageDirectiveStub> {
     val packageNameExpression
         get() = CjStubbedPsiUtil.getStubOrPsiChild(
             this,
-            CjTokenSets.INSIDE_DIRECTIVE_EXPRESSIONS!!,
+            CjTokenSets.INSIDE_DIRECTIVE_EXPRESSIONS,
             CjExpression.ARRAY_FACTORY,
         )
+
 
     val packageNames: List<CjSimpleNameExpression>
         get() {
@@ -221,7 +222,7 @@ class CjPackageDirective : CjDeclarationStub<CangJiePackageDirectiveStub> {
         qualifiedNameCache = null
     }
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitPackageDirective(this, data)
     }
 }

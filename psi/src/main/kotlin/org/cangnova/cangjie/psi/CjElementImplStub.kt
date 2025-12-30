@@ -94,13 +94,14 @@ open class CjElementImplStub<T : StubElement<*>> :
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is CjVisitor<*, *>) {
-            accept(visitor, null)
+            @Suppress("UNCHECKED_CAST")
+            accept(visitor as CjVisitor<Any?, Any?>, null as Any?)
         } else {
             visitor.visitElement(this)
         }
     }
 
-    override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D?) {
+    override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D) {
         var child = firstChild
         while (child != null) {
             if (child is CjElement) {
@@ -116,7 +117,7 @@ open class CjElementImplStub<T : StubElement<*>> :
         return listOf(*getStubOrPsiChildren(elementType, elementType.arrayFactory))
     }
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitCjElement(this, data)
     }
 }

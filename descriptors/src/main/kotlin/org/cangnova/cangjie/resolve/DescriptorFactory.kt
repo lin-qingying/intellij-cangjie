@@ -31,11 +31,8 @@ import org.cangnova.cangjie.descriptors.impl.PropertySetterDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.PropertySetterDescriptorImpl.Companion.createSetterParameter
 import org.cangnova.cangjie.descriptors.impl.ReceiverParameterDescriptorImpl
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.name.NameUtils.contextReceiverName
 import org.cangnova.cangjie.resolve.DescriptorUtils.getDefaultConstructorVisibility
-import org.cangnova.cangjie.resolve.scopes.receivers.ContextClassReceiver
-import org.cangnova.cangjie.resolve.scopes.receivers.ContextReceiver
-import org.cangnova.cangjie.resolve.scopes.receivers.ExtensionReceiver
+
 import org.cangnova.cangjie.types.CangJieType
 
 object   DescriptorFactory {
@@ -102,16 +99,6 @@ object   DescriptorFactory {
         )
     }
 
-    fun createExtensionReceiverParameterForCallable(
-        owner: CallableDescriptor,
-        receiverParameterType: CangJieType?,
-        annotations: Annotations
-    ): ReceiverParameterDescriptor? {
-        return if (receiverParameterType == null)
-            null
-        else
-            ReceiverParameterDescriptorImpl(owner, ExtensionReceiver(owner, receiverParameterType, null), annotations)
-    }
 
     fun createPrimaryConstructorForObject(
         containingClass: ClassDescriptor,
@@ -122,38 +109,6 @@ object   DescriptorFactory {
          *   Since object can not be sealed class it's OK to pass default settings here
          */
         return DefaultClassConstructorDescriptor(containingClass, source, false)
-    }
-
-    fun createContextReceiverParameterForClass(
-        owner: ClassDescriptor,
-        receiverParameterType: CangJieType?,
-        customLabelName: Name?,
-        annotations: Annotations,
-        index: Int
-    ): ReceiverParameterDescriptor? {
-        return if (receiverParameterType == null)
-            null
-        else
-            ReceiverParameterDescriptorImpl(
-                owner, ContextClassReceiver(owner, receiverParameterType, customLabelName, null),
-                annotations, contextReceiverName(index)
-            )
-    }
-
-    fun createContextReceiverParameterForCallable(
-        owner: CallableDescriptor,
-        receiverParameterType: CangJieType?,
-        customLabelName: Name?,
-        annotations: Annotations,
-        index: Int
-    ): ReceiverParameterDescriptor? {
-        return if (receiverParameterType == null)
-            null
-        else
-            ReceiverParameterDescriptorImpl(
-                owner, ContextReceiver(owner, receiverParameterType, customLabelName, null), annotations,
-                contextReceiverName(index)
-            )
     }
 
     private class DefaultClassConstructorDescriptor(

@@ -28,6 +28,9 @@ plugins {
     id("org.jetbrains.intellij.platform.settings") version "2.10.5"
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
 }
+
+
+
 buildCache {
     local {
         isEnabled = System.getenv("CI") == null
@@ -35,11 +38,12 @@ buildCache {
 
     }
 }
-
 rootProject.name = "intellij-cangjie"
+
 // 使用依赖解析管理（可选但推荐）
 dependencyResolutionManagement {
     repositoriesMode = RepositoriesMode.PREFER_PROJECT
+
     repositories {
         mavenCentral()
         maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies") }
@@ -55,7 +59,6 @@ dependencyResolutionManagement {
         }
     }
 }
-
 
 
 include("plugin")
@@ -79,8 +82,7 @@ include("test-common")
 
 include("descriptors:deserialization")
 include("metadata")
-include("analysis")
-include("analysis:decompiler-to-psi")
+include("metadata:cjo")
 
 
 
@@ -101,3 +103,19 @@ include("debugger")
 include("debugger:protobuf")
 include("debugger:dap")
 include("debugger:common")
+
+
+
+include("analysis")
+include("analysis:decompiler-to-psi")
+
+
+include("analysis:diagnostics")
+
+// KSP 处理器模块（用于生成诊断工厂初始化代码）
+include("ksp-processors:diagnostic")
+
+include("psi:stubindex")
+include("highlighter")
+include("chir")
+include("formatter")

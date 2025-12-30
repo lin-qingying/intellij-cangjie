@@ -50,6 +50,7 @@ open class CangJieStubBaseImpl<T : CjElementImplStub<*>>(parent: StubElement<*>?
         )
     }
 
+    @Deprecated("Deprecated in Java")
     override fun getStubType(): IStubElementType<out StubElement<*>, *> =
         super.getStubType() as IStubElementType<out StubElement<*>, *>
 

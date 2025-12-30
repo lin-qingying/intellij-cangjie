@@ -96,8 +96,7 @@ abstract class AbstractClassDescriptor(
         get() = _thisAsReceiverParameter.invoke()
 
 
-    override val contextReceivers: List<ReceiverParameterDescriptor>
-        get() = emptyList()
+
     override val visibility: DescriptorVisibility
         get() = DescriptorVisibilities.PUBLIC
 
@@ -151,7 +150,7 @@ abstract class AbstractClassDescriptor(
 //    override val unsubstitutedInnerClassesScope: MemberScope
 //        get() = _unsubstitutedInnerClassesScope.invoke()
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassDescriptor {
+    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
         if (substitutor.isEmpty) {
             return this
         }
@@ -162,11 +161,11 @@ abstract class AbstractClassDescriptor(
         get() = _defaultType.invoke()
 
 
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {
         visitor.visitClassDescriptor(this, null)
     }
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
         return visitor.visitClassDescriptor(this, data)
 
     }

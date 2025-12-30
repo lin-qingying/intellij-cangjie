@@ -28,7 +28,7 @@ import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.storage.StorageManager
 
- /**
+/**
  * 类描述符的基础抽象实现。
  *
  * 该类作为具体类描述符的基类，接收存储管理器和包含声明等通用参数，
@@ -47,7 +47,6 @@ abstract class ClassDescriptorBase protected constructor(
     name: Name,
     override val source: SourceElement,
 
-    ) : AbstractClassDescriptor(storageManager, name)
-{
+    ) : AbstractClassDescriptor(storageManager, name) {
 
-    }
+}

@@ -24,13 +24,14 @@
 
 package org.cangnova.cangjie.psi.stubs.impl
 
-// import org.cangnova.cangjie.psi.CjBasicType
-// import org.cangnova.cangjie.psi.stubs.CangJieBasicTypeStub
-// import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
-// import com.intellij.psi.PsiElement
-// import com.intellij.psi.stubs.StubElement
-//
-// class CangJieBasicTypeStubImpl(
-//    parent: StubElement<out PsiElement>?
-// ) :CangJieStubBaseImpl<CjBasicType>(parent, CjStubElementTypes.BASIC_TYPE),
-//    CangJieBasicTypeStub
+import org.cangnova.cangjie.psi.CjBasicType
+import org.cangnova.cangjie.psi.stubs.CangJieBasicTypeStub
+import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.StubElement
+
+class CangJieBasicTypeStubImpl(
+    parent: StubElement<out PsiElement>?,
+    override val basicType: String
+) : CangJieStubBaseImpl<CjBasicType>(parent, CjStubElementTypes.BASIC_TYPE),
+    CangJieBasicTypeStub

@@ -28,7 +28,11 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(project(":common"))
     implementation(project(":psi"))
+    implementation(project(":psi:stubindex"))
+    implementation(project(":cangjie-project"))
+
     implementation(project(":metadata"))
+    implementation(project(":metadata:cjo"))
     implementation(project(":telemetry"))
     implementation(project(":toolchain"))
     implementation(project(":util"))

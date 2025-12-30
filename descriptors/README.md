@@ -214,7 +214,7 @@ classDiagram
         +returnType: CangJieType?
         +typeParameters: List
         +valueParameters: List
-        +extensionReceiverParameter: ReceiverParameterDescriptor?
+         
     }
 
     class FunctionDescriptor {

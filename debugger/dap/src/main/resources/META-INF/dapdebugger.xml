@@ -26,6 +26,10 @@
 
 
     <extensions defaultExtensionNs="com.intellij">
+        <projectService
+                serviceInterface="org.cangnova.cangjie.debugger.dap.session.DebugSessionCoordinator"
+                serviceImplementation="org.cangnova.cangjie.debugger.dap.session.DebugSessionCoordinator"/>
+
         <xdebugger.breakpointType
                 implementation="org.cangnova.cangjie.debugger.dap.ui.CangJieLineBreakpointType"
         />

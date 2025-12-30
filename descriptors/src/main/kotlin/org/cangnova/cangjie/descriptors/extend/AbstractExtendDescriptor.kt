@@ -28,6 +28,7 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.scopes.SubstitutingScope
 import org.cangnova.cangjie.storage.StorageManager
+import org.cangnova.cangjie.storage.NotNullLazyValue
 import org.cangnova.cangjie.types.*
 
 abstract class AbstractExtendDescriptor(
@@ -35,14 +36,22 @@ abstract class AbstractExtendDescriptor(
     private val storageManager: StorageManager,
 ) : ExtendDescriptor {
 
+    private val _thisAsReceiverParameter: NotNullLazyValue<ReceiverParameterDescriptor> =
+        storageManager.createLazyValue {
+            LazyExtendReceiverParameterDescriptor(this@AbstractExtendDescriptor)
+        }
+
+    override val thisAsReceiverParameter: ReceiverParameterDescriptor
+        get() = _thisAsReceiverParameter.invoke()
+
     override fun <R, D> accept(
         visitor: DeclarationDescriptorVisitor<R, D>,
-        data: D?
+        data: D
     ): R? {
         return visitor.visitExtendDescriptor(this, data)
     }
 
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {
         visitor.visitExtendDescriptor(this, null)
     }
 

@@ -28,11 +28,55 @@ import com.intellij.psi.tree.TokenSet
 object CjTokenSets {
     val SUPER_TYPE_LIST_ENTRIES: TokenSet =
         TokenSet.create(CjStubElementTypes.SUPER_TYPE_CALL_ENTRY, CjStubElementTypes.SUPER_TYPE_ENTRY)
+
+    /**
+     * 所有声明类型
+     */
     val DECLARATION_TYPES: TokenSet = TokenSet.create(
         CjStubElementTypes.CLASS,
-        CjStubElementTypes.FUNCTION, CjStubElementTypes.VARIABLE, CjStubElementTypes.STRUCT,
-        CjStubElementTypes.TYPEALIAS, CjStubElementTypes.CLASS_INITIALIZER,
-        CjStubElementTypes.SECONDARY_CONSTRUCTOR, CjStubElementTypes.ENUM, CjStubElementTypes.EXTEND,
+        CjStubElementTypes.INTERFACE,
+        CjStubElementTypes.STRUCT,
+        CjStubElementTypes.ENUM,
+        CjStubElementTypes.EXTEND,
+        CjStubElementTypes.FUNCTION,
+        CjStubElementTypes.VARIABLE,
+        CjStubElementTypes.PROPERTY,
+        CjStubElementTypes.TYPEALIAS,
+
+        CjStubElementTypes.SECONDARY_CONSTRUCTOR,
+        CjStubElementTypes.CJ_SCRIPT,
+    )
+
+    /**
+     * 文件级别的声明类型
+     */
+    val FILE_DECLARATION_TYPES: TokenSet = TokenSet.create(
+        CjStubElementTypes.CLASS,
+        CjStubElementTypes.INTERFACE,
+        CjStubElementTypes.STRUCT,
+        CjStubElementTypes.ENUM,
+        CjStubElementTypes.EXTEND,
+        CjStubElementTypes.FUNCTION,
+        CjStubElementTypes.VARIABLE,
+        CjStubElementTypes.TYPEALIAS,
+        CjStubElementTypes.CJ_SCRIPT,
+    )
+
+    /**
+     * 类/接口/结构体/枚举成员声明类型
+     */
+    val CLASS_MEMBER_DECLARATION_TYPES: TokenSet = TokenSet.create(
+        CjStubElementTypes.PRIMARY_CONSTRUCTOR,
+        CjStubElementTypes.FUNCTION,
+        CjStubElementTypes.FIELD,
+        CjStubElementTypes.PROPERTY,
+        CjStubElementTypes.SECONDARY_CONSTRUCTOR,
+        CjStubElementTypes.CLASS,
+        CjStubElementTypes.INTERFACE,
+        CjStubElementTypes.STRUCT,
+        CjStubElementTypes.ENUM,
+        CjStubElementTypes.TYPEALIAS,
+
     )
 
     val INSIDE_DIRECTIVE_EXPRESSIONS: TokenSet = TokenSet.create( //            IMPORT_DIRECTIVE_ITEM,

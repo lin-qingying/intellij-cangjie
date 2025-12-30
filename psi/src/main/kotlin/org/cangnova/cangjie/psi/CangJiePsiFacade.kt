@@ -22,3 +22,39 @@
  *
  */
 
+package org.cangnova.cangjie.psi
+
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiDirectory
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.Processor
+import org.cangnova.cangjie.name.FqName
+import org.cangnova.cangjie.psi.packgae.CangJiePackage
+
+
+abstract class CangJiePsiFacade {
+
+    fun findPackage(fqName: String,searchScope: GlobalSearchScope): CangJiePackage? {
+        return findPackage(FqName(fqName),searchScope)
+    }
+
+    abstract fun findPackage(fqName: FqName,searchScope: GlobalSearchScope): CangJiePackage?
+    abstract fun findPackage(fqName: FqName ): CangJiePackage?
+    abstract fun findPackage(fqName: String ): CangJiePackage?
+
+    abstract fun processPackageDirectories(
+        psiPackage: CangJiePackage,
+        scope: GlobalSearchScope,
+        consumer: Processor<in PsiDirectory>,
+        includeLibrarySources: Boolean
+    ): Boolean
+
+    companion object {
+
+
+        fun getInstance(project: Project): CangJiePsiFacade {
+            return project.service<CangJiePsiFacade>()
+        }
+    }
+}

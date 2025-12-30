@@ -24,21 +24,21 @@
 
 package org.cangnova.cangjie.psi
 
-import org.cangnova.cangjie.psi.stubs.CangJieFunctionStub
+import org.cangnova.cangjie.psi.stubs.CangJieMacroStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 
-class CjMacroDeclaration : CjFunctionImpl {
+class CjMacroDeclaration : CjFunctionImpl<CangJieMacroStub, CjMacroDeclaration> {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJieFunctionStub) : super(stub, CjStubElementTypes.MACRO)
+    constructor(stub: CangJieMacroStub) : super(stub, CjStubElementTypes.MACRO)
 
 //    override val isStatic: Boolean
 //        get() = false
     override val isTopLevel: Boolean
         get() = true
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitMacroDeclaration(this, data)
     }
 }

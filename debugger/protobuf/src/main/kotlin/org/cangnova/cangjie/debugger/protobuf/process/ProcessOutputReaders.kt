@@ -38,6 +38,7 @@ import com.intellij.util.system.OS
 import com.pty4j.unix.Pty
 import org.cangnova.cangjie.debugger.protobuf.pty.NamedPipe
 import org.cangnova.cangjie.debugger.protobuf.pty.WindowsPipe
+import org.cangnova.cangjie.debugger.protobuf.services.impl.IOResourceManager
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -102,10 +103,21 @@ abstract class ProcessOutputReaders(
      * 创建Windows管道读取器
      */
     private fun createWindowsReaders(readerArray: Array<OutputReader?>) {
-        readerArray[STDOUT_INDEX] = WindowsPipeOutputReader(ProcessOutputTypes.STDOUT)
-        if (!emulateTerminal) {
-            readerArray[STDERR_INDEX] = WindowsPipeOutputReader(ProcessOutputTypes.STDERR)
-        }
+      try {
+          readerArray[STDOUT_INDEX] = WindowsPipeOutputReader(ProcessOutputTypes.STDOUT)
+          if (!emulateTerminal) {
+              readerArray[STDERR_INDEX] = WindowsPipeOutputReader(ProcessOutputTypes.STDERR)
+          }
+      } catch (e: UnsatisfiedLinkError) {
+           LOG.warn("Failed to load Kernel32 native library: ${e.message}", e)
+
+      } catch (e: NoClassDefFoundError) {
+          LOG.warn("Kernel32 class not found: ${e.message}", e)
+
+      } catch (e: Exception) {
+          LOG.error("Unexpected error while setting up Windows pipe: ${e.message}", e)
+
+      }
     }
 
     /**

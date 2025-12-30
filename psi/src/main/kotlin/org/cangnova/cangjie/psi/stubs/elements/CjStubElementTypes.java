@@ -31,27 +31,19 @@ public interface CjStubElementTypes {
 
     CjScriptElementType CJ_SCRIPT = new CjScriptElementType("CJ_SCRIPT");
 
-    CjEnumEntryElementType ENUM_ENTRY = new CjEnumEntryElementType("ENUM_ENTRY");
+    CjEnumConstructorElementType ENUM_CONSTRUCTOR = new CjEnumConstructorElementType("ENUM_CONSTRUCTOR");
 
     CjClassElementType CLASS = new CjClassElementType("CLASS");
     CjFunctionElementType FUNCTION = new CjFunctionElementType("FUNC");
-    CjFunctionForExtendElementType FUNCTION_EXTEND = new CjFunctionForExtendElementType("FUNCTION_EXTEND");
 
-    CjVariableElementType VARIABLE = new CjVariableElementType("VARIABLE");
+    CjPatternVariableElementType VARIABLE = new CjPatternVariableElementType("VARIABLE");
+    CjFieldElementType FIELD = new CjFieldElementType("FIELD");
     CjPropertyElementType PROPERTY = new CjPropertyElementType("PROPERTY");
     CjPropertyAccessorElementType PROPERTY_ACCESSOR = new CjPropertyAccessorElementType("PROPERTY_ACCESSOR");
     //    CjBackingFieldElementType BACKING_FIELD = new CjBackingFieldElementType("BACKING_FIELD");
     CjTypeAliasElementType TYPEALIAS = new CjTypeAliasElementType("TYPEALIAS");
 
-    //    CjObjectElementType OBJECT_DECLARATION = new CjObjectElementType("OBJECT_DECLARATION");
-    CjPlaceHolderStubElementType<CjClassInitializer> CLASS_INITIALIZER =
-            new CjPlaceHolderStubElementType<>("CLASS_INITIALIZER", CjClassInitializer.class);
-    CjEndSecondaryConstructorElementType END_SECONDARY_CONSTRUCTOR =
-            new CjEndSecondaryConstructorElementType("END_SECONDARY_CONSTRUCTOR");
-    CjSecondaryConstructorElementType SECONDARY_CONSTRUCTOR =
-            new CjSecondaryConstructorElementType("SECONDARY_CONSTRUCTOR");
-    CjPrimaryConstructorElementType PRIMARY_CONSTRUCTOR =
-            new CjPrimaryConstructorElementType("PRIMARY_CONSTRUCTOR");
+
     CjCatchParameterElementType CATCH_PARAMETER = new CjCatchParameterElementType("CATCH_PARAMETER");
     CjParameterElementType VALUE_PARAMETER = new CjParameterElementType("VALUE_PARAMETER");
     CjPlaceHolderStubElementType<CjParameterList> VALUE_PARAMETER_LIST =
@@ -76,11 +68,9 @@ public interface CjStubElementTypes {
     CjPlaceHolderStubElementType<CjImportList> IMPORT_LIST =
             new CjPlaceHolderStubElementType<>("IMPORT_LIST", CjImportList.class);
 
-
-    CjImportDirectiveItemElementType IMPORT_DIRECTIVE_ITEM = new CjImportDirectiveItemElementType("IMPORT_DIRECTIVE_ITEM");
-    CjImportDirectiveElementType IMPORT_DIRECTIVE= new CjImportDirectiveElementType("IMPORT_DIRECTIVE");
-
-       CjImportAliasElementType IMPORT_ALIAS = new CjImportAliasElementType("IMPORT_ALIAS");
+    CjImportItemElementType IMPORT_ITEM = new CjImportItemElementType("IMPORT_ITEM");
+    CjImportDirectiveElementType IMPORT_DIRECTIVE = new CjImportDirectiveElementType("IMPORT_DIRECTIVE");
+    CjImportAliasElementType IMPORT_ALIAS = new CjImportAliasElementType("IMPORT_ALIAS");
 
 
     CjPackageDirectiveElementType PACKAGE_DIRECTIVE =
@@ -103,8 +93,7 @@ public interface CjStubElementTypes {
 
     CjPlaceHolderStubElementType<CjVArrayType> VARRAY_TYPE =
             new CjPlaceHolderStubElementType<>("VARRAY_TYPE", CjVArrayType.class);
-    CjPlaceHolderStubElementType<CjBasicType> BASIC_TYPE =
-            new CjPlaceHolderStubElementType<>("BASIC_TYPE", CjBasicType.class);
+    CjBasicTypeElementType BASIC_TYPE = new CjBasicTypeElementType("BASIC_TYPE");
 
     CjPlaceHolderStubElementType<CjThisType> THIS_TYPE =
             new CjPlaceHolderStubElementType<>("THIS_TYPE", CjThisType.class);
@@ -150,8 +139,6 @@ public interface CjStubElementTypes {
             new CjPlaceHolderStubElementType<>("CONSTRUCTOR_CALLEE", CjConstructorCalleeExpression.class);
 
     CjContextReceiverElementType CONTEXT_RECEIVER = new CjContextReceiverElementType("CONTEXT_RECEIVER");
-    CjPlaceHolderStubElementType<CjContextReceiverList> CONTEXT_RECEIVER_LIST =
-            new CjPlaceHolderStubElementType<>("CONTEXT_RECEIVER_LIST", CjContextReceiverList.class);
     CjConstantExpressionElementType BOOLEAN_CONSTANT = new CjConstantExpressionElementType("BOOLEAN_CONSTANT");
     CjConstantExpressionElementType FLOAT_CONSTANT = new CjConstantExpressionElementType("FLOAT_CONSTANT");
     CjConstantExpressionElementType INTEGER_CONSTANT = new CjConstantExpressionElementType("INTEGER_CONSTANT");
@@ -211,17 +198,29 @@ public interface CjStubElementTypes {
             new CjPlaceHolderStubElementType<>("PROPERTY_SET", CjPropertySet.class);
 
 
-    CjPlaceHolderStubElementType<CjEnumEntryTypeEntry> TYPE_LIST =
-            new CjPlaceHolderStubElementType<>("TYPE_LIST", CjEnumEntryTypeEntry.class);
+    CjPlaceHolderStubElementType<CjEnumConstructorTypeEntry> TYPE_LIST =
+            new CjPlaceHolderStubElementType<>("TYPE_LIST", CjEnumConstructorTypeEntry.class);
 
 
 //    CjImportDirectiveItemElementType IMPORT_DIRECTIVE_ITEM = new CjImportDirectiveItemElementType("IMPORT_DIRECTIVE_ITEM");
 
 
     CjMainFunctionElementType MAIN_FUNC = new CjMainFunctionElementType("MAIN_FUNC");
-    CjClassInitElementType CLASS_INIT = new CjClassInitElementType("CLASS_INIT");
-    CjClassInitElementType CLASS_MAIN_INIT = new CjClassInitElementType("CLASS_MAIN_INIT");
-    CjClassInitElementType CLASS_TILDE_INIT = new CjClassInitElementType("CLASS_TILDE_INIT");
 
+    CjEndSecondaryConstructorElementType END_SECONDARY_CONSTRUCTOR =
+            new CjEndSecondaryConstructorElementType("END_SECONDARY_CONSTRUCTOR");
+    CjSecondaryConstructorElementType SECONDARY_CONSTRUCTOR =
+            new CjSecondaryConstructorElementType("SECONDARY_CONSTRUCTOR");
+    CjPrimaryConstructorElementType PRIMARY_CONSTRUCTOR =
+            new CjPrimaryConstructorElementType("PRIMARY_CONSTRUCTOR");
+
+    // 模式 Stub ElementTypes
+    CjBindingPatternElementType BINDING_PATTERN = new CjBindingPatternElementType("BINDING_PATTERN");
+    CjTuplePatternElementType TUPLE_PATTERN = new CjTuplePatternElementType("TUPLE_PATTERN");
+    CjEnumPatternElementType ENUM_PATTERN = new CjEnumPatternElementType("ENUM_PATTERN");
+    CjWildcardPatternElementType WILDCARD_PATTERN = new CjWildcardPatternElementType("WILDCARD_PATTERN");
+    CjTypePatternElementType TYPE_PATTERN = new CjTypePatternElementType("TYPE_PATTERN");
+    CjConstantPatternElementType CONSTANT_PATTERN = new CjConstantPatternElementType("CONSTANT_PATTERN");
+    CjMatchConditionElementType MATCH_CONDITION = new CjMatchConditionElementType("MATCH_CONDITION");
 
 }

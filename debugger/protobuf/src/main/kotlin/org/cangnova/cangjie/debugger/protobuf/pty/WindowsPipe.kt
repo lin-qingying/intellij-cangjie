@@ -173,7 +173,7 @@ class WindowsPipe private constructor(
     init {
         // 生成唯一的管道名称
         pipeName =
-            "\\\\.\\pipe\\cangjie-debugger-${Kernel32.INSTANCE.GetCurrentProcessId()}-${processCounter.getAndIncrement()}-$nameSuffix"
+            "\\\\.\\pipe\\cangjie-debugger-${Kernel32.INSTANCE?.GetCurrentProcessId()}-${processCounter.getAndIncrement()}-$nameSuffix"
 
         // 设置打开模式（方向 + 异步标志）
         val openMode = direction.flag or FILE_FLAG_OVERLAPPED

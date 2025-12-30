@@ -72,9 +72,7 @@ open class ClassConstructorDescriptorImpl protected constructor(
 
     ): ClassConstructorDescriptorImpl {
         super.initialize(
-            null,
             calculateDispatchReceiverParameter(),
-            calculateContextReceiverParameters(),
             typeParameterDescriptors,
             unsubstitutedValueParameters, returnType,
             Modality.FINAL, visibility
@@ -118,13 +116,7 @@ open class ClassConstructorDescriptorImpl protected constructor(
         return null
     }
 
-    private fun calculateContextReceiverParameters(): List<ReceiverParameterDescriptor> {
-        val classDescriptor = containingDeclaration
-        if (classDescriptor.contextReceivers.isNotEmpty()) {
-            return classDescriptor.contextReceivers
-        }
-        return emptyList()
-    }
+
 
 
     override val containingDeclaration: ClassDescriptor
@@ -134,11 +126,11 @@ open class ClassConstructorDescriptorImpl protected constructor(
     override val original: ClassConstructorDescriptor
         get() = super.original as ClassConstructorDescriptor
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassConstructorDescriptor {
+    override fun substitute(substitutor: TypeSubstitutor): ClassConstructorDescriptor? {
         return super.substitute(substitutor) as ClassConstructorDescriptor
     }
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
         return visitor.visitConstructorDescriptor(this, data)
     }
 

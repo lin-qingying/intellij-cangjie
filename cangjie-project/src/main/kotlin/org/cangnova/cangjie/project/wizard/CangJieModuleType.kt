@@ -30,7 +30,6 @@ import com.intellij.openapi.module.ModuleTypeManager
 import org.cangnova.cangjie.icon.CangJieIcons
 import org.cangnova.cangjie.project.CjProjectBundle
 import org.cangnova.cangjie.project.extension.CjModuleBuilderProvider
-import org.jetbrains.jps.model.module.JpsModuleSourceRootType
 import javax.swing.Icon
 
 
@@ -47,16 +46,9 @@ class CangJieModuleType : ModuleType<CjModuleBuilder>(ID) {
         return CangJieIcons.CANGJIE
     }
 
-    override fun isSupportedRootType(type: JpsModuleSourceRootType<*>?): Boolean {
-        return super.isSupportedRootType(type)
-    }
-
     companion object {
         val ID = "CANGJIE_MODULE"
         val INSTANCE: CangJieModuleType by lazy { ModuleTypeManager.getInstance().findByID(ID) as CangJieModuleType }
 
     }
 }
-
-
-

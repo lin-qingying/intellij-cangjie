@@ -39,7 +39,7 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.DocumentUtil
-import org.cangnova.cangjie.ide.formatter.adjustLineIndent
+import org.cangnova.cangjie.formatter.adjustLineIndent
 import org.cangnova.cangjie.ide.project.tools.projectWizard.core.safeAs
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.lexer.cdoc.lexer.CDocTokens

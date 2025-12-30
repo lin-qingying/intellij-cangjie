@@ -36,15 +36,14 @@ dependencies {
     implementation(project(":debugger:common"))
 
     // LSP4J for DAP (Debug Adapter Protocol)
-    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.debug:0.21.0")
+    implementation(libs.lsp4j.debug)
 
     // Kotlin Coroutines
-    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.7.3")
+    compileOnly(libs.bundles.kotlinx.coroutines)
 
     // Testing
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
-    testImplementation("io.mockk:mockk:1.13.8")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
 }
 

@@ -1,0 +1,54 @@
+
+
+<!--
+  ~ Copyright 2025 LinQingYing. and contributors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  ~ The use of this source code is governed by the Apache License 2.0,
+  ~ which allows users to freely use, modify, and distribute the code,
+  ~ provided they adhere to the terms of the license.
+  ~
+  ~ The software is provided "as-is", and the authors are not responsible for
+  ~ any damages or issues arising from its use.
+  ~
+  -->
+
+<idea-plugin allow-bundled-update="true">
+    <!-- CJO 元数据服务配置 -->
+    <extensions defaultExtensionNs="com.intellij">
+
+        <!-- CJO 包元数据服务
+             项目级服务，提供统一的包元数据访问接口
+             该服务在项目启动时主动初始化，监听 WorkspaceModel 变更事件
+             preload="await" 确保在项目打开时立即初始化
+
+             服务接口：CjoPackageService（公开接口，供外部使用）
+             服务实现：CjoPackageServiceImpl（内部实现，不直接使用） -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.cjo.CjoPackageService"
+                serviceImplementation="org.cangnova.cangjie.cjo.CjoPackageServiceImpl"
+                  />
+
+        <!-- CJO FullId 解析器服务
+             项目级服务，用于解析跨包类型引用的 FullId
+             该服务由 CjoPackageService 使用，提供跨包符号解析能力
+
+             服务接口：CjoFullIdResolver（公开接口，供外部使用）
+             服务实现：CjoFullIdResolverImpl（内部实现，不直接使用） -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.cjo.CjoFullIdResolver"
+                serviceImplementation="org.cangnova.cangjie.cjo.CjoFullIdResolverImpl"/>
+
+    </extensions>
+</idea-plugin>

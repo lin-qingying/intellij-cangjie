@@ -60,19 +60,16 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
         return findChildByClass(CjInitBlockExpression::class.java)
     }
 
-    override val receiverTypeReference: CjTypeReference? = null
-
-    override val contextReceivers: List<CjContextReceiver> = emptyList()
 
     override val valueParameters: List<CjParameter>
         get() = valueParameterList?.parameters ?: emptyList()
     override val typeReference: CjTypeReference? = null
     override val valueParameterList: CjParameterList? get() = getStubOrPsiChild(CjStubElementTypes.VALUE_PARAMETER_LIST)
-    fun getDelegationCall(): CjConstructorDelegationCall? = bodyExpression?.getDelegationCall()
 
+    val delegationCall: CjConstructorDelegationCall? get() = bodyExpression?.getDelegationCall()
     fun getDelegationCallOrNull(): CjConstructorDelegationCall? = bodyExpression?.getDelegationCallOrNull()
 
-    fun hasImplicitDelegationCall(): Boolean = getDelegationCall()?.isImplicit == true
+    fun hasImplicitDelegationCall(): Boolean = delegationCall?.isImplicit == true
 
     fun replaceImplicitDelegationCallWithExplicit(isThis: Boolean): CjConstructorDelegationCall {
         return bodyExpression!!.replaceImplicitDelegationCallWithExplicit(isThis)

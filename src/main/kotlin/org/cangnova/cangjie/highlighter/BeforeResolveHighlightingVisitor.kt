@@ -125,13 +125,14 @@ class BeforeResolveHighlightingVisitor(holder: HighlightInfoHolder) : AbstractHi
         super.visitEnum(cenum)
     }
 
-    override fun visitEnumEntry(enumEntry: CjEnumEntry) {
-        highlightNamedDeclaration(enumEntry, CangJieHighlightInfoTypeSemanticNames.ENUM_ENTRY)
+    override fun visitEnumConstructor(enumEntry: CjEnumConstructor) {
+ 
+        enumEntry.nameIdentifier?.let { highlightName(it, CangJieHighlightInfoTypeSemanticNames.ENUM_CONSTRUCTOR) }
 
-        super.visitEnumEntry(enumEntry)
+        super.visitEnumConstructor(enumEntry)
     }
 
-    override fun visitVariable(variable: CjVariable) {
+    override fun visitVariable(variable: CjVariable<*>) {
         if (variable.isVar) {
             highlightNamedDeclaration(variable, CangJieHighlightInfoTypeSemanticNames.MUTABLE_VARIABLE)
         } else {
@@ -171,9 +172,9 @@ class BeforeResolveHighlightingVisitor(holder: HighlightInfoHolder) : AbstractHi
         super.visitTypeAlias(typeAlias)
     }
 
-    override fun visitClass(klass: CjClass) {
-        highlightNamedDeclaration(klass, CangJieHighlightInfoTypeSemanticNames.CLASS)
-        super.visitClass(klass)
+    override fun visitClass(cclass: CjClass) {
+        highlightNamedDeclaration(cclass, CangJieHighlightInfoTypeSemanticNames.CLASS)
+        super.visitClass(cclass)
     }
 
     override fun visitStruct(cstruct: CjStruct) {

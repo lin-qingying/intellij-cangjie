@@ -24,6 +24,9 @@
 
 package org.cangnova.cangjie.project.model
 
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VirtualFile
 
 
@@ -32,7 +35,7 @@ import com.intellij.openapi.vfs.VirtualFile
  *
  * 代表项目中的一个模块/包，每个CjModule应对应一个实际的IntelliJ Module
  */
-interface CjModule : CjDependencyDeclarant {
+interface CjModule : CjDependencyDeclarant, UserDataHolder {
     /**
      * 模块名称
      */
@@ -72,10 +75,35 @@ interface CjModule : CjDependencyDeclarant {
     val dependencies: List<CjDependency>
         get() = emptyList()
 
-
+    /**
+     * 构建依赖列表
+     *
+     * 返回仅在构建时需要的依赖，这些依赖不会被传递给依赖此模块的其他模块。
+     *
+     * 示例：
+     * ```toml
+     * [build-dependencies]
+     * build-tool = "1.0.0"
+     * ```
+     *
+     * @return 构建依赖列表，默认为空
+     */
     val buildDependencies: List<CjDependency>
         get() = emptyList()
 
+    /**
+     * 测试依赖列表
+     *
+     * 返回仅在运行测试时需要的依赖。
+     *
+     * 示例：
+     * ```toml
+     * [test-dependencies]
+     * test-framework = "1.0.0"
+     * ```
+     *
+     * @return 测试依赖列表，默认为空
+     */
     val testDependencies: List<CjDependency>
         get() = emptyList()
 
@@ -87,8 +115,27 @@ interface CjModule : CjDependencyDeclarant {
      */
     val metadata: CjPackageMetadata
 
+    companion object {
+        /**
+         * UserData Key 用于存储关联的 IntelliJ Module
+         */
+        val INTELLIJ_MODULE_KEY: Key<Module> = Key.create("CjModule.IntelliJModule")
+    }
 }
 
+
+/**
+ * 便捷扩展属性：获取关联的 IntelliJ Module
+ */
+var CjModule.intellijModule: Module?
+    get() = getUserData(CjModule.INTELLIJ_MODULE_KEY)
+    set(value) {
+        if (value != null) {
+            putUserData(CjModule.INTELLIJ_MODULE_KEY, value)
+        } else {
+            putUserData(CjModule.INTELLIJ_MODULE_KEY, null)
+        }
+    }
 
 /**
  * 便捷扩展属性：获取所有库依赖

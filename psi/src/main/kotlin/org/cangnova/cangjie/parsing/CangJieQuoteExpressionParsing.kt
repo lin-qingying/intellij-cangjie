@@ -36,7 +36,5 @@ class CangJieQuoteExpressionParsing(
         return expressionParsing.create(builder)
     }
 
-    fun parseQuoteExpression() {
-//        TODO("Not yet implemented")
-    }
+
 }

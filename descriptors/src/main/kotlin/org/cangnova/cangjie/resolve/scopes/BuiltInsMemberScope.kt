@@ -317,13 +317,13 @@ class BuiltInsMemberScope(
 
             val rightParameter = ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                 this, null, 0, Annotations.EMPTY, Name.identifier("other"),
-                false, ownerType, false, SourceElement.NO_SOURCE, null
+                false, ownerType, false, SourceElement.NO_SOURCE,
             )
 
             val returnType = determineReturnType(operatorName, ownerType)
 
             initialize(
-                null, null, emptyList(), emptyList(),
+                null,  emptyList(),
                 listOf(rightParameter),
                 returnType,
                 Modality.FINAL,
@@ -373,8 +373,7 @@ class BuiltInsMemberScope(
             val returnType = determineReturnType(operatorName, ownerType)
 
             initialize(
-                null, null, emptyList(), emptyList(),
-                emptyList(),
+                null,   emptyList(), emptyList(),
                 returnType,
                 Modality.FINAL,
                 DescriptorVisibilities.PUBLIC

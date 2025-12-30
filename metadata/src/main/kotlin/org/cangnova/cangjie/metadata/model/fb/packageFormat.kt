@@ -218,8 +218,8 @@ enum class FbTypeKind(val value: UShort) {
 }
 
 /**
- * // 完整ID表
- * // 用于跨包引用声明
+ * 完整ID表
+ * 用于跨包引用声明
  * table FullId {
  *   pkgId:int32;        // 声明所属的包
  *   decl:string;        // 其他包中被引用节点的导出ID

@@ -41,7 +41,7 @@ import org.cangnova.cangjie.serialization.deserialization.DeserializationContext
 import org.cangnova.cangjie.types.AbstractClassTypeConstructor
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeConstructor
-import org.cangnova.cangjie.types.TypeRefinement
+
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.utils.flatMapToNullable
 
@@ -281,12 +281,6 @@ class DeserializedClassDescriptor(
     private val primaryConstructor = c.storageManager.createNullableLazyValue { computePrimaryConstructor() }
 
     private fun computePrimaryConstructor(): ClassConstructorDescriptor? {
-        if (kind.isSingleton) {
-            return DescriptorFactory.createPrimaryConstructorForObject(this, SourceElement.NO_SOURCE).apply {
-                setReturnType(defaultType)
-            }
-        }
-
         return `class`.constructors.firstOrNull { it.isPrimary }?.let { constructor ->
             c.declDeserializer.loadConstructor(constructor, true)
         }
@@ -315,9 +309,7 @@ class DeserializedClassDescriptor(
             this@DeserializedClassDescriptor.computeConstructorTypeParameters()
         }
 
-        override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
-            return emptyList()
-        }
+
 
         override fun computeSupertypes(): Collection<CangJieType> {
 

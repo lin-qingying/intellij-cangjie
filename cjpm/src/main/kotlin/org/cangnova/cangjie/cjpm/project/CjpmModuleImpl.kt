@@ -24,11 +24,14 @@
 
 package org.cangnova.cangjie.cjpm.project
 
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.cjpm.config.toml.CjpmTomlParser
 import org.cangnova.cangjie.cjpm.project.model.toml.DependencyConfig
 import org.cangnova.cangjie.cjpm.project.model.toml.OutputType
 import org.cangnova.cangjie.cjpm.project.model.toml.PackageConfig
+import org.cangnova.cangjie.name.Name
 
 import org.cangnova.cangjie.project.model.*
 import kotlin.io.path.exists
@@ -45,6 +48,15 @@ class CjpmModuleImpl(
     val packageConfig: PackageConfig
 ) : CjModule {
 
+    /**
+     * UserData 存储委托
+     */
+    private val userDataHolder = UserDataHolderBase()
+
+    // 实现 UserDataHolder 接口
+    override fun <T> getUserData(key: Key<T>): T? = userDataHolder.getUserData(key)
+
+    override fun <T> putUserData(key: Key<T>, value: T?) = userDataHolder.putUserData(key, value)
 
     override val configFile: VirtualFile?
         get() = rootDir.findChild("cjpm.toml")
@@ -370,15 +382,31 @@ class CjpmSourceSetImpl(
     override val isTest: Boolean
 ) : CjSourceSet {
 
+    companion object {
+        private val LOG = com.intellij.openapi.diagnostic.logger<CjpmSourceSetImpl>()
+    }
+
     override val sourceRoots: List<VirtualFile>
         get() {
-            if (!rootDir.isValid) return emptyList()
-            val srcFile = rootDir.findFileByRelativePath(srcDir)
-            return if (srcFile != null && srcFile.isValid && srcFile.isDirectory) {
-                listOf(srcFile)
-            } else {
-                emptyList()
+            if (!rootDir.isValid) {
+                LOG.debug("Source roots check: rootDir is invalid for $srcDir")
+                return emptyList()
             }
+            val srcFile = rootDir.findFileByRelativePath(srcDir)
+            if (srcFile == null) {
+                LOG.debug("Source roots check: srcFile not found at path: ${rootDir.path}/$srcDir")
+                return emptyList()
+            }
+            if (!srcFile.isValid) {
+                LOG.debug("Source roots check: srcFile is invalid: ${srcFile.path}")
+                return emptyList()
+            }
+            if (!srcFile.isDirectory) {
+                LOG.debug("Source roots check: srcFile is not a directory: ${srcFile.path}")
+                return emptyList()
+            }
+            LOG.debug("Source roots check: found valid source root: ${srcFile.path}")
+            return listOf(srcFile)
         }
 
     override val resourceRoots: List<VirtualFile>
@@ -394,13 +422,25 @@ class CjpmSourceSetImpl(
 
     override val outputDirectory: List<VirtualFile>
         get() {
-            if (!rootDir.isValid) return emptyList()
-            val targetDirFile = rootDir.findFileByRelativePath(targetDir)
-            return if (targetDirFile != null && targetDirFile.isValid && targetDirFile.isDirectory) {
-                listOf(targetDirFile)
-            } else {
-                emptyList()
+            if (!rootDir.isValid) {
+                LOG.debug("Output directory check: rootDir is invalid for $targetDir")
+                return emptyList()
             }
+            val targetDirFile = rootDir.findFileByRelativePath(targetDir)
+            if (targetDirFile == null) {
+                LOG.debug("Output directory check: targetDir not found at path: ${rootDir.path}/$targetDir")
+                return emptyList()
+            }
+            if (!targetDirFile.isValid) {
+                LOG.debug("Output directory check: targetDir is invalid: ${targetDirFile.path}")
+                return emptyList()
+            }
+            if (!targetDirFile.isDirectory) {
+                LOG.debug("Output directory check: targetDir is not a directory: ${targetDirFile.path}")
+                return emptyList()
+            }
+            LOG.debug("Output directory check: found valid output directory: ${targetDirFile.path}")
+            return listOf(targetDirFile)
         }
 }
 

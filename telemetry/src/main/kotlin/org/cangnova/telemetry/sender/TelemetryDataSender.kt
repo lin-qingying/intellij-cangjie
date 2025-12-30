@@ -326,7 +326,7 @@ class TelemetryDataSender {
         return mapOf(
             "metadata" to mapOf(
                 "systemId" to systemId,
-                "pluginVersion" to PluginManagerCore.getPlugin(PluginId.getId("org.cangnova.cangjie"))?.version, // TODO: 从插件信息中获取
+                "pluginVersion" to PluginManagerCore.getPlugin(PluginId.getId("cn.cangnova.cangjie"))?.version,
                 "ideVersion" to appInfo.fullVersion,
                 "ideBuild" to appInfo.build.asString(),
                 "os" to System.getProperty("os.name"),

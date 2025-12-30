@@ -51,47 +51,113 @@ import org.cangnova.cangjie.types.isStubType as isSimpleTypeStubType
 import org.cangnova.cangjie.types.isStubTypeForBuilderInference as isSimpleTypeStubTypeForBuilderInference
 import org.cangnova.cangjie.types.isStubTypeForVariableInSubtyping as isSimpleTypeStubTypeForVariableInSubtyping
 
+/**
+ * 生成错误消息的辅助函数
+ *
+ * 用于在类型系统上下文无法处理特定对象时生成详细的错误信息
+ */
 @Suppress("NOTHING_TO_INLINE")
 private inline fun Any.errorMessage(): String {
     return "ClassicTypeSystemContext couldn't handle: $this, ${this::class}"
 }
 
+/**
+ * 抛出"仅在类型推断上下文中支持"的错误
+ */
 private fun errorSupportedOnlyInTypeInference(): Nothing {
     error("supported only in type inference context")
 }
 
+/**
+ * 经典类型系统上下文
+ *
+ * 这是仓颉类型系统的核心接口，提供了类型检查、类型推断和类型操作所需的所有功能。
+ * 它实现了类型系统推断扩展上下文和通用后端上下文，支持：
+ *
+ * 主要功能：
+ * - 类型构造器的检查和比较
+ * - 类型参数和类型投影的处理
+ * - 子类型关系的判定
+ * - 类型属性和注解的处理
+ * - 捕获类型和 stub 类型的支持
+ * - 函数类型和可选类型的特殊处理
+ *
+ * 此接口是类型检查和类型推断系统的基础，所有类型相关的操作都通过它来完成。
+ */
 interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSystemCommonBackendContext {
 
-
+    /**
+     * 内置类型集合
+     *
+     * 提供对仓颉内置类型（如 Int、String、Any 等）的访问
+     * 默认实现抛出异常，子类需要提供具体实现
+     */
     val builtIns: CangJieBuiltIns
         get() = throw UnsupportedOperationException("Not supported")
 
-
+    /**
+     * 检查类型构造器是否为浮点字面量类型构造器
+     *
+     * @return 如果是浮点字面量类型构造器则返回 true
+     */
     override fun TypeConstructorMarker.isFloatLiteralTypeConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
         return this is FloatLiteralTypeConstructor
     }
 
+    /**
+     * 检查类型构造器是否为整数字面量类型构造器
+     *
+     * @return 如果是整数字面量类型构造器则返回 true
+     */
     override fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
         return this is IntegerLiteralTypeConstructor
     }
 
+    /**
+     * 提取函数类型或其子类型的类型参数
+     *
+     * 对于函数类型 (A, B) -> C，返回 [A, B, C]
+     *
+     * @return 函数类型的参数类型列表
+     */
     override fun CangJieTypeMarker.extractArgumentsForFunctionTypeOrSubtype(): List<CangJieTypeMarker> {
         require(this is CangJieType, this::errorMessage)
         return this.getPureArgumentsForFunctionalTypeOrSubtype()
     }
 
+    /**
+     * 获取类型的自定义属性
+     *
+     * 排除注解类型属性，只返回其他自定义属性
+     *
+     * @return 自定义属性列表
+     */
     override fun CangJieTypeMarker.getCustomAttributes(): List<AnnotationMarker> {
         require(this is CangJieType, this::errorMessage)
         return this.attributes.filterNot { it is AnnotationsTypeAttribute }
     }
 
+    /**
+     * 检查类型是否有自定义属性
+     *
+     * @return 如果有自定义属性则返回 true
+     */
     override fun CangJieTypeMarker.hasCustomAttributes(): Boolean {
         require(this is CangJieType, this::errorMessage)
         return !this.attributes.isEmpty() && this.getCustomAttributes().size > 0
     }
 
+    /**
+     * 为交集结果创建带上界的类型
+     *
+     * 当计算类型交集时，如果需要创建新的类型来表示结果，使用此方法
+     *
+     * @param firstCandidate 第一个候选类型
+     * @param secondCandidate 第二个候选类型
+     * @return 带上界的新类型
+     */
     override fun createTypeWithUpperBoundForIntersectionResult(
         firstCandidate: CangJieTypeMarker,
         secondCandidate: CangJieTypeMarker,
@@ -514,7 +580,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
     override fun anyType(): SimpleTypeMarker {
-        return builtIns.anyType
+        return builtIns.stdlibTypes.anyType
     }
 
 
@@ -595,22 +661,9 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     ): SimpleTypeMarker {
         require(constructor is TypeConstructor, constructor::errorMessage)
 
+        // CangJie does not have extension function types, so we just use the original annotations
         val ourAnnotations = attributes?.firstIsInstanceOrNull<AnnotationsTypeAttribute>()?.annotations?.toList()
-
-        fun createExtensionFunctionAnnotation() =
-            BuiltInAnnotationDescriptor(builtIns, FqNames.extensionFunctionType, emptyMap())
-
-        val resultingAnnotations = when {
-            ourAnnotations.isNullOrEmpty() && isExtensionFunction -> Annotations.create(
-                listOf(
-                    createExtensionFunctionAnnotation()
-                )
-            )
-
-            !ourAnnotations.isNullOrEmpty() && !isExtensionFunction -> Annotations.create(ourAnnotations.filter { it.fqName != FqNames.extensionFunctionType })
-            !ourAnnotations.isNullOrEmpty() && isExtensionFunction -> Annotations.create(ourAnnotations + createExtensionFunctionAnnotation())
-            else -> Annotations.EMPTY
-        }
+        val resultingAnnotations = if (ourAnnotations.isNullOrEmpty()) Annotations.EMPTY else Annotations.create(ourAnnotations)
 
         @Suppress("UNCHECKED_CAST")
         return CangJieTypeFactory.simpleType(
@@ -635,8 +688,8 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
     override fun SimpleTypeMarker.isExtensionFunction(): Boolean {
-        require(this is SimpleType, this::errorMessage)
-        return this.hasAnnotation(FqNames.extensionFunctionType)
+        // CangJie does not have extension function types
+        return false
     }
 
     override fun SimpleTypeMarker.replaceArguments(newArguments: List<TypeArgumentMarker>): SimpleTypeMarker {
@@ -857,11 +910,6 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 //        require(this is CangJieType, this::errorMessage)
 //        return this.isFunctionOrKFunctionTypeWithAnySuspendability
 //    }
-
-    override fun CangJieTypeMarker.isExtensionFunctionType(): Boolean {
-        require(this is CangJieType, this::errorMessage)
-        return this.isBuiltinExtensionFunctionalType
-    }
 
 //    override fun CangJieTypeMarker.extractArgumentsForFunctionTypeOrSubtype(): List<CangJieTypeMarker> {
 //        require(this is CangJieType, this::errorMessage)

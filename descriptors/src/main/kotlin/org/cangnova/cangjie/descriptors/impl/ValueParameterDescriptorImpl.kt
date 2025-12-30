@@ -60,8 +60,8 @@ open class ValueParameterDescriptorImpl(
             declaresDefaultValue: Boolean,
 
             source: SourceElement,
-            destructuringVariables: (() -> List<VariableDescriptor>)? = null
-        ): ValueParameterDescriptorImpl = if (destructuringVariables == null) ValueParameterDescriptorImpl(
+
+        ): ValueParameterDescriptorImpl =  ValueParameterDescriptorImpl(
             containingDeclaration,
             original,
             index,
@@ -72,50 +72,9 @@ open class ValueParameterDescriptorImpl(
             declaresDefaultValue,
             source
         )
-        else WithDestructuringDeclaration(
-            containingDeclaration,
-            original,
-            index,
-            annotations,
-            name,
-            isNamed,
-            outType,
-            declaresDefaultValue,
-            source,
-            destructuringVariables
-        )
-    }
-
-    class WithDestructuringDeclaration internal constructor(
-        containingDeclaration: CallableDescriptor, original: ValueParameterDescriptor?, index: Int,
-
-        annotations: Annotations, name: Name, isNamed: Boolean, outType: CangJieType, declaresDefaultValue: Boolean,
-
-        source: SourceElement, destructuringVariables: () -> List<VariableDescriptor>
-    ) : ValueParameterDescriptorImpl(
-        containingDeclaration, original, index, annotations, name, isNamed, outType, declaresDefaultValue,
-
-        source
-    ) {
-
-        val destructuringVariables by lazy(destructuringVariables)
-
-        override fun copy(newOwner: CallableDescriptor, newName: Name, newIndex: Int): ValueParameterDescriptor {
-            return WithDestructuringDeclaration(
-                newOwner,
-                null,
-                newIndex,
-                annotations,
-                newName,
-                isNamed,
-                type,
-                declaresDefaultValue ,
-                SourceElement.NO_SOURCE
-            ) { destructuringVariables }
-        }
-
 
     }
+
 
     override val varargElementType: CangJieType?
         get() {
@@ -165,7 +124,7 @@ open class ValueParameterDescriptorImpl(
         get() = isDefaultValue && (containingDeclaration as CallableMemberDescriptor).kind.isReal
 
 
-    override fun substitute(substitutor: TypeSubstitutor): ValueParameterDescriptorImpl {
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor? {
         if (substitutor.isEmpty) return this
         throw UnsupportedOperationException() // TODO
     }
@@ -179,7 +138,7 @@ open class ValueParameterDescriptorImpl(
     override val containingDeclaration
         get() = super.containingDeclaration as CallableDescriptor
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R {
 
         return visitor.visitValueParameterDescriptor(this, data!!)
 

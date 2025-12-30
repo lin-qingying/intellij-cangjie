@@ -55,11 +55,51 @@ interface DescriptionAware {
  */
 enum class LanguageFeature(
     val sinceVersion: LanguageVersion?,
-    val sinceApiVersion: ApiVersion = ApiVersion.CANGJIE_0_53_4,
+    val sinceApiVersion: ApiVersion = ApiVersion.LATEST_STABLE,
     val hintUrl: String? = null,
     internal val isEnabledWithWarning: Boolean = false,
-    val kind: Kind = OTHER // 注意：默认值OTHER不会强制使用预发布版本(参见CDoc)
+    val kind: Kind = OTHER // 注意：默认值OTHER不会强制使用预发布版本
 ) {
+    // ======================================
+    // 仓颉语言支持的特性
+    // ======================================
+    // 注意：仓颉语言从 1.0.0 开始由插件分析
+    // 未来新增特性时，在此添加新的枚举项
+
+
+
+    /**
+     * 允许在 Lambda/匿名函数参数中使用单个下划线 `_` 作为参数名
+     *
+     * 示例:
+     * ```
+     * list.forEach { _ -> println("处理元素") }
+     * map.forEach { _, value -> println(value) }
+     * ```
+     */
+    SingleUnderscoreForParameterName(
+        sinceVersion = null,
+        kind = Kind.OTHER
+    ),
+
+    /**
+     * 隐式有符号到无符号整数转换
+     * 允许有符号整数自动转换为无符号整数
+     */
+    ImplicitSignedToUnsignedIntegerConversion(
+        sinceVersion = null,
+        kind = Kind.OTHER
+    ),
+
+    /**
+     * 安全调用绑定的智能类型转换
+     * 在安全调用 (?.) 后启用智能类型转换
+     */
+    SafeCallBoundSmartCasts(
+        sinceVersion = null,
+        kind = Kind.OTHER
+    ),
+
     ;
 
     init {
@@ -138,13 +178,37 @@ enum class LanguageFeature(
  * @param patch 补丁版本号
  */
 enum class LanguageVersion(val major: Int, val minor: Int, val patch: Int) : DescriptionAware, LanguageOrApiVersion {
-    CANGJIE_0_0_1(0, 0, 1),
+    // ======================================
+    // 仓颉语言版本定义
+    // ======================================
+    // 注意：< 1.0.0 的版本由 LSP 处理，插件不进行分析
+    // 从 1.0.0 开始，插件接管代码分析
 
-    CANGJIE_0_53_4(0, 53, 4),
-    CANGJIE_0_53_5(0, 53, 5),
-    CANGJIE_0_53_18(0, 53, 18),
+    /**
+     * 仓颉语言 1.0.0 版本
+     * 插件分析的起始版本
+     */
+    CANGJIE_1_0_0(1, 0, 0),
 
-    CANGJIE_0_60_5(0, 60, 4),
+    /**
+     * 仓颉语言 1.0.1 版本
+     */
+    CANGJIE_1_0_1(1, 0, 1),
+
+    /**
+     * 仓颉语言 1.0.2 版本
+     */
+    CANGJIE_1_0_2(1, 0, 2),
+
+    /**
+     * 仓颉语言 1.0.3 版本
+     */
+    CANGJIE_1_0_3(1, 0, 3),
+
+    /**
+     * 仓颉语言 1.0.4 版本
+     */
+    CANGJIE_1_0_4(1, 0, 4),
 
     ;
 
@@ -187,34 +251,39 @@ enum class LanguageVersion(val major: Int, val minor: Int, val patch: Int) : Des
         fun fromFullVersionString(str: String) =
             str.split(".", "-").let { if (it.size >= 2) fromVersionString("${it[0]}.${it[1]}") else null }
 
-        // 版本状态
-        //            1.0..1.3        1.4..1.6           1.7..2.0    2.1
-        // 语言:      UNSUPPORTED --> DEPRECATED ------> STABLE ---> EXPERIMENTAL
-        // API:       UNSUPPORTED --> DEPRECATED ------> STABLE ---> EXPERIMENTAL
+        // ======================================
+        // 版本状态定义
+        // ======================================
+        // 注意：仓颉语言从 1.0.0 开始由插件分析
+        // < 1.0.0 的版本由 LSP 处理
 
         /**
-         * 第一个支持的API版本
+         * 第一个支持的 API 版本
+         * 从 1.0.0 开始，插件接管代码分析
          */
         @JvmField
-        val FIRST_API_SUPPORTED = CANGJIE_0_0_1
+        val FIRST_API_SUPPORTED = CANGJIE_1_0_0
 
         /**
          * 第一个支持的版本
+         * 从 1.0.0 开始，插件接管代码分析
          */
         @JvmField
-        val FIRST_SUPPORTED = CANGJIE_0_0_1
+        val FIRST_SUPPORTED = CANGJIE_1_0_0
 
         /**
          * 第一个非废弃版本
+         * 目前所有 1.0.x 版本都是非废弃的
          */
         @JvmField
-        val FIRST_NON_DEPRECATED = CANGJIE_0_0_1
+        val FIRST_NON_DEPRECATED = CANGJIE_1_0_0
 
         /**
          * 最新稳定版本
+         * 当前为 1.0.4
          */
         @JvmField
-        val LATEST_STABLE = CANGJIE_0_60_5
+        val LATEST_STABLE = CANGJIE_1_0_4
     }
 }
 
@@ -415,33 +484,30 @@ class ApiVersion private constructor(
     override fun toString() = versionString
 
     companion object {
-
         /**
-         * CANGJIE_0_53_4 API版本
-         */
-        @JvmField
-        val CANGJIE_0_53_4 = createByLanguageVersion(LanguageVersion.CANGJIE_0_53_4)
-
-        /**
-         * 最新API版本
+         * 最新 API 版本
+         * 对应最新的语言版本
          */
         @JvmField
         val LATEST: ApiVersion = createByLanguageVersion(LanguageVersion.entries.last())
 
         /**
-         * 最新稳定API版本
+         * 最新稳定 API 版本
+         * 当前为 1.0.4
          */
         @JvmField
         val LATEST_STABLE: ApiVersion = createByLanguageVersion(LanguageVersion.LATEST_STABLE)
 
         /**
-         * 第一个支持的API版本
+         * 第一个支持的 API 版本
+         * 从 1.0.0 开始
          */
         @JvmField
         val FIRST_SUPPORTED: ApiVersion = createByLanguageVersion(LanguageVersion.FIRST_API_SUPPORTED)
 
         /**
-         * 第一个非废弃API版本
+         * 第一个非废弃 API 版本
+         * 从 1.0.0 开始
          */
         @JvmField
         val FIRST_NON_DEPRECATED: ApiVersion = createByLanguageVersion(LanguageVersion.FIRST_NON_DEPRECATED)

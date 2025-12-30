@@ -102,3 +102,5 @@ abstract class FunctionTypeKind internal constructor(
         }
     }
 }
+val FunctionTypeKind.isBasicFunction : Boolean
+    get() = this == FunctionTypeKind.Function

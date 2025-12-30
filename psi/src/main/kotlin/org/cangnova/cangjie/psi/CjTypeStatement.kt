@@ -86,7 +86,7 @@ abstract class CjTypeStatement :
 
     val declarationKeyword: PsiElement? get() = findChildByType(CjTypeStatement.declarationKeyword)
 
-    val variables: List<CjVariable> get() = body?.variables.orEmpty()
+    val variables: List<CjFieldVariable> get() = body?.variables.orEmpty()
     val properties: List<CjProperty> get() = body?.properties.orEmpty()
 
     fun getSuperTypeList(): CjSuperTypeList? = getStubOrPsiChild(CjStubElementTypes.SUPER_TYPE_LIST)
@@ -129,10 +129,7 @@ abstract class CjTypeStatement :
         get() =
             secondaryConstructors + primaryConstructors + endSecondaryConstructors
 
-    fun getContextReceiverList(): CjContextReceiverList? = getStubOrPsiChild(CjStubElementTypes.CONTEXT_RECEIVER_LIST)
 
-    override val contextReceivers: List<CjContextReceiver>
-        get() = getContextReceiverList()?.let { return it.contextReceivers() } ?: emptyList()
 
     private val BODY_TYPE = listOf(
         CjStubElementTypes.CLASS_BODY,
@@ -181,6 +178,6 @@ fun CjTypeStatement.getOrCreateBody(): CjAbstractClassBody {
     body?.let { return it }
 
     val newBody = CjPsiFactory(project).createEmptyClassBody()
-//    if (this is CjEnumEntry) return addAfter(newBody, initializerList ?: nameIdentifier) as CjAbstractClassBody
+//    if (this is CjEnumConstructor) return addAfter(newBody, initializerList ?: nameIdentifier) as CjAbstractClassBody
     return add(newBody) as CjAbstractClassBody
 }

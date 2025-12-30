@@ -24,34 +24,34 @@
 
 package org.cangnova.cangjie.psi
 fun importDirectiveVisitor(block: (CjImportDirective) -> Unit) =
-    object : CjVisitorVoid() {
+    object : CjVisitorUnit() {
         override fun visitImportDirective(importDirective: CjImportDirective) {
             block(importDirective)
         }
     }
 
 fun visitDotQualifiedExpression(block: (CjDotQualifiedExpression) -> Unit) =
-    object : CjVisitorVoid() {
+    object : CjVisitorUnit() {
         override fun visitDotQualifiedExpression(expression: CjDotQualifiedExpression) {
             block(expression)
         }
     }
 
 fun packageDirectiveVisitor(block: (CjPackageDirective) -> Unit) =
-    object : CjVisitorVoid() {
+    object : CjVisitorUnit() {
         override fun visitPackageDirective(packageDirective: CjPackageDirective) {
             block(packageDirective)
         }
     }
 fun namedDeclarationVisitor(block: (CjNamedDeclaration) -> Unit) =
-    object : CjVisitorVoid() {
-        override fun visitNamedDeclaration(namedDeclaration: CjNamedDeclaration) {
-            block(namedDeclaration)
+    object : CjVisitorUnit() {
+        override fun visitNamedDeclaration(declaration: CjNamedDeclaration) {
+            block(declaration)
         }
     }
 
 fun declarationVisitor(block: (CjDeclaration) -> Unit) =
-    object : CjVisitorVoid() {
+    object : CjVisitorUnit() {
         override fun visitDeclaration(dcl: CjDeclaration) {
             block(dcl)
         }

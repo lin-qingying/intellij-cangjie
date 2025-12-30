@@ -32,7 +32,7 @@ import com.intellij.util.ArrayFactory
 
 // 表达式
 interface CjExpression : CjElement {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R?
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R?
 
     companion object {
         @JvmStatic
@@ -48,7 +48,7 @@ interface CjExpression : CjElement {
 
 abstract class CjExpressionImpl(node: ASTNode) : CjElementImpl(node), CjExpression {
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? = visitor.visitExpression(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? = visitor.visitExpression(this, data)
 
     protected fun findExpressionUnder(type: IElementType): CjExpression? {
         val containerNode = findChildByType<CjContainerNode>(type) ?: return null

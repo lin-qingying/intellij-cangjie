@@ -25,10 +25,12 @@
 package org.cangnova.cangjie.types.checker
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
+import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
+import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import org.cangnova.cangjie.types.*
-
 import org.cangnova.cangjie.types.error.ErrorTypeKind
+import java.util.*
 
 /**
  * 交集类型处理
@@ -70,7 +72,7 @@ fun intersectTypes(types: List<UnwrappedType>): UnwrappedType {
     }
     var hasFlexibleTypes = false
     var hasErrorType = false
-    
+
     // 提取所有类型的下界
     val lowerBounds = types.map {
         hasErrorType = hasErrorType || it.isError
@@ -85,7 +87,7 @@ fun intersectTypes(types: List<UnwrappedType>): UnwrappedType {
             }
         }
     }
-    
+
     // 如果有错误类型，返回错误类型
     if (hasErrorType) {
         return ErrorUtils.createErrorType(ErrorTypeKind.INTERSECTION_OF_ERROR_TYPES, types.toString())
@@ -98,7 +100,7 @@ fun intersectTypes(types: List<UnwrappedType>): UnwrappedType {
 
     // 提取所有类型的上界
     val upperBounds = types.map { it.upperIfFlexible() }
-    
+
     /**
      * 我们应该保持以下规则：
      *  - 如果每个类型都是 A 的子类型，那么交集类型也应该是 A 的子类型
@@ -119,6 +121,27 @@ fun intersectTypes(types: List<UnwrappedType>): UnwrappedType {
  * 子类型关系等复杂情况。
  */
 object TypeIntersector {
+    fun isIntersectionEmpty(typeA: CangJieType, typeB: CangJieType): Boolean {
+        return intersectTypes(
+            LinkedHashSet(
+                listOf(
+                    typeA,
+                    typeB
+                )
+            )
+        ) == null
+    }
+
+    fun getUpperBoundsAsType(descriptor: TypeParameterDescriptor): CangJieType {
+        return intersectUpperBounds(descriptor, descriptor.upperBounds)
+    }
+
+    fun intersectUpperBounds(descriptor: TypeParameterDescriptor, upperBounds: List<CangJieType>): CangJieType {
+        assert(!upperBounds.isEmpty()) { "Upper bound list is empty: $descriptor" }
+        val upperBoundsAsType: CangJieType? = intersectTypes(upperBounds)
+        return if (upperBoundsAsType != null) upperBoundsAsType else descriptor.builtIns.nothingType
+    }
+
     /**
      * 计算类型集合的交集
      *
@@ -187,7 +210,7 @@ object TypeIntersector {
 //                }
 //                if (relativeToAll) return TypeUtils.makeOptionalAsSpecified(type, allOption)
 //            }
-            
+
             // 检查当前类型是否被其他类型包含（是其他类型的超类型）
             for (other in optionStripped) {
                 if (!type.equals(other) && typeChecker.isSubtypeOf(other, type)) {
@@ -253,7 +276,7 @@ object TypeIntersector {
                 inputTypes.add(type)
             }
         }
-        
+
         // 计算结果的可选性
         val resultOption = inputTypes.fold(ResultOption.START, ResultOption::combine)
 
@@ -358,6 +381,7 @@ object TypeIntersector {
         START {
             override fun combine(nextType: UnwrappedType) = nextType.resultOption
         },
+
         /** 接受可选类型 - 所有类型都是可选的 */
         ACCEPT_OPTION {
             override fun combine(nextType: UnwrappedType) = nextType.resultOption
@@ -370,6 +394,7 @@ object TypeIntersector {
                     if (it == ACCEPT_OPTION) this else it
                 }
         },
+
         /** 非可选类型 */
         NON_OPTION {
             override fun combine(nextType: UnwrappedType) = this

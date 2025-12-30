@@ -37,6 +37,7 @@ import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.io.StringRef
+import org.cangnova.cangjie.psi.psiUtil.isExtensionDeclaration
 
 class CjPropertyElementType(debugName: String) : CjStubElementType<CangJiePropertyStub, CjProperty>(
     debugName,
@@ -73,7 +74,7 @@ class CjPropertyElementType(debugName: String) : CjStubElementType<CangJieProper
             parentStub,
             StringRef.fromString(psi.name),
             psi.safeFqNameForLazyResolve(),
-            psi.receiverTypeReference != null,
+            psi.isExtensionDeclaration()   ,
             psi.typeReference != null,
         )
     }

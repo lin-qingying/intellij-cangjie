@@ -25,9 +25,7 @@
 package org.cangnova.cangjie.psi
 
 import org.cangnova.cangjie.lexer.CjKeywordToken
-import org.cangnova.cangjie.psi.psiUtil.collectAnnotationEntriesFromStubOrPsi
 import org.cangnova.cangjie.psi.stubs.CangJieModifierListStub
-import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.IStubElementType
@@ -38,7 +36,7 @@ abstract class CjModifierList : CjElementImplStub<CangJieModifierListStub>{
 
     constructor(node: ASTNode) : super(node)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitModifierList(this, data)
     }
 

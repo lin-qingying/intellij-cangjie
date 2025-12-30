@@ -83,7 +83,7 @@ class CFunctionClassDescriptor(
                     init {
                         val parameter = ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                             this, null, 0, Annotations.EMPTY, Name.identifier("pointer"),
-                            false, builtIns.cpointerType, false, SourceElement.NO_SOURCE, null
+                            false, builtIns.stdlibTypes.cpointerType, false, SourceElement.NO_SOURCE
                         )
                         initialize(listOf(parameter))
                         setReturnType(this@CFunctionClassDescriptor.defaultType)
@@ -162,10 +162,7 @@ open class FunctionClassDescriptor(
         get() = parameters
 
     inner class FunctionTypeConstructor : AbstractClassTypeConstructor(storageManager) {
-        override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
 
-            return emptyList()
-        }
 
         override fun computeSupertypes(): Collection<CangJieType> {
 //                 val supertypes = when (functionTypeKind) {
@@ -188,7 +185,7 @@ open class FunctionClassDescriptor(
 //
 //                CangJieTypeFactory.simpleNotNullType(TypeAttributes.Empty, descriptor, arguments)
 //            }.toList()
-            return listOf(builtIns.anyType)
+            return listOf(builtIns.stdlibTypes.anyType)
         }
 
         override val parameters: List<TypeParameterDescriptor>

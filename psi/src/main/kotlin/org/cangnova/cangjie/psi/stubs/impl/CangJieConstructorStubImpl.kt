@@ -36,6 +36,7 @@ class CangJieConstructorStubImpl<T : CjConstructor<T>>(
     elementType: CjConstructorElementType<T>,
     private val containingClassName: StringRef?,
     private val hasBody: Boolean,
+    override val isPrimary: Boolean,
     private val isDelegatedCallToThis: Boolean,
 ) : CangJieStubBaseImpl<T>(parent, elementType), CangJieConstructorStub<T> {
     override fun getFqName() = null

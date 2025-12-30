@@ -51,6 +51,7 @@ class CjParameterElementType(debugName: @NonNls String) :
             psi.isMutable,
             psi.hasLetOrVar(),
             psi.hasDefaultValue(),
+            psi.isNamed,
             null,
         )
     }
@@ -59,8 +60,9 @@ class CjParameterElementType(debugName: @NonNls String) :
     override fun serialize(stub: CangJieParameterStub, dataStream: StubOutputStream) {
         dataStream.writeName(stub.name)
         dataStream.writeBoolean(stub.isMutable())
-        dataStream.writeBoolean(stub.hasValOrVar())
+        dataStream.writeBoolean(stub.hasLetOrVar())
         dataStream.writeBoolean(stub.hasDefaultValue())
+        dataStream.writeBoolean(stub.isNamed())
         val name = stub.getFqName()
         dataStream.writeName(name?.asString())
         dataStream.writeName(if (stub is CangJieParameterStubImpl) stub.functionTypeParameterName else null)
@@ -72,6 +74,7 @@ class CjParameterElementType(debugName: @NonNls String) :
         val isMutable = dataStream.readBoolean()
         val hasValOrValNode = dataStream.readBoolean()
         val hasDefaultValue = dataStream.readBoolean()
+        val isNamed = dataStream.readBoolean()
         val fqName = dataStream.readName()
 
         return CangJieParameterStubImpl(
@@ -81,6 +84,7 @@ class CjParameterElementType(debugName: @NonNls String) :
             isMutable,
             hasValOrValNode,
             hasDefaultValue,
+            isNamed,
             dataStream.readNameString(),
         )
     }

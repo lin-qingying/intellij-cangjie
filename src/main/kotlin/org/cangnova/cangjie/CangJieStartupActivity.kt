@@ -28,8 +28,9 @@ package org.cangnova.cangjie
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
+import org.cangnova.cangjie.cjo.CjoPackageService
 
-class CangJieStartupActivity : ProjectActivity {
+internal class CangJieStartupActivity : ProjectActivity {
     companion object {
         val LOG = Logger.getInstance(CangJieStartupActivity::class.java)
     }
@@ -37,6 +38,7 @@ class CangJieStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
         LOG.info("Cangjie plugin has been launched")
 
+        CjoPackageService.getInstance(project)
 
 //        插件打开时发送遥测事件
 //        val telemetryService = TelemetryService.getInstance()

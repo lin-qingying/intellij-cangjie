@@ -26,7 +26,6 @@ package org.cangnova.cangjie.parsing
 
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.lang.CangJieLanguage
-import org.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType
 import org.cangnova.cangjie.lang.declarations.CjDeclarationsFile
 import org.cangnova.cangjie.lexer.CangJieLexer
 import org.cangnova.cangjie.lexer.CjToken
@@ -55,8 +54,9 @@ import com.intellij.psi.impl.source.PsiPlainTextFileImpl
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
+import org.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType
 
-class CangJieParserDefinition : ParserDefinition {
+internal class CangJieParserDefinition : ParserDefinition {
     override fun createLexer(project: Project?): Lexer = CangJieLexer()
 
     override fun createParser(project: Project?): PsiParser = CangJieParser(project!!)
@@ -108,12 +108,11 @@ class CangJieParserDefinition : ParserDefinition {
 
     }
 
-    object Util {
-        const val STD_SCRIPT_SUFFIX = "cj"
 
-        @JvmField
-        val STD_SCRIPT_EXT = ".$STD_SCRIPT_SUFFIX"
-        val instance: CangJieParserDefinition
-            get() = LanguageParserDefinitions.INSTANCE.forLanguage(CangJieLanguage) as CangJieParserDefinition
-    }
+}
+object CangJieParserDefinitionUtil {
+    const val STD_SCRIPT_SUFFIX = "cj"
+
+    @JvmField
+    val STD_SCRIPT_EXT = ".$STD_SCRIPT_SUFFIX"
 }

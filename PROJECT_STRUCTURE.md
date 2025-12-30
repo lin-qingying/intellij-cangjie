@@ -192,7 +192,7 @@ intellij-cangjie 是一个为 IntelliJ 平台开发的仓颉语言插件，为�
 - **语言**: Kotlin
 - **构建工具**: Gradle (Kotlin DSL)
 - **平台**: IntelliJ Platform SDK
-- **词法/语法**: JFlex + Grammar-Kit / ANTLR
+- **词法/语法**: JFlex + Grammar-Kit / Parse
 - **调试协议**: DAP (Debug Adapter Protocol)
 - **LSP**: Language Server Protocol
 - **版本控制**: Git
@@ -206,7 +206,7 @@ plugin (主模块)
 ├── descriptors (依赖 psi)
 │   └── deserialization
 ├── metadata
-├── cangjie-project (依赖 psi, analysis)
+├── cangjie-project (依赖 psi)
 ├── cjpm (依赖 cangjie-project)
 ├── debugger
 │   ├── common

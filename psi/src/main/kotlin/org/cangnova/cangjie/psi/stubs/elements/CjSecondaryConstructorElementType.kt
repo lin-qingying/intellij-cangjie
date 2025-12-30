@@ -38,6 +38,7 @@ class CjEndSecondaryConstructorElementType(debugName: String) :
         parentStub: StubElement<*>,
         nameRef: StringRef?,
         hasBody: Boolean,
+        isPrimary: Boolean,
         isDelegatedCallToThis: Boolean,
     ): CangJieConstructorStub<CjEndSecondaryConstructor> {
         return CangJieConstructorStubImpl(
@@ -45,11 +46,14 @@ class CjEndSecondaryConstructorElementType(debugName: String) :
             CjStubElementTypes.END_SECONDARY_CONSTRUCTOR,
             nameRef,
             hasBody,
+            isPrimary,
             isDelegatedCallToThis,
         )
     }
 
-    override fun isDelegatedCallToThis(constructor: CjEndSecondaryConstructor) = constructor.getDelegationCallOrNull()?.isCallToThis ?: true
+    override fun isDelegatedCallToThis(constructor: CjEndSecondaryConstructor): Boolean {
+        return constructor.getDelegationCallOrNull()?.isCallToThis ?: true
+    }
 }
 
 class CjSecondaryConstructorElementType(debugName: String) :
@@ -58,6 +62,7 @@ class CjSecondaryConstructorElementType(debugName: String) :
         parentStub: StubElement<*>,
         nameRef: StringRef?,
         hasBody: Boolean,
+        isPrimary: Boolean,
         isDelegatedCallToThis: Boolean,
     ): CangJieConstructorStub<CjSecondaryConstructor> {
         return CangJieConstructorStubImpl(
@@ -65,9 +70,12 @@ class CjSecondaryConstructorElementType(debugName: String) :
             CjStubElementTypes.SECONDARY_CONSTRUCTOR,
             nameRef,
             hasBody,
+            isPrimary,
             isDelegatedCallToThis,
         )
     }
 
-    override fun isDelegatedCallToThis(constructor: CjSecondaryConstructor) = constructor.getDelegationCallOrNull()?.isCallToThis ?: true
+    override fun isDelegatedCallToThis(constructor: CjSecondaryConstructor): Boolean {
+        return constructor.getDelegationCallOrNull()?.isCallToThis ?: true
+    }
 }

@@ -30,10 +30,44 @@ import org.cangnova.cangjie.project.service.CjProjectsService
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.api.CjSdk
 
+/**
+ * 获取项目的仓颉 SDK
+ *
+ * 这是一个便捷的扩展属性，用于快速访问当前项目配置的仓颉 SDK。
+ *
+ * 示例：
+ * ```kotlin
+ * val sdk = project.cjSdk
+ * if (sdk != null) {
+ *     val version = sdk.version
+ *     val homePath = sdk.homePath
+ * }
+ * ```
+ *
+ * @receiver IntelliJ 项目
+ * @return 仓颉 SDK 实例，如果未配置则返回 null
+ */
 val Project.cjSdk: CjSdk?
     get() {
         return CjProjectSdkConfig.getInstance(this).getProjectSdk()
     }
+
+/**
+ * 获取项目的仓颉项目模型
+ *
+ * 这是一个便捷的扩展属性，用于快速访问当前项目的仓颉项目模型。
+ * 该属性总是返回非 null 值，如果项目不是有效的仓颉项目，
+ * 会返回一个默认的空项目模型。
+ *
+ * 示例：
+ * ```kotlin
+ * val cjProject = project.cjProject
+ * val modules = cjProject.workspace?.modules ?: listOf(cjProject.module)
+ * ```
+ *
+ * @receiver IntelliJ 项目
+ * @return 仓颉项目模型实例，不为 null
+ */
 val Project.cjProject: CjProject
     get() {
         return CjProjectsService.getInstance(this).cjProject
@@ -107,10 +141,10 @@ interface CjProject {
      * 刷新项目模型
      *
      * 此方法用于在项目同步过程中执行刷新操作，当遇到错误时会抛出异常，
-     * 允许调用方（如 CangJieSyncTask）捕获并处理错误信息。
+     * 允许调用方（如 CangJieProjectSyncTask）捕获并处理错误信息。
      *
      * 建议在以下场景使用此方法：
-     * - 项目同步任务中 (CangJieSyncTask)
+     * - 项目同步任务中 (CangJieProjectSyncTask)
      * - 需要向用户显示具体错误信息的UI操作
      * - 批量项目处理中的错误处理
      * - 自动化脚本或CI/CD流程中的错误检测

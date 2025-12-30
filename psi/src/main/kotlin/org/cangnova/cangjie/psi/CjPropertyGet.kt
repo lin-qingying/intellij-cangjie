@@ -28,6 +28,7 @@ import org.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.util.PsiTreeUtil
+import org.cangnova.cangjie.psi.stubs.elements.CjTokenSets.DECLARATION_TYPES
 
 class CjPropertyGet : CjElementImplStub<CangJiePlaceHolderStub<CjPropertyGet>>, CjDeclarationContainer {
 
@@ -36,6 +37,6 @@ class CjPropertyGet : CjElementImplStub<CangJiePlaceHolderStub<CjPropertyGet>>, 
     constructor(stub: CangJiePlaceHolderStub<CjPropertyGet>) : super(stub, CjStubElementTypes.PROPERTY_GET)
 
     override val declarations: List<CjDeclaration>
-        get() = stub?.getChildrenByType(CjFile.FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
+        get() = stub?.getChildrenByType(DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
             ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java)
 }

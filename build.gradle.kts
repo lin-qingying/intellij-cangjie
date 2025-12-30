@@ -32,7 +32,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.time.LocalDate
 
 gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
-
+val library = libs
 // ============================================================
 // 项目基础配置
 // ============================================================
@@ -47,6 +47,7 @@ val pluginProjects: List<Project>
 // ============================================================
 val platformVersion = prop("platformVersion").toInt()
 val baseIDE = prop("baseIDE")
+
 val ideToRunType = prop("ideToRunType").ifEmpty { baseIDE }
 val ideRunVersion = prop("ideRunVersion")
 val ideVersion = prop("ideVersion")
@@ -55,8 +56,8 @@ val ideVersion = prop("ideVersion")
 // 插件版本配置
 // ============================================================
 val pluginVersion = prop("pluginVersion")
-val sinceBuild = prop("sinceBuild")
-val untilBuild = prop("untilBuild")
+val sinceBuildP = prop("sinceBuild")
+val untilBuildP = prop("untilBuild")
 val versionSuffix = prop("versionSuffix")
 val cangjiePluginVersion = "$pluginVersion$versionSuffix"
 
@@ -65,7 +66,6 @@ val cangjiePluginVersion = "$pluginVersion$versionSuffix"
 // ============================================================
 val psiViewerPlugin = prop("psiViewerPlugin")
 val indexViewPlugin = prop("indexViewPlugin")
-val chinesePlugin = "com.intellij.zh:233.407"
 
 // 内置插件
 val tomlPlugin = "org.toml.lang"
@@ -125,6 +125,14 @@ fun getIdeJvmArgs(): List<String> = listOf(
     "-ea",
     "-esa",
 
+    // ===== JNA 配置 (修复 IDEA 2025.3 问题) =====
+    "-Djna.nosys=false",              // 允许使用系统库
+    "-Djna.nounpack=false",           // 允许解包本地库
+    "-Djna.boot.library.path=",       // 清空，使用默认路径
+    "-Djna.debug_load=false",         // 生产环境关闭调试
+    "-Djna.debug_load.jna=false",     // 生产环境关闭 JNA 库调试
+    // "-Djna.tmpdir=${System.getProperty("java.io.tmpdir")}/jna", // 可选：自定义临时目录
+
     // Kotlin 协程调试
     "-Dkotlinx.coroutines.debug=on",
     "-Dkotlinx.coroutines.stacktrace.recovery=true",
@@ -155,16 +163,15 @@ fun getIdeJvmArgs(): List<String> = listOf(
 )
 
 
-
 plugins {
     idea
-    id("net.saliman.properties") version "1.5.2"
-    kotlin("jvm") version "2.2.0"
+    alias(libs.plugins.saliman.properties)
+    alias(libs.plugins.kotlin.jvm)
     id("org.jetbrains.intellij.platform")
-    id("org.jetbrains.changelog") version "2.2.1"
+    alias(libs.plugins.intellij.changelog)
     id("java-test-fixtures")
-    kotlin("plugin.serialization") version "2.2.0"
-    id("org.gradle.test-retry") version "1.5.3"
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.gradle.test.retry)
 
 
 }
@@ -193,6 +200,8 @@ val isCI = System.getenv("CI") != null
 // ============================================================
 // 所有项目通用配置
 // ============================================================
+
+
 allprojects {
     apply {
         plugin("idea")
@@ -200,7 +209,9 @@ allprojects {
         plugin("org.jetbrains.intellij.platform")
         plugin("org.gradle.test-retry")
     }
-
+    kotlin {
+        jvmToolchain(21)
+    }
     repositories {
         intellijPlatform {
             intellijDependencies()
@@ -223,13 +234,13 @@ allprojects {
         }
 
         // 测试依赖
-        testImplementation("junit:junit:4.13.2")
-        testImplementation("org.junit.jupiter:junit-jupiter-api:5.12.0")
-        testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.2.0")
+        testImplementation(library.junit4)
+        testImplementation(library.junit.jupiter.api)
+        testImplementation(library.kotlin.test.junit)
         testImplementation(testFixtures(project(":test-common")))
-
-        // Kotlin 依赖
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+//
+//        // Kotlin 依赖
+        implementation(library.kotlinx.serialization.json)
         implementation(kotlin("test"))
         implementation(kotlin("test-junit"))
         implementation(kotlin("stdlib"))
@@ -270,7 +281,7 @@ allprojects {
 
         withType<KotlinCompile> {
             compilerOptions {
-                jvmTarget.set(JvmTarget.JVM_17)
+//                jvmTarget.set(JvmTarget.JVM_17)
                 freeCompilerArgs.add("-Xjvm-default=all")
                 freeCompilerArgs.add("-Xcontext-parameters")
             }
@@ -279,6 +290,7 @@ allprojects {
 
         runIde { enabled = false }
         prepareSandbox { enabled = false }
+        jarSearchableOptions { enabled = false }
         buildSearchableOptions { enabled = false }
         prepareJarSearchableOptions { enabled = false }
         // 为所有 Copy 类型的任务设置重复策略
@@ -356,7 +368,7 @@ project(":plugin") {
                 select {
                     types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
                     channels = listOf(ProductRelease.Channel.RELEASE)
-                    sinceBuild = "242"
+                    sinceBuild = sinceBuildP
                 }
             }
         }
@@ -366,12 +378,16 @@ project(":plugin") {
 
     dependencies {
         intellijPlatform {
+
             if (!isBuildPlugin()) {
-                plugins(psiViewerPlugin, indexViewPlugin, chinesePlugin)
+
+                plugins(psiViewerPlugin, indexViewPlugin)
                 bundledPlugins(tomlPlugin, copyright, jsonPlugin)
             }
         }
         implementation(project(":"))
+
+
     }
     val mergePluginJarTask = tasks.register<Jar>("mergePluginJars") {
         duplicatesStrategy = DuplicatesStrategy.FAIL
@@ -408,7 +424,7 @@ project(":plugin") {
 
     tasks {
         patchPluginXml {
-            sinceBuild.set(prop("sinceBuild"))
+            sinceBuild.set(sinceBuildP)
             val untilBuildValue = prop("untilBuild")
             if (untilBuildValue.isNotEmpty()) {
                 untilBuild.set(untilBuildValue)
@@ -431,9 +447,11 @@ project(":plugin") {
         }
 
         runIde {
+
             enabled = true
             dependsOn(mergePluginJarTask)
             jvmArgs(getIdeJvmArgs())
+
         }
 
         prepareSandbox {
@@ -481,6 +499,7 @@ project(":") {
             bundledPlugins(tomlPlugin, copyright, jsonPlugin)
         }
 
+
         // 项目内部模块
         implementation(project(":common"))
         implementation(project(":toolchain"))
@@ -488,16 +507,23 @@ project(":") {
         implementation(project(":util"))
         implementation(project(":icon"))
         implementation(project(":psi"))
+        implementation(project(":psi:stubindex"))
+        implementation(project(":highlighter"))
+        implementation(project(":formatter"))
+
         implementation(project(":messages"))
         implementation(project(":notifications"))
         implementation(project(":analysis"))
+
+        api(project(":analysis:decompiler-to-psi"))
+
         implementation(project(":cangjie-project"))
+        implementation(project(":metadata:cjo"))
 
         // 第三方依赖
-        implementation("org.fusesource.jansi:jansi:2.4.1")
-        implementation("io.hotmoka:toml4j:0.7.3")
-        implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.15.2")
-        implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
+        implementation(libs.jansi)
+        implementation(libs.toml4j)
+        implementation(libs.bundles.jackson)
     }
 
     tasks {

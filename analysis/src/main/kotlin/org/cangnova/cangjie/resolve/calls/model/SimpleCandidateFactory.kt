@@ -1,0 +1,205 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package org.cangnova.cangjie.resolve.calls.model
+
+import org.cangnova.cangjie.descriptors.CallableDescriptor
+import org.cangnova.cangjie.descriptors.ClassDescriptor
+import org.cangnova.cangjie.descriptors.ClassKind
+import org.cangnova.cangjie.descriptors.PropertyDescriptor
+import org.cangnova.cangjie.resolve.calls.components.CangJieResolutionCallbacks
+import org.cangnova.cangjie.resolve.calls.components.InferenceSession
+import org.cangnova.cangjie.resolve.calls.components.NewConstraintSystemImpl
+import org.cangnova.cangjie.resolve.calls.components.candidate.SimpleErrorResolutionCandidate
+import org.cangnova.cangjie.resolve.calls.components.candidate.SimpleResolutionCandidate
+import org.cangnova.cangjie.resolve.calls.inference.addSubsystemFromArgument
+import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
+import org.cangnova.cangjie.resolve.calls.inference.model.LowerPriorityToPreserveCompatibility
+import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
+import org.cangnova.cangjie.resolve.calls.tower.CandidateFactory
+import org.cangnova.cangjie.resolve.calls.tower.CandidateWithBoundDispatchReceiver
+import org.cangnova.cangjie.resolve.calls.tower.ImplicitScopeTower
+import org.cangnova.cangjie.resolve.calls.tower.isSynthesized
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
+import org.cangnova.cangjie.types.ErrorUtils
+import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.error.ErrorScopeKind
+import org.cangnova.cangjie.types.isDynamic
+
+class SimpleCandidateFactory(
+    val callComponents: CangJieCallComponents,
+    val scopeTower: ImplicitScopeTower,
+    val cangjieCall: CangJieCall,
+    val resolutionCallbacks: CangJieResolutionCallbacks,
+) : CandidateFactory<SimpleResolutionCandidate> {
+
+    val inferenceSession: InferenceSession = resolutionCallbacks.inferenceSession
+
+    val baseSystem: ConstraintStorage
+
+    init {
+        val baseSystem = NewConstraintSystemImpl(
+            callComponents.constraintInjector, callComponents.builtIns,
+            callComponents.cangjieTypeRefiner, callComponents.languageVersionSettings
+        )
+        if (!inferenceSession.resolveReceiverIndependently()) {
+            baseSystem.addSubsystemFromArgument(cangjieCall.explicitReceiver)
+            baseSystem.addSubsystemFromArgument(cangjieCall.dispatchReceiverForInvokeExtension)
+        }
+        for (argument in cangjieCall.argumentsInParenthesis) {
+            baseSystem.addSubsystemFromArgument(argument)
+        }
+        baseSystem.addSubsystemFromArgument(cangjieCall.externalArgument)
+
+        baseSystem.addOtherSystem(inferenceSession.currentConstraintSystem())
+
+        this.baseSystem = baseSystem.asReadOnlyStorage()
+    }
+
+
+    // todo: try something else, because current method is ugly and unstable
+    private fun createReceiverArgument(
+        explicitReceiver: ReceiverCangJieCallArgument?,
+        fromResolution: ReceiverValueWithSmartCastInfo?
+    ): SimpleCangJieCallArgument? =
+        explicitReceiver as? SimpleCangJieCallArgument ?: // qualifier receiver cannot be safe
+        fromResolution?.let {
+            ReceiverExpressionCangJieCallArgument(
+                it,
+                isSafeCall = false,
+                isForImplicitInvoke = cangjieCall.isForImplicitInvoke
+            )
+        }
+
+    override fun createErrorCandidate(): SimpleResolutionCandidate {
+        val errorScope =
+            ErrorUtils.createErrorScope(ErrorScopeKind.SCOPE_FOR_ERROR_RESOLUTION_CANDIDATE, cangjieCall.toString())
+        val errorDescriptor = if (cangjieCall.callKind == CangJieCallKind.VARIABLE) {
+            errorScope.getContributedVariables(cangjieCall.name, scopeTower.location)
+        } else {
+            errorScope.getContributedFunctions(cangjieCall.name, scopeTower.location)
+        }.first()
+
+        val dispatchReceiver = createReceiverArgument(cangjieCall.explicitReceiver, fromResolution = null)
+        val explicitReceiverKind =
+            if (dispatchReceiver == null) ExplicitReceiverKind.NO_EXPLICIT_RECEIVER else ExplicitReceiverKind.DISPATCH_RECEIVER
+
+        return createCandidate(
+            errorDescriptor, explicitReceiverKind, dispatchReceiver, extensionArgumentReceiver = null,
+            extensionArgumentReceiverCandidates = null, initialDiagnostics = listOf(), knownSubstitutor = null
+        )
+    }
+
+    private fun CangJieCall.getExplicitDispatchReceiver(explicitReceiverKind: ExplicitReceiverKind) =
+        when (explicitReceiverKind) {
+            ExplicitReceiverKind.DISPATCH_RECEIVER -> explicitReceiver
+            else -> null
+        }
+
+
+    override fun createCandidate(
+        towerCandidate: CandidateWithBoundDispatchReceiver,
+        explicitReceiverKind: ExplicitReceiverKind
+    ): SimpleResolutionCandidate {
+        val dispatchArgumentReceiver = createReceiverArgument(
+            cangjieCall.getExplicitDispatchReceiver(explicitReceiverKind),
+            towerCandidate.dispatchReceiver
+        )
+        val extensionArgumentReceiver = null
+        val descriptor = towerCandidate.descriptor
+        var diagnostics: List<CangJieCallDiagnostic> = towerCandidate.diagnostics
+        if (descriptor is PropertyDescriptor && descriptor.isSyntheticEnumEntries()) {
+            diagnostics = diagnostics + LowerPriorityToPreserveCompatibility(needToReportWarning = false).asDiagnostic()
+        }
+
+        return createCandidate(
+            descriptor, explicitReceiverKind, dispatchArgumentReceiver,
+            extensionArgumentReceiver, extensionArgumentReceiverCandidates = null, diagnostics, knownSubstitutor = null
+        )
+    }
+
+    private fun createCandidate(
+        descriptor: CallableDescriptor,
+        explicitReceiverKind: ExplicitReceiverKind,
+        dispatchArgumentReceiver: SimpleCangJieCallArgument?,
+        extensionArgumentReceiver: SimpleCangJieCallArgument?,
+        extensionArgumentReceiverCandidates: List<SimpleCangJieCallArgument>?,
+        initialDiagnostics: Collection<CangJieCallDiagnostic>,
+        knownSubstitutor: TypeSubstitutor?
+    ): SimpleResolutionCandidate {
+        val resolvedCjCall = MutableResolvedCallAtom(
+            cangjieCall, descriptor, explicitReceiverKind,
+            dispatchArgumentReceiver
+        )
+
+        if (ErrorUtils.isError(descriptor)) {
+            return SimpleErrorResolutionCandidate(
+                callComponents,
+                resolutionCallbacks,
+                scopeTower,
+                baseSystem,
+                resolvedCjCall
+            )
+        }
+
+        val candidate =
+            SimpleResolutionCandidate(
+                callComponents,
+                resolutionCallbacks,
+                scopeTower,
+                baseSystem,
+                resolvedCjCall,
+                knownSubstitutor
+            )
+
+        initialDiagnostics.forEach(candidate::addDiagnostic)
+
+//        if (callComponents.statelessCallbacks.isHiddenInResolution(descriptor, cangjieCall, resolutionCallbacks)) {
+//            candidate.addDiagnostic(HiddenDescriptor)
+//        }
+
+        return candidate
+    }
+
+    fun createCandidate(givenCandidate: GivenCandidate): SimpleResolutionCandidate {
+        val isSafeCall = (cangjieCall.explicitReceiver as? SimpleCangJieCallArgument)?.isSafeCall ?: false
+
+        val explicitReceiverKind =
+            if (givenCandidate.dispatchReceiver == null) ExplicitReceiverKind.NO_EXPLICIT_RECEIVER else ExplicitReceiverKind.DISPATCH_RECEIVER
+        val dispatchArgumentReceiver = givenCandidate.dispatchReceiver?.let {
+            ReceiverExpressionCangJieCallArgument(it, isSafeCall)
+        }
+        return createCandidate(
+            givenCandidate.descriptor, explicitReceiverKind, dispatchArgumentReceiver, null, null,
+            listOf(), givenCandidate.knownTypeParametersResultingSubstitutor
+        )
+    }
+}
+
+fun PropertyDescriptor.isSyntheticEnumEntries(): Boolean {
+    return isSynthesized && dispatchReceiverParameter == null &&
+            (containingDeclaration as? ClassDescriptor)?.kind == ClassKind.ENUM
+}
+
+

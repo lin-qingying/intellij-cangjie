@@ -25,17 +25,20 @@
 package org.cangnova.cangjie.types.error
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
+import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.DefaultBuiltIns
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.types.DefaultBuiltIns
 
 object ErrorModuleDescriptor: ModuleDescriptor {
     override val projectDescriptor: ProjectDescriptor
         get() = ProjectDescriptor.ERROR
     override val isValid: Boolean = false
     override fun getPackage(fqName: FqName): PackageViewDescriptor  = throw IllegalStateException("Should not be called!")
+    override val allDependencyModules: List<ModuleDescriptor> = emptyList()
+    override fun getModule(name: Name): ModuleDescriptor? = null
+    override fun getPackageOrModule(fqName: FqName): PackageAndModuleDescriptor? = null
     override val builtIns: CangJieBuiltIns  by lazy { DefaultBuiltIns }
     override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> = emptyList()
     override val expectedByModules: List<ModuleDescriptor> = emptyList()
@@ -47,9 +50,9 @@ object ErrorModuleDescriptor: ModuleDescriptor {
 
     override val original: DeclarationDescriptor = this
     override val containingDeclaration: DeclarationDescriptor? = null
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R?  = null
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? = null
 
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {
 
     }
     override val stableName: Name = Name.special(ErrorEntity.ERROR_MODULE.debugText)
@@ -57,4 +60,6 @@ object ErrorModuleDescriptor: ModuleDescriptor {
     override val annotations: Annotations
         get() = Annotations.EMPTY
     override val name: Name = stableName
+    override val displayName: String
+        get() = name.identifier
 }

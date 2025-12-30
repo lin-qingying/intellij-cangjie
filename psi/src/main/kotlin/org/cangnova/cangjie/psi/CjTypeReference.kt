@@ -44,7 +44,7 @@ class CjTypeReference :
 
     constructor(stub: CangJiePlaceHolderStub<CjTypeReference>) : super(stub, CjStubElementTypes.TYPE_REFERENCE)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitTypeReference(this, data)
     }
 
@@ -101,10 +101,6 @@ class CjTypeReference :
             }
 
             is CjFunctionType -> buildString {
-                val contextReceivers = typeElement.contextReceiversTypeReferences
-                if (contextReceivers.isNotEmpty()) {
-                    append(contextReceivers.joinToString(", ", "context(", ")") { getTypeText(it.typeElement) ?: "" })
-                }
                 typeElement.receiverTypeReference?.let { append(getTypeText(it.typeElement)) }
                 append(
                     typeElement.parameters.joinToString(", ", "(", ")") { param ->

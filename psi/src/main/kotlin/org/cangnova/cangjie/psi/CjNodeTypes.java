@@ -88,6 +88,7 @@ public interface CjNodeTypes {
     IElementType CONSTRUCTOR_DELEGATION_REFERENCE = new CjNodeType.CjLeftBoundNodeType("CONSTRUCTOR_DELEGATION_REFERENCE", CjConstructorDelegationReferenceExpression.class);
 
     IElementType VARIABLE = CjStubElementTypes.VARIABLE;
+    IElementType FIELD = CjStubElementTypes.FIELD;
     IElementType MAIN_FUNC = CjStubElementTypes.MAIN_FUNC;
     IElementType MACRO = CjStubElementTypes.MACRO;
     IElementType FOREIGN = CjStubElementTypes.FOREIGN;
@@ -96,7 +97,6 @@ public interface CjNodeTypes {
 
     IElementType FOREIGN_BODY = CjStubElementTypes.FOREIGN_BODY;
     IElementType FUNC = CjStubElementTypes.FUNCTION;
-    IElementType FUNC_EXTEND = CjStubElementTypes.FUNCTION_EXTEND;
     IElementType CJ_SCRIPT = CjStubElementTypes.CJ_SCRIPT;
 
     IFileElementType CJ_FILE = new IFileElementType(CangJieLanguage.INSTANCE);
@@ -121,13 +121,7 @@ public interface CjNodeTypes {
 
     IElementType SUPER_TYPE_ENTRY = CjStubElementTypes.SUPER_TYPE_ENTRY;
     IElementType MODIFIER_LIST = CjStubElementTypes.MODIFIER_LIST;
-    IElementType DESTRUCTURING_DECLARATION_ENTRY = new CjNodeType("DESTRUCTURING_DECLARATION_ENTRY", CjDestructuringDeclarationEntry.class);
-    IElementType DESTRUCTURING_DECLARATION = new CjNodeType("DESTRUCTURING_DECLARATION", CjDestructuringDeclaration.class);
-//    IElementType CLASS_INITIALIZER = CjStubElementTypes.CLASS_INITIALIZER;
 
-    IElementType CLASS_INIT = CjStubElementTypes.CLASS_INIT;
-    IElementType CLASS_TILDE_INIT = CjStubElementTypes.CLASS_TILDE_INIT;
-    IElementType CLASS_MAIN_INIT = CjStubElementTypes.CLASS_MAIN_INIT;
     IElementType REFERENCE_EXPRESSION = CjStubElementTypes.REFERENCE_EXPRESSION;
     IElementType TYPE_PARAMETER_LIST = CjStubElementTypes.TYPE_PARAMETER_LIST;
     IElementType TYPE_CONSTRAINT_LIST = CjStubElementTypes.TYPE_CONSTRAINT_LIST;
@@ -147,7 +141,7 @@ public interface CjNodeTypes {
 
     IElementType EXTEND = CjStubElementTypes.EXTEND;
     IElementType ENUM_BODY = CjStubElementTypes.ENUM_BODY;
-    IElementType ENUM_ENTRY = CjStubElementTypes.ENUM_ENTRY;
+    IElementType ENUM_CONSTRUCTOR= CjStubElementTypes.ENUM_CONSTRUCTOR;
 
     IElementType TYPE_LIST = CjStubElementTypes.TYPE_LIST;
     IElementType SUPER_TYPE_LIST = CjStubElementTypes.SUPER_TYPE_LIST;
@@ -156,9 +150,7 @@ public interface CjNodeTypes {
     IElementType DOT_QUALIFIED_EXPRESSION = CjStubElementTypes.DOT_QUALIFIED_EXPRESSION;
 
     IElementType IMPORT_ALIAS = CjStubElementTypes.IMPORT_ALIAS;
-        IElementType MULIT_IMPORT_DIRECTIVE = new CjNodeType("MULIT_IMPORT_DIRECTIVE", CjMultiImportDirective.class);
-    IElementType IMPORT_DIRECTIVE_ITEM = CjStubElementTypes.IMPORT_DIRECTIVE_ITEM;
-
+    IElementType IMPORT_ITEM = CjStubElementTypes.IMPORT_ITEM;
     IElementType IMPORT_DIRECTIVE = CjStubElementTypes.IMPORT_DIRECTIVE;
 
     //    IElementType IMPORT_DIRECTIVE_ITEM = CjStubElementTypes.IMPORT_DIRECTIVE_ITEM;
@@ -242,22 +234,22 @@ public interface CjNodeTypes {
     IElementType MATCH_ENTRY = new CjNodeType("MATCH_ENTRY", CjMatchEntry.class);
 
 
-//    IElementType CASE_PATTERN = new CjNodeType("CASE_PATTERN", CjCasePattern.class);
 
-    //    IElementType CHARACTER_CONSTANT = CjStubElementTypes.CHARACTER_CONSTANT;
-    IElementType WILDCARD_PATTERN = new CjNodeType("WILDCARD_PATTERN", CjWildcardPattern.class);
-    IElementType TYPE_PATTERN = new CjNodeType("TYPE_PATTERN", CjTypePattern.class);
-    IElementType ENUM_PATTERN = new CjNodeType("ENUM_PATTERN", CjEnumPattern.class);
-    IElementType BINDING_PATTERN = new CjNodeType("BINDING_PATTERN", CjBindingPattern.class);
-    IElementType TUPLE_PATTERN = new CjNodeType("TUPLE_PATTERN", CjTuplePattern.class);
-    IElementType CONSTANT_PATTERN = new CjNodeType("CONSTANT_PATTERN", CjConstantPattern.class);
 
     IElementType PROPERTY_ACCESSOR = CjStubElementTypes.PROPERTY_ACCESSOR;
     IElementType ERROR_ELEMENT = new CjNodeType("ERROR_ELEMENT", CjErrorElement.class);
     IElementType END_SECONDARY_CONSTRUCTOR = CjStubElementTypes.END_SECONDARY_CONSTRUCTOR;
     IElementType SECONDARY_CONSTRUCTOR = CjStubElementTypes.SECONDARY_CONSTRUCTOR;
     IElementType PRIMARY_CONSTRUCTOR = CjStubElementTypes.PRIMARY_CONSTRUCTOR;
-    IElementType CONTEXT_RECEIVER_LIST = CjStubElementTypes.CONTEXT_RECEIVER_LIST;
+
+
+
+    IElementType BINDING_PATTERN = CjStubElementTypes.BINDING_PATTERN;
+    IElementType TUPLE_PATTERN = CjStubElementTypes.TUPLE_PATTERN;
+    IElementType ENUM_PATTERN = CjStubElementTypes.ENUM_PATTERN;
+    IElementType WILDCARD_PATTERN = CjStubElementTypes.WILDCARD_PATTERN;
+    IElementType TYPE_PATTERN = CjStubElementTypes.TYPE_PATTERN;
+    IElementType CONSTANT_PATTERN = CjStubElementTypes.CONSTANT_PATTERN;
 
 
 //    IFileElementType TYPE_CODE_FRAGMENT = CjStubElementTypes.TYPE_CODE_FRAGMENT;

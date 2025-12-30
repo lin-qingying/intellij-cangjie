@@ -66,16 +66,11 @@ class PrimitiveTypeConstructor(
             PrimitiveType.Nothing -> emptyList()
 
             // 其他基本类型都继承自 Any
-            else -> listOf(builtIns.anyType)
+            else -> listOf(builtIns.stdlibTypes.anyType)
         }
     }
 
-    override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
-        val module = builtIns.builtInsModule
-        val mgr = module.getCapability(org.cangnova.cangjie.resolve.extend.ExtendManager.CAPABILITY)
-            ?: return emptyList()
-        return mgr.getExtendSupertypes(this, emptyList(), extendId)
-    }
+
 
 
     /**

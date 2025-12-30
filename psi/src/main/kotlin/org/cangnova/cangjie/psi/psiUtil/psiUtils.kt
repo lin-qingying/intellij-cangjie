@@ -33,19 +33,26 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.findParentInFile
 import com.intellij.psi.util.isAncestor
+import org.cangnova.cangjie.name.FqName
 
+val PsiElement.cangjieFqName: FqName?
+    get() = when (this) {
+
+        is CjNamedDeclaration -> this.fqName
+        else -> null
+    }
 fun TextRange.containsInside(offset: Int): Boolean = startOffset < offset && offset < endOffset
 inline fun <reified T : PsiElement> PsiElement.getLastParentOfTypeInRow() =
     parents.takeWhile { it is T }.lastOrNull() as? T
 
 fun PsiElement.isExtensionDeclaration(): Boolean {
     val callable: CjCallableDeclaration? = when (this) {
-        is CjNamedFunction, is CjProperty, is CjVariable -> this as CjCallableDeclaration
+        is CjNamedFunction, is CjProperty   -> this as CjCallableDeclaration
         is CjPropertyAccessor -> getNonStrictParentOfType<CjProperty>()
         else -> null
     }
 
-    return callable?.receiverTypeReference != null
+    return callable ?.getParentOfType<CjExtend>(false) != null
 }
 
 fun getElementTextWithContext(psiElement: PsiElement): String {
@@ -54,7 +61,7 @@ fun getElementTextWithContext(psiElement: PsiElement): String {
     @Suppress("LocalVariableName")
     val ELEMENT_TAG = "ELEMENT"
     val containingFile = psiElement.containingFile
-    val context = psiElement.parentOfType("CjImportDirectiveItem")
+    val context = psiElement.parentOfType("CjImportItem")
         ?: psiElement.parentOfType("CjPackageDirective")
         ?: psiElement.parentOfType("CjDeclarationWithBody")
         ?: psiElement.parentOfType("CjProperty")

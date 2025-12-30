@@ -41,7 +41,17 @@ interface DeclarationWrapper {
 
     val annotations: List<AnnotationWrapper> get() = emptyList()
 }
+// 预定义需要的声明类型集合，避免重复创建
+private val targetDeclKinds = setOf(
+    FbDeclKind.ClassDecl, FbDeclKind.InterfaceDecl, FbDeclKind.StructDecl,
+    FbDeclKind.EnumDecl, FbDeclKind.TypeAliasDecl, FbDeclKind.FuncDecl, FbDeclKind.VarDecl,
+    FbDeclKind.ExtendDecl
+)
 
+private val classDeclKinds = setOf(
+    FbDeclKind.ClassDecl, FbDeclKind.InterfaceDecl,
+    FbDeclKind.StructDecl, FbDeclKind.EnumDecl
+)
 class PackageWrapper(
     val original: FbPackage,
 
@@ -54,17 +64,7 @@ class PackageWrapper(
 
     val importPackageFqNames: List<FqName> = original.imports.map { FqName.fromString(it) }
 
-    // 预定义需要的声明类型集合，避免重复创建
-    private val targetDeclKinds = setOf(
-        FbDeclKind.ClassDecl, FbDeclKind.InterfaceDecl, FbDeclKind.StructDecl,
-        FbDeclKind.EnumDecl, FbDeclKind.TypeAliasDecl, FbDeclKind.FuncDecl, FbDeclKind.VarDecl,
-        FbDeclKind.ExtendDecl
-    )
 
-    private val classDeclKinds = setOf(
-        FbDeclKind.ClassDecl, FbDeclKind.InterfaceDecl,
-        FbDeclKind.StructDecl, FbDeclKind.EnumDecl
-    )
 
     // 一次性过滤所有顶层声明，避免多次遍历
     private val allToplevelDecl = declTable.byTypeKind
@@ -174,14 +174,14 @@ class EnumWrapper(
         FunctionWrapper(it, declTable, typeTable)
     } ?: emptyList()
 
-    val entrys: List<EnumEntryWrapper> = (declByTypeKind[FbDeclKind.VarDecl]?.map {
-        EnumEntryWrapper(it, declTable, typeTable)
+    val entrys: List<EnumConstructorWrapper> = (declByTypeKind[FbDeclKind.VarDecl]?.map {
+        EnumConstructorWrapper(it, declTable, typeTable)
     } ?: emptyList()) + (declByTypeKind[FbDeclKind.FuncDecl]?.filter {
         !it.attributePack.testAttr(Attribute.CONSTRUCTOR) && !it.attributePack.testAttr(Attribute.PRIMARY_CONSTRUCTOR) && it.attributePack.testAttr(
             Attribute.ENUM_CONSTRUCTOR
         )
     }?.map {
-        EnumEntryWrapper(it, declTable, typeTable)
+        EnumConstructorWrapper(it, declTable, typeTable)
     } ?: emptyList())
 
     override val propertys: List<PropertyWrapper> = declByTypeKind[FbDeclKind.PropDecl]?.map {
@@ -206,7 +206,7 @@ class EnumWrapper(
     val hasArguments = info.hasArguments
 }
 
-class EnumEntryWrapper(
+class EnumConstructorWrapper(
     val original: FbDecl,
     val declTable: DeclTable,
     val typeTable: TypeTable,
@@ -373,6 +373,35 @@ fun FbDecl.toClassDeclWrapper(declTable: DeclTable, typeTable: TypeTable): Class
     }
 }
 
+/**
+ * 将 FbDecl 转换为 DeclarationWrapper
+ *
+ * 根据声明类型创建对应的 Wrapper 对象
+ */
+fun FbDecl.toDeclarationWrapper(declTable: DeclTable, typeTable: TypeTable): DeclarationWrapper? {
+    return when (this.info) {
+        is FbDeclInfo.ClassInfo -> ClassWrapper(this, declTable, typeTable)
+        is FbDeclInfo.EnumInfo -> EnumWrapper(this, declTable, typeTable)
+        is FbDeclInfo.InterfaceInfo -> InterfaceWrapper(this, declTable, typeTable)
+        is FbDeclInfo.StructInfo -> StructWrapper(this, declTable, typeTable)
+        is FbDeclInfo.FuncInfo -> {
+            // 区分构造函数和普通函数
+            if (this.attributePack.testAttr(Attribute.CONSTRUCTOR) ||
+                this.attributePack.testAttr(Attribute.PRIMARY_CONSTRUCTOR)) {
+                ConstructorWrapper(this, declTable, typeTable)
+            } else {
+                FunctionWrapper(this, declTable, typeTable)
+            }
+        }
+        is FbDeclInfo.VarInfo -> VariableWrapper(this, declTable, typeTable)
+        is FbDeclInfo.PropInfo -> PropertyWrapper(this, declTable, typeTable)
+        is FbDeclInfo.AliasInfo -> TypeAliasWrapper(this, declTable, typeTable)
+        is FbDeclInfo.ExtendInfo -> ExtendWrapper(this, declTable, typeTable)
+        is FbDeclInfo.ParamInfo -> ValueParameterWrapper(this, declTable, typeTable)
+        else -> null
+    }
+}
+
 class ClassWrapper(
     val original: FbDecl,
     val declTable: DeclTable,
@@ -440,7 +469,7 @@ class ExtendWrapper(
     val original: FbDecl,
     val declTable: DeclTable,
     val typeTable: TypeTable,
-) {
+) : DeclarationWrapper{
     val packageFqName = original.packagefqName
 
     //    被扩展类型
@@ -478,6 +507,8 @@ class ExtendWrapper(
     }
 
     val id = original.exportId!!
+
+    override val annotations: List<AnnotationWrapper> = original.annotations.map { AnnotationWrapper(it, declTable, typeTable) }
 }
 
 class PropertyWrapper(
@@ -509,6 +540,9 @@ class PropertyWrapper(
 
     val isConst = info.isConst
 
+    val isOverride = original.attributePack.testAttr(Attribute.OVERRIDE)
+    val isRedef = original.attributePack.testAttr(Attribute.REDEF)
+
     val returnType = typeTable.get(original.type).let { TypeWrapper(it, declTable, typeTable) }
     val getter = info.getter?.let {
         declTable.get(it).let {
@@ -530,6 +564,7 @@ class PropertyWrapper(
         }
     }
 
+    override val annotations: List<AnnotationWrapper> = original.annotations.map { AnnotationWrapper(it, declTable, typeTable) }
 }
 
 class TypeWrapper(
@@ -582,6 +617,7 @@ class VariableWrapper(
     }
     val declaresDefaultValue = info.initializer != 0
 
+    override val annotations: List<AnnotationWrapper> = original.annotations.map { AnnotationWrapper(it, declTable, typeTable) }
 }
 
 class TypeAliasWrapper(
@@ -748,6 +784,8 @@ class FunctionWrapper(
     val isConst = info.isConst
     val isInLine = info.isInline
     val isFastNative = info.isFastNative
+    val isMacro = original.attributePack.testAttr(Attribute.MACRO_FUNC)
+    val isMainEntry = original.attributePack.testAttr(Attribute.MAIN_ENTRY)
 
     val returnType = typeTable.get(info.funcBody.retType).let { TypeWrapper(it, declTable, typeTable) }
     val ownType = typeTable.get(original.type).let { TypeWrapper(it, declTable, typeTable) }
@@ -795,6 +833,7 @@ class ValueParameterWrapper(
     val isNamedParam = info.isNamedParam
     val isMemberParam = info.isMemberParam
 
+    override val annotations: List<AnnotationWrapper> = original.annotations.map { AnnotationWrapper(it, declTable, typeTable) }
 
     val declaresDefaultValue = info.defaultVal != 0
 }

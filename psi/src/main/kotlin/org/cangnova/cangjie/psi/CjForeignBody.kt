@@ -27,6 +27,7 @@ package org.cangnova.cangjie.psi
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import org.cangnova.cangjie.psi.stubs.elements.CjTokenSets
 import com.intellij.lang.ASTNode
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
@@ -40,6 +41,6 @@ class CjForeignBody : CjElementImplStub<CangJiePlaceHolderStub<CjForeignBody>>, 
     constructor(stub: CangJiePlaceHolderStub<CjForeignBody>) : super(stub, CjStubElementTypes.FOREIGN_BODY)
 
     override val declarations: List<CjDeclaration>
-        get() = stub?.getChildrenByType(CjFile.FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
+        get() = stub?.getChildrenByType(CjTokenSets.FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
             ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java)
 }

@@ -44,9 +44,6 @@ class ErrorMacroDescriptor(containingDeclaration: ClassDescriptor) : MacroDescri
     init {
         initialize(
             null,
-            null,
-            emptyList(),
-            emptyList(),
             emptyList(),
             ErrorUtils.createErrorType(ErrorTypeKind.RETURN_TYPE_FOR_FUNCTION),
             Modality.OPEN,
@@ -104,12 +101,7 @@ class ErrorMacroDescriptor(containingDeclaration: ClassDescriptor) : MacroDescri
             override fun setReturnType(type: CangJieType): FunctionDescriptor.CopyBuilder<MacroDescriptor> =
                 this
 
-            override fun setContextReceiverParameters(contextReceiverParameters: List<ReceiverParameterDescriptor>): FunctionDescriptor.CopyBuilder<MacroDescriptor> =
-                this
 
-            override fun setExtensionReceiverParameter(
-                extensionReceiverParameter: ReceiverParameterDescriptor?
-            ): FunctionDescriptor.CopyBuilder<MacroDescriptor> = this
 
             override fun setDispatchReceiverParameter(
                 dispatchReceiverParameter: ReceiverParameterDescriptor?

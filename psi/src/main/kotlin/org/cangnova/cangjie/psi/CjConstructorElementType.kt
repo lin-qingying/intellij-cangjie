@@ -43,21 +43,31 @@ abstract class CjConstructorElementType<T : CjConstructor<T>>(
         parentStub: StubElement<*>,
         nameRef: StringRef?,
         hasBody: Boolean,
+        isPrimary: Boolean,
         isDelegatedCallToThis: Boolean,
     ): CangJieConstructorStub<T>
+
+    open val isPrimary: Boolean get() = false
 
     protected abstract fun isDelegatedCallToThis(constructor: T): Boolean
 
     override fun createStub(psi: T, parentStub: StubElement<*>): CangJieConstructorStub<T> {
         val hasBody = psi.hasBody()
         val isDelegatedCallToThis = isDelegatedCallToThis(psi)
-        return newStub(parentStub, StringRef.fromString(psi.name), hasBody, isDelegatedCallToThis)
+        return newStub(
+            parentStub,
+            StringRef.fromString(psi.name),
+            hasBody,
+            isPrimary,
+            isDelegatedCallToThis
+        )
     }
 
     @Throws(IOException::class)
     override fun serialize(stub: CangJieConstructorStub<T>, dataStream: StubOutputStream) {
         dataStream.writeName(stub.name)
         dataStream.writeBoolean(stub.hasBody())
+        dataStream.writeBoolean(stub.isPrimary)
         dataStream.writeBoolean(stub.isDelegatedCallToThis())
     }
 
@@ -65,8 +75,9 @@ abstract class CjConstructorElementType<T : CjConstructor<T>>(
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieConstructorStub<T> {
         val name = dataStream.readName()
         val hasBody = dataStream.readBoolean()
+        val isPrimary = dataStream.readBoolean()
         val isDelegatedCallToThis = dataStream.readBoolean()
-        return newStub(parentStub, name, hasBody, isDelegatedCallToThis)
+        return newStub(parentStub, name, hasBody, isPrimary, isDelegatedCallToThis)
     }
 
     override fun indexStub(stub: CangJieConstructorStub<T>, sink: IndexSink) {

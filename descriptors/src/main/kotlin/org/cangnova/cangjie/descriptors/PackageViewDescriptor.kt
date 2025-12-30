@@ -47,7 +47,7 @@ import org.cangnova.cangjie.resolve.scopes.MemberScope
  * }
  * ```
  */
-interface PackageViewDescriptor : PackageData ,DeclarationDescriptorWithVisibility{
+interface PackageViewDescriptor : PackageData ,DeclarationDescriptorWithVisibility,PackageAndModuleDescriptor{
 
 
     override val containingDeclaration: PackageViewDescriptor?

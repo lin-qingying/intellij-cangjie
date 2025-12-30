@@ -78,7 +78,7 @@ class BuiltinsClassDescriptor(
                             SourceElement.NO_SOURCE,
                             storageManager,
                         ).apply {
-                            addUpperBound(builtIns.ctypeType)
+                            addUpperBound(builtIns.stdlibTypes.ctypeType)
                         }
                     )
                 }
@@ -89,7 +89,6 @@ class BuiltinsClassDescriptor(
 
 
         }
-    override val contextReceivers: List<ReceiverParameterDescriptor> = emptyList()
 
     // 作用域
     override val staticScope: MemberScope = MemberScope.Empty
@@ -149,7 +148,7 @@ class BuiltinsClassDescriptor(
                         this, null, 0, Annotations.EMPTY, Name.identifier("pointer"),
                         false, createBuiltinsType(BuiltinsType.CPOINTER).replace(
                             newArguments = listOf(TypeProjectionImpl(builtIns.uint8Type))
-                        ), false, SourceElement.NO_SOURCE, null
+                        ), false, SourceElement.NO_SOURCE
                     )
                     initialize(listOf(parameter))
                     setReturnType(this@BuiltinsClassDescriptor.defaultType)
@@ -176,7 +175,7 @@ class BuiltinsClassDescriptor(
                 init {
                     val parameter = ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                         this, null, 0, Annotations.EMPTY, Name.identifier("pointer"),
-                        false, createBuiltinsType(BuiltinsType.CPOINTER), false, SourceElement.NO_SOURCE, null
+                        false, createBuiltinsType(BuiltinsType.CPOINTER), false, SourceElement.NO_SOURCE
                     )
                     initialize(listOf(parameter))
                     setReturnType(this@BuiltinsClassDescriptor.defaultType)
@@ -196,7 +195,7 @@ class BuiltinsClassDescriptor(
                 init {
                     val parameter = ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                         this, null, 0, Annotations.EMPTY, Name.identifier("fun"),
-                        false, builtIns.cfuncType, false, SourceElement.NO_SOURCE, null
+                        false, builtIns.stdlibTypes.cfuncType, false, SourceElement.NO_SOURCE
                     )
                     initialize(listOf(parameter))
                     setReturnType(this@BuiltinsClassDescriptor.defaultType)

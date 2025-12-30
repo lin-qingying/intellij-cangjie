@@ -32,7 +32,7 @@ import java.nio.file.Files
 
 
 dependencies {
-    implementation("com.google.flatbuffers:flatbuffers-java:25.2.10")
+    implementation(libs.flatbuffers.java)
     implementation(project(":common"))
     implementation(project(":descriptors"))
 }

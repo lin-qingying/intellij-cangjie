@@ -31,20 +31,20 @@ import com.intellij.psi.stubs.StubOutputStream
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.stubs.*
 import org.cangnova.cangjie.psi.stubs.impl.CangJieFileStubImpl
+import org.cangnova.cangjie.psi.stubs.impl.CangJieFileStubKindImpl
 import java.io.IOException
 
 open class StubIndexService protected constructor() {
     open fun indexFile(stub: CangJieFileStub, sink: IndexSink) {
     }
 
-    open fun indexEnumEntry(stub: CangJieEnumEntryStub, sink: IndexSink) {
+    open fun indexEnumConstructor(stub: CangJieEnumConstructorStub, sink: IndexSink) {
     }
     open fun indexScript(stub: CangJieScriptStub, sink: IndexSink) {
     }
     open fun indexEnum(stub: CangJieEnumStub, sink: IndexSink) {
     }
-    open fun indexImports(stub: CangJieImportDirectiveItemStub, sink: IndexSink) {
-    }
+
     open fun indexImports(stub: CangJieImportDirectiveStub, sink: IndexSink) {
     }
 
@@ -53,13 +53,14 @@ open class StubIndexService protected constructor() {
 
     open fun indexExtend(stub: CangJieExtendStub, sink: IndexSink) {
     }
-    open fun indexMacroFunction(stub: CangJieFunctionStub, sink: IndexSink) {
+
+    open fun indexMacroFunction(stub: CangJieMacroStub, sink: IndexSink) {
     }
 
-    open fun indexFunction(stub: CangJieFunctionStub, sink: IndexSink) {
+    open fun indexFunction(stub: CangJieNamedFunctionStub, sink: IndexSink) {
     }
 
-    open fun indexMainFunction(stub: CangJieFunctionStub, sink: IndexSink) {
+    open fun indexMainFunction(stub: CangJieMainFunctionStub, sink: IndexSink) {
     }
 
     open fun indexTypeAlias(stub: CangJieTypeAliasStub, sink: IndexSink) {
@@ -68,7 +69,10 @@ open class StubIndexService protected constructor() {
     open fun indexStruct(stub: CangJieStructStub, sink: IndexSink) {
     }
 
-    open fun indexVariable(stub: CangJieVariableStub, sink: IndexSink) {
+    open fun indexPatternVariable(stub: CangJieVariableStub, sink: IndexSink) {
+    }
+
+    open fun indexFieldVariable(stub: CangJieFieldStub, sink: IndexSink) {
     }
 
     open fun indexProperty(stub: CangJiePropertyStub, sink: IndexSink) {
@@ -89,14 +93,13 @@ open class StubIndexService protected constructor() {
 
     @Throws(IOException::class)
     open fun serializeFileStub(stub: CangJieFileStub, dataStream: StubOutputStream) {
-        dataStream.writeName(stub.getPackageFqName().asString())
+        CangJieFileStubKindImpl.serialize(stub.kind, dataStream)
     }
 
     @Throws(IOException::class)
     open fun deserializeFileStub(dataStream: StubInputStream): CangJieFileStub {
-        val packageFqNameAsString = dataStream.readName()
-
-        return CangJieFileStubImpl(null, packageFqNameAsString!!.string)
+        val kind = CangJieFileStubKindImpl.deserialize(dataStream)
+        return CangJieFileStubImpl(null, kind)
     }
 
     companion object {

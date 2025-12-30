@@ -28,7 +28,7 @@ import com.intellij.lang.ASTNode
 
 class CjPatternGuard(node: ASTNode) : CjElementImpl(node) {
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitPatternGuard(this, data)
     }
 

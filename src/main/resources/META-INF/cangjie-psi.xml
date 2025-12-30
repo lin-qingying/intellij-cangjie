@@ -25,6 +25,12 @@
 <idea-plugin>
     <!-- IntelliJ 平台 PSI 和编辑器相关扩展点配置 -->
     <extensions defaultExtensionNs="com.intellij">
+        <!-- 仓颉目录工厂：提供包名计算和目录识别 -->
+        <projectService
+            serviceInterface="com.intellij.psi.impl.file.PsiDirectoryFactory"
+            serviceImplementation="org.cangnova.cangjie.psi.impl.CangJieDirectoryFactory"
+            overrides="true"/>
+
         <!--      PSI解析-->
         <lang.parserDefinition language="CangJie"
                                implementationClass="org.cangnova.cangjie.parsing.CangJieParserDefinition"/>

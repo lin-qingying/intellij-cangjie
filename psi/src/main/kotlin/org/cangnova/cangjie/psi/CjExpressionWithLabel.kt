@@ -38,5 +38,5 @@ open class CjExpressionWithLabel(node: ASTNode) : CjExpressionImpl(node) {
     fun getLabelName(): String? = getTargetLabel()?.referencedName
     fun getLabelNameAsName(): Name? = getTargetLabel()?.referencedNameAsName
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? = visitor.visitExpressionWithLabel(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? = visitor.visitExpressionWithLabel(this, data)
 }

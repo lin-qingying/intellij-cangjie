@@ -23,4 +23,19 @@
  */
 package org.cangnova.cangjie.resolve.scopes.receivers
 
+/**
+ * 接收器（Receiver）的顶层标记接口
+ *
+ * 接收器是仓颉语言中用于表示成员访问、方法调用等操作的目标对象的抽象概念。
+ * 在仓颉语言中，接收器可以是显式的（如表达式）或隐式的（如 this）。
+ *
+ * 这是所有接收器类型的基础接口，具体的接收器类型包括：
+ * - [ReceiverValue]: 具有类型信息的接收器值
+ * - [ImplicitReceiver]: 隐式接收器（如 this）
+ * - [QualifierReceiver]: 限定符接收器（如包名、类名）
+ *
+ * @see ReceiverValue
+ * @see ImplicitReceiver
+ * @see QualifierReceiver
+ */
 interface Receiver 

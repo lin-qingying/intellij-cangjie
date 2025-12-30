@@ -24,7 +24,6 @@
 
 package org.cangnova.telemetry.api
 
-import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import java.time.Instant
 import java.util.*
@@ -33,7 +32,6 @@ import java.util.*
  * 遥测服务接口，提供发送遥测事件的功能
  * 这是遥测系统的核心服务接口，所有需要发送遥测数据的模块都应该使用这个接口
  */
-@Service
 interface TelemetryService {
     /**
      * 发送遥测事件

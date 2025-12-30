@@ -49,11 +49,6 @@ data class ClassData(
 
 /**
  * FQ names of classes that should be ignored during deserialization.
- *
- * We ignore kotlin.Cloneable because since Kotlin 1.1, the descriptor for it is created via JvmBuiltInClassDescriptorFactory,
- * but the metadata is still serialized for kotlin-reflect 1.0 to work (see BuiltInsSerializer.kt).
  */
-val BLACK_LIST = setOf(
-    ClassId.topLevel(StandardNames.FqNames.cloneable.toSafe())
-)
+val BLACK_LIST = emptySet<ClassId>()
 

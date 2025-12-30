@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.lsp4ij
 
-import org.cangnova.cangjie.highlighter.CangJieHighlightingColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.psi.PsiFile
 import com.redhat.devtools.lsp4ij.features.semanticTokens.DefaultSemanticTokensColorsProvider

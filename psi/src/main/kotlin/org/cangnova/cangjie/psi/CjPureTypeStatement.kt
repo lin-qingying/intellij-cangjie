@@ -34,14 +34,13 @@ interface CjPureTypeStatement : CjPureElement, CjDeclarationContainer {
     fun hasPrimaryConstructor(): Boolean
 
     val primaryConstructor: CjPrimaryConstructor?
-
+    val annotations: CjAnnotations?
     val primaryConstructorModifierList: CjModifierList?
 
     val primaryConstructorParameters: List<CjParameter>
     val endSecondaryConstructors: List<CjEndSecondaryConstructor>
     val secondaryConstructors: List<CjSecondaryConstructor>
     val primaryConstructors: List<CjPrimaryConstructor>
-    val contextReceivers: List<CjContextReceiver>
 
     val body: CjAbstractClassBody?
 }

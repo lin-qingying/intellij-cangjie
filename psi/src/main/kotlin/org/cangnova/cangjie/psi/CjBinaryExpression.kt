@@ -29,7 +29,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 
 open class CjBinaryExpression(node: ASTNode) : CjExpressionImpl(node), CjOperationExpression {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitBinaryExpression(this, data)
     }
 

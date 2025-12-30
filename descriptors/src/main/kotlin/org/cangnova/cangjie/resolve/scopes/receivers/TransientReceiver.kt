@@ -27,20 +27,54 @@ package org.cangnova.cangjie.resolve.scopes.receivers
 import org.cangnova.cangjie.types.CangJieType
 
 /**
- * This represents the receiver of hasNext and next() in for-loops
- * Cannot be an expression receiver because there is no expression for the iterator() call
+ * 瞬态接收器
+ *
+ * TransientReceiver 表示在 for 循环中 hasNext 和 next() 方法调用时的接收器。
+ * 这是一个特殊的接收器类型，因为它不能是表达式接收器 —— iterator() 调用没有对应的表达式。
+ *
+ * 在仓颉语言的 for 循环中：
+ * ```
+ * for (item in collection) { ... }
+ * ```
+ * 实际上会被转换为：
+ * ```
+ * val iterator = collection.iterator()
+ * while (iterator.hasNext()) {
+ *     val item = iterator.next()
+ *     ...
+ * }
+ * ```
+ *
+ * 这里的 `iterator` 变量就是一个 TransientReceiver，它是临时生成的，
+ * 不对应源代码中的任何显式表达式。
+ *
+ * @param type 接收器的类型（通常是 Iterator 类型）
+ * @param original 原始的接收器值，用于类型替换链
+ *
+ * @see AbstractReceiverValue
  */
 class TransientReceiver private constructor(
     type:  CangJieType,
     original:  ReceiverValue?
 ) :
      AbstractReceiverValue(type, original) {
+    /**
+     * 公共构造函数
+     *
+     * @param type 接收器的类型
+     */
     constructor(type:  CangJieType) : this(type, null)
 
     override fun toString(): String {
         return "{Transient} : " + type
     }
 
+    /**
+     * 创建一个具有新类型的瞬态接收器副本
+     *
+     * @param newType 新的类型
+     * @return 具有新类型的瞬态接收器
+     */
     override fun replaceType(newType:  CangJieType):  ReceiverValue {
         return TransientReceiver(newType, original)
     }

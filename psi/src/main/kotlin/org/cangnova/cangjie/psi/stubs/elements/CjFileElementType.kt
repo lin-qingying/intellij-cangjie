@@ -34,6 +34,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.StubBuilder
 import com.intellij.psi.stubs.*
 import com.intellij.psi.tree.IStubFileElementType
+import org.cangnova.cangjie.psi.stubs.impl.CangJieFileStubImpl
+import org.cangnova.cangjie.psi.stubs.impl.CangJieFileStubKindImpl
 import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
@@ -56,12 +58,14 @@ class CjFileElementType : IStubFileElementType<CangJieFileStub> {
 
     @Throws(IOException::class)
     override fun serialize(stub: CangJieFileStub, dataStream: StubOutputStream) {
-        getInstance().serializeFileStub(stub, dataStream)
+        CangJieFileStubKindImpl.serialize(stub.kind, dataStream)
+
     }
 
     @Throws(IOException::class)
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?): CangJieFileStub {
-        return getInstance().deserializeFileStub(dataStream)
+        val kind = CangJieFileStubKindImpl.deserialize(dataStream)
+        return CangJieFileStubImpl(file = null, kind = kind)
     }
 
     override fun doParseContents(chameleon: ASTNode, psi: PsiElement): ASTNode {

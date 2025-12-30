@@ -28,6 +28,7 @@ import com.intellij.util.containers.addIfNotNull
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.PackageViewDescriptor
+import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindExclude
@@ -52,7 +53,7 @@ import org.cangnova.cangjie.utils.Printer
  *
  * ### 顶级包排除
  *
- * 可选地排除顶级包（根包的直接子包），通过 `DescriptorKindExclude.TopLevelPackages` 控制。
+ * 可选地排除顶级包（根包的直接子包），通过 `DescriptorKindExclude.Module` 控制。
  *
  * ## 使用场景
  *
@@ -175,7 +176,7 @@ import org.cangnova.cangjie.utils.Printer
  *
  * ### 顶级包过滤
  *
- * 当 `fqName.isRoot` 且过滤器包含 `TopLevelPackages` 排除时：
+ * 当 `fqName.isRoot` 且过滤器包含 `Module` 排除时：
  * - 不返回顶级包（如 `com`, `org`, `java` 等）
  * - 用于某些场景下隐藏顶级包结构
  *
@@ -302,6 +303,29 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
     override val classifierNames: Set<Name>
         get() =  emptySet()
 
+    /**
+     * 获取指定名称的子包视图描述符
+     *
+     * 此方法是解决 `import std.core` 后可以使用 `core.String` 的关键。
+     * 当导入一个包（如 `std.core`）后，包名 `core` 应该可以作为命名空间使用。
+     *
+     * 调用链：
+     * ```
+     * LazyExplicitImportScope.getContributedPackage("core")
+     *   → std.memberScope.getContributedPackageView("core", ...)
+     *   → ChainedMemberScope 遍历所有子作用域
+     *   → SubpackagesScope.getContributedPackageView("core", ...)
+     *   → getPackage("core") → 返回 std.core 包
+     * ```
+     *
+     * @param name 子包名称
+     * @param location 查找位置（用于增量编译追踪）
+     * @return 包视图描述符，如果不存在则返回 null
+     */
+    override fun getContributedPackageView(name: Name, location: LookupLocation): PackageViewDescriptor? {
+        return getPackage(name)
+    }
+
     override fun definitelyDoesNotContainName(name: Name): Boolean {
         return classifierNames.contains(name)
 
@@ -312,7 +336,7 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
         if (!kindFilter.acceptsKinds(DescriptorKindFilter.PACKAGES_MASK)) return listOf()
-        if (fqName.isRoot && kindFilter.excludes.contains(DescriptorKindExclude.TopLevelPackages)) return listOf()
+        if (fqName.isRoot && kindFilter.excludes.contains(DescriptorKindExclude.Module)) return listOf()
 
         val subFqNames = moduleDescriptor.getSubPackagesOf(fqName, nameFilter)
         val result = ArrayList<DeclarationDescriptor>(subFqNames.size)

@@ -142,12 +142,12 @@ class LazySubstitutingEnumDescriptor(
             )
         }
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R {
         return visitor.visitEnumDescriptor(this, data!!)
 
     }
 
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {
         TODO("Not yet implemented")
     }
 
@@ -206,7 +206,7 @@ class LazySubstitutingEnumDescriptor(
         get() = original.modality
 
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters {
+    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
         if (substitutor.isEmpty) return this
         return LazySubstitutingEnumDescriptor(
             this,

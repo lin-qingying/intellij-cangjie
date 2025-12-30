@@ -133,7 +133,7 @@ object CangJiePostfixTemplateInfo {
      * In tests only one expression should be suggested, so in case there are many of them, save relevant items.
      */
     var PsiFile.suggestedExpressions: List<String> by NotNullableUserDataProperty(
-        Key("KOTLIN_POSTFIX_TEMPLATE_EXPRESSIONS"),
+        Key("CANGJIE_POSTFIX_TEMPLATE_EXPRESSIONS"),
         defaultValue = emptyList(),
     )
 }
@@ -141,7 +141,7 @@ object CangJiePostfixTemplateInfo {
 internal object NonPackageAndNonImportFilter : (CjExpression) -> Boolean {
     override fun invoke(expression: CjExpression): Boolean {
         val parent = expression.parent
-        return parent !is CjPackageDirective && parent !is CjImportDirective && parent !is CjImportDirectiveItem
+        return parent !is CjPackageDirective && parent !is CjImportDirective && parent !is CjImportItem
     }
 }
 
@@ -171,7 +171,7 @@ class CangJiePostfixTemplateProvider : PostfixTemplateProvider {
 
     private val templateSet: Set<PostfixTemplate> by lazy {
         setOf(
-            CangJieValPostfixTemplate(this),
+            CangJieLetPostfixTemplate(this),
             CangJieVarPostfixTemplate(this),
         )
     }

@@ -217,7 +217,7 @@ abstract class DescriptorRenderer {
                     ENUM -> "enum"
                     EXTEND -> "extend"
 
-                    ENUM_ENTRY -> "enum entry"
+
                     BASIC -> "basic type"
                     TUPLE -> "tuple"
                     BUILTIN -> "builtIn type"

@@ -47,10 +47,6 @@ import org.cangnova.cangjie.utils.DFS
  * 函数类型作为内置类型实现
  */
 
-
-val CangJieType.isExtensionFunctionType: Boolean
-    get() = isFunctionType && isTypeAnnotatedWithExtensionFunctionType
-
 fun CangJieType.getValueParameterTypesFromCallableReflectionType(isCallableTypeWithExtension: Boolean): List<TypeProjection> {
 //    assert(ReflectionTypes.isCCallableType(this)) { "Not a callable reflection type: $this" }
     val arguments = arguments
@@ -62,16 +58,14 @@ fun CangJieType.getValueParameterTypesFromCallableReflectionType(isCallableTypeW
 
 fun getFunctionTypeArgumentProjections(
     receiverType: CangJieType?,
-    contextReceiverTypes: List<CangJieType>,
     parameterTypes: List<CangJieType>,
     parameterNames: List<Name>?,
     returnType: CangJieType,
     builtIns: CangJieBuiltIns
 ): List<TypeProjection> {
     val arguments =
-        ArrayList<TypeProjection>(parameterTypes.size + contextReceiverTypes.size + (if (receiverType != null) 1 else 0) + 1)
+        ArrayList<TypeProjection>(parameterTypes.size   + (if (receiverType != null) 1 else 0) + 1)
 
-    arguments.addAll(contextReceiverTypes.map { it.asTypeProjection() })
     arguments.addIfNotNull(receiverType?.asTypeProjection())
 
     parameterTypes.mapIndexedTo(arguments) { index, type ->
@@ -108,12 +102,11 @@ fun getFunctionTypeArgumentProjections(
  * @param returnType 函数的返回类型。
  * @return 返回一个简单的、非空的函数类型。
  */
-@JvmOverloads
+
 fun createFunctionType(
     builtIns: CangJieBuiltIns,
     annotations: Annotations,
     receiverType: CangJieType?,
-    contextReceiverTypes: List<CangJieType>,
     parameterTypes: List<CangJieType>,
     parameterNames: List<Name>?,
     returnType: CangJieType,
@@ -122,7 +115,6 @@ fun createFunctionType(
     val arguments =
         getFunctionTypeArgumentProjections(
             receiverType,
-            contextReceiverTypes,
             parameterTypes,
             parameterNames,
             returnType,
@@ -130,52 +122,22 @@ fun createFunctionType(
         )
 
     // 计算参数总数，包括上下文接收者和普通接收者
-    val parameterCount = parameterTypes.size + contextReceiverTypes.size + if (receiverType == null) 0 else 1
+    val parameterCount = parameterTypes.size   + if (receiverType == null) 0 else 1
 
     // 获取函数描述符
     val classDescriptor = getFunctionDescriptor(builtIns, parameterCount)
 
-    // 处理注解，添加扩展函数和上下文接收者的注解
-    var typeAnnotations = annotations
-    if (receiverType != null) typeAnnotations = typeAnnotations.withExtensionFunctionAnnotation(builtIns)
-    if (contextReceiverTypes.isNotEmpty()) typeAnnotations =
-        typeAnnotations.withContextReceiversFunctionAnnotation(builtIns, contextReceiverTypes.size)
-
     // 创建并返回简单的、非空的函数类型
-    return CangJieTypeFactory.simpleNotNullType(typeAnnotations.toDefaultAttributes(), classDescriptor, arguments)
+    // CangJie does not have extension function type annotations or context receivers
+    return CangJieTypeFactory.simpleNotNullType(annotations.toDefaultAttributes(), classDescriptor, arguments)
 }
 
 
-fun Annotations.withContextReceiversFunctionAnnotation(builtIns: CangJieBuiltIns, contextReceiversCount: Int) =
-    if (hasAnnotation(StandardNames.FqNames.contextFunctionTypeParams)) {
-        this
-    } else {
-        Annotations.create(
-            this + BuiltInAnnotationDescriptor(
-                builtIns, StandardNames.FqNames.contextFunctionTypeParams, mapOf(
-                    StandardNames.CONTEXT_FUNCTION_TYPE_PARAMETER_COUNT_NAME to Int32Value(contextReceiversCount)
-                )
-            )
-        )
-    }
-
-fun Annotations.withExtensionFunctionAnnotation(builtIns: CangJieBuiltIns) =
-    if (hasAnnotation(StandardNames.FqNames.extensionFunctionType)) {
-        this
-    } else {
-        Annotations.create(
-            this + BuiltInAnnotationDescriptor(
-                builtIns,
-                StandardNames.FqNames.extensionFunctionType,
-                emptyMap()
-            )
-        )
-    }
-
+/**
+ * 扩展属性：获取声明描述符的不安全完全限定名（可能包含错误信息）。
+ */
 val DeclarationDescriptor.fqNameUnsafe: FqNameUnsafe
     get() = DescriptorUtils.getFqName(this)
-//fun getFunctionDescriptor( builtIns: CangJieBuiltIns,parameterCount: Int) =
-// FunctionClassDescriptor.create(builtIns ,parameterCount )
 
 fun getFunctionDescriptor(builtIns: CangJieBuiltIns, parameterCount: Int) =
     /*   if (isSuspendFunction) builtIns.getSuspendFunction(parameterCount) else*/ builtIns.getFunction(parameterCount)
@@ -200,50 +162,22 @@ val DeclarationDescriptor.isBuiltinFunctionalClassDescriptor: Boolean
         return functionalClassKind == FunctionTypeKind.Function
     }
 
-fun CangJieType.contextFunctionTypeParamsCount(): Int {
-    val annotationDescriptor = annotations.findAnnotation(StandardNames.FqNames.contextFunctionTypeParams) ?: return 0
-    val constantValue =
-        annotationDescriptor.allValueArguments.getValue(StandardNames.CONTEXT_FUNCTION_TYPE_PARAMETER_COUNT_NAME)
-    return (constantValue as Int32Value).value
+// CangJie does not have context function types, so this always returns 0
+fun CangJieType.contextFunctionTypeParamsCount(): Int = 0
 
-
-}
-
-fun CangJieType.getContextReceiverTypesFromFunctionType(): List<CangJieType> {
-    assert(isBuiltinFunctionalType) { "Not a function type: $this" }
-    val contextReceiversCount = contextFunctionTypeParamsCount()
-    return if (contextReceiversCount == 0) {
-        emptyList()
-    } else {
-        arguments.subList(0, contextReceiversCount).map { it.type }
-    }
-}
 
 fun CangJieType.getValueParameterTypesFromFunctionType(): List<TypeProjection> {
     assert(isBuiltinFunctionalType) { "Not a function type: $this" }
     val arguments = arguments
-    val first = contextFunctionTypeParamsCount() + if (isBuiltinExtensionFunctionalType) 1 else 0
+    // CangJie does not have extension function types or context function types
+    val first = 0
     val last = arguments.size - 1
     assert(first <= last) { "Not an exact function type: $this" }
     return arguments.subList(first, last)
 }
 
-private val CangJieType.isTypeAnnotatedWithExtensionFunctionType: Boolean
-    get() = annotations.findAnnotation(StandardNames.FqNames.extensionFunctionType) != null
-val CangJieType.isBuiltinExtensionFunctionalType: Boolean
-    get() = isBuiltinFunctionalType && isTypeAnnotatedWithExtensionFunctionType
-
 val CangJieType.isBuiltinFunctionalType: Boolean
     get() = constructor.declarationDescriptor?.isBuiltinFunctionalClassDescriptor == true
-
-fun CangJieType.getReceiverTypeFromFunctionType(): CangJieType? {
-//    assert(isBuiltinFunctionalType) { "Not a function type: $this" }
-    if (!isTypeAnnotatedWithExtensionFunctionType) {
-        return null
-    }
-    val index = contextFunctionTypeParamsCount()
-    return arguments[index].type
-}
 
 private fun CangJieType.isTypeOrSubtypeOf(predicate: (CangJieType) -> Boolean): Boolean =
     predicate(this) ||
@@ -289,9 +223,6 @@ val CangJieType.functionTypeKind: FunctionTypeKind?
 val CangJieType.isFunctionType: Boolean
     get() = functionTypeKind == FunctionTypeKind.Function
 
-val CangJieType.isNonExtensionFunctionType: Boolean
-    get() = isFunctionType && !isTypeAnnotatedWithExtensionFunctionType
-
 fun CangJieType.extractParameterNameFromFunctionTypeArgument(): Name? {
     val annotation = annotations.findAnnotation(StandardNames.FqNames.parameterName) ?: return null
     val name = (annotation.allValueArguments.values.singleOrNull() as? StringValue)
@@ -324,7 +255,7 @@ fun FunctionDescriptor.toFunctionType(): CangJieType {
     return createFunctionType(
         getContainingModule(this).builtIns,
         this.annotations, null,
-        emptyList(), parameterTypes, parameterNames, this.returnType!!
+          parameterTypes, parameterNames, this.returnType!!
     )
 }
 

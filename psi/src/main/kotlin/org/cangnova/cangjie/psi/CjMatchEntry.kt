@@ -45,12 +45,12 @@ class CjMatchEntry(node: ASTNode) : CjElementImpl(node), CjPatternEntryBlock {
     val expression: CjCaseBlockExpression?
         get() = findChildByClass(CjCaseBlockExpression::class.java)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitMatchEntry(this, data)
     }
 
-    val conditions: Array<CjCasePattern>
-        get() = findChildrenByClass(CjCasePattern::class.java)
+    val conditions: Array<CjCasePatternElement>
+        get() = findChildrenByClass(CjCasePatternElement::class.java)
 
     val trailingComma: PsiElement?
         get() = getTrailingCommaByClosingElement(arrow)

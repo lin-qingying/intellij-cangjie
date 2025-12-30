@@ -29,7 +29,28 @@ import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
 
-// 2个上下文参数
+/**
+ * 使用 2 个上下文参数执行代码块
+ *
+ * 该函数允许在代码块中同时使用两个接收者对象，
+ * 第一个作为扩展接收者，第二个作为普通参数。
+ *
+ * 示例：
+ * ```kotlin
+ * withs(stringBuilder, list) { items ->
+ *     append("Items: ")
+ *     items.forEach { append(it) }
+ * }
+ * ```
+ *
+ * @param T1 第一个接收者类型（扩展接收者）
+ * @param T2 第二个接收者类型（参数）
+ * @param R 返回值类型
+ * @param receiver1 第一个接收者（扩展接收者）
+ * @param receiver2 第二个接收者（参数）
+ * @param block 要执行的代码块
+ * @return 代码块的返回值
+ */
 @OptIn(ExperimentalContracts::class)
 public inline fun <T1, T2, R> withs(
     receiver1: T1,
@@ -42,7 +63,31 @@ public inline fun <T1, T2, R> withs(
     return receiver1.block(receiver2)
 }
 
-// 3个上下文参数
+/**
+ * 使用 3 个上下文参数执行代码块
+ *
+ * 该函数允许在代码块中同时使用三个接收者对象，
+ * 第一个作为扩展接收者，其余两个作为普通参数。
+ *
+ * 示例：
+ * ```kotlin
+ * withs(printer, header, footer) { h, f ->
+ *     println(h)
+ *     println("Content")
+ *     println(f)
+ * }
+ * ```
+ *
+ * @param T1 第一个接收者类型（扩展接收者）
+ * @param T2 第二个接收者类型（参数）
+ * @param T3 第三个接收者类型（参数）
+ * @param R 返回值类型
+ * @param receiver1 第一个接收者（扩展接收者）
+ * @param receiver2 第二个接收者（参数）
+ * @param receiver3 第三个接收者（参数）
+ * @param block 要执行的代码块
+ * @return 代码块的返回值
+ */
 @OptIn(ExperimentalContracts::class)
 public inline fun <T1, T2, T3, R> withs(
     receiver1: T1,
@@ -56,7 +101,32 @@ public inline fun <T1, T2, T3, R> withs(
     return receiver1.block(receiver2, receiver3)
 }
 
-// 4个上下文参数
+/**
+ * 使用 4 个上下文参数执行代码块
+ *
+ * 该函数允许在代码块中同时使用四个接收者对象，
+ * 第一个作为扩展接收者，其余三个作为普通参数。
+ *
+ * 示例：
+ * ```kotlin
+ * withs(builder, config, context, logger) { cfg, ctx, log ->
+ *     log.info("Building with config: $cfg")
+ *     build(ctx)
+ * }
+ * ```
+ *
+ * @param T1 第一个接收者类型（扩展接收者）
+ * @param T2 第二个接收者类型（参数）
+ * @param T3 第三个接收者类型（参数）
+ * @param T4 第四个接收者类型（参数）
+ * @param R 返回值类型
+ * @param receiver1 第一个接收者（扩展接收者）
+ * @param receiver2 第二个接收者（参数）
+ * @param receiver3 第三个接收者（参数）
+ * @param receiver4 第四个接收者（参数）
+ * @param block 要执行的代码块
+ * @return 代码块的返回值
+ */
 @OptIn(ExperimentalContracts::class)
 public inline fun <T1, T2, T3, T4, R> withs(
     receiver1: T1,

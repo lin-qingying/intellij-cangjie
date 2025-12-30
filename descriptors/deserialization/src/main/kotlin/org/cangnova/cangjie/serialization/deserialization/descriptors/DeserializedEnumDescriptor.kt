@@ -34,7 +34,7 @@ import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.incremental.record
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
-import org.cangnova.cangjie.metadata.model.wrapper.EnumEntryWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.EnumConstructorWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.EnumWrapper
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.DeserializedDeclarationsFromSupertypeConflictDataKey
@@ -47,7 +47,6 @@ import org.cangnova.cangjie.serialization.deserialization.DeserializationContext
 import org.cangnova.cangjie.types.AbstractClassTypeConstructor
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeConstructor
-import org.cangnova.cangjie.types.TypeRefinement
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.utils.flatMapToNullable
 
@@ -284,9 +283,7 @@ class DeserializedEnumDescriptor(
             this@DeserializedEnumDescriptor.computeConstructorTypeParameters()
         }
 
-        override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
-            return emptyList()
-        }
+
 
         override fun computeSupertypes(): Collection<CangJieType> {
 
@@ -330,7 +327,7 @@ class DeserializedEnumConstructorDescriptor(
     annotations: Annotations,
 
 
-    override val decl: EnumEntryWrapper,
+    override val decl: EnumConstructorWrapper,
 
     override val containerSource: DeserializedContainerSource?,
     source: SourceElement? = null

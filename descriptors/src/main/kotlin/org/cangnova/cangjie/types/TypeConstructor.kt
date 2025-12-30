@@ -36,7 +36,21 @@ import org.cangnova.cangjie.types.model.TypeConstructorMarker
  */
 interface TypeConstructor : TypeConstructorMarker {
 
-
+    /**
+     * 超类型集合
+     *
+     * 返回此类型构造器的所有直接超类型。
+     * 对于类和接口，包括其继承的父类和实现的接口。
+     *
+     * 示例：
+     * ```kotlin
+     * // class MyClass : BaseClass, Interface1, Interface2
+     * val supertypes = myClassConstructor.supertypes
+     * // 返回 [BaseClass, Interface1, Interface2]
+     * ```
+     *
+     * @return 超类型集合，不为 null
+     */
     val supertypes: Collection<CangJieType>
 
 
@@ -55,7 +69,7 @@ interface TypeConstructor : TypeConstructorMarker {
      * @return 如果类型可表示则返回 true，否则返回 false
      */
 
-    val isDenotable: Boolean
+    val isDenotable: Boolean get() = false
 
     /**
      * 获取分类描述符。
@@ -83,7 +97,7 @@ interface TypeConstructor : TypeConstructorMarker {
      * @param cangjieTypeRefiner 类型精炼器，不能为空
      * @return 经过精炼的类型构造器，不能为空
      */
-    
+
     fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor
 
     /**
@@ -92,8 +106,26 @@ interface TypeConstructor : TypeConstructorMarker {
      * @return 如果是最终类型则返回 true，否则返回 false
      */
 
-    val isFinal: Boolean
+    val isFinal: Boolean get() = true
 
-
+    /**
+     * 类型参数列表
+     *
+     * 返回此类型构造器的所有类型参数描述符。
+     * 对于泛型类型，包含所有类型参数的定义。
+     *
+     * 示例：
+     * ```kotlin
+     * // class List<T>
+     * val parameters = listConstructor.parameters
+     * // 返回 [TypeParameterDescriptor(T)]
+     *
+     * // class Map<K, V>
+     * val parameters = mapConstructor.parameters
+     * // 返回 [TypeParameterDescriptor(K), TypeParameterDescriptor(V)]
+     * ```
+     *
+     * @return 类型参数描述符列表，不为 null
+     */
     val parameters: List<TypeParameterDescriptor>
 }

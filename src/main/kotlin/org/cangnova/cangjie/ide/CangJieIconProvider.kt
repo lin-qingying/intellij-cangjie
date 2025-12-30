@@ -56,7 +56,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.ui.RowIcon
 import com.intellij.util.PlatformIcons
-import org.cangnova.cangjie.analysis.decompiler.psi.file.CjDecompiledFile
+import org.cangnova.cangjie.decompiler.psi.file.CjDecompiledFile
 
 import javax.swing.Icon
 
@@ -87,7 +87,7 @@ abstract class AbstractCangJieIconProvider : IconProvider(), DumbAware {
         }
 
         val result = psiElement.getBaseIcon()
-        if (flags and Iconable.ICON_FLAG_VISIBILITY > 0 && result != null && (psiElement is CjModifierListOwner && psiElement !is CjClassInitializer)) {
+        if (flags and Iconable.ICON_FLAG_VISIBILITY > 0 && result != null && psiElement is CjModifierListOwner) {
             val list = psiElement.modifierList
             val visibilityIcon = getVisibilityIcon(list)
 
@@ -155,8 +155,6 @@ abstract class AbstractCangJieIconProvider : IconProvider(), DumbAware {
             is CjFile -> FILE
 
             is CjNamedFunction -> when {
-                receiverTypeReference != null ->
-                    if (CjPsiUtil.isAbstract(this)) ABSTRACT_EXTENSION_FUNCTION else EXTENSION_FUNCTION
 
                 getStrictParentOfType<CjNamedDeclaration>() is CjClass ->
                     if (CjPsiUtil.isAbstract(this)) PlatformIcons.ABSTRACT_METHOD_ICON else
@@ -174,7 +172,6 @@ abstract class AbstractCangJieIconProvider : IconProvider(), DumbAware {
             is CjEnum -> ENUM
             is CjStruct -> STRUCT
             is CjClass -> if (isAbstract()) ABSTRACT_CLASS else CLASS
-            is CjEnumEntry -> if (getPrimaryConstructorParameterList() == null) ENUM else null
 
 
             is CjParameter -> {
@@ -184,7 +181,7 @@ abstract class AbstractCangJieIconProvider : IconProvider(), DumbAware {
                     PARAMETER
             }
 
-            is CjVariable -> if (isVar) FIELD_VAR else FIELD_LET
+            is CjVariable<*> -> if (isVar) FIELD_VAR else FIELD_LET
 
             is CjProperty -> if (isVar) FIELD_MPROP else FIELD_PROP
 

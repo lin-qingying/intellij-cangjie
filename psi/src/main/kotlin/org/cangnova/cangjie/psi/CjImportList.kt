@@ -33,29 +33,14 @@ class CjImportList : CjElementImplStub<CangJiePlaceHolderStub<CjImportList>> {
 
     constructor(stub: CangJiePlaceHolderStub<CjImportList>) : super(stub, CjStubElementTypes.IMPORT_LIST)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitImportList(this, data)
     }
 
-    val importItems: List<CjImportDirectiveItem>
-        get() {
 
-            val importDirectives = mutableListOf<CjImportDirectiveItem>().apply {
-                addAll(
-                    imports.flatMap {
-                        it.items
-                    },
-                )
-            }
-            return importDirectives
-        }
+    /**
+     * 获取所有导入指令
+     */
     val imports: List<CjImportDirective>
-        get() {
-            val importDirectives = mutableListOf<CjImportDirective>().apply {
-                addAll(
-                    getStubOrPsiChildrenAsList(CjStubElementTypes.IMPORT_DIRECTIVE),
-                )
-            }
-            return importDirectives
-        }
+        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.IMPORT_DIRECTIVE)
 }

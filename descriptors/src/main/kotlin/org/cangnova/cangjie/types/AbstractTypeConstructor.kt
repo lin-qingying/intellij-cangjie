@@ -733,13 +733,6 @@ abstract class AbstractTypeConstructor(storageManager: StorageManager) : Classif
      */
     protected abstract fun computeSupertypes(): Collection<CangJieType>
 
-    /**
-     * 计算通过 extend 关键字声明的父类型
-     *
-     * @param extendId extend 子句的标识符
-     * @return extend 子句中声明的父类型集合
-     */
-    protected abstract fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType>
 
     /**
      * 父类型循环检测器

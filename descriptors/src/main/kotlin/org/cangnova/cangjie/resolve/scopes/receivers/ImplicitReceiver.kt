@@ -25,16 +25,25 @@
 package org.cangnova.cangjie.resolve.scopes.receivers
 
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
-import org.cangnova.cangjie.name.Name
 
 /**
- * Describes an implicit "this" receiver
+ * 隐式 "this" 接收器
+ *
+ * ImplicitReceiver 表示在代码中不显式出现，但在作用域中隐式可用的 "this" 接收器。
+ * 例如，在类或扩展的成员函数中，可以直接访问 this 的成员而不需要显式写出 "this."。
+ *
+ * 典型的使用场景包括：
+ * - 类成员函数中的隐式 this（指向类实例）
+ * - 扩展（extend）块中的隐式 this（指向被扩展的类型）
+ * - Lambda 表达式中的隐式接收器
+ *
+ * @property declarationDescriptor 声明此接收器的描述符（如类描述符、扩展描述符等）
+ *
+ * @see ImplicitClassReceiver
+ * @see ImplicitExtendReceiver
+ * @see ReceiverValue
  */
 interface ImplicitReceiver : ReceiverValue {
+    /** 声明此接收器的描述符 */
     val declarationDescriptor: DeclarationDescriptor
-}
-
-
-interface ImplicitContextReceiver : ImplicitReceiver {
-    val customLabelName: Name?
 }

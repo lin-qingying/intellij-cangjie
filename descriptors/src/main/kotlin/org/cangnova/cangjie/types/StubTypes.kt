@@ -87,7 +87,7 @@ class StubTypeForBuilderInference(
     override fun materialize(newOption: Boolean): AbstractStubType =
         StubTypeForBuilderInference(originalTypeVariable, newOption, constructor)
 
-    override val memberScope: MemberScope = originalTypeVariable.builtIns.anyType.memberScope
+    override val memberScope: MemberScope = originalTypeVariable.builtIns.stdlibTypes.anyType.memberScope
 
     override fun toString(): String {
         // BI means builder inference

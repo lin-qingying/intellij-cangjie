@@ -253,7 +253,7 @@ object DiagnosticTelemetry {
         }
 
         // 尝试从消息中提取错误码
-        // 例如 "UNRESOLVED_REFERENCE: Cannot resolve symbol 'foo'"
+        // 例如 "UNRESOLVED_REFERENCE: Cannot resolveName symbol 'foo'"
         val message = diagnostic.message
         val colonIndex = message.indexOf(':')
         if (colonIndex > 0) {

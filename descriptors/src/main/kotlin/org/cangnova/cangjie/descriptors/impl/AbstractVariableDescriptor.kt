@@ -54,9 +54,7 @@ abstract class AbstractVariableDescriptor(
 ) : DeclarationDescriptorNonRootImpl(containingDeclaration, annotations, name, source),
     VariableDescriptor {
     private var _typeParameters: List<TypeParameterDescriptor> = emptyList()
-    protected var _contextReceiverParameters: List<ReceiverParameterDescriptor> = emptyList()
     private var _dispatchReceiverParameter: ReceiverParameterDescriptor? = null
-    private var _extensionReceiverParameter: ReceiverParameterDescriptor? = null
     override val original: VariableDescriptor = super.original as VariableDescriptor
 
     override val modality: Modality
@@ -84,21 +82,15 @@ abstract class AbstractVariableDescriptor(
         outType: CangJieType,
         typeParameters: List<TypeParameterDescriptor>,
         dispatchReceiverParameter: ReceiverParameterDescriptor?,
-        extensionReceiverParameter: ReceiverParameterDescriptor?,
-        contextReceiverParameters: List<ReceiverParameterDescriptor>
     ) {
         setOutType(outType)
 
         this._typeParameters = typeParameters
 
-        this._extensionReceiverParameter = extensionReceiverParameter
         this._dispatchReceiverParameter = dispatchReceiverParameter
-        this._contextReceiverParameters = contextReceiverParameters
     }
 
 
-    override val contextReceiverParameters: List<ReceiverParameterDescriptor>
-        get() = _contextReceiverParameters
 
 
     override var visibility: DescriptorVisibility = DescriptorVisibilities.LOCAL
@@ -108,8 +100,6 @@ abstract class AbstractVariableDescriptor(
         get() = type
 
 
-    override val extensionReceiverParameter: ReceiverParameterDescriptor?
-        get() = _extensionReceiverParameter
 
 
     override val dispatchReceiverParameter: ReceiverParameterDescriptor?

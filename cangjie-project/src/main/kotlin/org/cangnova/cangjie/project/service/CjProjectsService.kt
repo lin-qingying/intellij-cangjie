@@ -28,6 +28,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.messages.Topic
 import org.cangnova.cangjie.project.model.*
@@ -67,7 +68,7 @@ val Project.cangjieProjectService: CjProjectsService get() = CjProjectsService.g
  * @see CjProjectsServiceImpl
  * @see CangJieExternalSystemProjectAware
  */
-@Service(Service.Level.PROJECT)
+
 interface CjProjectsService {
     val intellijProject: Project
     /**
@@ -97,6 +98,14 @@ interface CjProjectsService {
 
                     override val metadata: CjPackageMetadata
                         get() = CjPackageMetadata.EMPTY
+
+                    override fun <T : Any?> getUserData(key: Key<T?>): T? {
+                        return null
+                    }
+
+                    override fun <T : Any?> putUserData(key: Key<T?>, value: T?) {
+
+                    }
 
                 }
 

@@ -42,8 +42,7 @@ enum class ClassKind(val codeRepresentation: String?) {
     ENUM("enum"),
     /** 扩展类型 */
     EXTEND("extend"),
-    /** 枚举条目类型(无代码表示) */
-    ENUM_ENTRY(null),
+
     /** 基本类型(无代码表示) */
     BASIC(null),
     /** 内置类型(无代码表示) */
@@ -54,19 +53,13 @@ enum class ClassKind(val codeRepresentation: String?) {
     /** 是否是结构体类型 */
     val isStruct: Boolean
         get() = this == STRUCT
-    /** 是否是枚举条目类型 */
-    val isEnumEntry: Boolean
-        get() = this == ENUM_ENTRY
-    /** 是否是对象类型 */
-    val isObject: Boolean
-        get() = isEnumEntry
+
+
     /** 是否是枚举类型 */
     val isEnum: Boolean
-        get() = this == ENUM || this == ENUM_ENTRY
+        get() = this == ENUM
 
-    /** 是否是单例类型 */
-    val isSingleton: Boolean
-        get() = this == ENUM_ENTRY
+
 }
 /** 是否是接口类型 */
 inline val ClassKind.isInterface: Boolean

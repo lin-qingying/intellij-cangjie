@@ -50,7 +50,7 @@ internal fun CangJieType.minValue(): Long {
 
 }
 
-internal fun CangJieType.maxValue(): Long{
+fun CangJieType.maxValue(): Long{
     return when {
         CangJieBuiltIns.isInt8(this) -> Byte.MAX_VALUE.toLong()
         CangJieBuiltIns.isInt16(this) -> Short.MAX_VALUE.toLong()

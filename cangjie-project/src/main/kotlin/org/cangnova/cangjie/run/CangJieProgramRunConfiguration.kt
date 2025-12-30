@@ -71,25 +71,12 @@ class CangJieProgramRunConfiguration(
         val projectsService = CjProjectsService.getInstance(project)
         val cjProject = projectsService.cjProject
 
-        // 调试信息
-//        println("Debug: Looking for module '$moduleName' in project '${cjProject.name}'")
 
         if (!cjProject.isValid) {
             return null
         }
 
         val module = cjProject.findModule(moduleName)
-//        if (module != null) {
-////            println("Debug: Found module '${module.name}' at ${module.rootDir.path}")
-//        } else {
-////            println("Debug: Module '$moduleName' not found")
-//            // 列出可用模块用于调试
-//            val availableModules = if (cjProject.isWorkspace && cjProject.workspace != null) {
-//                (cjProject.workspace ?: return null).modules
-//            } else {
-//                cjProject.module?.let { listOf(it) } ?: emptyList()
-//            }
-//        }
 
         return module
     }

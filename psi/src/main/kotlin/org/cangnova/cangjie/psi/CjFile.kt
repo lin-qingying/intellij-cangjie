@@ -26,7 +26,6 @@ package org.cangnova.cangjie.psi
 
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.lang.CangJieLanguage
-import org.cangnova.cangjie.psi.CjFile.Companion.FILE_DECLARATION_TYPES
 import org.cangnova.cangjie.psi.stubs.CangJieFileStub
 import org.cangnova.cangjie.psi.stubs.elements.CjPlaceHolderStubElementType
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
@@ -40,6 +39,7 @@ import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ArrayFactory
 import org.cangnova.cangjie.name.*
+import org.cangnova.cangjie.psi.stubs.elements.CjTokenSets.FILE_DECLARATION_TYPES
 
 /**
  * 仓颉语言文件的基础接口。
@@ -71,6 +71,7 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
      */
     @Volatile
     private var pathCached: String? = null
+    open val customStubBuilder: StubBuilder? get() = null
 
     /**
      * 缓存标志，指示此文件是否有顶级可调用元素。
@@ -89,7 +90,7 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
 
         val result = declarations.any {
             (
-                it is CjVariable ||
+                it is CjVariable<*> ||
                     it is CjNamedFunction ||
                     it is CjTypeAlias
                 ) /* && !it.hasExpectModifier()*/
@@ -122,8 +123,11 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
         if (!hasImportAlias()) return null
 
         return importDirectivesItem.firstOrNull {
-            it.alias != null && fqName == it.importedFqName
-        }?.alias
+            it.aliasName != null && fqName == it.importedFqName
+        }?.let { item ->
+            // 从 CjImportItem 中获取 alias
+            (item as? CjImportItem)?.alias
+        }
     }
     
     /**
@@ -133,7 +137,7 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
      * @param data 传递给访问者的附加数据
      * @return 访问者访问的结果
      */
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitCjCommonFile(this)
     }
     
@@ -143,7 +147,7 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
      * @param visitor 要接受的访问者
      * @param data 传递给访问者的附加数据
      */
-    override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D?) {
+    override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D) {
         CjPsiUtil.visitChildren(this, visitor, data)
     }
     
@@ -154,7 +158,8 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
      */
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is CjVisitor<*, *>) {
-            accept(visitor, null)
+            @Suppress("UNCHECKED_CAST")
+            accept(visitor as CjVisitor<Any?, Any?>, null as Any?)
         } else {
             visitor.visitFile(this)
         }
@@ -206,10 +211,12 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
     
     /**
      * 返回此文件中的所有导入指令项。
+     *
+     * 新实现：从 CjImportDirective 的 importItems 中获取
      * @return 导入指令项的列表
      */
-    open val importDirectivesItem: List<CjImportDirectiveItem>
-        get() = importLists.flatMap { it.importItems }
+    open val importDirectivesItem: List<CjImportInfo>
+        get() = importDirectives.flatMap { it.importItems }
     
     /**
      * 返回此文件中的所有导入指令。
@@ -230,7 +237,7 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
      * @param name 要搜索的别名名称
      * @return 如果找到导入指令项，则返回该项，否则返回null
      */
-    fun findImportByAlias(name: String): CjImportDirectiveItem? {
+    fun findImportByAlias(name: String): CjImportInfo? {
         if (!hasImportAlias()) return null
 
         return importDirectivesItem.firstOrNull { name == it.aliasName }
@@ -287,6 +294,7 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
 
         error("Illegal stub for CjFile: type=${this.javaClass}, stub=${stub!!.javaClass} name=$name")
     }
+
 
     /**
      * 返回此文件的包指令。
@@ -368,16 +376,11 @@ open class CjFile(viewProvider: FileViewProvider, isCompiled: Boolean = false, v
      * @param data 传递给访问者的附加数据
      * @return 访问者访问的结果
      */
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? =
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? =
         visitor.visitCjFile(this, data)
 
-    companion object {
-        /**
-         * 定义可以出现在文件级别的声明类型的标记集。
-         * 将标准声明类型与仓颉脚本声明结合起来。
-         */
-        val FILE_DECLARATION_TYPES = TokenSet.orSet(CjTokenSets.DECLARATION_TYPES, TokenSet.create(CjStubElementTypes.CJ_SCRIPT))
-    }
+
+
 }
 
 /**
@@ -387,14 +390,16 @@ open class CjFile(viewProvider: FileViewProvider, isCompiled: Boolean = false, v
  * @return 如果导入列表包含任何导入别名，则为true，否则为false
  */
 private fun CjImportList.computeHasImportAlias(): Boolean {
+    // 需要检查 CjImportDirective 的子元素 CjImportItem
     var child: PsiElement? = firstChild
     while (child != null) {
-        if (child is CjImportDirectiveItem && child.alias != null) {
-            return true
+        when (child) {
+            is CjImportDirective -> {
+                // 检查导入指令中的所有导入项
+                if (child.importItems.any { it.alias != null }) return true
+            }
         }
-
         child = child.nextSibling
     }
-
     return false
 }

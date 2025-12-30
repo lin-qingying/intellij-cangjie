@@ -22,15 +22,53 @@
  *
  */
 
+plugins {
+    alias(libs.plugins.ksp)
+}
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
+    testImplementation(platform(libs.junit.bom))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation(project(":telemetry"))
     implementation(project(":toolchain"))
+    implementation(project(":analysis:diagnostics"))
+    implementation(libs.vavr)
+    implementation(project(":psi"))
+    implementation(project(":icon"))
 
+    implementation(project(":descriptors"))
+    implementation(project(":descriptors:deserialization"))
+    implementation(project(":highlighter"))
+    implementation(project(":messages"))
+    implementation(project(":common"))
+    implementation(project(":util"))
+    implementation(project(":formatter"))
+
+    implementation(libs.jakarta.inject.api)
+    implementation(libs.reflections)
+
+    implementation(project(":psi:stubindex"))
 
     api(project(":analysis:decompiler-to-psi"))
+
+    // KSP 处理器用于生成诊断工厂初始化代码
+    ksp(project(":ksp-processors:diagnostic"))
+}
+
+// 配置 KSP 生成的源码目录
+kotlin {
+    sourceSets.main {
+        kotlin.srcDir("build/generated/ksp/main/kotlin")
+    }
+}
+
+// 确保编译前执行 KSP 代码生成
+tasks.named("compileKotlin") {
+    dependsOn("kspKotlin")
+}
+
+tasks.named("compileTestKotlin") {
+    dependsOn("kspTestKotlin")
 }
 

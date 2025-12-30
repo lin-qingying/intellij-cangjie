@@ -26,13 +26,10 @@ package org.cangnova.cangjie.psi.stubs.elements
 
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjNamedFunction
-import org.cangnova.cangjie.psi.CjNamedFunctionForExtend
 import org.cangnova.cangjie.psi.psiUtil.safeFqNameForLazyResolve
-import org.cangnova.cangjie.psi.stubs.CangJieFunctionForExtendStub
-import org.cangnova.cangjie.psi.stubs.CangJieFunctionStub
+import org.cangnova.cangjie.psi.stubs.CangJieNamedFunctionStub
 import org.cangnova.cangjie.psi.stubs.elements.StubIndexService.Companion.getInstance
-import org.cangnova.cangjie.psi.stubs.impl.CangJieFunctionForExtendStubImpl
-import org.cangnova.cangjie.psi.stubs.impl.CangJieFunctionStubImpl
+import org.cangnova.cangjie.psi.stubs.impl.CangJieNamedFunctionStubImpl
 import org.cangnova.cangjie.psi.stubs.impl.CangJieStubOrigin.Companion.deserialize
 import org.cangnova.cangjie.psi.stubs.impl.CangJieStubOrigin.Companion.serialize
 import com.intellij.psi.stubs.IndexSink
@@ -43,20 +40,21 @@ import com.intellij.util.io.StringRef
 import org.jetbrains.annotations.NonNls
 import java.io.IOException
 import org.cangnova.cangjie.name.*
+import org.cangnova.cangjie.psi.psiUtil.isExtensionDeclaration
 
-class CjFunctionElementType(debugName: @NonNls String) : CjStubElementType<CangJieFunctionStub, CjNamedFunction>(
+class CjFunctionElementType(debugName: @NonNls String) : CjStubElementType<CangJieNamedFunctionStub, CjNamedFunction>(
     debugName,
     CjNamedFunction::class.java,
-    CangJieFunctionStub::class.java,
+    CangJieNamedFunctionStub::class.java,
 ) {
 
-    override fun createStub(psi: CjNamedFunction, parentStub: StubElement<*>): CangJieFunctionStub {
+    override fun createStub(psi: CjNamedFunction, parentStub: StubElement<*>): CangJieNamedFunctionStub {
         val isTopLevel = psi.parent is CjFile
-        val isExtension = psi.receiverTypeReference != null
+        val isExtension = psi.isExtensionDeclaration()
         val fqName = psi.safeFqNameForLazyResolve()
         val hasBlockBody = psi.hasBlockBody()
         val hasBody = psi.hasBody()
-        return CangJieFunctionStubImpl(
+        return CangJieNamedFunctionStubImpl(
             parentStub,
             CjStubElementTypes.FUNCTION,
             StringRef.fromString(psi.name),
@@ -72,7 +70,7 @@ class CjFunctionElementType(debugName: @NonNls String) : CjStubElementType<CangJ
     }
 
     @Throws(IOException::class)
-    override fun serialize(stub: CangJieFunctionStub, dataStream: StubOutputStream) {
+    override fun serialize(stub: CangJieNamedFunctionStub, dataStream: StubOutputStream) {
         dataStream.writeName(stub.name)
         dataStream.writeBoolean(stub.isTopLevel())
 
@@ -84,13 +82,13 @@ class CjFunctionElementType(debugName: @NonNls String) : CjStubElementType<CangJ
         dataStream.writeBoolean(stub.hasBody())
         dataStream.writeBoolean(stub.hasTypeParameterListBeforeFunctionName())
 
-        if (stub is CangJieFunctionStubImpl) {
+        if (stub is CangJieNamedFunctionStubImpl) {
             serialize(stub.origin, dataStream)
         }
     }
 
     @Throws(IOException::class)
-    override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieFunctionStub {
+    override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieNamedFunctionStub {
         val name = dataStream.readName()
         val isTopLevel = dataStream.readBoolean()
 
@@ -102,16 +100,16 @@ class CjFunctionElementType(debugName: @NonNls String) : CjStubElementType<CangJ
         val hasBody = dataStream.readBoolean()
         val hasTypeParameterListBeforeFunctionName = dataStream.readBoolean()
         //        bool mayHaveContract = dataStream.readBoolean();
-        return CangJieFunctionStubImpl(
+        return CangJieNamedFunctionStubImpl(
             parentStub, CjStubElementTypes.FUNCTION, name, isTopLevel, fqName, isExtension, hasBlockBody, hasBody,
             hasTypeParameterListBeforeFunctionName, //                mayHaveContract,
-            //                mayHaveContract ? CangJieFunctionStubImpl.Companion.deserializeContract(dataStream) :
+            //                mayHaveContract ? CangJieNamedFunctionStubImpl.Companion.deserializeContract(dataStream) :
 
             deserialize(dataStream),
         )
     }
 
-    override fun indexStub(stub: CangJieFunctionStub, sink: IndexSink) {
+    override fun indexStub(stub: CangJieNamedFunctionStub, sink: IndexSink) {
         getInstance().indexFunction(stub, sink)
     }
 
@@ -121,84 +119,5 @@ class CjFunctionElementType(debugName: @NonNls String) : CjStubElementType<CangJ
 
     companion object {
         private const val NAME = "cangjie.FUNCTION"
-    }
-}
-
-class CjFunctionForExtendElementType(debugName: @NonNls String) :
-    CjStubElementType<CangJieFunctionStub, CjNamedFunctionForExtend>(
-        debugName,
-        CjNamedFunctionForExtend::class.java,
-        CangJieFunctionStub::class.java,
-    ) {
-
-    override fun createStub(psi: CjNamedFunctionForExtend, parentStub: StubElement<*>): CangJieFunctionStub {
-        val isTopLevel = psi.parent is CjFile
-        val isExtension = psi.receiverTypeReference != null
-        val fqName = psi.safeFqNameForLazyResolve()
-        val hasBlockBody = psi.hasBlockBody()
-        val hasBody = psi.hasBody()
-        return CangJieFunctionForExtendStubImpl(
-            parentStub,
-            CjStubElementTypes.FUNCTION_EXTEND,
-            StringRef.fromString(psi.name),
-            isTopLevel,
-            fqName,
-            isExtension,
-            hasBlockBody,
-            hasBody,
-            psi.hasTypeParameterListBeforeFunctionName(),
-            null,
-        )
-    }
-
-    @Throws(IOException::class)
-    override fun serialize(stub: CangJieFunctionStub, dataStream: StubOutputStream) {
-        dataStream.writeName(stub.name)
-        dataStream.writeBoolean(stub.isTopLevel())
-
-        val fqName = stub.getFqName()
-        dataStream.writeName(fqName?.asString())
-
-        dataStream.writeBoolean(stub.isExtension())
-        dataStream.writeBoolean(stub.hasBlockBody())
-        dataStream.writeBoolean(stub.hasBody())
-        dataStream.writeBoolean(stub.hasTypeParameterListBeforeFunctionName())
-
-        if (stub is CangJieFunctionForExtendStubImpl) {
-            serialize(stub.origin, dataStream)
-        }
-    }
-
-    @Throws(IOException::class)
-    override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieFunctionForExtendStub {
-        val name = dataStream.readName()
-        val isTopLevel = dataStream.readBoolean()
-
-        val fqNameAsString = dataStream.readName()
-        val fqName = if (fqNameAsString != null) FqName(fqNameAsString.toString()) else null
-
-        val isExtension = dataStream.readBoolean()
-        val hasBlockBody = dataStream.readBoolean()
-        val hasBody = dataStream.readBoolean()
-        val hasTypeParameterListBeforeFunctionName = dataStream.readBoolean()
-
-        return CangJieFunctionForExtendStubImpl(
-            parentStub, CjStubElementTypes.FUNCTION_EXTEND, name, isTopLevel, fqName, isExtension, hasBlockBody, hasBody,
-            hasTypeParameterListBeforeFunctionName,
-
-            deserialize(dataStream),
-        )
-    }
-
-    override fun indexStub(stub: CangJieFunctionStub, sink: IndexSink) {
-        getInstance().indexFunction(stub, sink)
-    }
-
-    override fun getExternalId(): String {
-        return NAME
-    }
-
-    companion object {
-        private const val NAME = "cangjie.FUNCTION_EXTEND"
     }
 }

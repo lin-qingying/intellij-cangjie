@@ -29,22 +29,18 @@ import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
 class CjForExpression(node: ASTNode) : CjLoopExpression(node), CjPatternEntryBlock {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitForExpression(this, data)
     }
 
     @get: IfNotParsed
     val loopParameter: CjParameter?
         get() = findChildByType<PsiElement>(CjNodeTypes.VALUE_PARAMETER) as CjParameter?
-    val destructuringDeclaration: CjDestructuringDeclaration?
-        get() {
-            val loopParameter = loopParameter ?: return null
-            return loopParameter.destructuringDeclaration
-        }
-    val pattern: CjCasePattern?
+
+    val pattern: CjCasePatternElement?
         get() {
 
-            return findChildByClass(CjCasePattern::class.java)
+            return findChildByClass(CjCasePatternElement::class.java)
         }
     val patternGuard: CjPatternGuard?
         get() {

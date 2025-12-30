@@ -42,12 +42,6 @@ fun CjFunctionType.setReceiverTypeReference(typeRef: CjTypeReference?) =
                 ).typeReference
         },
     )
-fun CjCallableDeclaration.setReceiverTypeReference(typeRef: CjTypeReference?) =
-    doSetReceiverTypeReference(
-        typeRef,
-        { receiverTypeReference },
-        { this.addBefore(it, nameIdentifier ?: valueParameterList) as CjTypeReference },
-    )
 
 private inline fun <T : CjElement> T.doSetReceiverTypeReference(
     typeRef: CjTypeReference?,

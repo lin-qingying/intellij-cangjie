@@ -25,8 +25,7 @@
 package org.cangnova.cangjie.psi
 
 import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
-import org.cangnova.cangjie.psi.stubs.CangJieFunctionStub
+import org.cangnova.cangjie.psi.stubs.CangJieNamedFunctionStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import org.cangnova.cangjie.name.OperatorNameConventions
 import com.intellij.lang.ASTNode
@@ -36,38 +35,18 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.name.*
 
-/**
- * 来自扩展的方法
- * 携带扩展的类型参数，与本方法类型参数分开
- */
-class CjNamedFunctionForExtend : CjNamedFunction, CjTypeParameterListOwnerForExtend {
+
+open class CjNamedFunction : CjFunctionImpl<CangJieNamedFunctionStub, CjNamedFunction> {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJieFunctionStub) : super(stub)
+    constructor(stub: CangJieNamedFunctionStub) : super(stub, CjStubElementTypes.FUNCTION)
 
-    val extendTypeParameterList get() = this.getStrictParentOfType<CjExtend>()?.typeParameterList
-    override val extendTypeParameters: List<CjTypeParameter>
-        get() = extendTypeParameterList?.parameters ?: emptyList()
-
-    override val extendTypeConstraintList: CjTypeConstraintList? get() = this.getStrictParentOfType<CjExtend>()?.typeConstraintList
-    override val extendTypeConstraints: List<CjTypeConstraint>
-        get() {
-            val typeConstraintList = extendTypeConstraintList ?: return emptyList()
-            return typeConstraintList.constraints
-        }
-}
-
-open class CjNamedFunction : CjFunctionImpl {
-    constructor(node: ASTNode) : super(node)
-
-    constructor(stub: CangJieFunctionStub) : super(stub, CjStubElementTypes.FUNCTION)
-
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitNamedFunction(this, data)
     }
 
     override fun hasTypeParameterListBeforeFunctionName(): Boolean {
-        val stub: CangJieFunctionStub? = stub
+        val stub: CangJieNamedFunctionStub? = stub
         if (stub != null) {
             return stub.hasTypeParameterListBeforeFunctionName()
         }
@@ -108,7 +87,7 @@ open class CjNamedFunction : CjFunctionImpl {
         }
 
     override fun hasBlockBody(): Boolean {
-        val stub: CangJieFunctionStub? = stub
+        val stub: CangJieNamedFunctionStub? = stub
         if (stub != null) {
             return stub.hasBlockBody()
         }
@@ -158,7 +137,7 @@ open class CjNamedFunction : CjFunctionImpl {
         }
 
     override fun hasBody(): Boolean {
-        val stub: CangJieFunctionStub? = stub
+        val stub: CangJieNamedFunctionStub? = stub
         if (stub != null) {
             return stub.hasBody()
         }
@@ -174,12 +153,7 @@ open class CjNamedFunction : CjFunctionImpl {
         return node.elementType.toString() + ": " + name
     }
 
-    override val contextReceivers: List<CjContextReceiver>
-        get() {
-            val contextReceiverList: CjContextReceiverList? =
-                getStubOrPsiChild(CjStubElementTypes.CONTEXT_RECEIVER_LIST)
-            return contextReceiverList?.contextReceivers() ?: emptyList()
-        }
+
 
     override val typeReference: CjTypeReference?
         get() {

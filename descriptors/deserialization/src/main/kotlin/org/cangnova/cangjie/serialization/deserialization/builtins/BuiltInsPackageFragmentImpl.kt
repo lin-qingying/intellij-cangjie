@@ -42,7 +42,6 @@ class BuiltInsPackageFragmentImpl private constructor(
     module: ModuleDescriptor,
     `package`: PackageWrapper,
     metadataVersion: BuiltInsBinaryVersion,
-    override val isFallback: Boolean
 ) : BuiltInsPackageFragment, DeserializedPackageFragmentImpl(
     fqName, storageManager, module, `package`, metadataVersion, containerSource = null
 ) {
@@ -52,7 +51,6 @@ class BuiltInsPackageFragmentImpl private constructor(
             storageManager: StorageManager,
             module: ModuleDescriptor,
             inputStream: InputStream,
-            isFallback: Boolean
         ): BuiltInsPackageFragmentImpl {
             val (`package`, version) = inputStream.readBuiltinsPackageFragment()
 
@@ -65,7 +63,7 @@ class BuiltInsPackageFragmentImpl private constructor(
                 )
             }
 
-            return BuiltInsPackageFragmentImpl(fqName, storageManager, module, `package`, version, isFallback)
+            return BuiltInsPackageFragmentImpl(fqName, storageManager, module, `package`, version)
         }
     }
 

@@ -56,13 +56,13 @@ import org.cangnova.cangjie.icon.CangJieIcons
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.messages.CangJieBundle
-import org.cangnova.cangjie.parsing.CangJieParserDefinition.Util.STD_SCRIPT_SUFFIX
+import org.cangnova.cangjie.parsing.CangJieParserDefinitionUtil.STD_SCRIPT_SUFFIX
+
 import org.cangnova.cangjie.psi.CjClass
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjNamedDeclaration
 import org.cangnova.cangjie.psi.psiUtil.startOffset
 import org.cangnova.cangjie.utils.toCamelCase
-import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes
 import java.util.*
 
 
@@ -342,9 +342,8 @@ internal fun createCangJieFileFromTemplate(name: String, template: FileTemplate,
     // 获取项目的服务，并在禁用智能模式下执行操作
     val service = DumbService.getInstance(dir.project)
     return service.computeWithAlternativeResolveEnabled<PsiFile?, Throwable> {
-        // 调整目录并创建文件
-        val adjustedDir = CreateTemplateInPackageAction.adjustDirectory(targetDir, JavaModuleSourceRootTypes.SOURCES)
-        val psiFile = createCangJieFileFromTemplate(adjustedDir, className, template)
+        // 直接使用目标目录创建文件（仓颉项目不需要 Java 源根类型调整）
+        val psiFile = createCangJieFileFromTemplate(targetDir, className, template)
         // 如果创建的是仓颉文件，并且包含单个类声明，则根据文件名添加抽象修饰符
         if (psiFile is CjFile) {
             val singleClass = psiFile.declarations.singleOrNull() as? CjClass
@@ -410,16 +409,82 @@ private fun removeCangJieExtensionIfPresent(name: String): String = when {
 /**
  * 获取模板属性
  *
+ * 根据目录位置计算模板属性，包括模块名和包名。
+ *
+ * @param project IntelliJ 项目
+ * @param dir 文件创建的目录
+ * @return 包含模板属性的 Properties 对象
  */
 fun getTemplateProperties(project: Project, dir: PsiDirectory): Properties {
     val defaultProperties = FileTemplateManager.getInstance(project).defaultProperties
-    val projectDirectory = dir.toString()
-    // 设置模板属性
     val properties = Properties(defaultProperties)
-    properties.setProperty("CANGJIE_MODULE_NAME", projectDirectory)
 
+    // 获取目录对应的 CjModule
+    val cjModule = org.cangnova.cangjie.project.service.CjProjectsService
+        .getInstance(project)
+        .findModuleForFile(dir.virtualFile)
+
+    // 设置模块名
+    val moduleName = cjModule?.name ?: project.name
+    properties.setProperty("CANGJIE_MODULE_NAME", moduleName)
+
+    // 计算包名：从模块的源码目录开始计算相对路径
+    val packageName = if (cjModule != null) {
+        calculatePackageName(dir, cjModule)
+    } else {
+        // 如果没有找到模块，尝试从目录结构推断
+        calculatePackageNameFromPath(dir)
+    }
+
+    if (packageName.isNotEmpty()) {
+        properties.setProperty("PACKAGE_NAME", packageName)
+    }
 
     return properties
+}
+
+/**
+ * 从目录和模块计算包名
+ */
+private fun calculatePackageName(dir: PsiDirectory, module: org.cangnova.cangjie.project.model.CjModule): String {
+    val dirPath = dir.virtualFile.path
+
+    // 尝试从模块的源码集中找到匹配的源码根目录
+    for (sourceSet in module.sourceSets) {
+        for (sourceRoot in sourceSet.sourceRoots) {
+            val rootPath = sourceRoot.path
+            if (dirPath.startsWith(rootPath)) {
+                // 计算相对路径并转换为包名
+                val relativePath = dirPath.substring(rootPath.length)
+                    .trim('/', '\\')
+                    .replace('/', '.')
+                    .replace('\\', '.')
+                return relativePath
+            }
+        }
+    }
+
+    // 如果没有找到匹配的源码根目录，返回空字符串
+    return ""
+}
+
+/**
+ * 从目录路径推断包名（当无法获取 CjModule 时的备用方案）
+ */
+private fun calculatePackageNameFromPath(dir: PsiDirectory): String {
+    val dirPath = dir.virtualFile.path
+
+    // 尝试查找 "src" 目录
+    val srcIndex = dirPath.lastIndexOf("/src/")
+    if (srcIndex != -1) {
+        val relativePath = dirPath.substring(srcIndex + 5) // "/src/".length = 5
+            .trim('/', '\\')
+            .replace('/', '.')
+            .replace('\\', '.')
+        return relativePath
+    }
+
+    return ""
 }
 
 /**

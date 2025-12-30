@@ -29,7 +29,6 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.SpecialNames
 import org.cangnova.cangjie.resolve.DescriptorFactory
-import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitContextReceiver
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.storage.getValue
 import org.cangnova.cangjie.types.*
@@ -82,7 +81,9 @@ class TypeAliasConstructorDescriptorImpl private constructor(
         val underlyingConstructorSubstitutor = TypeSubstitutor.create(substitutedTypeAliasConstructor.returnType)
         val substitutedUnderlyingConstructor =
             underlyingConstructorDescriptor.original.substitute(underlyingConstructorSubstitutor)
-        substitutedTypeAliasConstructor.underlyingConstructorDescriptor = substitutedUnderlyingConstructor
+        if (substitutedUnderlyingConstructor != null) {
+            substitutedTypeAliasConstructor.underlyingConstructorDescriptor = substitutedUnderlyingConstructor
+        }
         return substitutedTypeAliasConstructor
     }
 
@@ -106,12 +107,7 @@ class TypeAliasConstructorDescriptorImpl private constructor(
 
             typeAliasConstructor.initialize(
                 null,
-                underlyingConstructorDescriptor.dispatchReceiverParameter?.substitute(substitutorForUnderlyingClass),
-                underlyingConstructorDescriptor.contextReceiverParameters.mapNotNull {
-                    it.substitute(
-                        substitutorForUnderlyingClass
-                    )
-                },
+
                 typeAliasDescriptor.declaredTypeParameters,
                 valueParameters,
                 returnType,
@@ -194,31 +190,20 @@ class TypeAliasConstructorDescriptorImpl private constructor(
             val returnType = substitutedConstructor.returnType.unwrap().lowerIfFlexible()
                 .withAbbreviation(typeAliasDescriptor.defaultType)
 
-            val receiverParameter = constructor.dispatchReceiverParameter?.let {
-                DescriptorFactory.createExtensionReceiverParameterForCallable(
+            // TypeAlias 构造函数使用 dispatch receiver
+            val dispatchReceiverParameter = constructor.dispatchReceiverParameter?.let {
+                val substitutedType = substitutorForUnderlyingClass.safeSubstitute(it.type, Variance.INVARIANT)
+                ReceiverParameterDescriptorImpl(
                     typeAliasConstructor,
-                    substitutorForUnderlyingClass.safeSubstitute(it.type, Variance.INVARIANT),
+                    it.value.replaceType(substitutedType),
                     Annotations.EMPTY
                 )
             }
 
             val classDescriptor = typeAliasDescriptor.classDescriptor
-            val contextReceiverParameters = classDescriptor?.let {
-                constructor.contextReceiverParameters.mapIndexedNotNull { index, contextReceiver ->
-                    DescriptorFactory.createContextReceiverParameterForClass(
-                        classDescriptor,
-                        substitutorForUnderlyingClass.safeSubstitute(contextReceiver.type, Variance.INVARIANT),
-                        (contextReceiver.value as ImplicitContextReceiver).customLabelName,
-                        Annotations.EMPTY,
-                        index
-                    )
-                }
-            } ?: emptyList()
 
             typeAliasConstructor.initialize(
-                receiverParameter,
-                null,
-                contextReceiverParameters,
+                dispatchReceiverParameter,
                 typeAliasDescriptor.declaredTypeParameters,
                 valueParameters,
                 returnType,

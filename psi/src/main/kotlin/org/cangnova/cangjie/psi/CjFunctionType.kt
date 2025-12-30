@@ -41,13 +41,15 @@ class CjFunctionType : CjElementImplStub<CangJiePlaceHolderStub<CjFunctionType>>
             val result =
                 Lists.newArrayList<CjTypeReference>()
 
-            result.addAll(contextReceiversTypeReferences)
             val receiverTypeRef = receiverTypeReference
             if (receiverTypeRef != null) {
                 result.add(receiverTypeRef)
             }
             for (cjParameter in parameters) {
-                result.add(cjParameter.typeReference)
+                cjParameter.typeReference?.let{
+                    result.add(it)
+
+                }
             }
             val returnTypeRef = returnTypeReference
             if (returnTypeRef != null) {
@@ -56,7 +58,7 @@ class CjFunctionType : CjElementImplStub<CangJiePlaceHolderStub<CjFunctionType>>
             return result
         }
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitFunctionType(this, data)
     }
 
@@ -78,14 +80,7 @@ class CjFunctionType : CjElementImplStub<CangJiePlaceHolderStub<CjFunctionType>>
             return receiverDeclaration.typeReference
         }
 
-    val contextReceiverList: CjContextReceiverList?
-        get() = getStubOrPsiChild(CjStubElementTypes.CONTEXT_RECEIVER_LIST)
 
-    val contextReceiversTypeReferences: List<CjTypeReference>
-        get() {
-            val contextReceiverList = contextReceiverList
-            return contextReceiverList?.typeReferences() ?: emptyList()
-        }
 
     val returnTypeReference: CjTypeReference?
         get() = getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)

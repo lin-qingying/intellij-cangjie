@@ -40,12 +40,12 @@ class CjImportAlias : CjElementImplStub<CangJieImportAliasStub>, PsiNameIdentifi
     @Suppress("unused")
     constructor(stub: CangJieImportAliasStub) : super(stub, CjStubElementTypes.IMPORT_ALIAS)
 
-    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitImportAlias(this, data)
     }
 
-    val importDirective: CjImportDirectiveItem?
-        get() = parent as? CjImportDirectiveItem
+    val importDirective: CjImportInfo?
+        get() = parent as? CjImportInfo
 
     override fun getName() = stub?.getName() ?: nameIdentifier?.text
 

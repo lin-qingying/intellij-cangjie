@@ -41,6 +41,7 @@ dependencies {
     implementation(project(":icon"))
     implementation(project(":messages"))
 
+
     implementation(project(":common"))
     implementation(project(":telemetry"))
     intellijPlatform {

@@ -32,6 +32,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.*
+import org.cangnova.cangjie.psi.stubs.elements.CjTokenSets
 
 class CjInterfaceBody : CjAbstractClassBody {
     constructor(node: ASTNode) : super(node)
@@ -44,7 +45,7 @@ class CjEnumBody : CjAbstractClassBody {
 
     constructor(stub: CangJiePlaceHolderStub<CjEnumBody>) : super(stub, ENUM_BODY)
 
-    val entrys get() = getStubOrPsiChildrenAsList(ENUM_ENTRY)
+    val constructor get() = getStubOrPsiChildrenAsList(ENUM_CONSTRUCTOR)
 }
 
 class CjClassBody : CjAbstractClassBody {
@@ -88,12 +89,12 @@ abstract class CjAbstractClassBody :
 
     val properties: List<CjProperty>
         get() = getStubOrPsiChildrenAsList(PROPERTY)
-    val variables: List<CjVariable>
-        get() = getStubOrPsiChildrenAsList(VARIABLE)
+    val variables: List<CjFieldVariable>
+        get() = getStubOrPsiChildrenAsList(FIELD)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? = visitor.visitClassBody(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? = visitor.visitClassBody(this, data)
     override val declarations: List<CjDeclaration>
-        get() = stub?.getChildrenByType(CjFile.FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
+        get() = stub?.getChildrenByType(CjTokenSets.CLASS_MEMBER_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
             ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java)
 
     val rBrace: PsiElement?

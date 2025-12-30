@@ -135,7 +135,7 @@ class CapturedType(
         CapturedType(typeProjection.refine(cangjieTypeRefiner), constructor, isOption, attributes)
 
     override val subTypeRepresentative: CangJieType
-        get() = representative(Variance.INVARIANT, builtIns.anyType)
+        get() = representative(Variance.INVARIANT, builtIns.stdlibTypes.anyType)
 
     override val superTypeRepresentative: CangJieType
         get() = representative(Variance.INVARIANT, builtIns.nothingType)

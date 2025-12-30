@@ -48,7 +48,7 @@ interface ClassConstructorDescriptor : ConstructorDescriptor {
      * @param substitutor 类型替换器
      * @return 替换后的 ClassConstructorDescriptor（若替换不可行可返回 null）
      */
-    override fun substitute(substitutor: TypeSubstitutor): ClassConstructorDescriptor
+    override fun substitute(substitutor: TypeSubstitutor): ClassConstructorDescriptor?
 
     /**
      * 复制当前构造函数描述符并可修改其属性（拥有者、模态性、可见性、成员种类以及是否复制覆盖关系）。

@@ -22,3 +22,30 @@
  *
  */
 
+package org.cangnova.cangjie.psi
+
+import com.intellij.openapi.extensions.ProjectExtensionPointName
+import com.intellij.openapi.project.PossiblyDumbAware
+import com.intellij.psi.PsiDirectory
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.Processor
+import org.cangnova.cangjie.psi.packgae.CangJiePackage
+
+abstract class CangJiePsiElementFinderBase : PossiblyDumbAware {
+    open fun processPackageDirectories(
+        psiPackage: CangJiePackage,
+        scope: GlobalSearchScope,
+        consumer: Processor<in PsiDirectory>,
+        includeLibrarySources: Boolean
+    ): Boolean {
+        return true
+    }
+
+    companion object {
+
+        val EP =
+            ProjectExtensionPointName<CangJiePsiElementFinderBase>("cn.cangnova.cangjie.psi.elementFinder")
+
+    }
+}
+

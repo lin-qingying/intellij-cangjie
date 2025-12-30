@@ -444,7 +444,7 @@ abstract class SdkInstallerBase {
         }
 
         val targetDir = runCatching { Paths.get(FileUtil.expandUserHome(selectedPath)) }.getOrElse { t ->
-            LOG.warn("Failed to resolve user path: $selectedPath. ${t.message}", t)
+            LOG.warn("Failed to resolveName user path: $selectedPath. ${t.message}", t)
             return null to CangJieBundle.message("dialog.message.error.resolving.path")
         }
 

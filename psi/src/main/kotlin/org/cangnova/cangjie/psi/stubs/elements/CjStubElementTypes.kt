@@ -36,7 +36,7 @@
 //    val FUNCTION: CjFunctionElementType = CjFunctionElementType("FUNC")
 //
 //    @JvmField
-//    val VARIABLE: CjVariableElementType = CjVariableElementType("VARIABLE")
+//    val VARIABLE: CjPatternVariableElementType = CjPatternVariableElementType("VARIABLE")
 //
 //    @JvmField
 //    val PROPERTY: CjPropertyElementType = CjPropertyElementType("PROPERTY")
@@ -49,13 +49,7 @@
 //    val TYPEALIAS: CjTypeAliasElementType = CjTypeAliasElementType("TYPEALIAS")
 //
 //    @JvmField
-//    val ENUM_ENTRY: CjClassElementType = CjClassElementType("ENUM_ENTRY")
-//
-//    @JvmField
-//    val CLASS_INITIALIZER: CjPlaceHolderStubElementType<CjClassInitializer> = CjPlaceHolderStubElementType(
-//        "CLASS_INITIALIZER",
-//        CjClassInitializer::class.java
-//    )
+//    val ENUM_CONSTRUCTOR: CjClassElementType = CjClassElementType("ENUM_CONSTRUCTOR")
 //
 //    @JvmField
 //    val SECONDARY_CONSTRUCTOR: CjSecondaryConstructorElementType =

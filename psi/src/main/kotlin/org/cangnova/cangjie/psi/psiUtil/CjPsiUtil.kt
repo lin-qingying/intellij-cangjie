@@ -68,14 +68,21 @@ fun CjCallElement.getCallNameExpression(): CjSimpleNameExpression? {
 }
 
 fun getImportedSimpleNameByImportAlias(file: CjFile, aliasName: String): String? {
-    val directive = file.findImportByAlias(aliasName) ?: return null
+    val importInfo = file.findImportByAlias(aliasName) ?: return null
 
-    var reference = directive.importedReference
-    while (reference is CjDotQualifiedExpression) {
-        reference = reference.selectorExpression
+    // 获取导入的引用表达式
+    val reference = when (importInfo) {
+        is CjImportItem -> importInfo.importedReference
+
+        else -> null
     }
-    if (reference is CjSimpleNameExpression) {
-        return reference.referencedName
+
+    var currentRef = reference
+    while (currentRef is CjDotQualifiedExpression) {
+        currentRef = currentRef.selectorExpression
+    }
+    if (currentRef is CjSimpleNameExpression) {
+        return currentRef.referencedName
     }
 
     return null
@@ -141,7 +148,8 @@ fun CjSimpleNameExpression.isPackageDirectiveExpression(): Boolean {
 
 fun CjSimpleNameExpression.isImportDirectiveExpression(): Boolean {
     val parent = parent
-    return parent is CjImportDirectiveItem || parent!!.parent is CjImportDirectiveItem
+    return parent is CjImportItem ||
+            parent!!.parent is CjImportItem
 }
 
 fun CjSimpleNameExpression.getQualifiedElementOrCallableRef(): CjElement {
@@ -199,9 +207,7 @@ fun CjSimpleNameExpression.getReceiverExpression(): CjExpression? {
                 }
             }
         }
-//        parent is CjBinaryExpression && parent.operationReference == this -> {
-//            return if (parent.operationToken in OperatorConventions.IN_OPERATIONS) parent.right else parent.left
-//        }
+
         parent is CjUnaryExpression && parent.operationReference == this -> {
             return parent.baseExpression
         }
@@ -303,12 +309,16 @@ fun StubBasedPsiElementBase<out CangJieTypeStatementStub<out CjTypeStatement>>.g
         if (file is CjFile) {
             val directive = file.findImportByAlias(referencedName)
             if (directive != null) {
-                var reference = directive.importedReference
-                while (reference is CjDotQualifiedExpression) {
-                    reference = reference.selectorExpression
+                val reference = when (directive) {
+                    is CjImportItem -> directive.importedReference
+                    else -> null
                 }
-                if (reference is CjSimpleNameExpression) {
-                    result.add(reference.referencedName)
+                var currentRef = reference
+                while (currentRef is CjDotQualifiedExpression) {
+                    currentRef = currentRef.selectorExpression
+                }
+                if (currentRef is CjSimpleNameExpression) {
+                    result.add(currentRef.referencedName)
                 }
             }
         }
@@ -342,13 +352,17 @@ fun isComment(element: PsiElement): Boolean {
     return CommentUtilCore.isComment(element)
 }
 
-fun CjEnumEntry.safeFqNameForLazyResolveByParent(): FqName? {
+fun CjEnumConstructor.safeNameForLazyResolve(): Name {
+    return name?.let { Name.identifier(it) }?.safeNameForLazyResolve() ?: SpecialNames.NO_NAME_PROVIDED
+}
+
+fun CjEnumConstructor.safeFqNameForLazyResolveByParent(): FqName? {
     // 应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
     val parentFqName = (this.parent?.parent as CjEnum).safeFqNameForLazyResolve()
     return parentFqName?.child(safeNameForLazyResolve())
 }
 
-fun CjEnumEntry.safeFqNameForLazyResolve(): FqName? {
+fun CjEnumConstructor.safeFqNameForLazyResolve(): FqName? {
     // 应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
     val parentFqName = CjNamedDeclarationUtil.getParentFqName(this.parent?.parent as CjEnum)
     return parentFqName?.child(safeNameForLazyResolve())
@@ -481,11 +495,7 @@ fun CjStringTemplateExpression.getContentRange(): TextRange {
 fun CjStringTemplateExpression.isSingleQuoted(): Boolean = node.firstChildNode.textLength == 1
 fun CjStringTemplateExpression.isPlain() = entries.all { it is CjLiteralStringTemplateEntry }
 
-fun List<CangJieImportField>.addIf(element: CangJieImportField) {
-    if (!this.contains(element)) {
-        this + element // 如果不存在，则返回新列表
-    }
-}
+
 
 fun CjDeclaration.modalityModifier() = modifierFromTokenSet(CjTokens.MODALITY_MODIFIERS)
 private fun CjModifierListOwner.modifierFromTokenSet(set: TokenSet) = modifierList?.modifierFromTokenSet(set)
@@ -493,11 +503,11 @@ private fun CjModifierListOwner.modifierFromTokenSet(set: TokenSet) = modifierLi
 fun CjElement.findElementOfAdditionalResolve(): CjElement? {
     val elementOfAdditionalResolve = findTopmostParentInFile {
         it is CjFunction ||
-            it is CjAnonymousInitializer ||
+
 //                    it is CjPrimaryConstructor ||
 //                    it is CjSecondaryConstructor ||
             it is CjProperty ||
-            it is CjVariable ||
+            it is CjVariable<*> ||
             it is CjSuperTypeList ||
 
             it is CjImportList ||
@@ -506,8 +516,8 @@ fun CjElement.findElementOfAdditionalResolve(): CjElement? {
             it is CjTypeConstraint ||
             it is CjPackageDirective ||
             it is CjCodeFragment ||
-            it is CjTypeAlias ||
-            it is CjDestructuringDeclaration
+            it is CjTypeAlias
+
     } as CjElement?
 
     when (elementOfAdditionalResolve) {
@@ -529,4 +539,14 @@ fun CjElement.findElementOfAdditionalResolve(): CjElement? {
 
         else -> return elementOfAdditionalResolve
     }
+}
+
+tailrec fun CjTypeElement.unwrapOptional(): CjTypeElement? {
+    return when (this) {
+        is CjOptionType -> this.getInnerType()?.unwrapOptional()
+        else -> this
+    }
+}
+fun FqName.quoteIfNeeded(): FqName {
+    return FqName(pathSegments().joinToString(".") { it.asString().quoteIfNeeded() })
 }

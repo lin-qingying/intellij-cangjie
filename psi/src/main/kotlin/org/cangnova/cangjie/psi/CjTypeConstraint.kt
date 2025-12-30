@@ -37,7 +37,7 @@ class CjTypeConstraint : CjElementImplStub<CangJiePlaceHolderStub<CjTypeConstrai
         return node.elementType.toString()
     }
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitTypeConstraint(this, data)
     }
 

@@ -40,7 +40,7 @@ class CjSecondaryConstructor : CjConstructor<CjSecondaryConstructor> {
         CjStubElementTypes.SECONDARY_CONSTRUCTOR,
     )
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? = visitor.visitSecondaryConstructor(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? = visitor.visitSecondaryConstructor(this, data)
     override fun getConstructorKeyword() = notNullChild<PsiElement>(super.getConstructorKeyword())
 
     override fun getContainingTypeStatement() = parent?.parent as CjTypeStatement

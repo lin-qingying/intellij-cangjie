@@ -65,7 +65,6 @@ class PrimitiveClassDescriptor(
 
     // 类型参数和接收者
     override val declaredTypeParameters: List<TypeParameterDescriptor> = emptyList()
-    override val contextReceivers: List<ReceiverParameterDescriptor> = emptyList()
 
     // 作用域
     override val staticScope: MemberScope = MemberScope.Empty
@@ -111,7 +110,7 @@ class PrimitiveClassDescriptor(
         // 数值类型之间可以相互转换
         if (primitiveType.isNumeric()) {
             // 获取所有其他数值类型
-            val numericTypes = PrimitiveType.values().filter {
+            val numericTypes = PrimitiveType.entries.filter {
                 it.isNumeric() && it != primitiveType
             }
 
@@ -138,7 +137,7 @@ class PrimitiveClassDescriptor(
             init {
                 val parameter = ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                     this, null, 0, Annotations.EMPTY, org.cangnova.cangjie.name.Name.identifier("value"),
-                    false, createPrimitiveType(sourceType), false, SourceElement.NO_SOURCE, null
+                    false, createPrimitiveType(sourceType), false, SourceElement.NO_SOURCE,
                 )
                 initialize(listOf(parameter))
                 setReturnType(this@PrimitiveClassDescriptor.defaultType)

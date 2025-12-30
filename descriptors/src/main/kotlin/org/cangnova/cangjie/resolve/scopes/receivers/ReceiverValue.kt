@@ -25,10 +25,36 @@ package org.cangnova.cangjie.resolve.scopes.receivers
 
 import org.cangnova.cangjie.types.CangJieType
 
+/**
+ * 具有类型信息的接收器值
+ *
+ * ReceiverValue 表示一个带有具体类型的接收器，用于类型检查和推导。
+ * 它扩展了基础的 [Receiver] 接口，添加了类型信息和类型替换的能力。
+ *
+ * 在类型推导过程中，接收器的类型可能会被替换（如泛型实例化），
+ * [replaceType] 方法用于创建具有新类型的接收器值的副本。
+ *
+ * [original] 属性用于在类型替换链中追溯到最初的接收器值，
+ * 这对于保持类型推导的正确性和避免循环引用非常重要。
+ *
+ * @property type 接收器的类型
+ * @property original 原始的接收器值（在类型替换前的值）
+ *
+ * @see Receiver
+ * @see CangJieType
+ */
 interface ReceiverValue : Receiver {
+    /** 接收器的类型 */
     val type: CangJieType
 
+    /**
+     * 创建一个具有新类型的接收器值副本
+     *
+     * @param newType 新的类型
+     * @return 具有新类型的接收器值
+     */
     fun replaceType(newType: CangJieType): ReceiverValue
 
+    /** 原始的接收器值（在任何类型替换之前） */
     val original: ReceiverValue
 }

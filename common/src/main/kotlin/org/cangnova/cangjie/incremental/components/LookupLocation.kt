@@ -73,7 +73,8 @@ enum class NoLookupLocation : LookupLocation {
     MATCH_GET_LOCAL_VARIABLE,
     MATCH_FIND_BY_FQNAME,
     MATCH_GET_COMPANION_OBJECT,
-    FOR_DEFAULT_IMPORTS;
+    FOR_DEFAULT_IMPORTS,
+    FROM_REEXPORT;
 
     override val location: LocationInfo? get() = null
 }

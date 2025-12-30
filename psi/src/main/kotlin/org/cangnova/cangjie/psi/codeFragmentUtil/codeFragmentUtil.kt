@@ -28,7 +28,23 @@ import org.cangnova.cangjie.psi.CjCodeFragment
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjFile
 import com.intellij.openapi.util.Key
-
+/**
+ * 扩展函数：检查元素是否应在调试模式下抑制诊断
+ *
+ * ## 判断逻辑
+ * 1. 如果元素本身是 CjFile，直接检查其 suppressDiagnosticsInDebugMode 属性
+ * 2. 否则，查找包含该元素的文件，检查文件的属性
+ *
+ * ## 使用场景
+ * 在生成诊断错误之前，检查是否应该抑制该错误：
+ * ```kotlin
+ * if (!element.suppressDiagnosticsInDebugMode()) {
+ *     trace.report(WARNING.on(element))
+ * }
+ * ```
+ *
+ * @return true 表示应该抑制诊断，false 表示正常报告诊断
+ */
 fun CjElement.suppressDiagnosticsInDebugMode(): Boolean {
     return if (this is CjFile) {
         this.suppressDiagnosticsInDebugMode

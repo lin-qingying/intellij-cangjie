@@ -26,21 +26,22 @@ package org.cangnova.cangjie.psi
 
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
-import org.cangnova.cangjie.psi.stubs.CangJieFunctionStub
+import org.cangnova.cangjie.psi.stubs.CangJieNamedFunctionStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
+import org.cangnova.cangjie.psi.stubs.CangJieFunctionStub
 
-abstract class CjFunctionImpl :
-    CjTypeParameterListOwnerStub<CangJieFunctionStub>,
+abstract class CjFunctionImpl<Stub: CangJieFunctionStub<F>,F: CjFunction> :
+    CjTypeParameterListOwnerStub<Stub>,
     CjFunction,
     CjDeclarationWithInitializer {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJieFunctionStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
+    constructor(stub: Stub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
     override val valueParameterList: CjParameterList?
         get() = getStubOrPsiChild(CjStubElementTypes.VALUE_PARAMETER_LIST)
@@ -65,22 +66,7 @@ abstract class CjFunctionImpl :
         return nameIdentifier.textOffset > typeParameterList.textOffset
     }
 
-    override val receiverTypeReference: CjTypeReference?
-        get() {
 
-            val stub = stub
-            if (stub != null) {
-                if (!stub.isExtension()) {
-                    return null
-                }
-
-                val parent = this.getStrictParentOfType<CjExtend>()
-
-                return parent?.receiverTypeReceiver
-            }
-//            return null
-            return receiverTypeRefByTree
-        }
     val originalTypeParameterList: CjTypeParameterList? get() = super.typeParameterList
 
     override val typeParameterList: CjTypeParameterList?

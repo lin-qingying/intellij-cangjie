@@ -40,6 +40,7 @@ import com.intellij.util.CharTable
  * DummyHolder用于在内存中表示临时的PSI元素，通常用于代码分析、重构和其他需要临时PSI树的操作。
  */
 class CangJieDummyHolderFactory : HolderFactory {
+
     /**
      * 创建一个包含内容元素和上下文的CangJie DummyHolder实例。
      *
@@ -48,7 +49,7 @@ class CangJieDummyHolderFactory : HolderFactory {
      * @param context 创建DummyHolder的上下文PSI元素
      * @return 新创建的CangJieDummyHolder实例
      */
-    override fun createHolder(manager: PsiManager, contentElement: TreeElement?, context: PsiElement?): DummyHolder {
+    override fun createHolder(manager: PsiManager, contentElement: TreeElement, context: PsiElement?): DummyHolder {
         return CangJieDummyHolder(manager, contentElement, context)
     }
 

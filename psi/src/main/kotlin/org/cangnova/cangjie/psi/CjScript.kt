@@ -55,7 +55,7 @@ class CjScript : CjNamedDeclarationStub<CangJieScriptStub>, CjDeclarationContain
     override val declarations: List<CjDeclaration>
         get() = PsiTreeUtil.getChildrenOfTypeAsList(blockExpression, CjDeclaration::class.java)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitScript(this, data)
     }
 }

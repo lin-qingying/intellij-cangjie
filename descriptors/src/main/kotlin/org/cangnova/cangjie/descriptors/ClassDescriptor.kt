@@ -47,19 +47,17 @@ import org.cangnova.cangjie.types.SimpleType
  * - 成员解析和访问控制
  * - 继承层次分析
  * - 泛型实例化
+ *
+ * @see ClassAndEnumDescriptor
+ * @see EnumDescriptor
  */
-interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, InheritableDescriptor, HasScopeDescriptor,
-    ClassOrPackageFragmentDescriptor, DeclarationDescriptorWithVisibility,ClassifierDescriptorWithTypeConstructor {
+interface ClassDescriptor : ClassAndEnumDescriptor {
 
     /**
      * 类的 this 接收者参数描述符，用于表示类的接收者类型。
      */
     val thisAsReceiverParameter: ReceiverParameterDescriptor
 
-    /**
-     * 类的上下文接收者列表（如上下文接收者参数）。
-     */
-    val contextReceivers: List<ReceiverParameterDescriptor>
 
 
     /**
@@ -91,8 +89,7 @@ interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, InheritableD
     val unsubstitutedPrimaryConstructor: ClassConstructorDescriptor?
 
     /**
-     * 如果当前类是 inner 类，则该列表可能与 typeConstructor.parameters 不同；
-     * typeConstructor.parameters 可能包含从外部声明捕获的类型参数。
+     * 返回当前类实际声明的类型参数列表。
      *
      * @return 返回当前类实际声明的类型参数列表
      */

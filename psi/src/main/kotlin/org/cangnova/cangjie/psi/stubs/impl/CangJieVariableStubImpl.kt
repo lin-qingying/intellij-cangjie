@@ -24,41 +24,42 @@
 
 package org.cangnova.cangjie.psi.stubs.impl
 
-import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.CjVariable
 import org.cangnova.cangjie.psi.stubs.CangJieVariableStub
+import org.cangnova.cangjie.psi.stubs.PatternKind
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
-import com.intellij.util.io.StringRef
+import org.cangnova.cangjie.psi.CjPatternVariable
 
-class CangJieVariableStubImpl @JvmOverloads constructor(
+/**
+ * 变量声明 Stub 实现
+ *
+ * 变量声明是模式匹配的声明方式，支持绑定模式、元组模式、枚举模式、通配符模式。
+ * 变量本身没有名称，名称信息来自模式匹配中的绑定模式子节点。
+ * fqName 存储在子模式（CangJieBindingPatternStub）中，而不是变量本身。
+ *
+ * @param parent 父 Stub 元素
+ * @param patternKind 模式类型
+ * @param isVar 是否为 var 声明
+ * @param isTopLevel 是否为顶层变量
+ * @param hasInitializer 是否有初始化器
+ * @param hasReturnTypeRef 是否有类型声明
+ * @param origin Stub 来源信息
+ */
+class CangJieVariableStubImpl(
     parent: StubElement<out PsiElement>?,
-    private val name: StringRef?,
+    private val patternKind: PatternKind,
     private val isVar: Boolean,
     private val isTopLevel: Boolean,
-
     private val hasInitializer: Boolean,
-    private val isExtension: Boolean,
     private val hasReturnTypeRef: Boolean,
-    private val fqName: FqName?,
-    override val childNamesByPattern: List<CangJieVariableStub.ChildInfo> = emptyList(),
-
     val origin: CangJieStubOrigin?,
-) : CangJieStubBaseImpl<CjVariable>(parent, CjStubElementTypes.VARIABLE), CangJieVariableStub {
+) : CangJieStubBaseImpl<CjPatternVariable>(parent, CjStubElementTypes.VARIABLE), CangJieVariableStub {
 
-    init {
-        if (isTopLevel && fqName == null) {
-            throw IllegalArgumentException("fqName shouldn't be null for top level properties")
-        }
-    }
-
-    override fun getFqName() = fqName
-    override fun isVar() = isVar
-    override fun isTopLevel() = isTopLevel
-
-    override fun hasInitializer() = hasInitializer
-    override fun isExtension() = isExtension
-    override fun hasReturnTypeRef() = hasReturnTypeRef
-    override fun getName() = StringRef.toString(name)
+    override fun getPatternKind(): PatternKind = patternKind
+    override fun isVar(): Boolean = isVar
+    override fun isTopLevel(): Boolean = isTopLevel
+    override fun hasInitializer(): Boolean = hasInitializer
+    override fun hasReturnTypeRef(): Boolean = hasReturnTypeRef
 }

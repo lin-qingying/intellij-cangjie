@@ -41,7 +41,7 @@ import org.cangnova.cangjie.toolchain.api.CjSdk
 import org.eclipse.lsp4j.*
 import java.net.URI
 
-class CangJieLanguageServerFactory : LanguageServerFactory {
+internal class CangJieLanguageServerFactory : LanguageServerFactory {
     override fun createConnectionProvider(project: Project): StreamConnectionProvider {
         return CangJieOSProcessStreamConnectionProvider(project)
     }
@@ -415,7 +415,7 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
         general.regularExpressions = regularExpressionsCapabilities
         val markdownCapabilities = MarkdownCapabilities()
         markdownCapabilities.parser = "marked"
-        markdownCapabilities.version = "1.1.0"
+        markdownCapabilities.version = "1.2.0"
         general.markdown = markdownCapabilities
         capabilities.general = general
         val notebookDocument = NotebookDocumentClientCapabilities()

@@ -26,14 +26,36 @@ package org.cangnova.cangjie.psi
 
 import com.intellij.psi.PsiElement
 
+/**
+ * 仓颉语言中轻量级 PSI 元素的基础接口
+ *
+ * 轻量级元素是一种性能优化手段,用于在不完全解析源代码的情况下提供 PSI 元素的功能。
+ * 这种机制主要用于:
+ * - 快速构建索引
+ * - 减少内存占用
+ * - 加速大型项目的符号解析
+ *
+ * @param T 原始仓颉 PSI 元素类型,继承自 [CjElement]
+ * @param D 委托的 PSI 元素类型,用于提供底层实现
+ *
+ * @see CjElement
+ */
 interface CjLightElement<out T : CjElement, out D : PsiElement> : PsiElement {
+    /**
+     * 获取该轻量级元素对应的原始仓颉 PSI 元素
+     *
+     * @return 原始 PSI 元素,如果不存在则返回 null
+     */
     val cangjieOrigin: T?
 
     /**
-     * CjLightModifierList by default retrieves annotation from the relevant CjElement or from clsDelegate
-     * But we have none of them for CjUltraLightAnnotationForDescriptor built upon descriptor
-     * For that case, CjLightModifierList in the beginning checks `givenAnnotations` and uses them if it's not null
-     * Probably, it's a bit dirty solution. But, for now it's not clear how to make it better
+     * 提供给定的注解列表(用于特殊场景)
+     *
+     * CjLightModifierList 默认从相关的 CjElement 或 clsDelegate 中检索注解。
+     * 但对于基于描述符构建的 CjUltraLightAnnotationForDescriptor,这两者都不存在。
+     * 在这种情况下,CjLightModifierList 会首先检查 givenAnnotations,如果不为 null 则使用它。
+     *
+     * 注意: 这可能不是最优雅的解决方案,但目前尚不清楚如何更好地实现。
      */
 //    val givenAnnotations: List<CjLightAbstractAnnotation>? get() = null
 }

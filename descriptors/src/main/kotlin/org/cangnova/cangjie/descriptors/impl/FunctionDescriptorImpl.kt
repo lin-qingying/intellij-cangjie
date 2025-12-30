@@ -42,8 +42,6 @@ import org.cangnova.cangjie.descriptors.annotations.composeAnnotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjFunction
 import org.cangnova.cangjie.resolve.DescriptorFactory
-import org.cangnova.cangjie.resolve.scopes.receivers.ExtensionReceiver
-import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitContextReceiver
 import org.cangnova.cangjie.resolve.source.getPsi
 import org.cangnova.cangjie.types.*
 import org.jetbrains.annotations.NotNull
@@ -68,12 +66,10 @@ abstract class FunctionDescriptorImpl(
     override lateinit var typeParameters: List<TypeParameterDescriptor>
     private var unsubstitutedValueParameters: List<ValueParameterDescriptor> = ArrayList()
     private var unsubstitutedReturnType: CangJieType? = null
-    override var contextReceiverParameters: List<ReceiverParameterDescriptor> = emptyList()
     override val valueParameters: List<ValueParameterDescriptor>
         get() = unsubstitutedValueParameters
 
-    //    扩展接收器
-    override var extensionReceiverParameter: ReceiverParameterDescriptor? = null
+
     override var dispatchReceiverParameter: ReceiverParameterDescriptor? = null
     override var modality: Modality = Modality.FINAL
     override var visibility: DescriptorVisibility = DescriptorVisibilities.INTERNAL
@@ -124,7 +120,6 @@ abstract class FunctionDescriptorImpl(
                     wereChanges?.set(0, true)
                 }
 
-                val destructuringVariablesAction = getDestructuringVariablesAction(unsubstitutedValueParameter)
 
                 result.add(
                     ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
@@ -137,24 +132,15 @@ abstract class FunctionDescriptorImpl(
                         substitutedType,
                         unsubstitutedValueParameter.declaresDefaultValue,
                         if (preserveSourceElement) unsubstitutedValueParameter.source else SourceElement.NO_SOURCE,
-                        destructuringVariablesAction
                     )
                 )
             }
             return result
         }
 
-        private fun getDestructuringVariablesAction(unsubstitutedValueParameter: ValueParameterDescriptor): (() -> List<VariableDescriptor>)? {
-            return if (unsubstitutedValueParameter is ValueParameterDescriptorImpl.WithDestructuringDeclaration) {
-                val destructuringVariables = unsubstitutedValueParameter.destructuringVariables
-                { destructuringVariables }
-            } else null
-        }
+
     }
 
-    fun setExpect(isExpect: Boolean) {
-        this.isExpect = isExpect
-    }
 
     fun setHasStableParameterNames(hasStableParameterNames: Boolean) {
         this.hasStableParameterNames = hasStableParameterNames
@@ -184,9 +170,7 @@ abstract class FunctionDescriptorImpl(
 
 
     open fun initialize(
-        extensionReceiverParameter: ReceiverParameterDescriptor?,
         dispatchReceiverParameter: ReceiverParameterDescriptor?,
-        contextReceiverParameters: List<ReceiverParameterDescriptor>,
         typeParameters: List<TypeParameterDescriptor>,
         unsubstitutedValueParameters: List<ValueParameterDescriptor>,
         unsubstitutedReturnType: CangJieType?,
@@ -199,9 +183,7 @@ abstract class FunctionDescriptorImpl(
         this.unsubstitutedReturnType = unsubstitutedReturnType
         this.modality = modality ?: Modality.FINAL
         this.visibility = visibility
-        this.extensionReceiverParameter = extensionReceiverParameter
         this.dispatchReceiverParameter = dispatchReceiverParameter
-        this.contextReceiverParameters = contextReceiverParameters
 
         for (i in typeParameters.indices) {
             val typeParameterDescriptor = typeParameters[i]
@@ -332,10 +314,6 @@ abstract class FunctionDescriptorImpl(
             .build()
     }
 
-    @Nullable
-    private fun getExtensionReceiverParameterType(): CangJieType? {
-        return extensionReceiverParameter?.type
-    }
 
 
     override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<out FunctionDescriptor> {
@@ -346,8 +324,7 @@ abstract class FunctionDescriptorImpl(
     protected fun newCopyBuilder(substitutor: TypeSubstitutor): CopyConfiguration {
         return CopyConfiguration(
             substitutor.substitution,
-            containingDeclaration, modality, visibility, kind, valueParameters, contextReceiverParameters,
-            extensionReceiverParameter, returnType!!, null
+            containingDeclaration, modality, visibility, kind, valueParameters, returnType!!, null
         )
     }
 
@@ -393,50 +370,7 @@ abstract class FunctionDescriptorImpl(
         )
         if (substitutor == null) return null
 
-        // 替换上下文接收者参数
-        val substitutedContextReceiverParameters = mutableListOf<ReceiverParameterDescriptor>()
 
-        if (configuration.newContextReceiverParameters.isNotEmpty()) {
-            var index = 0
-            for (newContextReceiverParameter in configuration.newContextReceiverParameters) {
-                val substitutedContextReceiverType =
-                    substitutor.substitute(newContextReceiverParameter.type, Variance.INVARIANT)
-                if (substitutedContextReceiverType == null) {
-                    return null
-                }
-                val substitutedContextReceiverParameter =
-                    DescriptorFactory.createContextReceiverParameterForCallable(
-                        substitutedDescriptor, substitutedContextReceiverType,
-                        (newContextReceiverParameter.value as ImplicitContextReceiver).customLabelName,
-                        newContextReceiverParameter.annotations,
-                        index
-                    )
-                index++
-//                substitutedContextReceiverParameters方法是根据substitutedContextReceiverType是否返回null的，所以这里已经判断过substitutedContextReceiverType，所以这里一定不为null，使用?let是为了好看
-                substitutedContextReceiverParameter?.let { substitutedContextReceiverParameters.add(it) }
-
-                wereChanges[0] = wereChanges[0] or (substitutedContextReceiverType != newContextReceiverParameter.type)
-            }
-        }
-
-        // 替换扩展接收者参数
-        var substitutedReceiverParameter: ReceiverParameterDescriptor? = null
-        configuration.newExtensionReceiverParameter?.let { newExtensionReceiverParameter ->
-            val substitutedExtensionReceiverType =
-                substitutor.substitute(newExtensionReceiverParameter.type, Variance.INVARIANT)
-            if (substitutedExtensionReceiverType == null) {
-                return null
-            }
-            substitutedReceiverParameter = ReceiverParameterDescriptorImpl(
-                substitutedDescriptor,
-                ExtensionReceiver(
-                    substitutedDescriptor, substitutedExtensionReceiverType, newExtensionReceiverParameter.value
-                ),
-                newExtensionReceiverParameter.annotations
-            )
-
-            wereChanges[0] = wereChanges[0] or (substitutedExtensionReceiverType != newExtensionReceiverParameter.type)
-        }
 
         // 替换分发接收者参数
         var substitutedExpectedThis: ReceiverParameterDescriptor? = null
@@ -487,7 +421,7 @@ abstract class FunctionDescriptorImpl(
 
         // 初始化替换后的描述符
         substitutedDescriptor.initialize(
-            substitutedReceiverParameter, substitutedExpectedThis, substitutedContextReceiverParameters,
+              substitutedExpectedThis,
             substitutedTypeParameters,
             substitutedValueParameters,
             substitutedReturnType,
@@ -596,7 +530,7 @@ abstract class FunctionDescriptorImpl(
     }
 
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
         return visitor.visitFunctionDescriptor(this, data)
     }
 
@@ -615,8 +549,6 @@ abstract class FunctionDescriptorImpl(
         var newVisibility: DescriptorVisibility,
         var kind: CallableMemberDescriptor.Kind,
         var newValueParameterDescriptors: List<ValueParameterDescriptor>,
-        var newContextReceiverParameters: List<ReceiverParameterDescriptor>,
-        var newExtensionReceiverParameter: ReceiverParameterDescriptor?,
         var newReturnType: CangJieType,
         var name: Name?
     ) : FunctionDescriptor.CopyBuilder<FunctionDescriptor> {
@@ -684,15 +616,9 @@ abstract class FunctionDescriptorImpl(
         }
 
 
-        override fun setContextReceiverParameters(contextReceiverParameters: List<ReceiverParameterDescriptor>): FunctionDescriptor.CopyBuilder<FunctionDescriptor> {
-            newContextReceiverParameters = contextReceiverParameters
-            return this
-        }
 
-        override fun setExtensionReceiverParameter(extensionReceiverParameter: ReceiverParameterDescriptor?): CopyConfiguration {
-            newExtensionReceiverParameter = extensionReceiverParameter
-            return this
-        }
+
+
 
         override fun setDispatchReceiverParameter(dispatchReceiverParameter: ReceiverParameterDescriptor?): CopyConfiguration {
             this.dispatchReceiverParameter = dispatchReceiverParameter

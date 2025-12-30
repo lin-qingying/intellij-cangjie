@@ -27,8 +27,12 @@ package org.cangnova.cangjie.descriptors
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
+import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.DefaultBuiltIns
+import org.cangnova.cangjie.builtins.StdlibTypes
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.types.DefaultBuiltIns
+import org.cangnova.cangjie.types.error.ErrorClassDescriptor
+import org.cangnova.cangjie.types.error.ErrorModuleDescriptor
+
 
 /**
  * 仓颉项目描述符接口
@@ -72,6 +76,8 @@ import org.cangnova.cangjie.types.DefaultBuiltIns
  */
 interface ProjectDescriptor : DeclarationDescriptor {
 
+    val stdlibModule: ModuleDescriptor
+
     /**
      * 项目名称
      */
@@ -79,8 +85,21 @@ interface ProjectDescriptor : DeclarationDescriptor {
     /**
      * 项目的 BuiltIns，基于 SDK 创建
      * 整个项目共享同一个 BuiltIns 实例
+     *
+     * 仅包含编译器内置类型（Int8, Bool, Unit 等）
      */
     val builtIns: CangJieBuiltIns
+
+    /**
+     * 标准库类型访问器
+     *
+     * 提供对标准库（std.*）类型的访问，如 Any, String, Array 等。
+     * 与 builtIns 分离，确保编译器内置类型和标准库类型的职责分离。
+     *
+     * 注意: 访问此属性前，需要确保标准库模块已创建。
+     */
+    val stdlibTypes: StdlibTypes
+
     /**
      * 关联的 IntelliJ 项目实例
      * 用于集成 IDE 功能，如文件系统访问、索引服务等
@@ -101,6 +120,16 @@ interface ProjectDescriptor : DeclarationDescriptor {
     fun getModule(moduleName: Name): ModuleDescriptor?
 
     /**
+     * 添加模块到项目中
+     *
+     * **注意**: 此方法仅供内部使用，模块创建时会自动调用
+     *
+     * @param module 要添加的模块描述符
+     * @throws IllegalArgumentException 如果已存在同名模块
+     */
+    fun addModule(module: ModuleDescriptor)
+
+    /**
      * 项目是否有效
      */
     val isValid: Boolean
@@ -113,10 +142,13 @@ interface ProjectDescriptor : DeclarationDescriptor {
 
     companion object {
         val ERROR = object : ProjectDescriptor {
+            override val stdlibModule: ModuleDescriptor get() =    ErrorModuleDescriptor
             override val name: Name
                 get() = Name.ERROR_NAME
             override val builtIns: CangJieBuiltIns
                 get() = DefaultBuiltIns
+            override val stdlibTypes: StdlibTypes
+                get() = throw UnsupportedOperationException("ERROR ProjectDescriptor does not have stdlibTypes")
             override val project: Project
                 get() = ProjectManager.getInstance().defaultProject
             override val modules: List<ModuleDescriptor>
@@ -124,6 +156,10 @@ interface ProjectDescriptor : DeclarationDescriptor {
 
             override fun getModule(moduleName: Name): ModuleDescriptor? {
                 return modules.firstOrNull { it.name == moduleName }
+            }
+
+            override fun addModule(module: ModuleDescriptor) {
+                // ERROR ProjectDescriptor does not support addModule
             }
 
             override val isValid: Boolean
@@ -140,12 +176,12 @@ interface ProjectDescriptor : DeclarationDescriptor {
 
             override fun <R, D> accept(
                 visitor: DeclarationDescriptorVisitor<R, D>,
-                data: D?
+                data: D
             ): R? {
               return null
             }
 
-            override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+            override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {
 
             }
 

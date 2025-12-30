@@ -64,13 +64,13 @@ import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
  *
  * ## 作为 CjCallElement
  * 注解条目继承 [CjCallElement],因为注解的使用本质上是对注解类构造函数的调用:
- * - [calleeExpression]: 注解名称及类型引用
+ * -  [calleeExpression]: 注解名称及类型引用
  * - [valueArgumentList]: 注解参数列表
  * - [valueArguments]: 具体的参数值
  *
  * ## 主要属性
  * - [atSymbol]: `@` 符号
- * - [typeReference]: 注解类型引用
+ * - [typeReference]:  注解类型引用
  * - [shortName]: 注解的简短名称
  * - [valueArguments]: 注解参数列表
  *
@@ -92,7 +92,7 @@ class CjAnnotation : CjElementImplStub<CangJieAnnotationStub>, CjCallElement {
     override val calleeExpression: CjConstructorCalleeExpression?
         get() {
             return getStubOrPsiChild(CjStubElementTypes.CONSTRUCTOR_CALLEE)
-    }
+        }
 
     override val lambdaArguments: List<CjLambdaArgument>
         get() {
@@ -150,7 +150,7 @@ class CjAnnotation : CjElementImplStub<CangJieAnnotationStub>, CjCallElement {
             }
             typeReference ?: return null
             val typeReference =
-                checkNotNull(typeReference) { "Annotation entry hasn't typeReference $text" }
+                checkNotNull(typeReference) { "Annotation constructor hasn't typeReference $text" }
             val typeElement = typeReference.typeElement
             if (typeElement is CjUserType) {
                 val shortName = typeElement.referencedName

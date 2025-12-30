@@ -30,6 +30,13 @@
          包含插件的基本信息、依赖关系等核心配置 -->
     <xi:include href="/META-INF/cangjie-core.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
+    <!-- 引入 JPS 和源码根类型配置
+         注册自定义的源码根类型，使 IDE 能够正确识别和标记源码目录 -->
+    <xi:include href="/META-INF/cangjie-jps.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+    <!-- 引入描述符模块配置
+         包含项目描述符服务等基础组件 -->
+    <xi:include href="/META-INF/cangjie-descriptors.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <xi:include href="/META-INF/cangjie-highlighting.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
@@ -79,7 +86,6 @@
 
 
     <xi:include href="/META-INF/cangjie-templates.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/META-INF/cangjie-refactoring.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/cangjie-icon.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 
@@ -88,7 +94,6 @@
 
     <xi:include href="/META-INF/cangjie-registry-key.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/cangjie-copyright.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/META-INF/cangjie-analysis.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <!-- 引入 json schema 相关 -->
     <xi:include href="/META-INF/cangjie-json.xml" xpointer="xpointer(/idea-plugin/*)" />
@@ -96,5 +101,10 @@
     <xi:include href="/META-INF/cangjie-project.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/cangjie-dependency.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
+    <xi:include href="/META-INF/cangjie-analysis.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+    <!-- 引入元数据服务相关配置
+         包含 CJO 包元数据服务等 -->
+    <xi:include href="/META-INF/cangjie-metadata.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 </idea-plugin>

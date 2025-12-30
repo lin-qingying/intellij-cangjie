@@ -37,8 +37,9 @@ class CangJieParameterStubImpl(
     private val fqName: StringRef?,
     private val name: StringRef?,
     private val isMutable: Boolean,
-    private val hasValOrVar: Boolean,
+    private val hasLetOrVar: Boolean,
     private val hasDefaultValue: Boolean,
+    private val isNamed: Boolean = false,
     val functionTypeParameterName: String? = null,
 ) : CangJieStubBaseImpl<CjParameter>(parent, CjStubElementTypes.VALUE_PARAMETER), CangJieParameterStub {
 
@@ -51,6 +52,7 @@ class CangJieParameterStubImpl(
     }
 
     override fun isMutable() = isMutable
-    override fun hasValOrVar() = hasValOrVar
+    override fun hasLetOrVar() = hasLetOrVar
     override fun hasDefaultValue() = hasDefaultValue
+    override fun isNamed() = isNamed
 }
