@@ -30,6 +30,10 @@
          包含插件的基本信息、依赖关系等核心配置 -->
     <xi:include href="/META-INF/cangjie-core.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
+    <!-- 引入 JPS 和源码根类型配置
+         注册自定义的源码根类型，使 IDE 能够正确识别和标记源码目录 -->
+    <xi:include href="/META-INF/cangjie-jps.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
     <!-- 引入描述符模块配置
          包含项目描述符服务等基础组件 -->
     <xi:include href="/META-INF/cangjie-descriptors.xml" xpointer="xpointer(/idea-plugin/*)"/>
