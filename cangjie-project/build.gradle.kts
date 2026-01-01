@@ -22,6 +22,29 @@
  *
  */
 
+/*
+ * 版本特定源码目录配置
+ *
+ * 用于解决 WorkspaceModel API 的跨版本兼容性问题：
+ * - ExcludeUrlEntity: 253+ 使用 ExcludeUrlEntityBuilder, 242-252 使用直接构造
+ * - SourceRootEntity: 253+ 使用 SourceRootEntityBuilder, 242-252 使用直接构造
+ */
+val platformVersion = providers.gradleProperty("platformVersion").getOrElse("242")
+
+sourceSets {
+    main {
+        kotlin {
+            // workspace-model-legacy: 242-252 版本的 Workspace Model API
+            // workspace-model-builder: 253+ 版本的 Workspace Model Builder API
+            if (platformVersion.toInt() >= 253) {
+                srcDir("src/main/workspace-model-builder/kotlin")
+            } else {
+                srcDir("src/main/workspace-model-legacy/kotlin")
+            }
+        }
+    }
+}
+
 dependencies {
     implementation(project(":util"))
     implementation(project(":messages"))

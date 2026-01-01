@@ -93,7 +93,7 @@ open class DescriptorMemberChooserObject(
 
         fun getIcon(declaration: PsiElement?, descriptor: DeclarationDescriptor): Icon? = if (declaration != null && declaration.isValid) {
             val isClass =  declaration is CjClass
-            val flags = if (isClass) 0 else ICON_FLAG_VISIBILITY
+            val flags = if (isClass) 0 else 1
             if (declaration is CjDeclaration) {
 
                 CangJieDescriptorIconProvider.getIcon(descriptor, declaration, flags)

@@ -26,11 +26,12 @@ package org.cangnova.cangjie.run
 
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
-import com.intellij.build.events.BuildEvents
 import com.intellij.build.events.BuildEventsNls
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.StartEvent
-import com.intellij.build.events.impl.*
+import com.intellij.build.events.impl.FailureResultImpl
+import com.intellij.build.events.impl.SkippedResultImpl
+import com.intellij.build.events.impl.SuccessResultImpl
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.execution.process.AnsiEscapeDecoder
@@ -39,6 +40,10 @@ import com.intellij.openapi.util.NlsActions
 import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.util.text.StringUtil
 import org.cangnova.cangjie.project.CjProjectBundle
+import org.cangnova.cangjie.run.compat.createFinishEvent
+import org.cangnova.cangjie.run.compat.createFileMessageEvent
+import org.cangnova.cangjie.run.compat.createOutputBuildEvent
+import org.cangnova.cangjie.run.compat.createStartEvent
 import org.jetbrains.annotations.Nls
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -218,24 +223,22 @@ class CangJieBuildEventsConverter(private val context: CangJieBuildContext) : Bu
     ) {
         val message = originalMessage.substringBefore("(").trimEnd()
         val eventId = message.substringAfter(" ").replace(" v", " ")
-        val startEvent = BuildEvents.getInstance()
-            .start()
-            .withId(eventId)
-            .withParentId(context.parentId ?: context.buildId)
-            .withTime(System.currentTimeMillis())
-            .withMessage(message)
-            .build()
+        val startEvent = createStartEvent(
+            id = eventId,
+            parentId = context.parentId ?: context.buildId,
+            eventTime = System.currentTimeMillis(),
+            message = message
+        )
         messageConsumer.accept(startEvent)
 
         if (isUpToDate) {
-            val finishEvent = BuildEvents.getInstance()
-                .finish()
-                .withStartId(eventId)
-                .withParentId(context.parentId ?: context.buildId)
-                .withTime(System.currentTimeMillis())
-                .withMessage(message)
-                .withResult(SuccessResultImpl(isUpToDate))
-                .build()
+            val finishEvent = createFinishEvent(
+                id = eventId,
+                parentId = context.parentId ?: context.buildId,
+                eventTime = System.currentTimeMillis(),
+                message = message,
+                result = SuccessResultImpl(isUpToDate)
+            )
             messageConsumer.accept(finishEvent)
         } else {
             startEvents.add(startEvent)
@@ -244,33 +247,24 @@ class CangJieBuildEventsConverter(private val context: CangJieBuildContext) : Bu
 
     private fun handleFinishedMessage(failedTaskName: String?, messageConsumer: Consumer<in BuildEvent>) {
         for (startEvent in startEvents) {
-            val finishEvent = BuildEvents.getInstance()
-                .finish()
-                .withStartId(startEvent.id)
-                .withParentId(context.parentId ?: context.buildId)
-                .withTime(System.currentTimeMillis())
-                .withMessage(startEvent.message)
-                .withResult(
-                    when (failedTaskName) {
-                        startEvent.taskName -> FailureResultImpl(null as Throwable?)
-                        null -> SuccessResultImpl()
-                        else -> SkippedResultImpl()
-                    }
-                )
-                .build()
+            val finishEvent = createFinishEvent(
+                id = startEvent.id,
+                parentId = context.parentId ?: context.buildId,
+                eventTime = System.currentTimeMillis(),
+                message = startEvent.message,
+                result = when (failedTaskName) {
+                    startEvent.taskName -> FailureResultImpl(null as Throwable?)
+                    null -> SuccessResultImpl()
+                    else -> SkippedResultImpl()
+                }
+            )
             messageConsumer.accept(finishEvent)
         }
         startEvents.clear()
     }
 
     private fun Consumer<in BuildEvent>.acceptText(parentId: Any, @BuildEventsNls.Message text: String) =
-        accept(
-            BuildEvents.getInstance()
-                .output()
-                .withParentId(parentId)
-                .withMessage(text)
-                .build()
-        )
+        accept(createOutputBuildEvent(parentId, text, true))
 
     companion object {
         private val ERROR_OR_WARNING: List<MessageEvent.Kind> =
@@ -286,15 +280,14 @@ class CangJieBuildEventsConverter(private val context: CangJieBuildContext) : Bu
             @BuildEventsNls.Message message: String,
             @Nls detailedMessage: String?,
             filePosition: FilePosition? = null
-        ): MessageEvent = BuildEvents.getInstance()
-            .fileMessage()
-            .withParentId(parentEventId)
-            .withKind(kind)
-            .withGroup(CjProjectBundle.message("run.configuration.build.compiler"))
-            .withMessage(message)
-            .withDescription(detailedMessage)
-            .withFilePosition(filePosition ?: FilePosition(workingDirectory.toFile(), 0, 0))
-            .build()
+        ): MessageEvent = createFileMessageEvent(
+            parentId = parentEventId,
+            kind = kind,
+            group = CjProjectBundle.message("run.configuration.build.compiler"),
+            message = message,
+            detailedMessage = detailedMessage,
+            filePosition = filePosition ?: FilePosition(workingDirectory.toFile(), 0, 0)
+        )
     }
 }
 

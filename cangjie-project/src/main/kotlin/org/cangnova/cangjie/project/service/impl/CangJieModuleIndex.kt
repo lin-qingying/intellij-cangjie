@@ -26,7 +26,7 @@ package org.cangnova.cangjie.project.service.impl
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.readAndEdtWriteAction
+
 import com.intellij.openapi.application.writeAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer

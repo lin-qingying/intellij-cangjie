@@ -30,10 +30,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiDirectoryContainer
 import com.intellij.psi.impl.PsiManagerEx
+import com.intellij.psi.impl.PsiManagerImpl
 import com.intellij.psi.impl.file.PsiDirectoryFactory
 import com.intellij.psi.impl.file.PsiDirectoryImpl
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.CangJiePsiFacade
+import org.cangnova.cangjie.psi.CjPsiDirectory
 
 /**
  * 仓颉语言的目录工厂实现
@@ -57,7 +59,7 @@ internal class CangJieDirectoryFactory(private val project: Project) : PsiDirect
      * @return 对应的 PsiDirectory 实例
      */
     override fun createDirectory(file: VirtualFile): PsiDirectory {
-        return PsiDirectoryImpl(psiManager, file)
+        return CjPsiDirectory(psiManager, file)
     }
 
     /**

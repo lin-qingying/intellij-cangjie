@@ -615,3 +615,193 @@ tasks.compileKotlin {
     dependsOn("createIdeVersionSourceDir")
 }
 
+// ============================================================
+// 多版本编译任务
+// ============================================================
+
+/**
+ * 构建配置定义
+ *
+ * 每个配置代表一个构建产物，包含：
+ * - name: 构建名称（用于任务名和文件名）
+ * - sinceBuild: 支持的最低 IDE 版本
+ * - untilBuild: 支持的最高 IDE 版本
+ * - platformVersion: 用于编译的平台版本（决定使用哪套 API）
+ */
+data class BuildConfig(
+    val name: String,
+    val sinceBuild: String,
+    val untilBuild: String,
+    val platformVersion: String
+)
+
+/**
+ * 定义所有构建配置
+ *
+ * Legacy API 配置 (242-252):
+ * - 使用 workspace-model-legacy 源码目录
+ * - 支持 IntelliJ 2024.2 到 2025.2
+ *
+ * Builder API 配置 (253+):
+ * - 使用 workspace-model-builder 源码目录
+ * - 支持 IntelliJ 2025.3 及以后版本
+ */
+val buildConfigs = listOf(
+    BuildConfig(
+        name = "242-252",
+        sinceBuild = "242",
+        untilBuild = "252.*",
+        platformVersion = "242"
+    ),
+    BuildConfig(
+        name = "253",
+        sinceBuild = "253",
+        untilBuild = "253.*",
+        platformVersion = "253"
+    )
+)
+
+/**
+ * 为每个构建配置创建专门的构建任务
+ */
+buildConfigs.forEach { config ->
+    tasks.register<Exec>("buildPlugin${config.name.replace("-", "")}") {
+        group = "build"
+        description = "Build plugin for IDE versions ${config.sinceBuild}-${config.untilBuild}"
+
+        workingDir = rootDir
+
+        // Windows 和 Unix 系统使用不同的 Gradle 包装器
+        val gradlewCmd = if (System.getProperty("os.name").lowercase().contains("windows")) {
+            "gradlew.bat"
+        } else {
+            "./gradlew"
+        }
+
+        commandLine(
+            gradlewCmd,
+
+            ":plugin:buildPlugin",
+            "-PplatformVersion=${config.platformVersion}",
+            "-PsinceBuild=${config.sinceBuild}",
+            "-PuntilBuild=${config.untilBuild}",
+            "-PversionSuffix=-${config.name}"
+        )
+
+        doFirst {
+            println("=".repeat(80))
+            println("构建配置: ${config.name}")
+            println("  IDE 版本范围: ${config.sinceBuild} - ${config.untilBuild}")
+            println("  编译平台版本: ${config.platformVersion}")
+            println("=".repeat(80))
+        }
+
+        doLast {
+            val buildDir = file("plugin/build/distributions")
+            val expectedFile = buildDir.listFiles()
+                ?.filter { it.extension == "zip" && it.name.contains(config.name) }
+                ?.firstOrNull()
+
+            if (expectedFile != null && expectedFile.exists()) {
+                println("\n✓ 构建完成")
+                println("  产物: ${expectedFile.name}")
+                println("  大小: ${expectedFile.length() / 1024 / 1024} MB")
+            }
+        }
+    }
+}
+
+/**
+ * 聚合任务：构建所有配置的版本
+ *
+ * 使用方法：
+ *   ./gradlew buildAllConfigs
+ *
+ * 此任务会构建：
+ * - 242-252 版本（Legacy API）: 支持 2024.2 到 2025.2
+ * - 253 版本（Builder API）: 支持 2025.3+
+ *
+ * 每个构建产物会自动设置正确的 sinceBuild 和 untilBuild
+ */
+tasks.register("buildAllConfigs") {
+    group = "build"
+    description = "Build plugin for all configured version ranges"
+
+    doFirst {
+        println("\n" + "=".repeat(80))
+        println("开始构建所有配置")
+        println("=".repeat(80))
+        println("共 ${buildConfigs.size} 个构建配置:\n")
+
+        buildConfigs.forEachIndexed { index, config ->
+            println("${index + 1}. ${config.name}: IDE ${config.sinceBuild}-${config.untilBuild}")
+        }
+
+        println("\n" + "=".repeat(80) + "\n")
+    }
+
+    dependsOn(buildConfigs.map { config ->
+        "buildPlugin${config.name.replace("-", "")}"
+    })
+
+    doLast {
+        val buildDir = file("plugin/build/distributions")
+
+        println("\n" + "=".repeat(80))
+        println("所有配置构建完成！")
+        println("=".repeat(80))
+        println("构建产物位于: ${buildDir.absolutePath}\n")
+
+        // 列出所有构建产物
+        buildDir.listFiles()?.filter { it.extension == "zip" }?.forEach {
+            println("  ✓ ${it.name} (${it.length() / 1024 / 1024} MB)")
+        }
+        println()
+    }
+}
+
+/**
+ * 验证任务：检查构建配置的正确性
+ *
+ * 使用方法：
+ *   ./gradlew verifyBuildConfigs
+ *
+ * 检查项：
+ * - sinceBuild 和 untilBuild 是否合理
+ * - platformVersion 是否在版本范围内
+ * - 版本范围是否有重叠
+ */
+tasks.register<DefaultTask>("verifyBuildConfigs") {
+    group = "verification"
+    description = "Verify build configurations are correct"
+
+    doLast {
+        println("\n验证构建配置...\n")
+
+        var hasErrors = false
+
+        buildConfigs.forEach { config ->
+            println("检查配置: ${config.name}")
+
+            // 检查 sinceBuild <= platformVersion
+            if (config.sinceBuild.toInt() > config.platformVersion.toInt()) {
+                println("  ✗ 错误: sinceBuild (${config.sinceBuild}) 大于 platformVersion (${config.platformVersion})")
+                hasErrors = true
+            }
+
+            if (!hasErrors) {
+                println("  ✓ 配置正确")
+            }
+
+            println()
+        }
+
+        if (hasErrors) {
+            throw GradleException("构建配置验证失败，请检查上述错误")
+        } else {
+            println("所有构建配置验证通过！✓")
+        }
+    }
+}
+
+

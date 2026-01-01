@@ -32,7 +32,6 @@ import com.intellij.openapi.vfs.newvfs.NewVirtualFileSystem
 import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.workspaceModel.ide.legacyBridge.findLibraryEntity
 import org.cangnova.cangjie.moduleinfo.cache.LibraryInfoCache
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.projectStructure.CangJieSourceFilterScope
@@ -187,7 +186,7 @@ data class LibrarySourceInfo(
      *
      * 关联到 IntelliJ 工作空间模型的实体源，用于跟踪库的来源和变更。
      */
-    val source: EntitySource? = library.findLibraryEntity(project.workspaceModel.currentSnapshot)?.entitySource
+    val source: EntitySource? = library.findLibraryEntitySource(project.workspaceModel.currentSnapshot)
 
     /**
      * 模块名称

@@ -28,7 +28,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.workspace.storage.EntitySource
-import com.intellij.workspaceModel.ide.legacyBridge.findLibraryEntity
+
 
 /**
  * 库信息实现类
@@ -163,6 +163,9 @@ class LibraryInfoImpl internal constructor(project: Project, library: LibraryEx)
      *
      * @see EntitySource
      */
-    val source: EntitySource? = library.findLibraryEntity(project.workspaceModel.currentSnapshot)?.entitySource
+    val source: EntitySource? = library.findLibraryEntitySource(project.workspaceModel.currentSnapshot)
+
+
 
 }
+

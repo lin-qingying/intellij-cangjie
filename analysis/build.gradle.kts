@@ -25,6 +25,21 @@
 plugins {
     alias(libs.plugins.ksp)
 }
+val platformVersion = providers.gradleProperty("platformVersion").getOrElse("242")
+
+sourceSets {
+    main {
+        kotlin {
+
+            if (platformVersion.toInt() >= 253) {
+                srcDir("src/main/module-info-253e/kotlin")
+            } else {
+                srcDir("src/main/module-info/kotlin")
+            }
+        }
+    }
+}
+
 
 dependencies {
     testImplementation(platform(libs.junit.bom))

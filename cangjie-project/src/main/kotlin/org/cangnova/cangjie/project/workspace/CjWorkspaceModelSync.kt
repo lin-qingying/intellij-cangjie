@@ -42,6 +42,10 @@ import org.cangnova.cangjie.config.CangJieSourceRootTypes
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.project.model.*
 import org.cangnova.cangjie.project.service.CjDependencyService
+import org.cangnova.cangjie.project.workspace.compat.ExcludeUrlCompat
+import org.cangnova.cangjie.project.workspace.compat.SourceRootCompat
+import org.cangnova.cangjie.project.workspace.compat.createExcludeUrl
+import org.cangnova.cangjie.project.workspace.compat.createSourceRoot
 import org.cangnova.cangjie.psi.NotNullableUserDataProperty
 import java.io.File
 
@@ -561,14 +565,14 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                         excludedPatterns = emptyList(),
                         entitySource = entitySource
                     ) {
-                        //                     创建所有 ExcludeUrlEntity
-                        val excludeUrlBuilders = mutableListOf<ExcludeUrlEntityBuilder>()
+                        // 创建所有 ExcludeUrlEntity
+                        val excludeUrls = mutableListOf<ExcludeUrlCompat>()
                         // 从工作空间的源码集中获取输出目录
                         for (sourceSet in project.workspace?.sourceSets ?: emptyList()) {
                             for (outputDir in sourceSet.outputDirectory) {
                                 val excludeUrl = urlManager.getOrCreateFromUrl(outputDir.url)
-                                excludeUrlBuilders.add(
-                                    ExcludeUrlEntity(
+                                excludeUrls.add(
+                                    createExcludeUrl(
                                         url = excludeUrl,
                                         entitySource = entitySource
                                     )
@@ -577,7 +581,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                             }
                         }
 
-                        this.excludedUrls = excludeUrlBuilders
+                        this.excludedUrls = excludeUrls
                     }
                 )
             }
@@ -640,8 +644,8 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                     excludedPatterns = emptyList(),
                     entitySource = entitySource
                 ) {
-//                     创建所有 SourceRootEntity
-                    val sourceRootBuilders = mutableListOf<SourceRootEntityBuilder>()
+                    // 创建所有 SourceRootEntity
+                    val sourceRoots = mutableListOf<SourceRootCompat>()
                     for (sourceSet in cjModule.sourceSets) {
                         for (sourceRoot in sourceSet.roots) {
                             val sourceRootUrl = urlManager.getOrCreateFromUrl(sourceRoot.url)
@@ -651,8 +655,8 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                                 SourceRootTypeId(CangJieSourceRootTypes.SOURCE)
                             }
 
-                            sourceRootBuilders.add(
-                                SourceRootEntity(
+                            sourceRoots.add(
+                                createSourceRoot(
                                     url = sourceRootUrl,
                                     rootTypeId = rootType,
                                     entitySource = entitySource
@@ -662,16 +666,16 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                             LOG.debug("Added source root: ${sourceRoot.path} (test=${sourceSet.isTest})")
                         }
                     }
-                    this.sourceRoots = sourceRootBuilders
+                    this.sourceRoots = sourceRoots
 
-//                     创建所有 ExcludeUrlEntity
-                    val excludeUrlBuilders = mutableListOf<ExcludeUrlEntityBuilder>()
+                    // 创建所有 ExcludeUrlEntity
+                    val excludeUrls = mutableListOf<ExcludeUrlCompat>()
                     // 从源码集的 outputDirectory 获取输出目录
                     for (sourceSet in cjModule.sourceSets) {
                         for (outputDir in sourceSet.outputDirectory) {
                             val excludeUrl = urlManager.getOrCreateFromUrl(outputDir.url)
-                            excludeUrlBuilders.add(
-                                ExcludeUrlEntity(
+                            excludeUrls.add(
+                                createExcludeUrl(
                                     url = excludeUrl,
                                     entitySource = entitySource
                                 )
@@ -679,7 +683,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                             LOG.debug("Excluded directory: ${outputDir.path}")
                         }
                     }
-                    this.excludedUrls = excludeUrlBuilders
+                    this.excludedUrls = excludeUrls
                 }
 
                 this.contentRoots = mutableListOf(contentRootEntity)
@@ -781,7 +785,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                     entitySource = entitySource
                 ) {
                     // 创建所有 SourceRootEntity
-                    val sourceRootBuilders = mutableListOf<SourceRootEntityBuilder>()
+                    val sourceRootBuilders = mutableListOf<SourceRootCompat>()
                     for (sourceSet in cjModule.sourceSets) {
                         for (sourceRoot in sourceSet.roots) {
                             val sourceRootUrl = urlManager.getOrCreateFromUrl(sourceRoot.url)
@@ -805,7 +809,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                     this.sourceRoots = sourceRootBuilders
 
                     // 创建所有 ExcludeUrlEntity
-                    val excludeUrlBuilders = mutableListOf<ExcludeUrlEntityBuilder>()
+                    val excludeUrlBuilders = mutableListOf<ExcludeUrlCompat>()
                     // 从源码集的 outputDirectory 获取输出目录
                     for (sourceSet in cjModule.sourceSets) {
                         for (outputDir in sourceSet.outputDirectory) {
