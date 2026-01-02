@@ -74,7 +74,15 @@ abstract class AbstractEnumDescriptor(
         _defaultType()
     }
 
-    
+    private val _thisAsReceiverParameter: NotNullLazyValue<ReceiverParameterDescriptor> =
+        storageManager.createLazyValue {
+            LazyClassReceiverParameterDescriptor(this@AbstractEnumDescriptor)
+        }
+
+    override val thisAsReceiverParameter: ReceiverParameterDescriptor
+        get() = _thisAsReceiverParameter.invoke()
+
+
     protected val _defaultType: NotNullLazyValue<SimpleType> = storageManager.createLazyValue {
         makeUnsubstitutedType(
             this, unsubstitutedMemberScope,

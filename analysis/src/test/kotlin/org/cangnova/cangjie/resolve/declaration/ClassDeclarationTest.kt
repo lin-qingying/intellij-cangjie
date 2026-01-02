@@ -90,7 +90,7 @@ class ClassDeclarationTest : CangJieAnalysisTestBase() {
             // assertEquals("Foo", classDescriptor?.name?.asString())
 
             // 验证成员变量
-            val members = PsiTreeUtil.findChildrenOfType(classDecl, CjVariable::class.java)
+            val members = PsiTreeUtil.findChildrenOfType(classDecl, CjFieldVariable::class.java)
             assertEquals("应该有 1 个成员变量", 1, members.size)
             assertEquals("bar", members.first().name)
         }
@@ -461,7 +461,10 @@ class ClassDeclarationTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val birdClass = PsiTreeUtil.findChildOfType(file, CjClass::class.java)
+            val birdClass = PsiTreeUtil.findChildrenOfType(file, CjClass::class.java)
+                .find {
+                    it.name == "Bird"
+                }
             assertNotNull("应该找到 Bird 类", birdClass)
 
             // 验证同时有父类和接口
@@ -507,7 +510,7 @@ class ClassDeclarationTest : CangJieAnalysisTestBase() {
             assertNotNull("应该找到 Base 类", baseClass)
 
             // 验证 Base 有两个成员变量
-            val baseMembers = PsiTreeUtil.findChildrenOfType(baseClass!!, CjVariable::class.java)
+            val baseMembers = PsiTreeUtil.findChildrenOfType(baseClass!!, CjFieldVariable::class.java)
             assertEquals("Base 应该有 2 个成员变量", 2, baseMembers.size)
 
             val childClass = PsiTreeUtil.findChildrenOfType(file, CjClass::class.java)
@@ -587,7 +590,9 @@ class ClassDeclarationTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            class Point(public var x: Int64, public var y: Int64) {
+            class Point {
+            public Point(public var x: Int64, public var y: Int64){
+            }
                 public func distance(): Float64 {
                     return 0.0
                 }

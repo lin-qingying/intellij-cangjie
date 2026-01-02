@@ -27,18 +27,16 @@ package org.cangnova.cangjie.serialization.deserialization.builtins
 import org.cangnova.cangjie.builtins.BuiltInsLoader
 import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.builtins.StandardNames.BASIC_PACKAGE_FQ_NAME
-import org.cangnova.cangjie.builtins.basic.BasicTypesPackageFragmentProvider
+import org.cangnova.cangjie.builtins.basic.PrimitiveTypesPackageFragmentProvider
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.NotFoundClasses
 import org.cangnova.cangjie.descriptors.PackageFragmentProvider
 import org.cangnova.cangjie.descriptors.PackageFragmentProviderImpl
-import org.cangnova.cangjie.descriptors.impl.CompositePackageFragmentProvider
 import org.cangnova.cangjie.incremental.components.LookupTracker
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.serialization.deserialization.*
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.toolchain.api.CjSdk
-import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.InputStream
 
@@ -76,8 +74,8 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
     private fun createBasicPackageFragmentDescriptor(
         storageManager: StorageManager,
         module: ModuleDescriptor
-    ): BasicTypesPackageFragmentProvider {
-        return BasicTypesPackageFragmentProvider(
+    ): PrimitiveTypesPackageFragmentProvider {
+        return PrimitiveTypesPackageFragmentProvider(
             storageManager, module,
         )
     }

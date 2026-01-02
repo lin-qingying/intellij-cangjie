@@ -596,8 +596,8 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
         return visitTypeStatement(extend, data)
     }
 
-    open fun visitClass(klass: CjClass, data: D): R? {
-        return visitTypeStatement(klass, data)
+    open fun visitClass(cclass: CjClass, data: D): R? {
+        return visitTypeStatement(cclass, data)
     }
 
     open fun visitEnum(cenum: CjEnum, data: D): R? {

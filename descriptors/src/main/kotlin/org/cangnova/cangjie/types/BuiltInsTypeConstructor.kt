@@ -57,17 +57,37 @@ class BuiltInsTypeConstructor(
     /**
      * 计算超类型
      *
-     * 基本类型的超类型关系：
-     * - 所有基本类型都继承自 Any
-     * - Nothing 是所有类型的子类型
+     * 内置类型的超类型关系：
+     * - 内置类型不应该有显式的超类型（与编译器实现一致）
+     * - 内置类型与 Any 的子类型关系通过类型检查器的 implicitBoxed 机制处理
+     * - Nothing 是所有类型的子类型，但自身没有超类型
+     *
+     * ## 编译器实现参考
+     *
+     * 根据 cangjie_compiler/src/Sema/TypeManager.cpp:1004-1014，内置类型满足以下条件：
+     * 1. 在类型定义层面：内置类型没有显式父类型
+     * 2. 在子类型判断时：当 implicitBoxed=true（默认值）时，内置类型可以作为 Any 的子类型
+     * 3. 这种设计将"默认实现 Any"的语义从类型定义层面移到了类型检查层面
+     *
+     * ## 为什么不继承 Any
+     *
+     * ```
+     * // 错误的实现（旧版本）：
+     * String -> supertypes = [Any]  // 显式继承
+     *
+     * // 正确的实现（当前版本）：
+     * String -> supertypes = []     // 无显式继承
+     *
+     * // 但在类型检查时：
+     * isSubtypeOf(String, Any) == true  // 通过 implicitBoxed 机制
+     * ```
+     *
+     * 这样可以保持与编译器的一致性，避免在类型层次结构和子类型判断中的双重关系。
      */
     override fun computeSupertypes(): Collection<CangJieType> {
-        return when (builtinsType) {
-
-
-            // 其他基本类型都继承自 Any
-            else -> listOf(builtIns.stdlibTypes.anyType)
-        }
+        // 所有内置类型（包括 Nothing）都没有显式的超类型
+        // 与 Any 的关系通过类型检查器的 implicitBoxed 机制处理
+        return emptyList()
     }
 
 

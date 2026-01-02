@@ -397,8 +397,8 @@ fun buildDecompiledText(fileStub: CangJieFileStubImpl): DecompiledText {
         val visitor = object : CjVisitor<Unit, Unit>() {
             private inline val explicitThis get() = this
 
-            override fun visitClass(klass: CjClass, data: Unit): Unit? {
-                printClassOrInterface(klass, "class")
+            override fun visitClass(cclass: CjClass, data: Unit): Unit? {
+                printClassOrInterface(cclass, "class")
                 return null
             }
 

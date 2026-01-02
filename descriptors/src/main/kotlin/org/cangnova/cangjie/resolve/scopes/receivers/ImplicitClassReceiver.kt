@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.resolve.scopes.receivers
 
-import org.cangnova.cangjie.descriptors.ClassDescriptor
+import org.cangnova.cangjie.descriptors.ClassAndEnumDescriptor
 import org.cangnova.cangjie.types.CangJieType
 
 /**
@@ -39,7 +39,7 @@ import org.cangnova.cangjie.types.CangJieType
  */
 interface ThisClassReceiver : ReceiverValue {
     /** 类的描述符 */
-    val classDescriptor: ClassDescriptor
+    val classDescriptor: ClassAndEnumDescriptor
 }
 
 /**
@@ -61,7 +61,7 @@ interface ThisClassReceiver : ReceiverValue {
  * @see ImplicitReceiver
  */
 open class ImplicitClassReceiver(
-    final override val classDescriptor: ClassDescriptor,
+    final override val classDescriptor: ClassAndEnumDescriptor,
     original: ImplicitClassReceiver? = null
 ) : ThisClassReceiver, ImplicitReceiver {
 

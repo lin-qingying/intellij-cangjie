@@ -127,7 +127,7 @@ import java.util.function.Consumer
  * @see ExternalDocumentationProvider
  * @see CDoc
  */
-class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDocumentationProvider {
+internal class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDocumentationProvider {
     @Deprecated(
         "Deprecated in Java", ReplaceWith(
             "CompositeDocumentationProvider.hasUrlsFor(this, element, originalElement)",
@@ -540,6 +540,77 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
         }
 
         /**
+         * 构建枚举构造器的文档模板。
+         *
+         * 该方法为枚举构造器生成文档，包括构造器定义和序号信息。
+         *
+         * @param enumConstructor 枚举构造器元素
+         * @param quickNavigation 是否为快速导航模式
+         * @param ordinal 构造器在枚举中的序号（可选）
+         * @return 文档模板对象
+         */
+        private fun buildEnumConstructor(
+            enumConstructor: CjEnumConstructor,
+            quickNavigation: Boolean,
+            ordinal: Int?
+        ): CDocTemplate {
+            val resolutionFacade = enumConstructor.getResolutionFacade()
+            val context = enumConstructor.safeAnalyzeNonSourceRootCode(resolutionFacade, BodyResolveMode.PARTIAL)
+            val declarationDescriptor = context[BindingContext.ENUM_CONSTRUCTOR, enumConstructor]
+
+            if (declarationDescriptor == null) {
+                LOG.info("Failed to find descriptor for enum constructor " + enumConstructor.getElementTextWithContext())
+                return CDocTemplate.NoDocTemplate().apply {
+                    error {
+                        append(CangJieCDocBundle.message("quick.doc.no.documentation"))
+                    }
+                }
+            }
+
+            @OptIn(FrontendInternals::class)
+            val deprecationProvider = resolutionFacade.frontendService<DeprecationResolver>()
+
+            return CDocTemplate().apply {
+                definition {
+                    renderDefinition(
+                        declarationDescriptor, Lazy.DESCRIPTOR_RENDERER
+                            .withIdeOptions { highlightingManager = createHighlightingManager(enumConstructor.project) }
+                    )
+                    // 添加序号信息
+                    ordinal?.let {
+                        append("<br>")
+                        appendHighlighted("// ", enumConstructor.project) { asInfo }
+                        appendHighlighted(
+                            CangJieCDocBundle.message("quick.doc.text.enum.ordinal", ordinal),
+                            enumConstructor.project
+                        ) { asInfo }
+                    }
+                }
+
+                insertDeprecationInfo(declarationDescriptor, deprecationProvider, enumConstructor.project)
+
+                if (!quickNavigation) {
+                    description {
+                        declarationDescriptor.findCDoc {
+                            DescriptorToSourceUtilsIde.getAnyDeclaration(
+                                enumConstructor.project,
+                                it
+                            )
+                        }?.let {
+                            renderCDoc(it.contentTag, it.sections)
+                        }
+                    }
+                }
+
+                getContainerInfo(enumConstructor)?.toString()?.takeIf { it.isNotBlank() }?.let { info ->
+                    containerInfo {
+                        append(info)
+                    }
+                }
+            }
+        }
+
+        /**
          * 使用标签包装内容。
          *
          * @receiver StringBuilder 字符串构建器
@@ -866,34 +937,19 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                 // element is not an CjReferenceExpression, but CjClass of enum
                 return renderEnum(element, originalElement, quickNavigation)
             } else if (element is CjEnumConstructor && !quickNavigation) {
-                TODO()
-//                val ordinal =
-//                    element.containingTypeStatement?.body?.run { getChildrenOfType<CjEnumConstructor>().indexOf(element) }
-//
-//                val project = element.project
-//                @Suppress("HardCodedStringLiteral")
-//                return buildString {
-//                    insert(buildCangJieDeclaration(element, quickNavigation = false)) {
-//                        definition {
-//                            it.inherit()
-//                            ordinal?.let {
-//                                append("<br>")
-//                                appendHighlighted("// ", project) { asInfo }
-//                                appendHighlighted(
-//                                    CangJieCDocBundle.message("quick.doc.text.enum.ordinal", ordinal),
-//                                    project
-//                                ) { asInfo }
-//                            }
-//                        }
-//                    }
-//                }
+                val ordinal =
+                    element.parentEnum?.body?.run { getChildrenOfType<CjEnumConstructor>().indexOf(element) }
+
+                @Suppress("HardCodedStringLiteral")
+                return buildString {
+                    insert(buildEnumConstructor(element, quickNavigation = false, ordinal)) {
+                    }
+                }
             } else if (element is CjBindingPattern) {
                 return renderBindingPattern(element, quickNavigation)
             } else if (element is CjDeclaration) {
                 return renderCangJieDeclaration(element, quickNavigation)
-            } /*else if (element is CjNameReferenceExpression && element.getReferencedNameAsName() == StandardNames.IMPLICIT_LAMBDA_PARAMETER_NAME) {
-                return renderCangJieImplicitLambdaParameter(element, quickNavigation)
-            }*/ else if (element is CjValueArgumentList) {
+            }  else if (element is CjValueArgumentList) {
                 val referenceExpression = element.prevSibling as? CjSimpleNameExpression ?: return null
                 val calledElement = referenceExpression.mainReference.resolve()
                 if (calledElement is CjNamedFunction || calledElement is CjConstructor<*>) { // In case of CangJie function or constructor

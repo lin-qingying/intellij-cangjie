@@ -26,13 +26,15 @@ package org.cangnova.cangjie.descriptors
 import org.cangnova.cangjie.ReadOnly
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
+interface ClassDescriptorWithResolutionScopes : DescriptorWithResolutionScopes,ClassDescriptor
+interface EnumDescriptorWithResolutionScopes : DescriptorWithResolutionScopes, EnumDescriptor
 
 /**
  * ClassDescriptorWithResolutionScopes接口继承自ClassDescriptor，提供了与作用域解析相关的功能。
  * 该接口定义了如何获取类成员声明解析作用域、已声明的可调用成员、初始化块解析作用域、
  * 类头解析作用域和构造函数头解析作用域的方法。
  */
-interface ClassDescriptorWithResolutionScopes : ClassDescriptor {
+interface  DescriptorWithResolutionScopes : ClassAndEnumDescriptor {
     /**
      * 获取用于成员声明解析的词法作用域。
      *

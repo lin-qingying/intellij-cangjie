@@ -37,7 +37,7 @@ import org.cangnova.cangjie.name.FqNameUnsafe
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.BodiesResolveContext
-import org.cangnova.cangjie.resolve.qualified.isEnumClass
+import org.cangnova.cangjie.resolve.qualified.isEnum
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 
 @DefaultImplementation(impl = ConflictingOverloadsDispatcher.Default::class)
@@ -90,7 +90,7 @@ class OverloadResolver(
         for (cclass in c.declaredClasses.values) {
             // 跳过枚举类或匿名对象的构造函数，因为它们在代码中不可调用，不应参与重载名称检查
             // 枚举构造器通过 EnumConstructorDescriptor 表示，不是普通构造函数
-            if (cclass.isEnumClass || cclass.name.isSpecial) {
+            if (cclass.isEnum || cclass.name.isSpecial) {
                 continue
             }
             // 获取当前类所在的包含声明
@@ -133,7 +133,8 @@ class OverloadResolver(
 
         // 遍历所有已声明的类，检查每个类中的重载构造函数
         for (value in c.declaredClasses.values) {
-            checkOverloadsInClass(value, inClasses.get(value))
+           if(value is ClassDescriptor)
+               checkOverloadsInClass(value, inClasses.get(value))
         }
         // 检查包级别的重载函数
         checkOverloadsInPackages(c)
@@ -486,7 +487,7 @@ class OverloadResolver(
      * @param nestedClassConstructors 嵌套类的构造函数集合，用于检查嵌套类的构造函数重载
      */
     private fun checkOverloadsInClass(
-        classDescriptor: ClassDescriptorWithResolutionScopes,
+        classDescriptor:  DescriptorWithResolutionScopes,
         nestedClassConstructors: Collection<FunctionDescriptor>
     ) {
         // 创建一个多值映射，用于存储每个方法名对应的所有可调用成员描述符
@@ -496,11 +497,13 @@ class OverloadResolver(
         for (callableMember in classDescriptor.declaredCallableMembers) {
             callableMembersByName.putValue(callableMember.name, callableMember)
         }
+if(classDescriptor is ClassDescriptor){
+    // 遍历类的所有构造函数，将它们按名称分组
+    for (constructor in classDescriptor.endConstructors) {
+        callableMembersByName.putValue(constructor.name, constructor)
+    }
+}
 
-        // 遍历类的所有构造函数，将它们按名称分组
-        for (constructor in classDescriptor.endConstructors) {
-            callableMembersByName.putValue(constructor.name, constructor)
-        }
 
         // 遍历嵌套类的构造函数，将它们按嵌套类的名称分组
         for (nestedConstructor in nestedClassConstructors) {

@@ -887,10 +887,7 @@ class LazyImportScope(
         val list = importResolver.indexedImports.importsForName(name).mapNotNull {
             it.importedFqName
         }
-//        过滤 非模块名的导入
-            .filter {
-                !it.isModuleName
-            }
+
         if (list.isEmpty()) return null
         return list
     }

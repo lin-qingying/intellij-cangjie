@@ -109,12 +109,10 @@ class DescriptorResolver(
     ) {
 
 
-    init {
 
-    }
 
     fun resolvePrimaryConstructorParameterToAVariable(
-        classDescriptor: ClassDescriptor,
+        classDescriptor: ClassAndEnumDescriptor,
         valueParameter: ValueParameterDescriptor,
         scope: LexicalScope,
         parameter: CjParameter,
@@ -251,7 +249,7 @@ class DescriptorResolver(
     }
 
     private fun getDefaultSupertype(
-        classDescriptor: ClassDescriptor,
+        classDescriptor: ClassAndEnumDescriptor,
         supertypes: List<CangJieType>,
         classId: ClassId?
     ): CangJieType? {
@@ -291,7 +289,7 @@ class DescriptorResolver(
 
     fun resolveSupertypes(
         scope: LexicalScope,
-        classDescriptor: ClassDescriptor,
+        classDescriptor: ClassAndEnumDescriptor,
         typeStatement: CjPureTypeStatement?,
         trace: BindingTrace
     ): List<CangJieType> {
@@ -1088,7 +1086,7 @@ class DescriptorResolver(
         name: Name,
         container: DeclarationDescriptor,
         scopeForDeclarationResolution: LexicalScope,
-//        scopeForInitializerResolution: LexicalScope,
+//        scopeForClassInitializerResolution: LexicalScope,
         variableDeclaration: CjPatternVariable,
         trace: BindingTrace,
         dataFlowInfo: DataFlowInfo,

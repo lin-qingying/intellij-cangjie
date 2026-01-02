@@ -46,7 +46,7 @@ fun createTupleType(
 
             )
     val classDescriptor = getTupleDescriptor(builtIns, parameterTypes.size)
-    return CangJieTypeFactory.simpleNotNullType(annotations.toDefaultAttributes(), classDescriptor, arguments)
+    return CangJieTypeFactory.simpleNonOptionType(annotations.toDefaultAttributes(), classDescriptor, arguments)
 
 
 }

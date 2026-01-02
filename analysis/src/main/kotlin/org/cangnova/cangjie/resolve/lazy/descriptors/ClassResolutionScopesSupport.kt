@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.resolve.lazy.descriptors
 
 import org.cangnova.cangjie.config.LanguageVersionSettings
-import org.cangnova.cangjie.descriptors.ClassDescriptor
+import org.cangnova.cangjie.descriptors.ClassAndEnumDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.psi.CjParameter
 import org.cangnova.cangjie.resolve.scopes.*
@@ -33,7 +33,7 @@ import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.utils.getAllSuperclassesWithoutAny
 
 class ClassResolutionScopesSupport(
-    private val classDescriptor: ClassDescriptor,
+    private val classDescriptor: ClassAndEnumDescriptor,
     storageManager: StorageManager,
     private val languageVersionSettings: LanguageVersionSettings,
     private val getOuterScope: () -> LexicalScope
@@ -82,7 +82,7 @@ class ClassResolutionScopesSupport(
     private fun createInheritanceScope(
         parent: LexicalScope,
         ownerDescriptor: DeclarationDescriptor,
-        classDescriptor: ClassDescriptor,
+        classDescriptor: ClassAndEnumDescriptor,
         withCompanionObject: Boolean = true,
         isDeprecated: Boolean = false
     ): LexicalScope {
@@ -115,8 +115,23 @@ class ClassResolutionScopesSupport(
         }
 
 }
+fun scopeForEnumInitializerResolution(
+    classDescriptor: LazyEnumDescriptor,
+    parentDescriptor: DeclarationDescriptor,
+): LexicalScope {
+    return LexicalScopeImpl(
+        classDescriptor.scopeForMemberDeclarationResolution,
+        parentDescriptor,
+        false,
+        null,
+        LexicalScopeKind.CLASS_MEMBER_SCOPE
+    ) {
 
-fun scopeForInitializerResolution(
+    }
+}
+
+
+fun scopeForClassInitializerResolution(
     classDescriptor: LazyClassDescriptor,
     parentDescriptor: DeclarationDescriptor,
     primaryConstructorParameters: List<CjParameter>

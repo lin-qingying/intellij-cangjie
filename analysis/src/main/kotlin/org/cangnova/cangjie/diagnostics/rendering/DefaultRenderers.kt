@@ -24,11 +24,15 @@
 
 package org.cangnova.cangjie.diagnostics.rendering
 
+import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
+import org.cangnova.cangjie.descriptors.DeclarationDescriptor
+import org.cangnova.cangjie.diagnostics.infos.errors.ABSTRACT_MEMBER_NOT_IMPLEMENTED
 import org.cangnova.cangjie.diagnostics.infos.errors.EXPRESSION_EXPECTED
 import org.cangnova.cangjie.diagnostics.infos.errors.FUNCTION_CALL_EXPECTED
 import org.cangnova.cangjie.diagnostics.infos.errors.FUNCTION_EXPECTED
 import org.cangnova.cangjie.diagnostics.infos.errors.INVALID_BINARY_OPERATOR
 import org.cangnova.cangjie.diagnostics.infos.errors.NO_ELSE_IN_MATCH_BY_PATTERN
+import org.cangnova.cangjie.diagnostics.infos.errors.REDECLARATION
 import org.cangnova.cangjie.diagnostics.infos.errors.TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS
 import org.cangnova.cangjie.types.expressions.match.Pattern
 import org.cangnova.cangjie.types.isError
@@ -46,7 +50,7 @@ import org.cangnova.cangjie.types.isError
  * 3. **复杂消息格式**：需要特殊的消息格式化逻辑
  * 4. **参数数量不匹配**：消息模板参数数量与诊断参数不一致
  */
-class DefaultRenderers : DiagnosticRendererProvider {
+internal class DefaultRenderers : DiagnosticRendererProvider {
     override fun register() {
         // 注册默认渲染器（纯文本格式）
         DiagnosticRendererRegistry.configureDefault {
@@ -54,6 +58,22 @@ class DefaultRenderers : DiagnosticRendererProvider {
             // ========================================
             // 错误诊断
             // ========================================
+
+            // 重复声明 - 只显示第一个声明
+            register(REDECLARATION) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                renderers(
+                    renderer { declarations: Collection<DeclarationDescriptor> ->
+                        // 从集合中取第一个声明进行渲染
+                        declarations.firstOrNull()?.let { declaration ->
+                            Renderers.FQ_NAMES_IN_TYPES.render(
+                                declaration,
+                                RenderingContext.of(declaration)
+                            )
+                        } ?: ""
+                    }
+                )
+            }
 
             // 二元运算符错误 - 需要提取 6 个参数
             register(INVALID_BINARY_OPERATOR) {
@@ -142,6 +162,23 @@ class DefaultRenderers : DiagnosticRendererProvider {
                         patterns.joinToString(", ") { pattern ->
                             "'case ${pattern.text(null)}'"
                         }
+                    }
+                )
+            }
+
+            // 抽象成员未实现 - 只显示第一个未实现的成员
+            register(ABSTRACT_MEMBER_NOT_IMPLEMENTED) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                renderers(
+                    Renderers.RENDER_TYPE_STATMENT,  // 渲染类名 {0}
+                    renderer { members: Collection<CallableMemberDescriptor> ->
+                        // 从集合中取第一个成员进行渲染
+                        members.firstOrNull()?.let { member ->
+                            Renderers.FQ_NAMES_IN_TYPES.render(
+                                member,
+                                RenderingContext.of(member)
+                            )
+                        } ?: ""
                     }
                 )
             }

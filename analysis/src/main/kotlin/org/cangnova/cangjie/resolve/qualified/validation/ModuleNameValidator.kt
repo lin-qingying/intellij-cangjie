@@ -72,7 +72,8 @@ class ModuleNameValidator {
         val resolvedFqName = resolvedDescriptor.fqNameSafe
 
         // 检查第一部分是否匹配模块名
-        if (!resolvedFqName.isRoot && firstPart.name == resolvedFqName.moduleName) {
+        val firstSegment = resolvedFqName.firstSegment()
+        if (firstSegment != null && firstPart.name == firstSegment) {
             return ModuleNameError.UsedInType(
                 moduleName = firstPart.name,
                 expression = firstPart.expression as? CjSimpleNameExpression
@@ -107,7 +108,8 @@ class ModuleNameValidator {
         }
 
         // 检查第一部分是否匹配模块名
-        if (!resolvedFqName.isRoot && firstPart.name == resolvedFqName.moduleName) {
+        val firstSegment = resolvedFqName.firstSegment()
+        if (firstSegment != null && firstPart.name == firstSegment) {
             return ModuleNameError.UsedInExpression(
                 moduleName = firstPart.name,
                 expression = firstPart.expression as? CjSimpleNameExpression

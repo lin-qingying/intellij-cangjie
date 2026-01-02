@@ -241,8 +241,8 @@ class BindingCollector(private val components: ExpressionTypingComponents) {
                         name = kind.name,
                         type = kind.type,
                         element = element,
-                        isMutable = false,
-                        visibility = ( element as CjBindingPattern).variable?.visibility
+                        isMutable = (element as CjBindingPattern).variable?.isVar ?: false,
+                        visibility = (element as CjBindingPattern).variable?.visibility
                     )
                 )
             }
@@ -256,7 +256,8 @@ class BindingCollector(private val components: ExpressionTypingComponents) {
                         name = kind.name,
                         type = kind.type,
                         element = element,
-                        isMutable = false
+                        isMutable = (element as CjTypePattern).variable?.isVar ?: false,
+                        visibility = (element as CjTypePattern).variable?.visibility
                     )
                 )
             }
@@ -294,7 +295,8 @@ class BindingCollector(private val components: ExpressionTypingComponents) {
                         name = name,
                         type = subjectType,
                         element = element,
-                        isMutable = false
+                        isMutable = (element as CjBindingPattern).variable?.isVar ?: false,
+                        visibility = (element as CjBindingPattern).variable?.visibility
                     )
                 )
             }
@@ -316,7 +318,8 @@ class BindingCollector(private val components: ExpressionTypingComponents) {
                         name = name,
                         type = declaredType,
                         element = element,
-                        isMutable = false
+                        isMutable = (element as CjTypePattern).variable?.isVar ?: false,
+                        visibility = (element as CjTypePattern).variable?.visibility
                     )
                 )
             }
@@ -342,9 +345,11 @@ class BindingCollector(private val components: ExpressionTypingComponents) {
                 is CjBindingPattern -> localVariableResolver.resolveLocalVariableDescriptorWithType(
                     scope, element, binding.type, trace, binding.isMutable
                 )
+
                 is CjTypePattern -> localVariableResolver.resolveLocalVariableDescriptorWithType(
                     scope, element, binding.type, trace, binding.isMutable
                 )
+
                 else -> null
             }
         } else {
@@ -352,9 +357,11 @@ class BindingCollector(private val components: ExpressionTypingComponents) {
                 is CjBindingPattern -> localVariableResolver.resolveVariableDescriptorWithType(
                     scope, element, binding.type, trace, binding.isMutable, binding.visibility
                 )
+
                 is CjTypePattern -> localVariableResolver.resolveVariableDescriptorWithType(
                     scope, element, binding.type, trace, binding.isMutable, binding.visibility
                 )
+
                 else -> null
             }
         }
@@ -388,7 +395,8 @@ class BindingCollector(private val components: ExpressionTypingComponents) {
                 is PatternKind.Type -> names.add(kind.name)
                 is PatternKind.Tuple -> kind.subPatterns.forEach { collectBindingNames(it.kind, names) }
                 is PatternKind.Enum -> kind.subPatterns.forEach { collectBindingNames(it.kind, names) }
-                else -> { /* no bindings */ }
+                else -> { /* no bindings */
+                }
             }
         }
     }

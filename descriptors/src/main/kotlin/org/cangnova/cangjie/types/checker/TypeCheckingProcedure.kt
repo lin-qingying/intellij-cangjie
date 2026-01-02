@@ -23,6 +23,7 @@
  */
 package org.cangnova.cangjie.types.checker
 
+import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.types.*
@@ -267,28 +268,77 @@ class TypeCheckingProcedure(private val constraints: TypeCheckingProcedureCallba
         return false
     }
 
+    /**
+     * 检查两个代表性类型之间的子类型关系
+     *
+     * 这是子类型检查的核心实现，处理各种特殊情况。
+     *
+     * ## 编译器对应逻辑
+     * 参考 cangjie_compiler/src/Sema/TypeManager.cpp IsSubtype() 函数
+     *
+     * ### Option 类型的子类型规则
+     * 根据编译器实现 (TypeManager.cpp:855-858):
+     * ```cpp
+     * if (root.IsCoreOptionType() && allowOptionBox &&
+     *     CountOptionNestedLevel(leaf) < CountOptionNestedLevel(root)) {
+     *     // T <: Option<T> (Option 自动装箱)
+     *     return IsSubtype(&leaf, root.typeArgs[0], implicitBoxed);
+     * }
+     * ```
+     *
+     * **正确的规则**:
+     * 1. `T <: Option<T>` - 任何类型都是其 Option 类型的子类型
+     * 2. `Option<T> <: Option<Option<T>>` - Option 可以多层嵌套
+     * 3. `Option<T>` 与 `T` 之间没有其他子类型关系
+     *
+     * ### Nothing 类型的特殊规则
+     * 根据编译器实现 (TypeManager.cpp:1013-1020):
+     * ```cpp
+     * (leaf->IsNothing() && !root->IsPlaceholder())  // Nothing 是所有类型的子类型
+     * if (root->IsNothing()) { return false; }       // Nothing 不是其他类型的父类型
+     * ```
+     *
+     * @param subtype 子类型
+     * @param supertype 超类型
+     * @return true 如果 subtype 是 supertype 的子类型
+     */
     private fun isSubtypeOfForRepresentatives(subtype: CangJieType, supertype: CangJieType): Boolean {
-        // Option类型的子类型关系
+        // 快速路径 1: Nothing 是所有类型的子类型 (编译器: leaf->IsNothing() && !root->IsPlaceholder())
+        if (CangJieBuiltIns.isNothing(subtype)) {
+            return true
+        }
+
+        // 快速路径 2: Nothing 永远不是其他类型的父类型 (编译器: if (root->IsNothing()) return false)
+        if (CangJieBuiltIns.isNothing(supertype)) {
+            return false
+        }
+
+        // Option 类型的子类型关系 (两个都是 Option)
         if (subtype.isOption && supertype.isOption) {
+            // Option<T> <: Option<U> 当且仅当 T <: U
             return isSubtypeOf(subtype.unwrapOption(), supertype.unwrapOption())
         }
-        
-        // 基础类型到Option类型（协变）
-        if (supertype.isOption) {
+
+        // Option 自动装箱: T <: Option<T> (编译器 allowOptionBox 机制)
+        // 对应编译器: root.IsCoreOptionType() && CountOptionNestedLevel(leaf) < CountOptionNestedLevel(root)
+        if (supertype.isOption && !subtype.isOption) {
+            // T <: Option<T>
             return isSubtypeOf(subtype, supertype.unwrapOption())
         }
-        
-        // Option类型到基础类型（逆变）
-        if (subtype.isOption) {
-            return isSubtypeOf(subtype.unwrapOption(), supertype)
-        }
-        
-        // 其他类型的子类型关系检查
+
+        // 注意: Option<T> 不是 T 的子类型！这与编译器一致
+        // 编译器中没有 "leaf.IsOption() -> unwrap" 的逻辑
+
+        // 错误类型总是兼容
         if (subtype.isError || supertype.isError) {
             return true
         }
-        
-        // 简化处理，删除复杂的类型检查逻辑
+
+        // TODO: 实现完整的子类型检查逻辑
+        // - 类继承关系检查
+        // - 接口实现检查
+        // - 泛型类型参数检查
+        // - 元组/函数类型检查
         return false
     }
 

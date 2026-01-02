@@ -402,7 +402,9 @@ class InterfaceSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val birdClass = PsiTreeUtil.findChildOfType(file, CjClass::class.java)
+            val birdClass = PsiTreeUtil.findChildrenOfType(file, CjClass::class.java).find {
+                it.name == "Bird"
+            }
             assertNotNull("应该找到 Bird 类", birdClass)
 
             val birdDescriptor = bindingContext[BindingContext.CLASS, birdClass!!]

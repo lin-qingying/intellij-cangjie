@@ -46,10 +46,10 @@ import org.cangnova.cangjie.types.SimpleType
 import org.cangnova.cangjie.utils.Printer
 
 /**
- * BasicTypesPackageFragmentProvider 负责提供基本类型（原始类型）的包片段。
+ * PrimitiveTypesPackageFragmentProvider 负责提供基本类型（原始类型）的包片段。
  * 这个类集中管理所有基本类型的创建和访问，将基本类型的逻辑从 CangJieBuiltIns 中分离出来。
  */
-class BasicTypesPackageFragmentProvider(
+class PrimitiveTypesPackageFragmentProvider(
     private val storageManager: StorageManager,
     private val builtInsModule: ModuleDescriptor
 ) : PackageFragmentProvider {
@@ -58,7 +58,7 @@ class BasicTypesPackageFragmentProvider(
 
     // 基本包片段，用于承载所有的基本类型
     private val basicTypesPackageFragment: PackageFragmentDescriptor by lazy {
-        createBasicTypesPackageFragment()
+        createPrimitiveTypesPackageFragment()
     }
 
     @Deprecated("for usages use #packageFragments(FqName) at final point, for impl use #collectPackageFragments(FqName, MutableCollection<PackageFragmentDescriptor>)")
@@ -74,8 +74,8 @@ class BasicTypesPackageFragmentProvider(
         return emptySet()
     }
 
-    private fun createBasicTypesPackageFragment(): PackageFragmentDescriptor {
-        return BasicTypesPackageFragmentDescriptor(builtInsModule, this)
+    private fun createPrimitiveTypesPackageFragment(): PackageFragmentDescriptor {
+        return PrimitiveTypesPackageFragmentDescriptor(builtInsModule, this)
     }
 
     fun createPrimitiveClassDescriptor(type: PrimitiveType): PrimitiveClassDescriptor {
@@ -237,9 +237,9 @@ class BasicTypesPackageFragmentProvider(
 /**
  * 基本类型的包片段描述符
  */
-private class BasicTypesPackageFragmentDescriptor(
+private class PrimitiveTypesPackageFragmentDescriptor(
     module: ModuleDescriptor,
-    private val provider: BasicTypesPackageFragmentProvider
+    private val provider: PrimitiveTypesPackageFragmentProvider
 ) : PackageFragmentDescriptorImpl(module, BASIC_PACKAGE_FQ_NAME) {
     override fun getMemberScope(): MemberScope {
         return _memberScope
@@ -248,7 +248,7 @@ private class BasicTypesPackageFragmentDescriptor(
     override val containingDeclaration: ModuleDescriptor = module
 
     private val _memberScope by lazy {
-        BasicTypesMemberScope(this, provider)
+        PrimitiveTypesMemberScope(this, provider)
     }
 
 
@@ -260,9 +260,9 @@ private class BasicTypesPackageFragmentDescriptor(
 /**
  * 基本类型的成员作用域
  */
-private class BasicTypesMemberScope(
+private class PrimitiveTypesMemberScope(
     private val packageFragment: PackageFragmentDescriptor,
-    private val provider: BasicTypesPackageFragmentProvider
+    private val provider: PrimitiveTypesPackageFragmentProvider
 ) : MemberScope {
 
     private val allPrimitiveTypes = PrimitiveType.values().toList()

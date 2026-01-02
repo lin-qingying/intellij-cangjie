@@ -171,7 +171,16 @@ class CjTypePattern : CjCasePattern<CangJieTypePatternStub>, PsiNameIdentifierOw
 
     val identifierElement: PsiElement?
         get() = findChildByType(CjTokens.IDENTIFIER)
-
+    /**
+     * 获取所属的变量声明
+     */
+    private fun getParentVariable(): CjPatternVariable? {
+        var parent = parent
+        while (parent is CjCasePatternElement) {
+            parent = parent.parent
+        }
+        return parent as? CjPatternVariable
+    }
     override fun getName(): String? {
         val stub = stub
         if (stub != null) {
@@ -179,7 +188,8 @@ class CjTypePattern : CjCasePattern<CangJieTypePatternStub>, PsiNameIdentifierOw
         }
         return reference?.text
     }
-
+    val variable: CjPatternVariable?
+        get() = getParentVariable()
     val reference: CjSimpleNameExpression?
         get() = findChildByType(CjNodeTypes.REFERENCE_EXPRESSION)
 

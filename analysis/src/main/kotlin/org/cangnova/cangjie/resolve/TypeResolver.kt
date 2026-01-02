@@ -206,7 +206,7 @@ class TypeResolver(
         userType: CjUserType,
         trace: BindingTrace,
         isDebuggerContext: Boolean
-    ):  TypeQualifierResolutionResult {
+    ): TypeQualifierResolutionResult {
         if (userType.qualifier != null) { // 必须解析限定符类型参数中的所有类型引用
             for (typeArgument in userType.qualifier!!.typeArguments) {
                 typeArgument.typeReference?.let {
@@ -216,7 +216,7 @@ class TypeResolver(
             }
         }
 
-        return  qualifiedExpressionResolver.resolveDescriptorForType( userType, scope,trace, isDebuggerContext).apply {
+        return qualifiedExpressionResolver.resolveDescriptorForType(userType, scope, trace, isDebuggerContext).apply {
 //            if (classifierDescriptor != null) {
 //                PlatformClassesMappedToCangJieChecker.reportPlatformClassMappedToCangJie(
 //                    platformToCangJieClassMapper, trace, userType, classifierDescriptor
@@ -256,14 +256,6 @@ class TypeResolver(
         typeElement: CjTypeElement?,
 
         ): PossiblyBareType {
-
-        fun resolveOptionType(): CangJieType {
-            val classifier = c.scope.findFirstClassifierWithDeprecationStatus(
-                OPTION,
-                NoLookupLocation.FROM_BUILTINS
-            ) ?: throw IllegalStateException("Option type not found")
-            return classifier.descriptor.defaultType
-        }
 
 
         var result: PossiblyBareType? = null
@@ -311,16 +303,36 @@ class TypeResolver(
                 result = type(resolveVArrayType(type))
             }
 
+
             override fun visitBasicType(type: CjBasicType) {
+                val typeName = type.name
+                val basicScope = moduleDescriptor.builtIns.BASIC_SCOPE
 
-//                val extendSuper = if (isgetExtend) {
-//                    c.scope.getExtendClasss(type.name.toName(), NoLookupLocation.FROM_BUILTINS)
-//                } else {
-//                    emptyList()
-//                }.toSet()
-//                result = type(createBasicType(moduleDescriptor.builtIns, type.text /*extendSuper*/))
+                // 通过 BASIC_SCOPE 查找基本类型的分类器
+                val classifier = basicScope.getContributedClassifier(
+                    Name.identifier(typeName),
+                    NoLookupLocation.FROM_BUILTINS
+                )
+
+                if (classifier == null || classifier !is ClassDescriptor) {
+                    // 未找到基本类型，返回错误类型
+                    result = type(ErrorUtils.createErrorType(ErrorTypeKind.UNRESOLVED_TYPE, typeName))
+                    return
+                }
+
+                // 获取基本类型，并应用 annotations 和 type attributes
+                val resultingType = CangJieTypeFactory.simpleNonOptionType(
+                    typeAttributeTranslators.toAttributes(
+                        annotations,
+                        classifier.typeConstructor,
+                        c.scope.ownerDescriptor
+                    ),
+                    classifier,
+                    emptyList() // 基本类型没有类型参数
+                )
+
+                result = type(resultingType)
             }
-
 
             override fun visitUserType(type: CjUserType) {
                 val qualifierResolutionResult = resolveDescriptorForType(c.scope, type, c.trace, c.isDebuggerContext)
@@ -475,7 +487,6 @@ class TypeResolver(
                 val receiverType = if (receiverTypeRef == null) null else resolveType(c.noBareTypes(), receiverTypeRef)
 
 
-
                 val parameterDescriptors = resolveParametersOfFunctionType(type.parameters)
                 checkParametersOfFunctionType(parameterDescriptors)
 
@@ -523,6 +534,11 @@ class TypeResolver(
                     )
                 )
             }
+
+            fun resolveOptionType(): CangJieType {
+                return moduleDescriptor.builtIns.stdlibTypes.optionType
+            }
+
 
             private fun createTypeFromInner(
                 typeElement: CjTypeElement,
@@ -900,7 +916,7 @@ class TypeResolver(
     fun resolveTypeForClassifier(
         c: TypeResolutionContext,
         descriptor: ClassifierDescriptor,
-        qualifierResolutionResult:  TypeQualifierResolutionResult,
+        qualifierResolutionResult: TypeQualifierResolutionResult,
         element: CjElement,
         annotations: Annotations
     ): PossiblyBareType {
@@ -928,6 +944,7 @@ class TypeResolver(
                     )
                 )
             }
+
             is EnumDescriptor -> resolveTypeForEnum(c, annotations, descriptor, element, qualifierResolutionResult)
 
             is ClassDescriptor -> resolveTypeForClass(c, annotations, descriptor, element, qualifierResolutionResult)
@@ -989,7 +1006,7 @@ class TypeResolver(
         val arguments = buildFinalArgumentList(argumentsFromUserType, null, parameters)
 
         val resultingType =
-            CangJieTypeFactory.simpleNotNullType(
+            CangJieTypeFactory.simpleNonOptionType(
                 typeAttributeTranslators.toAttributes(
                     Annotations.EMPTY,
                     classDescriptor.typeConstructor,
@@ -1018,6 +1035,7 @@ class TypeResolver(
 
 
     }
+
     /**
      * 为类或枚举类型解析类型
      *
@@ -1036,7 +1054,7 @@ class TypeResolver(
     private fun resolveTypeForClassOrEnum(
         c: TypeResolutionContext, annotations: Annotations,
         classDescriptor: ClassAndEnumDescriptor, element: CjElement,
-        qualifierResolutionResult:  TypeQualifierResolutionResult
+        qualifierResolutionResult: TypeQualifierResolutionResult
     ): PossiblyBareType {
         val typeConstructor = classDescriptor.typeConstructor
 
@@ -1072,7 +1090,7 @@ class TypeResolver(
         }
 
         val resultingType =
-            CangJieTypeFactory.simpleNotNullType(
+            CangJieTypeFactory.simpleNonOptionType(
                 typeAttributeTranslators.toAttributes(
                     annotations,
                     classDescriptor.typeConstructor,
@@ -1112,7 +1130,7 @@ class TypeResolver(
     fun resolveTypeForEnum(
         c: TypeResolutionContext, annotations: Annotations,
         classDescriptor: EnumDescriptor, element: CjElement,
-        qualifierResolutionResult:  TypeQualifierResolutionResult
+        qualifierResolutionResult: TypeQualifierResolutionResult
     ): PossiblyBareType = resolveTypeForClassOrEnum(c, annotations, classDescriptor, element, qualifierResolutionResult)
 
     /**
@@ -1128,7 +1146,7 @@ class TypeResolver(
     fun resolveTypeForClass(
         c: TypeResolutionContext, annotations: Annotations,
         classDescriptor: ClassDescriptor, element: CjElement,
-        qualifierResolutionResult:  TypeQualifierResolutionResult
+        qualifierResolutionResult: TypeQualifierResolutionResult
     ): PossiblyBareType = resolveTypeForClassOrEnum(c, annotations, classDescriptor, element, qualifierResolutionResult)
 
     private fun buildFinalArgumentList(

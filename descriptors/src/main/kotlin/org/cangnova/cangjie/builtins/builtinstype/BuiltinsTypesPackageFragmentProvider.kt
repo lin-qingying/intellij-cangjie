@@ -41,7 +41,7 @@ import org.cangnova.cangjie.types.SimpleType
 import org.cangnova.cangjie.utils.Printer
 
 /**
- * BasicTypesPackageFragmentProvider 负责提供基本类型（原始类型）的包片段。
+ * PrimitiveTypesPackageFragmentProvider 负责提供基本类型（原始类型）的包片段。
  * 这个类集中管理所有基本类型的创建和访问，将基本类型的逻辑从 CangJieBuiltIns 中分离出来。
  */
 class BuiltinsTypesPackageFragmentProvider(

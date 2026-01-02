@@ -102,7 +102,7 @@ class LazyExtendMemberScope(
 
     override fun getNonDeclaredClasses(
         name: Name,
-        result: MutableSet<ClassDescriptor>
+        result: MutableSet<ClassAndEnumDescriptor>
     ) {
 
     }

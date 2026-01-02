@@ -26,8 +26,12 @@ package org.cangnova.cangjie.resolve
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.config.LanguageVersionSettings
-import org.cangnova.cangjie.descriptors.ClassDescriptor
-import org.cangnova.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
+import org.cangnova.cangjie.descriptors.EnumDescriptor
+import org.cangnova.cangjie.descriptors.Modality
+import org.cangnova.cangjie.descriptors.annotations.Annotations
+import org.cangnova.cangjie.descriptors.impl.EnumConstructorDescriptorImpl
+import org.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl
+import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjEnumConstructor
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.components.InferenceSession
@@ -36,6 +40,7 @@ import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.LexicalScopeKind
 import org.cangnova.cangjie.resolve.scopes.LexicalWritableScope
 import org.cangnova.cangjie.resolve.scopes.LocalRedeclarationChecker
+import org.cangnova.cangjie.resolve.source.toSourceElement
 import org.cangnova.cangjie.storage.StorageManager
 
 class EnumDescriptorResolver(
@@ -44,29 +49,82 @@ class EnumDescriptorResolver(
     private val storageManager: StorageManager
 
 ) {
-    fun resolbeEnumEntryConstructorDescriptor(
+    /**
+     * 解析枚举构造器描述符
+     *
+     * 枚举构造器可以是：
+     * 1. 简单构造器（无关联值）：如 `Red`, `Green`
+     * 2. 函数构造器（有关联值）：如 `Success(T)`, `Error(String)`
+     *
+     * @param scope 词法作用域
+     * @param enumDescriptor 所属枚举的描述符
+     * @param entry 枚举构造器的 PSI 元素
+     * @param trace 绑定跟踪器
+     * @param languageVersionSettings 语言版本设置
+     * @param inferenceSession 类型推断会话
+     * @return 枚举构造器描述符
+     */
+    fun resolveEnumConstructorConstructorDescriptor(
         scope: LexicalScope,
-        classDescriptor: ClassDescriptor,
+        enumDescriptor: EnumDescriptor,
         entry: CjEnumConstructor,
         trace: BindingTrace,
         languageVersionSettings: LanguageVersionSettings,
         inferenceSession: InferenceSession?,
-    ): ClassConstructorDescriptorImpl {
+    ): EnumConstructorDescriptorImpl {
 
+        // 创建参数作用域
         val parameterScope = LexicalWritableScope(
             scope,
-            classDescriptor,
+            enumDescriptor,
             false,
             LocalRedeclarationChecker.DO_NOTHING,
             LexicalScopeKind.CONSTRUCTOR_HEADER
         )
-        entry.typeReferences.map {
+
+        // 解析构造器参数类型
+        val parameterTypes = entry.typeReferences.map {
             typeResolver.resolveType(parameterScope, it, trace, true)
         }
 
+        // 创建枚举构造器描述符
+        val constructorName = entry.name?.let { Name.identifier(it) } ?: Name.special("<anonymous>")
+        val sourceElement = entry.toSourceElement()
 
-        TODO("等待重构枚举构造器")
+        val constructorDescriptor = EnumConstructorDescriptorImpl(
+            name = constructorName,
+            containingDeclaration = enumDescriptor,
+            original = null,
+            annotations = Annotations.EMPTY, // TODO: 解析注解
+            source = sourceElement
+        )
 
+        // 创建值参数描述符列表
+        val valueParameters = parameterTypes.mapIndexed { index, paramType ->
+            ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
+                containingDeclaration = constructorDescriptor,
+                original = null,
+                index = index,
+                annotations = Annotations.EMPTY,
+                name = Name.identifier("param$index"), // 枚举构造器参数通常是匿名的
+                isNamed = false,
+                outType = paramType,
+                declaresDefaultValue = false,
+                source = sourceElement
+            )
+        }
+
+        // 初始化构造器描述符
+        constructorDescriptor.initialize(
+            dispatchReceiverParameter = null,
+            typeParameters = emptyList(),
+            unsubstitutedValueParameters = valueParameters,
+            unsubstitutedReturnType = enumDescriptor.defaultType,
+            modality = Modality.FINAL,
+
+        )
+
+        return constructorDescriptor
     }
 
 

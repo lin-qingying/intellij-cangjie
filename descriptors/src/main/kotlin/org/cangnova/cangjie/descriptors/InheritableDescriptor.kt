@@ -105,24 +105,41 @@ interface InheritableDescriptor : DeclarationDescriptorNonRoot,DeclarationDescri
 
     /**
      * 是否可以被继承
-     * 
+     *
      * 基于模态性快速判断此声明是否可以被其他声明继承。
      * FINAL和某些特殊情况下的声明不可被继承。
+     *
+     * 与编译器 IsOpen() 方法对应，判断是否可被继承/实现。
      */
     val isInheritable: Boolean
         get() = modality != Modality.FINAL
-    
+
+    /**
+     * 是否为开放声明
+     *
+     * 与编译器的 IsOpen() 方法对应：
+     * - OPEN: 显式标记为可被继承
+     * - ABSTRACT: 抽象类/接口天然可被继承
+     * - Interface: 天然可被实现（默认 OPEN）
+     *
+     * 编译器逻辑：
+     * - ClassDecl.IsOpen() = TestAnyAttr(OPEN, ABSTRACT)
+     * - InterfaceDecl.IsOpen() = true
+     */
+    val isOpen: Boolean
+        get() = modality == Modality.OPEN || modality == Modality.ABSTRACT || kind == ClassKind.INTERFACE
+
     /**
      * 是否为抽象声明
-     * 
+     *
      * 抽象声明不能被直接实例化，必须通过子类实现。
      */
     val isAbstract: Boolean
         get() = modality == Modality.ABSTRACT
-    
+
     /**
      * 是否为密封声明
-     * 
+     *
      * 密封声明只能在限定范围内被继承。
      */
     val isSealed: Boolean

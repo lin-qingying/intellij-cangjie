@@ -27,6 +27,7 @@ package org.cangnova.cangjie.utils
 import com.intellij.util.SmartList
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
+import org.cangnova.cangjie.descriptors.ClassAndEnumDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.ClassKind
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
@@ -57,7 +58,7 @@ import org.cangnova.cangjie.types.contains
  * @receiver ClassDescriptor 要查询的类描述符
  * @return SmartList<ClassDescriptor> 所有超类的列表（不包括 Any）
  */
-fun ClassDescriptor.getAllSuperclassesWithoutAny() =
+fun ClassAndEnumDescriptor.getAllSuperclassesWithoutAny() =
     generateSequence(
         getSuperClassNotAny(),
         ClassDescriptor::getSuperClassNotAny

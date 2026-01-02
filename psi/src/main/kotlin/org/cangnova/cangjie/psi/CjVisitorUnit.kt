@@ -894,8 +894,8 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
 
     }
 
-    override fun visitClass(klass: CjClass, data: Unit?): Unit {
-        visitClass(klass)
+    override fun visitClass(cclass: CjClass, data: Unit?): Unit {
+        visitClass(cclass)
 
     }
 

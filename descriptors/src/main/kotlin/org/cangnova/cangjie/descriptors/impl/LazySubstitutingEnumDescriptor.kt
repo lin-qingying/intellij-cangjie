@@ -265,4 +265,7 @@ class LazySubstitutingEnumDescriptor(
 
     override val name: Name
         get() = original.name
+
+    override val thisAsReceiverParameter: ReceiverParameterDescriptor
+        get() = original.thisAsReceiverParameter
 }

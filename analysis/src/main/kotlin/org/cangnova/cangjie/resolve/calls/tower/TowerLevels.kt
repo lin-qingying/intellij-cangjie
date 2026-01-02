@@ -31,7 +31,7 @@ import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.calls.util.EnumConstructorAccessDescriptor
-import org.cangnova.cangjie.resolve.qualified.isEnumClass
+import org.cangnova.cangjie.resolve.qualified.isEnum
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.cangnova.cangjie.types.CangJieType
@@ -266,7 +266,7 @@ private fun getConstructorsOfClassifier(classifier: ClassifierDescriptor?): List
 }
 
 private val ClassDescriptor.canHaveCallableConstructors: Boolean
-    get() = !ErrorUtils.isError(this) && !isEnumClass
+    get() = !ErrorUtils.isError(this) && !isEnum
 
 private val TypeAliasDescriptor.canHaveCallableConstructors: Boolean
     get() = classDescriptor != null && !ErrorUtils.isError(classDescriptor) && classDescriptor!!.canHaveCallableConstructors
@@ -284,7 +284,7 @@ fun getFakeDescriptorForObject(classifier: ClassifierDescriptor?): EnumConstruct
     when (classifier) {
         // 枚举类：创建假的可调用描述符
         is ClassDescriptor ->
-            if (classifier.isEnumClass)
+            if (classifier.isEnum)
                 EnumConstructorAccessDescriptor(classifier)
             else
                 null
@@ -292,7 +292,7 @@ fun getFakeDescriptorForObject(classifier: ClassifierDescriptor?): EnumConstruct
         // 类型别名：如果指向枚举类型，为底层枚举创建描述符
         is TypeAliasDescriptor ->
             classifier.classDescriptor?.let { classDescriptor ->
-                if (classDescriptor.isEnumClass)
+                if (classDescriptor.isEnum)
                     EnumConstructorAccessDescriptor(classDescriptor)
                 else
                     null

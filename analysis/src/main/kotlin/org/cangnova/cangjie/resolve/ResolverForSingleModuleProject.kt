@@ -35,7 +35,7 @@ import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.resolve.caches.ModuleContent
 import com.intellij.psi.search.GlobalSearchScope
-import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.DefaultBuiltIns
+
 import org.cangnova.cangjie.moduleinfo.ModuleInfo
 
 /**

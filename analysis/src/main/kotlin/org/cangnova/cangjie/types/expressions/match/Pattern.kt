@@ -122,7 +122,7 @@ data class Pattern(
      * - 元组 → [Constructor.Single]
      * - 类型模式 → [Constructor.Type]
      */
-    val constructors: List<Constructor>?
+    val constructors: List<Constructor>
         get() = when (kind) {
             is PatternKind.Wild, is PatternKind.Binding -> null
             is PatternKind.Enum -> listOf(Constructor.Enum(kind.entry))
@@ -130,7 +130,7 @@ data class Pattern(
             is PatternKind.Tuple -> listOf(Constructor.Single)
             is PatternKind.Error -> null
             is PatternKind.Type -> listOf(Constructor.Type(kind.type))
-        }
+        } ?: emptyList()
 
     /**
      * 获取适合生成构造器的类型

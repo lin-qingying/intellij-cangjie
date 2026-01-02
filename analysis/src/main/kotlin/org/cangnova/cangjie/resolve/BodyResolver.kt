@@ -334,7 +334,7 @@ class BodyResolver(
 
             resolveSuperTypeEntryList(
                 c.outerDataFlowInfo, typeStatement, descriptor,
-                descriptor.unsubstitutedPrimaryConstructor,
+                if(descriptor is ClassDescriptor )   descriptor.unsubstitutedPrimaryConstructor else null,
                 descriptor.scopeForConstructorHeaderResolution,
                 descriptor.scopeForMemberDeclarationResolution,
                 localContext?.inferenceSession
@@ -401,7 +401,7 @@ class BodyResolver(
                     trace.report(CONSTRUCTOR_NAME_INCONSISTENCY.on(constructor))
                 }
 
-                if (typeStatement.primaryConstructors.size > 1) {
+                if (typeStatement.primaryConstructors.size > 1 && descriptor is ClassDescriptor) {
                     trace.report(MULTIPLE_PRIMARY_CONSTRUCTORS.on(constructor, descriptor))
                 }
             }
@@ -721,7 +721,7 @@ class BodyResolver(
     fun resolveSuperTypeEntryList(
         outerDataFlowInfo: DataFlowInfo,
         typeStatement: CjTypeStatement,
-        descriptor: ClassDescriptor,
+        descriptor: ClassAndEnumDescriptor,
         primaryConstructor: ConstructorDescriptor?,
         scopeForConstructorResolution: LexicalScope,
         scopeForMemberResolution: LexicalScope,
@@ -733,7 +733,7 @@ class BodyResolver(
             FunctionDescriptorUtil.getFunctionInnerScope(scopeForConstructorResolution, it, trace, overloadChecker)
         }
 
-        if (primaryConstructor == null) {
+        if (primaryConstructor == null && descriptor is ClassDescriptor) {
             checkRedeclarationsInClassHeaderWithoutPrimaryConstructor(descriptor, scopeForConstructorResolution)
         }
 
@@ -756,8 +756,8 @@ class BodyResolver(
                 val superClass = TypeUtils.getClassDescriptor(supertype) ?: return
 
 
-                if (descriptor.kind != ClassKind.INTERFACE &&
-                    checkPrimaryConstructor(descriptor.unsubstitutedPrimaryConstructor) &&
+                if (descriptor.kind != ClassKind.INTERFACE && (descriptor is ClassDescriptor &&
+                    checkPrimaryConstructor(descriptor.unsubstitutedPrimaryConstructor)) &&
                     superClass.kind != ClassKind.INTERFACE &&
 
                     !ErrorUtils.isError(superClass) && TypeUtils.checkConstructorsNotParameter(superClass)
@@ -787,13 +787,13 @@ class BodyResolver(
 
     // Returns a set of enum or sealed types of which supertypeOwner is an constructor or a member
     private fun getAllowedFinalSupertypes(
-        descriptor: ClassDescriptor,
+        descriptor: ClassAndEnumDescriptor,
         supertypes: Map<CjTypeReference, CangJieType>,
         typeStatement: CjTypeStatement
     ): Set<TypeConstructor> = emptySet()
 
     private fun checkSupertypeList(
-        supertypeOwner: ClassDescriptor,
+        supertypeOwner: ClassAndEnumDescriptor,
         supertypes: Map<CjTypeReference, CangJieType>,
         typeStatement: CjTypeStatement,
         sourceSuperClass: Set<CangJieType>
@@ -887,7 +887,7 @@ class BodyResolver(
                             }
                         }
 
-                        classDescriptor.isFinalOrEnum -> {
+                        classDescriptor.isFinal -> {
                             trace.report(FINAL_SUPERTYPE.on(typeReference, classDescriptor.defaultType))
                         }
                     }

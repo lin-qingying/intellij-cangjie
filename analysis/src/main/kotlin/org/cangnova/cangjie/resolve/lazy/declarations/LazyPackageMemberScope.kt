@@ -31,9 +31,7 @@ import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.incremental.record
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjDeclaration
-import org.cangnova.cangjie.psi.CjImportDirective
 import org.cangnova.cangjie.psi.CjImportItem
-import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import org.cangnova.cangjie.resolve.isReexport
 import org.cangnova.cangjie.resolve.lazy.ResolveSession
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
@@ -164,7 +162,7 @@ class LazyPackageMemberScope(
         result.addAll(reexported.filterIsInstance<SimpleFunctionDescriptor>())
     }
 
-    override fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassDescriptor>) {
+    override fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassAndEnumDescriptor>) {
         // 添加重导出的类
         val reexported = findReexportedDeclarations(name)
         result.addAll(reexported.filterIsInstance<ClassDescriptor>())

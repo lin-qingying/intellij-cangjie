@@ -21,6 +21,7 @@ import org.cangnova.cangjie.analysis.CangJieAnalysisTestBase
 import org.cangnova.cangjie.descriptors.SimpleFunctionDescriptor
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.types.deccriptorClass
 
 /**
  * 函数声明语义分析测试
@@ -108,7 +109,7 @@ class FunctionSemanticAnalysisTest : CangJieAnalysisTestBase() {
             // 验证返回类型为 Unit
             val returnType = functionDescriptor!!.returnType
             assertNotNull("函数应该有返回类型", returnType)
-            assertEquals("Unit", returnType!!.toString())
+            assertEquals("Unit", returnType!!.deccriptorClass?.name?.asString())
         }
     }
 

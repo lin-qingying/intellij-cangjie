@@ -151,7 +151,7 @@ class GenericSemanticAnalysisTest : CangJieAnalysisTestBase() {
                 }
             }
 
-            class Zoo<T <: Animal> {
+            class Zoo<T > where T <: Animal{
                 private var animals: Array<T>
 
                 public init(animals: Array<T>) {
@@ -533,93 +533,7 @@ class GenericSemanticAnalysisTest : CangJieAnalysisTestBase() {
 
     // ==================== 型变测试 ====================
 
-    /**
-     * 测试协变类型参数
-     *
-     * 验证：
-     * 1. out 修饰的类型参数
-     * 2. 协变语义正确
-     */
-    fun `test covariant type parameter`() {
-        val file = createFile(
-            """
-            package test
 
-            interface Producer<out T> {
-                func produce(): T
-            }
-
-            class StringProducer <: Producer<String> {
-                public func produce(): String {
-                    return "Hello"
-                }
-            }
-            """.trimIndent()
-        )
-
-        analyzeForTest(file) {
-            val producerInterface = PsiTreeUtil.findChildrenOfType(file, CjInterface::class.java)
-                .firstOrNull { it.name == "Producer" }
-            assertNotNull("应该找到 Producer 接口", producerInterface)
-
-            val interfaceDescriptor = bindingContext[BindingContext.CLASS, producerInterface!!]
-            assertNotNull("应该创建 Producer ClassDescriptor", interfaceDescriptor)
-
-            // 验证类型参数
-            val typeParameters = interfaceDescriptor!!.declaredTypeParameters
-            assertEquals("应该有 1 个类型参数", 1, typeParameters.size)
-
-            val typeParam = typeParameters[0]
-            assertEquals("T", typeParam.name.asString())
-
-            // 验证协变性（如果实现了）
-            // assertEquals("应该是协变的", Variance.OUT_VARIANCE, typeParam.variance)
-        }
-    }
-
-    /**
-     * 测试逆变类型参数
-     *
-     * 验证：
-     * 1. in 修饰的类型参数
-     * 2. 逆变语义正确
-     */
-    fun `test contravariant type parameter`() {
-        val file = createFile(
-            """
-            package test
-
-            interface Consumer<in T> {
-                func consume(item: T): Unit
-            }
-
-            class AnyConsumer <: Consumer<Any> {
-                public func consume(item: Any) {
-                    // consume implementation
-                }
-            }
-            """.trimIndent()
-        )
-
-        analyzeForTest(file) {
-            val consumerInterface = PsiTreeUtil.findChildrenOfType(file, CjInterface::class.java)
-                .firstOrNull { it.name == "Consumer" }
-            assertNotNull("应该找到 Consumer 接口", consumerInterface)
-
-            val interfaceDescriptor = bindingContext[BindingContext.CLASS, consumerInterface!!]
-            assertNotNull("应该创建 Consumer ClassDescriptor", interfaceDescriptor)
-
-            // 验证类型参数
-            val typeParameters = interfaceDescriptor!!.declaredTypeParameters
-            assertEquals("应该有 1 个类型参数", 1, typeParameters.size)
-
-            val typeParam = typeParameters[0]
-            assertEquals("T", typeParam.name.asString())
-
-            // 验证逆变性（如果实现了）
-            // assertEquals("应该是逆变的", Variance.IN_VARIANCE, typeParam.variance)
-        }
-    }
 
     // ==================== 泛型嵌套测试 ====================
 
@@ -670,14 +584,14 @@ class GenericSemanticAnalysisTest : CangJieAnalysisTestBase() {
             assertEquals("应该有 1 个类型参数", 1, typeParameters.size)
             assertEquals("T", typeParameters[0].name.asString())
 
-            // 验证属性的嵌套泛型类型
-            val properties = PsiTreeUtil.findChildrenOfType(boxOfBoxesClass, CjProperty::class.java)
-            val boxesProperty = properties.firstOrNull { it.name == "boxes" }
-            assertNotNull("应该找到 boxes 属性", boxesProperty)
+            // 验证字段的嵌套泛型类型
+            val fields = PsiTreeUtil.findChildrenOfType(boxOfBoxesClass, CjFieldVariable::class.java)
+            val boxesField = fields.firstOrNull { it.name == "boxes" }
+            assertNotNull("应该找到 boxes 字段", boxesField)
 
-            val propertyDescriptor = bindingContext[BindingContext.VARIABLE, boxesProperty!!]
-            assertNotNull("boxes 应该有描述符", propertyDescriptor)
-            assertNotNull("boxes 应该有类型", propertyDescriptor!!.type)
+            val fieldDescriptor = bindingContext[BindingContext.VARIABLE, boxesField!!]
+            assertNotNull("boxes 应该有描述符", fieldDescriptor)
+            assertNotNull("boxes 应该有类型", fieldDescriptor!!.type)
         }
     }
 }

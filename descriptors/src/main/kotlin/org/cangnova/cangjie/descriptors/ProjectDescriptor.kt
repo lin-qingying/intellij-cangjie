@@ -30,6 +30,7 @@ import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.DefaultBuiltIns
 import org.cangnova.cangjie.builtins.StdlibTypes
 import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.storage.LockBasedStorageManager
 import org.cangnova.cangjie.types.error.ErrorClassDescriptor
 import org.cangnova.cangjie.types.error.ErrorModuleDescriptor
 
@@ -82,6 +83,7 @@ interface ProjectDescriptor : DeclarationDescriptor {
      * 项目名称
      */
     override val name: Name
+
     /**
      * 项目的 BuiltIns，基于 SDK 创建
      * 整个项目共享同一个 BuiltIns 实例
@@ -142,13 +144,14 @@ interface ProjectDescriptor : DeclarationDescriptor {
 
     companion object {
         val ERROR = object : ProjectDescriptor {
-            override val stdlibModule: ModuleDescriptor get() =    ErrorModuleDescriptor
             override val name: Name
                 get() = Name.ERROR_NAME
             override val builtIns: CangJieBuiltIns
                 get() = DefaultBuiltIns
+            override val stdlibModule: ModuleDescriptor get() = ErrorModuleDescriptor
+
             override val stdlibTypes: StdlibTypes
-                get() = throw UnsupportedOperationException("ERROR ProjectDescriptor does not have stdlibTypes")
+                get() = StdlibTypes(stdlibModule, DefaultBuiltIns.storageManager)
             override val project: Project
                 get() = ProjectManager.getInstance().defaultProject
             override val modules: List<ModuleDescriptor>
@@ -178,7 +181,7 @@ interface ProjectDescriptor : DeclarationDescriptor {
                 visitor: DeclarationDescriptorVisitor<R, D>,
                 data: D
             ): R? {
-              return null
+                return null
             }
 
             override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {

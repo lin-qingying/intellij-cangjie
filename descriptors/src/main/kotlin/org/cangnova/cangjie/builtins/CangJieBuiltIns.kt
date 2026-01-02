@@ -26,16 +26,10 @@ package org.cangnova.cangjie.builtins
 
 import org.cangnova.cangjie.builtins.StandardNames.BASIC_PACKAGE_FQ_NAME
 import org.cangnova.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_NAME
-import org.cangnova.cangjie.builtins.StandardNames.COMPARABLE
-import org.cangnova.cangjie.builtins.StandardNames.COUNTABLE
-import org.cangnova.cangjie.builtins.StandardNames.EQUATABLE
-import org.cangnova.cangjie.builtins.StandardNames.FUTURE
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.anyUFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.arrayClassFqNameToPrimitiveType
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.arrayUFqName
-import org.cangnova.cangjie.builtins.StandardNames.FqNames.ast
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.boolUFqName
-import org.cangnova.cangjie.builtins.StandardNames.FqNames.core
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.float16UFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.float32UFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.float64UFqName
@@ -48,16 +42,11 @@ import org.cangnova.cangjie.builtins.StandardNames.FqNames.optionUFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.primitiveArrayTypeShortNames
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.runeUFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.stringUFqName
-import org.cangnova.cangjie.builtins.StandardNames.FqNames.sync
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.uint16UFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.uint32UFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.uint8UFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.unitUFqName
-import org.cangnova.cangjie.builtins.StandardNames.RANGE
-import org.cangnova.cangjie.builtins.StandardNames.RESOURCE
-import org.cangnova.cangjie.builtins.StandardNames.STD_PACKAGE_NAME
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.impl.*
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.lexer.CjToken
@@ -84,6 +73,7 @@ open class CangJieBuiltIns(
     companion object {
         val DefaultBuiltIns: CangJieBuiltIns =
             CangJieBuiltIns(ProjectDescriptor.ERROR, LockBasedStorageManager("DefaultBuiltIns"))
+
         fun isDeprecated(declarationDescriptor: DeclarationDescriptor): Boolean {
             if (declarationDescriptor.original.annotations.hasAnnotation(StandardNames.FqNames.deprecated)) return true
 
@@ -101,6 +91,7 @@ open class CangJieBuiltIns(
 
             return false
         }
+
         /**
          * 判断 Descriptor 是否来自内置库
          *
@@ -256,7 +247,7 @@ open class CangJieBuiltIns(
         }
 
         @JvmStatic
-        fun isSpecialClassWithNoSupertypes(descriptor: ClassDescriptor): Boolean {
+        fun isSpecialClassWithNoSupertypes(descriptor: ClassAndEnumDescriptor): Boolean {
             return classFqNameEquals(
                 descriptor,
                 anyUFqName
@@ -284,7 +275,7 @@ open class CangJieBuiltIns(
 //                        argument
 //                    )
 //                )
-//            return simpleNotNullType(TypeAttributes.Empty, getEnum(), types)
+//            return simpleNonOptionType(TypeAttributes.Empty, getEnum(), types)
 //        }
 
         @JvmStatic
@@ -461,8 +452,7 @@ open class CangJieBuiltIns(
 
     private val builtInsModuleProvider: NotNullLazyValue<ModuleDescriptorImpl> =
         storageManager.createLazyValue {
-            val sdk = CjProjectSdkConfig.getInstance(projectDescriptor.project).getProjectSdk()
-            createBuiltInsModuleInternal(isFallback = sdk == null)
+            createBuiltInsModuleInternal()
         }
 
     val builtInsModule: ModuleDescriptorImpl
@@ -606,7 +596,7 @@ open class CangJieBuiltIns(
      * 该模块只包含 cangjie 包下的基本类型（Int8, Bool, Unit 等）。
      * 标准库类型（std.core, std.sync 等）由单独的 stdlibModule 提供。
      */
-    private fun createBuiltInsModuleInternal(isFallback: Boolean): ModuleDescriptorImpl {
+    private fun createBuiltInsModuleInternal(): ModuleDescriptorImpl {
         val module = ModuleDescriptorImpl(
             projectDescriptor,
             BUILTINS_MODULE_NAME,

@@ -19,7 +19,9 @@ package org.cangnova.cangjie.resolve.operators
 import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.analysis.CangJieAnalysisTestBase
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
 import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.types.deccriptorClass
 
 /**
  * 运算符重载和类型转换语义分析测试
@@ -70,7 +72,7 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
                 }
             }
 
-            func main() {
+            main() {
                 let v1 = Vector(1.0, 2.0)
                 let v2 = Vector(3.0, 4.0)
                 let sum = v1 + v2
@@ -96,10 +98,11 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
             assertTrue("返回类型应该是 Vector", returnType!!.toString().contains("Vector"))
 
             // 验证使用运算符的变量
-            val sumProperty = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
+            val sumPatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
                 .firstOrNull { it.name == "sum" }
-            if (sumProperty != null) {
-                val sumDescriptor = bindingContext[BindingContext.VARIABLE, sumProperty!!]
+            if (sumPatternVar != null) {
+                val sumBinding = sumPatternVar.pattern.getAllBindings().firstOrNull { it.name == "sum" }
+                val sumDescriptor = bindingContext[BindingContext.VARIABLE, sumBinding!!]
                 assertNotNull("sum 应该有描述符", sumDescriptor)
             }
         }
@@ -137,7 +140,7 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
                 }
             }
 
-            func main() {
+            main() {
                 let c1 = Complex(3.0, 4.0)
                 let c2 = Complex(1.0, 2.0)
                 let negated = -c1
@@ -188,7 +191,7 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
                 }
             }
 
-            func main() {
+            main() {
                 let m1 = Matrix()
                 let m2 = Matrix()
                 let product = m1 * m2
@@ -241,7 +244,7 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
                 }
             }
 
-            func main() {
+            main() {
                 let p1 = Point(1, 2)
                 let p2 = Point(1, 2)
                 let areEqual = p1 == p2
@@ -264,10 +267,11 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
             assertEquals("Bool", equalsDescriptor!!.returnType!!.toString())
 
             // 验证使用结果
-            val areEqualProperty = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
+            val areEqualPatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
                 .firstOrNull { it.name == "areEqual" }
-            if (areEqualProperty != null) {
-                val descriptor = bindingContext[BindingContext.VARIABLE, areEqualProperty!!]
+            if (areEqualPatternVar != null) {
+                val areEqualBinding = areEqualPatternVar.pattern.getAllBindings().firstOrNull { it.name == "areEqual" }
+                val descriptor = bindingContext[BindingContext.VARIABLE, areEqualBinding!!]
                 assertNotNull("areEqual 应该有描述符", descriptor)
                 assertEquals("Bool", descriptor!!.type.toString())
             }
@@ -320,7 +324,7 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
                 }
             }
 
-            func main() {
+            main() {
                 let v1 = Version(1, 0, 0)
                 let v2 = Version(2, 0, 0)
                 let isLess = v1 < v2
@@ -342,7 +346,7 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
 
                 val descriptor = bindingContext[BindingContext.FUNCTION, operator!!]
                 assertNotNull("$op 运算符应该有描述符", descriptor)
-                assertEquals("Bool", descriptor!!.returnType!!.toString())
+                assertEquals("Bool", descriptor!!.returnType!!.deccriptorClass?.name?.asString())
             }
         }
     }
@@ -377,7 +381,7 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
                 }
             }
 
-            func main() {
+            main() {
                 let arr = CustomArray<String>()
                 arr[0] = "hello"
                 let value = arr[0]
@@ -437,7 +441,7 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
                 }
             }
 
-            func main() {
+            main() {
                 let animal: Animal = Dog()
                 let dog = animal as Dog
                 dog.fetch()
@@ -446,11 +450,14 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val dogProperty = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-                .firstOrNull { it.name == "dog" }
-            assertNotNull("应该找到 dog 变量", dogProperty)
+            val dogPatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "dog" }
+                }
+            assertNotNull("应该找到 dog 变量", dogPatternVar)
 
-            val dogDescriptor = bindingContext[BindingContext.VARIABLE, dogProperty!!]
+            val dogBinding = dogPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "dog" }
+            val dogDescriptor = bindingContext[BindingContext.VARIABLE, dogBinding!!]
             assertNotNull("dog 应该有描述符", dogDescriptor)
             // 转换后的类型应该是 Dog
             assertTrue("类型应该是 Dog", dogDescriptor!!.type.toString().contains("Dog"))
@@ -484,7 +491,7 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
                 }
             }
 
-            func main() {
+            main() {
                 let animal: Animal = Cat()
                 let maybeDog = animal as? Dog
                 if (maybeDog != null) {
@@ -495,11 +502,12 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val maybeDogProperty = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
+            val maybeDogPatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
                 .firstOrNull { it.name == "maybeDog" }
-            assertNotNull("应该找到 maybeDog 变量", maybeDogProperty)
+            assertNotNull("应该找到 maybeDog 变量", maybeDogPatternVar)
 
-            val maybeDogDescriptor = bindingContext[BindingContext.VARIABLE, maybeDogProperty!!]
+            val maybeDogBinding = maybeDogPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "maybeDog" }
+            val maybeDogDescriptor = bindingContext[BindingContext.VARIABLE, maybeDogBinding!!]
             assertNotNull("maybeDog 应该有描述符", maybeDogDescriptor)
             // 安全转换的结果应该是可空类型
             assertNotNull("应该有类型", maybeDogDescriptor!!.type)
@@ -520,7 +528,7 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+              main() {
                 let smallInt: Int8 = 10
                 let largeInt: Int64 = smallInt
 
@@ -531,19 +539,21 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertTrue("应该有变量声明", properties.isNotEmpty())
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+            assertTrue("应该有变量声明", patternVars.isNotEmpty())
 
-            val largeIntProperty = properties.firstOrNull { it.name == "largeInt" }
-            if (largeIntProperty != null) {
-                val descriptor = bindingContext[BindingContext.VARIABLE, largeIntProperty!!]
+            val largeIntPatternVar = patternVars.firstOrNull { it.name == "largeInt" }
+            if (largeIntPatternVar != null) {
+                val largeIntBinding = largeIntPatternVar.pattern.getAllBindings().firstOrNull { it.name == "largeInt" }
+                val descriptor = bindingContext[BindingContext.VARIABLE, largeIntBinding!!]
                 assertNotNull("largeInt 应该有描述符", descriptor)
                 assertEquals("Int64", descriptor!!.type.toString())
             }
 
-            val floatValueProperty = properties.firstOrNull { it.name == "floatValue" }
-            if (floatValueProperty != null) {
-                val descriptor = bindingContext[BindingContext.VARIABLE, floatValueProperty!!]
+            val floatValuePatternVar = patternVars.firstOrNull { it.name == "floatValue" }
+            if (floatValuePatternVar != null) {
+                val floatValueBinding = floatValuePatternVar.pattern.getAllBindings().firstOrNull { it.name == "floatValue" }
+                val descriptor = bindingContext[BindingContext.VARIABLE, floatValueBinding!!]
                 assertNotNull("floatValue 应该有描述符", descriptor)
                 assertEquals("Float64", descriptor!!.type.toString())
             }
@@ -590,7 +600,10 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val handleFunc = PsiTreeUtil.findChildOfType(file, CjFunction::class.java)
+            val handleFunc = PsiTreeUtil.findChildrenOfType(file, CjFunction::class.java)
+                .find {
+                    it.name == "handleAnimal"
+                }
             assertNotNull("应该找到 handleAnimal 函数", handleFunc)
 
             val handleDescriptor = bindingContext[BindingContext.FUNCTION, handleFunc!!]
@@ -672,7 +685,7 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
                 }
             }
 
-            func main() {
+            main() {
                 let temp = Temperature(25.0)
                 let fahrenheit = temp.toFahrenheit()
                 let kelvin = temp.toKelvin()
@@ -694,10 +707,11 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
             assertEquals("Float64", toFahrenheitDescriptor!!.returnType!!.toString())
 
             // 验证使用转换函数的变量
-            val fahrenheitProperty = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
+            val fahrenheitPatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
                 .firstOrNull { it.name == "fahrenheit" }
-            if (fahrenheitProperty != null) {
-                val descriptor = bindingContext[BindingContext.VARIABLE, fahrenheitProperty!!]
+            if (fahrenheitPatternVar != null) {
+                val fahrenheitBinding = fahrenheitPatternVar.pattern.getAllBindings().firstOrNull { it.name == "fahrenheit" }
+                val descriptor = bindingContext[BindingContext.VARIABLE, fahrenheitBinding!!]
                 assertNotNull("fahrenheit 应该有描述符", descriptor)
                 assertEquals("Float64", descriptor!!.type.toString())
             }

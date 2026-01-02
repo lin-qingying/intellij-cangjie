@@ -105,7 +105,7 @@ fun resolveQualifierAsStandaloneExpression(
         // 普通类作为独立表达式
         is ClassDescriptor -> {
             // 如果不是枚举类型，报告错误（仓颉语言不支持单例对象）
-            if (!context.config.isDotEnumGetType && !referenceTarget.isEnumClass) {
+            if (!context.config.isDotEnumGetType && !referenceTarget.isEnum) {
                 context.trace.report(
                     EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(
                         qualifier.expression,
@@ -130,7 +130,7 @@ fun resolveQualifierAsStandaloneExpression(
  * 枚举类型的构造器可以作为值直接访问（如 Color.Red）。
  * 这是仓颉语言中唯一支持"类值访问"的场景。
  */
-val ClassDescriptor.isEnumClass: Boolean
+val ClassAndEnumDescriptor.isEnum: Boolean
     get() = kind == ClassKind.ENUM
 
 /**
@@ -219,11 +219,11 @@ private fun resolveQualifierReferenceTarget(
 private fun ClassifierDescriptor.getCallableReceiverDescriptorRetainingTypeAliasReference(): ClassDescriptor? =
     when (this) {
         // 枚举类：返回类本身作为可调用接收器
-        is ClassDescriptor -> if (isEnumClass) this else null
+        is ClassDescriptor -> if (isEnum) this else null
 
         // 类型别名：如果指向枚举类型，返回底层枚举类
         is TypeAliasDescriptor ->
-            classDescriptor?.takeIf { it.isEnumClass }
+            classDescriptor?.takeIf { it.isEnum }
 
         else -> null
     }

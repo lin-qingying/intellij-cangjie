@@ -27,6 +27,7 @@ package org.cangnova.cangjie.resolve.expression
 import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.analysis.CangJieAnalysisTestBase
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
 import org.cangnova.cangjie.resolve.binding.BindingContext
 
 /**
@@ -63,7 +64,7 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+             main() {
                 let a = 42
                 let b = 100000000000
                 let c: Int8 = 10
@@ -73,24 +74,33 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertEquals("应该有 4 个变量", 4, properties.size)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+            assertEquals("应该有 4 个变量", 4, patternVars.size)
 
             // 验证变量 a 的类型推断
-            val aProperty = properties.first { it.name == "a" }
-            val aDescriptor = bindingContext[BindingContext.VARIABLE, aProperty!!]
+            val aPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "a" }
+            }
+            val aBinding = aPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "a" }
+            val aDescriptor = bindingContext[BindingContext.VARIABLE, aBinding!!]
             assertNotNull("a 应该有描述符", aDescriptor)
             assertNotNull("a 应该有推断类型", aDescriptor!!.type)
 
             // 验证变量 c 显式类型
-            val cProperty = properties.first { it.name == "c" }
-            val cDescriptor = bindingContext[BindingContext.VARIABLE, cProperty!!]
+            val cPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "c" }
+            }
+            val cBinding = cPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "c" }
+            val cDescriptor = bindingContext[BindingContext.VARIABLE, cBinding!!]
             assertNotNull("c 应该有描述符", cDescriptor)
             assertEquals("Int8", cDescriptor!!.type.toString())
 
             // 验证变量 d 显式类型
-            val dProperty = properties.first { it.name == "d" }
-            val dDescriptor = bindingContext[BindingContext.VARIABLE, dProperty!!]
+            val dPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "d" }
+            }
+            val dBinding = dPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "d" }
+            val dDescriptor = bindingContext[BindingContext.VARIABLE, dBinding!!]
             assertNotNull("d 应该有描述符", dDescriptor)
             assertEquals("Int64", dDescriptor!!.type.toString())
         }
@@ -107,7 +117,7 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+              main() {
                 let pi = 3.14
                 let e: Float32 = 2.71
                 let large: Float64 = 1.23456789
@@ -116,24 +126,33 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertEquals("应该有 3 个变量", 3, properties.size)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+            assertEquals("应该有 3 个变量", 3, patternVars.size)
 
             // 验证 pi 的类型推断
-            val piProperty = properties.first { it.name == "pi" }
-            val piDescriptor = bindingContext[BindingContext.VARIABLE, piProperty!!]
+            val piPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "pi" }
+            }
+            val piBinding = piPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "pi" }
+            val piDescriptor = bindingContext[BindingContext.VARIABLE, piBinding!!]
             assertNotNull("pi 应该有描述符", piDescriptor)
             assertNotNull("pi 应该有推断类型", piDescriptor!!.type)
 
             // 验证 e 的显式类型
-            val eProperty = properties.first { it.name == "e" }
-            val eDescriptor = bindingContext[BindingContext.VARIABLE, eProperty!!]
+            val ePatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "e" }
+            }
+            val eBinding = ePatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "e" }
+            val eDescriptor = bindingContext[BindingContext.VARIABLE, eBinding!!]
             assertNotNull("e 应该有描述符", eDescriptor)
             assertEquals("Float32", eDescriptor!!.type.toString())
 
             // 验证 large 的显式类型
-            val largeProperty = properties.first { it.name == "large" }
-            val largeDescriptor = bindingContext[BindingContext.VARIABLE, largeProperty!!]
+            val largePatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "large" }
+            }
+            val largeBinding = largePatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "large" }
+            val largeDescriptor = bindingContext[BindingContext.VARIABLE, largeBinding!!]
             assertNotNull("large 应该有描述符", largeDescriptor)
             assertEquals("Float64", largeDescriptor!!.type.toString())
         }
@@ -150,7 +169,7 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+              main() {
                 let message = "Hello, World!"
                 let empty = ""
                 let multiline = \"\"\"
@@ -163,18 +182,24 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertTrue("应该至少有 2 个变量", properties.size >= 2)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+            assertTrue("应该至少有 2 个变量", patternVars.size >= 2)
 
             // 验证 message 的类型推断
-            val messageProperty = properties.first { it.name == "message" }
-            val messageDescriptor = bindingContext[BindingContext.VARIABLE, messageProperty!!]
+            val messagePatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "message" }
+            }
+            val messageBinding = messagePatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "message" }
+            val messageDescriptor = bindingContext[BindingContext.VARIABLE, messageBinding!!]
             assertNotNull("message 应该有描述符", messageDescriptor)
             assertEquals("String", messageDescriptor!!.type.toString())
 
             // 验证 empty 的类型推断
-            val emptyProperty = properties.first { it.name == "empty" }
-            val emptyDescriptor = bindingContext[BindingContext.VARIABLE, emptyProperty!!]
+            val emptyPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "empty" }
+            }
+            val emptyBinding = emptyPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "empty" }
+            val emptyDescriptor = bindingContext[BindingContext.VARIABLE, emptyBinding!!]
             assertNotNull("empty 应该有描述符", emptyDescriptor)
             assertEquals("String", emptyDescriptor!!.type.toString())
         }
@@ -191,7 +216,7 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+              main() {
                 let isTrue = true
                 let isFalse = false
             }
@@ -230,7 +255,7 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+              main() {
                 let a: Int64 = 10
                 let b: Int64 = 20
                 let sum = a + b
@@ -242,30 +267,42 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertTrue("应该至少有 6 个变量", properties.size >= 6)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+            assertTrue("应该至少有 6 个变量", patternVars.size >= 6)
 
             // 验证 sum 的类型推断
-            val sumProperty = properties.first { it.name == "sum" }
-            val sumDescriptor = bindingContext[BindingContext.VARIABLE, sumProperty!!]
+            val sumPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "sum" }
+            }
+            val sumBinding = sumPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "sum" }
+            val sumDescriptor = bindingContext[BindingContext.VARIABLE, sumBinding!!]
             assertNotNull("sum 应该有描述符", sumDescriptor)
             assertNotNull("sum 应该有类型", sumDescriptor!!.type)
 
             // 验证 diff 的类型推断
-            val diffProperty = properties.first { it.name == "diff" }
-            val diffDescriptor = bindingContext[BindingContext.VARIABLE, diffProperty!!]
+            val diffPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "diff" }
+            }
+            val diffBinding = diffPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "diff" }
+            val diffDescriptor = bindingContext[BindingContext.VARIABLE, diffBinding!!]
             assertNotNull("diff 应该有描述符", diffDescriptor)
             assertNotNull("diff 应该有类型", diffDescriptor!!.type)
 
             // 验证 product 的类型推断
-            val productProperty = properties.first { it.name == "product" }
-            val productDescriptor = bindingContext[BindingContext.VARIABLE, productProperty!!]
+            val productPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "product" }
+            }
+            val productBinding = productPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "product" }
+            val productDescriptor = bindingContext[BindingContext.VARIABLE, productBinding!!]
             assertNotNull("product 应该有描述符", productDescriptor)
             assertNotNull("product 应该有类型", productDescriptor!!.type)
 
             // 验证 quotient 的类型推断
-            val quotientProperty = properties.first { it.name == "quotient" }
-            val quotientDescriptor = bindingContext[BindingContext.VARIABLE, quotientProperty!!]
+            val quotientPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "quotient" }
+            }
+            val quotientBinding = quotientPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "quotient" }
+            val quotientDescriptor = bindingContext[BindingContext.VARIABLE, quotientBinding!!]
             assertNotNull("quotient 应该有描述符", quotientDescriptor)
             assertNotNull("quotient 应该有类型", quotientDescriptor!!.type)
         }
@@ -282,7 +319,7 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+             main() {
                 let a: Int64 = 10
                 let b: Int64 = 20
                 let isEqual = a == b
@@ -296,15 +333,18 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertTrue("应该至少有 8 个变量", properties.size >= 8)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+            assertTrue("应该至少有 8 个变量", patternVars.size >= 8)
 
             // 验证所有比较结果都是 Bool 类型
             val comparisonProperties = listOf("isEqual", "isNotEqual", "isLess", "isGreater", "isLessOrEqual", "isGreaterOrEqual")
             for (propName in comparisonProperties) {
-                val property = properties.firstOrNull { it.name == propName }
-                if (property != null) {
-                    val descriptor = bindingContext[BindingContext.VARIABLE, property!!]
+                val patternVar = patternVars.firstOrNull { pv ->
+                    pv.pattern.getAllBindings().any { it.name == propName }
+                }
+                if (patternVar != null) {
+                    val binding = patternVar.pattern.getAllBindings().firstOrNull { it.name == propName }
+                    val descriptor = bindingContext[BindingContext.VARIABLE, binding!!]
                     assertNotNull("$propName 应该有描述符", descriptor)
                     assertEquals("Bool", descriptor!!.type.toString())
                 }
@@ -323,7 +363,7 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+             main() {
                 let a = true
                 let b = false
                 let andResult = a && b
@@ -334,24 +374,33 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertEquals("应该有 5 个变量", 5, properties.size)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+            assertEquals("应该有 5 个变量", 5, patternVars.size)
 
             // 验证 andResult 的类型
-            val andProperty = properties.first { it.name == "andResult" }
-            val andDescriptor = bindingContext[BindingContext.VARIABLE, andProperty!!]
+            val andPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "andResult" }
+            }
+            val andBinding = andPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "andResult" }
+            val andDescriptor = bindingContext[BindingContext.VARIABLE, andBinding!!]
             assertNotNull("andResult 应该有描述符", andDescriptor)
             assertEquals("Bool", andDescriptor!!.type.toString())
 
             // 验证 orResult 的类型
-            val orProperty = properties.first { it.name == "orResult" }
-            val orDescriptor = bindingContext[BindingContext.VARIABLE, orProperty!!]
+            val orPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "orResult" }
+            }
+            val orBinding = orPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "orResult" }
+            val orDescriptor = bindingContext[BindingContext.VARIABLE, orBinding!!]
             assertNotNull("orResult 应该有描述符", orDescriptor)
             assertEquals("Bool", orDescriptor!!.type.toString())
 
             // 验证 notResult 的类型
-            val notProperty = properties.first { it.name == "notResult" }
-            val notDescriptor = bindingContext[BindingContext.VARIABLE, notProperty!!]
+            val notPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "notResult" }
+            }
+            val notBinding = notPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "notResult" }
+            val notDescriptor = bindingContext[BindingContext.VARIABLE, notBinding!!]
             assertNotNull("notResult 应该有描述符", notDescriptor)
             assertEquals("Bool", notDescriptor!!.type.toString())
         }
@@ -374,18 +423,21 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
                 return 42
             }
 
-            func main() {
+             main() {
                 let num = getNumber()
             }
             """.trimIndent()
         )
 
         analyzeForTest(file) {
-            val numProperty = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-                .firstOrNull { it.name == "num" }
-            assertNotNull("应该找到 num 变量", numProperty)
+            val numPatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "num" }
+                }
+            assertNotNull("应该找到 num 变量", numPatternVar)
 
-            val numDescriptor = bindingContext[BindingContext.VARIABLE, numProperty!!]
+            val numBinding = numPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "num" }
+            val numDescriptor = bindingContext[BindingContext.VARIABLE, numBinding!!]
             assertNotNull("num 应该有描述符", numDescriptor)
             assertEquals("Int64", numDescriptor!!.type.toString())
         }
@@ -407,18 +459,21 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
                 return a + b
             }
 
-            func main() {
+             main() {
                 let result = add(10, 20)
             }
             """.trimIndent()
         )
 
         analyzeForTest(file) {
-            val resultProperty = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-                .firstOrNull { it.name == "result" }
-            assertNotNull("应该找到 result 变量", resultProperty)
+            val resultPatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "result" }
+                }
+            assertNotNull("应该找到 result 变量", resultPatternVar)
 
-            val resultDescriptor = bindingContext[BindingContext.VARIABLE, resultProperty!!]
+            val resultBinding = resultPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "result" }
+            val resultDescriptor = bindingContext[BindingContext.VARIABLE, resultBinding!!]
             assertNotNull("result 应该有描述符", resultDescriptor)
             assertEquals("Int64", resultDescriptor!!.type.toString())
         }
@@ -440,7 +495,7 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
                 return value
             }
 
-            func main() {
+             main() {
                 let num = identity(42)
                 let str = identity("hello")
             }
@@ -448,18 +503,24 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertTrue("应该至少有 2 个变量", properties.size >= 2)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+            assertTrue("应该至少有 2 个变量", patternVars.size >= 2)
 
             // 验证 num 的类型推断（应该是 Int 类型）
-            val numProperty = properties.first { it.name == "num" }
-            val numDescriptor = bindingContext[BindingContext.VARIABLE, numProperty!!]
+            val numPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "num" }
+            }
+            val numBinding = numPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "num" }
+            val numDescriptor = bindingContext[BindingContext.VARIABLE, numBinding!!]
             assertNotNull("num 应该有描述符", numDescriptor)
             assertNotNull("num 应该有类型", numDescriptor!!.type)
 
             // 验证 str 的类型推断（应该是 String 类型）
-            val strProperty = properties.first { it.name == "str" }
-            val strDescriptor = bindingContext[BindingContext.VARIABLE, strProperty!!]
+            val strPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "str" }
+            }
+            val strBinding = strPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "str" }
+            val strDescriptor = bindingContext[BindingContext.VARIABLE, strBinding!!]
             assertNotNull("str 应该有描述符", strDescriptor)
             assertEquals("String", strDescriptor!!.type.toString())
         }
@@ -488,7 +549,7 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
                 }
             }
 
-            func main() {
+              main() {
                 let person = Person("Alice", 30)
                 let personName = person.name
                 let personAge = person.age
@@ -497,20 +558,26 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
 
             // 验证 personName 的类型
-            val personNameProperty = properties.firstOrNull { it.name == "personName" }
-            if (personNameProperty != null) {
-                val descriptor = bindingContext[BindingContext.VARIABLE, personNameProperty!!]
+            val personNamePatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "personName" }
+            }
+            if (personNamePatternVar != null) {
+                val binding = personNamePatternVar.pattern.getAllBindings().firstOrNull { it.name == "personName" }
+                val descriptor = bindingContext[BindingContext.VARIABLE, binding!!]
                 assertNotNull("personName 应该有描述符", descriptor)
                 assertEquals("String", descriptor!!.type.toString())
             }
 
             // 验证 personAge 的类型
-            val personAgeProperty = properties.firstOrNull { it.name == "personAge" }
-            if (personAgeProperty != null) {
-                val descriptor = bindingContext[BindingContext.VARIABLE, personAgeProperty!!]
+            val personAgePatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "personAge" }
+            }
+            if (personAgePatternVar != null) {
+                val binding = personAgePatternVar.pattern.getAllBindings().firstOrNull { it.name == "personAge" }
+                val descriptor = bindingContext[BindingContext.VARIABLE, binding!!]
                 assertNotNull("personAge 应该有描述符", descriptor)
                 assertEquals("Int64", descriptor!!.type.toString())
             }
@@ -538,7 +605,7 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
                 }
             }
 
-            func main() {
+              main() {
                 let calc = Calculator()
                 let sum = calc.add(10, 20)
                 let message = calc.getMessage()
@@ -547,20 +614,26 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
 
             // 验证 sum 的类型
-            val sumProperty = properties.firstOrNull { it.name == "sum" }
-            if (sumProperty != null) {
-                val descriptor = bindingContext[BindingContext.VARIABLE, sumProperty!!]
+            val sumPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "sum" }
+            }
+            if (sumPatternVar != null) {
+                val binding = sumPatternVar.pattern.getAllBindings().firstOrNull { it.name == "sum" }
+                val descriptor = bindingContext[BindingContext.VARIABLE, binding!!]
                 assertNotNull("sum 应该有描述符", descriptor)
                 assertEquals("Int64", descriptor!!.type.toString())
             }
 
             // 验证 message 的类型
-            val messageProperty = properties.firstOrNull { it.name == "message" }
-            if (messageProperty != null) {
-                val descriptor = bindingContext[BindingContext.VARIABLE, messageProperty!!]
+            val messagePatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "message" }
+            }
+            if (messagePatternVar != null) {
+                val binding = messagePatternVar.pattern.getAllBindings().firstOrNull { it.name == "message" }
+                val descriptor = bindingContext[BindingContext.VARIABLE, binding!!]
                 assertNotNull("message 应该有描述符", descriptor)
                 assertEquals("String", descriptor!!.type.toString())
             }
@@ -580,7 +653,7 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+              main() {
                 let a: Int64 = 10
                 let b: Int64 = 20
                 let c: Int64 = 30
@@ -590,11 +663,14 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val resultProperty = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-                .firstOrNull { it.name == "result" }
-            assertNotNull("应该找到 result 变量", resultProperty)
+            val resultPatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "result" }
+                }
+            assertNotNull("应该找到 result 变量", resultPatternVar)
 
-            val resultDescriptor = bindingContext[BindingContext.VARIABLE, resultProperty!!]
+            val resultBinding = resultPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "result" }
+            val resultDescriptor = bindingContext[BindingContext.VARIABLE, resultBinding!!]
             assertNotNull("result 应该有描述符", resultDescriptor)
             assertNotNull("result 应该有类型", resultDescriptor!!.type)
         }
@@ -612,7 +688,7 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+              main() {
                 let condition = true
                 let value = if (condition) { 42 } else { 0 }
             }
@@ -620,11 +696,14 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val valueProperty = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-                .firstOrNull { it.name == "value" }
-            assertNotNull("应该找到 value 变量", valueProperty)
+            val valuePatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "value" }
+                }
+            assertNotNull("应该找到 value 变量", valuePatternVar)
 
-            val valueDescriptor = bindingContext[BindingContext.VARIABLE, valueProperty!!]
+            val valueBinding = valuePatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "value" }
+            val valueDescriptor = bindingContext[BindingContext.VARIABLE, valueBinding!!]
             assertNotNull("value 应该有描述符", valueDescriptor)
             assertNotNull("value 应该有类型", valueDescriptor!!.type)
         }
@@ -642,7 +721,7 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+              main() {
                 let numbers: Array<Int64> = Array<Int64>()
                 let first = numbers[0]
             }
@@ -650,11 +729,14 @@ class ExpressionTypeInferenceTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val firstProperty = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-                .firstOrNull { it.name == "first" }
-            assertNotNull("应该找到 first 变量", firstProperty)
+            val firstPatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "first" }
+                }
+            assertNotNull("应该找到 first 变量", firstPatternVar)
 
-            val firstDescriptor = bindingContext[BindingContext.VARIABLE, firstProperty!!]
+            val firstBinding = firstPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "first" }
+            val firstDescriptor = bindingContext[BindingContext.VARIABLE, firstBinding!!]
             assertNotNull("first 应该有描述符", firstDescriptor)
             assertNotNull("first 应该有类型", firstDescriptor!!.type)
         }

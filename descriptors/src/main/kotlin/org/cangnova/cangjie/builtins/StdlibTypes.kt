@@ -34,7 +34,9 @@ import org.cangnova.cangjie.builtins.StandardNames.FqNames.sync
 import org.cangnova.cangjie.builtins.StandardNames.ITERABLE
 import org.cangnova.cangjie.builtins.StandardNames.RANGE
 import org.cangnova.cangjie.builtins.StandardNames.RESOURCE
+import org.cangnova.cangjie.descriptors.ClassAndEnumDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptor
+import org.cangnova.cangjie.descriptors.EnumDescriptor
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
@@ -88,6 +90,7 @@ class StdlibTypes(
 ) {
 
     // ============================== Scopes ==============================
+
 
     /**
      * std.core 包的作用域
@@ -163,7 +166,7 @@ class StdlibTypes(
         return myStdCoreBuiltInClassesByName.invoke(simpleName)
     }
 
-    private fun getStdCoreClassByName(simpleName: String): ClassDescriptor {
+    private fun getStdCoreClassByName(simpleName: String): ClassAndEnumDescriptor {
         return myStdCoreBuiltInClassesByName.invoke(Name.identifier(simpleName))
     }
 
@@ -185,7 +188,7 @@ class StdlibTypes(
      * std.core.Any 类描述符
      */
     val any: ClassDescriptor
-        get() = getStdCoreClassByName("Any")
+        get() = getStdCoreClassByName("Any") as ClassDescriptor
 
     /**
      * std.core.Any 类型
@@ -200,7 +203,7 @@ class StdlibTypes(
      * 保持原有行为以兼容现有代码
      */
     val string: ClassDescriptor
-        get() = getStdCoreClassByName("String")
+        get() = getStdCoreClassByName("String")as ClassDescriptor
 
     /**
      * std.core.String 类型
@@ -212,19 +215,29 @@ class StdlibTypes(
      * std.core.Object 类描述符
      */
     val `object`: ClassDescriptor
-        get() = getStdCoreClassByName("Object")
+        get() = getStdCoreClassByName("Object")as ClassDescriptor
 
     /**
      * std.core.Object 类型
      */
     val objectType: CangJieType
         get() = `object`.defaultType
+    /**
+     * std.core.Option 枚举描述符
+     */
+    val option: EnumDescriptor
+        get() = getStdCoreClassByName("Option") as EnumDescriptor
 
+    /**
+     * std.core.Option 类型
+     */
+    val optionType: SimpleType
+        get() = option.defaultType
     /**
      * std.core.Array 类描述符
      */
     val array: ClassDescriptor
-        get() = getStdCoreClassByName("Array")
+        get() = getStdCoreClassByName("Array")as ClassDescriptor
 
     /**
      * std.core.Array 类型
@@ -235,20 +248,20 @@ class StdlibTypes(
     /**
      * std.core.Throwable 类描述符
      */
-    val throwable: ClassDescriptor
-        get() = getStdCoreClassByName("Throwable")
+    val exception: ClassDescriptor
+        get() = getStdCoreClassByName("Exception")as ClassDescriptor
 
     /**
      * std.core.Throwable 类型
      */
-    val throwableType: CangJieType
-        get() = throwable.defaultType
+    val exceptionType: CangJieType
+        get() = exception.defaultType
 
     /**
      * std.core.CType 类描述符
      */
     val ctype: ClassDescriptor
-        get() = getStdCoreClassByName("CType")
+        get() = getStdCoreClassByName("CType")as ClassDescriptor
 
     /**
      * std.core.CType 类型
@@ -260,7 +273,7 @@ class StdlibTypes(
      * std.core.CPointer 类描述符
      */
     val cpointer: ClassDescriptor
-        get() = getStdCoreClassByName("CPointer")
+        get() = getStdCoreClassByName("CPointer")as ClassDescriptor
 
     /**
      * std.core.CPointer 类型
@@ -272,7 +285,7 @@ class StdlibTypes(
      * std.core.CFunc 类描述符
      */
     val cfunc: ClassDescriptor
-        get() = getStdCoreClassByName("CFunc")
+        get() = getStdCoreClassByName("CFunc")as ClassDescriptor
 
     /**
      * std.core.CFunc 类型
@@ -391,7 +404,7 @@ class StdlibTypes(
                     argument
                 )
             )
-        return CangJieTypeFactory.simpleNotNullType(
+        return CangJieTypeFactory.simpleNonOptionType(
             annotations.toDefaultAttributes(),
             array,
             types

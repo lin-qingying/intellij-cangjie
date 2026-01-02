@@ -70,8 +70,8 @@ class PackagerResolver(
         if (currentLevel == 0) {
             return
         }
-        // 如果包名是模块名，则无需检查
-        if (packageView.fqName.isModuleName) {
+        // 如果包名是模块名（单一层级），则无需检查
+        if (packageView.fqName.isSingleSegment()) {
             return
         }
         // 获取父包的访问控制级别，如果无法获取，则终止检查
