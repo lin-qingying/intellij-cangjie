@@ -106,7 +106,7 @@ open class LazyDeclarationResolver(
 
         val descriptor = bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, typeStatement)
 
-        return descriptor as? ClassDescriptor
+        return descriptor as? ClassAndEnumDescriptor
     }
 
 

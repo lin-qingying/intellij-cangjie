@@ -129,43 +129,17 @@ class LazyPackageMemberScope(
         return result
     }
 
-    /**
-     * 根据名称查找重导出的声明
-     *
-     * 遍历所有重导出导入，找到匹配名称的声明
-     */
-    private fun findReexportedDeclarations(name: Name): List<DeclarationDescriptor> {
-        val result = mutableListOf<DeclarationDescriptor>()
 
-        for (importDirective in reexportImports) {
-            // 检查这个 import 是否匹配查询的名称
-            val effectiveName = importDirective.aliasName?.let { Name.identifier(it) }
-                ?: importDirective.importedFqName?.shortName()
-                ?: continue
-
-            if (effectiveName != name) continue
-
-            // 解析目标声明并返回（返回原始描述符）
-            val targetDescriptors = resolveReexportTarget(importDirective)
-            result.addAll(targetDescriptors)
-        }
-
-        return result
-    }
 
     override fun getScopeForMemberDeclarationResolution(declaration: CjDeclaration) =
         resolveSession.fileScopeProvider.getFileResolutionScope(declaration.getContainingCjFile())
 
     override fun getNonDeclaredFunctions(name: Name, result: MutableSet<SimpleFunctionDescriptor>) {
-        // 添加重导出的函数
-        val reexported = findReexportedDeclarations(name)
-        result.addAll(reexported.filterIsInstance<SimpleFunctionDescriptor>())
+
     }
 
     override fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassAndEnumDescriptor>) {
-        // 添加重导出的类
-        val reexported = findReexportedDeclarations(name)
-        result.addAll(reexported.filterIsInstance<ClassDescriptor>())
+
     }
 
     override fun recordLookup(name: Name, location: LookupLocation) {
@@ -185,9 +159,7 @@ class LazyPackageMemberScope(
     }
 
     override fun getNonDeclaredMacros(name: Name, result: MutableSet<MacroDescriptor>) {
-        // 添加重导出的宏
-        val reexported = findReexportedDeclarations(name)
-        result.addAll(reexported.filterIsInstance<MacroDescriptor>())
+
     }
 
     override fun getScopeForInitializerResolution(declaration: CjDeclaration): LexicalScope =
@@ -195,15 +167,11 @@ class LazyPackageMemberScope(
 
 
     override fun getNonDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>) {
-        // 添加重导出的属性
-        val reexported = findReexportedDeclarations(name)
-        result.addAll(reexported.filterIsInstance<PropertyDescriptor>())
+
     }
 
     override fun getNonDeclaredVariables(name: Name, result: MutableSet<VariableDescriptor>) {
-        // 添加重导出的变量
-        val reexported = findReexportedDeclarations(name)
-        result.addAll(reexported.filterIsInstance<VariableDescriptor>())
+
     }
 
     override fun getContributedPackageView(name: Name, location: LookupLocation): PackageViewDescriptor? {
