@@ -29,6 +29,7 @@ import org.cangnova.cangjie.messages.AbstractCangJieBundle
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
+import java.util.MissingResourceException
 
 /**
  * IDE 诊断消息 Bundle
@@ -78,19 +79,22 @@ import org.jetbrains.annotations.PropertyKey
 private const val BUNDLE = "messages.IDECangJieDiagnosisBundle"
 //只渲染html
 object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle {
+
     /**
      * 获取 IDE 格式的消息（带参数）
+     *
+     * 如果当前 Bundle 中没有该消息,会自动回退到 CangJieDiagnosisBundle
      *
      * @param key 消息键
      * @param params 消息参数
      * @return 格式化后的 HTML 消息
      */
     @Nls
-    
+
     fun message(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String {
         return try {
             htmlMessage(key, *params)
-        } catch (e: Exception) {
+        } catch (e: MissingResourceException) {
             // 回退到默认 Bundle
             CangJieDiagnosisBundle.message(key, *params)
         }
@@ -99,15 +103,17 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
     /**
      * 获取原始消息模板（不带参数）
      *
+     * 如果当前 Bundle 中没有该消息,会自动回退到 CangJieDiagnosisBundle
+     *
      * @param key 消息键
      * @return 消息模板
      */
     @Nls
-    
+
     fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String): String {
         return try {
             getMessage(key)
-        } catch (e: Exception) {
+        } catch (e: MissingResourceException) {
             // 回退到默认 Bundle
             CangJieDiagnosisBundle.rawMessage(key)
         }
@@ -116,15 +122,17 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
     /**
      * 获取原始消息模板（通过工厂）
      *
+     * 如果当前 Bundle 中没有该消息,会自动回退到 CangJieDiagnosisBundle
+     *
      * @param factory 诊断工厂
      * @return 消息模板
      */
     @Nls
-    
+
     fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) factory: DiagnosticFactory<*>): String {
         return try {
             getMessage(factory.name)
-        } catch (e: Exception) {
+        } catch (e: MissingResourceException) {
             // 回退到默认 Bundle
             CangJieDiagnosisBundle.rawMessage(factory)
         }
@@ -134,6 +142,7 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
      * 获取 HTML 格式的消息（带参数）
      *
      * IDE Bundle 中的消息默认已包含 HTML 标签，此方法主要用于兼容性。
+     * 如果当前 Bundle 中没有该消息,会自动回退到 CangJieDiagnosisBundle
      *
      * @param key 消息键
      * @param params 消息参数
@@ -144,7 +153,7 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
     fun htmlMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String {
         return try {
             super<AbstractCangJieBundle>.getMessage(key, *params).withHtml()
-        } catch (e: Exception) {
+        } catch (e: MissingResourceException) {
             // 回退到默认 Bundle
             CangJieDiagnosisBundle.htmlMessage(key, *params)
         }
@@ -154,8 +163,8 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
     @Nls
     override fun getMessage(@NonNls key: String): String {
         return try {
-         htmlMessage(key)
-        } catch (e: Exception) {
+            htmlMessage(key)
+        } catch (e: MissingResourceException) {
             // 回退到默认 Bundle
             CangJieDiagnosisBundle.getMessage(key)
         }
@@ -165,7 +174,7 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
     override fun getMessage(@NonNls factory: DiagnosticFactory<*>): String {
         return try {
             getMessage(factory.name)
-        } catch (e: Exception) {
+        } catch (e: MissingResourceException) {
             // 回退到默认 Bundle
             CangJieDiagnosisBundle.getMessage(factory)
         }

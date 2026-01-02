@@ -37,7 +37,7 @@ import org.cangnova.cangjie.name.FqNameUnsafe
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.DescriptorUtils.getContainingModule
-import org.cangnova.cangjie.resolve.constants.Int32Value
+import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.resolve.constants.StringValue
 import org.cangnova.cangjie.types.functions.FunctionTypeKind
 import org.cangnova.cangjie.types.functions.FunctionTypeKindExtractor
@@ -64,7 +64,7 @@ fun getFunctionTypeArgumentProjections(
     builtIns: CangJieBuiltIns
 ): List<TypeProjection> {
     val arguments =
-        ArrayList<TypeProjection>(parameterTypes.size   + (if (receiverType != null) 1 else 0) + 1)
+        ArrayList<TypeProjection>(parameterTypes.size + (if (receiverType != null) 1 else 0) + 1)
 
     arguments.addIfNotNull(receiverType?.asTypeProjection())
 
@@ -122,14 +122,14 @@ fun createFunctionType(
         )
 
     // 计算参数总数，包括上下文接收者和普通接收者
-    val parameterCount = parameterTypes.size   + if (receiverType == null) 0 else 1
+    val parameterCount = parameterTypes.size + if (receiverType == null) 0 else 1
 
     // 获取函数描述符
     val classDescriptor = getFunctionDescriptor(builtIns, parameterCount)
 
     // 创建并返回简单的、非空的函数类型
     // CangJie does not have extension function type annotations or context receivers
-    return CangJieTypeFactory.simpleNotNullType(annotations.toDefaultAttributes(), classDescriptor, arguments)
+    return CangJieTypeFactory.simpleNonOptionType(annotations.toDefaultAttributes(), classDescriptor, arguments)
 }
 
 
@@ -244,7 +244,7 @@ fun isNumberedFunctionClassFqName(fqName: FqNameUnsafe): Boolean {
             fqName.getFunctionTypeKind() == FunctionTypeKind.Function
 }
 
-fun FunctionDescriptor.toFunctionType(): CangJieType {
+fun FunctionDescriptor.toFunctionType(builtins: CangJieBuiltIns): CangJieType {
     this.returnType ?: this
 
     val valueTypes = this.valueParameters
@@ -253,9 +253,18 @@ fun FunctionDescriptor.toFunctionType(): CangJieType {
     val parameterNames = valueTypes.map { it.name }
 
     return createFunctionType(
-        getContainingModule(this).builtIns,
+        builtins,
         this.annotations, null,
-          parameterTypes, parameterNames, this.returnType!!
+        parameterTypes, parameterNames, this.returnType!!
+    )
+}
+
+fun FunctionDescriptor.toFunctionType(): CangJieType {
+    this.returnType ?: this
+ 
+    return toFunctionType(
+        getContainingModule(this).builtIns
+
     )
 }
 

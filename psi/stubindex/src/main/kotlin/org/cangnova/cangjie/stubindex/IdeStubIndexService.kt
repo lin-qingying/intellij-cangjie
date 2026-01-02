@@ -47,9 +47,8 @@ import java.io.IOException
 internal class IdeStubIndexService : StubIndexService() {
     override fun indexPatternVariable(stub: CangJieVariableStub, sink: IndexSink) {
         // 变量声明的名称和 fqName 来自模式匹配中的绑定模式
-        // 遍历子 stub 找到所有绑定模式
-        val bindingPatternStubs = stub.childrenStubs
-            .filterIsInstance<CangJieBindingPatternStub>()
+        // 遍历子 stub 找到所有绑定模式（递归查找）
+        val bindingPatternStubs = getAllBindingStubsRecursive(stub)
 
         for (bindingStub in bindingPatternStubs) {
             val name = bindingStub.getName() ?: continue
@@ -66,34 +65,30 @@ internal class IdeStubIndexService : StubIndexService() {
             }
         }
 
-        // 如果没有绑定模式 stub（可能是从 PSI 创建的），则从 PSI 获取
-        if (bindingPatternStubs.isEmpty()) {
-            val psi = stub.psi
-            val allBindings = psi.pattern?.let { getAllBindingsFromPattern(it) } ?: emptyList()
-
-            for (binding in allBindings) {
-                val name = binding.name ?: continue
-                sink.occurrence(CangJieVariableShortNameIndex.indexKey, name)
-
-                val typeReference: CjTypeReference? = psi.typeReference
-                if (typeReference != null && CangJiePsiHeuristics.isProbablyNothing(typeReference)) {
-                    sink.occurrence(CangJieVariableNothingVariableShortNameIndex.indexKey, name)
-                }
-            }
-        }
         // Variables don't have internal declarations, so no indexInternals call
     }
 
     /**
-     * 从模式中获取所有绑定模式
+     * 从 Stub 树中递归获取所有绑定模式 Stub
+     *
+     * 此方法仅使用 Stub 树遍历，不访问 PSI/AST，因此可以在 indexStub 阶段安全调用
      */
-    private fun getAllBindingsFromPattern(pattern: CjCasePatternElement): List<CjBindingPattern> {
-        return when (pattern) {
-            is CjBindingPattern -> listOf(pattern)
-            is CjTuplePattern -> pattern.patterns.flatMap { getAllBindingsFromPattern(it) }
-            is CjEnumPattern -> pattern.patterns.flatMap { getAllBindingsFromPattern(it) }
-            else -> emptyList()
+    private fun getAllBindingStubsRecursive(stub: com.intellij.psi.stubs.StubElement<*>): List<CangJieBindingPatternStub> {
+        val result = mutableListOf<CangJieBindingPatternStub>()
+
+        for (childStub in stub.childrenStubs) {
+            when (childStub) {
+                // 直接是绑定模式
+                is CangJieBindingPatternStub -> result.add(childStub)
+                // 元组/枚举模式，递归查找其子元素
+                is CangJieTuplePatternStub, is CangJieEnumPatternStub -> {
+                    result.addAll(getAllBindingStubsRecursive(childStub))
+                }
+                // 其他模式类型（通配符、常量等）不包含绑定
+            }
         }
+
+        return result
     }
 
     override fun indexProperty(stub: CangJiePropertyStub, sink: IndexSink) {

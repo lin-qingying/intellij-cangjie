@@ -30,6 +30,7 @@ import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.Modality
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.types.deccriptorClass
 
 /**
  * 类声明语义分析测试
@@ -312,7 +313,7 @@ class ClassSemanticAnalysisTest : CangJieAnalysisTestBase() {
             // 验证参数类型
             parameters.forEach { param ->
                 assertNotNull("参数应该有类型", param.type)
-                assertEquals("参数类型应该是 Int64", "Int64", param.type.toString())
+                assertEquals("参数类型应该是 Int64", "Int64", param.type.deccriptorClass?.name?.asString())
             }
         }
     }

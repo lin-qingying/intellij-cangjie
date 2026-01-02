@@ -45,7 +45,7 @@ import org.cangnova.cangjie.types.CangJieType
  * 抽象成员未实现
  */
 
-val ABSTRACT_MEMBER_NOT_IMPLEMENTED: DiagnosticFactory2<CjTypeStatement, CjTypeStatement, CallableMemberDescriptor> =
+val ABSTRACT_MEMBER_NOT_IMPLEMENTED: DiagnosticFactory2<CjTypeStatement, CjTypeStatement, Collection<CallableMemberDescriptor>> =
     DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
 
 /**

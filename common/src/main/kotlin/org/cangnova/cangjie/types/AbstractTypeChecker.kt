@@ -331,6 +331,29 @@ object AbstractTypeChecker {
         }
 
         if (!AbstractNullabilityChecker.isPossibleSubtype(state, subType, superType)) return false
+
+        // 函数类型的特殊处理 (参数逆变, 返回值协变)
+        // 参考编译器: TypeManager.cpp:870-900 IsFuncSubtype
+        checkSubtypeForFunctionType(
+            state,
+            subType.lowerBoundIfFlexible(),
+            superType.upperBoundIfFlexible()
+        )?.let {
+            state.addSubtypeConstraint(subType, superType)
+            return it
+        }
+
+        // 元组类型的特殊处理 (严格不变, implicitBoxed = false)
+        // 参考编译器: TypeManager.cpp:902-913 IsTupleSubtype
+        checkSubtypeForTupleType(
+            state,
+            subType.lowerBoundIfFlexible(),
+            superType.upperBoundIfFlexible()
+        )?.let {
+            state.addSubtypeConstraint(subType, superType)
+            return it
+        }
+
         checkSubtypeForFloatLiteralType(
             state,
             subType.lowerBoundIfFlexible(),
@@ -579,6 +602,114 @@ object AbstractTypeChecker {
         // 如果以上条件都不满足，则无法确定子类型关系，返回null
         return null
     }
+    /**
+     * 检查函数类型的子类型关系
+     *
+     * 根据编译器 TypeManager.cpp:870-900 的 IsFuncSubtype 实现:
+     * - 函数参数类型是逆变的: root.paramTys[i] <: leaf.paramTys[i]
+     * - 函数返回类型是协变的: leaf.retTy <: root.retTy
+     * - 参数数量必须完全相同
+     *
+     * 示例:
+     * - (Any) -> Int <: (String) -> Any  ✅ (参数逆变, 返回值协变)
+     * - (String) -> Any <: (Any) -> Int  ❌ (违反协变/逆变规则)
+     *
+     * @param state 类型检查器状态，包含类型系统上下文
+     * @param subType 潜在的子类型 (子函数类型)
+     * @param superType 潜在的父类型 (父函数类型)
+     * @return 如果是函数类型的子类型关系，返回true/false；如果不是函数类型，返回null
+     */
+    private fun checkSubtypeForFunctionType(
+        state: TypeCheckerState,
+        subType: SimpleTypeMarker,
+        superType: SimpleTypeMarker
+    ): Boolean? = with(state.typeSystemContext) {
+        // 只有当两个类型都是函数类型时才进行特殊处理
+        if (!subType.isFunctionType() || !superType.isFunctionType()) return null
+
+        // 获取参数和返回值类型
+        // 注意: 在仓颉中，函数类型的 typeArgs 为 [P1, P2, ..., Pn, R]
+        // 最后一个类型参数是返回值类型，其余都是参数类型
+        val subArgs = subType.argumentsCount()
+        val superArgs = superType.argumentsCount()
+
+        // 参数数量必须完全相同（包括返回值）
+        if (subArgs != superArgs) return false
+
+        // 参数数量（不包括返回值）
+        val paramCount = subArgs - 1
+
+        // 检查参数类型: 逆变 (root.paramTys[i] <: leaf.paramTys[i])
+        for (i in 0 until paramCount) {
+            val subParamType = subType.getArgument(i).getType()
+            val superParamType = superType.getArgument(i).getType()
+
+            // 注意方向: superParamType <: subParamType (逆变!)
+            if (!isSubtypeOf(state, superParamType, subParamType)) {
+                return false
+            }
+        }
+
+        // 检查返回值类型: 协变 (leaf.retTy <: root.retTy)
+        val subReturnType = subType.getArgument(paramCount).getType()
+        val superReturnType = superType.getArgument(paramCount).getType()
+
+        // 正常方向: subReturnType <: superReturnType (协变)
+        return isSubtypeOf(state, subReturnType, superReturnType)
+    }
+
+    /**
+     * 检查元组类型的子类型关系
+     *
+     * 根据编译器 TypeManager.cpp:902-913 的 IsTupleSubtype 实现:
+     * - 元组长度必须完全相同
+     * - 每个元素必须满足子类型关系
+     * - implicitBoxed = false: 禁止隐式装箱，元素类型必须严格匹配
+     *
+     * 示例:
+     * - (Int64, String) <: (Any, Any)  ❌ (元组不支持协变，implicitBoxed = false)
+     * - (Int64, String) <: (Int64, String)  ✅ (严格相等)
+     *
+     * @param state 类型检查器状态，包含类型系统上下文
+     * @param subType 潜在的子类型 (子元组类型)
+     * @param superType 潜在的父类型 (父元组类型)
+     * @return 如果是元组类型的子类型关系，返回true/false；如果不是元组类型，返回null
+     */
+    private fun checkSubtypeForTupleType(
+        state: TypeCheckerState,
+        subType: SimpleTypeMarker,
+        superType: SimpleTypeMarker
+    ): Boolean? = with(state.typeSystemContext) {
+        // 只有当两个类型都是元组类型时才进行特殊处理
+        if (!subType.isTupleType() || !superType.isTupleType()) return null
+
+        // 元组长度必须完全相同
+        val subArgsCount = subType.argumentsCount()
+        val superArgsCount = superType.argumentsCount()
+
+        if (subArgsCount != superArgsCount) return false
+
+        // 逐元素检查子类型关系
+        // 注意: implicitBoxed = false，禁止隐式装箱
+        for (i in 0 until subArgsCount) {
+            val subElementType = subType.getArgument(i).getType()
+            val superElementType = superType.getArgument(i).getType()
+
+            // 在编译器中，元组元素使用 IsSubtype(leaf.typeArgs[i], root.typeArgs[i], false)
+            // false 参数表示 implicitBoxed = false，不允许基本类型自动装箱为 Any
+            //
+            // 但在插件中，我们需要通过正常的子类型检查，因为 implicitBoxed 机制
+            // 已经在 ClassicTypeSystemContext.supertypes() 中实现
+            //
+            // TODO: 可能需要特殊处理，禁止基本类型通过 implicitBoxed 满足元组元素的子类型关系
+            if (!isSubtypeOf(state, subElementType, superElementType)) {
+                return false
+            }
+        }
+
+        return true
+    }
+
     /**
      * 检查整数字面量类型的子类型关系
      * 此函数旨在确定一个类型是否为另一个类型的子类型，特别是当涉及到整数字面量类型时

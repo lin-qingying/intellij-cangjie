@@ -312,7 +312,7 @@ class ExhaustivenessCheckerTest : CangJieTestBase() {
 
         val constructors = pattern.constructors
         assertNotNull(constructors)
-        assertEquals(1, constructors!!.size)
+        assertEquals(1, constructors.size)
         assertTrue(constructors[0] is Constructor.ConstantValue)
     }
 
@@ -322,7 +322,7 @@ class ExhaustivenessCheckerTest : CangJieTestBase() {
 
         val constructors = pattern.constructors
         assertNotNull(constructors)
-        assertEquals(1, constructors!!.size)
+        assertEquals(1, constructors.size)
         assertEquals(Constructor.Single, constructors[0])
     }
 

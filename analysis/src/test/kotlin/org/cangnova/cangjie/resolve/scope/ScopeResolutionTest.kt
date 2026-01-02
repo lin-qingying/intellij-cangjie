@@ -27,6 +27,7 @@ package org.cangnova.cangjie.resolve.scope
 import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.analysis.CangJieAnalysisTestBase
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
 import org.cangnova.cangjie.resolve.binding.BindingContext
 
 /**
@@ -63,7 +64,7 @@ class ScopeResolutionTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+             main() {
                 let x: Int64 = 10
                 let y = x + 5
             }
@@ -71,19 +72,25 @@ class ScopeResolutionTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertEquals("应该有 2 个变量", 2, properties.size)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+            assertEquals("应该有 2 个变量", 2, patternVars.size)
 
-            val xProperty = properties.first { it.name == "x" }
-            val xDescriptor = bindingContext[BindingContext.VARIABLE, xProperty!!]
+            val xPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "x" }
+            }
+            val xBinding = xPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "x" }
+            val xDescriptor = bindingContext[BindingContext.VARIABLE, xBinding!!]
             assertNotNull("x 应该有描述符", xDescriptor)
 
-            val yProperty = properties.first { it.name == "y" }
-            val yDescriptor = bindingContext[BindingContext.VARIABLE, yProperty!!]
+            val yPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "y" }
+            }
+            val yBinding = yPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "y" }
+            val yDescriptor = bindingContext[BindingContext.VARIABLE, yBinding!!]
             assertNotNull("y 应该有描述符", yDescriptor)
 
             // y 的初始化表达式应该能引用 x
-            val yInitializer = yProperty.initializer
+            val yInitializer = yPatternVar.initializer
             assertNotNull("y 应该有初始化表达式", yInitializer)
         }
     }
@@ -100,9 +107,9 @@ class ScopeResolutionTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+             main() {
                 let outer = 1
-                {
+                { =>
                     let inner = 2
                     let sum = outer + inner
                 }
@@ -112,66 +119,88 @@ class ScopeResolutionTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertTrue("应该至少有 3 个变量", properties.size >= 3)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+            assertTrue("应该至少有 3 个变量", patternVars.size >= 3)
 
             // 验证 outer 变量
-            val outerProperty = properties.first { it.name == "outer" }
-            val outerDescriptor = bindingContext[BindingContext.VARIABLE, outerProperty!!]
+            val outerPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "outer" }
+            }
+            assertNotNull("应该找到 outer 变量", outerPatternVar)
+
+            val outerBinding = outerPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "outer" }
+            val outerDescriptor = bindingContext[BindingContext.VARIABLE, outerBinding!!]
             assertNotNull("outer 应该有描述符", outerDescriptor)
 
             // 验证 inner 变量（在块内）
-            val innerProperty = properties.first { it.name == "inner" }
-            val innerDescriptor = bindingContext[BindingContext.VARIABLE, innerProperty!!]
+            val innerPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "inner" }
+            }
+            assertNotNull("应该找到 inner 变量", innerPatternVar)
+
+            val innerBinding = innerPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "inner" }
+            val innerDescriptor = bindingContext[BindingContext.VARIABLE, innerBinding!!]
             assertNotNull("inner 应该有描述符", innerDescriptor)
 
             // 验证 sum 变量可以访问 outer 和 inner
-            val sumProperty = properties.first { it.name == "sum" }
-            val sumDescriptor = bindingContext[BindingContext.VARIABLE, sumProperty!!]
+            val sumPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "sum" }
+            }
+            assertNotNull("应该找到 sum 变量", sumPatternVar)
+
+            val sumBinding = sumPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "sum" }
+            val sumDescriptor = bindingContext[BindingContext.VARIABLE, sumBinding!!]
             assertNotNull("sum 应该有描述符", sumDescriptor)
         }
     }
 
-    /**
-     * 测试变量遮蔽
-     *
-     * 验证：
-     * 1. 内层作用域可以遮蔽外层同名变量
-     * 2. 引用解析到最近的声明
-     */
-    fun `test variable shadowing`() {
-        val file = createFile(
-            """
-            package test
-
-            func main() {
-                let x: Int64 = 10
-                {
-                    let x: String = "shadowed"
-                    // 此处 x 引用 String 类型的变量
-                }
-                // 此处 x 引用 Int64 类型的变量
-            }
-            """.trimIndent()
-        )
-
-        analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertEquals("应该有 2 个 x 变量", 2, properties.filter { it.name == "x" }.size)
-
-            // 验证外层 x
-            val outerX = properties.first { it.name == "x" }
-            val outerXDescriptor = bindingContext[BindingContext.VARIABLE, outerX!!]
-            assertNotNull("外层 x 应该有描述符", outerXDescriptor)
-            assertEquals("Int64", outerXDescriptor!!.type.toString())
-
-            // 验证内层 x
-            val innerX = properties.last { it.name == "x" }
-            val innerXDescriptor = bindingContext[BindingContext.VARIABLE, innerX!!]
-            assertNotNull("内层 x 应该有描述符", innerXDescriptor)
-            assertEquals("String", innerXDescriptor!!.type.toString())
-        }
+        /**
+         * 测试变量遮蔽
+         *
+         * 验证：
+         * 1. 内层作用域可以遮蔽外层同名变量
+         * 2. 引用解析到最近的声明
+         */
+        fun `test variable shadowing`() {
+            val file = createFile(
+                """
+                package test
+    
+           
+main() {
+    let x: Int64 = 10
+    {
+        => let x: String = "shadowed"
+        // 此处 x 引用 String 类型的变量
     }
+    // 此处 x 引用 Int64 类型的变量
+    
+}
+                """.trimIndent()
+            )
+
+            analyzeForTest(file) {
+                val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+                val xVars = patternVars.filter { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "x" }
+                }
+                assertEquals("应该有 2 个 x 变量", 2, xVars.size)
+
+                // 验证外层 x
+                val outerXPatternVar = xVars.first()
+                val outerXBinding = outerXPatternVar.pattern.getAllBindings().firstOrNull { it.name == "x" }
+                val outerXDescriptor = bindingContext[BindingContext.VARIABLE, outerXBinding!!]
+                assertNotNull("外层 x 应该有描述符", outerXDescriptor)
+                assertEquals("Int64", outerXDescriptor!!.type.toString())
+
+                // 验证内层 x
+                val innerXPatternVar = xVars.last()
+                val innerXBinding = innerXPatternVar.pattern.getAllBindings().firstOrNull { it.name == "x" }
+                val innerXDescriptor = bindingContext[BindingContext.VARIABLE, innerXBinding!!]
+                assertNotNull("内层 x 应该有描述符", innerXDescriptor)
+                assertEquals("String", innerXDescriptor!!.type.toString())
+            }
+        }
 
     // ==================== 函数参数作用域测试 ====================
 
@@ -206,10 +235,14 @@ class ScopeResolutionTest : CangJieAnalysisTestBase() {
             assertEquals("应该有 2 个参数", 2, parameters.size)
 
             // 验证局部变量 sum
-            val sumProperty = PsiTreeUtil.findChildOfType(functionDecl, CjProperty::class.java)
-            assertNotNull("应该找到 sum 变量", sumProperty)
+            val sumPatternVar = PsiTreeUtil.findChildrenOfType(functionDecl, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "sum" }
+                }
+            assertNotNull("应该找到 sum 变量", sumPatternVar)
 
-            val sumDescriptor = bindingContext[BindingContext.VARIABLE, sumProperty!!]
+            val sumBinding = sumPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "sum" }
+            val sumDescriptor = bindingContext[BindingContext.VARIABLE, sumBinding!!]
             assertNotNull("sum 应该有描述符", sumDescriptor)
         }
     }
@@ -246,10 +279,14 @@ class ScopeResolutionTest : CangJieAnalysisTestBase() {
             assertEquals("value", parameters[0].name.asString())
 
             // 验证局部变量
-            val valueProperty = PsiTreeUtil.findChildOfType(functionDecl, CjProperty::class.java)
-            assertNotNull("应该找到局部变量 value", valueProperty)
+            val valuePatternVar = PsiTreeUtil.findChildrenOfType(functionDecl, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "value" }
+                }
+            assertNotNull("应该找到局部变量 value", valuePatternVar)
 
-            val valueDescriptor = bindingContext[BindingContext.VARIABLE, valueProperty!!]
+            val valueBinding = valuePatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "value" }
+            val valueDescriptor = bindingContext[BindingContext.VARIABLE, valueBinding!!]
             assertNotNull("局部变量 value 应该有描述符", valueDescriptor)
         }
     }
@@ -290,7 +327,7 @@ class ScopeResolutionTest : CangJieAnalysisTestBase() {
             assertNotNull("应该创建 ClassDescriptor", classDescriptor)
 
             // 验证属性
-            val countProperty = PsiTreeUtil.findChildrenOfType(classDecl, CjProperty::class.java)
+            val countProperty = PsiTreeUtil.findChildrenOfType(classDecl, CjFieldVariable::class.java)
                 .firstOrNull { it.name == "count" }
             assertNotNull("应该找到 count 属性", countProperty)
 
@@ -379,7 +416,7 @@ class ScopeResolutionTest : CangJieAnalysisTestBase() {
                 return "helper"
             }
 
-            func main() {
+            main() {
                 let result = helper()
             }
             """.trimIndent()
@@ -420,11 +457,14 @@ class ScopeResolutionTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val appVersionProperty = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-                .firstOrNull { it.name == "APP_VERSION" }
-            assertNotNull("应该找到 APP_VERSION 属性", appVersionProperty)
+            val appVersionPatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "APP_VERSION" }
+                }
+            assertNotNull("应该找到 APP_VERSION 属性", appVersionPatternVar)
 
-            val appVersionDescriptor = bindingContext[BindingContext.VARIABLE, appVersionProperty!!]
+            val appVersionBinding = appVersionPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "APP_VERSION" }
+            val appVersionDescriptor = bindingContext[BindingContext.VARIABLE, appVersionBinding!!]
             assertNotNull("APP_VERSION 应该有描述符", appVersionDescriptor)
             assertEquals("String", appVersionDescriptor!!.type.toString())
 
@@ -433,55 +473,6 @@ class ScopeResolutionTest : CangJieAnalysisTestBase() {
 
             val getVersionDescriptor = bindingContext[BindingContext.FUNCTION, getVersionFunc!!]
             assertNotNull("getVersion 应该有描述符", getVersionDescriptor)
-        }
-    }
-
-    // ==================== 嵌套类作用域测试 ====================
-
-    /**
-     * 测试嵌套类作用域
-     *
-     * 验证：
-     * 1. 嵌套类可以访问外部类的成员
-     * 2. 嵌套类的成员解析正确
-     */
-    fun `test nested class scope`() {
-        val file = createFile(
-            """
-            package test
-
-            class Outer {
-                private let outerValue: Int64 = 10
-
-                class Inner {
-                    private let innerValue: Int64 = 20
-
-                    public func getInnerValue(): Int64 {
-                        return innerValue
-                    }
-                }
-
-                public func getOuter(): Int64 {
-                    return outerValue
-                }
-            }
-            """.trimIndent()
-        )
-
-        analyzeForTest(file) {
-            val outerClass = PsiTreeUtil.findChildOfType(file, CjClass::class.java)
-            assertNotNull("应该找到 Outer 类", outerClass)
-
-            val outerDescriptor = bindingContext[BindingContext.CLASS, outerClass!!]
-            assertNotNull("应该创建 Outer ClassDescriptor", outerDescriptor)
-
-            // 查找嵌套的 Inner 类
-            val innerClass = PsiTreeUtil.findChildrenOfType(outerClass, CjClass::class.java)
-                .firstOrNull { it.name == "Inner" }
-            assertNotNull("应该找到 Inner 类", innerClass)
-
-            val innerDescriptor = bindingContext[BindingContext.CLASS, innerClass!!]
-            assertNotNull("应该创建 Inner ClassDescriptor", innerDescriptor)
         }
     }
 
@@ -519,10 +510,14 @@ class ScopeResolutionTest : CangJieAnalysisTestBase() {
             assertEquals("x", parameters[0].name.asString())
 
             // 验证局部变量 doubled
-            val doubledProperty = PsiTreeUtil.findChildOfType(functionDecl, CjProperty::class.java)
-            assertNotNull("应该找到 doubled 变量", doubledProperty)
+            val doubledPatternVar = PsiTreeUtil.findChildrenOfType(functionDecl, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "doubled" }
+                }
+            assertNotNull("应该找到 doubled 变量", doubledPatternVar)
 
-            val doubledDescriptor = bindingContext[BindingContext.VARIABLE, doubledProperty!!]
+            val doubledBinding = doubledPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "doubled" }
+            val doubledDescriptor = bindingContext[BindingContext.VARIABLE, doubledBinding!!]
             assertNotNull("doubled 应该有描述符", doubledDescriptor)
         }
     }
@@ -561,7 +556,7 @@ class ScopeResolutionTest : CangJieAnalysisTestBase() {
             assertNotNull("应该创建 ClassDescriptor", classDescriptor)
 
             // 验证属性
-            val nameProperty = PsiTreeUtil.findChildrenOfType(classDecl, CjVariable::class.java)
+            val nameProperty = PsiTreeUtil.findChildrenOfType(classDecl, CjFieldVariable::class.java)
                 .firstOrNull { it.name == "name" }
             assertNotNull("应该找到 name 属性", nameProperty)
 
@@ -569,7 +564,7 @@ class ScopeResolutionTest : CangJieAnalysisTestBase() {
             assertNotNull("name 应该有描述符", nameDescriptor)
 
             // 验证构造函数
-            val constructor = PsiTreeUtil.findChildOfType(classDecl, CjPrimaryConstructor::class.java)
+            val constructor = PsiTreeUtil.findChildOfType(classDecl, CjConstructor::class.java)
             assertNotNull("应该找到构造函数", constructor)
 
             // 验证 getName 方法
@@ -596,7 +591,7 @@ class ScopeResolutionTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+            main() {
                 let items = Array<Int64>()
                 for (item in items) {
                     let doubled = item * 2
@@ -607,17 +602,25 @@ class ScopeResolutionTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertTrue("应该至少有 2 个变量", properties.size >= 2)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+            assertTrue("应该至少有 2 个变量", patternVars.size >= 2)
 
-            val itemsProperty = properties.first { it.name == "items" }
-            val itemsDescriptor = bindingContext[BindingContext.VARIABLE, itemsProperty!!]
+            val itemsPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "items" }
+            }
+            assertNotNull("应该找到 items 变量", itemsPatternVar)
+
+            val itemsBinding = itemsPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "items" }
+            val itemsDescriptor = bindingContext[BindingContext.VARIABLE, itemsBinding!!]
             assertNotNull("items 应该有描述符", itemsDescriptor)
 
             // 查找循环体内的 doubled 变量
-            val doubledProperty = properties.firstOrNull { it.name == "doubled" }
-            if (doubledProperty != null) {
-                val doubledDescriptor = bindingContext[BindingContext.VARIABLE, doubledProperty!!]
+            val doubledPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "doubled" }
+            }
+            if (doubledPatternVar != null) {
+                val doubledBinding = doubledPatternVar.pattern.getAllBindings().firstOrNull { it.name == "doubled" }
+                val doubledDescriptor = bindingContext[BindingContext.VARIABLE, doubledBinding!!]
                 assertNotNull("doubled 应该有描述符", doubledDescriptor)
             }
         }

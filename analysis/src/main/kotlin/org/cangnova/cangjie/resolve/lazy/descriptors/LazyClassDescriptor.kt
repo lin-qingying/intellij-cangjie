@@ -94,11 +94,15 @@ open class LazyClassDescriptor(
 
     /**
      * 类的修饰性（FINAL、OPEN、ABSTRACT、SEALED）
+     *
+     * 默认值与编译器保持一致：
+     * - Interface: OPEN (接口天然可被实现，IsOpen() 返回 true)
+     * - Class: FINAL (类默认不可被继承，需显式标记 open 或 abstract)
      */
     private val _modality = c.storageManager.createLazyValue {
         when {
             else -> {
-                val defaultModality = if (kind == ClassKind.INTERFACE) Modality.ABSTRACT else Modality.FINAL
+                val defaultModality = if (kind == ClassKind.INTERFACE) Modality.OPEN else Modality.FINAL
                 resolveModalityFromModifiers(
                     typeStatement,
                     defaultModality,
@@ -149,15 +153,8 @@ open class LazyClassDescriptor(
     override val declaredTypeParameters: List<TypeParameterDescriptor>
         get() = _declaredTypeParameters.invoke()
 
-    private val _scopeForInitializerResolution = c.storageManager.createLazyValue {
-        scopeForInitializerResolution(
-            this,
-            createInitializerScopeParent(),
-            classLikeInfo.primaryConstructorParameters
-        )
-    }
 
-    // TODO: 添加 LanguageFeature.AllowSealedInheritorsInDifferentFilesOfSamePackage 后恢复
+
     private val freedomForSealedInterfacesSupported = true
 
     private val _sealedSubclasses = c.storageManager.createLazyValue {
@@ -278,6 +275,13 @@ open class LazyClassDescriptor(
 
     override val scopeForInitializerResolution: LexicalScope
         get() = _scopeForInitializerResolution.invoke()
+    private val _scopeForInitializerResolution = c.storageManager.createLazyValue {
+        scopeForClassInitializerResolution(
+            this,
+            createInitializerScopeParent(),
+            classLikeInfo.primaryConstructorParameters
+        )
+    }
 
     /**
      * 类的所有构造函数集合
@@ -414,9 +418,10 @@ open class LazyClassDescriptor(
     }
 
     companion object {
-        private val VALID_SUPERTYPE: (CangJieType) -> Boolean = { type ->
-            require(!type.isError) { "Error types must be filtered out in DescriptorResolver" }
-            TypeUtils.getClassDescriptor(type) != null
-        }
+
     }
+}
+  val VALID_SUPERTYPE: (CangJieType) -> Boolean = { type ->
+    require(!type.isError) { "Error types must be filtered out in DescriptorResolver" }
+    TypeUtils.getClassDescriptor(type) != null
 }

@@ -92,6 +92,9 @@ class CjUserType : CjElementImplStub<CangJieUserTypeStub>, CjTypeElement {
         dot.delete()
     }
 
+    override fun getName(): String? {
+        return referencedName
+    }
     val referencedName: String?
         get() {
             val referenceExpression = referenceExpression

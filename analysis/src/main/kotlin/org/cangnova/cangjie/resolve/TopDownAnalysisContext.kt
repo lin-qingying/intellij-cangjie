@@ -47,11 +47,12 @@ class TopDownAnalysisContext(
     override val variables: MutableMap<CjVariable<*>, List<VariableDescriptor>> = LinkedHashMap<CjVariable<*>, List<VariableDescriptor>>()
     override val properties = LinkedHashMap<CjProperty, PropertyDescriptor>()
     override val typeAliases = LinkedHashMap<CjTypeAlias, TypeAliasDescriptor>()
-    override val declaredClasses = LinkedHashMap<CjTypeStatement, ClassDescriptorWithResolutionScopes>()
+    override val declaredClasses = LinkedHashMap<CjTypeStatement,  DescriptorWithResolutionScopes>()
     override val secondaryConstructors = LinkedHashMap<CjSecondaryConstructor, ClassConstructorDescriptor>()
 
     override val primaryConstructors = LinkedHashMap<CjPrimaryConstructor, ClassConstructorDescriptor>()
     override val endSecondaryConstructors = LinkedHashMap<CjEndSecondaryConstructor, ClassConstructorDescriptor>()
+    override val enumConstructors = LinkedHashMap<CjEnumConstructor, EnumConstructorDescriptor>()
 
 
     fun addFile(file: CjFile) {

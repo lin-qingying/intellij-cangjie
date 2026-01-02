@@ -349,7 +349,7 @@ object DescriptorUtils {
      * @param classDescriptor 类描述符
      * @return 如果可以有抽象虚假覆盖则返回 true
      */
-    fun classCanHaveAbstractFakeOverride(classDescriptor: ClassDescriptor): Boolean {
+    fun classCanHaveAbstractFakeOverride(classDescriptor: ClassAndEnumDescriptor): Boolean {
         return classCanHaveAbstractDeclaration(classDescriptor)
     }
 
@@ -377,7 +377,7 @@ object DescriptorUtils {
      * @param classDescriptor 类描述符
      * @return 如果可以有抽象声明则返回 true
      */
-    fun classCanHaveAbstractDeclaration(classDescriptor: ClassDescriptor): Boolean {
+    fun classCanHaveAbstractDeclaration(classDescriptor: ClassAndEnumDescriptor): Boolean {
         return classDescriptor.modality == Modality.ABSTRACT || isSealedClass(classDescriptor)
     }
 
@@ -1095,7 +1095,7 @@ fun ClassDescriptor.getSuperClassOrAny(): ClassDescriptor = getSuperClassNotAny(
  *
  * @return 超类描述符,如果没有则返回null
  */
-fun ClassDescriptor.getSuperClassNotAny(): ClassDescriptor? {
+fun ClassAndEnumDescriptor.getSuperClassNotAny(): ClassDescriptor? {
     for (supertype in defaultType.constructor.supertypes) {
         if (!CangJieBuiltIns.isAny(supertype)) {
             val superClassifier = supertype.constructor.declarationDescriptor

@@ -27,6 +27,7 @@ package org.cangnova.cangjie.resolve.imports
 import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.analysis.CangJieAnalysisTestBase
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
 import org.cangnova.cangjie.resolve.binding.BindingContext
 
 /**
@@ -81,7 +82,7 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
 
             import utils.Helper
 
-            func main() {
+            main() {
                 let helper = Helper()
                 let message = helper.help()
             }
@@ -95,10 +96,11 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
             assertTrue("应该有导入语句", importDirectives.isNotEmpty())
 
             // 验证可以使用 Helper 类
-            val helperProperty = PsiTreeUtil.findChildrenOfType(mainFile, CjProperty::class.java)
+            val helperPatternVar = PsiTreeUtil.findChildrenOfType(mainFile, CjPatternVariable::class.java)
                 .firstOrNull { it.name == "helper" }
-            if (helperProperty != null) {
-                val helperDescriptor = bindingContext[BindingContext.VARIABLE, helperProperty!!]
+            if (helperPatternVar != null) {
+                val helperBinding = helperPatternVar.pattern.getAllBindings().firstOrNull { it.name == "helper" }
+                val helperDescriptor = bindingContext[BindingContext.VARIABLE, helperBinding!!]
                 assertNotNull("helper 应该有描述符", helperDescriptor)
             }
         }
@@ -120,7 +122,7 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
             import std.collection.HashMap
             import std.io.File
 
-            func main() {
+            main() {
                 let arr = Array<Int64>()
                 let map = HashMap<String, Int64>()
             }
@@ -153,7 +155,7 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
 
             import std.collection.*
 
-            func main() {
+            main() {
                 let list = ArrayList<String>()
                 let set = HashSet<Int64>()
                 let map = HashMap<String, Bool>()
@@ -166,8 +168,8 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
             assertTrue("应该有导入语句", importDirectives.isNotEmpty())
 
             // 验证可以使用包内的多个类
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertEquals("应该有 3 个变量", 3, properties.size)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+            assertEquals("应该有 3 个变量", 3, patternVars.size)
         }
     }
 
@@ -190,7 +192,7 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
                 // 本地 Array 类
             }
 
-            func main() {
+            main() {
                 // Array 应该解析到本地类
                 let arr = Array<Int64>()
             }
@@ -224,7 +226,7 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
             import std.collection.ArrayList as List
             import std.collection.HashMap as Map
 
-            func main() {
+            main() {
                 let numbers = List<Int64>()
                 let cache = Map<String, String>()
             }
@@ -236,8 +238,8 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
             assertEquals("应该有 2 个导入语句", 2, importDirectives.size)
 
             // 验证可以使用别名
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertEquals("应该有 2 个变量", 2, properties.size)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+            assertEquals("应该有 2 个变量", 2, patternVars.size)
         }
     }
 
@@ -256,7 +258,7 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
             import package1.Helper as Helper1
             import package2.Helper as Helper2
 
-            func main() {
+            main() {
                 let h1 = Helper1()
                 let h2 = Helper2()
             }
@@ -380,7 +382,7 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
 
             import utils.PublicHelper
 
-            func main() {
+            main() {
                 let helper = PublicHelper()
                 let msg = helper.help()
             }
@@ -389,8 +391,8 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(mainFile) {
-            val properties = PsiTreeUtil.findChildrenOfType(mainFile, CjProperty::class.java)
-            assertTrue("应该有变量声明", properties.isNotEmpty())
+            val patternVars = PsiTreeUtil.findChildrenOfType(mainFile, CjPatternVariable::class.java)
+            assertTrue("应该有变量声明", patternVars.isNotEmpty())
         }
     }
 
@@ -520,7 +522,7 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
             import std.io.File
             import std.math.Math
 
-            func main() {
+            main() {
                 let list = ArrayList<Int64>()
             }
             """.trimIndent()
@@ -548,7 +550,7 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
             import com.example.app.models.User
             import com.example.app.utils.Validator
 
-            func main() {
+            main() {
                 let service = UserService()
             }
             """.trimIndent()
@@ -636,7 +638,7 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
 
             import utils.formatString
 
-            func main() {
+            main() {
                 let result = formatString("hello")
             }
             """.trimIndent(),
@@ -644,8 +646,8 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(mainFile) {
-            val properties = PsiTreeUtil.findChildrenOfType(mainFile, CjProperty::class.java)
-            assertFalse("应该有变量声明", properties.isEmpty())
+            val patternVars = PsiTreeUtil.findChildrenOfType(mainFile, CjPatternVariable::class.java)
+            assertFalse("应该有变量声明", patternVars.isEmpty())
         }
     }
 
@@ -674,7 +676,7 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
             import config.MAX_SIZE
             import config.APP_VERSION
 
-            func main() {
+            main() {
                 let size = MAX_SIZE
                 let version = APP_VERSION
             }
@@ -683,8 +685,8 @@ class ImportSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(mainFile) {
-            val properties = PsiTreeUtil.findChildrenOfType(mainFile, CjProperty::class.java)
-            assertEquals("应该有 2 个变量", 2, properties.size)
+            val patternVars = PsiTreeUtil.findChildrenOfType(mainFile, CjPatternVariable::class.java)
+            assertEquals("应该有 2 个变量", 2, patternVars.size)
         }
     }
 }

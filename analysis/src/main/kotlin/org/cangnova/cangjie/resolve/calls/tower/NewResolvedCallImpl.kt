@@ -26,6 +26,7 @@ package org.cangnova.cangjie.resolve.calls.tower
 
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.CallableDescriptor
+import org.cangnova.cangjie.descriptors.ClassAndEnumDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
@@ -413,5 +414,5 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
  * @param originalDescriptor 原始类描述符
  * @param targetType 智能转换后的目标类型
  */
-class CastImplicitClassReceiver(originalDescriptor: ClassDescriptor, val targetType: CangJieType) :
+class CastImplicitClassReceiver(originalDescriptor: ClassAndEnumDescriptor, val targetType: CangJieType) :
     ImplicitClassReceiver(originalDescriptor)

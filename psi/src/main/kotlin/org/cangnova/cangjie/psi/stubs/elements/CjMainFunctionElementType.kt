@@ -53,7 +53,10 @@ class CjMainFunctionElementType : CjStubElementType<CangJieMainFunctionStub, CjM
     override fun createStub(psi: CjMainFunction, parentStub: StubElement<out PsiElement>): CangJieMainFunctionStubImpl {
         var fqName = psi.safeFqNameForLazyResolve()
         if (fqName != null) {
-            fqName = FqName(fqName.moduleName.asString()).child(MAIN)
+            val firstSegment = fqName.firstSegment()
+            if (firstSegment != null) {
+                fqName = FqName(firstSegment.asString()).child(MAIN)
+            }
         }
         return CangJieMainFunctionStubImpl(
             parentStub, CjStubElementTypes.MAIN_FUNC, StringRef.fromString(psi.name), fqName,

@@ -177,7 +177,7 @@ class AnnotationPresentationInfo(
         val element = diagnostic.psiElement
 
         val fixes = quickFixes[diagnostic].takeIf { it.isNotEmpty() }
-            ?: if (isWarning) listOf( TODO()/*CompilerWarningIntentionAction(diagnostic.factory.name)*/) else emptyList()
+            ?: if (isWarning) listOf(  /*CompilerWarningIntentionAction(diagnostic.factory.name)*/) else emptyList()
 
         val keyForSuppressOptions = if (isWarning) {
             HighlightDisplayKey.findOrRegister(

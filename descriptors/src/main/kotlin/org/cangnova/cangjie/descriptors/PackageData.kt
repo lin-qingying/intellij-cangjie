@@ -76,8 +76,7 @@ interface PackageData : DeclarationDescriptor {
      * @return 如果当前包与目标包同属一个模块则返回true，否则返回false
      */
     fun shouldProtectedsOf(whatPackage: PackageData): Boolean {
-// 判断模块名是否相同
-        return this.fqName.moduleName == whatPackage.fqName.moduleName
-
+        // 判断模块名是否相同
+        return this.fqName.firstSegment() == whatPackage.fqName.firstSegment()
     }
 }

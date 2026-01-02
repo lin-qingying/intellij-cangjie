@@ -358,7 +358,7 @@ open class LazyClassMemberScope(
     }
 
 
-    override fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassDescriptor>) {
+    override fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassAndEnumDescriptor>) {
 //        generateSyntheticCompanionObject(name, result)
 //        c.syntheticResolveExtension.generateSyntheticClasses(thisDescriptor, name, c, declarationProvider, result)
 

@@ -23,6 +23,7 @@
  */
 package org.cangnova.cangjie.descriptors.impl
 
+import org.cangnova.cangjie.descriptors.ClassAndEnumDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.ReceiverParameterDescriptor
@@ -30,7 +31,7 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitClassReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 
-class LazyClassReceiverParameterDescriptor(private val descriptor: ClassDescriptor) :
+class LazyClassReceiverParameterDescriptor(private val descriptor: ClassAndEnumDescriptor) :
     AbstractReceiverParameterDescriptor(
         Annotations.EMPTY
     ) {

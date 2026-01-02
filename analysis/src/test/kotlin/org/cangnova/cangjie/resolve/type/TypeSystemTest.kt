@@ -20,6 +20,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.analysis.CangJieAnalysisTestBase
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.identifier
+import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
 import org.cangnova.cangjie.resolve.binding.BindingContext
 
 /**
@@ -62,7 +63,9 @@ class TypeSystemTest : CangJieAnalysisTestBase() {
         analyzeForTest(file) {
             // 验证显式类型声明
             val xVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
-                .firstOrNull { it.name == "x" }
+                .firstOrNull {
+                    it.pattern.getAllBindings().any { binding -> binding.name == "x" }
+                }
             assertNotNull("应该找到变量 x", xVar)
 
             val xTypeRef = xVar!!.typeReference
@@ -71,13 +74,15 @@ class TypeSystemTest : CangJieAnalysisTestBase() {
             // 验证类型引用解析
             val xType = bindingContext[BindingContext.TYPE, xTypeRef!!]
             // 注意：类型解析可能需要内置类型支持，这里先验证 PSI 结构
-            val basicType = xTypeRef!!.typeElement as? CjBasicType
+            val basicType = xTypeRef.typeElement as? CjBasicType
             assertNotNull("应该是基本类型", basicType)
             assertEquals("Int64", basicType!!.name)
 
             // 验证类型推导（变量 y）
             val yVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
-                .firstOrNull { it.name == "y" }
+                .firstOrNull {
+                    it.pattern.getAllBindings().any { binding -> binding.name == "y" }
+                }
             assertNotNull("应该找到变量 y", yVar)
             // y 的类型应该从字面量 42 推导为 Int64
         }
@@ -102,7 +107,9 @@ class TypeSystemTest : CangJieAnalysisTestBase() {
 
         analyzeForTest(file) {
             val piVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
-                .firstOrNull { it.name == "pi" }
+                .firstOrNull {
+                    it.pattern.getAllBindings().any { binding -> binding.name == "pi" }
+                }
             assertNotNull("应该找到变量 pi", piVar)
 
             val piTypeRef = piVar!!.typeReference
@@ -133,7 +140,9 @@ class TypeSystemTest : CangJieAnalysisTestBase() {
 
         analyzeForTest(file) {
             val flagVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
-                .firstOrNull { it.name == "flag" }
+                .firstOrNull {
+                    it.pattern.getAllBindings().any { binding -> binding.name == "flag" }
+                }
             assertNotNull("应该找到变量 flag", flagVar)
 
             val flagTypeRef = flagVar!!.typeReference
@@ -149,7 +158,7 @@ class TypeSystemTest : CangJieAnalysisTestBase() {
      * 测试字符串类型
      *
      * 验证：
-     * 1. String 类型引用能正确解析
+     * 1. String 类型引用能正确解析（String 是类类型，不是基本类型）
      * 2. 字符串字面量的类型推导
      */
     fun `test String type`() {
@@ -164,15 +173,18 @@ class TypeSystemTest : CangJieAnalysisTestBase() {
 
         analyzeForTest(file) {
             val nameVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
-                .firstOrNull { it.name == "name" }
+                .firstOrNull {
+                    it.pattern.getAllBindings().any { binding -> binding.name == "name" }
+                }
             assertNotNull("应该找到变量 name", nameVar)
 
             val nameTypeRef = nameVar!!.typeReference
             assertNotNull("变量 name 应该有类型引用", nameTypeRef)
 
-            val basicType = nameTypeRef!!.typeElement as? CjBasicType
-            assertNotNull("应该是基本类型", basicType)
-            assertEquals("String", basicType!!.name)
+            // String 是用户类型（类类型），不是基本类型
+            val userType = nameTypeRef!!.typeElement as? CjUserType
+            assertNotNull("应该是用户类型", userType)
+            assertEquals("String", userType!!.name)
         }
     }
 
@@ -195,7 +207,9 @@ class TypeSystemTest : CangJieAnalysisTestBase() {
 
         analyzeForTest(file) {
             val chVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
-                .firstOrNull { it.name == "ch" }
+                .firstOrNull {
+                    it.pattern.getAllBindings().any { binding -> binding.name == "ch" }
+                }
             assertNotNull("应该找到变量 ch", chVar)
 
             val chTypeRef = chVar!!.typeReference
@@ -227,7 +241,9 @@ class TypeSystemTest : CangJieAnalysisTestBase() {
 
         analyzeForTest(file) {
             val numbersVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
-                .firstOrNull { it.name == "numbers" }
+                .firstOrNull {
+                    it.pattern.getAllBindings().any { binding -> binding.name == "numbers" }
+                }
             assertNotNull("应该找到变量 numbers", numbersVar)
 
             val typeRef = numbersVar!!.typeReference
@@ -264,7 +280,9 @@ class TypeSystemTest : CangJieAnalysisTestBase() {
 
         analyzeForTest(file) {
             val pairVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
-                .firstOrNull { it.name == "pair" }
+                .firstOrNull {
+                    it.pattern.getAllBindings().any { binding -> binding.name == "pair" }
+                }
             assertNotNull("应该找到变量 pair", pairVar)
 
             val pairTypeRef = pairVar!!.typeReference
@@ -292,14 +310,17 @@ class TypeSystemTest : CangJieAnalysisTestBase() {
             """
             package test
 
+         
             var add: (Int64, Int64) -> Int64 = {a: Int64, b: Int64 => a + b}
-            var transform: (String) -> Int64 = {s: String => s.length}
+            var transform: (String) -> Int64 = {s: String => s.size}
             """.trimIndent()
         )
 
         analyzeForTest(file) {
             val addVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
-                .firstOrNull { it.name == "add" }
+                .firstOrNull {
+                    it.pattern.getAllBindings().any { binding -> binding.name == "add" }
+                }
             assertNotNull("应该找到变量 add", addVar)
 
             val addTypeRef = addVar!!.typeReference
@@ -312,7 +333,7 @@ class TypeSystemTest : CangJieAnalysisTestBase() {
             // 验证参数类型列表
             val paramTypes = functionType!!.parameters
             assertNotNull("应该有参数类型列表", paramTypes)
-            assertEquals(2, paramTypes!!.size)
+            assertEquals(2, paramTypes.size)
 
             // 验证返回类型
             val returnType = functionType.returnTypeReference
@@ -372,12 +393,20 @@ class TypeSystemTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val nameVar = PsiTreeUtil.findChildrenOfType(file, CjVariable::class.java)
-                .firstOrNull { it.name == "name" }
-            assertNotNull("应该找到变量 name", nameVar)
+            // 查找变量声明
+            val patternVar = PsiTreeUtil.findChildOfType(file, CjPatternVariable::class.java)
+            assertNotNull("应该找到变量声明", patternVar)
 
-            val typeRef = nameVar!!.typeReference
-            assertNotNull("变量 name 应该有类型引用", typeRef)
+            // 通过 pattern 获取绑定
+            val bindings = patternVar!!.pattern.getAllBindings()
+            assertTrue("应该有至少一个绑定", bindings.isNotEmpty())
+
+            val nameBinding = bindings.firstOrNull { it.name == "name" }
+            assertNotNull("应该找到名为 name 的绑定", nameBinding)
+
+            // 获取类型引用
+            val typeRef = patternVar.typeReference
+            assertNotNull("变量应该有类型引用", typeRef)
 
             // 验证限定类型引用
             val userType = typeRef!!.typeElement as? CjUserType

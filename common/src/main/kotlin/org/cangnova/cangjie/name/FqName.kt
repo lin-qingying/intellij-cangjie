@@ -56,7 +56,7 @@ class FqName {
 
     val isRoot: Boolean
         get() = fqName.isRoot
-    //        return parent == null;
+
 
     fun parent(): FqName {
         if (parent != null) {
@@ -70,20 +70,27 @@ class FqName {
         return parent!!
     }
 
-    val isModuleName: Boolean
-        get() {
-            if (parent == null) {
-                return true
-            }
-            return parent!!.isRoot
+    /**
+     * 获取此 FqName 的第一个段（通常是模块名）
+     * 例如: "my.module.package.Class" -> "my"
+     * 如果是根，返回 null
+     */
+    fun firstSegment(): Name? {
+        if (isRoot) return null
+        var current: FqName = this
+        while (!current.parent().isRoot) {
+            current = current.parent()
         }
+        return current.shortName()
+    }
 
-    val moduleName: Name get() {
-        var _this: FqName? = this
-        while (true) {
-            if (_this!!.parent().isRoot) return _this.shortName()
-            _this = _this.parent
-        }
+    /**
+     * 检查此 FqName 是否只有一级（即是否是模块名级别）
+     * 例如: "my" -> true, "my.package" -> false
+     */
+    fun isSingleSegment(): Boolean {
+        if (isRoot) return false
+        return parent().isRoot
     }
 
     fun child(name: Name): FqName {

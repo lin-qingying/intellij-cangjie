@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve.lazy
 
+import org.cangnova.cangjie.descriptors.ClassAndEnumDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.PackageFragmentProvider
@@ -39,7 +40,7 @@ interface CangJieCodeAnalyzer : TopLevelDescriptorProvider {
     fun getClassDescriptor(
         typeStatement: CjTypeStatement,
         location: LookupLocation
-    ): ClassDescriptor
+    ): ClassAndEnumDescriptor
 
 
     fun resolveToDescriptor(declaration: CjDeclaration): DeclarationDescriptor

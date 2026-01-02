@@ -390,9 +390,34 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun TypeConstructorMarker.isClassTypeConstructor(): Boolean
     fun TypeConstructorMarker.isFloatLiteralTypeConstructor(): Boolean
 
+    /**
+     * 判断类型构造器是否为函数类型构造器
+     * 用于实现函数类型的特殊子类型检查（参数逆变，返回值协变）
+     */
+    fun TypeConstructorMarker.isFunctionTypeConstructor(): Boolean
+
+    /**
+     * 判断类型构造器是否为元组类型构造器
+     * 用于实现元组类型的严格不变子类型检查（implicitBoxed = false）
+     */
+    fun TypeConstructorMarker.isTupleTypeConstructor(): Boolean
+
     fun SimpleTypeMarker.fastCorrespondingSupertypes(constructor: TypeConstructorMarker): List<SimpleTypeMarker>? = null
     fun SimpleTypeMarker.isFloatLiteralType(): Boolean = typeConstructor().isFloatLiteralTypeConstructor()
     fun SimpleTypeMarker.isIntegerLiteralType(): Boolean = typeConstructor().isIntegerLiteralTypeConstructor()
+
+    /**
+     * 判断简单类型是否为函数类型
+     * 参考编译器: TypeManager.cpp:870-900 IsFuncSubtype
+     */
+    fun SimpleTypeMarker.isFunctionType(): Boolean = typeConstructor().isFunctionTypeConstructor()
+
+    /**
+     * 判断简单类型是否为元组类型
+     * 参考编译器: TypeManager.cpp:902-913 IsTupleSubtype
+     */
+    fun SimpleTypeMarker.isTupleType(): Boolean = typeConstructor().isTupleTypeConstructor()
+
     fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(): Boolean
 
     fun SimpleTypeMarker.possibleFloatTypes(): Collection<CangJieTypeMarker>

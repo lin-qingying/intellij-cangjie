@@ -27,7 +27,6 @@ package org.cangnova.cangjie.types.expressions
 import com.google.common.collect.Lists
 import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
-import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.diagnostics.infos.errors.CATCH_PARAMETER_WITH_DEFAULT_VALUE
 import org.cangnova.cangjie.diagnostics.infos.errors.*
@@ -51,7 +50,6 @@ import org.cangnova.cangjie.resolve.scopes.LexicalScopeKind
 import org.cangnova.cangjie.resolve.scopes.LexicalWritableScope
 import org.cangnova.cangjie.resolve.scopes.receivers.TransientReceiver
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.CommonSupertypes
 import org.cangnova.cangjie.types.ErrorUtils.createErrorType
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
@@ -136,6 +134,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                 components.languageVersionSettings
             )
         )
+
 //        val dataFlowInfoAfterTry = tryOutputContext.dataFlowInfo
 
         val catchBlocks = mutableListOf<CjExpression>()
@@ -297,11 +296,11 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             .resolveLocalVariableDescriptor(context.scope, catchParameter, context.trace)
         val catchParameterType = variableDescriptor.type
         checkCatchParameterType(catchParameter, catchParameterType, context)
-        val throwableType = components.builtIns.stdlibTypes.throwable.defaultType
+        val exceptionType = components.builtIns.stdlibTypes.exception.defaultType
         components.dataFlowAnalyzer.checkType(
             catchParameterType,
             catchParameter,
-            context.replaceExpectedType(throwableType)
+            context.replaceExpectedType(exceptionType)
         )
         return variableDescriptor
     }
@@ -313,7 +312,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         val thrownExpression = expression.thrownExpression
         if (thrownExpression != null) {
             val throwableType =
-                components.builtIns.stdlibTypes.throwableType
+                components.builtIns.stdlibTypes.exceptionType
             facade.getTypeInfo(
                 thrownExpression,
                 context.replaceExpectedType(throwableType)

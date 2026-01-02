@@ -28,6 +28,7 @@ import jakarta.inject.Inject
 
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.descriptors.ClassAndEnumDescriptor
 import org.cangnova.cangjie.resolve.analyzeInContext
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptorWithResolutionScopes
@@ -213,7 +214,7 @@ class CodeFragmentAnalyzer(
         resolutionFactory: (CjElement) -> BindingContext
     ): ClassResolutionResult? {
         val bindingContext: BindingContext
-        val classDescriptor: ClassDescriptor?
+        val classDescriptor: ClassAndEnumDescriptor?
 
         if (!CjPsiUtil.isLocal(classOrObject)) {
             bindingContext = resolveSession.bindingContext

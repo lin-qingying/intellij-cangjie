@@ -24,24 +24,19 @@
 
 package org.cangnova.cangjie.resolve.lazy.declarations
 
-import org.cangnova.cangjie.builtins.CangJieBuiltIns
-import org.cangnova.cangjie.builtins.StandardNames.FqNames.core
 import org.cangnova.cangjie.builtins.StandardNames.MAIN
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.descriptors.data.CjClassInfoUtil
 import org.cangnova.cangjie.descriptors.data.CjTypeStatementInfo
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
-import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.psiUtil.findParentOfType
 import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.components.InferenceSession
 import org.cangnova.cangjie.resolve.lazy.LazyClassContext
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
-import org.cangnova.cangjie.resolve.lazy.descriptors.LazyClassMemberScope
+import org.cangnova.cangjie.resolve.lazy.descriptors.LazyEnumDescriptor
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.source.MemberScopeImpl
@@ -85,7 +80,7 @@ protected constructor(
         storageManager.createMemoizedFunction { doGetMainFunctions() }
 
     /** 类描述符缓存 */
-    private val classDescriptors: MemoizedFunctionToNotNull<Name, List<ClassDescriptor>> =
+    private val classDescriptors: MemoizedFunctionToNotNull<Name, List<ClassAndEnumDescriptor>> =
         storageManager.createMemoizedFunction { doGetClasses(it) }
 
     /** 宏描述符缓存 */
@@ -705,8 +700,8 @@ protected constructor(
      * @param types 类型声明信息集合
      * @return 类描述符列表
      */
-    private fun createClassDescriptor(name: Name, types: Collection<CjTypeStatementInfo<*>>): List<ClassDescriptor> {
-        val result = mutableListOf<ClassDescriptor>()
+    private fun createClassDescriptor(name: Name, types: Collection<CjTypeStatementInfo<*>>): List<ClassAndEnumDescriptor> {
+        val result = mutableListOf<ClassAndEnumDescriptor>()
 
         val isExternal =   false
 
@@ -714,18 +709,12 @@ protected constructor(
         types.forEach {
 
             when (it.classKind) {
-                // 枚举类型和枚举构造器的处理（当前已注释）
-//                ClassKind.ENUM -> {
-//                    result.add(LazyEnumDescriptor(c, it, thisDescriptor, name))
-//                }
-//
-//                ClassKind.ENUM_CONSTRUCTOR -> {
-//                    result.add(
-//                        c.enumDescriptorResolver.resolveEnumEntryDescriptor(
-//                            c, thisDescriptor, name, it as CjEnmuEntryInfo, isExternal
-//                        )
-//                    )
-//                }
+                // 枚举类型的处理
+                ClassKind.ENUM -> {
+                    result.add(LazyEnumDescriptor(c, thisDescriptor, name, it))
+                }
+
+
 
                 // 其他类型（类、接口等）
                 else -> {
@@ -748,10 +737,10 @@ protected constructor(
      * @param name 类名称
      * @return 类描述符列表
      */
-    private fun doGetClasses(name: Name): List<ClassDescriptor> {
+    private fun doGetClasses(name: Name): List<ClassAndEnumDescriptor> {
         mainScope?.classDescriptors?.invoke(name)?.let { return it }
 
-        val result = linkedSetOf<ClassDescriptor>()
+        val result = linkedSetOf<ClassAndEnumDescriptor>()
 //        val result1 = linkedSetOf<ClassDescriptor>()
 
         // 从声明中创建类描述符
@@ -810,6 +799,6 @@ protected constructor(
      * @param name 类名称
      * @param result 结果集合（包含已声明的类）
      */
-    protected abstract fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassDescriptor>)
+    protected abstract fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassAndEnumDescriptor>)
 
 }

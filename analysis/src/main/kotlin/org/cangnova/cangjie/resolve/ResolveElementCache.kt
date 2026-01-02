@@ -1053,8 +1053,11 @@ class ResolveElementCache(
         // 存储次构造函数与其对应的类构造函数描述符之间的映射。
         override val secondaryConstructors: MutableMap<CjSecondaryConstructor, ClassConstructorDescriptor> = hashMapOf()
 
+        // 存储枚举构造器与其对应的枚举构造器描述符之间的映射。
+        override val enumConstructors: MutableMap<CjEnumConstructor, EnumConstructorDescriptor> = hashMapOf()
+
         // 存储声明的类与其对应的类描述符之间的映射。
-        override val declaredClasses: MutableMap<CjTypeStatement, ClassDescriptorWithResolutionScopes> = hashMapOf()
+        override val declaredClasses: MutableMap<CjTypeStatement,  DescriptorWithResolutionScopes> = hashMapOf()
 
         // 存储属性与其对应的属性描述符之间的映射。
         override val properties: MutableMap<CjProperty, PropertyDescriptor> = hashMapOf()

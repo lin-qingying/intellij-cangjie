@@ -101,7 +101,8 @@ class StubBasedPackageMemberDeclarationProvider(
     }
 
     private fun moduleChildName(name: Name): String {
-        return FqName(fqName.moduleName.asString()).child(name.safeNameForLazyResolve()).asString()
+        val firstSegment = fqName.firstSegment() ?: return name.safeNameForLazyResolve().asString()
+        return FqName(firstSegment.asString()).child(name.safeNameForLazyResolve()).asString()
     }
 
     private fun childName(name: Name): String {

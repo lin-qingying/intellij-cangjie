@@ -77,12 +77,17 @@ import org.cangnova.cangjie.types.SimpleType
  * @see InheritableDescriptor
  */
 interface ClassAndEnumDescriptor :
+    DeclarationDescriptor,
     ClassifierDescriptorWithTypeParameters,
     InheritableDescriptor,
     HasScopeDescriptor,
     ClassOrPackageFragmentDescriptor,
     DeclarationDescriptorWithVisibility,
     ClassifierDescriptorWithTypeConstructor {
+    /**
+     * 类的 this 接收者参数描述符，用于表示类的接收者类型。
+     */
+    val thisAsReceiverParameter: ReceiverParameterDescriptor
 
     /**
      * 包含该类或枚举的声明描述符

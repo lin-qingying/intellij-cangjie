@@ -185,7 +185,7 @@ interface EnumConstructorDescriptor : CallableMemberDescriptor {
     /**
      * 是否有关联值
      */
-    val hasArguments: Boolean get() = valueParameters.isEmpty()
+    val hasArguments: Boolean get() = valueParameters.isNotEmpty()
 
     /**
      * 构造函数参数

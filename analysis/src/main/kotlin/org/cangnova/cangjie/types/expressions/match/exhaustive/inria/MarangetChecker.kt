@@ -26,6 +26,7 @@ import org.cangnova.cangjie.types.expressions.match.exhaustive.CheckSource
 import org.cangnova.cangjie.types.expressions.match.exhaustive.ExhaustivenessChecker
 import org.cangnova.cangjie.types.expressions.match.exhaustive.ExhaustivenessResult
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
+import org.cangnova.cangjie.types.deccriptorClass
 import org.cangnova.cangjie.types.isEnum
 import org.cangnova.cangjie.types.isStruct
 
@@ -249,9 +250,20 @@ class MarangetChecker : ExhaustivenessChecker {
 
     /**
      * 检查类型是否标记为非穷举
+     *
+     * 非穷尽性枚举（带 ... 的枚举）允许在 match 时不穷尽所有分支。
+     * 这个特性主要用于：
+     * 1. 向后兼容性：新增枚举变体不会破坏现有代码
+     * 2. 外部枚举：导入的库枚举可能在未来版本增加变体
+     *
+     * @param type 要检查的类型
+     * @return 如果类型是非穷尽性枚举则返回 true
      */
     private fun hasNonExhaustiveAttribute(type: CangJieType): Boolean {
-        // TODO: 实现属性检查
+        val enumDescriptor = type.deccriptorClass
+        if (enumDescriptor is org.cangnova.cangjie.descriptors.EnumDescriptor) {
+            return enumDescriptor.isNonExhaustive
+        }
         return false
     }
 

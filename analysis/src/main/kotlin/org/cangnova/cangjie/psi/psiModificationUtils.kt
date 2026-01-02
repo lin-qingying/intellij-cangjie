@@ -120,7 +120,8 @@ fun CjTypeStatement.isInheritable(): Boolean {
 
 private fun CjDeclaration.predictImplicitModality(): CjModifierKeywordToken? {
     if (this is CjTypeStatement) {
-        if (this is CjInterface) return CjTokens.ABSTRACT_KEYWORD
+        // 与编译器保持一致：Interface 默认为 OPEN (天然可被实现)
+        if (this is CjInterface) return CjTokens.OPEN_KEYWORD
         return null
     }
     val cclass = containingTypeStatement ?: return null

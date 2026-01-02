@@ -24,7 +24,12 @@
 
 package org.cangnova.cangjie.diagnostics.rendering
 
+import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
+import org.cangnova.cangjie.descriptors.DeclarationDescriptor
+import org.cangnova.cangjie.diagnostics.infos.errors.ABSTRACT_FUNCTION_WITHOUT_RETURN_TYPE
+import org.cangnova.cangjie.diagnostics.infos.errors.ABSTRACT_MEMBER_NOT_IMPLEMENTED
 import org.cangnova.cangjie.diagnostics.infos.errors.NO_ELSE_IN_MATCH_BY_PATTERN
+import org.cangnova.cangjie.diagnostics.infos.errors.REDECLARATION
 import org.cangnova.cangjie.types.expressions.match.Pattern
 
 /**
@@ -54,9 +59,30 @@ import org.cangnova.cangjie.types.expressions.match.Pattern
  * }
  * ```
  */
-class IdeRenderers : DiagnosticRendererProvider {
+internal class IdeRenderers : DiagnosticRendererProvider {
     override fun register() {
         DiagnosticRendererRegistry.configureIde {
+            // 重复声明错误 - 使用 HTML 列表格式化所有冲突的声明
+            register(REDECLARATION) {
+                message { IDECangJieDiagnosisBundle.rawMessage(it) }
+                renderers(
+                    renderer { declarations: Collection<DeclarationDescriptor> ->
+                        // 使用 HTML 列表格式渲染所有冲突的声明
+                        buildString {
+                            append("<ul>")
+                            for (declaration in declarations) {
+                                val declarationText = Renderers.FQ_NAMES_IN_TYPES.render(
+                                    declaration,
+                                    RenderingContext.of(declaration)
+                                )
+                                append("<li><code>$declarationText</code></li>")
+                            }
+                            append("</ul>")
+                        }
+                    }
+                )
+            }
+
             // match 表达式穷举性错误 - 使用 HTML 列表格式化缺失的模式
             register(NO_ELSE_IN_MATCH_BY_PATTERN) {
                 message { IDECangJieDiagnosisBundle.rawMessage(it) }
@@ -72,6 +98,28 @@ class IdeRenderers : DiagnosticRendererProvider {
                     }
                 )
             }
+            // 抽象成员未实现错误 - 使用列表渲染所有未实现的成员
+            register(ABSTRACT_MEMBER_NOT_IMPLEMENTED) {
+                message { IDECangJieDiagnosisBundle.rawMessage(it) }
+                renderers(
+                    Renderers.RENDER_TYPE_STATMENT,  // 渲染类名 {0}
+                    renderer { members: Collection<CallableMemberDescriptor> ->
+                        // 使用 HTML 列表格式渲染所有未实现的成员
+                        buildString {
+                            append("<ul>")
+                            for (member in members) {
+                                val memberText = Renderers.FQ_NAMES_IN_TYPES.render(
+                                    member,
+                                    RenderingContext.of(member)
+                                )
+                                append("<li><code>$memberText</code></li>")
+                            }
+                            append("</ul>")
+                        }
+                    }
+                )
+            }
+
 
             // 示例：类型不匹配错误可以使用表格格式
             // register(TYPE_MISMATCH) {

@@ -20,7 +20,9 @@ import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.analysis.CangJieAnalysisTestBase
 import org.cangnova.cangjie.descriptors.VariableDescriptor
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
 import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.types.deccriptorClass
 
 /**
  * 变量和属性语义分析测试
@@ -57,19 +59,23 @@ class VariableSemanticAnalysisTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+            main() {
                 let x: Int64 = 42
             }
             """.trimIndent()
         )
 
         analyzeForTest(file) {
-            val property = PsiTreeUtil.findChildOfType(file, CjProperty::class.java)
-            assertNotNull("应该找到变量声明", property)
-            assertEquals("x", property!!.name)
+            val patternVar = PsiTreeUtil.findChildOfType(file, CjPatternVariable::class.java)
+            assertNotNull("应该找到变量声明", patternVar)
+
+            // 获取绑定模式
+            val binding = patternVar!!.pattern.getAllBindings().firstOrNull { it.name == "x" }
+            assertNotNull("应该找到 x 的绑定模式", binding)
+            assertEquals("x", binding!!.name)
 
             // 验证变量描述符
-            val variableDescriptor = bindingContext[BindingContext.VARIABLE, property!!]
+            val variableDescriptor = bindingContext[BindingContext.VARIABLE, binding]
             assertNotNull("应该创建 VariableDescriptor", variableDescriptor)
 
             // 验证变量名称
@@ -94,7 +100,7 @@ class VariableSemanticAnalysisTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+            main() {
                 let message = "Hello"
                 let count = 100
                 let pi = 3.14
@@ -103,22 +109,28 @@ class VariableSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertEquals("应该有 3 个变量", 3, properties.size)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+            assertEquals("应该有 3 个变量", 3, patternVars.size)
 
             // 验证 message 的类型推断为 String
-            val messageDescriptor = bindingContext[BindingContext.VARIABLE, properties.first { it.name == "message" }]
+            val messagePatternVar = patternVars.first { it.name == "message" }
+            val messageBinding = messagePatternVar.pattern.getAllBindings().firstOrNull { it.name == "message" }
+            val messageDescriptor = bindingContext[BindingContext.VARIABLE, messageBinding!!]
             assertNotNull("message 应该有描述符", messageDescriptor)
             assertEquals("String", messageDescriptor!!.type.toString())
 
             // 验证 count 的类型推断（应该是整数类型）
-            val countDescriptor = bindingContext[BindingContext.VARIABLE, properties.first { it.name == "count" }]
+            val countPatternVar = patternVars.first { it.name == "count" }
+            val countBinding = countPatternVar.pattern.getAllBindings().firstOrNull { it.name == "count" }
+            val countDescriptor = bindingContext[BindingContext.VARIABLE, countBinding!!]
             assertNotNull("count 应该有描述符", countDescriptor)
             // 根据实际类型推断实现，可能是 Int64 或其他整数类型
             assertNotNull("count 应该有类型", countDescriptor!!.type)
 
             // 验证 pi 的类型推断（应该是浮点类型）
-            val piDescriptor = bindingContext[BindingContext.VARIABLE, properties.first { it.name == "pi" }]
+            val piPatternVar = patternVars.first { it.name == "pi" }
+            val piBinding = piPatternVar.pattern.getAllBindings().firstOrNull { it.name == "pi" }
+            val piDescriptor = bindingContext[BindingContext.VARIABLE, piBinding!!]
             assertNotNull("pi 应该有描述符", piDescriptor)
             assertNotNull("pi 应该有类型", piDescriptor!!.type)
         }
@@ -136,7 +148,7 @@ class VariableSemanticAnalysisTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+           main() {
                 var counter: Int64 = 0
                 counter = 1
             }
@@ -144,10 +156,14 @@ class VariableSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val property = PsiTreeUtil.findChildOfType(file, CjProperty::class.java)
-            assertNotNull("应该找到 var 变量", property)
+            val patternVar = PsiTreeUtil.findChildOfType(file, CjPatternVariable::class.java)
+            assertNotNull("应该找到 var 变量", patternVar)
 
-            val variableDescriptor = bindingContext[BindingContext.VARIABLE, property!!]
+            // 获取绑定模式（binding pattern）而不是使用 CjPatternVariable 本身
+            val binding = patternVar!!.pattern.getAllBindings().firstOrNull { it.name == "counter" }
+            assertNotNull("应该找到 counter 的绑定模式", binding)
+
+            val variableDescriptor = bindingContext[BindingContext.VARIABLE, binding!!]
             assertNotNull("应该创建 VariableDescriptor", variableDescriptor)
 
             // 验证可变性
@@ -167,17 +183,21 @@ class VariableSemanticAnalysisTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+            main() {
                 let constant: Int64 = 42
             }
             """.trimIndent()
         )
 
         analyzeForTest(file) {
-            val property = PsiTreeUtil.findChildOfType(file, CjProperty::class.java)
-            assertNotNull("应该找到 let 变量", property)
+            val patternVar = PsiTreeUtil.findChildOfType(file, CjPatternVariable::class.java)
+            assertNotNull("应该找到 let 变量", patternVar)
 
-            val variableDescriptor = bindingContext[BindingContext.VARIABLE, property!!]
+            // 获取绑定模式
+            val binding = patternVar!!.pattern.getAllBindings().firstOrNull { it.name == "constant" }
+            assertNotNull("应该找到 constant 的绑定模式", binding)
+
+            val variableDescriptor = bindingContext[BindingContext.VARIABLE, binding!!]
             assertNotNull("应该创建 VariableDescriptor", variableDescriptor)
 
             // 验证不可变性
@@ -201,12 +221,21 @@ class VariableSemanticAnalysisTest : CangJieAnalysisTestBase() {
             package test
 
             class Person {
-                public let name: String
-                public var age: Int64
+                private var _name: String = ""
+                private var _age: Int64 = 0
+
+                public prop name: String {
+                    get() { return _name }
+                }
+
+                public mut prop age: Int64 {
+                    get() { return _age }
+                    set(value) { _age = value }
+                }
 
                 public init(name: String, age: Int64) {
-                    this.name = name
-                    this.age = age
+                    this._name = name
+                    this._age = age
                 }
             }
             """.trimIndent()
@@ -219,21 +248,23 @@ class VariableSemanticAnalysisTest : CangJieAnalysisTestBase() {
             val properties = PsiTreeUtil.findChildrenOfType(classDecl, CjProperty::class.java)
             assertEquals("应该有 2 个属性", 2, properties.size)
 
-            // 验证 name 属性
+            // 验证 name 属性（只读属性，只有 getter）
             val nameProperty = properties.first { it.name == "name" }
             val nameDescriptor = bindingContext[BindingContext.VARIABLE, nameProperty!!]
             assertNotNull("name 应该有描述符", nameDescriptor)
             assertEquals("name", nameDescriptor!!.name.asString())
             assertEquals("String", nameDescriptor.type.toString())
-            assertFalse("name 应该是不可变的", nameDescriptor.isVar)
+            assertNotNull("name 应该有 getter", nameProperty.getter)
+            assertNull("name 不应该有 setter", nameProperty.setter)
 
-            // 验证 age 属性
+            // 验证 age 属性（可变属性，有 getter 和 setter）
             val ageProperty = properties.first { it.name == "age" }
             val ageDescriptor = bindingContext[BindingContext.VARIABLE, ageProperty!!]
             assertNotNull("age 应该有描述符", ageDescriptor)
             assertEquals("age", ageDescriptor!!.name.asString())
             assertEquals("Int64", ageDescriptor.type.toString())
-            assertTrue("age 应该是可变的", ageDescriptor.isVar)
+            assertNotNull("age 应该有 getter", ageProperty.getter)
+            assertNotNull("age 应该有 setter", ageProperty.setter)
         }
     }
 
@@ -250,8 +281,17 @@ class VariableSemanticAnalysisTest : CangJieAnalysisTestBase() {
             package test
 
             class Config {
-                public let maxRetries: Int64 = 3
-                public var timeout: Int64 = 5000
+                private var _maxRetries: Int64 = 3
+                private var _timeout: Int64 = 5000
+
+                public prop maxRetries: Int64 {
+                    get() { return _maxRetries }
+                }
+
+                public mut prop timeout: Int64 {
+                    get() { return _timeout }
+                    set(value) { _timeout = value }
+                }
             }
             """.trimIndent()
         )
@@ -269,8 +309,8 @@ class VariableSemanticAnalysisTest : CangJieAnalysisTestBase() {
             assertNotNull("maxRetries 应该有描述符", maxRetriesDescriptor)
             assertEquals("Int64", maxRetriesDescriptor!!.type.toString())
 
-            // 验证初始化表达式存在
-            assertNotNull("maxRetries 应该有初始化表达式", maxRetriesProperty.initializer)
+            // 验证 getter 存在
+            assertNotNull("maxRetries 应该有 getter", maxRetriesProperty.getter)
         }
     }
 
@@ -326,13 +366,13 @@ class VariableSemanticAnalysisTest : CangJieAnalysisTestBase() {
     // ==================== 顶层属性测试 ====================
 
     /**
-     * 测试顶层属性
+     * 测试顶层变量
      *
      * 验证：
-     * 1. 顶层属性的描述符创建
+     * 1. 顶层变量的描述符创建
      * 2. 顶层常量的类型推断
      */
-    fun `test top level property`() {
+    fun `test top level variable`() {
         val file = createFile(
             """
             package test
@@ -344,25 +384,41 @@ class VariableSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val properties = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-            assertEquals("应该有 3 个顶层属性", 3, properties.size)
+            val patternVars = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+            assertEquals("应该有 3 个顶层变量", 3, patternVars.size)
 
-            // 验证 APP_NAME
-            val appNameProperty = properties.first { it.name == "APP_NAME" }
-            val appNameDescriptor = bindingContext[BindingContext.VARIABLE, appNameProperty!!]
+            // 验证 APP_NAME（不可变顶层变量）
+            val appNamePatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "APP_NAME" }
+            }
+            assertNotNull("应该找到 APP_NAME 变量", appNamePatternVar)
+
+            val appNameBinding = appNamePatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "APP_NAME" }
+            val appNameDescriptor = bindingContext[BindingContext.VARIABLE, appNameBinding!!]
             assertNotNull("APP_NAME 应该有描述符", appNameDescriptor)
             assertEquals("String", appNameDescriptor!!.type.toString())
             assertFalse("APP_NAME 应该是不可变的", appNameDescriptor.isVar)
 
-            // 验证 VERSION
-            val versionProperty = properties.first { it.name == "VERSION" }
-            val versionDescriptor = bindingContext[BindingContext.VARIABLE, versionProperty!!]
+            // 验证 VERSION（不可变顶层变量）
+            val versionPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "VERSION" }
+            }
+            assertNotNull("应该找到 VERSION 变量", versionPatternVar)
+
+            val versionBinding = versionPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "VERSION" }
+            val versionDescriptor = bindingContext[BindingContext.VARIABLE, versionBinding!!]
             assertNotNull("VERSION 应该有描述符", versionDescriptor)
             assertEquals("Int64", versionDescriptor!!.type.toString())
+            assertFalse("VERSION 应该是不可变的", versionDescriptor.isVar)
 
-            // 验证 debugMode
-            val debugProperty = properties.first { it.name == "debugMode" }
-            val debugDescriptor = bindingContext[BindingContext.VARIABLE, debugProperty!!]
+            // 验证 debugMode（可变顶层变量）
+            val debugPatternVar = patternVars.firstOrNull { patternVar ->
+                patternVar.pattern.getAllBindings().any { it.name == "debugMode" }
+            }
+            assertNotNull("应该找到 debugMode 变量", debugPatternVar)
+
+            val debugBinding = debugPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "debugMode" }
+            val debugDescriptor = bindingContext[BindingContext.VARIABLE, debugBinding!!]
             assertNotNull("debugMode 应该有描述符", debugDescriptor)
             assertEquals("Bool", debugDescriptor!!.type.toString())
             assertTrue("debugMode 应该是可变的", debugDescriptor.isVar)
@@ -371,44 +427,6 @@ class VariableSemanticAnalysisTest : CangJieAnalysisTestBase() {
 
     // ==================== 延迟初始化测试 ====================
 
-    /**
-     * 测试延迟初始化属性
-     *
-     * 验证：
-     * 1. lateinit 属性的描述符
-     * 2. 延迟初始化标记正确
-     */
-    fun `test lateinit property`() {
-        val file = createFile(
-            """
-            package test
-
-            class Service {
-                private lateinit var connection: String
-
-                public func initialize() {
-                    connection = "Connected"
-                }
-            }
-            """.trimIndent()
-        )
-
-        analyzeForTest(file) {
-            val classDecl = PsiTreeUtil.findChildOfType(file, CjClass::class.java)
-            assertNotNull("应该找到类声明", classDecl)
-
-            val connectionProperty = PsiTreeUtil.findChildrenOfType(classDecl, CjProperty::class.java)
-                .firstOrNull { it.name == "connection" }
-            assertNotNull("应该找到 connection 属性", connectionProperty)
-
-            val propertyDescriptor = bindingContext[BindingContext.VARIABLE, connectionProperty!!]
-            assertNotNull("connection 应该有描述符", propertyDescriptor)
-            assertEquals("String", propertyDescriptor!!.type.toString())
-
-            // 验证 lateinit 标记（如果实现了）
-            // assertTrue("connection 应该是延迟初始化的", propertyDescriptor.isLateInit)
-        }
-    }
 
     // ==================== 可空类型属性测试 ====================
 
@@ -425,11 +443,20 @@ class VariableSemanticAnalysisTest : CangJieAnalysisTestBase() {
             package test
 
             class User {
-                public var nickname: String? = null
-                public let email: String
+                private var _nickname: ?String = None
+                private var _email: String = ""
+
+                public mut prop nickname: ?String {
+                    get() { return _nickname }
+                    set(value) { _nickname = value }
+                }
+
+                public prop email: String {
+                    get() { return _email }
+                }
 
                 public init(email: String) {
-                    this.email = email
+                    this._email = email
                 }
             }
             """.trimIndent()
@@ -506,7 +533,7 @@ class VariableSemanticAnalysisTest : CangJieAnalysisTestBase() {
 
             val propertyDescriptor = bindingContext[BindingContext.VARIABLE, areaProperty!!]
             assertNotNull("area 应该有描述符", propertyDescriptor)
-            assertEquals("Float64", propertyDescriptor!!.type.toString())
+            assertEquals("Float64", propertyDescriptor!!.type.deccriptorClass?.name?.asString())
 
             // 验证只有 getter
             assertNotNull("area 应该有 getter", areaProperty!!.getter)

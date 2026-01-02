@@ -116,7 +116,6 @@ open class FunctionClassDescriptor(
                 TypeParameterDescriptorImpl.createWithDefaultBound(
                     this@FunctionClassDescriptor,
                     Annotations.EMPTY,
-//                    false,
                     variance,
                     Name.identifier(name),
                     result.size,
@@ -125,6 +124,16 @@ open class FunctionClassDescriptor(
             )
         }
 
+        // 根据编译器 TypeManager.cpp:870-900 的实现:
+        // - 函数参数类型是逆变的 (CONTRAVARIANT): root.paramTys[i] <: leaf.paramTys[i]
+        // - 函数返回类型是协变的 (COVARIANT): leaf.retTy <: root.retTy
+        //
+        // 但在 仓颉 类型系统中,根据 TypeManager.cpp:993-995 的注释:
+        // "For function type and tuple type, covariant & contravariant are both not allowed"
+        // "for elements' value types (implementing interfaces) and class type"
+        //
+        // 这意味着在类型参数声明层面,所有参数都应该是 INVARIANT (不变),
+        // 但在子类型检查时,通过特殊逻辑实现参数逆变和返回值协变。
         (1..arity).map { i ->
             typeParameter(Variance.INVARIANT, "P$i")
         }
@@ -183,7 +192,7 @@ open class FunctionClassDescriptor(
 //                    TypeProjectionImpl(it.defaultType)
 //                }
 //
-//                CangJieTypeFactory.simpleNotNullType(TypeAttributes.Empty, descriptor, arguments)
+//                CangJieTypeFactory.simpleNonOptionType(TypeAttributes.Empty, descriptor, arguments)
 //            }.toList()
             return listOf(builtIns.stdlibTypes.anyType)
         }

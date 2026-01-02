@@ -63,7 +63,6 @@ interface MessageBundle {
      */
     @Nls
     fun getMessage(@NonNls key: String): String
-
     /**
      * 获取原始消息模板（通过工厂）
      *

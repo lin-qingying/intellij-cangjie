@@ -226,13 +226,6 @@ val MANY_INTERFACES_MEMBER_NOT_IMPLEMENTED_WARNING: DiagnosticFactory2<CjTypeSta
     DiagnosticFactory2.create(Severity.WARNING, PositioningStrategies.DECLARATION_NAME)
 
 /**
- * 虚成员隐藏
- */
-
-val VIRTUAL_MEMBER_HIDDEN: DiagnosticFactory4<CjNamedDeclaration, CallableMemberDescriptor, CallableMemberDescriptor, DeclarationDescriptor, CjToken> =
-    DiagnosticFactory4.create(Severity.WARNING, PositioningStrategies.DECLARATION_NAME)
-
-/**
  * 重写时参数名称改变
  */
 

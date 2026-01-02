@@ -41,7 +41,9 @@ interface BodiesResolveContext {
 
     val secondaryConstructors: MutableMap<CjSecondaryConstructor, ClassConstructorDescriptor>
 
-    val declaredClasses: MutableMap<CjTypeStatement, ClassDescriptorWithResolutionScopes>
+    val enumConstructors: MutableMap<CjEnumConstructor, EnumConstructorDescriptor>
+
+    val declaredClasses: MutableMap<CjTypeStatement, DescriptorWithResolutionScopes>
 
 //    @get:Mutable
 //    val anonymousInitializers: Map<Any?, Any?>?

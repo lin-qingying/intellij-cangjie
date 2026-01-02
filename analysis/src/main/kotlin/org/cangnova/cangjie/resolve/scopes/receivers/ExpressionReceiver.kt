@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve.scopes.receivers
 
+import org.cangnova.cangjie.descriptors.ClassAndEnumDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.binding.BindingContext
@@ -77,7 +78,7 @@ interface ExpressionReceiver : ReceiverValue {
          * @param original 原始的接收器值
          */
         private class ThisExpressionClassReceiver(
-            override val classDescriptor: ClassDescriptor,
+            override val classDescriptor: ClassAndEnumDescriptor,
             expression: CjExpression,
             type: CangJieType,
             original: ReceiverValue?

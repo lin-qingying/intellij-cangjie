@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.types
 
 import org.cangnova.cangjie.descriptors.ClassAndEnumDescriptor
-import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.HasScopeDescriptor
 import org.cangnova.cangjie.descriptors.TypeAliasDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
@@ -85,7 +84,7 @@ object CangJieTypeFactory {
      * val attributes = TypeAttributes.Empty
      * val descriptor: ClassAndEnumDescriptor = ...
      * val arguments = listOf(...)
-     * val simpleType = CangJieTypeFactory.simpleNotNullType(attributes, descriptor, arguments)
+     * val simpleType = CangJieTypeFactory.simpleNonOptionType(attributes, descriptor, arguments)
      * // 创建非Option的简单类型
      * ```
      *
@@ -95,7 +94,7 @@ object CangJieTypeFactory {
      * @return 非空的简单类型
      */
     @JvmStatic
-    fun simpleNotNullType(
+    fun simpleNonOptionType(
         attributes: TypeAttributes,
         descriptor: ClassAndEnumDescriptor,
         arguments: List<TypeProjection>

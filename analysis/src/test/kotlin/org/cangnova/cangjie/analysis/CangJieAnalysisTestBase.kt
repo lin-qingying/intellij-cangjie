@@ -22,7 +22,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.util.text.SemVer
-import kotlinx.io.files.Path
+
 import org.cangnova.cangjie.CangJieTestBase
 import org.cangnova.cangjie.config.LanguageVersionSettingsImpl
 import org.cangnova.cangjie.diagnostics.Diagnostic

@@ -116,6 +116,34 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
     /**
+     * 检查类型构造器是否为函数类型构造器
+     *
+     * 用于实现函数类型的特殊子类型检查（参数逆变，返回值协变）
+     * 参考编译器: TypeManager.cpp:870-900 IsFuncSubtype
+     *
+     * @return 如果是函数类型构造器则返回 true
+     */
+    override fun TypeConstructorMarker.isFunctionTypeConstructor(): Boolean {
+        require(this is TypeConstructor, this::errorMessage)
+        // FunctionClassDescriptor.FunctionTypeConstructor
+        return this.declarationDescriptor is org.cangnova.cangjie.descriptors.impl.FunctionClassDescriptor
+    }
+
+    /**
+     * 检查类型构造器是否为元组类型构造器
+     *
+     * 用于实现元组类型的严格不变子类型检查（implicitBoxed = false）
+     * 参考编译器: TypeManager.cpp:902-913 IsTupleSubtype
+     *
+     * @return 如果是元组类型构造器则返回 true
+     */
+    override fun TypeConstructorMarker.isTupleTypeConstructor(): Boolean {
+        require(this is TypeConstructor, this::errorMessage)
+        // TupleClassDescriptor.TupleTypeConstructor
+        return this.declarationDescriptor is org.cangnova.cangjie.descriptors.impl.TupleClassDescriptor
+    }
+
+    /**
      * 提取函数类型或其子类型的类型参数
      *
      * 对于函数类型 (A, B) -> C，返回 [A, B, C]
@@ -388,9 +416,54 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return this.parameters
     }
 
+    /**
+     * 获取类型构造器的超类型集合
+     *
+     * ## 实现编译器的 implicitBoxed 机制
+     *
+     * 根据 cangjie_compiler/src/Sema/TypeManager.cpp:1004-1014，当 implicitBoxed=true（默认值）时，
+     * 基本类型和内置类型可以作为 Any 的子类型，即使它们在定义时没有显式继承 Any。
+     *
+     * ### 处理逻辑：
+     * 1. 获取类型构造器自身定义的超类型
+     * 2. 如果超类型为空，且该类型是基本类型或内置类型（除了 Any 和 Nothing），则隐式添加 Any
+     * 3. 这样实现了"默认实现 Any"的语义，与编译器保持一致
+     *
+     * ### 示例：
+     * ```
+     * Int32.supertypes()  // 返回 [Any]（隐式添加）
+     * String.supertypes() // 返回 [Any]（隐式添加）
+     * Any.supertypes()    // 返回 []（Any 没有超类型）
+     * Nothing.supertypes() // 返回 []（Nothing 没有超类型，但它是所有类型的子类型）
+     * ```
+     */
     override fun TypeConstructorMarker.supertypes(): Collection<CangJieTypeMarker> {
         require(this is TypeConstructor, this::errorMessage)
-        return this.supertypes
+
+        val explicitSupertypes = this.supertypes
+
+        // 如果已经有显式的超类型，直接返回
+        if (explicitSupertypes.isNotEmpty()) {
+            return explicitSupertypes
+        }
+
+        // implicitBoxed 机制：为基本类型和内置类型隐式添加 Any 超类型
+        val declarationDescriptor = this.declarationDescriptor
+
+        // 检查是否是基本类型或内置类型（但不是 Any 和 Nothing）
+        if (declarationDescriptor is ClassDescriptor) {
+            val isAny = CangJieBuiltIns.isAny(declarationDescriptor)
+            val isNothing = CangJieBuiltIns.isNothing(declarationDescriptor.defaultType)
+            val isPrimitive = CangJieBuiltIns.isPrimitiveType(declarationDescriptor.defaultType)
+            val isBuiltIn = CangJieBuiltIns.isBuiltIn(declarationDescriptor)
+
+            // 如果是基本类型或内置类型，但不是 Any 和 Nothing，隐式添加 Any
+            if ((isPrimitive || isBuiltIn) && !isAny && !isNothing) {
+                return listOf(builtIns.stdlibTypes.anyType)
+            }
+        }
+
+        return explicitSupertypes
     }
 
 

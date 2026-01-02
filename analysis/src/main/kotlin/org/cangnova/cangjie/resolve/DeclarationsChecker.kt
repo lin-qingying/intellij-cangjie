@@ -87,7 +87,7 @@ class DeclarationsChecker(
     private val modifiersChecker = modifiersChecker.withTrace(trace)
 
     // 检查类的声明
-    private fun checkClass(classDescriptor: ClassDescriptorWithResolutionScopes, typeStatement: CjTypeStatement) {
+    private fun checkClass(classDescriptor:  DescriptorWithResolutionScopes, typeStatement: CjTypeStatement) {
         // 检查超类型的一致性
         checkSupertypesForConsistency(classDescriptor, typeStatement)
 //        检查本地注解

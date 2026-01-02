@@ -85,7 +85,7 @@ class OverrideResolver(
      * @param classDescriptor 类的描述符，包含类的解析范围信息。
      * @param cclass 类型语句对象，表示当前类。
      */
-    private fun checkOverridesInAClass(classDescriptor: ClassDescriptorWithResolutionScopes, cclass: CjTypeStatement) {
+    private fun checkOverridesInAClass(classDescriptor:  DescriptorWithResolutionScopes, cclass: CjTypeStatement) {
         // 检查类中声明的可调用成员的重写一致性
         for (member in classDescriptor.declaredCallableMembers) {
             checkOverrideForMember(member)
@@ -155,7 +155,7 @@ class OverrideResolver(
     }
 
     private inner class CollectWarningInformationForInheritedMembersStrategy(
-        cclass: CjTypeStatement, classDescriptor: ClassDescriptor
+        cclass: CjTypeStatement, classDescriptor: ClassAndEnumDescriptor
     ) : CollectErrorInformationForInheritedMembersStrategy(cclass, classDescriptor) {
         constructor(delegateStrategy: CollectErrorInformationForInheritedMembersStrategy) : this(
             delegateStrategy.cclass,
@@ -197,7 +197,7 @@ class OverrideResolver(
     }
 
     private open inner class CollectErrorInformationForInheritedMembersStrategy(
-        val cclass: CjTypeStatement, val classDescriptor: ClassDescriptor
+        val cclass: CjTypeStatement, val classDescriptor: ClassAndEnumDescriptor
     ) : CheckInheritedSignaturesReportStrategy, CheckOverrideReportStrategy {
 
         private val abstractNoImpl = linkedSetOf<CallableMemberDescriptor>()
@@ -315,7 +315,7 @@ class OverrideResolver(
                     )
                 )
             } else if (abstractNoImpl.isNotEmpty() && !canHaveAbstractMembers) {
-                trace.report(ABSTRACT_MEMBER_NOT_IMPLEMENTED.on(cclass, cclass, abstractNoImpl.first()))
+                trace.report(ABSTRACT_MEMBER_NOT_IMPLEMENTED.on(cclass, cclass, abstractNoImpl))
             }
 
             if (abstractInvisibleSuper.isNotEmpty() && !canHaveAbstractMembers) {
@@ -509,13 +509,8 @@ class OverrideResolver(
         if (!overriddenDescriptors.isEmpty() && !overridesBackwardCompatibilityHelper.overrideCanBeOmitted(declared)) {
             // 如果成员没有使用`override`关键字，则报告错误
             if (!hasOverrideNode) {
-                //            override 关键字警告
-                val overridden = overriddenDescriptors.first()
-                if (!declared.isExtension) trace.report(
-                    VIRTUAL_MEMBER_HIDDEN.on(
-                        member, declared, overridden, overridden.containingDeclaration, overrideToken
-                    )
-                )
+                // 成员隐藏了超类型的成员但没有使用 override 关键字
+                // 此警告已被移除，因为编译器不会强制要求 override 关键字
             } else {
                 //                declared.modality = Modality.OPEN
             }
@@ -725,7 +720,7 @@ class OverrideResolver(
         }
 
         private fun checkInheritedAndDelegatedSignatures(
-            classDescriptor: ClassDescriptor,
+            classDescriptor: ClassAndEnumDescriptor,
             inheritedReportStrategy: CheckInheritedSignaturesReportStrategy,
             overrideReportStrategyForDelegates: CheckOverrideReportStrategy?,
             cangjieTypeRefiner: CangJieTypeRefiner

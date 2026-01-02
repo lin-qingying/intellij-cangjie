@@ -1176,7 +1176,8 @@ open class CangJieIdeDescriptorRenderer(
 
     private fun MemberDescriptor.implicitModalityWithoutExtensions(): Modality {
         if (this is ClassDescriptor) {
-            return if (kind == ClassKind.INTERFACE) Modality.ABSTRACT else Modality.FINAL
+            // 与编译器保持一致：Interface 默认为 OPEN (天然可被实现)
+            return if (kind == ClassKind.INTERFACE) Modality.OPEN else Modality.FINAL
         }
         val containingClassDescriptor = containingDeclaration as? ClassDescriptor ?: return Modality.FINAL
         if (this !is CallableMemberDescriptor) return Modality.FINAL

@@ -386,7 +386,7 @@ interface BindingContext {
         // ========================================================================
 
 
-        val CLASS: WritableSlice<PsiElement, ClassDescriptor> = Slices.createSimpleSlice()
+        val CLASS: WritableSlice<PsiElement, ClassAndEnumDescriptor> = Slices.createSimpleSlice()
 
 
         val FUNCTION: WritableSlice<PsiElement, SimpleFunctionDescriptor> = Slices.createSimpleSlice()
@@ -399,6 +399,8 @@ interface BindingContext {
 
 
         val END_CONSTRUCTOR: WritableSlice<PsiElement, ConstructorDescriptor> = Slices.createSimpleSlice()
+
+        val ENUM_CONSTRUCTOR: WritableSlice<CjEnumConstructor, EnumConstructorDescriptor> = Slices.createSimpleSlice()
 
 
         val TYPE_PARAMETER: WritableSlice<CjTypeParameter, TypeParameterDescriptor> = Slices.createSimpleSlice()
@@ -452,7 +454,7 @@ interface BindingContext {
         // ========================================================================
 
 
-        val FQNAME_TO_CLASS_DESCRIPTOR: WritableSlice<FqNameUnsafe, ClassDescriptor> =
+        val FQNAME_TO_CLASS_DESCRIPTOR: WritableSlice<FqNameUnsafe, ClassAndEnumDescriptor> =
             BasicWritableSlice(DO_NOTHING, true)
 
 

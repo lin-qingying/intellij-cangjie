@@ -270,7 +270,7 @@ class ResolveSession @Deprecated("Only calls from injectors expected") construct
     override fun getClassDescriptor(
         typeStatement: CjTypeStatement,
         location: LookupLocation
-    ): ClassDescriptor = lazyDeclarationResolver.getClassDescriptor(typeStatement, location)
+    ): ClassAndEnumDescriptor = lazyDeclarationResolver.getClassDescriptor(typeStatement, location)
 
     override fun getTopLevelClassifierDescriptors(
         fqName: FqName,

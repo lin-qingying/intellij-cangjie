@@ -271,6 +271,6 @@ data class ClassLiteralValue(val classId: ClassId, val arrayNestedness: Int) {
 //    constructor(classId: ClassId, arrayDimensions: Int) : this(ClassLiteralValue(classId, arrayDimensions))
 //
 //    override fun getType(module: ModuleDescriptor): CangJieType =
-//        CangJieTypeFactory.simpleNotNullType(TypeAttributes.Empty, module.builtIns.kClass, listOf(TypeProjectionImpl(getArgumentType(module))))
+//        CangJieTypeFactory.simpleNonOptionType(TypeAttributes.Empty, module.builtIns.kClass, listOf(TypeProjectionImpl(getArgumentType(module))))
 //
 //}

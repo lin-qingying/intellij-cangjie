@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.descriptors
 
 
-val ClassifierDescriptorWithTypeConstructor.isFinalOrEnum: Boolean
+val ClassifierDescriptorWithTypeConstructor.isFinal: Boolean
     get() = modality == Modality.FINAL
 val CallableMemberDescriptor.isOverridable: Boolean
     get() = visibility != DescriptorVisibilities.PRIVATE

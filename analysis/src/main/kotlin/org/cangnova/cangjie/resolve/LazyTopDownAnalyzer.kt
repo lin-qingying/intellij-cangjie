@@ -35,13 +35,16 @@ import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.diagnostics.infos.errors.CONSTRUCTOR_IN_INTERFACE
 import org.cangnova.cangjie.diagnostics.infos.errors.PACKAGE_ACCESS_VIOLATION
 import org.cangnova.cangjie.incremental.CangJieLookupLocation
+import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
+import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.lazy.*
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
+import org.cangnova.cangjie.resolve.lazy.descriptors.LazyEnumDescriptor
 import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolverFacade
 import org.cangnova.cangjie.stubindex.CangJieExactPackagesIndex
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
@@ -166,7 +169,7 @@ class LazyTopDownAnalyzer(
                         lazyDeclarationResolver.getClassDescriptor(
                             typeStatement,
                             location
-                        ) as ClassDescriptorWithResolutionScopes
+                        ) as  DescriptorWithResolutionScopes
 
                     c.declaredClasses[typeStatement] = descriptor
                     registerDeclarations(typeStatement.declarations)
@@ -183,12 +186,32 @@ class LazyTopDownAnalyzer(
                     visitTypeStatement(cclass)
                 }
 
+                override fun visitEnum(cenum: CjEnum) {
+                    visitTypeStatement(cenum)
+
+                }
                 override fun visitPrimaryConstructor(constructor: CjPrimaryConstructor) {
                     c.primaryConstructors[constructor] =
                         lazyDeclarationResolver.resolveToDescriptor(constructor) as ClassConstructorDescriptor
                 }
 
                 override fun visitEnumConstructor(enumConstructor: CjEnumConstructor, data: Unit?) {
+                    // 枚举构造器通过父枚举的 constructors 属性自动解析
+                    // 这里不需要手动调用 resolveToDescriptor
+                    val parentEnum = enumConstructor.parentEnum ?: return
+                    val enumDescriptor = lazyDeclarationResolver.getEnumDescriptorIfAny(
+                        parentEnum,
+                        NoLookupLocation.FROM_BACKEND
+                    ) ?: return
+
+                    // 触发枚举构造器解析
+                    enumDescriptor.constructors
+
+                    // 从绑定上下文中获取已解析的描述符（使用 ENUM_CONSTRUCTOR 专用 key）
+                    val descriptor = trace.bindingContext.get(BindingContext.ENUM_CONSTRUCTOR, enumConstructor)
+                    if (descriptor != null) {
+                        c.enumConstructors[enumConstructor] = descriptor
+                    }
                 }
 
                 override fun visitSecondaryConstructor(constructor: CjSecondaryConstructor) {
@@ -203,7 +226,7 @@ class LazyTopDownAnalyzer(
 
                 private fun checkTypeStatementDeclarations(
                     typeStatement: CjTypeStatement,
-                    classDescriptor: ClassDescriptor
+                    classDescriptor: ClassAndEnumDescriptor
                 ) {
                     for (cjDeclaration in typeStatement.declarations) {
                         if (cjDeclaration is CjSecondaryConstructor) {
@@ -301,7 +324,7 @@ class LazyTopDownAnalyzer(
                 if (currentLevel == 0) {
                     return@runReadAction
                 }
-                if (directive.fqName.isModuleName) {
+                if (directive.fqName.isSingleSegment()) {
                     return@runReadAction
                 }
 //                获取父包索引，检查等级
@@ -337,15 +360,18 @@ class LazyTopDownAnalyzer(
     }
 
     private fun resolveAllHeadersInClasses(c: TopDownAnalysisContext) {
-        for (classDescriptor in c.declaredClasses) {
+        for (classDescriptor in c.declaredClasses.values) {
             when (classDescriptor) {
+
+                is LazyEnumDescriptor ->
+                    classDescriptor.resolveMemberHeaders()
                 is LazyClassDescriptor ->
                     classDescriptor.resolveMemberHeaders()
-
 
             }
         }
     }
+
 
 
     private fun createTypeAliasDescriptors(
@@ -426,6 +452,28 @@ class LazyTopDownAnalyzer(
     }
 
     private fun createMainFunctionDescriptors(c: TopDownAnalysisContext, mainfunctions: List<CjMainFunction>) {
+        // 检查同一包中的 main 函数重复声明
+        val mainFunctionsByPackage = mainfunctions.groupBy { it.containingCjFile.packageFqName }
+
+        for ((packageFqName, functionsInPackage) in mainFunctionsByPackage) {
+            if (functionsInPackage.size > 1) {
+                // 收集所有重复的 main 函数描述符
+                val descriptors = functionsInPackage.map {
+                    lazyDeclarationResolver.resolveToDescriptor(it) as SimpleFunctionDescriptor
+                }
+
+                // 为每个重复的 main 函数报告 REDECLARATION 错误
+                for (function in functionsInPackage) {
+                    trace.report(
+                        org.cangnova.cangjie.diagnostics.infos.errors.REDECLARATION.on(
+                            function.nameIdentifier ?: function,
+                            descriptors
+                        )
+                    )
+                }
+            }
+        }
+
         for (function in mainfunctions) {
             val simpleFunctionDescriptor =
                 lazyDeclarationResolver.resolveToDescriptor(function) as SimpleFunctionDescriptor

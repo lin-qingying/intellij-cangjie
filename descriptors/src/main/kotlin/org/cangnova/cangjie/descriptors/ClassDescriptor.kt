@@ -56,7 +56,7 @@ interface ClassDescriptor : ClassAndEnumDescriptor {
     /**
      * 类的 this 接收者参数描述符，用于表示类的接收者类型。
      */
-    val thisAsReceiverParameter: ReceiverParameterDescriptor
+    override val thisAsReceiverParameter: ReceiverParameterDescriptor
 
 
 

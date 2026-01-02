@@ -30,7 +30,6 @@ import org.cangnova.cangjie.descriptors.TypeAliasDescriptor
 import org.cangnova.cangjie.descriptors.findClassifierAcrossModuleDependencies
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorNameConventions
-import org.cangnova.cangjie.name.OperatorNameConventions.NOT_EQUALS
 import org.cangnova.cangjie.resolve.classId
 import org.cangnova.cangjie.resolve.declaresOrInheritsDefaultValue
 import org.cangnova.cangjie.resolve.module

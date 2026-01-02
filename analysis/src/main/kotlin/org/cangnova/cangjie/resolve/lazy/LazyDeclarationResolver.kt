@@ -77,7 +77,7 @@ open class LazyDeclarationResolver(
         this.trace = lockBasedLazyResolveStorageManager.createSafeTrace(delegationTrace)
     }
 
-    open fun getClassDescriptor(classOrObject: CjTypeStatement, location: LookupLocation): ClassDescriptor =
+    open fun getClassDescriptor(classOrObject: CjTypeStatement, location: LookupLocation): ClassAndEnumDescriptor =
         findClassDescriptor(classOrObject, location)
 
     /**
@@ -90,7 +90,7 @@ open class LazyDeclarationResolver(
     private fun findClassDescriptorIfAny(
         typeStatement: CjNamedDeclaration,
         location: LookupLocation
-    ): ClassDescriptor? {
+    ): ClassAndEnumDescriptor? {
 
         if (typeStatement is CjExtend) {
             // 扩展不是类描述符，返回 null
@@ -110,14 +110,12 @@ open class LazyDeclarationResolver(
     }
 
 
-
-
     private fun findClassDescriptor(
         classObjectOrScript: CjNamedDeclaration,
         location: LookupLocation
-    ): ClassDescriptor =
+    ): ClassAndEnumDescriptor =
         findClassDescriptorIfAny(classObjectOrScript, location)
-            ?: (absentDescriptorHandler.diagnoseDescriptorNotFound(classObjectOrScript) as ClassDescriptor)
+            ?: (absentDescriptorHandler.diagnoseDescriptorNotFound(classObjectOrScript) as ClassAndEnumDescriptor)
 
 
 //    fun resolveToDescriptor(declaration: CjDeclaration): DeclarationDescriptor =
@@ -133,7 +131,12 @@ open class LazyDeclarationResolver(
     }
 
     open fun getClassDescriptorIfAny(typeStatement: CjTypeStatement, location: LookupLocation): ClassDescriptor? =
-        findClassDescriptorIfAny(typeStatement, location)
+        findClassDescriptorIfAny(typeStatement, location) as? ClassDescriptor
+
+    open fun getEnumDescriptorIfAny(enum: CjEnum, location: LookupLocation): EnumDescriptor? =
+        findClassDescriptorIfAny(enum, location) as? EnumDescriptor
+
+
 
     fun resolveToVariableByPattern(variable: CjVariable<*>): List<VariableDescriptor> {
         val isTopLevel = when (variable) {
@@ -145,8 +148,9 @@ open class LazyDeclarationResolver(
         val scopeForDeclaration = getMemberScopeDeclaredIn(variable, location)
         val result = when (variable) {
             is CjPatternVariable -> (variable.pattern?.getAllBindings() ?: listOf()).flatMap {
-               scopeForDeclaration.getContributedVariables(it.nameAsSafeName, location)
+                scopeForDeclaration.getContributedVariables(it.nameAsSafeName, location)
             }
+
             is CjFieldVariable -> scopeForDeclaration.getContributedVariables(variable.nameAsSafeName, location)
             else -> emptyList()
         }
@@ -329,15 +333,32 @@ open class LazyDeclarationResolver(
             }
 
             override fun visitTypeStatement(typeStatement: CjTypeStatement, data: Nothing?): DeclarationDescriptor? =
-                getClassDescriptorIfAny(typeStatement, lookupLocationFor(typeStatement, true))
+                when (typeStatement) {
+                    is CjEnum -> getEnumDescriptorIfAny(typeStatement, lookupLocationFor(typeStatement, true))
+                    else -> getClassDescriptorIfAny(typeStatement, lookupLocationFor(typeStatement, true))
+                }
+
 
             override fun visitClass(cclass: CjClass, data: Nothing?): DeclarationDescriptor? {
                 return visitTypeStatement(cclass, data)
             }
 
-            override fun visitEnumConstructor(enumConstructor: CjEnumConstructor, data: Nothing?): DeclarationDescriptor? {
-                return null
+            override fun visitEnumConstructor(
+                enumConstructor: CjEnumConstructor,
+                data: Nothing?
+            ): DeclarationDescriptor? {
+                // 获取父枚举
+                val parentEnum = enumConstructor.parentEnum ?: return null
 
+                // 解析父枚举描述符
+                val enumDescriptor = getEnumDescriptorIfAny(parentEnum, lookupLocationFor(parentEnum, false))
+                    ?: return null
+
+                // 触发枚举构造器解析（通过访问 constructors）
+                enumDescriptor.constructors
+
+                // 从绑定上下文中获取（使用 ENUM_CONSTRUCTOR 专用 key）
+                return bindingContext.get(BindingContext.ENUM_CONSTRUCTOR, enumConstructor)
             }
 
             override fun visitInterface(cinterface: CjInterface, data: Nothing?): DeclarationDescriptor? {

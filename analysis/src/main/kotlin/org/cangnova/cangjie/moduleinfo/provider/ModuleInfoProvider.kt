@@ -29,6 +29,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.extensions.ProjectExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressManager
@@ -64,8 +65,8 @@ suspend fun SequenceScope<Result<IdeaModuleInfo>>.reportError(error: Throwable):
 
 interface ModuleInfoProviderExtension {
     companion object {
-        val EP_NAME: ExtensionPointName<ModuleInfoProviderExtension> =
-            ExtensionPointName("org.cangnova.cangjie.moduleInfoProviderExtension")
+        val EP_NAME: ProjectExtensionPointName<ModuleInfoProviderExtension> =
+            ProjectExtensionPointName("org.cangnova.cangjie.moduleInfoProviderExtension")
     }
 
     suspend fun SequenceScope<Result<IdeaModuleInfo>>.collectByElement(element: PsiElement, file: PsiFile, virtualFile: VirtualFile)
@@ -163,7 +164,8 @@ class ModuleInfoProvider(private val project: Project) {
     }
 
     private inline fun callExtensions(block: ModuleInfoProviderExtension.() -> Unit) {
-        for (extension in ModuleInfoProviderExtension.EP_NAME.extensionList) {
+
+        for (extension in ModuleInfoProviderExtension.EP_NAME.getExtensions (project)) {
             with(extension, block)
         }
     }

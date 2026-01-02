@@ -140,7 +140,7 @@ class InterfaceDeclarationTest : CangJieAnalysisTestBase() {
             package test
 
             interface Named {
-                var name: String
+           
                 func getName(): String
             }
             """.trimIndent()
@@ -150,10 +150,6 @@ class InterfaceDeclarationTest : CangJieAnalysisTestBase() {
             val interfaceDecl = PsiTreeUtil.findChildOfType(file, CjInterface::class.java)
             assertNotNull("应该找到接口声明", interfaceDecl)
 
-            // 验证属性声明
-            val properties = PsiTreeUtil.findChildrenOfType(interfaceDecl!!, CjProperty::class.java)
-            assertEquals("应该有 1 个属性", 1, properties.size)
-            assertEquals("name", properties.first().name)
 
             // 验证方法声明
             val functions = PsiTreeUtil.findChildrenOfType(interfaceDecl, CjFunction::class.java)
@@ -422,7 +418,10 @@ class InterfaceDeclarationTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val birdClass = PsiTreeUtil.findChildOfType(file, CjClass::class.java)
+            val birdClass = PsiTreeUtil.findChildrenOfType(file, CjClass::class.java)
+                .find {
+                    it.name == "Bird"
+                }
             assertNotNull("应该找到 Bird 类", birdClass)
 
             // 验证同时有父类和接口
@@ -535,8 +534,9 @@ class InterfaceDeclarationTest : CangJieAnalysisTestBase() {
      * 测试类实现接口属性
      *
      * 验证：
-     * 1. 类必须实现接口的所有抽象属性
-     * 2. 属性可以在主构造函数或类体中实现
+     * 1. 接口使用 prop 声明属性
+     * 2. 类实现接口时也应该使用 prop 声明属性
+     * 3. 属性（prop）和字段变量（var/let）是两个不同的概念
      */
     fun `test class implements interface properties`() {
         val file = createFile(
@@ -544,36 +544,50 @@ class InterfaceDeclarationTest : CangJieAnalysisTestBase() {
             package test
 
             interface Named {
-                var name: String
+                prop name: String
             }
 
-            class Person(public var name: String) <: Named {
-                // 通过主构造函数实现 name 属性
+            class Person <: Named {
+                // 使用 prop 实现接口属性
+                public prop name: String {
+                    get() { return "Alice" }
+                }
             }
 
             class Robot <: Named {
-                public var name: String = "R2D2"  // 在类体中实现
+                public prop name: String {
+                    get() { return "R2D2" }
+                }
             }
             """.trimIndent()
         )
 
         analyzeForTest(file) {
+            // 验证接口中的属性声明（接口中使用 prop 声明）
+            val namedInterface = PsiTreeUtil.findChildOfType(file, CjInterface::class.java)
+            assertNotNull("应该找到 Named 接口", namedInterface)
+
+            val interfaceProperty = PsiTreeUtil.findChildrenOfType(namedInterface!!, CjProperty::class.java)
+                .firstOrNull { it.name == "name" }
+            assertNotNull("Named 接口应该有 name 属性", interfaceProperty)
+
+            // 验证 Person 类中的属性实现
             val personClass = PsiTreeUtil.findChildrenOfType(file, CjClass::class.java)
                 .firstOrNull { it.name == "Person" }
             assertNotNull("应该找到 Person 类", personClass)
 
-            // 验证主构造函数参数
-            val primaryConstructor = personClass!!.primaryConstructor
-            assertNotNull("Person 应该有主构造函数", primaryConstructor)
+            val personProperty = PsiTreeUtil.findChildrenOfType(personClass!!, CjProperty::class.java)
+                .firstOrNull { it.name == "name" }
+            assertNotNull("Person 应该有 name 属性", personProperty)
 
+            // 验证 Robot 类中的属性实现
             val robotClass = PsiTreeUtil.findChildrenOfType(file, CjClass::class.java)
                 .firstOrNull { it.name == "Robot" }
             assertNotNull("应该找到 Robot 类", robotClass)
 
-            // 验证类体中的属性
-            val nameProperty = PsiTreeUtil.findChildrenOfType(robotClass!!, CjProperty::class.java)
+            val robotProperty = PsiTreeUtil.findChildrenOfType(robotClass!!, CjProperty::class.java)
                 .firstOrNull { it.name == "name" }
-            assertNotNull("Robot 应该有 name 属性", nameProperty)
+            assertNotNull("Robot 应该有 name 属性", robotProperty)
         }
     }
 

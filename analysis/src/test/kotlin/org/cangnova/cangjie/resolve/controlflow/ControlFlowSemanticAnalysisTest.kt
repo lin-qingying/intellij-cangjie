@@ -19,7 +19,10 @@ package org.cangnova.cangjie.resolve.controlflow
 import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.analysis.CangJieAnalysisTestBase
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
 import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.types.deccriptorClass
+import org.cangnova.cangjie.types.isInt64
 
 /**
  * 控制流和语句语义分析测试
@@ -55,7 +58,7 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+            main() {
                 let x: Int64 = 10
                 if (x > 5) {
                     let y = x * 2
@@ -72,19 +75,25 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
             assertNotNull("应该创建 FunctionDescriptor", functionDescriptor)
 
             // 验证变量 x
-            val xProperty = PsiTreeUtil.findChildrenOfType(functionDecl, CjProperty::class.java)
-                .firstOrNull { it.name == "x" }
-            assertNotNull("应该找到变量 x", xProperty)
+            val xPatternVar = PsiTreeUtil.findChildrenOfType(functionDecl, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "x" }
+                }
+            assertNotNull("应该找到变量 x", xPatternVar)
 
-            val xDescriptor = bindingContext[BindingContext.VARIABLE, xProperty!!]
+            val xBinding = xPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "x" }
+            val xDescriptor = bindingContext[BindingContext.VARIABLE, xBinding!!]
             assertNotNull("x 应该有描述符", xDescriptor)
             assertEquals("Int64", xDescriptor!!.type.toString())
 
             // 验证 if 块内的变量 y
-            val yProperty = PsiTreeUtil.findChildrenOfType(functionDecl, CjProperty::class.java)
-                .firstOrNull { it.name == "y" }
-            if (yProperty != null) {
-                val yDescriptor = bindingContext[BindingContext.VARIABLE, yProperty!!]
+            val yPatternVar = PsiTreeUtil.findChildrenOfType(functionDecl, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "y" }
+                }
+            if (yPatternVar != null) {
+                val yBinding = yPatternVar.pattern.getAllBindings().firstOrNull { it.name == "y" }
+                val yDescriptor = bindingContext[BindingContext.VARIABLE, yBinding!!]
                 assertNotNull("y 应该有描述符", yDescriptor)
             }
         }
@@ -102,7 +111,7 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+            main() {
                 let condition = true
                 let value = if (condition) { 42 } else { 0 }
             }
@@ -110,11 +119,14 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val valueProperty = PsiTreeUtil.findChildrenOfType(file, CjProperty::class.java)
-                .firstOrNull { it.name == "value" }
-            assertNotNull("应该找到 value 变量", valueProperty)
+            val valuePatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "value" }
+                }
+            assertNotNull("应该找到 value 变量", valuePatternVar)
 
-            val valueDescriptor = bindingContext[BindingContext.VARIABLE, valueProperty!!]
+            val valueBinding = valuePatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "value" }
+            val valueDescriptor = bindingContext[BindingContext.VARIABLE, valueBinding!!]
             assertNotNull("value 应该有描述符", valueDescriptor)
             assertNotNull("value 应该有类型", valueDescriptor!!.type)
         }
@@ -176,7 +188,7 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+            main() {
                 var counter: Int64 = 0
                 while (counter < 10) {
                     counter = counter + 1
@@ -186,10 +198,14 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val counterProperty = PsiTreeUtil.findChildOfType(file, CjProperty::class.java)
-            assertNotNull("应该找到 counter 变量", counterProperty)
+            val counterPatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "counter" }
+                }
+            assertNotNull("应该找到 counter 变量", counterPatternVar)
 
-            val counterDescriptor = bindingContext[BindingContext.VARIABLE, counterProperty!!]
+            val counterBinding = counterPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "counter" }
+            val counterDescriptor = bindingContext[BindingContext.VARIABLE, counterBinding!!]
             assertNotNull("counter 应该有描述符", counterDescriptor)
             assertEquals("Int64", counterDescriptor!!.type.toString())
             assertTrue("counter 应该是可变的", counterDescriptor.isVar)
@@ -208,7 +224,7 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+            func abc() {
                 var x: Int64 = 0
                 do {
                     x = x + 1
@@ -218,10 +234,17 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val xProperty = PsiTreeUtil.findChildOfType(file, CjProperty::class.java)
-            assertNotNull("应该找到 x 变量", xProperty)
+            val xPatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "x" }
+                }
+            assertNotNull("应该找到 x 变量", xPatternVar)
 
-            val xDescriptor = bindingContext[BindingContext.VARIABLE, xProperty!!]
+            // 获取绑定模式(binding pattern)而不是使用 CjPatternVariable 本身
+            val xBinding = xPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "x" }
+            assertNotNull("应该找到 x 的绑定模式", xBinding)
+
+            val xDescriptor = bindingContext[BindingContext.VARIABLE, xBinding!!]
             assertNotNull("x 应该有描述符", xDescriptor)
             assertTrue("x 应该是可变的", xDescriptor!!.isVar)
         }
@@ -241,7 +264,7 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+             main() {
                 let numbers: Array<Int64> = Array<Int64>()
                 for (num in numbers) {
                     let doubled = num * 2
@@ -251,10 +274,14 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val numbersProperty = PsiTreeUtil.findChildOfType(file, CjProperty::class.java)
-            assertNotNull("应该找到 numbers 变量", numbersProperty)
+            val numbersPatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "numbers" }
+                }
+            assertNotNull("应该找到 numbers 变量", numbersPatternVar)
 
-            val numbersDescriptor = bindingContext[BindingContext.VARIABLE, numbersProperty!!]
+            val numbersBinding = numbersPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "numbers" }
+            val numbersDescriptor = bindingContext[BindingContext.VARIABLE, numbersBinding!!]
             assertNotNull("numbers 应该有描述符", numbersDescriptor)
             assertNotNull("numbers 应该有类型", numbersDescriptor!!.type)
 
@@ -280,7 +307,7 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+            main() {
                 for (i in 0..10) {
                     let square = i * i
                 }
@@ -405,7 +432,7 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
             val addFunc = functions.first { it.name == "add" }
             val addDescriptor = bindingContext[BindingContext.FUNCTION, addFunc!!]
             assertNotNull("add 应该有描述符", addDescriptor)
-            assertEquals("Int64", addDescriptor!!.returnType!!.toString())
+            assertEquals("Int64", addDescriptor!!.returnType!!.deccriptorClass?.name?.asString())
 
             // 验证 greet 函数
             val greetFunc = functions.first { it.name == "greet" }
@@ -466,7 +493,7 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+            main() {
                 var i: Int64 = 0
                 while (true) {
                     i = i + 1
@@ -479,10 +506,14 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            val iProperty = PsiTreeUtil.findChildOfType(file, CjProperty::class.java)
-            assertNotNull("应该找到 i 变量", iProperty)
+            val iPatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "i" }
+                }
+            assertNotNull("应该找到 i 变量", iPatternVar)
 
-            val iDescriptor = bindingContext[BindingContext.VARIABLE, iProperty!!]
+            val iBinding = iPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "i" }
+            val iDescriptor = bindingContext[BindingContext.VARIABLE, iBinding!!]
             assertNotNull("i 应该有描述符", iDescriptor)
             assertTrue("i 应该是可变的", iDescriptor!!.isVar)
         }
@@ -500,7 +531,7 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            func main() {
+            main() {
                 for (i in 0..10) {
                     if (i % 2 == 0) {
                         continue
@@ -551,7 +582,7 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
 
             val functionDescriptor = bindingContext[BindingContext.FUNCTION, functionDecl!!]
             assertNotNull("应该创建 FunctionDescriptor", functionDescriptor)
-            assertEquals("Int64", functionDescriptor!!.returnType!!.toString())
+            assertEquals("Int64", functionDescriptor!!.returnType?.deccriptorClass?.name?.asString())
         }
     }
 
@@ -589,10 +620,14 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
             assertEquals("Unit", functionDescriptor!!.returnType!!.toString())
 
             // 验证 resource 变量
-            val resourceProperty = PsiTreeUtil.findChildOfType(functionDecl, CjProperty::class.java)
-            assertNotNull("应该找到 resource 变量", resourceProperty)
+            val resourcePatternVar = PsiTreeUtil.findChildrenOfType(functionDecl, CjPatternVariable::class.java)
+                .firstOrNull { patternVar ->
+                    patternVar.pattern.getAllBindings().any { it.name == "resource" }
+                }
+            assertNotNull("应该找到 resource 变量", resourcePatternVar)
 
-            val resourceDescriptor = bindingContext[BindingContext.VARIABLE, resourceProperty!!]
+            val resourceBinding = resourcePatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "resource" }
+            val resourceDescriptor = bindingContext[BindingContext.VARIABLE, resourceBinding!!]
             assertNotNull("resource 应该有描述符", resourceDescriptor)
         }
     }
@@ -659,7 +694,7 @@ class ControlFlowSemanticAnalysisTest : CangJieAnalysisTestBase() {
 
             val functionDescriptor = bindingContext[BindingContext.FUNCTION, functionDecl!!]
             assertNotNull("应该创建 FunctionDescriptor", functionDescriptor)
-            assertEquals("Int64", functionDescriptor!!.returnType!!.toString())
+            assertEquals("Int64", functionDescriptor!!.returnType!!.deccriptorClass?.name?.asString())
         }
     }
 }

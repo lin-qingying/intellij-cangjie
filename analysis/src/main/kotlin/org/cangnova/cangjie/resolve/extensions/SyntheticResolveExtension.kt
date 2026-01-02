@@ -126,7 +126,8 @@ interface SyntheticResolveExtension {
                     }
 
                 override fun generateSyntheticProperties(
-                    thisDescriptor: ClassDescriptor, name: Name,
+                    thisDescriptor: ClassAndEnumDescriptor,
+                    name: Name,
                     bindingContext: BindingContext,
                     fromSupertypes: ArrayList<PropertyDescriptor>,
                     result: MutableSet<PropertyDescriptor>
@@ -210,7 +211,7 @@ interface SyntheticResolveExtension {
     }
 
     fun generateSyntheticProperties(
-        thisDescriptor: ClassDescriptor,
+        thisDescriptor: ClassAndEnumDescriptor,
         name: Name,
         bindingContext: BindingContext,
         fromSupertypes: ArrayList<PropertyDescriptor>,

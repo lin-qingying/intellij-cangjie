@@ -87,7 +87,7 @@ descriptors/
 │   │   ├── BuiltInsPackageFragment.kt   # 内置库包片段接口
 │   │   ├── UnsignedType.kt              # 无符号类型处理
 │   │   ├── basic/                       # 基本类型 (Int, Bool, String...)
-│   │   │   └── BasicTypesPackageFragmentProvider.kt
+│   │   │   └── PrimitiveTypesPackageFragmentProvider.kt
 │   │   └── builtinstype/                # 内置类型 (Array, Option...)
 │   │       └── BuiltinsTypesPackageFragmentProvider.kt
 │   │

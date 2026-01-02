@@ -98,5 +98,13 @@ class CjDotQualifiedExpression :
     }
 
     override val callableReference: CjNameReferenceExpression
-        get() = selectorExpression as CjNameReferenceExpression
+        get() {
+            val selector = selectorExpression
+            return when (selector) {
+                is CjNameReferenceExpression -> selector
+                is CjCallExpression -> selector.calleeExpression as? CjNameReferenceExpression
+                    ?: error("Callable reference expected to be CjNameReferenceExpression, but was: ${selector::class.java}")
+                else -> error("Callable reference expected to be CjNameReferenceExpression, but was: ${selector?.let { it::class.java }}")
+            }
+        }
 }

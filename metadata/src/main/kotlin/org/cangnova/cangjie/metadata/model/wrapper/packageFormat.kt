@@ -241,7 +241,7 @@ class InterfaceWrapper(
         original.attributePack.testAttr(Attribute.OPEN) -> Modality.OPEN
         original.attributePack.testAttr(Attribute.SEALED) -> Modality.SEALED
 
-        else -> Modality.FINAL
+        else -> Modality.OPEN
     }
 
     override val kind: ClassKind = ClassKind.INTERFACE
