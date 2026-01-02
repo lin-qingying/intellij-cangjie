@@ -914,10 +914,10 @@ open class CangJieIdeDescriptorRenderer(
             else -> error("Unexpected classifier: " + cd::class.java)
         }
 
-    override fun renderClassifierName(klass: ClassifierDescriptor): String = if (ErrorUtils.isError(klass)) {
-        klass.typeConstructor.toString()
+    override fun renderClassifierName(cclass: ClassifierDescriptor): String = if (ErrorUtils.isError(cclass)) {
+        cclass.typeConstructor.toString()
     } else
-        classifierNamePolicy.renderClassifier(klass, this)
+        classifierNamePolicy.renderClassifier(cclass, this)
 
     override fun renderAnnotation(annotation: AnnotationDescriptor, target: AnnotationUseSiteTarget?): String {
         return ""
@@ -1361,6 +1361,23 @@ open class CangJieIdeDescriptorRenderer(
         }
     }
 
+    /**
+     * 渲染枚举构造器
+     *
+     * 枚举构造器可以是：
+     * 1. 简单构造器（无关联值）：如 `Red`, `Green`
+     * 2. 函数构造器（有关联值）：如 `Success(T)`, `Error(String)`
+     */
+    private fun StringBuilder.appendEnumConstructor(constructor: EnumConstructorDescriptor) {
+        // 渲染构造器名称
+        appendName(constructor, true) { asClassName }
+
+        // 如果有参数，渲染参数列表
+        if (constructor.hasArguments) {
+            appendValueParameters(constructor.valueParameters, constructor.hasSynthesizedParameterNames())
+        }
+    }
+
 
     private fun StringBuilder.appendClassKindPrefix(klass: ClassDescriptor) {
         append(renderKeyword(getClassifierKindPrefix(klass)))
@@ -1544,7 +1561,7 @@ open class CangJieIdeDescriptorRenderer(
             descriptor: EnumConstructorDescriptor,
             builder: StringBuilder?
         ) {
-            TODO("Not yet implemented")
+            builder?.appendEnumConstructor(descriptor)
         }
 
         override fun visitConstructorDescriptor(constructorDescriptor: ConstructorDescriptor, builder: StringBuilder?) {
