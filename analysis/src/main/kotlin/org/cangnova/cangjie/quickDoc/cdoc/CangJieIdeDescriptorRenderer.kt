@@ -1264,6 +1264,20 @@ open class CangJieIdeDescriptorRenderer(
         appendModifier(DescriptorRendererModifier.MODALITY in modifiers, modality.name.toLowerCaseAsciiOnly())
     }
 
+    /**
+     * 计算成员描述符的隐式模态（不考虑扩展）
+     *
+     * 计算规则:
+     * - 类描述符:
+     *   - Interface 默认为 OPEN（天然可被实现）
+     *   - 其他类默认为 FINAL
+     * - 可调用成员:
+     *   - 如果重写了父类成员且父类不是 final，则为 OPEN
+     *   - 如果在 interface 中且不是 private，则为 ABSTRACT 或 OPEN
+     *   - 其他情况为 FINAL
+     *
+     * @return 隐式模态
+     */
     private fun MemberDescriptor.implicitModalityWithoutExtensions(): Modality {
         if (this is ClassDescriptor) {
             // 与编译器保持一致：Interface 默认为 OPEN (天然可被实现)
@@ -1793,6 +1807,17 @@ open class CangJieIdeDescriptorRenderer(
         appendValueParameters(parameters, synthesizedParameterNames)
     }
 
+    /**
+     * 判断是否应该渲染参数名称
+     *
+     * 根据参数名称渲染策略和是否为合成参数名称决定:
+     * - ALL: 总是渲染参数名称
+     * - ONLY_NON_SYNTHESIZED: 只渲染非合成的参数名称
+     * - NONE: 不渲染参数名称
+     *
+     * @param synthesizedParameterNames 是否为合成的参数名称
+     * @return 是否应该渲染参数名称
+     */
     private fun shouldRenderParameterNames(synthesizedParameterNames: Boolean): Boolean =
         when (parameterNameRenderingPolicy) {
             ParameterNameRenderingPolicy.ALL -> true
@@ -1800,6 +1825,17 @@ open class CangJieIdeDescriptorRenderer(
             ParameterNameRenderingPolicy.NONE -> false
         }
 
+    /**
+     * 追加单个值参数到字符串构建器
+     *
+     * 格式: `[修饰符] 名称: 类型`
+     *
+     * 如果是主构造器参数且配置为渲染为属性，则会添加 var/val/let 前缀
+     *
+     * @param valueParameter 值参数描述符
+     * @param includeName 是否包含参数名称
+     * @param topLevel 是否为顶层参数（添加 value-parameter 关键字）
+     */
     private fun StringBuilder.appendValueParameter(
         valueParameter: ValueParameterDescriptor,
         includeName: Boolean,
@@ -1848,6 +1884,16 @@ open class CangJieIdeDescriptorRenderer(
         }
     }
 
+    /**
+     * 追加 let/var 前缀到字符串构建器
+     *
+     * 根据变量是否可变选择关键字:
+     * - 可变变量 → `var`
+     * - 不可变变量 → `let`
+     *
+     * @param variable 变量描述符
+     * @param isInPrimaryConstructor 是否在主构造器中
+     */
     private fun StringBuilder.appendLetVarPrefix(
         variable: VariableDescriptor,
         isInPrimaryConstructor: Boolean = false
@@ -1867,6 +1913,15 @@ open class CangJieIdeDescriptorRenderer(
         append(renderName(descriptor.name, rootRenderedElement))
     }
 
+    /**
+     * 追加描述符名称到字符串构建器（带高亮）
+     *
+     * 使用提供的高亮属性构建器来设置名称的高亮样式
+     *
+     * @param descriptor 描述符
+     * @param rootRenderedElement 是否为根渲染元素
+     * @param attributesBuilder 高亮属性构建器
+     */
     private fun StringBuilder.appendName(
         descriptor: DeclarationDescriptor,
         rootRenderedElement: Boolean,
@@ -1879,6 +1934,13 @@ open class CangJieIdeDescriptorRenderer(
     }
 
 
+    /**
+     * 追加变量初始化器到字符串构建器
+     *
+     * 如果配置包含属性常量且变量有编译时常量值，则渲染初始化器
+     *
+     * @param variable 变量描述符
+     */
     private fun StringBuilder.appendInitializer(variable: VariableDescriptor) {
         if (includePropertyConstant) {
             variable.getCompileTimeInitializer()?.let { constant ->
@@ -1888,10 +1950,26 @@ open class CangJieIdeDescriptorRenderer(
         }
     }
 
+    /**
+     * 使用词法分析器对代码片段进行高亮
+     *
+     * @param value 要高亮的代码片段
+     * @return 高亮后的字符串
+     */
     private fun highlightByLexer(value: String): String {
         return with(overriddenHighlightingManager!!) { buildString { appendCodeSnippetHighlightedByLexer(value) } }
     }
 
+    /**
+     * 渲染常量值
+     *
+     * 支持的常量类型:
+     * - ArrayValue: 渲染为 `{元素1, 元素2, ...}`
+     * - 其他: 使用词法分析器高亮
+     *
+     * @param value 常量值
+     * @return 渲染后的常量字符串
+     */
     private fun renderConstant(value: ConstantValue<*>): String {
         return when (value) {
             is ArrayValue -> {
@@ -1906,6 +1984,14 @@ open class CangJieIdeDescriptorRenderer(
         }
     }
 
+    /**
+     * 追加值参数列表到字符串构建器
+     *
+     * 格式: `(参数1, 参数2, ...)`
+     *
+     * @param parameters 值参数描述符集合
+     * @param synthesizedParameterNames 是否为合成的参数名称
+     */
     private fun StringBuilder.appendValueParameters(
         parameters: Collection<ValueParameterDescriptor>,
         synthesizedParameterNames: Boolean
