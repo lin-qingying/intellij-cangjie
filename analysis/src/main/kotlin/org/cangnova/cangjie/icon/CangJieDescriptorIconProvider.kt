@@ -36,9 +36,31 @@ import com.intellij.psi.PsiElement
 import com.intellij.ui.RowIcon
 import org.jetbrains.annotations.Nullable
 import javax.swing.Icon
+
+/**
+ * 仓颉语言描述符图标提供器
+ *
+ * 负责为各种仓颉语言的声明描述符提供对应的图标，包括：
+ * - 类、接口、枚举、结构体等类型
+ * - 函数、方法
+ * - 属性、变量、参数
+ * - 包和模块
+ *
+ * 图标可以包含可见性修饰符（public、private、protected、internal）的叠加显示
+ */
 object CangJieDescriptorIconProvider {
     private val LOG: Logger = Logger.getInstance(CangJieDescriptorIconProvider::class.java)
 
+    /**
+     * 获取描述符对应的图标
+     *
+     * 根据描述符类型、可见性和其他属性返回合适的图标
+     *
+     * @param descriptor 声明描述符
+     * @param declaration PSI 元素（可选）
+     * @param flags 图标标志，控制是否显示可见性等附加信息
+     * @return 对应的图标，如果无法确定则返回 null
+     */
     @Nullable
     fun getIcon(
         descriptor: DeclarationDescriptor,
@@ -60,6 +82,14 @@ object CangJieDescriptorIconProvider {
         return result
     }
 
+    /**
+     * 获取可见性图标
+     *
+     * 根据描述符的可见性修饰符返回对应的图标
+     *
+     * @param descriptor 声明描述符
+     * @return 可见性图标（public、protected、private、internal），如果不适用则返回 null
+     */
     private fun getVisibilityIcon(descriptor: DeclarationDescriptor): Icon? {
         if (descriptor is DeclarationDescriptorWithVisibility) {
             return when (val visibility = descriptor.visibility.normalize()) {
@@ -76,6 +106,14 @@ object CangJieDescriptorIconProvider {
         return null
     }
 
+    /**
+     * 安全获取成员修饰性
+     *
+     * 尝试获取成员描述符的修饰性（modality），如果发生异常则返回 FINAL
+     *
+     * @param descriptor 成员描述符
+     * @return 修饰性（ABSTRACT、OPEN、FINAL 等）
+     */
     private fun getModalitySafe(descriptor: MemberDescriptor): Modality {
         return try {
             descriptor.modality
@@ -84,6 +122,20 @@ object CangJieDescriptorIconProvider {
         }
     }
 
+    /**
+     * 获取基础图标
+     *
+     * 根据描述符类型返回对应的基础图标（不包含可见性叠加）
+     * 支持的描述符类型包括：
+     * - 包（PackageFragmentDescriptor、PackageViewDescriptor）
+     * - 函数和方法（FunctionDescriptor）
+     * - 类、接口、枚举、结构体（ClassDescriptor）
+     * - 变量、属性、参数（VariableDescriptor、PropertyDescriptor、ValueParameterDescriptor）
+     * - 类型参数和类型别名（TypeParameterDescriptor、TypeAliasDescriptor）
+     *
+     * @param descriptor 声明描述符
+     * @return 对应的基础图标，如果无法确定则返回 null 并记录警告
+     */
     private fun getBaseIcon(descriptor: DeclarationDescriptor): Icon? {
         return when (descriptor) {
             is PackageFragmentDescriptor, is PackageViewDescriptor -> AllIcons.Nodes.Package
