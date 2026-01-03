@@ -85,6 +85,39 @@ import org.cangnova.cangjie.types.expressions.FunctionsTypingVisitor
 import org.cangnova.cangjie.types.expressions.PreliminaryDeclarationVisitor
 import java.util.*
 
+/**
+ * 描述符解析器
+ *
+ * 负责将 PSI 元素转换为描述符（Descriptor），是仓颉语言语义分析的核心组件。
+ *
+ * 主要职责：
+ * - 解析变量和属性声明为对应的描述符
+ * - 解析函数参数和构造函数参数
+ * - 解析类型参数和泛型约束
+ * - 解析类型别名
+ * - 解析超类型关系
+ * - 推断表达式体的返回类型
+ * - 检查类型上下界约束
+ * - 处理匿名类型转换
+ *
+ * @param annotationResolver 注解解析器
+ * @param builtIns 内置类型提供者
+ * @param storageManager 存储管理器，用于创建惰性计算值
+ * @param typeResolver 类型解析器
+ * @param supertypeLoopsResolver 超类型循环检查器
+ * @param variableTypeAndInitializerResolver 变量类型和初始化器解析器
+ * @param expressionTypingServices 表达式类型推导服务
+ * @param overloadChecker 重载检查器
+ * @param languageVersionSettings 语言版本设置
+ * @param functionsTypingVisitor 函数类型检查访问器
+ * @param modifiersChecker 修饰符检查器
+ * @param wrappedTypeFactory 包装类型工厂
+ * @param project IntelliJ 项目
+ * @param typeApproximator 类型近似器
+ * @param declarationReturnTypeSanitizer 声明返回类型清理器
+ * @param dataFlowValueFactory 数据流值工厂
+ * @param anonymousTypeTransformers 匿名类型转换器集合
+ */
 class DescriptorResolver(
     private val annotationResolver: AnnotationResolver,
     private val builtIns: CangJieBuiltIns,
@@ -111,6 +144,19 @@ class DescriptorResolver(
 
 
 
+    /**
+     * 解析主构造函数参数为变量
+     *
+     * 将主构造函数的参数转换为类的成员变量描述符。
+     * 这用于处理主构造函数参数声明为类属性的情况（使用 let/var 关键字）。
+     *
+     * @param classDescriptor 包含该参数的类描述符
+     * @param valueParameter 值参数描述符
+     * @param scope 解析作用域
+     * @param parameter PSI 参数元素
+     * @param trace 绑定追踪器
+     * @return 解析得到的变量描述符
+     */
     fun resolvePrimaryConstructorParameterToAVariable(
         classDescriptor: ClassAndEnumDescriptor,
         valueParameter: ValueParameterDescriptor,
@@ -175,6 +221,18 @@ class DescriptorResolver(
         return variableDescriptor
     }
 
+    /**
+     * 解析局部变量描述符（指定类型）
+     *
+     * 根据给定的类型创建局部变量描述符。
+     * 类型会被近似为声明类型，以确保类型安全。
+     *
+     * @param parameter 参数 PSI 元素
+     * @param type 变量类型
+     * @param trace 绑定追踪器
+     * @param scope 变量所在的词法作用域
+     * @return 解析得到的局部变量描述符
+     */
     fun resolveLocalVariableDescriptor(
         parameter: CjParameterBase,
         type: CangJieType,
@@ -196,6 +254,17 @@ class DescriptorResolver(
         return variableDescriptor
     }
 
+    /**
+     * 解析局部变量描述符（从表达式推断类型）
+     *
+     * 通过表达式推断局部变量类型，如果表达式不存在或推断失败则使用错误类型。
+     *
+     * @param scope 变量所在的词法作用域
+     * @param parameter 参数 PSI 元素
+     * @param expression 初始化表达式（可为 null）
+     * @param trace 绑定追踪器
+     * @return 解析得到的局部变量描述符
+     */
     fun resolveLocalVariableDescriptor(
         scope: LexicalScope,
         parameter: CjParameterBase,
@@ -214,6 +283,16 @@ class DescriptorResolver(
         return resolveLocalVariableDescriptor(parameter, type, trace, scope)
     }
 
+    /**
+     * 解析局部变量描述符（从类型引用）
+     *
+     * 从参数的类型引用解析类型，创建局部变量描述符。
+     *
+     * @param scope 变量所在的词法作用域
+     * @param parameter 参数 PSI 元素
+     * @param trace 绑定追踪器
+     * @return 解析得到的局部变量描述符
+     */
     fun resolveLocalVariableDescriptor(
         scope: LexicalScope,
         parameter: CjParameterBase,
@@ -223,6 +302,18 @@ class DescriptorResolver(
         return resolveLocalVariableDescriptor(parameter, type, trace, scope)
     }
 
+    /**
+     * 解析参数类型
+     *
+     * 从参数的类型引用或 catch 参数类型列表解析参数类型。
+     * 如果没有类型引用则创建错误类型。
+     * 对于多重超类型推断失败的情况会报告相应错误。
+     *
+     * @param scope 解析作用域
+     * @param parameter 参数 PSI 元素
+     * @param trace 绑定追踪器
+     * @return 解析得到的类型
+     */
     private fun resolveParameterType(
         scope: LexicalScope,
         parameter: CjParameterBase,
@@ -248,6 +339,20 @@ class DescriptorResolver(
         return type
     }
 
+    /**
+     * 获取默认超类型
+     *
+     * 根据仓颉继承规则为类描述符提供默认超类型：
+     * 1. 如果类型为 Class 且没有类型为 class 的父类，则默认继承 Object
+     * 2. 如果类型为 Interface/Struct/Enum 且没有类型为 interface 的父类，则默认继承 Any
+     * 3. Object 类本身继承 Any
+     * 4. Any 类没有默认超类型
+     *
+     * @param classDescriptor 类描述符
+     * @param supertypes 已声明的超类型列表
+     * @param classId 类 ID（用于判断是否为 Object 类）
+     * @return 默认超类型，如果不需要默认超类型则返回 null
+     */
     private fun getDefaultSupertype(
         classDescriptor: ClassAndEnumDescriptor,
         supertypes: List<CangJieType>,
@@ -287,6 +392,20 @@ class DescriptorResolver(
         return null
     }
 
+    /**
+     * 解析超类型
+     *
+     * 解析类声明的超类型列表，包括：
+     * 1. 解析 PSI 中显式声明的超类型
+     * 2. 为没有显式超类型的类添加默认超类型（Object 或 Any）
+     * 3. Any 类不添加默认超类型
+     *
+     * @param scope 解析作用域
+     * @param classDescriptor 类描述符
+     * @param typeStatement 类型声明 PSI 元素
+     * @param trace 绑定追踪器
+     * @return 解析得到的超类型列表
+     */
     fun resolveSupertypes(
         scope: LexicalScope,
         classDescriptor: ClassAndEnumDescriptor,
@@ -324,6 +443,26 @@ class DescriptorResolver(
         return supertypes
     }
 
+    /**
+     * 解析为属性描述符（内部实现）
+     *
+     * 将变量声明解析为完整的属性描述符，包括：
+     * - 解析可见性、修饰性和注解
+     * - 处理泛型类型参数
+     * - 创建 getter 和 setter 访问器
+     * - 解析属性类型和初始化器
+     * - 设置常量值（如果适用）
+     *
+     * @param container 包含该属性的描述符（类或包）
+     * @param scopeForDeclarationResolution 用于声明解析的作用域
+     * @param scopeForInitializerResolution 用于初始化器解析的作用域
+     * @param variableDeclaration 变量声明 PSI 元素
+     * @param trace 绑定追踪器
+     * @param dataFlowInfo 数据流信息
+     * @param inferenceSession 类型推断会话
+     * @param propertyInfo 属性信息（包含 getter/setter 和类型）
+     * @return 解析得到的属性描述符
+     */
     private fun resolveAsPropertyDescriptor(
         container: DeclarationDescriptor,
         scopeForDeclarationResolution: LexicalScope,
@@ -493,6 +632,23 @@ class DescriptorResolver(
         return propertyDescriptor
     }
 
+    /**
+     * 解析属性 setter 描述符
+     *
+     * 为属性创建 setter 访问器描述符。
+     * 如果 PSI 中提供了显式 setter，解析其参数和返回类型。
+     * 否则为 var 属性创建默认 setter。
+     * 对于 let 属性，如果提供了 setter 会报告错误。
+     *
+     * @param scopeWithTypeParameters 包含类型参数的作用域
+     * @param property 属性 PSI 元素
+     * @param propertyDescriptor 属性描述符
+     * @param annotationSplitter 注解分割器
+     * @param trace 绑定追踪器
+     * @param setter setter PSI 元素（可为 null）
+     * @param inferenceSession 类型推断会话
+     * @return setter 描述符，let 属性返回 null
+     */
     private fun resolvePropertySetterDescriptor(
         scopeWithTypeParameters: LexicalScope,
         property: CjVariableDeclaration,
@@ -591,6 +747,24 @@ class DescriptorResolver(
         return setterDescriptor
     }
 
+    /**
+     * 解析属性 getter 描述符
+     *
+     * 为属性创建 getter 访问器描述符。
+     * 如果 PSI 中提供了显式 getter，解析其返回类型。
+     * 否则创建默认 getter。
+     * 支持从表达式体推断 getter 返回类型（例如 `let x get() = ...`）。
+     *
+     * @param scopeForDeclarationResolution 用于声明解析的作用域
+     * @param property 属性 PSI 元素
+     * @param propertyDescriptor 属性描述符
+     * @param annotationSplitter 注解分割器
+     * @param trace 绑定追踪器
+     * @param propertyTypeIfKnown 已知的属性类型（可为 null）
+     * @param getter getter PSI 元素（可为 null）
+     * @param inferenceSession 类型推断会话
+     * @return getter 描述符
+     */
     private fun resolvePropertyGetterDescriptor(
         scopeForDeclarationResolution: LexicalScope,
         property: CjVariableDeclaration,
@@ -653,6 +827,24 @@ class DescriptorResolver(
         return getterDescriptor
     }
 
+    /**
+     * 确定 getter 返回类型
+     *
+     * 根据以下优先级确定 getter 的返回类型：
+     * 1. 显式的返回类型引用
+     * 2. 从表达式体推断（如果没有块体且属性没有类型声明）
+     * 3. 使用属性的已知类型
+     *
+     * 如果显式类型与属性类型不匹配会报告错误。
+     *
+     * @param scope 解析作用域
+     * @param trace 绑定追踪器
+     * @param getterDescriptor getter 描述符
+     * @param getter getter PSI 元素
+     * @param propertyTypeIfKnown 已知的属性类型（可为 null）
+     * @param inferenceSession 类型推断会话
+     * @return 解析得到的返回类型，如果无法确定则返回 null
+     */
     private fun determineGetterReturnType(
         scope: LexicalScope,
         trace: BindingTrace,
@@ -696,6 +888,21 @@ class DescriptorResolver(
         return propertyTypeIfKnown
     }
 
+    /**
+     * 解析属性描述符（公共接口）
+     *
+     * 解析属性声明为完整的属性描述符。
+     * 这是 resolveAsPropertyDescriptor 的公共包装方法。
+     *
+     * @param containingDeclaration 包含该属性的描述符
+     * @param scopeForDeclarationResolution 用于声明解析的作用域
+     * @param scopeForInitializerResolution 用于初始化器解析的作用域
+     * @param property 属性 PSI 元素
+     * @param trace 绑定追踪器
+     * @param dataFlowInfo 数据流信息
+     * @param inferenceSession 类型推断会话
+     * @return 解析得到的属性描述符
+     */
     fun resolvePropertyDescriptor(
         containingDeclaration: DeclarationDescriptor,
         scopeForDeclarationResolution: LexicalScope,
@@ -718,6 +925,22 @@ class DescriptorResolver(
     }
 
 
+    /**
+     * 解析泛型约束
+     *
+     * 解析类型参数的上界约束，包括：
+     * - 解析 `extends` 子句中的上界
+     * - 解析 `where` 子句中的多个上界约束
+     * - 为没有显式上界的类型参数添加默认上界（Any）
+     * - 检查冲突的上界
+     * - 检查约束中的名称引用是否正确
+     *
+     * @param declaration 声明 PSI 元素（类、函数或类型别名）
+     * @param descriptor 对应的描述符
+     * @param scope 解析作用域
+     * @param parameters 类型参数描述符列表
+     * @param trace 绑定追踪器
+     */
     fun resolveGenericBounds(
         declaration: CjTypeParameterListOwner,
         descriptor: DeclarationDescriptor,
@@ -784,6 +1007,17 @@ class DescriptorResolver(
     }
 
 
+    /**
+     * 检查约束中的名称引用
+     *
+     * 确保 `where` 子句中引用的类型参数名称是有效的本地类型参数，
+     * 不是外部类型或未声明的名称。
+     *
+     * @param declaration 声明 PSI 元素
+     * @param descriptor 对应的描述符
+     * @param scope 解析作用域
+     * @param trace 绑定追踪器
+     */
     fun checkNamesInConstraints(
         declaration: CjTypeParameterListOwner,
         descriptor: DeclarationDescriptor,
@@ -819,6 +1053,27 @@ class DescriptorResolver(
         }
     }
 
+    /**
+     * 从表达式体推断返回类型
+     *
+     * 对于具有表达式体的函数（例如 `func f() = expr`），推断其返回类型。
+     * 该过程包括：
+     * - 创建递归容错的延迟类型（防止循环依赖）
+     * - 预解析函数声明
+     * - 推断表达式类型
+     * - 转换匿名类型（如果需要）
+     * - 近似类型为声明类型
+     * - 清理返回类型
+     * - 检查返回语句类型一致性
+     *
+     * @param trace 绑定追踪器
+     * @param scope 解析作用域
+     * @param dataFlowInfo 数据流信息
+     * @param function 带函数体的声明 PSI 元素
+     * @param functionDescriptor 函数描述符
+     * @param inferenceSession 类型推断会话
+     * @return 推断得到的返回类型
+     */
     fun inferReturnTypeFromExpressionBody(
         trace: BindingTrace,
         scope: LexicalScope,
@@ -854,6 +1109,25 @@ class DescriptorResolver(
     }
 
 
+    /**
+     * 解析值参数描述符
+     *
+     * 将函数参数解析为值参数描述符，包括：
+     * - 解析参数注解
+     * - 处理单下划线匿名参数
+     * - 处理主构造函数参数的 let/var 声明
+     * - 创建参数描述符（包括解构声明支持）
+     *
+     * @param scope 解析作用域
+     * @param owner 拥有该参数的函数描述符
+     * @param valueParameter 参数 PSI 元素
+     * @param index 参数索引
+     * @param type 参数类型
+     * @param trace 绑定追踪器
+     * @param additionalAnnotations 额外的注解
+     * @param inferenceSession 类型推断会话
+     * @return 值参数描述符
+     */
     fun resolveValueParameterDescriptor(
         scope: LexicalScope,
         owner: FunctionDescriptor,
@@ -903,6 +1177,18 @@ class DescriptorResolver(
         return valueParameterDescriptor
     }
 
+    /**
+     * 解析值参数注解
+     *
+     * 解析参数上的注解。
+     * 对于主构造函数参数（带 let/var），分割注解以区分参数注解和属性注解。
+     *
+     * @param scope 解析作用域
+     * @param parameter 参数 PSI 元素
+     * @param trace 绑定追踪器
+     * @param additionalAnnotations 额外的注解（来自注解分割器）
+     * @return 合并后的注解集合
+     */
     private fun resolveValueParameterAnnotations(
         scope: LexicalScope,
         parameter: CjParameter,
@@ -925,6 +1211,19 @@ class DescriptorResolver(
         )
     }
 
+    /**
+     * 解析类型参数描述符（扩展到可写作用域）
+     *
+     * 解析类型参数描述符并将其添加到可写作用域中，供后续解析使用。
+     * 这个重载方法会自动将类型参数添加到扩展作用域。
+     *
+     * @param containingDescriptor 包含该类型参数的描述符（函数或类型别名）
+     * @param extensibleScope 可写作用域，解析的类型参数将添加到此作用域
+     * @param scopeForAnnotationsResolve 用于解析注解的作用域
+     * @param typeParameters 类型参数 PSI 元素列表
+     * @param trace 绑定追踪器
+     * @return 类型参数描述符列表
+     */
     fun resolveTypeParametersForDescriptor(
         containingDescriptor: DeclarationDescriptor,
         extensibleScope: LexicalWritableScope,
@@ -940,6 +1239,18 @@ class DescriptorResolver(
         return descriptors
     }
 
+    /**
+     * 解析类型参数描述符（内部实现）
+     *
+     * 解析类型参数描述符列表。
+     * 此方法用于函数、属性和类型别名的类型参数。
+     *
+     * @param containingDescriptor 包含该类型参数的描述符
+     * @param scopeForAnnotationsResolve 用于解析注解的作用域
+     * @param typeParameters 类型参数 PSI 元素列表
+     * @param trace 绑定追踪器
+     * @return 类型参数描述符列表
+     */
     private fun resolveTypeParametersForDescriptor(
         containingDescriptor: DeclarationDescriptor,
         scopeForAnnotationsResolve: LexicalScope,
@@ -970,6 +1281,22 @@ class DescriptorResolver(
         return result
     }
 
+    /**
+     * 解析单个类型参数描述符
+     *
+     * 创建类型参数描述符，包括：
+     * - 检查型变（variance）是否合法（类型参数应为不变）
+     * - 解析注解
+     * - 创建支持延迟修改的类型参数描述符
+     * - 设置循环泛型上界检测
+     *
+     * @param containingDescriptor 包含该类型参数的描述符
+     * @param scopeForAnnotationsResolve 用于解析注解的作用域
+     * @param typeParameter 类型参数 PSI 元素
+     * @param index 类型参数在列表中的索引
+     * @param trace 绑定追踪器
+     * @return 类型参数描述符
+     */
     private fun resolveTypeParameterForDescriptor(
         containingDescriptor: DeclarationDescriptor,
         scopeForAnnotationsResolve: LexicalScope,
@@ -1009,6 +1336,22 @@ class DescriptorResolver(
         return typeParameterDescriptor
     }
 
+    /**
+     * 解析类型别名描述符
+     *
+     * 将类型别名声明解析为类型别名描述符，包括：
+     * - 解析可见性和注解
+     * - 解析类型参数（如果存在）
+     * - 解析泛型约束
+     * - 检查类型别名参数不能有上界（这是语言限制）
+     * - 使用递归容错的惰性值解析别名类型和展开类型
+     *
+     * @param containingDeclaration 包含该类型别名的描述符
+     * @param scope 解析作用域
+     * @param typeAlias 类型别名 PSI 元素
+     * @param trace 绑定追踪器
+     * @return 类型别名描述符
+     */
     fun resolveTypeAliasDescriptor(
         containingDeclaration: DeclarationDescriptor,
         scope: LexicalScope,
@@ -1082,6 +1425,21 @@ class DescriptorResolver(
         return typeAliasDescriptor
     }
 
+    /**
+     * 解析模式变量描述符
+     *
+     * 解析模式匹配中的变量声明（例如 `let (x, y) = tuple`）。
+     * 通过模式匹配类型访问器处理模式解构，然后从绑定上下文中提取变量描述符。
+     *
+     * @param name 要查找的变量名
+     * @param container 包含该变量的描述符
+     * @param scopeForDeclarationResolution 用于声明解析的作用域
+     * @param variableDeclaration 模式变量 PSI 元素
+     * @param trace 绑定追踪器
+     * @param dataFlowInfo 数据流信息
+     * @param inferenceSession 类型推断会话
+     * @return 匹配给定名称的变量描述符列表（可能为多个，因为模式可能包含多个同名绑定）
+     */
     fun resolveVariableDescriptorByPattern(
         name: Name,
         container: DeclarationDescriptor,
@@ -1110,6 +1468,26 @@ class DescriptorResolver(
 
     }
 
+    /**
+     * 解析变量描述符
+     *
+     * 将普通变量声明（不是属性）解析为变量描述符，包括：
+     * - 解析可见性和修饰性
+     * - 处理类型参数（如果存在）
+     * - 解析泛型约束
+     * - 推断或解析变量类型
+     * - 设置常量值（如果适用）
+     * - 检查接口中不允许有变量声明
+     *
+     * @param container 包含该变量的描述符
+     * @param scopeForDeclarationResolution 用于声明解析的作用域
+     * @param scopeForInitializerResolution 用于初始化器解析的作用域
+     * @param variableDeclaration 变量声明 PSI 元素
+     * @param trace 绑定追踪器
+     * @param dataFlowInfo 数据流信息
+     * @param inferenceSession 类型推断会话
+     * @return 变量描述符
+     */
     fun resolveVariableDescriptor(
         container: DeclarationDescriptor,
         scopeForDeclarationResolution: LexicalScope,
@@ -1227,19 +1605,55 @@ class DescriptorResolver(
         return variableDescriptor
     }
 
+    /**
+     * 上界检查请求
+     *
+     * 用于收集类型参数的上界约束检查请求，以便批量检查约束的合法性。
+     *
+     * @param typeParameterName 类型参数名称
+     * @param upperBound 上界类型引用 PSI 元素
+     * @param upperBoundType 解析得到的上界类型
+     */
     class UpperBoundCheckRequest(
         val typeParameterName: Name?,
         val upperBound: CjTypeReference,
         val upperBoundType: CangJieType
     )
 
+    /**
+     * 伴生对象
+     *
+     * 包含描述符解析过程中的静态辅助方法，主要包括：
+     * - 默认可见性和修饰性计算
+     * - 超类型处理
+     * - 类型上下界检查
+     * - 匿名类型转换
+     * - 外部类实例检查
+     */
     companion object {
+        /**
+         * 添加有效超类型
+         *
+         * 将非错误的超类型添加到超类型列表中。
+         * 用于过滤掉解析失败的超类型。
+         *
+         * @param supertypes 超类型列表
+         * @param declaredSupertype 声明的超类型
+         */
         private fun addValidSupertype(supertypes: MutableList<CangJieType>, declaredSupertype: CangJieType) {
             if (!declaredSupertype.isError) {
                 supertypes.add(declaredSupertype)
             }
         }
 
+        /**
+         * 检查集合中是否包含类类型
+         *
+         * 检查类型集合中是否包含 CLASS、ENUM 或 STRUCT 类型（不包括 INTERFACE）。
+         *
+         * @param result 类型集合
+         * @return 如果包含类类型则返回 true
+         */
         private fun containsClass(result: Collection<CangJieType>): Boolean {
             for (type in result) {
                 val descriptor = type.constructor.declarationDescriptor
@@ -1250,6 +1664,17 @@ class DescriptorResolver(
             return false
         }
 
+        /**
+         * 创建并记录对象的主构造函数
+         *
+         * 为 object 声明创建主构造函数描述符，并在绑定上下文中记录映射关系。
+         * object 声明的主构造函数是隐式的，不带参数。
+         *
+         * @param object 对象类型声明 PSI 元素
+         * @param classDescriptor 对象对应的类描述符
+         * @param trace 绑定追踪器
+         * @return 创建的主构造函数描述符
+         */
         fun createAndRecordPrimaryConstructorForObject(
             `object`: CjPureTypeStatement?,
             classDescriptor: ClassDescriptor,
@@ -1267,6 +1692,16 @@ class DescriptorResolver(
             return constructorDescriptor
         }
 
+        /**
+         * 检查嵌套声明是否在外部类或其子类内部
+         *
+         * 递归检查嵌套声明是否在目标类或其子类的内部。
+         * 这用于验证访问外部类实例的合法性。
+         *
+         * @param nested 嵌套声明描述符（可为 null）
+         * @param outer 外部类描述符
+         * @return 如果嵌套声明在外部类或其子类内部则返回 true
+         */
         private fun isInsideOuterClassOrItsSubclass(nested: DeclarationDescriptor?, outer: ClassDescriptor): Boolean {
             if (nested == null) return false
 
@@ -1275,6 +1710,18 @@ class DescriptorResolver(
             return isInsideOuterClassOrItsSubclass(nested.containingDeclaration, outer)
         }
 
+        /**
+         * 检查是否有外部类实例
+         *
+         * 检查在给定作用域中访问目标类是否需要外部类实例。
+         * 这用于验证内部类和嵌套类的实例化和访问。
+         *
+         * @param scope 词法作用域
+         * @param trace 绑定追踪器
+         * @param reportErrorsOn 报告错误的 PSI 元素
+         * @param target 目标类描述符
+         * @return 如果可以访问外部类实例则返回 true
+         */
         fun checkHasOuterClassInstance(
             scope: LexicalScope,
             trace: BindingTrace,
@@ -1300,6 +1747,15 @@ class DescriptorResolver(
             return true
         }
 
+        /**
+         * 获取包含的类
+         *
+         * 从词法作用域中获取包含该作用域的类描述符。
+         * 通过递归查找作用域的所有者描述符，直到找到 ClassDescriptor。
+         *
+         * @param scope 词法作用域
+         * @return 包含该作用域的类描述符，如果不在类内部则返回 null
+         */
         fun getContainingClass(scope: LexicalScope): ClassDescriptor? {
             return getParentOfType(
                 scope.ownerDescriptor,
@@ -1307,6 +1763,17 @@ class DescriptorResolver(
             )
         }
 
+        /**
+         * 获取默认可见性
+         *
+         * 根据声明的上下文确定默认可见性级别：
+         * - 接口成员默认为 PUBLIC
+         * - 其他声明默认为 INTERNAL
+         *
+         * @param modifierListOwner 修饰符列表拥有者（可为 null）
+         * @param containingDescriptor 包含该声明的描述符（可为 null）
+         * @return 默认可见性级别
+         */
         fun getDefaultVisibility(
             modifierListOwner: CjModifierListOwner?,
             containingDescriptor: DeclarationDescriptor?
@@ -1320,6 +1787,19 @@ class DescriptorResolver(
             return DescriptorVisibilities.INTERNAL
         }
 
+        /**
+         * 获取默认修饰性
+         *
+         * 根据声明的上下文确定默认修饰性（modality）：
+         * - 接口中没有函数体的成员默认为 ABSTRACT
+         * - 接口中非 private 的成员默认为 OPEN
+         * - 其他情况默认为 FINAL
+         *
+         * @param containingDescriptor 包含该声明的描述符（可为 null）
+         * @param visibility 声明的可见性
+         * @param isBodyPresent 是否存在函数体或初始化器
+         * @return 默认修饰性
+         */
         fun getDefaultModality(
             containingDescriptor: DeclarationDescriptor?,
             visibility: DescriptorVisibility,
@@ -1338,6 +1818,16 @@ class DescriptorResolver(
             return defaultModality
         }
 
+        /**
+         * 检查冲突的上界约束
+         *
+         * 检查类型参数的所有上界约束是否冲突，即交集是否为 Nothing 类型。
+         * 如果多个上界没有公共子类型，则报告 CONFLICTING_UPPER_BOUNDS 错误。
+         *
+         * @param trace 绑定追踪器
+         * @param parameter 类型参数描述符
+         * @param typeParameter 类型参数 PSI 元素
+         */
         fun checkConflictingUpperBounds(
             trace: BindingTrace,
             parameter: TypeParameterDescriptor,
@@ -1412,6 +1902,18 @@ class DescriptorResolver(
         //
         //        return type;
         //    }
+        /**
+         * 检查类型上界列表
+         *
+         * 批量检查类型参数的上界约束，包括：
+         * - 检查重复的上界
+         * - 检查是否有多个类类型上界（只允许一个）
+         * - 对每个上界调用 checkUpperBoundType 进行详细检查
+         *
+         * @param trace 绑定追踪器
+         * @param requests 上界检查请求列表
+         * @param hasOverrideModifier 是否有 override 修饰符
+         */
         fun checkUpperBoundTypes(
             trace: BindingTrace,
             requests: List<UpperBoundCheckRequest>,
@@ -1447,6 +1949,17 @@ class DescriptorResolver(
             }
         }
 
+        /**
+         * 检查单个类型上界
+         *
+         * 检查单个类型参数上界的合法性。
+         * 当前实现为空方法，保留用于未来扩展（如检查 final 类型、动态类型等）。
+         *
+         * @param upperBound 上界类型引用 PSI 元素（可为 null）
+         * @param upperBoundType 解析得到的上界类型
+         * @param trace 绑定追踪器（可为 null）
+         * @param hasOverrideModifier 是否有 override 修饰符
+         */
         fun checkUpperBoundType(
             upperBound: CjTypeReference?,
             upperBoundType: CangJieType,
@@ -1467,6 +1980,15 @@ class DescriptorResolver(
 //        }
         }
 
+        /**
+         * 检查类型别名参数不能有泛型约束
+         *
+         * 检查类型别名的类型参数是否错误地声明了上界（extends 子句）。
+         * 仓颉语言规则：类型别名的类型参数不允许有上界约束。
+         *
+         * @param typeAlias 类型别名 PSI 元素
+         * @param trace 绑定追踪器
+         */
         private fun checkNoGenericBoundsOnTypeAliasParameters(typeAlias: CjTypeAlias, trace: BindingTrace) {
             for (typeParameter in typeAlias.typeParameters) {
                 val bound = typeParameter.extendsBound
@@ -1476,6 +1998,22 @@ class DescriptorResolver(
             }
         }
 
+        /**
+         * 解析超类型列表条目
+         *
+         * 解析类的继承列表（extends/implements）中的所有类型引用，包括：
+         * - 解析每个类型引用为 CangJieType
+         * - 检查是否为动态类型（不允许）
+         * - 检查可空超类型
+         * - 检查类型投影（泛型参数的 in/out 修饰符）
+         *
+         * @param extensibleScope 解析作用域
+         * @param delegationSpecifiers 超类型列表条目（PSI 元素列表）
+         * @param resolver 类型解析器
+         * @param trace 绑定追踪器
+         * @param checkBounds 是否检查类型参数的上界约束
+         * @return 解析得到的超类型集合
+         */
         private fun resolveSuperTypeListEntries(
             extensibleScope: LexicalScope,
             delegationSpecifiers: List<CjSuperTypeListEntry>,
@@ -1506,6 +2044,16 @@ class DescriptorResolver(
             return result
         }
 
+        /**
+         * 检查顶层类型参数的类型投影
+         *
+         * 检查超类型的顶层类型参数是否使用了类型投影（in/out 修饰符）。
+         * 当前实现为空方法，保留用于未来扩展类型投影检查。
+         *
+         * @param trace 绑定追踪器
+         * @param typeElement 类型元素 PSI（可为 null）
+         * @param type 解析得到的类型
+         */
         private fun checkProjectionsInImmediateArguments(
             trace: BindingTrace,
             typeElement: CjTypeElement?,
@@ -1535,6 +2083,16 @@ class DescriptorResolver(
 //        }
         }
 
+        /**
+         * 检查并移除可空超类型的问号标记
+         *
+         * 检查超类型是否错误地声明为可空类型（带 ? 后缀）。
+         * 当前实现为空方法，保留用于未来扩展可空超类型检查。
+         *
+         * @param trace 绑定追踪器
+         * @param typeElement 类型元素 PSI（可为 null）
+         * @return 移除可空标记后的类型元素，如果不是可空类型则返回原值
+         */
         private fun checkNullableSupertypeAndStripQuestionMarks(
             trace: BindingTrace,
             typeElement: CjTypeElement?
@@ -1550,6 +2108,26 @@ class DescriptorResolver(
             return typeElement
         }
 
+        /**
+         * 按需转换匿名类型
+         *
+         * 对于非私有声明中的匿名对象类型，将其转换为其超类型以避免暴露匿名类型。
+         * 这确保了公共 API 不会暴露内部实现细节（匿名对象）。
+         *
+         * 转换规则：
+         * - 私有声明保持匿名类型
+         * - 局部声明保持匿名类型
+         * - 非私有声明且匿名对象只有一个超类型时，转换为该超类型
+         * - 非私有声明且匿名对象有多个超类型时，报告歧义错误
+         *
+         * @param descriptor 声明描述符（必须有可见性）
+         * @param declaration 声明 PSI 元素
+         * @param type 原始类型
+         * @param trace 绑定追踪器
+         * @param anonymousTypeTransformers 自定义匿名类型转换器列表
+         * @param languageVersionSettings 语言版本设置
+         * @return 转换后的类型，如果不需要转换则返回原类型
+         */
         fun transformAnonymousTypeIfNeeded(
             descriptor: DeclarationDescriptorWithVisibility,
             declaration: CjDeclaration,
