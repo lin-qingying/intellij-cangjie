@@ -127,9 +127,7 @@ object ForceResolveUtil {
                     any
                 lazyEntity.forceResolveAllContents()
             }
-            //        else if (any is WithDestructuringDeclaration) {
-            //            (any as WithDestructuringDeclaration).destructuringVariables
-            //        }
+
             is CallableDescriptor -> {
 
 

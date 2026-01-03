@@ -39,6 +39,20 @@ import org.cangnova.cangjie.resolve.caches.DeclarationChecker
 import org.cangnova.cangjie.resolve.caches.DeclarationCheckerContext
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
 
+/**
+ * 修饰符检查器
+ *
+ * 负责检查和解析仓颉语言中的各种修饰符，包括：
+ * - 可见性修饰符（public、private、protected、internal）
+ * - 修饰性（modality）（open、abstract、sealed、final）
+ * - 其他修饰符（override、operator 等）
+ *
+ * @param declarationCheckers 声明检查器集合
+ * @param moduleDescriptor 模块描述符
+ * @param deprecationResolver 废弃特性解析器
+ * @param missingSupertypesResolver 缺失超类型解析器
+ * @param languageVersionSettings 语言版本设置
+ */
 class ModifiersChecker(
     val declarationCheckers: Iterable<DeclarationChecker>,
     val moduleDescriptor: ModuleDescriptor,
@@ -49,14 +63,33 @@ class ModifiersChecker(
     val languageVersionSettings: LanguageVersionSettings
 ) {
 
-
+    /**
+     * 创建带追踪的修饰符检查过程
+     *
+     * @param trace 绑定追踪器，用于记录诊断信息
+     * @return 修饰符检查过程实例
+     */
     fun withTrace(trace: BindingTrace): ModifiersCheckingProcedure {
         return ModifiersCheckingProcedure(trace)
     }
 
-
+    /**
+     * 修饰符检查过程
+     *
+     * 提供一系列方法用于检查声明的修饰符是否合法，并报告相关错误
+     *
+     * @param trace 绑定追踪器，用于记录诊断信息
+     */
     inner class ModifiersCheckingProcedure(val trace: BindingTrace) {
 
+        /**
+         * 检查参数不能有 let 或 var 关键字
+         *
+         * 用于检查函数参数、构造函数参数等场景，确保参数没有使用 let/var 修饰
+         *
+         * @param parameter 参数 PSI 元素
+         * @param diagnosticFactory 诊断工厂，用于报告错误
+         */
         fun checkParameterHasNoLetOrVar(
             parameter: CjLetVarKeywordOwner,
             diagnosticFactory: DiagnosticFactory1<PsiElement, CjKeywordToken>
@@ -73,6 +106,18 @@ class ModifiersChecker(
         }
 
 
+        /**
+         * 检查声明的修饰符
+         *
+         * 对类、函数、属性等顶层或成员声明进行修饰符检查，包括：
+         * - 嵌套类是否允许
+         * - 类型参数修饰符
+         * - 修饰符列表通用检查
+         * - 非法 header 修饰符
+         *
+         * @param modifierListOwner 修饰符列表拥有者（声明 PSI 元素）
+         * @param descriptor 对应的成员描述符
+         */
         fun checkModifiersForDeclaration(
             modifierListOwner: CjDeclaration,
             descriptor: MemberDescriptor
@@ -84,6 +129,14 @@ class ModifiersChecker(
             checkIllegalHeader(modifierListOwner, descriptor)
         }
 
+        /**
+         * 检查局部声明的修饰符
+         *
+         * 对局部变量、局部函数等局部声明进行修饰符检查
+         *
+         * @param modifierListOwner 修饰符列表拥有者（声明 PSI 元素）
+         * @param descriptor 对应的声明描述符
+         */
         fun checkModifiersForLocalDeclaration(
             modifierListOwner: CjDeclaration,
             descriptor: DeclarationDescriptor
@@ -91,6 +144,14 @@ class ModifiersChecker(
             checkModifierListCommon(modifierListOwner, descriptor)
         }
 
+        /**
+         * 检查非法的 header 修饰符
+         *
+         * 检查嵌套类等不应使用 header/expect 修饰符的场景
+         *
+         * @param modifierListOwner 修饰符列表拥有者
+         * @param descriptor 对应的声明描述符
+         */
         private fun checkIllegalHeader(
             modifierListOwner: CjModifierListOwner,
             descriptor: DeclarationDescriptor
@@ -125,6 +186,13 @@ class ModifiersChecker(
 //            }
         }
 
+        /**
+         * 检查类型参数的修饰符
+         *
+         * 检查泛型类型参数上的修饰符是否合法
+         *
+         * @param modifierListOwner 修饰符列表拥有者（通常是泛型类或函数）
+         */
         fun checkTypeParametersModifiers(modifierListOwner: CjModifierListOwner) {
             if (modifierListOwner !is CjTypeParameterListOwner) return
             val typeParameters: List<CjTypeParameter> =
@@ -139,6 +207,14 @@ class ModifiersChecker(
             }
         }
 
+        /**
+         * 运行声明检查器
+         *
+         * 对声明运行所有已注册的声明检查器，包括操作符修饰符检查等
+         *
+         * @param declaration 声明 PSI 元素
+         * @param descriptor 对应的声明描述符
+         */
         fun runDeclarationCheckers(
             declaration: CjDeclaration,
             descriptor: DeclarationDescriptor
@@ -156,6 +232,14 @@ class ModifiersChecker(
 //          OptionalExpectationChecker.check(declaration, descriptor, trace)
         }
 
+        /**
+         * 检查通用修饰符列表
+         *
+         * 执行修饰符列表的通用检查，包括运行声明检查器和核心修饰符检查
+         *
+         * @param modifierListOwner 修饰符列表拥有者（声明 PSI 元素）
+         * @param descriptor 对应的声明描述符
+         */
         private fun checkModifierListCommon(
             modifierListOwner: CjDeclaration,
             descriptor: DeclarationDescriptor
@@ -171,6 +255,14 @@ class ModifiersChecker(
             )
         }
 
+        /**
+         * 检查嵌套类是否允许
+         *
+         * 检查在特定上下文中是否允许嵌套类，例如枚举构造器中的嵌套类限制
+         *
+         * @param declaration 声明 PSI 元素
+         * @param descriptor 对应的声明描述符
+         */
         private fun checkNestedClassAllowed(
             declaration: CjDeclaration,
             descriptor: DeclarationDescriptor
@@ -225,7 +317,7 @@ class ModifiersChecker(
 
     companion object {
 
-//        
+//
 
 //        fun resolveVisibilityFormPackageOrImport(
 //            modifierListOwner: CjModifierListOwner,
@@ -234,7 +326,16 @@ class ModifiersChecker(
 //
 //        }
 
-        
+        /**
+         * 从修饰符解析可见性
+         *
+         * 根据修饰符列表（public、private、protected、internal）确定声明的可见性
+         * 对于主函数特殊处理，始终返回 PUBLIC 可见性
+         *
+         * @param modifierListOwner 修饰符列表拥有者
+         * @param defaultVisibility 默认可见性（当没有显式可见性修饰符时使用）
+         * @return 解析得到的可见性
+         */
         fun resolveVisibilityFromModifiers(
             modifierListOwner: CjModifierListOwner,
             defaultVisibility: DescriptorVisibility
@@ -246,7 +347,17 @@ class ModifiersChecker(
             )
         }
 
-        
+        /**
+         * 从修饰符解析成员的修饰性（modality）
+         *
+         * 解析类成员（函数、属性等）的修饰性，不允许 sealed 修饰符
+         *
+         * @param modifierListOwner 修饰符列表拥有者
+         * @param defaultModality 默认修饰性
+         * @param bindingContext 绑定上下文
+         * @param containingDescriptor 包含该成员的描述符（通常是类描述符）
+         * @return 解析得到的修饰性
+         */
         fun resolveMemberModalityFromModifiers(
             modifierListOwner: CjModifierListOwner?,
             defaultModality: Modality,
@@ -259,6 +370,20 @@ class ModifiersChecker(
             )
         }
 
+        /**
+         * 从修饰符解析修饰性（内部实现）
+         *
+         * 解析声明的修饰性（open、abstract、sealed、final）
+         * 特殊逻辑：
+         * - 抽象类中没有函数体的方法/属性自动为 abstract
+         * - 处理 open、abstract、sealed 等修饰符的优先级
+         *
+         * @param containingDescriptor 包含该声明的描述符
+         * @param modifierListOwner 修饰符列表拥有者
+         * @param defaultModality 默认修饰性
+         * @param allowSealed 是否允许 sealed 修饰符
+         * @return 解析得到的修饰性
+         */
         private fun resolveModalityFromModifiers(
             containingDescriptor: DeclarationDescriptor?,
             modifierListOwner: CjModifierListOwner?,
@@ -321,7 +446,18 @@ class ModifiersChecker(
 
         }
 
-        
+        /**
+         * 从修饰符解析修饰性（公共接口）
+         *
+         * 解析声明的修饰性，支持扩展点修改修饰性
+         *
+         * @param modifierListOwner 修饰符列表拥有者
+         * @param defaultModality 默认修饰性
+         * @param bindingContext 绑定上下文
+         * @param containingDescriptor 包含该声明的描述符
+         * @param allowSealed 是否允许 sealed 修饰符
+         * @return 解析得到的修饰性
+         */
         fun resolveModalityFromModifiers(
             modifierListOwner: CjModifierListOwner?,
             defaultModality: Modality,
@@ -359,7 +495,16 @@ class ModifiersChecker(
             return modality
         }
 
-        
+        /**
+         * 从修饰符列表解析可见性
+         *
+         * 根据修饰符列表中的可见性关键字确定可见性级别
+         * 优先级：sealed > private > public > protected > internal
+         *
+         * @param modifierList 修饰符列表
+         * @param defaultVisibility 默认可见性
+         * @return 解析得到的可见性
+         */
         fun resolveVisibilityFromModifiers(
             modifierList: CjModifierList?,
             defaultVisibility: DescriptorVisibility
@@ -376,19 +521,48 @@ class ModifiersChecker(
         }
     }
 
+    /**
+     * 详细类类型枚举
+     *
+     * 用于区分不同类型的类声明，以便在检查时应用不同的规则
+     *
+     * @param withCapitalFirstLetter 类型名称（首字母大写）
+     */
     private enum class DetailedClassKind(val withCapitalFirstLetter: String) {
 
+        /**
+         * 枚举构造器
+         */
         ENUM_ENTRY("Enum constructor"),
 
+        /**
+         * 接口
+         */
         INTERFACE("Interface"),
+
+        /**
+         * 枚举类
+         */
         ENUM("Enum"),
 
+        /**
+         * 普通类
+         */
         CLASS("Class"),
 
+        /**
+         * 结构体
+         */
         STRUCT("Struct")
         ;
 
         companion object {
+            /**
+             * 根据类描述符获取详细类类型
+             *
+             * @param descriptor 类描述符
+             * @return 对应的详细类类型
+             */
             fun getClassKind(descriptor: ClassDescriptor): DetailedClassKind {
                 if (DescriptorUtils.isEnumConstructor(descriptor)) return ENUM_ENTRY
 

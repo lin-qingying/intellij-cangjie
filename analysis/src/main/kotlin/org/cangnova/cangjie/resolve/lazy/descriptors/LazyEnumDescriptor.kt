@@ -72,7 +72,7 @@ class LazyEnumDescriptor(
     name: Name,
     private val classLikeInfo: CjClassLikeInfo,
 
-) : AbstractEnumDescriptor(c.storageManager, name), EnumDescriptorWithResolutionScopes, LazyEntity {
+    ) : AbstractEnumDescriptor(c.storageManager, name), EnumDescriptorWithResolutionScopes, LazyEntity {
 
     private val enumPsi: CjEnum = classLikeInfo.correspondingClass as CjEnum
 
@@ -107,40 +107,42 @@ class LazyEnumDescriptor(
         ::getOuterScope
     )
 
-      fun resolveMemberHeaders() {
-          ForceResolveUtil.forceResolveAllContents(annotations)
+    fun resolveMemberHeaders() {
+        ForceResolveUtil.forceResolveAllContents(annotations)
+        constructors
+        containingDeclaration
+        thisAsReceiverParameter
+        kind
+        modality
+        name
+        original
+        scopeForClassHeaderResolution
+        scopeForMemberDeclarationResolution
+        DescriptorUtils.getAllDescriptors(unsubstitutedMemberScope)
+        scopeForInitializerResolution
+        unsubstitutedMemberScope
 
-          constructors
-          containingDeclaration
-          thisAsReceiverParameter
-          kind
-          modality
-          name
-          original
-          scopeForClassHeaderResolution
-          scopeForMemberDeclarationResolution
-          DescriptorUtils.getAllDescriptors(unsubstitutedMemberScope)
-          scopeForInitializerResolution
-          unsubstitutedMemberScope
+        visibility
+    }
 
-          visibility
-      }
     /**
      * 获取外部作用域
      */
     private fun getOuterScope(): LexicalScope =
         c.declarationScopeProvider.getResolutionScopeForDeclaration(declarationProvider.ownerInfo!!.scopeAnchor)
 
-    init {
-        c.trace.record(BindingContext.CLASS, enumPsi, this)
-        c.trace.record(BindingContext.FQNAME_TO_CLASS_DESCRIPTOR, DescriptorUtils.getFqName(this), this)
-    }
+
 
     /**
      * 枚举构造器列表
-     * 延迟解析所有枚举构造器
+     *
+     * 使用 storageManager 确保线程安全的延迟初始化
+     * 虽然枚举构造器是核心部分，但需要延迟加载以避免在类初始化时的循环依赖
      */
-    override val constructors: Collection<EnumConstructorDescriptor> by lazy {
+    override val constructors: Collection<EnumConstructorDescriptor>
+        get() = _constructors()
+
+    private val _constructors = c.storageManager.createLazyValue {
         val enumConstructorsPsi = enumPsi.constructor
 
         enumConstructorsPsi.mapNotNull { enumConstructorPsi ->
@@ -163,17 +165,14 @@ class LazyEnumDescriptor(
      * 是否有关联值
      * 如果任何一个枚举构造器有参数，则返回 true
      */
-    override val hasArguments: Boolean by lazy {
-        constructors.any { it.valueParameters.isNotEmpty() }
-    }
+    override val hasArguments: Boolean
+        get() = constructors.any { it.valueParameters.isNotEmpty() }
 
     /**
      * 是否为非穷尽性枚举
      * 检查枚举是否包含 ELLIPSIS (...) 标记
      */
-    override val isNonExhaustive: Boolean by lazy {
-        enumPsi.isNonExhaustive
-    }
+    override val isNonExhaustive: Boolean = enumPsi.isNonExhaustive
 
     /**
      * 枚举类型
@@ -281,7 +280,7 @@ class LazyEnumDescriptor(
             this,
             createInitializerScopeParent(),
 
-        )
+            )
     }
 
     /**
@@ -329,7 +328,7 @@ class LazyEnumDescriptor(
         )
 
         return allSupertypes.filter(VALID_SUPERTYPE)
- }
+    }
 
 
     override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope {
@@ -371,15 +370,12 @@ class LazyEnumDescriptor(
     override fun isNonExhaustiveEnum(): Boolean = isNonExhaustive
 
     override fun forceResolveAllContents() {
-        // 强制解析所有内容
-        constructors
-        hasArguments
-        isNonExhaustive
-        modality
-        visibility
-        declaredTypeParameters
-        unsubstitutedMemberScope
-    }
 
+    }
+    init {
+        c.trace.record(BindingContext.CLASS, enumPsi, this)
+        c.trace.record(BindingContext.FQNAME_TO_CLASS_DESCRIPTOR, DescriptorUtils.getFqName(this), this)
+        constructors
+    }
 
 }
