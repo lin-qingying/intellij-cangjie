@@ -36,6 +36,7 @@ import org.cangnova.cangjie.diagnostics.infos.errors.*
 import org.cangnova.cangjie.diagnostics.infos.warnings.MISPLACED_TYPE_PARAMETER_CONSTRAINTS
 import org.cangnova.cangjie.diagnostics.infos.warnings.REDUNDANT_OPEN_IN_INTERFACE
 import org.cangnova.cangjie.diagnostics.infos.warnings.UNUSED_TYPEALIAS_PARAMETER
+import org.cangnova.cangjie.diagnostics.reportUnresolvedReference
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.DescriptorUtils.classCanHaveAbstractDeclaration
@@ -204,7 +205,8 @@ class DeclarationsChecker(
         for (annotationEntry in annotations) {
             val calleeExpression = annotationEntry.calleeExpression
             if (calleeExpression != null) {
-                calleeExpression.constructorReferenceExpression?.let { trace.report(UNRESOLVED_REFERENCE.on(it, it)) }
+                // 使用统一的错误报告方法
+                calleeExpression.constructorReferenceExpression?.let { trace.reportUnresolvedReference(it) }
             }
         }
         annotationChecker.check(packageDirective, trace)

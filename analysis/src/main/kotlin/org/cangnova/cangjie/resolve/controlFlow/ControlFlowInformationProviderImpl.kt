@@ -86,14 +86,55 @@ import org.cangnova.cangjie.types.expressions.match.checkExhaustive
 import org.cangnova.cangjie.types.isBoolean
 import org.cangnova.cangjie.utils.firstOverridden
 
+/**
+ * 控制流信息提供者接口
+ *
+ * 负责对仓颉代码进行控制流分析，检测诸如未初始化变量、不可达代码、
+ * 非穷尽的 match 表达式等问题。
+ */
 interface ControlFlowInformationProvider {
+    /**
+     * 检查本地类或对象模式
+     *
+     * 主要用于记录已初始化的变量。
+     */
     fun checkForLocalClassOrObjectMode()
 
+    /**
+     * 检查声明的控制流
+     *
+     * 执行完整的控制流检查，包括：
+     * - 变量初始化检查
+     * - 本地函数检查
+     * - match 表达式穷尽性检查
+     * - 多父类型推断检查
+     */
     fun checkDeclaration()
 
+    /**
+     * 检查函数的控制流
+     *
+     * 主要检查：
+     * - 不可达代码
+     * - 确定性返回
+     * - 尾递归调用
+     *
+     * @param expectedReturnType 期望的返回类型，用于检查返回语句的完整性
+     */
     fun checkFunction(expectedReturnType: CangJieType?)
 
+    /**
+     * 控制流信息提供者工厂接口
+     */
     interface Factory {
+        /**
+         * 创建控制流信息提供者实例
+         *
+         * @param declaration 需要分析的声明元素
+         * @param trace 绑定跟踪器，用于记录诊断信息
+         * @param languageVersionSettings 语言版本设置
+         * @return 控制流信息提供者实例
+         */
         fun createControlFlowInformationProvider(
             declaration: CjElement,
             trace: BindingTrace,
@@ -104,6 +145,65 @@ interface ControlFlowInformationProvider {
     }
 }
 
+/**
+ * 控制流信息提供者实现类
+ *
+ * 该类实现了对仓颉代码的完整控制流分析，通过生成和分析伪代码（Pseudocode）
+ * 来检测各种控制流相关的问题。
+ *
+ * ## 主要功能
+ *
+ * ### 1. 变量初始化分析
+ * - 检测未初始化变量的使用
+ * - 检测 let 变量的重新赋值
+ * - 检测声明前的初始化
+ * - 检测捕获变量的初始化
+ *
+ * ### 2. 控制流检查
+ * - 检测不可达代码（Unreachable Code）
+ * - 检测确定性返回（Definite Return）
+ * - 检测表达式体函数中的 return 语句
+ *
+ * ### 3. Match 表达式分析
+ * - 检查 match 表达式的穷尽性（Exhaustiveness）
+ * - 检测模式匹配的缺失分支
+ * - 检测枚举、密封类、元组等特殊类型的完整性
+ *
+ * ### 4. 类型推断检查
+ * - 检测多个共同父类型的推断失败
+ * - 检测条件表达式的隐式类型转换
+ *
+ * ### 5. 本地函数分析
+ * - 递归检查本地函数的控制流
+ * - 检查嵌套函数的变量捕获
+ *
+ * ## 实现原理
+ *
+ * 1. **伪代码生成**: 通过 [ControlFlowProcessor] 将 PSI 树转换为伪代码指令序列
+ * 2. **数据流分析**: 使用 [PseudocodeVariablesData] 进行变量初始化的数据流分析
+ * 3. **指令遍历**: 遍历伪代码指令，检查每个指令的控制流状态
+ * 4. **诊断报告**: 通过 [BindingTrace] 报告发现的问题
+ *
+ * ## 使用示例
+ *
+ * ```kotlin
+ * val provider = ControlFlowInformationProviderImpl(
+ *     declaration = function,
+ *     trace = trace,
+ *     languageVersionSettings = settings
+ * )
+ * provider.checkFunction(expectedReturnType)
+ * ```
+ *
+ * @property subroutine 待分析的子程序元素（函数、类、构造器等）
+ * @property trace 绑定跟踪器，用于记录分析结果和诊断信息
+ * @property pseudocode 生成的伪代码，包含控制流指令序列
+ * @property languageVersionSettings 语言版本设置，影响某些检查的行为
+ *
+ * @see ControlFlowProcessor 伪代码生成器
+ * @see PseudocodeVariablesData 变量数据流分析
+ * @see Pseudocode 伪代码指令序列
+ */
 class ControlFlowInformationProviderImpl private constructor(
     private val subroutine: CjElement,
     private val trace: BindingTrace,
@@ -112,11 +212,22 @@ class ControlFlowInformationProviderImpl private constructor(
 //    private val diagnosticSuppressor: PlatformDiagnosticSuppressor,
 //    private val enumMatchTracker: EnumMatchTracker?
 ) : ControlFlowInformationProvider {
+
+    /**
+     * 伪代码变量数据的延迟初始化属性
+     *
+     * 包含变量的初始化状态和数据流信息，用于变量初始化分析。
+     */
     private val pseudocodeVariablesData by lazy {
         PseudocodeVariablesData(pseudocode, trace.bindingContext)
     }
 
 
+    /**
+     * 控制流信息提供者的静态工厂对象
+     *
+     * 提供创建 [ControlFlowInformationProviderImpl] 实例的工厂方法。
+     */
     object Factory : ControlFlowInformationProvider.Factory {
         override fun createControlFlowInformationProvider(
             declaration: CjElement,
@@ -132,6 +243,15 @@ class ControlFlowInformationProviderImpl private constructor(
             )
     }
 
+    /**
+     * 主构造器，自动生成伪代码
+     *
+     * 该构造器会调用 [ControlFlowProcessor] 生成伪代码，然后委托给私有主构造器。
+     *
+     * @param declaration 需要分析的声明元素
+     * @param trace 绑定跟踪器
+     * @param languageVersionSettings 语言版本设置
+     */
     constructor(
         declaration: CjElement,
         trace: BindingTrace,
@@ -147,11 +267,27 @@ class ControlFlowInformationProviderImpl private constructor(
 //        enumMatchTracker
     )
 
+    /**
+     * 返回表达式信息的数据类
+     *
+     * 包含函数/lambda 中所有返回表达式的信息。
+     *
+     * @property returnedExpressions 所有返回表达式的集合
+     * @property hasReturnsInInlinedLambda 是否在内联 lambda 中有返回语句
+     */
     private data class ReturnedExpressionsInfo(
         val returnedExpressions: Collection<CjElement>,
         val hasReturnsInInlinedLambda: Boolean
     )
 
+    /**
+     * 收集函数中的所有返回表达式
+     *
+     * 遍历伪代码的出口指令，收集所有返回表达式，包括显式的 return 语句
+     * 和隐式的表达式返回。
+     *
+     * @return 返回表达式信息，包含所有返回表达式和内联 lambda 返回标志
+     */
     private fun collectReturnExpressions(): ReturnedExpressionsInfo {
         val instructions = pseudocode.instructions.toHashSet()
         val exitInstruction = pseudocode.exitInstruction
@@ -223,6 +359,15 @@ class ControlFlowInformationProviderImpl private constructor(
 
     }
 
+    /**
+     * 检查函数是否有确定的返回值
+     *
+     * 对于有返回类型的函数，检查是否所有控制流路径都返回了值。
+     * 特别处理表达式体函数和块体函数的不同情况。
+     *
+     * @param expectedReturnType 期望的返回类型
+     * @param unreachableCode 不可达代码集合
+     */
     private fun checkDefiniteReturn(expectedReturnType: CangJieType, unreachableCode: UnreachableCode) {
         val function = subroutine as? CjDeclarationWithBody
             ?: throw AssertionError("checkDefiniteReturn is called for ${subroutine.text} which is not CjDeclarationWithBody")
@@ -280,6 +425,12 @@ class ControlFlowInformationProviderImpl private constructor(
         recordInitializedVariables()
     }
 
+    /**
+     * 记录已初始化的变量
+     *
+     * 遍历伪代码，将在所有控制流路径上都已初始化的变量记录到 trace 中。
+     * 对于未初始化的变量，标记 [IS_UNINITIALIZED]。
+     */
     private fun recordInitializedVariables() {
         val pseudocode = pseudocodeVariablesData.pseudocode
         val initializers = pseudocodeVariablesData.variableInitializers
@@ -289,6 +440,12 @@ class ControlFlowInformationProviderImpl private constructor(
         }
     }
 
+    /**
+     * 记录指定伪代码中的已初始化变量
+     *
+     * @param pseudocode 要分析的伪代码
+     * @param initializersMap 变量初始化状态映射
+     */
     private fun recordInitializedVariables(
         pseudocode: Pseudocode,
         initializersMap: Map<Instruction, Edges<VariableInitReadOnlyControlFlowInfo>>
@@ -308,6 +465,11 @@ class ControlFlowInformationProviderImpl private constructor(
         }
     }
 
+    /**
+     * 获取所有本地函数及其描述符
+     *
+     * @return 本地函数及其描述符的集合
+     */
     fun getLocalFunctions(): Set<Pair<CjFunction, FunctionDescriptor?>> {
         return pseudocode.localDeclarations.mapNotNull {
             if (it.element is CjFunction) {
@@ -323,6 +485,11 @@ class ControlFlowInformationProviderImpl private constructor(
 
     }
 
+    /**
+     * 检查本地函数的控制流
+     *
+     * 递归地为每个本地函数创建控制流信息提供者，并检查其控制流。
+     */
     private fun checkLocalFunctions() {
         for (localDeclarationInstruction in pseudocode.localDeclarations) {
             val element = localDeclarationInstruction.element
@@ -450,7 +617,23 @@ class ControlFlowInformationProviderImpl private constructor(
 
 
     ////////////////////////////////////////////////////////////////////////////////
-//  Uninitialized variables analysis
+    //  未初始化变量分析
+
+    /**
+     * 检查 match 表达式
+     *
+     * 执行以下检查：
+     * 1. 检查 match 表达式的穷尽性（是否覆盖所有可能的情况）
+     * 2. 检查隐式类型转换（当 match 用作表达式时）
+     * 3. 检测缺失的 else 分支
+     * 4. 对模式匹配进行完整性检查
+     *
+     * 支持的检查类型：
+     * - 枚举类型的穷尽性检查
+     * - 密封类的穷尽性检查
+     * - 元组类型的穷尽性检查
+     * - 布尔类型的穷尽性检查
+     */
     private fun checkMatchExpressions() {
         val initializers = pseudocodeVariablesData.variableInitializers
         pseudocode.traverse(TraversalOrder.FORWARD) { instruction ->
@@ -613,6 +796,15 @@ class ControlFlowInformationProviderImpl private constructor(
         }
     }
 
+    /**
+     * 变量上下文基类
+     *
+     * 保存指令和已报告诊断的映射，用于避免重复报告。
+     *
+     * @property instruction 当前指令
+     * @property reportedDiagnosticMap 已报告的诊断映射
+     * @property variableDescriptor 从指令中提取的变量描述符
+     */
     private open inner class VariableContext(
         val instruction: Instruction,
         val reportedDiagnosticMap: MutableMap<Instruction, DiagnosticFactory<*>>
@@ -621,6 +813,21 @@ class ControlFlowInformationProviderImpl private constructor(
             PseudocodeUtil.extractVariableDescriptorFromReference(instruction, trace.bindingContext)
     }
 
+    /**
+     * 变量初始化上下文
+     *
+     * 扩展 [VariableContext]，添加变量初始化状态信息。
+     * 保存指令进入和退出时的初始化状态。
+     *
+     * @param instruction 当前指令
+     * @param map 已报告诊断映射
+     * @param in 进入指令时的初始化状态
+     * @param out 退出指令时的初始化状态
+     * @param blockScopeVariableInfo 块作用域变量信息
+     *
+     * @property enterInitState 进入时的初始化状态
+     * @property exitInitState 退出时的初始化状态
+     */
     private inner class VariableInitContext(
         instruction: Instruction,
         map: MutableMap<Instruction, DiagnosticFactory<*>>,
@@ -647,8 +854,13 @@ class ControlFlowInformationProviderImpl private constructor(
     }
 
     /**
-     * The method provides reporting of the same diagnostic only once for copied instructions
-     * (depends on whether it should be reported for all or only for one of the copies)
+     * 报告诊断信息，避免对复制指令重复报告
+     *
+     * 该方法确保对于复制的指令（如循环展开或内联产生的指令），
+     * 相同的诊断只报告一次。根据诊断类型决定是对所有副本报告还是只报告一次。
+     *
+     * @param diagnostic 要报告的诊断
+     * @param ctxt 变量上下文，包含指令信息
      */
     private fun report(
         diagnostic: Diagnostic,
@@ -687,6 +899,17 @@ class ControlFlowInformationProviderImpl private constructor(
         }
     }
 
+    /**
+     * 检查变量是否已初始化
+     *
+     * 对未初始化的变量报告相应的诊断信息：
+     * - [UNINITIALIZED_PARAMETER] - 未初始化的参数
+     * - [UNINITIALIZED_VARIABLE] - 未初始化的变量
+     *
+     * @param ctxt 变量初始化上下文
+     * @param element 要检查的元素
+     * @param varWithUninitializedErrorGenerated 已报告错误的变量集合，用于避免重复报告
+     */
     private fun checkIsInitialized(
         ctxt: VariableInitContext,
         element: CjElement,
@@ -732,6 +955,18 @@ class ControlFlowInformationProviderImpl private constructor(
         return true
     }
 
+    /**
+     * 标记未初始化的变量
+     *
+     * 这是变量初始化分析的核心方法，遍历伪代码并执行以下检查：
+     *
+     * 1. **读取检查**: 检查变量在使用前是否已初始化
+     * 2. **写入检查**: 检查 let 变量的重新赋值
+     * 3. **声明顺序检查**: 检查在声明前的初始化
+     * 4. **自定义 setter 检查**: 检查具有自定义 setter 的属性初始化
+     *
+     * 该方法会跟踪每个指令的初始化状态，并在发现问题时报告相应的诊断。
+     */
     private fun markUninitializedVariables() {
         val varWithUninitializedErrorGenerated = hashSetOf<VariableDescriptor>()
         val varWithLetReassignErrorGenerated = hashSetOf<VariableDescriptor>()
@@ -1023,6 +1258,13 @@ class ControlFlowInformationProviderImpl private constructor(
         }
     }
 
+    /**
+     * 报告不可达代码
+     *
+     * 为不可达代码集合中的每个元素报告 [UNREACHABLE_CODE] 诊断。
+     *
+     * @param unreachableCode 不可达代码信息
+     */
     private fun reportUnreachableCode(unreachableCode: UnreachableCode) {
         for (element in unreachableCode.elements) {
             trace.report(
@@ -1035,6 +1277,15 @@ class ControlFlowInformationProviderImpl private constructor(
         }
     }
 
+    /**
+     * 收集不可达代码
+     *
+     * 遍历伪代码中的所有指令（包括死代码），识别不可达的代码元素。
+     * 不可达代码是指永远不会被执行的代码，通常出现在 return、throw、
+     * break、continue 等跳转语句之后。
+     *
+     * @return 包含可达元素和不可达元素的 [UnreachableCode] 对象
+     */
     private fun collectUnreachableCode(): UnreachableCode {
         val reachableElements = hashSetOf<CjElement>()
         val unreachableElements = hashSetOf<CjElement>()
@@ -1087,6 +1338,18 @@ class ControlFlowInformationProviderImpl private constructor(
     }
 
     companion object {
+        fun checkDeclaration(
+            subroutine: CjElement,
+            trace: BindingTrace,
+            languageVersionSettings: LanguageVersionSettings,
+        ) {
+            ControlFlowInformationProviderImpl(
+                subroutine,
+                trace,
+
+                languageVersionSettings,
+            ).checkDeclaration()
+        }
 
         private fun isUsedAsResultOfLambda(usages: List<Instruction>): Boolean {
             for (usage in usages) {

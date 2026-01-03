@@ -30,7 +30,7 @@ import org.cangnova.cangjie.descriptors.DeclarationProvider
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.safeNameForLazyResolve
-import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
+import org.cangnova.cangjie.psi.stubs.elements.getAllPatternDeclarations
 import org.cangnova.cangjie.descriptors.data.CjClassInfoUtil
 import org.cangnova.cangjie.descriptors.data.CjClassLikeInfo
 import org.cangnova.cangjie.descriptors.data.CjTypeStatementInfo
@@ -98,7 +98,7 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
 
                 is CjPatternVariable ->
                     if (declaration.pattern != null) {
-                        declaration.pattern!!.getAllBindings().forEach {
+                        declaration.pattern!!.getAllPatternDeclarations().forEach {
                             variables.put(it.nameAsName.safeNameForLazyResolve(), declaration)
                         }
                     } else {
@@ -129,7 +129,7 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
             }
 
             when (declaration) {
-                is CjPatternVariable -> declaration.pattern!!.getAllBindings().forEach {
+                is CjPatternVariable -> declaration.pattern?.getAllPatternDeclarations()?.forEach {
                     if (it.nameAsName != null) {
                         names.add(it.nameAsName.safeNameForLazyResolve())
                     }

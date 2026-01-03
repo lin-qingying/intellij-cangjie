@@ -53,6 +53,7 @@ import org.cangnova.cangjie.types.isError
 import com.intellij.openapi.util.Ref
 import org.cangnova.cangjie.diagnostics.infos.errors.*
 import org.cangnova.cangjie.diagnostics.infos.warnings.*
+import org.cangnova.cangjie.diagnostics.reportUnresolvedReference
 import org.cangnova.cangjie.extensions.internal.InternalNonStableExtensionPoints
 import org.cangnova.cangjie.name.OperatorConventions
 import org.cangnova.cangjie.name.OperatorConventions.getNameForOperationSymbol
@@ -604,7 +605,8 @@ class ExpressionTypingVisitorForStatements(
 
         if (leftType == null) {
             val rightInfo = facade.getTypeInfo(right, context.replaceDataFlowInfo(leftInfo.dataFlowInfo))
-            context.trace.report(UNRESOLVED_REFERENCE.on(operationSign, operationSign))
+            // 使用统一的错误报告方法
+            context.trace.reportUnresolvedReference(operationSign)
             temporary.commit()
             return rightInfo.clearType()
         }

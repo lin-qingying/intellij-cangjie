@@ -122,6 +122,20 @@ class PossiblyBareType private constructor(
      */
     fun isBare(): Boolean = _actualType == null
 
+    /**
+     * 返回类型的字符串表示。
+     *
+     * @return 类型的可读字符串描述
+     */
+    override fun toString(): String {
+        return if (isBare()) {
+            val nullableStr = if (optional) "?" else ""
+            "BareType(${_bareTypeConstructor}$nullableStr)"
+        } else {
+            "Type($_actualType)"
+        }
+    }
+
     companion object {
         /**
          * 创建一个裸类型的实例。

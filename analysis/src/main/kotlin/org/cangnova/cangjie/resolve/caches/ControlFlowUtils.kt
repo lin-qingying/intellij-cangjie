@@ -32,17 +32,18 @@ import com.intellij.openapi.util.Key
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.DelegatingBindingTrace
 import org.cangnova.cangjie.resolve.calls.util.languageVersionSettings
+import org.cangnova.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl.Companion.checkDeclaration
 import org.cangnova.cangjie.resolve.lazy.ResolveSession
 
 fun analyzeControlFlow(resolveSession: ResolveSession, resolveElement: CjElement, trace: BindingTrace) {
     val controlFlowTrace = DelegatingBindingTrace(
         trace.bindingContext, "Element control flow resolveName", resolveElement, allowSliceRewrite = true
     )
-    ControlFlowInformationProviderImpl(
+    checkDeclaration(
         resolveElement,
         controlFlowTrace,
         resolveElement.languageVersionSettings,/* resolveSession.platformDiagnosticSuppressor*/
-    ).checkDeclaration()
+    )
     controlFlowTrace.addOwnDataTo(
         trace,
         filter = null,

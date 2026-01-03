@@ -17,6 +17,8 @@
 package org.cangnova.cangjie.resolve.qualified.resolvers
 
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.diagnostics.reportInvisibleReference
+import org.cangnova.cangjie.diagnostics.reportUnresolvedReference
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
@@ -128,6 +130,12 @@ class QualifierPrefixResolver(
         // 快速解析包前缀
         val (prefixDescriptor, nextIndexAfterPrefix) = quickResolveToPackage(path, context)
 
+        // 如果第一部分完全解析失败且不在表达式位置(或在类型位置),报告错误
+        if (nextIndexAfterPrefix == 0 && context.position != QualifierPosition.EXPRESSION) {
+            storeResult(firstPart, null, context)
+            return QualifierPrefixResult.UNRESOLVED
+        }
+
         // 继续解析剩余部分
         var currentDescriptor: DeclarationDescriptor? = prefixDescriptor
 
@@ -136,7 +144,8 @@ class QualifierPrefixResolver(
 
             val nextDescriptor = resolveNextPart(currentDescriptor, qualifierPart, context)
 
-            // 在表达式位置，如果解析失败，该名称可能是值
+            // 存储结果并报告错误(如果有)
+            // 在表达式位置且解析失败时,该名称可能是值,因此不报告错误
             if (context.position != QualifierPosition.EXPRESSION || nextDescriptor != null) {
                 storeResult(qualifierPart, nextDescriptor, context)
             }
@@ -254,9 +263,8 @@ class QualifierPrefixResolver(
         val expression = part.expression ?: return
 
         if (descriptor == null) {
-            context.trace.report(
-                org.cangnova.cangjie.diagnostics.infos.errors.UNRESOLVED_REFERENCE.on(expression, expression)
-            )
+            // 使用统一的错误报告方法
+            context.trace.reportUnresolvedReference(expression)
             return
         }
 
@@ -265,14 +273,8 @@ class QualifierPrefixResolver(
         // 检查可见性
         if (descriptor is DeclarationDescriptorWithVisibility) {
             if (!visibilityChecker.isVisible(descriptor, context)) {
-                context.trace.report(
-                    org.cangnova.cangjie.diagnostics.infos.errors.INVISIBLE_REFERENCE.on(
-                        expression,
-                        descriptor,
-                        descriptor.visibility,
-                        descriptor
-                    )
-                )
+                // 使用统一的错误报告方法
+                context.trace.reportInvisibleReference(expression, descriptor)
             }
         }
     }

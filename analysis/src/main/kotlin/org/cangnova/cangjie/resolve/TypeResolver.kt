@@ -726,19 +726,25 @@ class TypeResolver(
     }
 
     /**
-     * Type alias can be used as bare type (after is/as, e.g., 'x is List')
-     * iff all type arguments of the corresponding expanded type are either star projections
-     * or type parameters of the given type alias in invariant projection,
-     * and each of the type parameters is mentioned no more than once.
+     * 判断类型别名是否可以用作 Bare 类型
      *
-     * E.g.:
+     * 类型别名可以用作 Bare 类型（在 is/as 表达式之后，例如 `x is List`），
+     * 当且仅当对应展开类型的所有类型参数满足以下条件：
+     * - 是星投影（star projections）
+     * - 或者是该类型别名的类型参数且为不变投影（invariant projection）
+     * - 且每个类型参数最多只被使用一次
+     *
+     * 示例：
      * ```
-     * typealias HashMap<K, V> = java.util.HashMap<K, V>    // can be used as bare type
-     * typealias MyList<T, X> = List<X>                     // can be used as bare type
-     * typealias StarMap<T> = Map<T, *>                     // can be used as bare type
-     * typealias MyMap<T> = Map<T, T>                       // CAN NOT be used as bare type: type parameter 'T' is used twice
-     * typealias StringMap<T> = Map<String, T>              // CAN NOT be used as bare type: type argument 'String' is not a type parameter
+     * typealias HashMap<K, V> = java.util.HashMap<K, V>    // 可以用作 Bare 类型
+     * typealias MyList<T, X> = List<X>                     // 可以用作 Bare 类型
+     * typealias StarMap<T> = Map<T, *>                     // 可以用作 Bare 类型
+     * typealias MyMap<T> = Map<T, T>                       // 不能用作 Bare 类型：类型参数 'T' 被使用了两次
+     * typealias StringMap<T> = Map<String, T>              // 不能用作 Bare 类型：类型参数 'String' 不是类型参数
      * ```
+     *
+     * @param descriptor 类型别名描述符
+     * @return 如果可以用作 Bare 类型则返回 true，否则返回 false
      */
     private fun canBeUsedAsBareType(descriptor: TypeAliasDescriptor): Boolean {
         val expandedType = descriptor.expandedType
@@ -763,18 +769,6 @@ class TypeResolver(
 
         return true
     }
-//    private fun LexicalScope.findImplicitOuterClassArguments(
-//        outerClass: ClassDescriptor
-//    ): List<TypeProjection>? {
-//        val enclosingClass = findFirstFromMeAndParent { scope ->
-//            if (scope is LexicalScope && scope.kind == LexicalScopeKind.CLASS_MEMBER_SCOPE)
-//                scope.ownerDescriptor as ClassDescriptor
-//            else
-//                null
-//        } ?: return null
-//
-//        return findImplicitOuterClassArguments(enclosingClass, outerClass)
-//    }
 
     private fun ClassifierDescriptor?.classifierDescriptorsFromInnerToOuter(): List<ClassifierDescriptorWithTypeParameters> =
         generateSequence(
@@ -952,6 +946,40 @@ class TypeResolver(
         }
     }
 
+    /**
+     * 解析类型别名的类型
+     *
+     * 将类型别名引用解析为完整的类型（可能为 Bare 类型或展开类型）。
+     * 该方法负责处理类型别名的完整解析流程，包括：
+     * 1. 检查类型别名描述符是否有效
+     * 2. 处理 Bare 类型情况（用于 is/as 表达式）
+     * 3. 收集和解析类型参数
+     * 4. 验证类型参数数量
+     * 5. 创建类型别名展开或缩写类型
+     *
+     * 解析流程：
+     * - 如果是错误类型，返回错误类型
+     * - 如果允许 Bare 类型且没有类型参数，尝试返回 Bare 类型
+     * - 收集限定符部分的类型参数
+     * - 解析类型投影
+     * - 验证参数数量
+     * - 根据上下文返回缩写类型或展开类型
+     *
+     * 示例：
+     * ```
+     * typealias StringList = List<String>
+     *
+     * val x: StringList         // 展开为 List<String>
+     * if (y is StringList)      // Bare 类型用法
+     * ```
+     *
+     * @param c 类型解析上下文
+     * @param annotations 类型上的注解
+     * @param descriptor 类型别名描述符
+     * @param type PSI 元素（用于错误报告）
+     * @param qualifierResolutionResult 限定符解析结果，包含类型参数信息
+     * @return 可能为 Bare 类型的解析结果
+     */
     private fun resolveTypeForTypeAlias(
         c: TypeResolutionContext,
         annotations: Annotations,

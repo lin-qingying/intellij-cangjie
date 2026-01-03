@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve
 
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootModificationTracker
@@ -50,6 +51,7 @@ import org.cangnova.cangjie.psi.psiUtil.findElementOfAdditionalResolve
 import org.cangnova.cangjie.psi.psiUtil.forEachDescendantOfType
 import org.cangnova.cangjie.psi.psiUtil.getElementTextWithContext
 import org.cangnova.cangjie.psi.psiUtil.getNonStrictParentOfType
+import org.cangnova.cangjie.psi.stubs.elements.getAllPatternDeclarations
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.BindingTraceFilter
@@ -94,7 +96,7 @@ class ResolveElementCache(
         // 对于源码上下文，添加代码块修改追踪器
         resolveSession.moduleDescriptor.getCapability(ModuleInfo.Capability)?.let { context ->
 
-                CangJieCodeBlockModificationListener.getInstance(project).cangjieOutOfCodeBlockTracker
+            CangJieCodeBlockModificationListener.getInstance(project).cangjieOutOfCodeBlockTracker
 
         }
     ).toTypedArray()
@@ -320,7 +322,7 @@ class ResolveElementCache(
         // 强制执行完整分析以避免对当前选中的文件进行冗余分析
         if (bodyResolveMode != FULL &&
             bodyResolveMode != PARTIAL_FOR_COMPLETION &&
-            (!isUnitTestMode   || forceFullAnalysisModeInTests) &&
+            (!isUnitTestMode || forceFullAnalysisModeInTests) &&
             forcedFullResolveOnHighlighting && DaemonCodeAnalyzerStatusService.getInstance(project).daemonRunning
         ) {
             val virtualFile = resolveElement.containingFile.virtualFile
@@ -635,7 +637,8 @@ class ResolveElementCache(
     }
 
     private fun variableAdditionalResolve(
-        resolveSession: ResolveSession, variable: CjVariable<*>,
+        resolveSession: ResolveSession,
+        variable: CjVariable<*>,
         file: CjFile,
         statementFilter: StatementFilter,
         bindingTraceFilter: BindingTraceFilter
@@ -643,25 +646,45 @@ class ResolveElementCache(
         val trace = createDelegatingTrace(variable, bindingTraceFilter)
 
         val bodyResolver = createBodyResolver(resolveSession, trace, file, statementFilter)
-        val descriptor = resolveSession.resolveToDescriptor(variable) as VariableDescriptor
-        ForceResolveUtil.forceResolveAllContents(descriptor)
-
         val bodyResolveContext = BodyResolveContextForLazy(TopDownAnalysisMode.LocalDeclarations) { declaration ->
             assert(declaration.parent == variable || declaration == variable) {
                 "Must be called only for property accessors or for property, but called for $declaration"
             }
             resolveSession.declarationScopeProvider.getResolutionScopeForDeclaration(declaration)
         }
+        when (variable) {
+            is CjFieldVariable -> {
+                val descriptor = resolveSession.resolveToDescriptor(variable) as VariableDescriptor
+                ForceResolveUtil.forceResolveAllContents(descriptor)
 
-        bodyResolver.resolveVariable(bodyResolveContext, variable, descriptor)
+                bodyResolver.resolveVariable(bodyResolveContext, variable, descriptor)
+
+            }
+
+            is CjPatternVariable -> {
+                val isLocal = ReadAction.compute<Boolean, Nothing> { CjPsiUtil.isLocal(variable) }
+
+                if (isLocal) {
+                    resolveSession.localDescriptorResolver.resolveLocalDeclaration(variable)
+                } else {
+                    resolveSession.lazyDeclarationResolver.resolveToDescriptor(variable, true)
+                }
+                // 对于 CjPatternVariable，需要处理所有内部的模式声明
+                // getAllPatternDeclarations 返回所有具有描述符的模式（CjBindingPattern 和 CjTypePattern）
+                variable.pattern?.getAllPatternDeclarations()?.forEach { pattern ->
+                    // 直接从 BindingContext 获取描述符，因为模式元素不是 CjDeclaration
+                    val descriptor = trace.bindingContext.get(BindingContext.VARIABLE, pattern) as? VariableDescriptor
+                    if (descriptor != null) {
+                        ForceResolveUtil.forceResolveAllContents(descriptor)
+                        bodyResolver.resolveVariable(bodyResolveContext, variable, descriptor)
+                    }
+                }
+            }
+        }
+
+
 
         forceResolveAnnotationsInside(variable)
-
-//        for (accessor in property.accessors) {
-//            ControlFlowInformationProviderImpl(
-//                accessor, trace, accessor.languageVersionSettings, resolveSession.platformDiagnosticSuppressor
-//            ).checkDeclaration()
-//        }
 
         return trace
     }
@@ -1057,7 +1080,7 @@ class ResolveElementCache(
         override val enumConstructors: MutableMap<CjEnumConstructor, EnumConstructorDescriptor> = hashMapOf()
 
         // 存储声明的类与其对应的类描述符之间的映射。
-        override val declaredClasses: MutableMap<CjTypeStatement,  DescriptorWithResolutionScopes> = hashMapOf()
+        override val declaredClasses: MutableMap<CjTypeStatement, DescriptorWithResolutionScopes> = hashMapOf()
 
         // 存储属性与其对应的属性描述符之间的映射。
         override val properties: MutableMap<CjProperty, PropertyDescriptor> = hashMapOf()

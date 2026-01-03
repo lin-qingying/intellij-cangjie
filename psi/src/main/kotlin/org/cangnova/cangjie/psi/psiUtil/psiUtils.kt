@@ -34,6 +34,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.findParentInFile
 import com.intellij.psi.util.isAncestor
 import org.cangnova.cangjie.name.FqName
+import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 
 val PsiElement.cangjieFqName: FqName?
     get() = when (this) {
@@ -161,3 +162,5 @@ inline fun <reified T : PsiElement, reified V : PsiElement, reified U : PsiEleme
 }
 
 
+fun CjElementImplStub<*>.getAllModifierLists(): Array<out CjDeclarationModifierList> =
+    getStubOrPsiChildren(CjStubElementTypes.MODIFIER_LIST, CjStubElementTypes.MODIFIER_LIST.arrayFactory)

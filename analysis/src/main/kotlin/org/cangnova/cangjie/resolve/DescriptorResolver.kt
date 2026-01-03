@@ -41,6 +41,7 @@ import org.cangnova.cangjie.descriptors.impl.TypeParameterDescriptorImpl.Compani
 import org.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl.Companion.createWithDestructuringDeclarations
 import org.cangnova.cangjie.descriptors.impl.VariableDescriptorImpl.Companion.create
 import org.cangnova.cangjie.diagnostics.infos.errors.*
+import org.cangnova.cangjie.diagnostics.reportUnresolvedReference
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.ClassId
@@ -48,7 +49,7 @@ import org.cangnova.cangjie.name.ClassId.Companion.fromString
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.SpecialNames.anonymousParameterName
 import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
+import org.cangnova.cangjie.psi.stubs.elements.getAllPatternDeclarations
 import org.cangnova.cangjie.resolve.DescriptorUtils.getDispatchReceiverParameterIfNeeded
 import org.cangnova.cangjie.resolve.DescriptorUtils.getParentOfType
 import org.cangnova.cangjie.resolve.DescriptorUtils.isAnonymousObject
@@ -1043,7 +1044,8 @@ class DescriptorResolver(
                 )
                 trace.record(BindingContext.REFERENCE_TARGET, nameExpression, classifier)
             } else {
-                trace.report(UNRESOLVED_REFERENCE.on(nameExpression, nameExpression))
+                // 使用统一的错误报告方法
+                trace.reportUnresolvedReference(nameExpression)
             }
 
             val boundTypeReference = constraint.boundTypeReference
@@ -1459,7 +1461,7 @@ class DescriptorResolver(
             variableDeclaration, context
         )
 ////当前声明具有的所有变量声明
-        val variables = variableDeclaration.pattern.getAllBindings().mapNotNull {
+        val variables = variableDeclaration.pattern.getAllPatternDeclarations().mapNotNull {
             trace[BindingContext.VARIABLE, it]
         }
         return variables.filter {

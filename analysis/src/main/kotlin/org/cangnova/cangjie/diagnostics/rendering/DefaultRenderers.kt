@@ -34,6 +34,8 @@ import org.cangnova.cangjie.diagnostics.infos.errors.INVALID_BINARY_OPERATOR
 import org.cangnova.cangjie.diagnostics.infos.errors.NO_ELSE_IN_MATCH_BY_PATTERN
 import org.cangnova.cangjie.diagnostics.infos.errors.REDECLARATION
 import org.cangnova.cangjie.diagnostics.infos.errors.TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS
+import org.cangnova.cangjie.diagnostics.infos.errors.UNRESOLVED_REFERENCE
+import org.cangnova.cangjie.diagnostics.rendering.Renderers.ELEMENT_TEXT
 import org.cangnova.cangjie.types.expressions.match.Pattern
 import org.cangnova.cangjie.types.isError
 
@@ -74,7 +76,12 @@ internal class DefaultRenderers : DiagnosticRendererProvider {
                     }
                 )
             }
-
+            register(UNRESOLVED_REFERENCE) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                renderers(
+                    ELEMENT_TEXT
+                )
+            }
             // 二元运算符错误 - 需要提取 6 个参数
             register(INVALID_BINARY_OPERATOR) {
                 message { CangJieDiagnosisBundle.rawMessage(it) }

@@ -48,6 +48,14 @@ import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 interface CjCasePatternElement : CjElement, ValueArgument, CjExpression
 
 /**
+ * 具有名称的模式元素接口
+ *
+ * 用于标识可以创建变量绑定的模式元素，如 [CjBindingPattern] 和 [CjTypePattern]。
+ * 这些模式元素会创建变量描述符，因此需要同时支持 PSI 元素操作和名称访问。
+ */
+interface CjNamedPattern : CjCasePatternElement, CjNamed
+
+/**
  * 基于 Stub 的模式匹配基类（所有模式都支持 Stub）
  */
 abstract class CjCasePattern<T : StubElement<*>> : CjElementImplStub<T>, CjCasePatternElement {
@@ -89,7 +97,7 @@ class CjMatchConditionWithExpression : CjCasePattern<CangJieMatchConditionStub> 
  * 表示变量绑定模式，如 `let a = 1` 中的 `a`
  * 绑定模式是模式匹配的一部分，不是独立的变量声明
  */
-class CjBindingPattern : CjCasePattern<CangJieBindingPatternStub>, CjSimpleNameExpression, PsiNameIdentifierOwner, CjNamed {
+class CjBindingPattern : CjCasePattern<CangJieBindingPatternStub>, CjSimpleNameExpression, PsiNameIdentifierOwner, CjNamedPattern {
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieBindingPatternStub) : super(stub, CjStubElementTypes.BINDING_PATTERN)
 
@@ -161,7 +169,7 @@ class CjBindingPattern : CjCasePattern<CangJieBindingPatternStub>, CjSimpleNameE
  *
  * 表示类型匹配模式，如 `case x: Int => ...` 中的 `x: Int`
  */
-class CjTypePattern : CjCasePattern<CangJieTypePatternStub>, PsiNameIdentifierOwner, CjNamed {
+class CjTypePattern : CjCasePattern<CangJieTypePatternStub>, PsiNameIdentifierOwner, CjNamedPattern {
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieTypePatternStub) : super(stub, CjStubElementTypes.TYPE_PATTERN)
 

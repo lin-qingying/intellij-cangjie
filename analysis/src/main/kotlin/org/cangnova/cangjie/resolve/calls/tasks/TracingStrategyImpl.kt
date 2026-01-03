@@ -28,7 +28,7 @@ import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.VariableDescriptor
 import org.cangnova.cangjie.diagnostics.infos.errors.*
-import org.cangnova.cangjie.diagnostics.infos.errors.UNRESOLVED_REFERENCE
+import org.cangnova.cangjie.diagnostics.reportUnresolvedReference
 import org.cangnova.cangjie.psi.Call
 import org.cangnova.cangjie.psi.CjReferenceExpression
 import org.cangnova.cangjie.resolve.binding.BindingContext
@@ -71,7 +71,8 @@ class TracingStrategyImpl private constructor(override val reference: CjReferenc
     }
 
     override fun unresolvedReference(trace: BindingTrace) {
-        trace.report(UNRESOLVED_REFERENCE.on(reference, reference))
+        // 使用统一的错误报告方法
+        trace.reportUnresolvedReference(reference)
     }
 
     override fun <D : CallableDescriptor> unresolvedReferenceWrongReceiver(

@@ -157,6 +157,9 @@
         <registryKey key="cangjie.highlighting.suppress.deprecated"
                      description="Suppress cangjie.Deprecated warning"
                      defaultValue="false"/>
+        <registryKey key="cangjie.resolveName.force.full.resolveName.on.highlighting"
+                     description="Force full resolve on highlighting for better accuracy"
+                     defaultValue="true"/>
         <applicationService
                 serviceInterface="org.cangnova.cangjie.decompiler.psi.CangJieBuiltInDecompilationInterceptor"
                 serviceImplementation="org.cangnova.cangjie.decompiler.psi.IdeCangJieBuiltInDecompilationInterceptor"
@@ -228,6 +231,10 @@
         <projectService
                 serviceInterface="org.cangnova.cangjie.resolve.CodeAnalyzerInitializer"
                 serviceImplementation="org.cangnova.cangjie.resolve.DummyCodeAnalyzerInitializer"/>
+
+        <projectService
+                serviceInterface="org.cangnova.cangjie.imports.ImportInsertHelper"
+                serviceImplementation="org.cangnova.cangjie.imports.ImportInsertHelperImpl"/>
 
         <lang.documentationProvider language="CangJie"
                                     implementationClass="org.cangnova.cangjie.quickDoc.CangJieDocumentationProvider"

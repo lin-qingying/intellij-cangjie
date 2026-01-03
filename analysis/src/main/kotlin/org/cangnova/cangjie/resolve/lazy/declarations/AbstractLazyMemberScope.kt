@@ -31,7 +31,7 @@ import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
+import org.cangnova.cangjie.psi.stubs.elements.getAllPatternDeclarations
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.components.InferenceSession
 import org.cangnova.cangjie.resolve.lazy.LazyClassContext
@@ -464,7 +464,7 @@ protected constructor(
 
                 // 模式变量（支持解构绑定）
                 is CjPatternVariable -> {
-                    val names = declaration.pattern.getAllBindings().map { it.nameAsSafeName }
+                    val names = declaration.pattern.getAllPatternDeclarations().mapNotNull { it.nameAsName }
                    names.forEach {
                        if (nameFilter(it)) {
                                result.addAll(getContributedVariables(it, location))

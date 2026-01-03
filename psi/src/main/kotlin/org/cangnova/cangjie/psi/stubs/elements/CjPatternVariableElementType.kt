@@ -52,6 +52,25 @@ fun CjCasePatternElement?.getAllBindings(): List<CjBindingPattern> {
 }
 
 /**
+ * 获取所有具有描述符的模式声明（绑定模式和类型模式）
+ *
+ * 与 [getAllBindings] 不同，此函数同时返回 [CjBindingPattern] 和 [CjTypePattern]，
+ * 因为这两种模式都会创建变量描述符。
+ *
+ * @return 所有具有描述符的模式声明列表
+ */
+fun CjCasePatternElement?.getAllPatternDeclarations(): List<CjNamedPattern> {
+    this ?: return emptyList()
+    return when (this) {
+        is CjBindingPattern -> listOf(this)
+        is CjTypePattern -> listOf(this)
+        is CjEnumPattern -> this.patterns.flatMap { it.getAllPatternDeclarations() }
+        is CjTuplePattern -> this.patterns.flatMap { it.getAllPatternDeclarations() }
+        else -> emptyList()
+    }
+}
+
+/**
  * 从 PSI 模式确定 PatternKind
  */
 fun CjCasePatternElement?.toPatternKind(): PatternKind {

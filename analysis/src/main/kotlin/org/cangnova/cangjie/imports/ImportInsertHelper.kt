@@ -95,7 +95,7 @@ enum class ImportDescriptorResult {
     ALREADY_IMPORTED
 }
 
-class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper() {
+internal class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper() {
     override fun isImportedWithDefault(importPath: ImportPath, contextFile: CjFile): Boolean =
         isInDefaultImports(importPath, contextFile)
 

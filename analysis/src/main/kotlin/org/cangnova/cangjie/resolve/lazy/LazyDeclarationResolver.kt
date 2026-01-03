@@ -33,7 +33,7 @@ import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.CjStubbedPsiUtil
 import org.cangnova.cangjie.psi.psiUtil.getElementTextWithContext
-import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
+import org.cangnova.cangjie.psi.stubs.elements.getAllPatternDeclarations
 import org.cangnova.cangjie.resolve.FunctionDescriptorResolver
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.storage.LockBasedLazyResolveStorageManager
@@ -149,8 +149,8 @@ open class LazyDeclarationResolver(
         val location = lookupLocationFor(variable, isTopLevel)
         val scopeForDeclaration = getMemberScopeDeclaredIn(variable, location)
         val result = when (variable) {
-            is CjPatternVariable -> (variable.pattern?.getAllBindings() ?: listOf()).flatMap {
-                scopeForDeclaration.getContributedVariables(it.nameAsSafeName, location)
+            is CjPatternVariable -> (variable.pattern?.getAllPatternDeclarations() ?: listOf()).mapNotNull { it.nameAsName }.flatMap {
+                scopeForDeclaration.getContributedVariables(it, location)
             }
 
             is CjFieldVariable -> scopeForDeclaration.getContributedVariables(variable.nameAsSafeName, location)
@@ -165,7 +165,7 @@ open class LazyDeclarationResolver(
         if (isTopLevel && track) CangJieLookupLocation(declaration)
         else NoLookupLocation.MATCH_RESOLVE_DECLARATION
 
-    private fun resolveToDescriptor(declaration: CjDeclaration, track: Boolean): DeclarationDescriptor? {
+       fun resolveToDescriptor(declaration: CjDeclaration, track: Boolean): DeclarationDescriptor? {
         return declaration.accept(object : CjVisitor<DeclarationDescriptor?, Nothing?>() {
             fun lookupLocationFor(declaration: CjDeclaration, isTopLevel: Boolean): LookupLocation =
                 lookupLocationFor(declaration, isTopLevel, track)

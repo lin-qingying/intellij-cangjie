@@ -20,6 +20,8 @@ import com.intellij.util.SmartList
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.diagnostics.infos.errors.*
+import org.cangnova.cangjie.diagnostics.reportInvisibleReference
+import org.cangnova.cangjie.diagnostics.reportUnresolvedReference
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
@@ -245,7 +247,8 @@ class ImportResolver(
         expression ?: return
 
         if (descriptors.isEmpty()) {
-            context.trace.report(UNRESOLVED_REFERENCE.on(expression, expression))
+            // 使用统一的错误报告方法
+            context.trace.reportUnresolvedReference(expression)
             return
         }
 
@@ -267,9 +270,8 @@ class ImportResolver(
         when {
             visibleDescriptors.isEmpty() -> {
                 val descriptor = descriptors.first() as? DeclarationDescriptorWithVisibility ?: return
-                context.trace.report(
-                    INVISIBLE_REFERENCE.on(expression, descriptor, descriptor.visibility, descriptor)
-                )
+                // 使用统一的错误报告方法
+                context.trace.reportInvisibleReference(expression, descriptor)
             }
             visibleDescriptors.size > 1 -> {
                 context.trace.record(

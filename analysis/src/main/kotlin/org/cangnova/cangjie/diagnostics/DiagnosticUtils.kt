@@ -29,6 +29,7 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjLambdaExpression
 import org.cangnova.cangjie.psi.CjNamedFunction
+import org.cangnova.cangjie.psi.CjReferenceExpression
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.TextRange
@@ -36,6 +37,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import org.cangnova.cangjie.diagnostics.PsiDiagnosticUtils.Companion.offsetToLineAndColumn
 import org.cangnova.cangjie.diagnostics.infos.errors.*
+import org.cangnova.cangjie.psi.CjSimpleNameExpression
 import org.cangnova.cangjie.resolve.DescriptorUtils.getContainingClass
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.call.inference.isCaptured
@@ -249,4 +251,50 @@ fun MemberDescriptor.isEffectivelyExternal(): Boolean {
 
     val containingClass = getContainingClass(this)
     return containingClass != null && containingClass.isEffectivelyExternal()
+}
+
+// ==================== 错误报告扩展方法 ====================
+
+/**
+ * 报告未解析引用错误 (UNRESOLVED_REFERENCE)
+ *
+ * **重要**: 这是报告 UNRESOLVED_REFERENCE 的唯一入口。
+ * 所有需要报告未解析引用错误的地方都必须使用此方法，而不是直接调用 `trace.report(UNRESOLVED_REFERENCE.on(...))`。
+ *
+ * 此方法确保:
+ * 1. 错误报告的一致性
+ * 2. 便于后续添加额外的错误处理逻辑（如日志记录、统计等）
+ * 3. 便于全局搜索和重构
+ *
+ * @param expression 未解析的表达式
+ *
+ * @see BindingTrace.reportInvisibleReference 报告不可见引用错误
+ */
+fun BindingTrace.reportUnresolvedReference(expression: CjReferenceExpression) {
+  report(UNRESOLVED_REFERENCE.on(expression, expression))
+}
+
+/**
+ * 报告不可见引用错误 (INVISIBLE_REFERENCE)
+ *
+ * **重要**: 这是报告 INVISIBLE_REFERENCE 的唯一入口。
+ * 所有需要报告不可见引用错误的地方都必须使用此方法。
+ *
+ * @param expression 引用表达式
+ * @param descriptor 不可见的描述符
+ *
+ * @see BindingTrace.reportUnresolvedReference 报告未解析引用错误
+ */
+fun BindingTrace.reportInvisibleReference(
+    expression: CjSimpleNameExpression,
+    descriptor: DeclarationDescriptorWithVisibility
+) {
+    report(
+        INVISIBLE_REFERENCE.on(
+            expression,
+            descriptor,
+            descriptor.visibility,
+            descriptor
+        )
+    )
 }

@@ -19,7 +19,8 @@ package org.cangnova.cangjie.resolve.qualified.resolvers
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.diagnostics.infos.errors.ENUM_ENTRY_AS_TYPE
 import org.cangnova.cangjie.diagnostics.infos.errors.MODULE_CANNOT_BE_USED_AS_TYPE
-import org.cangnova.cangjie.diagnostics.infos.errors.UNRESOLVED_REFERENCE
+import org.cangnova.cangjie.diagnostics.reportInvisibleReference
+import org.cangnova.cangjie.diagnostics.reportUnresolvedReference
 import org.cangnova.cangjie.incremental.CangJieLookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.name.Name
@@ -192,7 +193,11 @@ class TypeReferenceResolver(
         val (classifier, isDeprecated) = scope.findFirstClassifierWithDeprecationStatus(
             name,
             CangJieLookupLocation(expression)
-        ) ?: return TypeResolutionResult.NotFound(name)
+        ) ?: run {
+            // 使用统一的错误报告方法
+            context.trace.reportUnresolvedReference(expression)
+            return TypeResolutionResult.NotFound(name)
+        }
 
         // 检查是否是枚举条目（不能作为类型）
         if (!checkNotEnumEntry(classifier, expression, context)) {
@@ -228,6 +233,7 @@ class TypeReferenceResolver(
         val (qualifier, nextIndex) = resolveQualifierPrefix(prefixParts, context)
 
         if (qualifier == null || nextIndex != prefixParts.size) {
+            // 错误已经在 resolveQualifierPrefix 中报告
             val unresolvedPart = if (nextIndex < prefixParts.size) {
                 prefixParts[nextIndex]
             } else {
@@ -250,6 +256,10 @@ class TypeReferenceResolver(
         val classifier = findClassifierInQualifier(qualifier, lastPart, context)
 
         if (classifier == null) {
+            // 使用统一的错误报告方法
+            lastPart.expression?.let { expr ->
+                context.trace.reportUnresolvedReference(expr)
+            }
             return TypeResolutionResult.NotFound(lastPart.name)
         }
 
@@ -260,13 +270,13 @@ class TypeReferenceResolver(
 
         // 检查可见性
         if (!visibilityChecker.isVisible(classifier, context)) {
-            lastPart.expression.let { expr ->
+            lastPart.expression?.let { expr ->
                 reportVisibilityError(classifier, expr, context)
             }
         }
 
         // 记录绑定
-        lastPart.expression.let { expr ->
+        lastPart.expression?.let { expr ->
             storeTypeReference(expr, classifier, context)
         }
 
@@ -303,6 +313,10 @@ class TypeReferenceResolver(
         }
 
         if (currentDescriptor == null) {
+            // 第一部分解析失败，使用统一的错误报告方法
+            firstPart.expression?.let { expr ->
+                context.trace.reportUnresolvedReference(expr)
+            }
             return Pair(null, 0)
         }
 
@@ -317,6 +331,10 @@ class TypeReferenceResolver(
             val nextDescriptor = findNextDescriptor(currentDescriptor!!, part, context)
 
             if (nextDescriptor == null) {
+                // 使用统一的错误报告方法
+                part.expression?.let { expr ->
+                    context.trace.reportUnresolvedReference(expr)
+                }
                 return Pair(currentDescriptor, index)
             }
 
@@ -417,16 +435,10 @@ class TypeReferenceResolver(
         expression: CjSimpleNameExpression,
         context: ResolutionContext
     ) {
-        val visibility = (descriptor as? DeclarationDescriptorWithVisibility)?.visibility
+        val descriptorWithVisibility = descriptor as? DeclarationDescriptorWithVisibility
             ?: return
-        context.trace.report(
-            org.cangnova.cangjie.diagnostics.infos.errors.INVISIBLE_REFERENCE.on(
-                expression,
-                descriptor,
-                visibility,
-                descriptor
-            )
-        )
+        // 使用统一的错误报告方法
+        context.trace.reportInvisibleReference(expression, descriptorWithVisibility)
     }
 
     /**

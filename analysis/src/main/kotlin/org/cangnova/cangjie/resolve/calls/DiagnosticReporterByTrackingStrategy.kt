@@ -60,6 +60,7 @@ import org.cangnova.cangjie.utils.shouldNotBeCalled
 import io.github.classgraph.TypeArgument
 import org.cangnova.cangjie.diagnostics.infos.errors.*
 import org.cangnova.cangjie.diagnostics.infos.warnings.*
+import org.cangnova.cangjie.diagnostics.reportUnresolvedReference
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.module
 import org.cangnova.cangjie.types.ErrorUtils
@@ -463,7 +464,8 @@ class DiagnosticReporterByTrackingStrategy(
                 val argument = diagnostic.argument
                 val expression = (argument as? CallableReferenceCangJieCallArgumentImpl)?.cjCallableReferenceExpression
                 if (expression != null) {
-                    trace.report(UNRESOLVED_REFERENCE.on(expression, expression))
+                    // 使用统一的错误报告方法
+                    trace.reportUnresolvedReference(expression)
                 }
             }
 

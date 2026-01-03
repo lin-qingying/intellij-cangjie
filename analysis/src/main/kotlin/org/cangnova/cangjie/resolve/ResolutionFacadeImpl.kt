@@ -32,6 +32,7 @@ import org.cangnova.cangjie.diagnostics.DiagnosticSink
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.psi.CjElement
+import org.cangnova.cangjie.psi.CjPatternVariable
 import org.cangnova.cangjie.psi.CjPsiUtil
 import org.cangnova.cangjie.resolve.caches.ProjectResolutionFacade
 import org.cangnova.cangjie.resolve.caches.ResolutionFacadeModuleDescriptorProvider
@@ -100,10 +101,12 @@ class ModuleResolutionFacadeImpl(
         runWithCancellationCheck {
             if (CjPsiUtil.isLocal(declaration)) {
                 val bindingContext = analyze(declaration, bodyResolveMode)
-                bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration]
-                    ?: getFrontendService(context, AbsentDescriptorHandler::class.java).diagnoseDescriptorNotFound(
-                        declaration
-                    )
+
+                    bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration]
+                        ?: getFrontendService(context, AbsentDescriptorHandler::class.java).diagnoseDescriptorNotFound(
+                            declaration
+                        )
+
             } else {
                 ResolveInDispatchThreadManager.assertNoResolveInDispatchThread()
 

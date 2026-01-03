@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.resolve.calls.tasks
 
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.diagnostics.infos.errors.UNRESOLVED_REFERENCE
+import org.cangnova.cangjie.diagnostics.reportUnresolvedReference
 import org.cangnova.cangjie.diagnostics.infos.errors.*
 import org.cangnova.cangjie.psi.Call
 import org.cangnova.cangjie.psi.CjConstructorDelegationCall
@@ -65,7 +65,8 @@ class TracingStrategyForImplicitConstructorDelegationCall(
     }
 
     override fun unresolvedReference(trace: BindingTrace) {
-        trace.report(UNRESOLVED_REFERENCE.on(calleeExpression ?: return, calleeExpression))
+        // 使用统一的错误报告方法
+        trace.reportUnresolvedReference(calleeExpression ?: return)
     }
 
     override fun <D : CallableDescriptor> unresolvedReferenceWrongReceiver(

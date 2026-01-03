@@ -36,7 +36,7 @@ import org.cangnova.cangjie.resolve.scopes.getDeclarationsByLabel
 import org.cangnova.cangjie.utils.addIfNotNull
 import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.descriptors.DescriptorToSourceUtils
-import org.cangnova.cangjie.diagnostics.infos.errors.UNRESOLVED_REFERENCE
+import org.cangnova.cangjie.diagnostics.reportUnresolvedReference
 import org.cangnova.cangjie.diagnostics.infos.warnings.LABEL_NAME_CLASH
 import org.cangnova.cangjie.diagnostics.infos.warnings.LABEL_RESOLVE_WILL_CHANGE
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.DECLARATION_TO_DESCRIPTOR
@@ -324,7 +324,8 @@ object LabelResolver {
                     }
                     return LabeledReceiverResolutionResult.labelResolutionSuccess(thisReceiver)
                 } else {
-                    trace.report(UNRESOLVED_REFERENCE.on(targetLabelExpression, targetLabelExpression))
+                    // 使用统一的错误报告方法
+                    trace.reportUnresolvedReference(targetLabelExpression)
                 }
             }
 
