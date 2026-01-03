@@ -338,7 +338,7 @@ open class CangJieIdeDescriptorOptions : DescriptorRendererOptions {
     override var textFormat by property(RenderingFormat.PLAIN)
 
     /** 参数名称渲染策略 */
-    override var parameterNameRenderingPolicy by property(ParameterNameRenderingPolicy.ALL)
+    override var parameterNameRenderingPolicy by property(ParameterNameRenderingPolicy.ONLY_NON_SYNTHESIZED)
 
     /** 是否将接收者放在名称后面 */
     override var receiverAfterName by property(false)
@@ -579,6 +579,17 @@ open class CangJieIdeDescriptorRenderer(
         appendNormalizedType(typeNormalizer(type))
     }
 
+    /**
+     * 将类型按原样追加到字符串构建器，不进行额外处理
+     *
+     * 根据解包后的类型分发到具体的渲染方法:
+     * - VArrayType: 变长数组类型
+     * - BasicType: 基本类型（如 Int32, Bool 等）
+     * - FlexibleType: 灵活类型
+     * - SimpleType: 简单类型
+     *
+     * @param type 要渲染的类型
+     */
     private fun StringBuilder.appendNormalizedTypeAsIs(type: CangJieType) {
         if (type is WrappedType && debugMode && !type.isComputed()) {
             appendHighlighted("<Not computed yet>") { asInfo }
@@ -599,6 +610,13 @@ open class CangJieIdeDescriptorRenderer(
         }
     }
 
+    /**
+     * 渲染变长数组类型
+     *
+     * 格式: `Array<元素类型, 大小>`
+     *
+     * @param vArrayType 变长数组类型
+     */
     private fun StringBuilder.appendVArrayType(vArrayType: VArrayType) {
         appendHighlighted(vArrayType.typeName) { asKeyword }
         appendHighlighted(renderTypeArguments(vArrayType.arguments) {
@@ -622,6 +640,20 @@ open class CangJieIdeDescriptorRenderer(
         }
     }
 
+    /**
+     * 渲染简单类型
+     *
+     * 处理以下情况:
+     * - 无法推断的函数参数类型 → `???`
+     * - 占位符类型 → `???`
+     * - 未推断的类型变量 → 根据配置渲染名称或 `???`
+     * - 错误类型 → 使用默认类型渲染
+     * - 函数类型 → 使用函数类型语法
+     * - 缩写类型 → 展开或使用缩写形式
+     * - 其他类型 → 渲染类型构造器和参数
+     *
+     * @param type 要渲染的简单类型
+     */
     private fun StringBuilder.appendSimpleType(type: SimpleType) {
         if (type == CANNOT_INFER_FUNCTION_PARAM_TYPE || TypeUtils.isDontCarePlaceholder(type)) {
             appendHighlighted("???") { asError }
@@ -647,6 +679,14 @@ open class CangJieIdeDescriptorRenderer(
         }
     }
 
+    /**
+     * 渲染关键字
+     *
+     * 关键字会被高亮显示，并根据文本格式可能添加粗体样式
+     *
+     * @param keyword 要渲染的关键字
+     * @return 高亮后的关键字字符串
+     */
     private fun renderKeyword(keyword: String): String {
         val highlighted = highlight(keyword) { asKeyword }
         return when (textFormat) {
@@ -655,6 +695,14 @@ open class CangJieIdeDescriptorRenderer(
         }
     }
 
+    /**
+     * 添加修饰符到字符串构建器
+     *
+     * 只有当 value 为 true 时才会添加修饰符关键字和空格
+     *
+     * @param value 是否添加修饰符
+     * @param modifier 修饰符关键字
+     */
     private fun StringBuilder.appendModifier(value: Boolean, modifier: String) {
         if (value) {
             append(renderKeyword(modifier))
@@ -662,6 +710,18 @@ open class CangJieIdeDescriptorRenderer(
         }
     }
 
+    /**
+     * 渲染函数类型
+     *
+     * 函数类型格式: `(参数类型列表) -> 返回类型`
+     *
+     * 示例:
+     * - `(Int32) -> Bool` - 单参数函数
+     * - `(Int32, String) -> Unit` - 多参数函数
+     * - `() -> Int32` - 无参数函数
+     *
+     * @param type 要渲染的函数类型
+     */
     private fun StringBuilder.appendFunctionType(type: CangJieType) {
         val lengthBefore = length
         // 仓颉不需要跳过扩展函数类型注解（因为没有这个特性）
@@ -1153,9 +1213,23 @@ open class CangJieIdeDescriptorRenderer(
         return true
     }
 
+    /**
+     * 添加成员修饰符
+     *
+     * 当前实现为空，可能在将来添加 static, mut 等修饰符
+     *
+     * @param descriptor 成员描述符
+     */
     private fun StringBuilder.appendMemberModifiers(descriptor: MemberDescriptor) {
     }
 
+    /**
+     * 添加 override 修饰符
+     *
+     * 只有在成员重写了父类/接口的成员时才会添加 override 关键字
+     *
+     * @param callableMember 可调用成员描述符
+     */
     private fun StringBuilder.appendOverride(callableMember: CallableMemberDescriptor) {
         if (DescriptorRendererModifier.OVERRIDE !in modifiers) return
         if (overridesSomething(callableMember)) {
@@ -1168,7 +1242,23 @@ open class CangJieIdeDescriptorRenderer(
         }
     }
 
+    /**
+     * 判断成员是否重写了父类/接口成员
+     *
+     * @param callable 可调用成员描述符
+     * @return 如果重写了父类/接口成员则返回 true
+     */
     private fun overridesSomething(callable: CallableMemberDescriptor) = !callable.overriddenDescriptors.isEmpty()
+
+    /**
+     * 添加模态修饰符
+     *
+     * 模态包括: open, sealed, final 等
+     * 如果模态是默认值且不渲染默认模态，则不添加
+     *
+     * @param modality 模态值
+     * @param defaultModality 默认模态值
+     */
     private fun StringBuilder.appendModality(modality: Modality, defaultModality: Modality) {
         if (!renderDefaultModality && modality == defaultModality) return
         appendModifier(DescriptorRendererModifier.MODALITY in modifiers, modality.name.toLowerCaseAsciiOnly())
@@ -1369,23 +1459,54 @@ open class CangJieIdeDescriptorRenderer(
      * 2. 函数构造器（有关联值）：如 `Success(T)`, `Error(String)`
      */
     private fun StringBuilder.appendEnumConstructor(constructor: EnumConstructorDescriptor) {
+        // 渲染 "enum constructor" 前缀并高亮
+        append(renderKeyword("enum"))
+        append(" ")
+        append(renderKeyword("constructor"))
+        append(" ")
+
         // 渲染构造器名称
-        appendName(constructor, true) { asClassName }
+        appendName(constructor, true) { asInstanceProperty  }
 
         // 如果有参数，渲染参数列表
         if (constructor.hasArguments) {
-            appendValueParameters(constructor.valueParameters, constructor.hasSynthesizedParameterNames())
+            appendValueParameters(constructor.valueParameters, true)
         }
     }
 
 
-    private fun StringBuilder.appendClassKindPrefix(klass: ClassDescriptor) {
-        append(renderKeyword(getClassifierKindPrefix(klass)))
+    /**
+     * 添加类种类前缀关键字
+     *
+     * 根据描述符类型添加对应的关键字:
+     * - class: `class`
+     * - interface: `interface`
+     * - struct: `struct`
+     * - enum: `enum`
+     *
+     * @param cclass 类或枚举描述符
+     */
+    private fun StringBuilder.appendClassKindPrefix(cclass: ClassAndEnumDescriptor) {
+        append(renderKeyword(getClassifierKindPrefix(cclass)))
     }
 
 
 
-    private fun StringBuilder.appendClass(cclass: ClassDescriptor) {
+    /**
+     * 渲染类或枚举描述符
+     *
+     * 完整的类声明包括:
+     * 1. 可见性修饰符
+     * 2. 模态修饰符（open/sealed/final）
+     * 3. 成员修饰符（static/mut等）
+     * 4. 类种类前缀（class/interface/struct/enum）
+     * 5. 类名和类型参数
+     * 6. 主构造器（如果有）
+     * 7. 父类型列表
+     *
+     * @param cclass 类或枚举描述符
+     */
+    private fun StringBuilder.appendClass(cclass: ClassAndEnumDescriptor) {
 
 
         if (!startFromName) {
@@ -1418,7 +1539,7 @@ open class CangJieIdeDescriptorRenderer(
         appendWhereSuffix(typeParameters)
     }
 
-    private fun StringBuilder.appendSuperTypes(cclass: ClassDescriptor, prefix: String = " ", indent: String = "    ") {
+    private fun StringBuilder.appendSuperTypes(cclass: ClassAndEnumDescriptor, prefix: String = " ", indent: String = "    ") {
         if (withoutSuperTypes) return
 
         if (CangJieBuiltIns.isNothing(cclass.defaultType)) return
@@ -1550,13 +1671,30 @@ open class CangJieIdeDescriptorRenderer(
             builder?.append(descriptor.name) // renders <this>
         }
 
+        /**
+         * 访问并渲染枚举描述符
+         *
+         * 将枚举作为类进行渲染,包括枚举关键字、名称、构造器等
+         *
+         * @param descriptor 枚举描述符
+         * @param builder 字符串构建器
+         */
         override fun visitEnumDescriptor(
             descriptor: EnumDescriptor,
             builder: StringBuilder?
         ) {
-            TODO("Not yet implemented")
+            builder?.appendClass(descriptor)
+
         }
 
+        /**
+         * 访问并渲染枚举构造器描述符
+         *
+         * 渲染格式: `enum constructor 名称(参数列表)`
+         *
+         * @param descriptor 枚举构造器描述符
+         * @param builder 字符串构建器
+         */
         override fun visitEnumConstructorDescriptor(
             descriptor: EnumConstructorDescriptor,
             builder: StringBuilder?

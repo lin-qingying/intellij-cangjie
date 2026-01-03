@@ -138,12 +138,6 @@ open class LazyDeclarationResolver(
 
 
 
-    open fun getEnumDescriptorIfAny(enum: CjEnum, location: LookupLocation): EnumDescriptor? {
-        val scope = getMemberScopeDeclaredIn(enum, location)
-        scope.getContributedClassifier(enum.nameAsSafeName, location)
-        val descriptor = bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, enum)
-        return descriptor as? EnumDescriptor
-    }
 
 
     fun resolveToVariableByPattern(variable: CjVariable<*>): List<VariableDescriptor> {
