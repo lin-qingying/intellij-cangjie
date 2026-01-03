@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.resolve
 
 import com.intellij.util.SmartList
+import org.cangnova.cangjie.builtins.PlatformToCangJieClassMapper
 import org.cangnova.cangjie.builtins.StandardNames.OPTION
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
@@ -68,6 +69,33 @@ import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.expressions.TypeAttributeTranslators
 import kotlin.math.min
 
+/**
+ * 类型解析器
+ *
+ * 负责将 PSI 类型引用转换为语义类型（CangJieType），是仓颉语言类型系统的核心组件。
+ *
+ * 主要职责：
+ * - 解析用户类型（UserType）为类、接口、枚举、结构体等
+ * - 解析基本类型（Int、String、Bool 等）
+ * - 解析函数类型（`(Int, String) -> Bool`）
+ * - 解析元组类型（`(Int, String)`）
+ * - 解析可选类型（`Int?`）
+ * - 解析数组类型（`Array<T>`）
+ * - 解析类型别名及其展开
+ * - 处理类型参数和泛型约束
+ * - 检查类型上界边界
+ * - 处理类型投影和型变
+ * - 解析注解和类型属性
+ *
+ * @param annotationResolver 注解解析器，用于解析类型上的注解
+ * @param moduleDescriptor 模块描述符，提供内置类型访问
+ * @param identifierChecker 标识符检查器，验证标识符合法性
+ * @param languageVersionSettings 语言版本设置
+ * @param qualifiedExpressionResolver 限定表达式解析器，处理 `A.B.C` 形式的类型引用
+ * @param typeAttributeTranslators 类型属性翻译器，将注解转换为类型属性
+ * @param upperBoundChecker 上界检查器，验证类型参数的上界约束
+ * @param platformToCangJieClassMapper 平台类映射器，将 Java 类型映射到仓颉类型
+ */
 class TypeResolver(
     private val annotationResolver: AnnotationResolver,
     private val moduleDescriptor: ModuleDescriptor,
@@ -77,9 +105,23 @@ class TypeResolver(
     private val qualifiedExpressionResolver: QualifiedExpressionResolverFacade,
     private val typeAttributeTranslators: TypeAttributeTranslators,
     private val upperBoundChecker: UpperBoundChecker,
-//    private val platformToCangJieClassMapper: PlatformToCangJieClassMapper,
+    private val platformToCangJieClassMapper: PlatformToCangJieClassMapper,
 
-) {
+    ) {
+    /**
+     * 解析缩写类型
+     *
+     * 解析类型别名引用为缩写类型（不展开类型别名）。
+     * 例如：`typealias StringList = List<String>` 中的 `StringList` 解析为缩写类型。
+     *
+     * 如果类型别名展开为动态类型，会报告错误并返回错误类型。
+     *
+     * @param scope 解析作用域
+     * @param typeReference 类型引用 PSI 元素
+     * @param trace 绑定追踪器
+     * @return 解析得到的简单类型（SimpleType）
+     * @throws IllegalStateException 如果解析结果既不是 DynamicType 也不是 SimpleType
+     */
     fun resolveAbbreviatedType(scope: LexicalScope, typeReference: CjTypeReference, trace: BindingTrace): SimpleType {
         val resolvedType = resolveType(
             TypeResolutionContext(scope, trace, true, false, typeReference.suppressDiagnosticsInDebugMode(), true),
@@ -96,10 +138,33 @@ class TypeResolver(
         }
     }
 
+    /**
+     * 解析类分类器
+     *
+     * 从用户类型引用中解析类分类器（ClassifierDescriptor）。
+     * 这是一个便捷方法，只返回分类器而不返回完整的类型。
+     *
+     * @param scope 解析作用域
+     * @param userType 用户类型 PSI 元素
+     * @param trace 绑定追踪器
+     * @param isDebuggerContext 是否在调试器上下文中（调试器上下文会有不同的解析规则）
+     * @return 解析得到的分类器描述符，如果解析失败则返回 null
+     */
     fun resolveClass(
         scope: LexicalScope, userType: CjUserType, trace: BindingTrace, isDebuggerContext: Boolean
     ): ClassifierDescriptor? = resolveDescriptorForType(scope, userType, trace, isDebuggerContext).classifierDescriptor
 
+    /**
+     * 解析类型别名的展开类型
+     *
+     * 将类型别名完全展开为其底层类型。
+     * 例如：`typealias StringList = List<String>` 展开为 `List<String>`
+     *
+     * 使用非报告的类型别名展开器（NON_REPORTING），不会生成诊断信息。
+     *
+     * @param typeAliasDescriptor 类型别名描述符
+     * @return 展开后的简单类型
+     */
     fun resolveExpandedTypeForTypeAlias(typeAliasDescriptor: TypeAliasDescriptor): SimpleType {
         val typeAliasExpansion = TypeAliasExpansion.createWithFormalArguments(typeAliasDescriptor)
         val expandedType =
@@ -107,9 +172,23 @@ class TypeResolver(
         return expandedType
     }
 
-    internal fun CjElementImplStub<*>.getAllModifierLists(): Array<out CjDeclarationModifierList> =
-        getStubOrPsiChildren(CjStubElementTypes.MODIFIER_LIST, CjStubElementTypes.MODIFIER_LIST.arrayFactory)
 
+    /**
+     * 检查函数类型上的非括号注解
+     *
+     * 检查函数类型的注解是否正确使用括号。
+     * 对于函数类型（例如 `(Int) -> String`），注解必须使用括号或方括号分组，
+     * 否则可能与函数类型的参数列表产生歧义。
+     *
+     * 例如：
+     * - `@Anno(Int) -> String` - 错误：需要括号
+     * - `@Anno() (Int) -> String` - 正确：注解有括号
+     * - `[@Anno] (Int) -> String` - 正确：注解用方括号分组
+     *
+     * @param typeElement 函数类型 PSI 元素
+     * @param annotationEntries 注解条目列表
+     * @param trace 绑定追踪器，用于报告错误
+     */
     private fun checkNonParenthesizedAnnotationsOnFunctionalType(
         typeElement: CjFunctionType,
         annotationEntries: List<CjAnnotation>,
@@ -134,61 +213,44 @@ class TypeResolver(
         }
     }
 
+    /**
+     * 解析类型注解
+     *
+     * 解析类型引用上的注解。
+     * 目前返回空注解集合（EMPTY），可能在未来版本中实现完整的类型注解解析。
+     *
+     * @param trace 绑定追踪器
+     * @param scope 解析作用域
+     * @param modifierListsOwner 修饰符列表拥有者（通常是类型引用）
+     * @return 解析得到的注解集合，当前总是返回 Annotations.EMPTY
+     */
     fun resolveTypeAnnotations(
         trace: BindingTrace,
         scope: LexicalScope,
         modifierListsOwner: CjElementImplStub<*>
     ): Annotations {
-//        val modifierLists = modifierListsOwner.getAllModifierLists()
 
         val result = Annotations.EMPTY
-//        var isSplitModifierList = false
-
-//        if (!isNonParenthesizedAnnotationsOnFunctionalTypesEnabled) {
-//            val targetType = when (modifierListsOwner) {
-
-//                is CjTypeReference -> modifierListsOwner.typeElement
-//                else -> null
-//            }
-//            val annotationEntries = when (modifierListsOwner) {
-
-//                is CjTypeReference -> modifierListsOwner.annotationEntries
-//                else -> null
-//            }
-//
-//            // `targetType.stub == null` means that we don't apply this check for files that are built with stubs (that aren't opened in IDE and not in compile time)
-//            if (targetType is CjFunctionType && targetType.stub == null && annotationEntries != null) {
-//                checkNonParenthesizedAnnotationsOnFunctionalType(targetType, annotationEntries, trace)
-//            }
-//        }
-
-//        for (modifierList in modifierLists) {
-//            if (isSplitModifierList) {
-//                trace.report(MODIFIER_LIST_NOT_ALLOWED.on(modifierList))
-//            }
-//
-//            val annotations =
-//                annotationResolver.resolveAnnotationsWithoutArguments(scope, modifierList.annotationEntries, trace)
-//            result = composeAnnotations(result, annotations)
-//
-//            isSplitModifierList = true
-//        }
 
         return result
     }
 
     /**
-     *  This function is light version of ForceResolveUtil.forceResolveAllContents
-     *  We can't use ForceResolveUtil.forceResolveAllContents here because it runs ForceResolveUtil.forceResolveAllContents(getConstructor()),
-     *  which is unsafe for some cyclic cases. For Example:
-     *  class A: List<A.B> {
-     *    class B
-     *  }
-     *  Here when we resolveName class B, we should resolveName supertype for A and we shouldn't start resolveName for class B,
-     *  otherwise it would be a cycle.
-     *  Now there is no cycle here because member scope for A is very clever and can get lazy descriptor for class B without resolving it.
+     * 强制解析类型内容（轻量版）
      *
-     *  todo: find another way after release
+     * 这是 ForceResolveUtil.forceResolveAllContents 的轻量版本。
+     * 递归地解析类型参数中的所有类型，但不会解析类型构造器本身。
+     *
+     * 这样做是为了避免循环依赖问题。例如：
+     * ```
+     * class A: List<A.B> {
+     *   class B
+     * }
+     * ```
+     * 在解析 B 类时，需要解析 A 的超类型，但不应该触发 B 类的解析，
+     * 否则会形成循环。成员作用域能够延迟获取 B 类的描述符而不触发解析。
+     *
+     * @param type 要强制解析的类型
      */
     private fun forceResolveTypeContents(type: CangJieType) {
 
@@ -201,6 +263,22 @@ class TypeResolver(
 
     }
 
+    /**
+     * 解析类型的描述符
+     *
+     * 从用户类型引用中解析分类器描述符。
+     * 该方法会先解析限定符的类型参数，然后委托给 qualifiedExpressionResolver 进行实际解析。
+     *
+     * 处理限定类型引用（例如 `A.B<Int>.C<String>`）时：
+     * 1. 首先强制解析限定符部分的类型参数
+     * 2. 然后解析整个限定表达式
+     *
+     * @param scope 解析作用域
+     * @param userType 用户类型 PSI 元素
+     * @param trace 绑定追踪器
+     * @param isDebuggerContext 是否在调试器上下文中
+     * @return 类型限定符解析结果，包含分类器描述符和限定符部分列表
+     */
     fun resolveDescriptorForType(
         scope: LexicalScope,
         userType: CjUserType,
@@ -217,15 +295,27 @@ class TypeResolver(
         }
 
         return qualifiedExpressionResolver.resolveDescriptorForType(userType, scope, trace, isDebuggerContext).apply {
-//            if (classifierDescriptor != null) {
-//                PlatformClassesMappedToCangJieChecker.reportPlatformClassMappedToCangJie(
-//                    platformToCangJieClassMapper, trace, userType, classifierDescriptor
-//                )
-//            }
+
         }
     }
 
 
+    /**
+     * 解析类型投影列表
+     *
+     * 解析类型参数列表中的所有类型投影（type projections）。
+     * 对每个类型参数执行以下操作：
+     * 1. 检查修饰符是否合法（通过 ModifierCheckerCore）
+     * 2. 解析类型引用为具体类型
+     * 3. 创建类型投影（TypeProjection）
+     *
+     * 目前仓颉语言不支持型变（variance），所有投影都是不变的（invariant）。
+     *
+     * @param c 类型解析上下文
+     * @param constructor 类型构造器，用于参数数量检查
+     * @param argumentElements 类型投影 PSI 元素列表
+     * @return 解析得到的类型投影列表
+     */
     fun resolveTypeProjections(
         c: TypeResolutionContext,
         constructor: TypeConstructor,
@@ -249,6 +339,28 @@ class TypeResolver(
         return Name.identifier(this)
     }
 
+    /**
+     * 解析类型元素
+     *
+     * 这是类型解析的核心方法，负责将各种类型的 PSI 元素转换为语义类型。
+     * 使用访问者模式遍历类型元素并生成对应的类型。
+     *
+     * 支持的类型元素：
+     * - **ThisType** (`This`): 当前类类型，用于成员作用域
+     * - **VArrayType** (`Array<T, N>`): 固定大小的数组类型
+     * - **BasicType** (`Int`, `String`, etc.): 基本类型
+     * - **UserType** (`MyClass<T>`): 用户定义的类型
+     * - **ParenthesizedType** (`(T)`): 括号类型
+     * - **FunctionType** (`(A, B) -> C`): 函数类型
+     * - **TupleType** (`(A, B, C)`): 元组类型
+     * - **OptionType** (`T?`): 可选类型
+     *
+     * @param c 类型解析上下文
+     * @param annotations 类型上的注解
+     * @param outerModifierList 外部修饰符列表（用于嵌套类型）
+     * @param typeElement 要解析的类型元素 PSI
+     * @return 可能为 Bare 类型的解析结果
+     */
     private fun resolveTypeElement(
         c: TypeResolutionContext,
         annotations: Annotations,
@@ -1223,6 +1335,23 @@ class TypeResolver(
             )
     }
 
+    /**
+     * 解析可能为 Bare 类型的类型引用
+     *
+     * 解析类型引用，结果可能是 Bare 类型或完整类型。
+     * Bare 类型用于 is/as 表达式中的类型模式，例如 `x is List`（省略类型参数）。
+     *
+     * 处理流程：
+     * 1. 尝试从缓存中获取已解析的类型（如果启用缓存）
+     * 2. 解析类型注解
+     * 3. 解析类型元素（委托给 resolveTypeElement）
+     * 4. 如果是完整类型（非 Bare），强制解析类型参数并记录到绑定上下文
+     * 5. 记录作用域信息
+     *
+     * @param c 类型解析上下文
+     * @param typeReference 类型引用 PSI 元素
+     * @return 可能为 Bare 类型的解析结果
+     */
     fun resolvePossiblyBareType(
         c: TypeResolutionContext,
         typeReference: CjTypeReference,
@@ -1251,6 +1380,17 @@ class TypeResolver(
         return type
     }
 
+    /**
+     * 解析类型引用（内部实现）
+     *
+     * 解析类型引用为完整的语义类型。
+     * 该方法不允许 Bare 类型，如果需要 Bare 类型支持，使用 resolvePossiblyBareType。
+     *
+     * @param c 类型解析上下文
+     * @param typeReference 类型引用 PSI 元素
+     * @return 解析得到的完整类型
+     * @throws AssertionError 如果上下文允许 Bare 类型
+     */
     private fun resolveType(
         c: TypeResolutionContext,
         typeReference: CjTypeReference,
@@ -1261,6 +1401,25 @@ class TypeResolver(
     }
 
 
+    /**
+     * 解析多个类型引用的公共超类型
+     *
+     * 解析多个类型引用并计算它们的公共超类型。
+     * 这用于多重异常捕获等场景，例如：
+     * ```
+     * try {
+     *     ...
+     * } catch (e: IOException | NetworkException) {
+     *     ...
+     * }
+     * ```
+     *
+     * @param scope 解析作用域
+     * @param typeReference 类型引用 PSI 元素列表
+     * @param trace 绑定追踪器
+     * @param checkBounds 是否检查类型参数上界
+     * @return 所有类型的公共超类型
+     */
     fun resolveType(
         scope: LexicalScope,
         typeReference: List<CjTypeReference>,
@@ -1278,6 +1437,25 @@ class TypeResolver(
     }
 
 
+    /**
+     * 解析类型引用（公共接口）
+     *
+     * 解析单个类型引用为完整的语义类型。
+     * 这是主要的公共接口，被编译器的各个阶段广泛使用。
+     *
+     * 功能：
+     * - 解析类型引用为 CangJieType
+     * - 可选的类型边界检查
+     * - 可选的类型缓存
+     * - 不允许 Bare 类型
+     *
+     * @param scope 解析作用域
+     * @param typeReference 类型引用 PSI 元素
+     * @param trace 绑定追踪器
+     * @param checkBounds 是否检查类型参数的上界约束
+     * @param useCache 是否使用类型缓存（默认 true）
+     * @return 解析得到的完整类型
+     */
     @JvmOverloads
     fun resolveType(
         scope: LexicalScope,
