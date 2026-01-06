@@ -66,11 +66,53 @@ import org.cangnova.cangjie.types.expressions.match.PatternAnalyzer.Companion.ch
 import org.cangnova.cangjie.types.expressions.match.exhaustive.ExhaustivenessAnalyzer
 import java.util.*
 
+/**
+ * 控制流处理器
+ *
+ * 负责将仓颉语言的 PSI 树转换为控制流伪代码（Pseudocode）。
+ * 伪代码是一系列指令的序列，用于表示程序的控制流结构，
+ * 为后续的数据流分析（如变量初始化检查、不可达代码检测等）提供基础。
+ *
+ * ## 主要功能
+ *
+ * 1. **表达式处理**: 将各种表达式（二元、一元、调用等）转换为伪代码指令
+ * 2. **语句处理**: 处理控制流语句（if、match、循环、try-catch 等）
+ * 3. **声明处理**: 处理变量、函数、类等声明
+ * 4. **跳转指令**: 生成 break、continue、return、throw 等跳转指令
+ * 5. **本地声明**: 跟踪本地变量和嵌套函数的声明
+ *
+ * ## 工作原理
+ *
+ * 控制流处理器使用访问者模式遍历 PSI 树，为每个元素生成相应的伪代码指令。
+ * 生成的伪代码包含：
+ * - 指令序列（Instruction list）
+ * - 标签（Label）用于跳转
+ * - 伪值（PseudoValue）表示表达式的计算结果
+ * - 本地声明列表（Local declarations）
+ *
+ * @property trace 绑定跟踪器，用于获取语义信息和记录诊断
+ * @property languageVersionSettings 语言版本设置，影响某些语法特性的处理
+ * @property builder 控制流构建器，用于生成伪代码指令
+ *
+ * @see ControlFlowBuilder 控制流构建器接口
+ * @see Pseudocode 生成的伪代码结构
+ * @see ControlFlowInformationProvider 使用伪代码进行控制流分析
+ */
 class ControlFlowProcessor(
     private val trace: BindingTrace,
     private val languageVersionSettings: LanguageVersionSettings
 ) {
     private val builder: ControlFlowBuilder = ControlFlowInstructionsGenerator()
+
+    /**
+     * 为表达式体函数生成隐式返回值
+     *
+     * 对于表达式体函数（如 `func foo() => expr`），需要生成隐式的 return 指令。
+     * 但对于返回 Unit 类型的匿名函数，不需要生成返回指令。
+     *
+     * @param bodyExpression 函数体表达式
+     * @param subroutine 子程序元素（函数或 lambda）
+     */
     private fun generateImplicitReturnValue(bodyExpression: CjExpression, subroutine: CjElement) {
         val subroutineDescriptor =
             trace[BindingContext.DECLARATION_TO_DESCRIPTOR, subroutine] as CallableDescriptor? ?: return
@@ -83,10 +125,20 @@ class ControlFlowProcessor(
         builder.returnValue(bodyExpression, returnValue, subroutine)
     }
 
+    /**
+     * 生成子程序的伪代码
+     *
+     * 这是伪代码生成的核心方法，处理函数、lambda、构造器等子程序的伪代码生成。
+     *
+     * @param subroutine 子程序元素（函数、lambda、构造器等）
+     * @param eventOccurrencesRange 事件发生范围（用于内联 lambda 的调用次数分析）
+     * @return 生成的伪代码
+     */
     private fun generate(subroutine: CjElement, eventOccurrencesRange: EventOccurrencesRange? = null): Pseudocode {
         builder.enterSubroutine(subroutine, eventOccurrencesRange)
         val cfpVisitor = CFPVisitor(builder)
         if (subroutine is CjDeclarationWithBody && subroutine !is CjSecondaryConstructor) {
+            // 处理带函数体的声明（函数、lambda 等）
             val valueParameters = subroutine.valueParameters
             for (valueParameter in valueParameters) {
                 cfpVisitor.generateInstructions(valueParameter)
@@ -95,6 +147,7 @@ class ControlFlowProcessor(
             if (bodyExpression != null) {
                 cfpVisitor.generateInstructions(bodyExpression)
                 if (!subroutine.hasBlockBody()) {
+                    // 对于表达式体函数，生成隐式返回
                     generateImplicitReturnValue(bodyExpression, subroutine)
                 }
             }
@@ -104,18 +157,47 @@ class ControlFlowProcessor(
         return builder.exitSubroutine(subroutine, eventOccurrencesRange)
     }
 
+    /**
+     * 生成伪代码的公共入口方法
+     *
+     * 生成伪代码并进行后处理（如死代码标记）。
+     *
+     * @param subroutine 子程序元素
+     * @return 处理后的伪代码
+     */
     fun generatePseudocode(subroutine: CjElement): Pseudocode {
         val pseudocode = generate(subroutine)
         (pseudocode as PseudocodeImpl).postProcess()
         return pseudocode
     }
 
+    /**
+     * Catch-Finally 标签信息
+     *
+     * 用于在 try-catch-finally 表达式中跟踪异常处理和 finally 块的跳转标签。
+     *
+     * @property onException 异常处理标签（跳转到 catch 块）
+     * @property toFinally finally 块标签
+     * @property tryExpression 对应的 try 表达式
+     */
     private class CatchFinallyLabels(
         val onException: Label?,
         val toFinally: Label?,
         val tryExpression: CjTryExpression?
     )
 
+    /**
+     * 处理本地声明（本地变量和嵌套函数）
+     *
+     * 本地声明需要特殊处理：
+     * 1. 创建非确定性跳转（因为声明可能不会被执行）
+     * 2. 生成声明的伪代码（递归调用 generate）
+     * 3. 将声明添加到 pseudocode.localDeclarations 列表中
+     *
+     * 这样做的目的是为了后续的控制流分析能够递归地分析嵌套函数和本地变量的初始化。
+     *
+     * @param subroutine 本地声明（变量或函数）
+     */
     private fun processLocalDeclaration(subroutine: CjDeclaration) {
         val afterDeclaration = builder.createUnboundLabel("after local declaration")
 
@@ -124,36 +206,53 @@ class ControlFlowProcessor(
         builder.bindLabel(afterDeclaration)
     }
 
+    /**
+     * 控制流处理访问者
+     *
+     * 这是伪代码生成的核心访问者类，负责遍历 PSI 树并生成相应的伪代码指令。
+     * 使用访问者模式处理各种 PSI 元素（表达式、语句、声明等）。
+     *
+     * @property builder 控制流构建器，用于生成伪代码指令
+     */
     private inner class CFPVisitor(private val builder: ControlFlowBuilder) : CjVisitorUnit() {
 
+        /** Catch-Finally 标签栈，用于处理嵌套的 try-catch-finally 表达式 */
         private val catchFinallyStack = Stack<CatchFinallyLabels>()
 
-        // Some language constructs (e.g. inlined lambdas) should be partially processed before call
-        // (to provide argument for call itself), and partially - after (in case of inlined lambdas,
-        // their body should be generated after call). To do so, we store deferred generators, which
-        // will be called after call instruction is emitted.
-        // Stack is necessary to store generators across nested calls
+        /**
+         * 延迟生成器栈
+         *
+         * 某些语言构造（如内联 lambda）需要分两步处理：
+         * 1. 在调用前部分处理（为调用提供参数）
+         * 2. 在调用后部分处理（对于内联 lambda，其函数体应在调用后生成）
+         *
+         * 为此，我们存储延迟生成器，这些生成器将在调用指令发出后被调用。
+         * 使用栈是为了在嵌套调用中存储生成器。
+         */
         private val deferredGeneratorsStack = Stack<MutableList<DeferredGenerator>>()
 
+        /**
+         * Match 条件访问者
+         *
+         * 专门用于处理 match 表达式中的各种条件模式。
+         * 为每种模式生成相应的伪代码指令。
+         */
         private val conditionVisitor = object : CjVisitorUnit() {
 
+            /**
+             * 获取 match 表达式的匹配值表达式
+             *
+             * @param condition 条件模式元素
+             * @return 匹配值表达式，如果没有则返回 null
+             */
             private fun getSubjectExpression(condition: CjCasePatternElement): CjExpression? =
                 condition.getStrictParentOfType<CjMatchExpression>()?.subjectExpression
 
-            //
-//            override fun visitMatchConditionInRange(condition: CjMatchConditionInRange) {
-//                if (!generateCall(condition.operationReference)) {
-//                    val rangeExpression = condition.rangeExpression
-//                    generateInstructions(rangeExpression)
-//                    createNonSyntheticValue(condition, MagicKind.UNRESOLVED_CALL, rangeExpression)
-//                }
-//            }
-//
-//            override fun visitMatchConditionIsPattern(condition: CjMatchConditionIsPattern) {
-//                mark(condition)
-//                createNonSyntheticValue(condition, MagicKind.IS, getSubjectExpression(condition))
-//            }
-//
+            /**
+             * 访问带表达式的 match 条件
+             *
+             * 处理形如 `case expr` 的条件，生成相等性比较的伪代码。
+             */
             override fun visitMatchConditionWithExpression(element: CjMatchConditionWithExpression) {
                 mark(element)
 
@@ -162,44 +261,74 @@ class ControlFlowProcessor(
 
                 val subjectExpression = getSubjectExpression(element)
                 if (subjectExpression != null) {
-                    // todo: this can be replaced by equals() invocation (match corresponding resolved call is recorded)
+                    // 待优化：可以替换为 equals() 调用（当记录了对应的已解析调用时）
                     createNonSyntheticValue(element, MagicKind.EQUALS_IN_MATCH_CONDITION, subjectExpression, expression)
                 } else {
                     copyValue(expression, element)
                 }
             }
 
+            /**
+             * 访问常量模式
+             *
+             * 处理形如 `case 42` 或 `case "hello"` 的常量模式。
+             */
             override fun visitPatternByConstant(element: CjConstantPattern) {
                 mark(element)
-//
+
                 val expression = element.expression
                 generateInstructions(expression)
 
                 val subjectExpression = getSubjectExpression(element)
                 if (subjectExpression != null) {
-                    // todo: this can be replaced by equals() invocation (match corresponding resolved call is recorded)
+                    // 待优化：可以替换为 equals() 调用（当记录了对应的已解析调用时）
                     createNonSyntheticValue(element, MagicKind.EQUALS_IN_MATCH_CONDITION, subjectExpression, expression)
                 } else {
                     copyValue(expression, element)
                 }
             }
 
+            /**
+             * 访问绑定模式
+             *
+             * 绑定模式（如 `case x`）不需要生成额外的检查指令。
+             */
             override fun visitPatternByBinding(element: CjBindingPattern) {
-
+                // 绑定模式不需要生成指令
             }
 
+            /**
+             * 访问通配符模式
+             *
+             * 通配符模式（如 `case _`）不需要生成额外的检查指令。
+             */
             override fun visitPatternByWildcard(element: CjWildcardPattern) {
-
+                // 通配符模式不需要生成指令
             }
 
+            /**
+             * 访问元组模式
+             *
+             * 元组模式（如 `case (x, y)`）的检查由模式分析器处理。
+             */
             override fun visitPatternByTuple(element: CjTuplePattern) {
-
+                // 元组模式的检查由模式分析器处理
             }
 
+            /**
+             * 访问枚举模式
+             *
+             * 枚举模式（如 `case Color.Red`）的检查由模式分析器处理。
+             */
             override fun visitPatternByEnum(element: CjEnumPattern) {
-
+                // 枚举模式的检查由模式分析器处理
             }
 
+            /**
+             * 访问类型模式
+             *
+             * 处理形如 `case x: Type` 的类型模式，生成类型检查指令。
+             */
             override fun visitPatternByType(element: CjTypePattern) {
                 mark(element)
                 createNonSyntheticValue(element, MagicKind.IS, getSubjectExpression(element))
@@ -210,16 +339,36 @@ class ControlFlowProcessor(
             }
         }
 
+        /**
+         * 标记元素
+         *
+         * 在伪代码中标记当前元素的位置，用于后续的诊断报告。
+         */
         private fun mark(element: CjElement) {
             builder.mark(element)
         }
 
+        /**
+         * 为元素生成伪代码指令
+         *
+         * 这是生成指令的入口方法，会调用相应的 visit 方法处理元素。
+         *
+         * @param element 要处理的 PSI 元素
+         */
         fun generateInstructions(element: CjElement?) {
             if (element == null) return
             element.accept(this)
             checkNothingType(element)
         }
 
+        /**
+         * 检查 Nothing 类型
+         *
+         * 如果表达式的类型是 Nothing（表示永不返回），则生成跳转到错误的指令。
+         * Nothing 类型通常出现在 throw 表达式或永不返回的函数调用中。
+         *
+         * @param element 要检查的元素
+         */
         private fun checkNothingType(element: CjElement) {
             if (element !is CjExpression) return
 
@@ -237,6 +386,16 @@ class ControlFlowProcessor(
             }
         }
 
+        /**
+         * 创建合成伪值
+         *
+         * 合成伪值用于表示编译器内部生成的值（不对应源代码中的表达式）。
+         *
+         * @param instructionElement 指令元素
+         * @param kind 魔术指令类型
+         * @param from 输入元素列表
+         * @return 生成的伪值
+         */
         private fun createSyntheticValue(
             instructionElement: CjElement,
             kind: MagicKind,
@@ -244,20 +403,58 @@ class ControlFlowProcessor(
         ): PseudoValue =
             builder.magic(instructionElement, null, elementsToValues(from.asList()), kind).outputValue
 
+        /**
+         * 创建非合成伪值
+         *
+         * 非合成伪值对应源代码中的实际表达式。
+         *
+         * @param to 目标元素
+         * @param from 输入元素列表
+         * @param kind 魔术指令类型
+         * @return 生成的伪值
+         */
         private fun createNonSyntheticValue(to: CjElement, from: List<CjElement?>, kind: MagicKind): PseudoValue =
             builder.magic(to, to, elementsToValues(from), kind).outputValue
 
+        /**
+         * 创建非合成伪值（可变参数版本）
+         */
         private fun createNonSyntheticValue(to: CjElement, kind: MagicKind, vararg from: CjElement?): PseudoValue =
             createNonSyntheticValue(to, from.asList(), kind)
 
+        /**
+         * 合并多个表达式的值
+         *
+         * 用于处理分支表达式（如 if、match）的结果合并。
+         *
+         * @param from 输入表达式列表
+         * @param to 目标表达式
+         */
         private fun mergeValues(from: List<CjExpression>, to: CjExpression) {
             builder.merge(to, elementsToValues(from))
         }
 
+        /**
+         * 复制伪值
+         *
+         * 将一个元素的伪值绑定到另一个元素。
+         *
+         * @param from 源元素
+         * @param to 目标元素
+         */
         private fun copyValue(from: CjElement?, to: CjElement) {
             getBoundOrUnreachableValue(from)?.let { builder.bindValue(it, to) }
         }
 
+        /**
+         * 获取已绑定或不可达的伪值
+         *
+         * 如果元素已有绑定的伪值则返回，否则创建新的伪值。
+         * 对于声明元素，如果没有绑定值则返回 null。
+         *
+         * @param element 要获取伪值的元素
+         * @return 伪值，如果是未绑定的声明则返回 null
+         */
         private fun getBoundOrUnreachableValue(element: CjElement?): PseudoValue? {
             if (element == null) return null
 
@@ -265,17 +462,43 @@ class ControlFlowProcessor(
             return if (value != null || element is CjDeclaration) value else builder.newValue(element)
         }
 
+        /**
+         * 将元素列表转换为伪值列表
+         *
+         * @param from 元素列表
+         * @return 伪值列表
+         */
         private fun elementsToValues(from: List<CjElement?>): List<PseudoValue> =
             from.mapNotNull { element -> getBoundOrUnreachableValue(element) }
 
+        /**
+         * 生成初始化器指令
+         *
+         * 为变量声明生成初始化的写入指令。
+         *
+         * @param declaration 声明元素
+         * @param initValue 初始化值
+         */
         private fun generateInitializer(declaration: CjDeclaration, initValue: PseudoValue) {
             builder.write(declaration, declaration, initValue, getDeclarationAccessTarget(declaration), emptyMap())
         }
 
+        /**
+         * 获取已解析调用的访问目标
+         *
+         * @param element 元素
+         * @return 访问目标（调用或黑盒）
+         */
         private fun getResolvedCallAccessTarget(element: CjElement?): AccessTarget =
             element.getResolvedCall(trace.bindingContext)?.let { AccessTarget.Call(it) }
                 ?: AccessTarget.BlackBox
 
+        /**
+         * 获取声明的访问目标
+         *
+         * @param element 声明元素
+         * @return 访问目标（声明或黑盒）
+         */
         private fun getDeclarationAccessTarget(element: CjElement): AccessTarget {
             val descriptor = trace.get(BindingContext.DECLARATION_TO_DESCRIPTOR, element)
             return if (descriptor is VariableDescriptor)
@@ -284,6 +507,11 @@ class ControlFlowProcessor(
                 AccessTarget.BlackBox
         }
 
+        /**
+         * 访问括号表达式
+         *
+         * 括号表达式的值就是内部表达式的值。
+         */
         override fun visitParenthesizedExpression(expression: CjParenthesizedExpression) {
             mark(expression)
             val innerExpression = expression.expression
@@ -301,6 +529,11 @@ class ControlFlowProcessor(
 //            }
 //        }
 
+        /**
+         * 访问 this 表达式
+         *
+         * 处理 this 关键字，读取接收者变量。
+         */
         override fun visitThisExpression(expression: CjThisExpression) {
             val resolvedCall = expression.getResolvedCall(trace.bindingContext)
             if (resolvedCall == null) {
@@ -316,11 +549,21 @@ class ControlFlowProcessor(
             copyValue(expression, expression.instanceReference)
         }
 
+        /**
+         * 访问常量表达式
+         *
+         * 处理字面量常量（数字、字符串、布尔值等）。
+         */
         override fun visitConstantExpression(expression: CjConstantExpression) {
             val constant = ConstantExpressionEvaluator.getConstant(expression, trace.bindingContext)
             builder.loadConstant(expression, constant)
         }
 
+        /**
+         * 访问简单名称表达式
+         *
+         * 处理变量引用、函数调用等简单名称。
+         */
         override fun visitSimpleNameExpression(expression: CjSimpleNameExpression) {
             val resolvedCall = expression.getResolvedCall(trace.bindingContext)
             if (resolvedCall is VariableAsFunctionResolvedCall) {
@@ -328,10 +571,6 @@ class ControlFlowProcessor(
             } else {
                 if (resolvedCall == null) {
                     val qualifierExpression = expression
-//                        when (languageVersionSettings.supportsFeature(ProhibitQualifiedAccessToUninitializedEnumEntry)) {
-//                            true -> expression.getTopmostParentQualifiedExpressionForSelector() ?: expression
-//                            false -> expression
-//                        }
                     val qualifier = trace.bindingContext[BindingContext.QUALIFIER, qualifierExpression]
                     if (qualifier != null && generateQualifier(expression, qualifier)) return
                 }
@@ -345,26 +584,15 @@ class ControlFlowProcessor(
             }
         }
 
-//        override fun visitLabeledExpression(expression: CjLabeledExpression) {
-//            mark(expression)
-//            val baseExpression = expression.baseExpression
-//            if (baseExpression != null) {
-//                generateInstructions(baseExpression)
-//                copyValue(baseExpression, expression)
-//            }
-//
-//            val labelNameExpression = expression.getTargetLabel()
-//            if (labelNameExpression != null) {
-//                val deparenthesizedBaseExpression = CjPsiUtil.deparenthesize(expression)
-//                if (deparenthesizedBaseExpression !is CjLambdaExpression &&
-//                    deparenthesizedBaseExpression !is CjLoopExpression &&
-//                    deparenthesizedBaseExpression !is CjNamedFunction
-//                ) {
-//                    trace.report(REDUNDANT_LABEL_WARNING.on(labelNameExpression))
-//                }
-//            }
-//        }
-
+        /**
+         * 访问二元表达式
+         *
+         * 处理各种二元运算符，包括：
+         * - 逻辑运算符（&&, ||）
+         * - 赋值运算符（=, +=, -=, 等）
+         * - Elvis 运算符（?:）
+         * - 其他运算符（算术、比较等）
+         */
         override fun visitBinaryExpression(expression: CjBinaryExpression) {
             val operationReference = expression.operationReference
             val operationType = operationReference.referencedNameElementType
@@ -372,19 +600,22 @@ class ControlFlowProcessor(
             val left = expression.left
             val right = expression.right
             if (operationType === ANDAND || operationType === OROR) {
+                // 处理逻辑运算符（短路求值）
                 generateBooleanOperation(expression)
             } else if (operationType === EQ) {
+                // 处理赋值运算符
                 visitAssignment(left, getDeferredValue(right), expression)
             } else if (OperatorConventions.ASSIGNMENT_OPERATIONS.containsKey(operationType)) {
+                // 处理复合赋值运算符（+=, -=, 等）
                 val resolvedCall = expression.getResolvedCall(trace.bindingContext)
                 if (resolvedCall != null) {
                     val rhsValue = generateCall(resolvedCall).outputValue
                     val assignMethodName =
                         OperatorConventions.getNameForOperationSymbol(expression.operationToken as CjToken)
                     if (resolvedCall.resultingDescriptor.name != assignMethodName) {
-                        /* At this point assignment of the form a += b actually means a = a + b
-                         * So we first generate call of "+" operation and then use its output pseudo-value
-                         * as a right-hand side when generating assignment call
+                        /* 此时形如 a += b 的赋值实际上意味着 a = a + b
+                         * 因此我们首先生成 "+" 操作的调用，然后使用其输出伪值
+                         * 作为生成赋值调用时的右侧值
                          */
                         visitAssignment(left, getValueAsFunction(rhsValue), expression)
                     }
@@ -392,6 +623,7 @@ class ControlFlowProcessor(
                     generateBothArgumentsAndMark(expression)
                 }
             } else if (operationType === COALESCING) {
+                // 处理 Elvis 运算符（?:）
                 generateInstructions(left)
                 mark(expression)
                 val afterElvis = builder.createUnboundLabel("after elvis operator")
@@ -399,16 +631,23 @@ class ControlFlowProcessor(
                 generateInstructions(right)
                 builder.bindLabel(afterElvis)
                 mergeValues(listOfNotNull(left, right), expression)
-//                if (right != null && languageVersionSettings.supportsFeature(LanguageFeature.ProhibitNonExhaustiveIfInRhsOfElvis)) {
-//                    right.recordUsedAsExpression(trace, true)
-//                }
             } else {
+                // 处理其他二元运算符
                 if (!generateCall(expression)) {
                     generateBothArgumentsAndMark(expression)
                 }
             }
         }
 
+        /**
+         * 生成布尔运算操作
+         *
+         * 处理逻辑与（&&）和逻辑或（||）运算符，实现短路求值。
+         * - 对于 &&：如果左侧为 false，则不计算右侧
+         * - 对于 ||：如果左侧为 true，则不计算右侧
+         *
+         * @param expression 二元表达式
+         */
         private fun generateBooleanOperation(expression: CjBinaryExpression) {
             val operationType = expression.operationReference.referencedNameElementType
             val left = expression.left
@@ -428,13 +667,29 @@ class ControlFlowProcessor(
             builder.predefinedOperation(expression, operation, elementsToValues(listOfNotNull(left, right)))
         }
 
+        /**
+         * 将伪值包装为函数
+         *
+         * 用于延迟求值场景。
+         */
         private fun getValueAsFunction(value: PseudoValue?): () -> PseudoValue? = { value }
 
+        /**
+         * 获取延迟求值的表达式值
+         *
+         * 返回一个函数，该函数在调用时才生成表达式的指令并返回其伪值。
+         * 用于处理赋值运算符的右侧表达式。
+         */
         private fun getDeferredValue(expression: CjExpression?): () -> PseudoValue? = {
             generateInstructions(expression)
             getBoundOrUnreachableValue(expression)
         }
 
+        /**
+         * 生成二元表达式的两个参数并标记
+         *
+         * 用于处理无法解析的二元运算符调用。
+         */
         private fun generateBothArgumentsAndMark(expression: CjBinaryExpression) {
             val left = CjPsiUtil.deparenthesize(expression.left)
             if (left != null) {
@@ -448,6 +703,19 @@ class ControlFlowProcessor(
             createNonSyntheticValue(expression, MagicKind.UNRESOLVED_CALL, left, right)
         }
 
+        /**
+         * 访问赋值表达式
+         *
+         * 处理各种赋值操作，包括：
+         * - 简单赋值（=）
+         * - 数组元素赋值（a[i] = value）
+         * - 属性赋值
+         * - 变量赋值
+         *
+         * @param lhs 左侧表达式（被赋值的目标）
+         * @param rhsDeferredValue 右侧值的延迟求值函数
+         * @param parentExpression 父表达式
+         */
         private fun visitAssignment(
             lhs: CjExpression?,
             rhsDeferredValue: () -> PseudoValue?,
@@ -461,6 +729,7 @@ class ControlFlowProcessor(
             }
 
             if (left is CjArrayAccessExpression) {
+                // 处理数组元素赋值
                 generateArrayAssignment(left, rhsDeferredValue, parentExpression)
                 return
             }
@@ -609,6 +878,16 @@ class ControlFlowProcessor(
         private fun isIncrementOrDecrement(operationType: IElementType): Boolean =
             operationType === PLUSPLUS || operationType === MINUSMINUS
 
+        /**
+         * 访问 if 表达式
+         *
+         * 处理 if 表达式的控制流：
+         * 1. 计算条件表达式
+         * 2. 根据条件跳转到 then 或 else 分支
+         * 3. 合并两个分支的结果值
+         *
+         * 如果缺少 then 或 else 分支，则加载 Unit 值。
+         */
         override fun visitIfExpression(expression: CjIfExpression) {
             mark(expression)
             val branches = ArrayList<CjExpression>(2)
@@ -637,10 +916,27 @@ class ControlFlowProcessor(
             mergeValues(branches, expression)
         }
 
+        /**
+         * Finally 块生成器
+         *
+         * 负责生成 finally 块的伪代码。
+         * Finally 块需要在多个位置执行（正常退出和异常退出），
+         * 因此使用标签和重复伪代码的方式来实现。
+         *
+         * @property finallyBlock finally 块的 PSI 元素
+         */
         private inner class FinallyBlockGenerator(private val finallyBlock: CjFinallySection?) {
+            /** finally 块的起始标签 */
             private var startFinally: Label? = null
+            /** finally 块的结束标签 */
             private var finishFinally: Label? = null
 
+            /**
+             * 生成 finally 块的伪代码
+             *
+             * 如果是第一次生成，则创建标签并生成指令。
+             * 如果是后续调用，则重复使用之前生成的伪代码。
+             */
             fun generate() {
                 val finalExpression = finallyBlock?.finalExpression ?: return
                 catchFinallyStack.push(CatchFinallyLabels(null, null, null))
@@ -663,6 +959,15 @@ class ControlFlowProcessor(
             }
         }
 
+        /**
+         * 访问 try 表达式
+         *
+         * 处理 try-catch-finally 表达式的控制流：
+         * 1. 如果有 finally 块，进入 try-finally 作用域
+         * 2. 生成 try 块和 catch 块的伪代码
+         * 3. 生成 finally 块的伪代码（在正常退出和异常退出时都执行）
+         * 4. 合并所有分支的结果值
+         */
         override fun visitTryExpression(expression: CjTryExpression) {
             mark(expression)
 
@@ -771,6 +1076,18 @@ class ControlFlowProcessor(
             return onExceptionToFinallyBlock
         }
 
+        /**
+         * 访问 while 循环表达式
+         *
+         * 处理 while 循环的控制流：
+         * 1. 进入循环作用域
+         * 2. 绑定条件入口标签
+         * 3. 计算条件表达式
+         * 4. 如果条件为 false，跳转到循环出口
+         * 5. 执行循环体
+         * 6. 跳转回循环入口
+         * 7. 绑定循环出口标签
+         */
         override fun visitWhileExpression(expression: CjWhileExpression) {
             val loopInfo = builder.enterLoop(expression)
 
@@ -793,6 +1110,17 @@ class ControlFlowProcessor(
             builder.loadUnit(expression)
         }
 
+        /**
+         * 访问 do-while 循环表达式
+         *
+         * 处理 do-while 循环的控制流：
+         * 1. 进入块作用域和循环作用域
+         * 2. 执行循环体（至少执行一次）
+         * 3. 绑定条件入口标签
+         * 4. 计算条件表达式
+         * 5. 如果条件为 true，跳转回循环入口
+         * 6. 绑定循环出口标签
+         */
         override fun visitDoWhileExpression(expression: CjDoWhileExpression) {
             builder.enterBlockScope(expression)
             mark(expression)
@@ -816,6 +1144,20 @@ class ControlFlowProcessor(
             builder.loadUnit(expression)
         }
 
+        /**
+         * 访问 for 循环表达式
+         *
+         * 处理 for 循环的控制流：
+         * 1. 进入块作用域
+         * 2. 生成循环范围表达式的指令
+         * 3. 调用 iterator() 方法
+         * 4. 声明循环参数
+         * 5. 进入循环：调用 hasNext()，如果为 false 则退出
+         * 6. 调用 next() 获取下一个元素
+         * 7. 将元素赋值给循环参数
+         * 8. 执行循环体
+         * 9. 跳转回循环入口
+         */
         override fun visitForExpression(expression: CjForExpression) {
             builder.enterBlockScope(expression)
 
@@ -1199,22 +1541,66 @@ class ControlFlowProcessor(
         }
 
 
+        /**
+         * 访问变量声明
+         *
+         * 处理变量声明的控制流：
+         * 1. 对于本地变量（不是类成员变量），调用 processLocalDeclaration 生成本地声明伪代码
+         * 2. 声明变量
+         * 3. 如果有初始化器，生成赋值指令
+         *
+         * 注意：本地变量需要添加到 pseudocode.localDeclarations 列表中，
+         * 以便后续的控制流分析能够递归地分析变量的初始化。
+         */
         override fun visitVariable(variable: CjVariable<*>) {
+            // 对于本地变量（不是类成员变量），需要生成本地声明伪代码
+            if (variable.isLocal) {
+                processLocalDeclaration(variable)
+            }
+
             builder.declareVariable(variable)
             val initializer = variable.initializer
             if (initializer != null) {
                 visitAssignment(variable, getDeferredValue(initializer), variable)
             }
-
-
         }
 
+        /**
+         * 访问模式匹配变量声明
+         *
+         * 处理形如 `let (x, y) = tuple` 或 `let Some(value) = optional` 的模式匹配变量声明。
+         * 委托给 visitVariable 进行处理。
+         */
+        override fun visitPatternVariable(variable: CjPatternVariable) {
+            visitVariable(variable)
+        }
+
+        /**
+         * 访问类成员字段变量声明
+         *
+         * 处理类中的字段变量声明（非属性）。
+         * 委托给 visitVariable 进行处理。
+         */
+        override fun visitFieldVariable(field: CjFieldVariable) {
+            visitVariable(field)
+        }
+
+        /**
+         * 访问属性声明
+         *
+         * 属性只能出现在类成员中，不需要调用 processLocalDeclaration。
+         */
         override fun visitProperty(property: CjProperty) {
             builder.declareVariable(property)
 
         }
 
 
+        /**
+         * 访问类型转换表达式
+         *
+         * 处理 as 类型转换运算符。
+         */
         override fun visitBinaryWithTypeRHSExpression(expression: CjBinaryExpressionWithTypeRHS) {
             mark(expression)
 
@@ -1231,6 +1617,12 @@ class ControlFlowProcessor(
             }
         }
 
+        /**
+         * 生成跳转到 catch 和 finally 块的指令
+         *
+         * 当遇到可能抛出异常的语句时，需要生成跳转到 catch 和 finally 块的指令。
+         * 这确保了异常处理的正确性。
+         */
         private fun generateJumpsToCatchAndFinally() {
             if (catchFinallyStack.isNotEmpty()) {
                 with(catchFinallyStack.peek()) {
@@ -1269,6 +1661,19 @@ class ControlFlowProcessor(
             createNonSyntheticValue(expression, MagicKind.IS, left)
         }
 
+        /**
+         * 访问 match 表达式
+         *
+         * 处理 match 表达式的控制流：
+         * 1. 如果有匹配值，生成匹配值表达式的指令
+         * 2. 为每个 case 分支生成控制流：
+         *    - 生成条件检查指令
+         *    - 如果条件匹配，跳转到分支体
+         *    - 否则跳转到下一个 case
+         * 3. 处理 else 分支（如果有）
+         * 4. 检查穷尽性（对于没有 else 的 match）
+         * 5. 合并所有分支的结果值
+         */
         override fun visitMatchExpression(expression: CjMatchExpression) {
             mark(expression)
 
