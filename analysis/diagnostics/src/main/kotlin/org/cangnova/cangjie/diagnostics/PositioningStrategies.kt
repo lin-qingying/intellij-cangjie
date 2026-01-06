@@ -72,6 +72,7 @@ object PositioningStrategies {
                 element !is CjSecondaryConstructor &&
                 element !is CjFunction
             ) {
+                if(element is CjPatternVariable) return true
                 if (element.nameIdentifier == null) {
                     return false
                 }

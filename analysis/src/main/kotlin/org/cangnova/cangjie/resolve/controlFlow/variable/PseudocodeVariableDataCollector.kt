@@ -30,7 +30,6 @@ import org.cangnova.cangjie.cfg.pseudocodeTraverser.collectData
 import org.cangnova.cangjie.cfg.pseudocodeTraverser.traverse
 import org.cangnova.cangjie.descriptors.VariableDescriptor
 import org.cangnova.cangjie.resolve.binding.BindingContext
-import org.cangnova.cangjie.resolve.binding.BindingContextUtils
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.Pseudocode
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.BlockScope
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.Instruction
@@ -41,6 +40,7 @@ class PseudocodeVariableDataCollector(
     private val bindingContext: BindingContext,
     private val pseudocode: Pseudocode
 ) {
+    private val descriptorExtractor = VariableDescriptorExtractor(bindingContext)
     val blockScopeVariableInfo = computeBlockScopeVariableInfo(pseudocode)
 
     fun <I : VariableUsageControlFlowInfo<*, *>> collectData(
@@ -80,17 +80,12 @@ class PseudocodeVariableDataCollector(
         val blockScopeVariableInfo = BlockScopeVariableInfoImpl()
         pseudocode.traverse(TraversalOrder.FORWARD) { instruction ->
             if (instruction is VariableDeclarationInstruction) {
-                val variableDeclarationElement = instruction.variableDeclarationElement
-                val descriptor =
-                    bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, variableDeclarationElement)
-                        ?: return@traverse
-                val variableDescriptor = BindingContextUtils.variableDescriptorForDeclaration(descriptor)
-                    ?: throw AssertionError(
-                        "Variable or class descriptor should correspond to " +
-                                "the instruction for ${instruction.element.text}.\n" +
-                                "Descriptor: $descriptor"
-                    )
-                blockScopeVariableInfo.registerVariableDeclaredInScope(variableDescriptor, instruction.blockScope)
+                // 使用 VariableDescriptorExtractor 提取变量描述符
+                // 这可以正确处理 CjPatternVariable（模式匹配变量声明）
+                val descriptors = descriptorExtractor.extractFromDeclaration(instruction)
+                for (variableDescriptor in descriptors) {
+                    blockScopeVariableInfo.registerVariableDeclaredInScope(variableDescriptor, instruction.blockScope)
+                }
             }
         }
         return blockScopeVariableInfo

@@ -57,6 +57,7 @@ fun CjTypeStatement.effectiveDeclarations(): List<CjDeclaration> {
         else -> declarations
     }
 }
+
 fun CjCallElement.getCallNameExpression(): CjSimpleNameExpression? {
     val calleeExpression = calleeExpression ?: return null
 
@@ -250,8 +251,8 @@ fun CjExpression.referenceExpression(): CjReferenceExpression? =
 fun CjNamedFunction.isContractPresentPsiCheck(isAllowedOnMembers: Boolean): Boolean {
     val contractAllowedHere =
         (isAllowedOnMembers || isTopLevel) &&
-            hasBlockBody() &&
-            !hasModifier(CjTokens.OPERATOR_KEYWORD)
+                hasBlockBody() &&
+                !hasModifier(CjTokens.OPERATOR_KEYWORD)
     if (!contractAllowedHere) return false
 
     val firstExpression = (this as? CjFunction)?.bodyBlockExpression?.statements?.firstOrNull() ?: return false
@@ -367,16 +368,19 @@ fun CjEnumConstructor.safeFqNameForLazyResolve(): FqName? {
     val parentFqName = CjNamedDeclarationUtil.getParentFqName(this.parent?.parent as CjEnum)
     return parentFqName?.child(safeNameForLazyResolve())
 }
+
 fun CjNamedDeclaration.safeFqNameForLazyResolve(name: Name): FqName? {
     // 应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
     val parentFqName = CjNamedDeclarationUtil.getParentFqName(this)
     return parentFqName?.child(name)
 }
+
 fun CjNamedDeclaration.safeFqNameForLazyResolve(name: String?): FqName? {
     // 应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
     val parentFqName = CjNamedDeclarationUtil.getParentFqName(this)
     return parentFqName?.child(Name.identifier(name ?: ""))
 }
+
 fun CjNamedDeclaration.safeFqNameForLazyResolve(): FqName? {
     // 应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
     val parentFqName = CjNamedDeclarationUtil.getParentFqName(this)
@@ -496,7 +500,6 @@ fun CjStringTemplateExpression.isSingleQuoted(): Boolean = node.firstChildNode.t
 fun CjStringTemplateExpression.isPlain() = entries.all { it is CjLiteralStringTemplateEntry }
 
 
-
 fun CjDeclaration.modalityModifier() = modifierFromTokenSet(CjTokens.MODALITY_MODIFIERS)
 private fun CjModifierListOwner.modifierFromTokenSet(set: TokenSet) = modifierList?.modifierFromTokenSet(set)
 
@@ -506,17 +509,17 @@ fun CjElement.findElementOfAdditionalResolve(): CjElement? {
 
 //                    it is CjPrimaryConstructor ||
 //                    it is CjSecondaryConstructor ||
-            it is CjProperty ||
-            it is CjVariable<*> ||
-            it is CjSuperTypeList ||
+                it is CjProperty ||
+                it is CjVariable<*> ||
+                it is CjSuperTypeList ||
 
-            it is CjImportList ||
+                it is CjImportList ||
                 it is CjAnnotation ||
-            it is CjTypeParameter ||
-            it is CjTypeConstraint ||
-            it is CjPackageDirective ||
-            it is CjCodeFragment ||
-            it is CjTypeAlias
+                it is CjTypeParameter ||
+                it is CjTypeConstraint ||
+                it is CjPackageDirective ||
+                it is CjCodeFragment ||
+                it is CjTypeAlias
 
     } as CjElement?
 
@@ -547,6 +550,7 @@ tailrec fun CjTypeElement.unwrapOptional(): CjTypeElement? {
         else -> this
     }
 }
+
 fun FqName.quoteIfNeeded(): FqName {
     return FqName(pathSegments().joinToString(".") { it.asString().quoteIfNeeded() })
 }
