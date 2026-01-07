@@ -148,7 +148,6 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
      * @return HTML 格式的消息
      */
     @Nls
-
     fun htmlMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String {
         // 先检查当前 Bundle 是否包含该键，避免 DynamicBundle 记录错误
         return if (containsKey(key)) {

@@ -85,6 +85,12 @@ object IdeErrorMessages {
      * @return HTML 格式的错误消息，或纯文本回退消息
      */
     fun render(diagnostic: Diagnostic): String {
-        return DiagnosticRendererRegistry.render(diagnostic, DiagnosticRendererRegistry.IDE)
+        // 先检查 IDECangJieDiagnosisBundle 是否有该诊断的消息
+        return if (IDECangJieDiagnosisBundle.containsKey(diagnostic.factory.name)) {
+            DiagnosticRendererRegistry.render(diagnostic, DiagnosticRendererRegistry.IDE)
+        } else {
+            // 回退到默认渲染器
+            DiagnosticRendererRegistry.render(diagnostic, DiagnosticRendererRegistry.DEFAULT)
+        }
     }
 }

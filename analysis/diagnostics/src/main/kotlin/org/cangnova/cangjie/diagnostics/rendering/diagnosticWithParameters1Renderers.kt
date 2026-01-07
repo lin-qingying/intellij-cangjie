@@ -51,11 +51,8 @@ abstract class AbstractDiagnosticWithParametersRenderer<in D : UnboundDiagnostic
     private val messageFormat = MessageFormat(message())
 
     override fun render(diagnostic: D): String {
-//        val str = bundle.rawMessage(diagnostic.factory.name)
-//        if (str == "!${diagnostic.factory.name}!") {
-//            return messageFormat.format(renderParameters(diagnostic))
-//        }
-//
+
+
         val messageFormat = MessageFormat(message())
         return messageFormat.format(renderParameters(diagnostic))
 

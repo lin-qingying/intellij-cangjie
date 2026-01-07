@@ -254,6 +254,7 @@ object DiagnosticRendererRegistry {
     ): String {
         val renderer = getRenderer(diagnostic.factory, type)
         if (renderer != null) {
+
             @Suppress("UNCHECKED_CAST")
             return (renderer as DiagnosticRenderer<UnboundDiagnostic>).render(diagnostic)
         }

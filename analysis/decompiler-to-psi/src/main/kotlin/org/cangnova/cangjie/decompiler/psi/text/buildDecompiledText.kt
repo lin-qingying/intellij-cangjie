@@ -339,8 +339,8 @@ import org.cangnova.cangjie.types.isFlexible
  * ### withDefinedIn = false
  * 不显示 "defined in" 注释，避免冗余信息：
  * ```
- * ❌ fun foo() /* defined in MyClass */
- * ✅ fun foo()
+ * ❌ func foo() /* defined in MyClass */
+ * ✅ func foo()
  * ```
  *
  * ### classWithPrimaryConstructor = true
