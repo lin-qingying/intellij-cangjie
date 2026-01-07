@@ -71,6 +71,58 @@ import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import org.cangnova.cangjie.types.isError
 import org.cangnova.cangjie.types.toFunctionType
 
+/**
+ * 调用表达式解析器
+ *
+ * 负责解析和类型推断各种形式的调用表达式，包括：
+ * - 函数调用：`foo(arg1, arg2)`
+ * - 方法调用：`obj.method()`
+ * - 构造函数调用：`MyClass()`
+ * - 限定表达式：`a.b.c`
+ * - 安全调用：`obj?.method()`
+ *
+ * ## 核心职责
+ *
+ * 1. **调用解析**：将调用表达式解析为具体的函数或方法描述符
+ * 2. **类型推断**：确定调用表达式的结果类型
+ * 3. **数据流分析**：追踪调用前后的数据流信息变化
+ * 4. **错误诊断**：报告调用相关的错误（如未解析的引用、类型不匹配等）
+ *
+ * ## 解析策略
+ *
+ * 对于简单名称表达式，采用多阶段解析策略：
+ * 1. 首先尝试作为变量解析
+ * 2. 如果失败，尝试作为函数解析
+ * 3. 如果仍失败，尝试作为限定符解析
+ *
+ * ## 安全调用处理
+ *
+ * 安全调用（`?.`）会：
+ * - 在接收者非空时正常调用
+ * - 在接收者为空时返回 `Option.None`
+ * - 结果类型总是可选类型 `Option<T>`
+ *
+ * ## 数据流追踪
+ *
+ * 解析器维护数据流信息，用于：
+ * - 智能类型转换（Smart Casts）
+ * - 空值分析
+ * - 可达性分析
+ *
+ * @property callResolver 核心调用解析器，处理重载解析
+ * @property constantExpressionEvaluator 常量表达式求值器
+ * @property argumentTypeResolver 参数类型解析器
+ * @property dataFlowAnalyzer 数据流分析器
+ * @property builtIns 内置类型定义
+ * @property qualifiedExpressionResolver 限定表达式解析器
+ * @property languageVersionSettings 语言版本设置
+ * @property dataFlowValueFactory 数据流值工厂
+ * @property cangjieTypeRefiner 类型精化器
+ *
+ * @see CallResolver 调用解析核心
+ * @see DataFlowAnalyzer 数据流分析
+ * @see QualifiedExpressionResolverFacade 限定表达式解析
+ */
 class CallExpressionResolver(
     private val callResolver: CallResolver,
     private val constantExpressionEvaluator: ConstantExpressionEvaluator,
@@ -85,15 +137,34 @@ class CallExpressionResolver(
 
     private lateinit var expressionTypingServices: ExpressionTypingServices
 
-    // component dependency cycle
+    /**
+     * 注入表达式类型服务
+     *
+     * 使用 setter 注入解决组件依赖循环问题。
+     * `ExpressionTypingServices` 和 `CallExpressionResolver` 之间存在双向依赖，
+     * 通过延迟注入打破循环。
+     *
+     * @param expressionTypingServices 表达式类型服务
+     */
     @Inject
     fun setExpressionTypingServices(expressionTypingServices: ExpressionTypingServices) {
         this.expressionTypingServices = expressionTypingServices
     }
 
     /**
-     * Visits a call expression and its arguments.
-     * Determines the result type and data flow information after the call.
+     * 获取调用表达式的类型信息（不含最终类型检查）
+     *
+     * 解析调用表达式并确定其结果类型和数据流信息。
+     * 采用多阶段解析策略：
+     * 1. 首先尝试作为函数调用解析
+     * 2. 如果失败且被调用者是简单名称，尝试作为变量解析（检查是否意外调用了非函数值）
+     *
+     * @param callExpression 调用表达式 PSI 节点
+     * @param receiver 接收者（如 `a.foo()` 中的 `a`），可为 null
+     * @param callOperationNode 调用操作符节点（`.` 或 `?.`）
+     * @param context 表达式类型上下文
+     * @param initialDataFlowInfoForArguments 参数的初始数据流信息
+     * @return 包含类型和数据流信息的 [CangJieTypeInfo]
      */
     private fun getCallExpressionTypeInfoWithoutFinalTypeCheck(
         callExpression: CjCallExpression, receiver: Receiver?,
@@ -196,6 +267,15 @@ class CallExpressionResolver(
         return noTypeInfo(context)
     }
 
+    /**
+     * 获取调用表达式的类型信息
+     *
+     * 这是调用表达式类型推断的主入口点。解析调用并在独立上下文中执行最终类型检查。
+     *
+     * @param callExpression 调用表达式
+     * @param context 表达式类型上下文
+     * @return 调用表达式的类型信息
+     */
     fun getCallExpressionTypeInfo(
         callExpression: CjCallExpression,
         context: ExpressionTypingContext
@@ -212,12 +292,33 @@ class CallExpressionResolver(
 
 
 
+    /**
+     * 获取简单名称表达式的类型信息
+     *
+     * 使用当前数据流信息解析简单名称表达式。
+     *
+     * @param nameExpression 简单名称表达式
+     * @param receiver 接收者，可为 null
+     * @param callOperationNode 调用操作符节点
+     * @param context 表达式类型上下文
+     * @return 名称表达式的类型信息
+     */
     fun getSimpleNameExpressionTypeInfo(
         nameExpression: CjSimpleNameExpression, receiver: Receiver?,
         callOperationNode: ASTNode?, context: ExpressionTypingContext
     ) = getSimpleNameExpressionTypeInfo(nameExpression, receiver, callOperationNode, context, context.dataFlowInfo)
 
-
+    /**
+     * 获取变量类型
+     *
+     * 尝试将名称表达式解析为局部变量或属性，并返回其类型。
+     *
+     * @param nameExpression 简单名称表达式
+     * @param receiver 接收者，可为 null
+     * @param callOperationNode 调用操作符节点
+     * @param context 表达式类型上下文
+     * @return 一对值：(是否找到变量, 变量类型)
+     */
     private fun getVariableType(
         nameExpression: CjSimpleNameExpression,
         receiver: Receiver?,
@@ -242,7 +343,15 @@ class CallExpressionResolver(
         )
     }
 
-
+    /**
+     * 解析限定表达式中的延迟接收者
+     *
+     * 当限定表达式的接收者是一个限定符时，需要延迟解析以确定它是作为表达式接收者还是类型限定符。
+     *
+     * @param qualifier 限定符
+     * @param selectorExpression 选择器表达式
+     * @param context 表达式类型上下文
+     */
     private fun resolveDeferredReceiverInQualifiedExpression(
         qualifier: Qualifier,
         selectorExpression: CjExpression?,
@@ -256,13 +365,23 @@ class CallExpressionResolver(
         resolveQualifierAsReceiverInExpression(qualifier, selectorDescriptor, context)
     }
 
-
+    /**
+     * 获取函数调用的解析结果
+     *
+     * 尝试将调用解析为函数调用，返回解析是否成功及解析后的调用信息。
+     *
+     * @param call 调用对象
+     * @param context 解析上下文
+     * @param checkArguments 参数检查模式
+     * @param initialDataFlowInfoForArguments 参数的初始数据流信息
+     * @return 一对值：(解析是否成功, 解析后的调用)
+     */
     private fun getResolvedCallForFunction(
         call: Call,
         context: ResolutionContext<*>,
         checkArguments: CheckArgumentTypesMode,
         initialDataFlowInfoForArguments: DataFlowInfo
-    ): Pair<Boolean, ResolvedCall<out FunctionDescriptor>?> {
+    ): Pair<Boolean, ResolvedCall<FunctionDescriptor>?> {
         val results = callResolver.resolveFunctionCall(
             BasicCallResolutionContext.create(
                 context, call, checkArguments, DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
@@ -279,6 +398,18 @@ class CallExpressionResolver(
             Pair(false, null)
     }
 
+    /**
+     * 获取简单名称表达式的枚举条目类型
+     *
+     * 尝试将简单名称表达式解析为枚举条目。
+     *
+     * @param nameExpression 简单名称表达式
+     * @param receiver 接收者
+     * @param callOperationNode 调用操作符节点
+     * @param context 表达式类型上下文
+     * @param initialDataFlowInfoForArguments 参数的初始数据流信息
+     * @return 枚举条目的描述符，如果不是枚举条目则返回 null
+     */
     private fun getSimpleNameExpressionEnumEntryType(
         nameExpression: CjSimpleNameExpression, receiver: Receiver?,
         callOperationNode: ASTNode?, context: ExpressionTypingContext,
@@ -294,7 +425,21 @@ class CallExpressionResolver(
 
     }
 
-
+    /**
+     * 获取简单名称表达式的类型信息（内部实现）
+     *
+     * 采用多阶段解析策略：
+     * 1. 首先尝试作为变量解析
+     * 2. 如果失败，尝试作为函数解析
+     * 3. 如果仍失败，尝试作为限定符解析
+     *
+     * @param nameExpression 简单名称表达式
+     * @param receiver 接收者
+     * @param callOperationNode 调用操作符节点
+     * @param context 表达式类型上下文
+     * @param initialDataFlowInfoForArguments 参数的初始数据流信息
+     * @return 名称表达式的类型信息
+     */
     private fun getSimpleNameExpressionTypeInfo(
         nameExpression: CjSimpleNameExpression, receiver: Receiver?,
         callOperationNode: ASTNode?, context: ExpressionTypingContext,
@@ -349,6 +494,16 @@ class CallExpressionResolver(
         return noTypeInfo(context)
     }
 
+    /**
+     * 解析简单名称表达式
+     *
+     * 将简单名称表达式解析为变量描述符。
+     *
+     * @param context 表达式类型上下文
+     * @param expression 简单名称表达式
+     * @param traceAndCache 临时追踪和缓存
+     * @return 变量解析结果
+     */
     private fun resolveSimpleName(
         context: ExpressionTypingContext, expression: CjSimpleNameExpression, traceAndCache: TemporaryTraceAndCache
     ): OverloadResolutionResults<VariableDescriptor> {
@@ -359,6 +514,16 @@ class CallExpressionResolver(
         return callResolver.resolveSimpleVariable(contextForVariable)
     }
 
+    /**
+     * 将限定表达式展开为元素链
+     *
+     * 解析限定表达式中的每个元素，生成接收者-选择器对的链表。
+     * 用于逐步处理链式调用如 `a.b.c.d`。
+     *
+     * @receiver 限定表达式
+     * @param context 表达式类型上下文
+     * @return 调用表达式元素链
+     */
     private fun CjQualifiedExpression.elementChain(context: ExpressionTypingContext) =
         qualifiedExpressionResolver.resolveQualifierInExpressionAndUnroll(this, context) { nameExpression ->
             val temporaryTraceAndCache =
@@ -383,9 +548,27 @@ class CallExpressionResolver(
 
 
     /**
-     * Visits a qualified expression like x.y or x?.z controlling data flow information changes.
-
-     * @return qualified expression type together with data flow information
+     * 获取限定表达式的类型信息
+     *
+     * 处理形如 `x.y` 或 `x?.z` 的限定表达式，控制数据流信息的变化。
+     *
+     * ## 处理流程
+     *
+     * 1. 将限定表达式展开为元素链
+     * 2. 解析第一个接收者的类型
+     * 3. 逐步处理每个选择器，更新类型和数据流信息
+     * 4. 处理安全调用的空值传播
+     *
+     * ## 安全调用处理
+     *
+     * 对于安全调用（`?.`）：
+     * - 如果接收者非空，正常调用选择器
+     * - 如果接收者为空，整个表达式返回 `Option.None`
+     * - 结果类型会被包装为 `Option<T>`
+     *
+     * @param expression 限定表达式
+     * @param context 表达式类型上下文
+     * @return 限定表达式的类型信息，包含类型和数据流信息
      */
     fun getQualifiedExpressionTypeInfo(
         expression: CjQualifiedExpression,
@@ -468,7 +651,18 @@ class CallExpressionResolver(
         return resultTypeInfo
     }
 
-
+    /**
+     * 获取非安全选择器的类型信息
+     *
+     * 处理普通的点调用（`.`），根据选择器表达式的类型分发到不同的处理方法。
+     *
+     * @param receiver 接收者
+     * @param callOperationNode 调用操作符节点
+     * @param selectorExpression 选择器表达式
+     * @param context 表达式类型上下文
+     * @param initialDataFlowInfoForArguments 参数的初始数据流信息
+     * @return 选择器的类型信息
+     */
     private fun getUnsafeSelectorTypeInfo(
         receiver: Receiver,
         callOperationNode: ASTNode?,
@@ -493,7 +687,23 @@ class CallExpressionResolver(
         else /*null*/ -> noTypeInfo(context)
     }
 
-
+    /**
+     * 获取安全或非安全选择器的类型信息
+     *
+     * 根据调用是安全调用（`?.`）还是普通调用（`.`）来处理选择器。
+     *
+     * ## 安全调用处理
+     *
+     * 对于安全调用：
+     * - 添加 "接收者 != null" 的数据流信息
+     * - 如果接收者不可能为空，报告 `UNNECESSARY_SAFE_CALL` 警告
+     * - 将结果类型包装为 `Option<T>`
+     *
+     * @param receiver 接收者
+     * @param element 调用表达式元素
+     * @param context 表达式类型上下文
+     * @return 选择器的类型信息
+     */
     private fun getSafeOrUnsafeSelectorTypeInfo(
         receiver: Receiver,
         element: CallExpressionElement,
@@ -561,8 +771,15 @@ class CallExpressionResolver(
         return selectorTypeInfo
     }
 
-
-
+    /**
+     * 记录结果类型信息
+     *
+     * 将限定表达式的类型信息记录到绑定追踪中，避免重复处理。
+     *
+     * @param qualified 限定表达式
+     * @param resultTypeInfo 结果类型信息
+     * @param context 表达式类型上下文
+     */
     private fun recordResultTypeInfo(
         qualified: CjQualifiedExpression,
         resultTypeInfo: CangJieTypeInfo,
@@ -579,6 +796,16 @@ class CallExpressionResolver(
         }
     }
 
+    /**
+     * 检查选择器类型信息
+     *
+     * 对选择器的类型信息进行最终检查，处理常量表达式求值和类型检查。
+     *
+     * @param qualified 限定表达式
+     * @param selectorTypeInfo 选择器类型信息
+     * @param context 表达式类型上下文
+     * @return 检查后的类型信息
+     */
     private fun checkSelectorTypeInfo(
         qualified: CjQualifiedExpression,
         selectorTypeInfo: CangJieTypeInfo,
@@ -598,6 +825,18 @@ class CallExpressionResolver(
 
     companion object {
 
+        /**
+         * 报告不必要的安全调用警告
+         *
+         * 当接收者类型不可能为空时，安全调用是不必要的，应该使用普通调用。
+         *
+         * @param trace 绑定追踪
+         * @param type 接收者类型
+         * @param callElement 调用元素
+         * @param callOperationNode 调用操作符节点
+         * @param explicitReceiver 显式接收者
+         * @param languageVersionSettings 语言版本设置
+         */
         fun reportUnnecessarySafeCall(
             trace: BindingTrace,
             type: CangJieType,
