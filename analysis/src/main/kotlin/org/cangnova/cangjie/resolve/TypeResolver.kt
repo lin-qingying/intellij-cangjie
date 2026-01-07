@@ -1118,7 +1118,7 @@ class TypeResolver(
         trace: BindingTrace,
         classDescriptor: DeclarationDescriptor,
     ): CangJieType? {
-        if (classDescriptor !is ClassDescriptor) return null
+        if (classDescriptor !is ClassAndEnumDescriptor) return null
         if (expression !is CjNameReferenceExpression) return null
         val c = TypeResolutionContext(scope, trace, true, false, false)
         val typeConstructor = classDescriptor.typeConstructor

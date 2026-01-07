@@ -29,6 +29,8 @@ import org.cangnova.cangjie.diagnostics.infos.errors.EXPECTED_MEMBER_OR_CONSTRUC
 import org.cangnova.cangjie.diagnostics.infos.errors.EXPRESSION_EXPECTED_PACKAGE_FOUND
 import org.cangnova.cangjie.diagnostics.infos.errors.TYPE_PARAMETER_IS_NOT_AN_EXPRESSION
 import org.cangnova.cangjie.diagnostics.infos.errors.TYPE_PARAMETER_ON_LHS_OF_DOT
+import org.cangnova.cangjie.psi.CjExpression
+import org.cangnova.cangjie.psi.CjQualifiedExpression
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.scopes.receivers.*
@@ -75,6 +77,9 @@ fun resolveQualifierAsReceiverInExpression(
  * - 普通类：如果没有类值描述符（非对象/枚举），报告错误
  * - 包：报告期望表达式但找到了包
  *
+ * 注意：如果该表达式是限定表达式的接收器部分（如 `A<Int>.bba()` 中的 `A<Int>`），
+ * 则不报告 `EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE` 错误，因为它后面有成员访问。
+ *
  * @param qualifier 限定符接收器
  * @param context 表达式类型推导上下文
  * @return 解析后的声明描述符
@@ -84,16 +89,21 @@ fun resolveQualifierAsStandaloneExpression(
 ): DeclarationDescriptor {
     val referenceTarget = resolveQualifierReferenceTarget(qualifier, null, context)
 
+    // 检查此表达式是否是限定表达式的接收器部分（如 A<Int>.bba() 中的 A<Int>）
+    val isPartOfQualifiedExpression = isPartOfQualifiedExpression(qualifier.expression)
+
     when (referenceTarget) {
         // 类型别名作为独立表达式
         is TypeAliasDescriptor -> {
-            referenceTarget.classDescriptor?.let { classDescriptor ->
+            if (!isPartOfQualifiedExpression) {
+                referenceTarget.classDescriptor?.let { classDescriptor ->
                     context.trace.report(
                         EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(
                             qualifier.expression,
                             referenceTarget
                         )
                     )
+                }
             }
         }
 
@@ -102,10 +112,12 @@ fun resolveQualifierAsStandaloneExpression(
             context.trace.report(TYPE_PARAMETER_IS_NOT_AN_EXPRESSION.on(qualifier.expression, referenceTarget))
         }
 
-        // 普通类作为独立表达式
+        // 类作为独立表达式
+        // 所有类型（包括枚举）作为独立表达式时都需要后续成员访问
+        // 枚举构造器需要通过 `EnumType.ConstructorName` 形式访问
         is ClassDescriptor -> {
-            // 如果不是枚举类型，报告错误（仓颉语言不支持单例对象）
-            if (!context.config.isDotEnumGetType && !referenceTarget.isEnum) {
+            // 只有在不是限定表达式的一部分时才报告错误
+            if (!isPartOfQualifiedExpression) {
                 context.trace.report(
                     EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(
                         qualifier.expression,
@@ -122,6 +134,33 @@ fun resolveQualifierAsStandaloneExpression(
     }
 
     return referenceTarget
+}
+
+/**
+ * 检查表达式是否是限定表达式的接收器部分
+ *
+ * 例如：在 `A<Int>.bba()` 中，`A<Int>` 是限定表达式的接收器部分
+ *
+ * 注意：此函数在处理不完整代码（如 `A<Int>.`）时也是安全的，因为：
+ * - 即使 selector 为 null，receiverExpression 仍然有效
+ * - 比较操作会正确识别接收器表达式
+ *
+ * @param expression 要检查的表达式
+ * @return true 如果是限定表达式的接收器部分，false 否则
+ */
+private fun isPartOfQualifiedExpression(expression: CjExpression): Boolean {
+    val parent = expression.parent
+    if (parent !is CjQualifiedExpression) {
+        return false
+    }
+
+    // 使用 try-catch 防止在不完整的 PSI 树中访问 receiverExpression 时出错
+    return try {
+        parent.receiverExpression == expression
+    } catch (e: AssertionError) {
+        // 如果 PSI 树处于不一致状态，保守地返回 false
+        false
+    }
 }
 
 /**
@@ -179,7 +218,7 @@ private fun resolveQualifierReferenceTarget(
         return qualifier.descriptor
     }
 
-    // TODO 在其他地方决定伴生对象的短引用
+
     if (qualifier is ClassifierQualifier) {
         val classifier = qualifier.descriptor
         // 检查选择器是否为可调用的成员（有接收器参数）

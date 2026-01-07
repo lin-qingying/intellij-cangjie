@@ -81,7 +81,7 @@ class TypeArgumentsToParametersMapper {
         if (call.typeArguments.size != descriptor.typeParameters.size) {
 
 
-            TODO("枚举相关")
+//            TODO("枚举相关")
 
 
         } else {

@@ -23,10 +23,6 @@
  */
 package org.cangnova.cangjie.psi
 
-import org.cangnova.cangjie.lang.CangJieLanguage
-import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.psi.psiUtil.deleteSemicolon
-import org.cangnova.cangjie.psi.psiUtil.parentSubstitute
 import com.intellij.lang.Language
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
@@ -37,6 +33,11 @@ import com.intellij.psi.impl.source.tree.LazyParseablePsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiUtilCore
 import com.intellij.util.IncorrectOperationException
+import org.cangnova.cangjie.lang.CangJieLanguage
+import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.psi.psiUtil.deleteSemicolon
+import org.cangnova.cangjie.psi.psiUtil.getContainingCjFile
+import org.cangnova.cangjie.psi.psiUtil.parentSubstitute
 import java.util.*
 
 open class CjBlockExpression : LazyParseablePsiElement, CjElement, CjExpression, CjStatementExpression {
@@ -50,17 +51,16 @@ open class CjBlockExpression : LazyParseablePsiElement, CjElement, CjExpression,
     override fun toString(): String {
         return node.elementType.toString()
     }
+    override fun getContainingCjFile(): CjFile {
+        return getContainingCjFile(this)
 
+    }
     override fun getContainingFile(): PsiFile {
         return super.getContainingFile()
     }
 
     override fun <T : PsiElement> getPsi(clazz: Class<T>): T {
         return super.getPsi(clazz)
-    }
-
-    override fun getContainingCjFile(): CjFile {
-        return this.containingCjFile
     }
 
     override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D) {
@@ -108,6 +108,8 @@ open class CjBlockExpression : LazyParseablePsiElement, CjElement, CjExpression,
         val substitute = this.parentSubstitute
         return substitute ?: super.getParent()
     }
+
+
 
     val firstStatement: CjExpression?
         get() = findChildByClass(CjExpression::class.java)

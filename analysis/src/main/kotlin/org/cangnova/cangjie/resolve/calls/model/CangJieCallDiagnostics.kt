@@ -42,14 +42,6 @@ interface TransformableToWarning<T : CangJieCallDiagnostic> {
     fun transformToWarning(): T?
 }
 
-class EnumEntryAmbiguityWarning(val property: PropertyDescriptor, val enumEntry: ClassDescriptor) :
-    CangJieCallDiagnostic(
-        CandidateApplicability.RESOLVED
-    ) {
-    override fun report(reporter: DiagnosticReporter) {
-        reporter.onCall(this)
-    }
-}
 
 class CangJieConstraintSystemDiagnostic(
     val error: ConstraintSystemError

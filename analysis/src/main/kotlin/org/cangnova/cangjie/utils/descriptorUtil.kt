@@ -203,7 +203,7 @@ fun TypeConstructor.supertypesWithAny(): Collection<CangJieType> {
  * @receiver ClassDescriptor 类描述符
  * @return CangJieType? 枚举类的默认类型，非枚举类返回 null
  */
-val ClassDescriptor.enumClassValueType: CangJieType?
+val ClassAndEnumDescriptor.enumClassValueType: CangJieType?
     get() = if (kind == ClassKind.ENUM) defaultType else null
 
 /**

@@ -91,20 +91,8 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
             createCandidateDescriptor(it, dispatchReceiver = null)
         }
 
-    override fun getObjects(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?) = qualifier.staticScope
-        .getContributedObjectVariables(name, location).map {
-            createCandidateDescriptor(it, dispatchReceiver = null)
-        }
 
     override fun recordLookup(name: Name) {
 
     }
-}
-
-private fun ResolutionScope.getContributedObjectVariables(
-    name: Name,
-    location: LookupLocation
-): Collection<VariableDescriptor> {
-    val objectDescriptor = getFakeDescriptorForObject(getContributedClassifier(name, location))
-    return listOfNotNull(objectDescriptor)
 }

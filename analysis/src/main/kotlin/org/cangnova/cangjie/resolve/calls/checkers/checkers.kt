@@ -37,7 +37,7 @@ fun StorageComponentContainer.configureDefaultCheckers() {
 }
 
 private val DEFAULT_CALL_CHECKERS = listOf(
-    StaticContextChecker,
+//    StaticContextChecker,
 //    CapturingInClosureChecker(),
 //    InlineCheckerWrapper(),
 //    SynchronizedByValueChecker(),

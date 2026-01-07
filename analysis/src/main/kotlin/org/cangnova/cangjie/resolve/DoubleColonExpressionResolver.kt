@@ -217,7 +217,7 @@ class DoubleColonExpressionResolver(
         )
 
         val type = if (possiblyBareType.isBare()) {
-            val descriptor = possiblyBareType.bareTypeConstructor.declarationDescriptor as? ClassDescriptor
+            val descriptor = possiblyBareType.bareTypeConstructor.declarationDescriptor as? ClassAndEnumDescriptor
                 ?: error("Only classes can produce bare types: $possiblyBareType")
 
 

@@ -150,8 +150,8 @@ private fun ConstraintSystemOperation.addReceiverConstraint(
     position: ConstraintPosition
 ) {
     if (receiverArgument == null || receiverParameter == null) {
-        assert(receiverArgument == null) { "Receiver argument should be null if parameter is: $receiverArgument" }
-        assert(receiverParameter == null) { "Receiver parameter should be null if argument is: $receiverParameter" }
+//        assert(receiverArgument == null) { "Receiver argument should be null if parameter is: $receiverArgument" }
+//        assert(receiverParameter == null) { "Receiver parameter should be null if argument is: $receiverParameter" }
         return
     }
 

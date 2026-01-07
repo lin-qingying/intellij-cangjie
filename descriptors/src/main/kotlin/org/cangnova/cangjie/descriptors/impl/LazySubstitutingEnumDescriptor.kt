@@ -268,4 +268,34 @@ class LazySubstitutingEnumDescriptor(
 
     override val thisAsReceiverParameter: ReceiverParameterDescriptor
         get() = original.thisAsReceiverParameter
+
+    /**
+     * 返回枚举描述符的字符串表示，用于调试
+     *
+     * 格式: `enum EnumName<TypeArg1, TypeArg2, ...>`
+     *
+     * 示例:
+     * - `enum Option<Int>` - 类型参数已替换
+     * - `enum Result<String, Error>` - 多个类型参数
+     * - `enum Status` - 无类型参数的枚举
+     */
+    override fun toString(): String {
+        return buildString {
+            append("enum ")
+            append(name.asString())
+
+            // 获取类型参数
+            val typeParams = typeConstructor.parameters
+            if (typeParams.isNotEmpty()) {
+                append("<")
+                typeParams.joinTo(this, ", ") { param ->
+                    // 获取替换后的类型
+                    val substitutor = getSubstitutor()
+                    val substitutedType = substitutor.substitute(param.defaultType, Variance.INVARIANT)
+                    substitutedType?.toString() ?: param.name.asString()
+                }
+                append(">")
+            }
+        }
+    }
 }

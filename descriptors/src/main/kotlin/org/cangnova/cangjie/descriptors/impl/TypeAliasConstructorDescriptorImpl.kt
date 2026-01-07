@@ -134,7 +134,7 @@ class TypeAliasConstructorDescriptorImpl private constructor(
 
     override fun hasSynthesizedParameterNames(): Boolean = false
 
-    override val constructedClass: ClassDescriptor
+    override val constructedClass: ClassAndEnumDescriptor
         get() =  underlyingConstructorDescriptor.constructedClass
 
     override fun createSubstitutedCopy(

@@ -36,6 +36,103 @@ import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
+/**
+ * 懒加载类型替换类描述符
+ *
+ * 这是实现泛型类型参数化的关键类，通过包装器模式实现类型替换。
+ *
+ * ## 设计目的
+ *
+ * 当我们有一个泛型类 `class A<T>` 并使用具体类型参数实例化（如 `A<Int>`, `A<String>`）时，
+ * 我们需要一种机制来表示这些不同的类型实例。这个类就是实现这个机制的核心。
+ *
+ * ## 工作原理
+ *
+ * ### 包装器模式
+ * - **原始描述符** ([original]): 保存对泛型类 `A<T>` 的原始 [ClassDescriptor] 的引用
+ * - **类型替换器** ([originalSubstitutor]): 保存类型参数的替换规则（如 T -> Int）
+ * - **懒加载**: 实际的替换操作延迟到访问成员时才进行，提高性能
+ *
+ * ### A<Int> vs A<String> 的类型系统表示
+ *
+ * 重要概念：`A<Int>` 和 `A<String>` **不是同一个类型**，但它们有以下关系：
+ *
+ * 1. **共享原始描述符**:
+ *    - 两者的 [original] 属性都指向同一个 `ClassDescriptor A`
+ *    - 这体现了它们都是从同一个泛型类定义派生的
+ *
+ * 2. **不同的包装器实例**:
+ *    - `A<Int>` 是一个 [LazySubstitutingClassDescriptor] 实例，持有 `TypeSubstitutor(T -> Int)`
+ *    - `A<String>` 是另一个 [LazySubstitutingClassDescriptor] 实例，持有 `TypeSubstitutor(T -> String)`
+ *    - 这两个包装器实例不相等（用 `===` 比较返回 false）
+ *
+ * 3. **不同的类型表示**:
+ *    - 在类型层面（[CangJieType]），它们是完全不同的类型
+ *    - 它们有相同的 [typeConstructor]（指向同一个 `ClassDescriptor A`）
+ *    - 但有不同的类型参数（[TypeProjection] 列表）
+ *
+ * 4. **不同的成员类型**:
+ *    - 访问成员时，类型参数会被动态替换
+ *    - 例如，如果 `A<T>` 有方法 `func foo(): T`
+ *    - `A<Int>` 的 `foo()` 返回类型是 `Int`
+ *    - `A<String>` 的 `foo()` 返回类型是 `String`
+ *
+ * ## 使用示例
+ *
+ * ```kotlin
+ * // 假设有泛型类 class A<T> { func foo(): T }
+ *
+ * val originalDescriptor: ClassDescriptor = ... // A<T> 的原始描述符
+ *
+ * // 创建 A<Int> 的描述符
+ * val intSubstitutor = TypeSubstitutor.create(mapOf(T -> IntType))
+ * val aInt = LazySubstitutingClassDescriptor(originalDescriptor, intSubstitutor)
+ *
+ * // 创建 A<String> 的描述符
+ * val stringSubstitutor = TypeSubstitutor.create(mapOf(T -> StringType))
+ * val aString = LazySubstitutingClassDescriptor(originalDescriptor, stringSubstitutor)
+ *
+ * // aInt 和 aString 是不同的描述符
+ * assert(aInt !== aString)
+ *
+ * // 但它们共享同一个原始描述符
+ * assert(aInt.original === aString.original)
+ * assert(aInt.original === originalDescriptor)
+ *
+ * // 访问成员时，类型会被替换
+ * val fooInAInt = aInt.getMemberScope().getFunction("foo")  // 返回类型: Int
+ * val fooInAString = aString.getMemberScope().getFunction("foo")  // 返回类型: String
+ * ```
+ *
+ * ## 性能优化
+ *
+ * - **懒加载**: [getSubstitutor] 和 [typeConstructor] 使用懒加载模式，只在首次访问时计算
+ * - **成员作用域包装**: 通过 [SubstitutingScope] 包装原始作用域，避免预先替换所有成员
+ * - **类型构造器缓存**: [typeConstructor] 计算后缓存在 [myTypeConstructor] 中
+ *
+ * ## 链式替换支持
+ *
+ * 支持多层类型替换（如 `A<T>` -> `A<B<T>>` -> `A<B<Int>>`）：
+ * ```kotlin
+ * override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
+ *     if (substitutor.isEmpty) return this
+ *     return LazySubstitutingClassDescriptor(
+ *         this,
+ *         TypeSubstitutor.createChainedSubstitutor(
+ *             substitutor.substitution,
+ *             getSubstitutor().substitution
+ *         )
+ *     )
+ * }
+ * ```
+ *
+ * @param original 原始的泛型类描述符（如 `A<T>`）
+ * @param originalSubstitutor 类型参数替换器（如 `T -> Int`）
+ *
+ * @see TypeSubstitutor 类型替换器
+ * @see SubstitutingScope 替换作用域
+ * @see ClassifierDescriptorWithTypeParameters.substitute 替换方法
+ */
 class LazySubstitutingClassDescriptor(
     override val original: ModuleAwareClassDescriptor,
     private val originalSubstitutor: TypeSubstitutor
@@ -295,4 +392,33 @@ class LazySubstitutingClassDescriptor(
 
     override val name: Name
         get() = original.name
+
+    /**
+     * 返回描述符的字符串表示，用于调试
+     *
+     * 格式: `ClassName<TypeArg1, TypeArg2, ...>`
+     *
+     * 示例:
+     * - `Array<Int>` - 类型参数已替换
+     * - `Map<String, List<Int>>` - 嵌套类型参数
+     * - `Box<T>` - 未替换的类型参数
+     */
+    override fun toString(): String {
+        return buildString {
+            append(name.asString())
+
+            // 获取类型参数
+            val typeParams = typeConstructor.parameters
+            if (typeParams.isNotEmpty()) {
+                append("<")
+                typeParams.joinTo(this, ", ") { param ->
+                    // 获取替换后的类型
+                    val substitutor = getSubstitutor()
+                    val substitutedType = substitutor.substitute(param.defaultType, Variance.INVARIANT)
+                    substitutedType?.toString() ?: param.name.asString()
+                }
+                append(">")
+            }
+        }
+    }
 }

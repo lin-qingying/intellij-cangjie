@@ -693,6 +693,9 @@ fun LazyParseablePsiElement.getContainingCjFile(): CjFile {
     val fileString = if (file != null && file.isValid) file.text else ""
     throw IllegalStateException("CjElement not inside CjFile: $file with text \"$fileString\" for element $this of type ${this::class.java} node = ${this.node}")
 }
+fun getContainingCjFile(psi:LazyParseablePsiElement): CjFile{
+    return psi.getContainingCjFile()
+}
 
 /**
  * 获取元素的文本及其上下文

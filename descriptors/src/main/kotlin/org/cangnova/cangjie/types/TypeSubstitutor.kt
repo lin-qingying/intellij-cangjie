@@ -36,7 +36,201 @@ import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.model.TypeSubstitutorMarker
 import org.cangnova.cangjie.utils.isProcessCanceledException
 
-
+/**
+ * 类型替换器
+ *
+ * 负责将类型参数替换为具体类型，是泛型类型系统的核心组件。
+ *
+ * ## 核心概念
+ *
+ * 类型替换器管理类型参数到具体类型的映射关系，并在类型表达式中应用这些替换。
+ * 例如：
+ * - 将 `Array<T>` 中的 `T` 替换为 `Int`，得到 `Array<Int>`
+ * - 将 `Map<K, V>` 中的 `K -> String, V -> Int`，得到 `Map<String, Int>`
+ *
+ * ## 工作原理
+ *
+ * ### 替换规则
+ *
+ * 类型替换器持有一个 [TypeSubstitution]，它定义了类型参数到类型投影的映射：
+ * ```kotlin
+ * // 概念示例（简化）
+ * class A<T> {
+ *     val list: List<T>
+ * }
+ *
+ * // 当我们有 A<Int> 时，替换器持有映射: T -> Int
+ * val substitutor = TypeSubstitutor.create(mapOf(
+ *     T.typeConstructor -> TypeProjection(Variance.INVARIANT, IntType)
+ * ))
+ *
+ * // 应用替换: List<T> -> List<Int>
+ * val substitutedType = substitutor.substitute(listTType, Variance.INVARIANT)
+ * ```
+ *
+ * ### 递归替换
+ *
+ * 替换器递归处理复杂类型表达式：
+ * 1. **简单类型参数**: 直接从替换映射中查找（如 `T -> Int`）
+ * 2. **泛型类型**: 递归替换类型参数（如 `List<T> -> List<Int>`）
+ * 3. **嵌套泛型**: 深度递归替换（如 `Map<K, List<V>> -> Map<String, List<Int>>`）
+ * 4. **函数类型**: 替换参数和返回类型（如 `(T) -> T` 变成 `(Int) -> Int`）
+ *
+ * ### 型变处理
+ *
+ * 替换器正确处理协变和逆变：
+ * - **协变** (`out T`): 只能出现在返回位置
+ * - **逆变** (`in T`): 只能出现在参数位置
+ * - **不变** (`T`): 可以出现在任何位置
+ *
+ * 使用 [combine] 方法合并型变，防止冲突。
+ *
+ * ## 与 LazySubstitutingClassDescriptor 的协作
+ *
+ * `TypeSubstitutor` 和 `LazySubstitutingClassDescriptor` 协同工作实现泛型：
+ *
+ * ```
+ * 泛型类 A<T>
+ *     ↓
+ * 原始 ClassDescriptor（定义 T）
+ *     ↓
+ * TypeSubstitutor（T -> Int）
+ *     ↓
+ * LazySubstitutingClassDescriptor（包装原始描述符 + 替换器）
+ *     ↓
+ * 访问成员时，动态应用替换
+ *     ↓
+ * A<Int> 的成员类型（T 被替换为 Int）
+ * ```
+ *
+ * ## 创建替换器的方式
+ *
+ * ### 从 CangJieType 创建
+ * ```kotlin
+ * // 从类型实例（如 A<Int>）创建替换器
+ * val type: CangJieType = ... // A<Int>
+ * val substitutor = TypeSubstitutor.create(type)
+ * // 自动提取类型参数映射: T -> Int
+ * ```
+ *
+ * ### 从映射创建
+ * ```kotlin
+ * // 显式指定映射
+ * val substitutor = TypeSubstitutor.create(mapOf(
+ *     TConstructor to TypeProjectionImpl(Variance.INVARIANT, IntType)
+ * ))
+ * ```
+ *
+ * ### 链式替换
+ * ```kotlin
+ * // 组合多个替换器
+ * val first = TypeSubstitutor.create(mapOf(T -> A<U>))
+ * val second = TypeSubstitutor.create(mapOf(U -> Int))
+ * val chained = TypeSubstitutor.createChainedSubstitutor(
+ *     first.substitution,
+ *     second.substitution
+ * )
+ * // 最终效果: T -> A<Int>
+ * ```
+ *
+ * ## 替换方法
+ *
+ * ### substitute - 基本替换
+ * ```kotlin
+ * // 替换类型投影（包含型变信息）
+ * fun substitute(typeProjection: TypeProjection): TypeProjection?
+ *
+ * // 替换类型（指定使用位置的型变）
+ * fun substitute(type: CangJieType, howThisTypeIsUsed: Variance): CangJieType?
+ * ```
+ *
+ * ### safeSubstitute - 安全替换
+ * ```kotlin
+ * // 替换失败时返回错误类型而非 null
+ * fun safeSubstitute(type: CangJieType, howThisTypeIsUsed: Variance): CangJieType
+ * ```
+ *
+ * ### substituteWithoutApproximation - 不进行近似的替换
+ * ```kotlin
+ * // 用于内部处理，不对捕获类型进行近似
+ * fun substituteWithoutApproximation(typeProjection: TypeProjection): TypeProjection?
+ * ```
+ *
+ * ## 性能优化
+ *
+ * - **空替换检测**: [isEmpty] 检查避免不必要的替换操作
+ * - **递归深度限制**: [MAX_RECURSION_DEPTH] 防止无限递归
+ * - **懒加载**: 配合 `LazySubstitutingClassDescriptor` 延迟替换
+ *
+ * ## 使用示例
+ *
+ * ### 示例1: 简单类型参数替换
+ * ```kotlin
+ * // 给定: class Box<T> { val value: T }
+ * val boxDescriptor: ClassDescriptor = ... // Box<T>
+ * val tParam: TypeParameterDescriptor = boxDescriptor.declaredTypeParameters[0]
+ *
+ * // 创建替换器: T -> String
+ * val substitutor = TypeSubstitutor.create(mapOf(
+ *     tParam.typeConstructor to TypeProjectionImpl(Variance.INVARIANT, stringType)
+ * ))
+ *
+ * // 应用替换
+ * val boxIntType = substitutor.substitute(
+ *     boxDescriptor.defaultType,
+ *     Variance.INVARIANT
+ * )
+ * // 结果: Box<String>
+ * ```
+ *
+ * ### 示例2: 从类型实例创建
+ * ```kotlin
+ * // 给定类型 List<Int>
+ * val listIntType: CangJieType = ... // List<Int>
+ *
+ * // 创建替换器（自动提取 E -> Int）
+ * val substitutor = TypeSubstitutor.create(listIntType)
+ *
+ * // 假设有函数 func foo<T>(list: List<T>): T
+ * val fooDescriptor: FunctionDescriptor = ...
+ * val tParam = fooDescriptor.typeParameters[0]
+ *
+ * // 如果用 List<Int> 调用 foo，T 应该被推断为 Int
+ * // （这是类型推断器的工作，但它会用到类似的替换逻辑）
+ * ```
+ *
+ * ### 示例3: 嵌套泛型替换
+ * ```kotlin
+ * // 给定: class Container<T> { val items: List<T> }
+ * val containerDescriptor: ClassDescriptor = ...
+ *
+ * // 创建 Container<String>
+ * val substitutor = TypeSubstitutor.create(mapOf(
+ *     TConstructor to TypeProjectionImpl(Variance.INVARIANT, stringType)
+ * ))
+ *
+ * // 获取 items 属性的类型
+ * val itemsType = containerDescriptor.getMemberScope()
+ *     .getProperty("items")
+ *     .returnType // List<T>
+ *
+ * // 应用替换
+ * val substitutedType = substitutor.substitute(itemsType, Variance.INVARIANT)
+ * // 结果: List<String>
+ * ```
+ *
+ * ## 错误处理
+ *
+ * - 替换过程中的异常被捕获为 [SubstitutionException]
+ * - [safeSubstitute] 返回错误类型而非抛出异常
+ * - 递归深度超限时抛出 [IllegalStateException]
+ *
+ * @property substitution 类型替换规则
+ *
+ * @see TypeSubstitution 替换规则接口
+ * @see LazySubstitutingClassDescriptor 使用替换器的类描述符
+ * @see TypeProjection 类型投影（类型 + 型变）
+ */
 class TypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutorMarker {
     fun substituteWithoutApproximation(typeProjection: TypeProjection): TypeProjection? {
         if (isEmpty) {

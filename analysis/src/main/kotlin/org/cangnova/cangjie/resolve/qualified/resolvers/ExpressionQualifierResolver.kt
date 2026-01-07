@@ -37,6 +37,8 @@ import org.cangnova.cangjie.resolve.qualified.context.IsValueChecker
 import org.cangnova.cangjie.resolve.qualified.context.ResolutionContext
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.scopes.receivers.*
+import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.TypeSubstitutor
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 
 /**
@@ -183,8 +185,18 @@ class ExpressionQualifierResolver(
         val qualifierDescriptor = resolveQualifierDescriptor(name, receiver, context, location)
 
         if (qualifierDescriptor != null) {
-            typeResolver.resolveTypeForClass(expression, context.scope, context.trace, qualifierDescriptor)
-            return createQualifierReceiver(expression, qualifierDescriptor, context)
+            // 解析带类型参数的类型（例如 A<Int>）
+            val resolvedType = typeResolver.resolveTypeForClass(expression, context.scope, context.trace, qualifierDescriptor)
+       
+
+            val substitutedDescriptor = if (qualifierDescriptor is ClassifierDescriptorWithTypeParameters && resolvedType != null) {
+                val substitutor =  TypeSubstitutor.create(resolvedType)
+                qualifierDescriptor.substitute(substitutor) ?: qualifierDescriptor
+            } else {
+                qualifierDescriptor
+            }
+
+            return createQualifierReceiver(expression, substitutedDescriptor, resolvedType, context)
         }
 
         return null
@@ -206,7 +218,6 @@ class ExpressionQualifierResolver(
                     ?: receiver.descriptor.memberScope.getContributedClassifier(name, location)
             }
 
-            is EnumClassQualifier -> receiver.staticScope.getContributedClassifier(name, location)
             is ClassQualifier -> receiver.staticScope.getContributedClassifier(name, location)
 
             null -> context.scope.findClassifier(name, location)
@@ -219,19 +230,26 @@ class ExpressionQualifierResolver(
 
     /**
      * 创建限定符接收器
+     *
+     * @param expression 简单名称表达式
+     * @param descriptor 限定符描述符
+     * @param resolvedType 已解析的类型（带类型参数替换，如 A<Int>）
+     * @param context 表达式类型推导上下文
+     * @return 限定符接收器，如果创建失败则返回 null
      */
     private fun createQualifierReceiver(
         expression: CjSimpleNameExpression,
         descriptor: DeclarationDescriptor,
+        resolvedType: CangJieType?,
         context: ExpressionTypingContext
     ): QualifierReceiver? {
         val qualifier = when (descriptor) {
             is PackageViewDescriptor -> PackageQualifier(expression, descriptor)
 
-            is ClassDescriptor -> ClassQualifier(
+            is ClassAndEnumDescriptor -> ClassQualifier(
                 expression,
                 descriptor,
-                typeResolver.resolveTypeForClass(expression, context.scope, context.trace, descriptor)
+                resolvedType  // 使用已解析的带类型参数的类型
             )
 
             is TypeParameterDescriptor -> TypeParameterQualifier(expression, descriptor)

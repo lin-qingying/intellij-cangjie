@@ -41,6 +41,9 @@ open class CangJieReferenceProvidersService {
 
         @JvmStatic
         fun getReferencesFromProviders(psiElement: PsiElement): Array<PsiReference> {
+            if (!psiElement.isValid) {
+                return PsiReference.EMPTY_ARRAY
+            }
             return getInstance(psiElement.project).getReferences(psiElement)
         }
     }

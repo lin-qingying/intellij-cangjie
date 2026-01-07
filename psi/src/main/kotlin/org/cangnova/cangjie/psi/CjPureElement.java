@@ -26,6 +26,7 @@ package org.cangnova.cangjie.psi;
 
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A minimal interface that {@link CjElement} implements for the purpose of code-generation that does not need the full power of PSI.
@@ -38,7 +39,7 @@ public interface CjPureElement {
      */
     @NotNull
     CjElement getPsiOrParent();
-
+@Nullable
     /**
      * Returns parent source element.
      */

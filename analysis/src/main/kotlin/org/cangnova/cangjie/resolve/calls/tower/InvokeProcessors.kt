@@ -27,7 +27,6 @@ package org.cangnova.cangjie.resolve.calls.tower
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorNameConventions
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
-import org.cangnova.cangjie.resolve.calls.tasks.createSynthesizedInvokes
 import org.cangnova.cangjie.resolve.scopes.receivers.DetailedReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import java.util.ArrayList
@@ -191,7 +190,7 @@ class InvokeTowerProcessor<C : Candidate>(
     explicitReceiver: DetailedReceiver?
 ) : AbstractInvokeTowerProcessor<C>(
     factoryProviderForInvoke,
-    createVariableAndObjectProcessor(
+    createVariableProcessor(
         scopeTower,
         name,
         factoryProviderForInvoke.factoryForVariable(stripExplicitReceiver = false),

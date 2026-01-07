@@ -43,10 +43,8 @@ import org.cangnova.cangjie.resolve.calls.util.getReceiverValueWithSmartCast
 import org.cangnova.cangjie.resolve.isInsideInterface
 import org.cangnova.cangjie.resolve.isStatic
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
-import org.cangnova.cangjie.resolve.scopes.receivers.ClassQualifier
 import org.cangnova.cangjie.resolve.scopes.receivers.ClassValueReceiver
-import org.cangnova.cangjie.resolve.scopes.receivers.EnumClassQualifier
-import org.cangnova.cangjie.resolve.scopes.receivers.TypeAliasQualifier
+import org.cangnova.cangjie.resolve.scopes.receivers.ClassifierQualifier
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.TypeUtils.noExpectedType
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
@@ -113,35 +111,32 @@ fun LexicalScope.isStaticContext(): Boolean {
     return ownerDescriptor.isStatic()
 }
 
+/**
+ * 判断解析候选项是否处于静态上下文
+ *
+ * 静态上下文包括：
+ * - 通过类型名（ClassifierQualifier）访问成员，如 `ClassName.member`
+ * - 在静态成员声明内部
+ *
+ * 在静态上下文中，只能访问静态成员（静态方法/属性、构造器、枚举构造器）。
+ *
+ * @return true 表示处于静态上下文
+ */
 fun ResolutionCandidate.isStaticContext(): Boolean {
-    //    调用上下文的Scope是否输入静态声明
-    fun isStaticContext(): Boolean {
+    // 检查调用上下文的 Scope 是否属于静态声明
+    fun isLexicalStaticContext(): Boolean {
         return scopeTower.lexicalScope.isStaticContext()
     }
 
+    // 如果没有显式接收器，检查词法作用域
+    resolvedCall.atom.explicitReceiver ?: return isLexicalStaticContext()
 
-    resolvedCall.atom.explicitReceiver ?: return isStaticContext()
-    return when (val value = resolvedCall.atom.explicitReceiver!!.receiver) {
-
-        is EnumClassQualifier -> {
-            value.descriptor.kind == ClassKind.ENUM
-//                !(value.descriptor.kind == ClassKind.ENUM || value.descriptor.kind == ClassKind.ENUM_CONSTRUCTOR)
-
-        }
-
-        is TypeAliasQualifier -> {
-            true
-        }
-
-        is ClassQualifier -> {
-            !(value.descriptor.kind == ClassKind.ENUM  )
-
-        }
-
+    // 所有通过类型名（ClassifierQualifier）的访问都是静态上下文
+    // 包括普通类、枚举类、类型别名
+    return when (resolvedCall.atom.explicitReceiver!!.receiver) {
+        is ClassifierQualifier -> true
         else -> false
     }
-
-
 }
 
 

@@ -385,11 +385,11 @@ fun CallTypeAndReceiver<*, *>.receiverTypesWithIndex(
 
     val resolutionScope = contextElement.getResolutionScope(bindingContext, resolutionFacade)
 
-    fun extractReceiverTypeFrom(descriptor: ClassDescriptor): CangJieType? = descriptor.enumClassValueType
+    fun extractReceiverTypeFrom(descriptor: ClassAndEnumDescriptor): CangJieType? = descriptor.enumClassValueType
 
     fun tryExtractReceiver(context: BindingContext) =receiverExpression?.let { context.get(BindingContext.QUALIFIER, receiverExpression) }
 
-    fun tryExtractClassDescriptor(context: BindingContext): ClassDescriptor? =
+    fun tryExtractClassDescriptor(context: BindingContext): ClassAndEnumDescriptor? =
         (tryExtractReceiver(context) as? ClassQualifier)?.descriptor
 
     fun tryExtractClassDescriptorFromAlias(context: BindingContext): ClassDescriptor? =

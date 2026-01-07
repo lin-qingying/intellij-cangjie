@@ -1017,11 +1017,7 @@ class DiagnosticReporterByTrackingStrategy(
                         expression.statements.lastOrNull() ?: expression
                     } else expression
 
-//                    val diagnostic = if (error.couldBeResolvedWithUnrestrictedBuilderInference) {
-//                        COULD_BE_INFERRED_ONLY_WITH_UNRESTRICTED_BUILDER_INFERENCE
-//                    } else {
-//                        NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER
-//                    }
+
                     val diagnostic = NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER
                     if (unwrappedExpression is CjCollectionLiteralExpression && diagnostic == NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER) {
 //                        数组字面量 替换为ARRAY_LITERAL_TYPE_INFERENCE_FAILED

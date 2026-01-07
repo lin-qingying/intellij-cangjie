@@ -71,6 +71,18 @@ import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import org.cangnova.cangjie.types.isError
 import org.cangnova.cangjie.types.toFunctionType
 
+// 枚举的解析没有正确实现，enum ab{
+//A|B
+//}
+//func a() :Unit{
+//    //这里也是一样，ab是枚举，但是B是枚举的一个构造器，ab.B可以使用，单独使用B也是可以的  ，这里错误的报告了 [UNRESOLVED_REFERENCE] Reference not found: REFERENCE_EXPRESSION [OVERLOAD_RESOLUTION_AMBIGUITY] Overload resolution ambiguity:[org.cangnova.cangjie.resolve.calls.tower.NewResolvedCallImpl@4938fe68, org.cangnova.cangjie.resolve.calls.tower.NewResolvedCallImpl@53e36480]
+////枚举的表达式解析目前实现没有，需要实现
+//    let a:ab = ab.B
+//    let a1:ab = ab()
+//
+//}详细分析CallExpressionResolver
+//
+//对于 Class<T 可能有类型参数>.Func  或者Enum<T 可能有类型参数>.Constructor   Class和Enum是同一个东西，都应该被正确解析为类型，Func和Constructor是下一阶段解析的，根据仓颉语言规范详细分析重构，仓颉语言文档通过mcp获取，仓颉语言编译器源码在external/cangjie_compiler中
 /**
  * 调用表达式解析器
  *
@@ -134,9 +146,6 @@ class CallExpressionResolver(
     private val dataFlowValueFactory: DataFlowValueFactory,
     private val cangjieTypeRefiner: CangJieTypeRefiner
 ) {
-
-    private lateinit var expressionTypingServices: ExpressionTypingServices
-
     /**
      * 注入表达式类型服务
      *
@@ -146,10 +155,9 @@ class CallExpressionResolver(
      *
      * @param expressionTypingServices 表达式类型服务
      */
-    @Inject
-    fun setExpressionTypingServices(expressionTypingServices: ExpressionTypingServices) {
-        this.expressionTypingServices = expressionTypingServices
-    }
+    @set:Inject
+    lateinit var expressionTypingServices: ExpressionTypingServices
+
 
     /**
      * 获取调用表达式的类型信息（不含最终类型检查）
@@ -167,8 +175,10 @@ class CallExpressionResolver(
      * @return 包含类型和数据流信息的 [CangJieTypeInfo]
      */
     private fun getCallExpressionTypeInfoWithoutFinalTypeCheck(
-        callExpression: CjCallExpression, receiver: Receiver?,
-        callOperationNode: ASTNode?, context: ExpressionTypingContext,
+        callExpression: CjCallExpression,
+        receiver: Receiver?,
+        callOperationNode: ASTNode?,
+        context: ExpressionTypingContext,
         initialDataFlowInfoForArguments: DataFlowInfo
     ): CangJieTypeInfo {
         val call = CallMaker.makeCall(receiver, callOperationNode, callExpression)
@@ -190,7 +200,7 @@ class CallExpressionResolver(
 
 
             if (callExpression.valueArgumentList == null && callExpression.lambdaArguments.isEmpty()) {
-                // there are only type arguments
+                // 只有类型参数，没有值参数
                 val hasValueParameters = functionDescriptor == null || functionDescriptor.valueParameters.isNotEmpty()
                 context.trace.report(FUNCTION_CALL_EXPECTED.on(callExpression, callExpression, hasValueParameters))
             }
@@ -207,7 +217,7 @@ class CallExpressionResolver(
             }
 
             val type = functionDescriptor.returnType
-            // Extracting jump out possible and jump point flow info from arguments, if any
+            // 从参数中提取跳出可能性和跳出点数据流信息（如有）
             val arguments = callExpression.valueArguments
             val resultFlowInfo = resolvedCall.dataFlowInfoForArguments.resultInfo
             var jumpFlowInfo = resultFlowInfo
@@ -225,10 +235,6 @@ class CallExpressionResolver(
         }
 
 
-
-
-
-
         val calleeExpression = callExpression.calleeExpression
         if (calleeExpression is CjSimpleNameExpression && callExpression.typeArgumentList == null) {
             val temporaryForVariable = TemporaryTraceAndCache.create(
@@ -241,7 +247,7 @@ class CallExpressionResolver(
             val qualifier = temporaryForVariable.trace[BindingContext.QUALIFIER, calleeExpression]
             if (notNothing && (qualifier == null || qualifier !is PackageQualifier)) {
 
-                // mark property call as unsuccessful to avoid exceptions
+                // 将属性调用标记为不成功，以避免异常
                 callExpression.getResolvedCall(temporaryForVariable.trace.bindingContext).let {
                     (it as? ResolvedCallImpl)?.addStatus(ResolutionStatus.OTHER_ERROR)
                 }
@@ -288,8 +294,6 @@ class CallExpressionResolver(
         }
         return typeInfo
     }
-
-
 
 
     /**
@@ -411,8 +415,10 @@ class CallExpressionResolver(
      * @return 枚举条目的描述符，如果不是枚举条目则返回 null
      */
     private fun getSimpleNameExpressionEnumEntryType(
-        nameExpression: CjSimpleNameExpression, receiver: Receiver?,
-        callOperationNode: ASTNode?, context: ExpressionTypingContext,
+        nameExpression: CjSimpleNameExpression,
+        receiver: Receiver?,
+        callOperationNode: ASTNode?,
+        context: ExpressionTypingContext,
         initialDataFlowInfoForArguments: DataFlowInfo
     ): DeclarationDescriptor? {
 
@@ -428,10 +434,11 @@ class CallExpressionResolver(
     /**
      * 获取简单名称表达式的类型信息（内部实现）
      *
-     * 采用多阶段解析策略：
-     * 1. 首先尝试作为变量解析
-     * 2. 如果失败，尝试作为函数解析
-     * 3. 如果仍失败，尝试作为限定符解析
+     * 采用四阶段解析策略：
+     * 1. **步骤1：变量解析** - 尝试作为变量/属性解析
+     * 2. **步骤2：函数解析** - 尝试作为函数解析
+     * 3. **步骤3：限定符解析** - 尝试作为类型/包限定符解析
+     * 4. **步骤4：枚举构造器解析** - 如果接收者是枚举类型，尝试作为枚举构造器解析
      *
      * @param nameExpression 简单名称表达式
      * @param receiver 接收者
@@ -441,11 +448,68 @@ class CallExpressionResolver(
      * @return 名称表达式的类型信息
      */
     private fun getSimpleNameExpressionTypeInfo(
-        nameExpression: CjSimpleNameExpression, receiver: Receiver?,
-        callOperationNode: ASTNode?, context: ExpressionTypingContext,
+        nameExpression: CjSimpleNameExpression,
+        receiver: Receiver?,
+        callOperationNode: ASTNode?,
+        context: ExpressionTypingContext,
         initialDataFlowInfoForArguments: DataFlowInfo
     ): CangJieTypeInfo {
+        // ============================================================
+        // 步骤1: 尝试作为变量解析
+        // ============================================================
+        val variableResult = tryResolveAsVariable(
+            nameExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
+        )
+        if (variableResult != null) {
+            return variableResult
+        }
 
+        // ============================================================
+        // 步骤2: 尝试作为函数解析
+        // ============================================================
+        val functionResult = tryResolveAsFunction(
+            nameExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
+        )
+        if (functionResult != null) {
+            return functionResult
+        }
+
+        // ============================================================
+        // 步骤3: 尝试作为 Qualifier 解析（类型/包）
+        // ============================================================
+        val qualifierResult = tryResolveAsQualifier(
+            nameExpression, receiver, context
+        )
+        if (qualifierResult != null) {
+            return qualifierResult
+        }
+
+        // ============================================================
+        // 步骤4: 尝试作为枚举构造器解析
+        // ============================================================
+        val enumConstructorResult = tryResolveAsEnumConstructor(
+            nameExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
+        )
+        if (enumConstructorResult != null) {
+            return enumConstructorResult
+        }
+
+        // 所有解析策略都失败，返回无类型信息
+        return noTypeInfo(context)
+    }
+
+    /**
+     * 步骤1: 尝试将简单名称表达式解析为变量
+     *
+     * @return 如果成功解析为变量，返回类型信息；否则返回 null
+     */
+    private fun tryResolveAsVariable(
+        nameExpression: CjSimpleNameExpression,
+        receiver: Receiver?,
+        callOperationNode: ASTNode?,
+        context: ExpressionTypingContext,
+        initialDataFlowInfoForArguments: DataFlowInfo
+    ): CangJieTypeInfo? {
         val temporaryForVariable = TemporaryTraceAndCache.create(
             context, "trace to resolveName as variable", nameExpression
         )
@@ -459,8 +523,22 @@ class CallExpressionResolver(
             return createTypeInfo(type, initialDataFlowInfoForArguments)
         }
 
-        val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
+        return null
+    }
 
+    /**
+     * 步骤2: 尝试将简单名称表达式解析为函数
+     *
+     * @return 如果成功解析为函数，返回类型信息；否则返回 null
+     */
+    private fun tryResolveAsFunction(
+        nameExpression: CjSimpleNameExpression,
+        receiver: Receiver?,
+        callOperationNode: ASTNode?,
+        context: ExpressionTypingContext,
+        initialDataFlowInfoForArguments: DataFlowInfo
+    ): CangJieTypeInfo? {
+        val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
 
         val temporaryForFunction = TemporaryTraceAndCache.create(
             context, "trace to resolveName as function", nameExpression
@@ -469,29 +547,103 @@ class CallExpressionResolver(
         val (resolveResult, resolvedCall) = getResolvedCallForFunction(
             call, newContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, initialDataFlowInfoForArguments
         )
+
         if (resolveResult) {
             val functionDescriptor = resolvedCall?.resultingDescriptor
+            // 排除构造器（构造器在步骤4中处理）
             if (functionDescriptor !is ConstructorDescriptor) {
                 temporaryForFunction.commit()
-                functionDescriptor == null || functionDescriptor.valueParameters.isNotEmpty()
-//                context.trace.report(FUNCTION_CALL_EXPECTED.on(nameExpression, nameExpression, hasValueParameters))
                 return createTypeInfo(functionDescriptor?.toFunctionType(), context)
             }
         }
 
+        return null
+    }
 
-        val temporaryForQualifier =
-            TemporaryTraceAndCache.create(context, "trace to resolveName as qualifier", nameExpression)
+    /**
+     * 步骤3: 尝试将简单名称表达式解析为 Qualifier（类型或包限定符）
+     *
+     * @return 如果成功解析为 Qualifier，返回类型信息；否则返回 null
+     */
+    private fun tryResolveAsQualifier(
+        nameExpression: CjSimpleNameExpression,
+        receiver: Receiver?,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo? {
+        val temporaryForQualifier = TemporaryTraceAndCache.create(
+            context, "trace to resolveName as qualifier", nameExpression
+        )
         val contextForQualifier = context.replaceTraceAndCache(temporaryForQualifier)
-        qualifiedExpressionResolver.resolveNameExpressionAsQualifierForDiagnostics(
+
+        val qualifier = qualifiedExpressionResolver.resolveNameExpressionAsQualifierForDiagnostics(
             nameExpression,
             receiver,
             contextForQualifier
-        )?.let {
-            resolveQualifierAsStandaloneExpression(it, contextForQualifier)
+        )
+
+        if (qualifier != null) {
+            resolveQualifierAsStandaloneExpression(qualifier, contextForQualifier)
             temporaryForQualifier.commit()
-        } ?: temporaryForVariable.commit()
-        return noTypeInfo(context)
+            return noTypeInfo(context)
+        }
+
+        return null
+    }
+
+    /**
+     * 步骤4: 尝试将简单名称表达式解析为枚举构造器
+     *
+     * 当接收者是枚举类型时，尝试将名称解析为该枚举的构造器（枚举条目）。
+     *
+     * @return 如果成功解析为枚举构造器，返回类型信息；否则返回 null
+     */
+    private fun tryResolveAsEnumConstructor(
+        nameExpression: CjSimpleNameExpression,
+        receiver: Receiver?,
+        callOperationNode: ASTNode?,
+        context: ExpressionTypingContext,
+        initialDataFlowInfoForArguments: DataFlowInfo
+    ): CangJieTypeInfo? {
+        // 只有当存在接收者时才尝试枚举构造器解析
+        if (receiver == null) {
+            return null
+        }
+
+        val temporaryForEnumConstructor = TemporaryTraceAndCache.create(
+            context, "trace to resolveName as enum constructor", nameExpression
+        )
+
+        // 检查接收者是否为枚举 Qualifier
+        val qualifier = (nameExpression.parent as? CjExpression)?.let { context.trace[BindingContext.QUALIFIER, it] }
+        if (qualifier is ClassifierQualifier) {
+            val classDescriptor = when (qualifier) {
+                is ClassQualifier -> qualifier.descriptor
+                is TypeAliasQualifier -> qualifier.classDescriptor
+                else -> null
+            }
+
+            // 如果是枚举类型，尝试解析枚举构造器
+            if (classDescriptor != null && DescriptorUtils.isEnum(classDescriptor)) {
+                val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
+                val contextForEnum = context.replaceTraceAndCache(temporaryForEnumConstructor)
+
+                val results = callResolver.resolveEnumCall(
+                    temporaryForEnumConstructor,
+                    BasicCallResolutionContext.create(
+                        contextForEnum, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+                        DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
+                    )
+                )
+
+                if (!results.isNothing) {
+                    temporaryForEnumConstructor.commit()
+                    val descriptor = results.resultingDescriptor
+                    return createTypeInfo(descriptor?.returnType, initialDataFlowInfoForArguments)
+                }
+            }
+        }
+
+        return null
     }
 
     /**
@@ -527,18 +679,20 @@ class CallExpressionResolver(
     private fun CjQualifiedExpression.elementChain(context: ExpressionTypingContext) =
         qualifiedExpressionResolver.resolveQualifierInExpressionAndUnroll(this, context) { nameExpression ->
             val temporaryTraceAndCache =
-                TemporaryTraceAndCache.create(context, "trace to resolveName as local variable or property", nameExpression)
+                TemporaryTraceAndCache.create(
+                    context,
+                    "trace to resolveName as local variable or property",
+                    nameExpression
+                )
             val resolutionResult = resolveSimpleName(context, nameExpression, temporaryTraceAndCache)
 
-            if (resolutionResult.isSingleResult && resolutionResult.resultingDescriptor is EnumConstructorAccessDescriptor) {
-                false
-            } else when (resolutionResult.resultCode) {
+            // 枚举构造器通过 EnumConstructorDescriptor 直接暴露
+            when (resolutionResult.resultCode) {
                 OverloadResolutionResults.Code.NAME_NOT_FOUND, OverloadResolutionResults.Code.CANDIDATES_WITH_WRONG_RECEIVER -> false
                 else -> {
-                    // 默认使用改进的类型推断系统
-                    val newInferenceEnabled = true
-                    val success = !newInferenceEnabled || resolutionResult.isSuccess
-                    if (newInferenceEnabled && success) {
+
+                    val success = resolutionResult.isSuccess
+                    if (success) {
                         temporaryTraceAndCache.commit()
                     }
                     success
@@ -581,20 +735,10 @@ class CallExpressionResolver(
         val elementChain = expression.elementChain(currentContext)
         val firstReceiver = elementChain.first().receiver
 
+        // 统一处理所有限定符类型
+        // 对于 ClassifierQualifier（包括普通类和枚举类），不需要获取类型信息
+        // 成员访问通过 staticScope 解析
         var receiverTypeInfo = when (val qualifier = trace[BindingContext.QUALIFIER, firstReceiver]) {
-            is EnumClassQualifier -> {
-                if (qualifier.call == null) {
-                    currentContext.config.isDotEnumGetType = true
-                    expressionTypingServices.getTypeInfo(firstReceiver, currentContext)
-                    currentContext.config.isDotEnumGetType = false
-
-                    CangJieTypeInfo(null, currentContext.dataFlowInfo)
-
-                } else {
-                    CangJieTypeInfo(null, currentContext.dataFlowInfo)
-                }
-            }
-
             null -> expressionTypingServices.getTypeInfo(firstReceiver, currentContext)
             else -> CangJieTypeInfo(null, currentContext.dataFlowInfo)
         }
@@ -602,7 +746,7 @@ class CallExpressionResolver(
         var resultTypeInfo = receiverTypeInfo
 
         var allUnsafe = true
-        // Branch point: right before first safe call
+        // 分支点：在第一个安全调用之前
         var branchPointDataFlowInfo = receiverTypeInfo.dataFlowInfo
 
         for (element in elementChain) {
@@ -620,19 +764,19 @@ class CallExpressionResolver(
 
             val qualifiedExpression = element.qualified
             val lastStage = qualifiedExpression === expression
-            // Drop NO_EXPECTED_TYPE / INDEPENDENT at last stage
+            // 在最后阶段移除 NO_EXPECTED_TYPE / INDEPENDENT
             val contextForSelector = (if (lastStage) context else currentContext).replaceDataFlowInfo(
                 if (receiver is ReceiverValue && TypeUtils.isOptionType(receiver.type) && !element.safe) {
-                    // Call with nullable receiver: take data flow info from branch point
+                    // 带有可空接收者的调用：从分支点获取数据流信息
                     branchPointDataFlowInfo
                 } else {
-                    // Take data flow info from the current receiver
+                    // 从当前接收者获取数据流信息
                     receiverTypeInfo.dataFlowInfo
                 }
             )
 
             val selectorTypeInfo = getSafeOrUnsafeSelectorTypeInfo(receiver, element, contextForSelector)
-            // if we have only dots and not ?. move branch point further
+            // 如果只有点号而没有 ?.，则继续移动分支点
             allUnsafe = allUnsafe && !element.safe
             if (allUnsafe) {
                 branchPointDataFlowInfo = selectorTypeInfo.dataFlowInfo
@@ -645,7 +789,7 @@ class CallExpressionResolver(
             if (!lastStage) {
                 recordResultTypeInfo(qualifiedExpression, resultTypeInfo, contextForSelector)
             }
-            // For the next stage, if any, current stage selector is the receiver!
+            // 对于下一阶段（如有），当前阶段的选择器将作为接收者！
             receiverTypeInfo = selectorTypeInfo
         }
         return resultTypeInfo
@@ -726,7 +870,7 @@ class CallExpressionResolver(
             })
 
         if (receiverDataFlowValue != null && element.safe) {
-            // Additional "receiver != null" information should be applied if we consider a safe call
+            // 如果是安全调用，应该应用额外的 "receiver != null" 信息
             if (shouldNullifySafeCallType) {
                 initialDataFlowInfoForArguments = initialDataFlowInfoForArguments.disequate(
                     receiverDataFlowValue, DataFlowValue.nullValue(builtIns), languageVersionSettings
@@ -763,7 +907,7 @@ class CallExpressionResolver(
             if (element.safe && shouldNullifySafeCallType) {
                 selectorTypeInfo = selectorTypeInfo.replaceType(TypeUtils.makeOption(selectorType))
             }
-            // TODO : this is suspicious: remove this code?
+            // TODO: 这段代码可疑：是否应该移除？
             if (selector != null) {
                 context.trace.recordType(selector, selectorTypeInfo.type)
             }
@@ -787,10 +931,10 @@ class CallExpressionResolver(
     ) {
         val trace = context.trace
         if (trace[BindingContext.PROCESSED, qualified] != true) {
-            // Store type information (to prevent problems in call completer)
+            // 存储类型信息（以防止调用补全器出现问题）
             trace.record(BindingContext.PROCESSED, qualified)
             trace.record(BindingContext.EXPRESSION_TYPE_INFO, qualified, resultTypeInfo)
-            // save scope before analyze and fix debugger: see CodeFragmentAnalyzer.correctContextForExpression
+            // 在分析之前保存作用域并修复调试器：参见 CodeFragmentAnalyzer.correctContextForExpression
             trace.recordScope(context.scope, qualified)
             context.replaceDataFlowInfo(resultTypeInfo.dataFlowInfo).recordDataFlowInfo(qualified)
         }

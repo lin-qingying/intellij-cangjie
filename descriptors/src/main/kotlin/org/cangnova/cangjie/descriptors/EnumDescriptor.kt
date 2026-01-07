@@ -168,7 +168,7 @@ interface EnumDescriptor : ClassAndEnumDescriptor {
  * - 简单case：`Red`
  * - 带关联值的case：`Success(T)`
  */
-interface EnumConstructorDescriptor : CallableMemberDescriptor {
+interface EnumConstructorDescriptor :ConstructorDescriptor {
 
     /**
      * 所属的枚举
@@ -180,7 +180,10 @@ interface EnumConstructorDescriptor : CallableMemberDescriptor {
      */
     override val name: Name
 
-
+    /**
+     * 枚举构造器始终是静态的，因为它们通过类型名访问（如 Color.Red）
+     */
+    override val isStatic: Boolean get() = true
 
     /**
      * 是否有关联值
@@ -195,7 +198,7 @@ interface EnumConstructorDescriptor : CallableMemberDescriptor {
     /**
      * 返回类型（通常是枚举本身）
      */
-    override val returnType: CangJieType?
+    override val returnType: CangJieType
 
 
     /**
@@ -214,7 +217,7 @@ interface EnumConstructorDescriptor : CallableMemberDescriptor {
 
 
 
-    interface CopyBuilder<D : EnumConstructorDescriptor> : CallableMemberDescriptor.CopyBuilder<D> {
+    interface CopyBuilder<D : EnumConstructorDescriptor> : FunctionDescriptor.CopyBuilder<D> {
         override fun setOwner(owner: DeclarationDescriptor): CopyBuilder<D>
 
         override fun setModality(modality: Modality): CopyBuilder<D>
@@ -227,7 +230,7 @@ interface EnumConstructorDescriptor : CallableMemberDescriptor {
 
         override fun setName(name: Name): CopyBuilder<D>
 
-        fun setValueParameters(parameters: List<ValueParameterDescriptor>): CopyBuilder<D>
+        override fun setValueParameters(parameters: List<ValueParameterDescriptor>): CopyBuilder<D>
 
         override fun setTypeParameters(parameters: List<TypeParameterDescriptor>): CallableMemberDescriptor.CopyBuilder<D>
 
@@ -239,19 +242,19 @@ interface EnumConstructorDescriptor : CallableMemberDescriptor {
 
         override fun setOriginal(original: CallableMemberDescriptor?): CopyBuilder<D>
 
-        fun setSignatureChange(): CopyBuilder<D>
+        override fun setSignatureChange(): CopyBuilder<D>
 
         override fun setPreserveSourceElement(): CopyBuilder<D>
 
-        fun setDropOriginalInContainingParts(): CopyBuilder<D>
+        override fun setDropOriginalInContainingParts(): CopyBuilder<D>
 
 
 
-        fun setAdditionalAnnotations(additionalAnnotations: Annotations): CopyBuilder<D>
+        override fun setAdditionalAnnotations(additionalAnnotations: Annotations): CopyBuilder<D>
 
         override fun setSubstitution(substitution: TypeSubstitution): CopyBuilder<D>
 
-        fun <V> putUserData(userDataKey: CallableDescriptor.UserDataKey<V>, value: V): CopyBuilder<D>
+        override fun <V> putUserData(userDataKey: CallableDescriptor.UserDataKey<V>, value: V): CopyBuilder<D>
 
         override fun build(): D?
     }

@@ -34,7 +34,6 @@ import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.LAMBDA_INVO
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.REFERENCE_TARGET
 import org.cangnova.cangjie.resolve.binding.getEnclosingDescriptor
 import org.cangnova.cangjie.resolve.caches.getEffectiveModality
-import org.cangnova.cangjie.resolve.calls.util.EnumConstructorAccessDescriptor
 import org.cangnova.cangjie.resolve.calls.util.getDispatchReceiverWithSmartCast
 import org.cangnova.cangjie.resolve.calls.util.getResolvedCall
 import org.cangnova.cangjie.resolve.controlFlow.ControlFlowAnalysisContext
@@ -248,7 +247,7 @@ class VariableInitializationChecker {
 
         val diagnostic = when (variable) {
             is ValueParameterDescriptor -> UNINITIALIZED_PARAMETER.on(element, variable)
-            is EnumConstructorAccessDescriptor -> return // 枚举构造器访问暂不报告
+            // 枚举构造器现在直接通过 EnumConstructorDescriptor 暴露，不再需要特殊处理
             else -> {
                 if (variable.isEffectivelyExternal()) return
                 UNINITIALIZED_VARIABLE.on(element, variable)

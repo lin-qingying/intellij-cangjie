@@ -47,7 +47,7 @@ interface ConstructorDescriptor : FunctionDescriptor {
     /**
      * 获取构造的类描述符
      */
-    val constructedClass: ClassDescriptor
+    val constructedClass: ClassAndEnumDescriptor
 
     /**
      * 复制构造函数描述符

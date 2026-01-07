@@ -95,17 +95,6 @@ interface ScopeTowerLevel {
 
 
 
-    /**
-     * 根据名称和扩展接收器获取对象集合
-     *
-     * @param name 对象的名称
-     * @param extensionReceiver 扩展接收器，可能带有智能类型转换信息
-     * @return 包含候选对象的集合，带有绑定的分发接收器
-     */
-    fun getObjects(
-        name: Name,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): Collection<CandidateWithBoundDispatchReceiver>
 
     /**
      * 根据名称和扩展接收器获取函数集合

@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.resolve.calls
 
 
-import org.cangnova.cangjie.descriptors.PropertyDescriptor
+import org.cangnova.cangjie.descriptors.EnumConstructorDescriptor
 import org.cangnova.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import org.cangnova.cangjie.resolve.calls.components.*
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
@@ -35,7 +35,6 @@ import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.model.CangJieCallKind.*
 import org.cangnova.cangjie.resolve.calls.tower.*
-import org.cangnova.cangjie.resolve.calls.util.EnumConstructorAccessDescriptor
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.cangnova.cangjie.types.UnwrappedType
 
@@ -179,7 +178,7 @@ class CangJieCallResolver(
 
 
             VARIABLE -> {
-                createVariableAndObjectProcessor(
+                createVariableProcessor(
                     scopeTower,
                     cangjieCall.name,
                     candidateFactory,
@@ -215,7 +214,7 @@ class CangJieCallResolver(
             }
 
             UNSUPPORTED -> throw UnsupportedOperationException()
-            ENUM_ENTRY -> TODO()
+            ENUM_CONSTRUCTOR -> TODO()
             CASE_ENUM -> TODO()
         }
 
@@ -260,28 +259,18 @@ class CangJieCallResolver(
 
         if (maximallySpecificCandidates.size > 1) {
             if (maximallySpecificCandidates.size == 2) {
+                // 枚举构造器现在直接通过 EnumConstructorDescriptor 暴露
                 val enumEntryCandidate = maximallySpecificCandidates.find {
                     val descriptor = it.resolvedCall.candidateDescriptor
-                    descriptor is EnumConstructorAccessDescriptor
+                    descriptor is EnumConstructorDescriptor
                 }
                 if (enumEntryCandidate != null) {
                     val otherCandidate = maximallySpecificCandidates.find {
                         val candidateDescriptor = it.resolvedCall.candidateDescriptor
-                        candidateDescriptor !is EnumConstructorAccessDescriptor
+                        candidateDescriptor !is EnumConstructorDescriptor
                     }
                     if (otherCandidate != null) {
-                        val propertyDescriptor = otherCandidate.resolvedCall.candidateDescriptor
-                        if (propertyDescriptor is PropertyDescriptor) {
-                            val enumEntryDescriptor =
-                                (enumEntryCandidate.resolvedCall.candidateDescriptor as EnumConstructorAccessDescriptor).classDescriptor
-                            otherCandidate.addDiagnostic(
-                                EnumEntryAmbiguityWarning(
-                                    propertyDescriptor,
-                                    enumEntryDescriptor
-                                )
-                            )
-                            return setOf(otherCandidate)
-                        }
+
                     }
                 }
             }

@@ -53,16 +53,13 @@ import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.calls.tasks.OldResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategy
 import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategyForInvoke
-import org.cangnova.cangjie.resolve.calls.util.EnumConstructorAccessDescriptor
 import org.cangnova.cangjie.resolve.calls.util.isConventionCall
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
-import org.cangnova.cangjie.resolve.hasDynamicExtensionAnnotation
 import org.cangnova.cangjie.resolve.scopes.SyntheticScopes
 import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.types.DeferredType
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.TypeApproximator
-import org.cangnova.cangjie.types.isDynamic
 import org.cangnova.cangjie.utils.addIfNotNull
 import org.cangnova.cangjie.utils.compactIfPossible
 
@@ -117,7 +114,7 @@ class NewResolutionOldInference(
             context: BasicCallResolutionContext
         ): ScopeTowerProcessor<MyCandidate>
 
-        object EnumEntry : ResolutionKind() {
+        object EnumConstructor : ResolutionKind() {
             override fun createTowerProcessor(
                 outer: NewResolutionOldInference,
                 name: Name,
@@ -198,7 +195,7 @@ class NewResolutionOldInference(
                 context: BasicCallResolutionContext
             ): ScopeTowerProcessor<MyCandidate> {
                 val variableFactory = outer.CandidateFactoryImpl(name, context, tracing)
-                return createVariableAndObjectProcessor(scopeTower, name, variableFactory, explicitReceiver)
+                return createVariableProcessor(scopeTower, name, variableFactory, explicitReceiver)
             }
         }
 
@@ -596,7 +593,8 @@ internal fun reportResolvedUsingDeprecatedVisibility(
 
     val descriptorToLookup: DeclarationDescriptor = when (candidateDescriptor) {
         is ClassConstructorDescriptor -> candidateDescriptor.containingDeclaration
-        is EnumConstructorAccessDescriptor -> candidateDescriptor.classDescriptor
+        // 枚举构造器现在直接通过 EnumConstructorDescriptor 暴露
+        is EnumConstructorDescriptor -> candidateDescriptor.containingDeclaration
         is SyntheticMemberDescriptor<*> -> candidateDescriptor.baseDescriptorForSynthetic
         is PropertyDescriptor, is FunctionDescriptor -> candidateDescriptor
         else -> error(

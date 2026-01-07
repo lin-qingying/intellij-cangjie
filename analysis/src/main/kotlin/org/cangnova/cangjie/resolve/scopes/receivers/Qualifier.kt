@@ -26,31 +26,17 @@ package org.cangnova.cangjie.resolve.scopes.receivers
 
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.incremental.components.LookupLocation
-import org.cangnova.cangjie.lang.CangJieLanguage
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.getTopmostParentQualifiedExpressionForSelector
 import org.cangnova.cangjie.resolve.DescriptorUtils
-import org.cangnova.cangjie.resolve.calls.model.CangJieCall
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.scopes.StaticMemberScope
 import org.cangnova.cangjie.resolve.source.MemberScopeImpl
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.utils.Printer
-import com.intellij.lang.ASTNode
-import com.intellij.lang.Language
-import com.intellij.navigation.ItemPresentation
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.TextRange
-import com.intellij.psi.*
-import com.intellij.psi.scope.PsiScopeProcessor
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.SearchScope
 import org.cangnova.cangjie.resolve.scopes.ChainedMemberScope
-import org.cangnova.cangjie.utils.enumClassValueType
-import javax.swing.Icon
 
 /**
  * 限定符（Qualifier）
@@ -69,27 +55,10 @@ interface Qualifier : QualifierReceiver {
 }
 
 /**
- * 枚举类限定符（通过调用表达式）
- *
- * 用于表示枚举类的泛型调用形式，例如 `enum<T, T>`。
- *
- * @property referenceExpression 调用表达式
- * @property descriptor 带类型参数的类分类符描述符
- *
- * @see QualifierReceiver
- */
-interface EnumClassQualifierByCall : QualifierReceiver {
-    /** 调用元素 */
-    val referenceExpression: CjCallElement
-
-    /** 带类型参数的类分类符描述符 */
-    override val descriptor: ClassifierDescriptorWithTypeParameters
-}
-
-/**
  * 类分类符限定符
  *
  * ClassifierQualifier 表示一个类分类符（类、接口、枚举等）的限定符。
+ * 所有类类型（包括普通类和枚举类）都使用此接口统一处理。
  *
  * @property descriptor 带类型参数的类分类符描述符
  *
@@ -103,17 +72,14 @@ interface ClassifierQualifier : Qualifier {
 /**
  * 获取限定符接收器对应的表达式
  *
- * 对于不同类型的限定符，返回相应的表达式：
- * - [Qualifier]: 返回最顶层的限定表达式或引用表达式本身
- * - [EnumClassQualifierByCall]: 返回调用表达式的被调用者表达式
+ * 返回最顶层的限定表达式或引用表达式本身。
  *
- * @throws IllegalStateException 如果限定符接收器不是 Qualifier 或 EnumClassQualifierByCall
+ * @throws IllegalStateException 如果限定符接收器不是 Qualifier
  */
 val QualifierReceiver.expression: CjExpression
     get() {
         return when (this) {
             is Qualifier -> referenceExpression.getTopmostParentQualifiedExpressionForSelector() ?: referenceExpression
-            is EnumClassQualifierByCall -> referenceExpression.calleeExpression!!
             else -> throw IllegalStateException("QualifierReceiver is not a Qualifier")
         }
     }
@@ -152,328 +118,22 @@ class PackageQualifier(
 }
 
 
-
-/**
- * 枚举类限定符
- *
- * EnumClassQualifier 表示枚举类的限定符。
- * 它实现了 [EnumClassQualifierByCall] 接口，支持带泛型参数的枚举类。
- *
- * @param referenceExpression 调用表达式
- * @param descriptor 类描述符
- * @param call 仓颉调用（如果有）
- *
- * @see EnumClassQualifierByCall
- */
-class EnumClassQualifier(
-    override val referenceExpression: CjCallElement,
-    override val descriptor: ClassDescriptor,
-    val call: CangJieCall?
-) : EnumClassQualifierByCall {
-    /**
-     * 枚举调用元素
-     *
-     * 这是一个轻量级的 [CjCallElement] 实现，用于包装枚举类的简单名称引用。
-     * 它不包含实际的参数列表，仅用于表示枚举类名称本身。
-     *
-     * @param referenceExpression 简单名称引用表达式
-     */
-    class EnumCallElement(val referenceExpression: CjSimpleNameExpression) : CjCallElement {
-        override val calleeExpression: CjExpression
-            get() = referenceExpression
-        override val valueArgumentList: CjValueArgumentList?
-            get() = null
-        override val valueArguments: List<ValueArgument>
-            get() = emptyList()
-        override val lambdaArguments: List<CjLambdaArgument>
-            get() = emptyList()
-        override val typeArguments: List<CjTypeProjection>
-            get() = emptyList()
-        override val typeArgumentList: CjTypeArgumentList?
-            get() = null
-
-        override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D) {
-
-        }
-
-        override fun acceptChildren(visitor: PsiElementVisitor) {
-
-        }
-
-        override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
-            return referenceExpression.accept(visitor, data)
-        }
-
-        override fun accept(visitor: PsiElementVisitor) {
-
-        }
-
-        override fun getReference(): PsiReference? {
-            return null
-        }
-
-        override fun <T> getUserData(key: Key<T>): T? {
-            return null
-
-        }
-
-        override fun <T> putUserData(key: Key<T>, value: T?) {
-
-        }
-
-        override fun getIcon(flags: Int): Icon {
-            TODO("Not yet implemented")
-        }
-
-        override fun getProject(): Project {
-            return referenceExpression.project
-        }
-
-        override fun getLanguage(): Language {
-            return CangJieLanguage
-        }
-
-        override fun getManager(): PsiManager {
-            return referenceExpression.manager
-        }
-
-        override fun getChildren(): Array<PsiElement> {
-            return emptyArray()
-        }
-
-        override fun getParent(): PsiElement {
-            return referenceExpression.parent
-        }
-
-        override fun getFirstChild(): PsiElement {
-            return referenceExpression.firstChild
-        }
-
-        override fun getLastChild(): PsiElement {
-            return referenceExpression.lastChild
-        }
-
-        override fun getNextSibling(): PsiElement {
-            return referenceExpression.nextSibling
-        }
-
-        override fun getPrevSibling(): PsiElement {
-            return referenceExpression.prevSibling
-        }
-
-        override fun getContainingFile(): PsiFile {
-            return referenceExpression.containingFile
-        }
-
-        override fun getTextRange(): TextRange {
-            return referenceExpression.textRange
-        }
-
-        override fun getStartOffsetInParent(): Int {
-            return referenceExpression.startOffsetInParent
-        }
-
-        override fun getTextLength(): Int {
-            return referenceExpression.textLength
-        }
-
-        override fun findElementAt(offset: Int): PsiElement? {
-            return referenceExpression.findElementAt(offset)
-        }
-
-        override fun findReferenceAt(offset: Int): PsiReference? {
-            return referenceExpression.findReferenceAt(offset)
-        }
-
-        override fun getTextOffset(): Int {
-            return referenceExpression.textOffset
-        }
-
-        override fun getText(): String {
-            return referenceExpression.text
-        }
-
-        override fun textToCharArray(): CharArray {
-            return referenceExpression.textToCharArray()
-        }
-
-        override fun getNavigationElement(): PsiElement {
-            return referenceExpression.navigationElement
-        }
-
-        override fun getOriginalElement(): PsiElement {
-            return referenceExpression.originalElement
-        }
-
-        override fun textMatches(text: CharSequence): Boolean {
-            return referenceExpression.textMatches(text)
-        }
-
-        override fun textMatches(element: PsiElement): Boolean {
-            return referenceExpression.textMatches(element)
-        }
-
-        override fun textContains(c: Char): Boolean {
-            return referenceExpression.textContains(c)
-        }
-
-        override fun copy(): PsiElement {
-            return referenceExpression.copy()
-        }
-
-        override fun add(element: PsiElement): PsiElement {
-            return referenceExpression.add(element)
-        }
-
-        override fun addBefore(element: PsiElement, anchor: PsiElement?): PsiElement {
-            return referenceExpression.addBefore(element, anchor)
-        }
-
-        override fun addAfter(element: PsiElement, anchor: PsiElement?): PsiElement {
-            return referenceExpression.addAfter(element, anchor)
-        }
-
-        override fun checkAdd(element: PsiElement) {
-            referenceExpression.checkAdd(element)
-        }
-
-        override fun addRange(first: PsiElement?, last: PsiElement?): PsiElement {
-            return referenceExpression.addRange(first, last)
-        }
-
-        override fun addRangeBefore(first: PsiElement, last: PsiElement, anchor: PsiElement?): PsiElement {
-            return referenceExpression.addRangeBefore(first, last, anchor)
-        }
-
-        override fun addRangeAfter(first: PsiElement?, last: PsiElement?, anchor: PsiElement?): PsiElement {
-            return referenceExpression.addRangeAfter(first, last, anchor)
-        }
-
-        override fun delete() {
-
-        }
-
-        override fun checkDelete() {
-
-        }
-
-        override fun deleteChildRange(first: PsiElement?, last: PsiElement?) {
-
-        }
-
-        override fun replace(newElement: PsiElement): PsiElement {
-            return referenceExpression.replace(newElement)
-        }
-
-        override fun isValid(): Boolean {
-            return referenceExpression.isValid
-        }
-
-        override fun isWritable(): Boolean {
-            return referenceExpression.isWritable
-        }
-
-        override fun getReferences(): Array<PsiReference> {
-            return referenceExpression.references
-        }
-
-        override fun <T : Any?> getCopyableUserData(key: Key<T>): T? {
-            return referenceExpression.getCopyableUserData(key)
-        }
-
-        override fun <T : Any?> putCopyableUserData(key: Key<T>, value: T?) {
-            referenceExpression.putCopyableUserData(key, value)
-        }
-
-        override fun processDeclarations(
-            processor: PsiScopeProcessor,
-            state: ResolveState,
-            lastParent: PsiElement?,
-            place: PsiElement
-        ): Boolean {
-            return referenceExpression.processDeclarations(processor, state, lastParent, place)
-        }
-
-        override fun getContext(): PsiElement? {
-            return referenceExpression.context
-        }
-
-        override fun isPhysical(): Boolean {
-            return referenceExpression.isPhysical
-        }
-
-        override fun getResolveScope(): GlobalSearchScope {
-            return referenceExpression.resolveScope
-        }
-
-        override fun getUseScope(): SearchScope {
-            return referenceExpression.useScope
-        }
-
-        override fun getNode(): ASTNode {
-            return referenceExpression.node
-        }
-
-        override fun isEquivalentTo(another: PsiElement?): Boolean {
-            return referenceExpression.isEquivalentTo(another)
-        }
-
-        override fun getName(): String? {
-            return referenceExpression.name
-        }
-
-        override fun getPresentation(): ItemPresentation? {
-            return referenceExpression.presentation
-        }
-
-        override fun getPsiOrParent(): CjElement {
-            return referenceExpression.psiOrParent
-        }
-
-        override fun getContainingCjFile(): CjFile {
-            return referenceExpression.containingCjFile
-        }
-
-    }
-
-    /**
-     * 次级构造函数
-     *
-     * 从简单名称引用表达式创建枚举类限定符。
-     *
-     * @param referenceExpression 简单名称引用表达式
-     * @param descriptor 类描述符
-     */
-    constructor(
-        referenceExpression: CjSimpleNameExpression,
-        descriptor: ClassDescriptor
-    ) : this(EnumCallElement(referenceExpression), descriptor, null)
-
-
-    /** 枚举类值接收器，如果类有枚举类值类型 */
-    override val classValueReceiver: EnumClassValueReceiver? = descriptor.enumClassValueType?.let {
-        EnumClassValueReceiver(this, it)
-    }
-
-    /** 静态作用域，包含枚举类的静态成员和未替换的成员 */
-    override val staticScope: MemberScope
-        get() =
-              StaticMemberScope(
-                ChainedMemberScope.create(
-                    "Static scope for ${descriptor.name} as class or object",
-                    descriptor.staticScope,
-                    descriptor.unsubstitutedMemberScope
-                )
-            )
-
-
-    override fun toString() = "Class{$descriptor}"
-}
-
 /**
  * 类限定符
  *
- * ClassQualifier 表示一个普通类的限定符。
+ * ClassQualifier 表示一个类（包括普通类和枚举类）的限定符。
+ * 对于所有类类型，都通过 staticScope 提供静态成员访问。
+ * 枚举类的构造器通过静态作用域暴露。
+ *
+ * ## 仓颉语言语义
+ *
+ * 在仓颉语言中，通过类型名可以访问：
+ * - 静态方法/属性
+ * - 构造器
+ * - 枚举构造器（对于枚举类型）
+ *
+ * 枚举类不提供 classValueReceiver，因为枚举不能作为值使用，
+ * 只能通过其静态作用域访问枚举构造器（如 `Color.Red`）。
  *
  * @param referenceExpression 简单名称引用表达式
  * @param descriptor 类描述符
@@ -483,58 +143,43 @@ class EnumClassQualifier(
  */
 class ClassQualifier(
     override val referenceExpression: CjSimpleNameExpression,
-    override val descriptor: ClassDescriptor,
+    override val descriptor: ClassAndEnumDescriptor,
     _cangjieType: CangJieType? = null
 ) : ClassifierQualifier {
-    /** 类值接收器，如果类有类值类型或枚举类值类型 */
-    override val classValueReceiver: ClassValueReceiver? = _cangjieType?.let {
-        ClassValueReceiver(this, it)
 
-    } ?: descriptor.enumClassValueType?.let {
-        ClassValueReceiver(this, it)
-    }
+    /**
+     * 类值接收器
+     *
+     * - 对于枚举类：返回 null（枚举不能作为值使用，只能访问其构造器）
+     * - 对于普通类：如果有伴生对象或 class 类型值，返回对应接收器
+     */
+    override val classValueReceiver: ClassValueReceiver? =
+        if (descriptor.kind == ClassKind.ENUM) {
+            // 枚举类不提供 classValueReceiver
+            // 枚举构造器通过 staticScope 访问
+            null
+        } else {
+            _cangjieType?.let { ClassValueReceiver(this, it) }
+        }
 
-    /** 静态作用域，包含类的静态成员和未替换的成员 */
+    /**
+     * 静态作用域
+     *
+     * 包含所有可通过类型名访问的成员：
+     * - 静态方法/属性
+     * - 构造器
+     * - 枚举构造器（对于枚举类型）
+     */
     override val staticScope: MemberScope
-        get() =
-              StaticMemberScope(
-                ChainedMemberScope.create(
-                    "Static scope for ${descriptor.name} as class or object",
-                    descriptor.staticScope,
-                    descriptor.unsubstitutedMemberScope
-                )
+        get() = StaticMemberScope(
+            ChainedMemberScope.create(
+                "Static scope for ${descriptor.name}",
+                descriptor.staticScope,
+                descriptor.unsubstitutedMemberScope
             )
-
+        )
 
     override fun toString() = "Class{$descriptor}"
-}
-
-/**
- * 枚举类值接收器
- *
- * EnumClassValueReceiver 表示枚举类作为值使用时的接收器。
- * 这允许将枚举类作为一个值传递或使用。
- *
- * @param classQualifier 枚举类限定符
- * @param type 接收器的类型
- * @param original 原始的接收器值
- *
- * @see ExpressionReceiver
- * @see EnumClassQualifierByCall
- */
-class EnumClassValueReceiver @JvmOverloads constructor(
-    val classQualifier: EnumClassQualifierByCall,
-    override val type: CangJieType,
-    original: EnumClassValueReceiver? = null
-) : ExpressionReceiver {
-    override val original = original ?: this
-
-
-    override val expression: CjExpression
-        get() = classQualifier.referenceExpression.calleeExpression!!
-
-    override fun replaceType(newType: CangJieType) = EnumClassValueReceiver(classQualifier, newType, original)
-
 }
 
 /**
@@ -606,10 +251,14 @@ class TypeAliasQualifier(
     override val descriptor: TypeAliasDescriptor,
     val classDescriptor: ClassDescriptor
 ) : ClassifierQualifier {
+    /**
+     * 类值接收器
+     *
+     * 类型别名不提供 classValueReceiver，与 ClassQualifier 保持一致。
+     * 枚举构造器通过 staticScope 访问。
+     */
     override val classValueReceiver: ClassValueReceiver?
-        get() = classDescriptor.enumClassValueType?.let {
-            ClassValueReceiver(this, it)
-        }
+        get() = null
 
     override val staticScope: MemberScope
         get() = when {

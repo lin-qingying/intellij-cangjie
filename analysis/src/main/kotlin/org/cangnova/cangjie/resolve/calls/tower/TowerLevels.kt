@@ -30,7 +30,6 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.DescriptorUtils
-import org.cangnova.cangjie.resolve.calls.util.EnumConstructorAccessDescriptor
 import org.cangnova.cangjie.resolve.qualified.isEnum
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
@@ -143,28 +142,6 @@ internal open class ScopeBasedTowerLevel protected constructor(
         }
     }
 
-    /**
-     * 获取指定名称的对象。
-     *
-     * @param name 对象名称
-     * @param extensionReceiver 扩展接收者值及其智能转换信息
-     * @return 包含候选描述符的集合
-     */
-    override fun getObjects(
-        name: Name,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): Collection<CandidateWithBoundDispatchReceiver> =
-        resolutionScope.getContributedObjectVariablesIncludeDeprecateds(name, location)
-            .map { (classifier, isDeprecated) ->
-                createCandidateDescriptor(
-                    classifier,
-                    dispatchReceiver = null,
-                    specialError = if (isDeprecated) ResolvedUsingDeprecatedVisibility(
-                        resolutionScope,
-                        location
-                    ) else null
-                )
-            }
 
 
 
@@ -271,58 +248,18 @@ private val ClassDescriptor.canHaveCallableConstructors: Boolean
 private val TypeAliasDescriptor.canHaveCallableConstructors: Boolean
     get() = classDescriptor != null && !ErrorUtils.isError(classDescriptor) && classDescriptor!!.canHaveCallableConstructors
 
-/**
- * 为枚举类型获取假的可调用描述符，用于访问枚举构造器
- *
- * 枚举类型的构造器可以作为值直接访问（如 Color.Red），
- * 这个函数创建一个特殊的描述符来支持这种访问模式。
- *
- * @param classifier 分类器描述符
- * @return 如果是枚举类型，返回 EnumConstructorAccessDescriptor，否则返回 null
- */
-fun getFakeDescriptorForObject(classifier: ClassifierDescriptor?): EnumConstructorAccessDescriptor? =
-    when (classifier) {
-        // 枚举类：创建假的可调用描述符
-        is ClassDescriptor ->
-            if (classifier.isEnum)
-                EnumConstructorAccessDescriptor(classifier)
-            else
-                null
-
-        // 类型别名：如果指向枚举类型，为底层枚举创建描述符
-        is TypeAliasDescriptor ->
-            classifier.classDescriptor?.let { classDescriptor ->
-                if (classDescriptor.isEnum)
-                    EnumConstructorAccessDescriptor(classDescriptor)
-                else
-                    null
-            }
-
-        else -> null
-    }
-
 private fun ResolutionScope.getContributedObjectVariablesIncludeDeprecated(
     name: Name,
     location: LookupLocation
 ): Collection<DescriptorWithDeprecation<VariableDescriptor>> {
-    val (classifier, isOwnerDeprecated) = getContributedClassifierIncludeDeprecated(name, location)
-        ?: return emptyList()
-    val objectDescriptor = getFakeDescriptorForObject(classifier) ?: return emptyList()
-    return listOf(DescriptorWithDeprecation(objectDescriptor, isOwnerDeprecated))
+    // 删除了 getFakeDescriptorForObject - 枚举构造器不再通过这种方式访问
+    return emptyList()
 }
 
 private fun ResolutionScope.getContributedObjectVariablesIncludeDeprecateds(
     name: Name,
     location: LookupLocation
 ): Collection<DescriptorWithDeprecation<VariableDescriptor>> {
-    val list = getContributedClassifierIncludeDeprecateds(name, location) ?: return emptyList()
-
-
-    return list.mapNotNull {
-        getFakeDescriptorForObject(it.descriptor)?.let { objectDescriptor ->
-            DescriptorWithDeprecation(objectDescriptor, it.isDeprecated)
-        }
-
-    }
-
+    // 删除了 getFakeDescriptorForObject - 枚举构造器不再通过这种方式访问
+    return emptyList()
 }

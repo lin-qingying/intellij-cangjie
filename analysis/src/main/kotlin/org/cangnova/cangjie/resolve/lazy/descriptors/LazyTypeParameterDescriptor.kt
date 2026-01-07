@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.resolve.lazy.descriptors
 
 import org.cangnova.cangjie.descriptors.DeclarationDescriptorWithTypeParameters
+import org.cangnova.cangjie.descriptors.DescriptorWithResolutionScopes
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.extend.ClassAndExtendDescriptor
@@ -52,7 +53,7 @@ class LazyTypeParameterDescriptor(
     annotations,
     typeParameter.nameAsSafeName,
     typeParameter.variance,
-//    typeParameter.hasModifier(CjTokens.REIFIED_KEYWORD),
+
     index,
     typeParameter.toSourceElement(),
     c.supertypeLoopChecker
@@ -102,8 +103,7 @@ class LazyTypeParameterDescriptor(
     }
 
     private fun getAllUpperBounds(): Collection<CjTypeReference> {
-//        return listOfNotNull(typeParameter.extendsBound)
-//            .plus(getUpperBoundsFromWhereClause())
+
         return typeParameter.extendsBounds
             .plus(getUpperBoundsFromWhereClause())
     }
@@ -116,8 +116,8 @@ class LazyTypeParameterDescriptor(
     }
 
 
-    override val containingDeclaration: LazyClassDescriptorBase
-        get() = super.containingDeclaration as LazyClassDescriptorBase
+    override val containingDeclaration: DescriptorWithResolutionScopes
+        get() = super.containingDeclaration as DescriptorWithResolutionScopes
 
     override fun reportSupertypeLoopError(type: CangJieType) {
         for (typeReference in getAllUpperBounds()) {

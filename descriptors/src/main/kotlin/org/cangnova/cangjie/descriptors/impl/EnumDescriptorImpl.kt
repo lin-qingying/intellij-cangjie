@@ -172,13 +172,13 @@ abstract class AbstractEnumConstructorDescriptor(
     /**
      * 原始描述符（自身）
      */
-    override val original: CallableMemberDescriptor = this
+    override val original: ConstructorDescriptor = this
     private var unsubstitutedReturnType: CangJieType? = null
     private var unsubstitutedValueParameters: List<ValueParameterDescriptor> = ArrayList()
     override val valueParameters: List<ValueParameterDescriptor>
         get() = unsubstitutedValueParameters
-    override val returnType: CangJieType?
-        get() = unsubstitutedReturnType
+    override val returnType: CangJieType
+        get() = unsubstitutedReturnType!!
 
 
 
@@ -190,7 +190,7 @@ abstract class AbstractEnumConstructorDescriptor(
     /**
      * 重写的描述符（枚举构造函数不支持重写）
      */
-    override val overriddenDescriptors: Collection<CallableMemberDescriptor>
+    override val overriddenDescriptors: Collection<ConstructorDescriptor>
         get() = emptyList()
 
 
@@ -260,7 +260,7 @@ abstract class AbstractEnumConstructorDescriptor(
      *
      * @return 复制构建器
      */
-    override fun newCopyBuilder(): CallableMemberDescriptor.CopyBuilder<out CallableMemberDescriptor> {
+    override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<out ConstructorDescriptor> {
         return newCopyBuilder(TypeSubstitutor.EMPTY)
     }
 
@@ -373,6 +373,14 @@ abstract class AbstractEnumConstructorDescriptor(
 
         override fun setDropOriginalInContainingParts(): CopyConfiguration {
             dropOriginalInContainingParts = true
+            return this
+        }
+
+        override fun setHiddenToOvercomeSignatureClash(): FunctionDescriptor.CopyBuilder<EnumConstructorDescriptor> {
+            return this
+        }
+
+        override fun setHiddenForResolutionEverywhereBesideSupercalls(): FunctionDescriptor.CopyBuilder<EnumConstructorDescriptor> {
             return this
         }
 
@@ -616,7 +624,7 @@ abstract class AbstractEnumConstructorDescriptor(
      * @param substitutor 类型替换器
      * @return 替换后的可调用描述符
      */
-    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor? {
+    override fun substitute(substitutor: TypeSubstitutor): ConstructorDescriptor? {
         if (substitutor.isEmpty) {
             return this
         }
@@ -698,6 +706,20 @@ abstract class AbstractEnumConstructorDescriptor(
 
 
     }
+    override val isPrimary: Boolean
+        get() = false
+    override val isEnd: Boolean
+        get() = false
+    override val constructedClass: EnumDescriptor
+        get() = containingDeclaration
+    override val initialSignatureDescriptor: FunctionDescriptor?
+        get() = null
+    override val isHiddenToOvercomeSignatureClash: Boolean
+        get() = false
+    override val isOperator: Boolean
+        get() = false
+    override val isHiddenForResolutionEverywhereBesideSupercalls: Boolean
+        get() = false
 
 }
 
@@ -778,5 +800,6 @@ open class EnumConstructorDescriptorImpl(
 
             )
     }
+
 
 }
