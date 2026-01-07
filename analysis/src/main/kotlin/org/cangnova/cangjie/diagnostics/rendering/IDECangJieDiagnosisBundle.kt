@@ -29,7 +29,6 @@ import org.cangnova.cangjie.messages.AbstractCangJieBundle
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
-import java.util.MissingResourceException
 
 /**
  * IDE 诊断消息 Bundle
@@ -92,9 +91,9 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
     @Nls
 
     fun message(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String {
-        return try {
+        return if (containsKey(key)) {
             htmlMessage(key, *params)
-        } catch (e: MissingResourceException) {
+        } else {
             // 回退到默认 Bundle
             CangJieDiagnosisBundle.message(key, *params)
         }
@@ -111,9 +110,9 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
     @Nls
 
     fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String): String {
-        return try {
+        return if (containsKey(key)) {
             getMessage(key)
-        } catch (e: MissingResourceException) {
+        } else {
             // 回退到默认 Bundle
             CangJieDiagnosisBundle.rawMessage(key)
         }
@@ -130,9 +129,9 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
     @Nls
 
     fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) factory: DiagnosticFactory<*>): String {
-        return try {
+        return if (containsKey(factory.name)) {
             getMessage(factory.name)
-        } catch (e: MissingResourceException) {
+        } else {
             // 回退到默认 Bundle
             CangJieDiagnosisBundle.rawMessage(factory)
         }
@@ -151,9 +150,10 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
     @Nls
 
     fun htmlMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String {
-        return try {
+        // 先检查当前 Bundle 是否包含该键，避免 DynamicBundle 记录错误
+        return if (containsKey(key)) {
             super<AbstractCangJieBundle>.getMessage(key, *params).withHtml()
-        } catch (e: MissingResourceException) {
+        } else {
             // 回退到默认 Bundle
             CangJieDiagnosisBundle.htmlMessage(key, *params)
         }
@@ -162,9 +162,9 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
     // 实现 MessageBundle 接口
     @Nls
     override fun getMessage(@NonNls key: String): String {
-        return try {
+        return if (containsKey(key)) {
             htmlMessage(key)
-        } catch (e: MissingResourceException) {
+        } else {
             // 回退到默认 Bundle
             CangJieDiagnosisBundle.getMessage(key)
         }
@@ -172,9 +172,9 @@ object IDECangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE), MessageBundle 
 
     @Nls
     override fun getMessage(@NonNls factory: DiagnosticFactory<*>): String {
-        return try {
+        return if (containsKey(factory.name)) {
             getMessage(factory.name)
-        } catch (e: MissingResourceException) {
+        } else {
             // 回退到默认 Bundle
             CangJieDiagnosisBundle.getMessage(factory)
         }
