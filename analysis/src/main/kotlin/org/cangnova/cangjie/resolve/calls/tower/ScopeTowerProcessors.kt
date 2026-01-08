@@ -474,15 +474,40 @@ class KnownResultProcessor<out C>(
 /**
  * 创建枚举构造器处理器
  *
- * 用于解析枚举类型的构造器调用。
- * 这个函数目前是空实现,需要后续补充。
+ * 用于解析枚举类型的构造器调用。枚举构造器是枚举类型的静态成员,通过类型名访问。
+ *
+ * 处理两种枚举构造器:
+ * 1. 简单构造器(无关联值): `Color.Red`
+ * 2. 函数构造器(有关联值): `Result.Success(value)`
+ *
+ * 工作流程:
+ * 1. 查找枚举构造器函数
+ * 2. 如果找不到简单构造器,尝试查找同名的关联值构造器
+ * 3. 支持 invoke 约定(如果构造器返回可调用类型)
+ *
+ * 示例:
+ * ```cangjie
+ * enum Color {
+ *     Red,      // 简单构造器
+ *     Green,
+ *     Blue
+ * }
+ *
+ * enum Result<T> {
+ *     Success(T),  // 函数构造器
+ *     Error(String)
+ * }
+ *
+ * val c1 = Color.Red           // 调用简单构造器
+ * val r1 = Result.Success(42)  // 调用函数构造器
+ * ```
  *
  * @param C 候选者类型
  * @param scopeTower 隐式作用域塔
  * @param name 构造器名称
  * @param simpleContext 简单候选者工厂
  * @param factoryProviderForInvoke invoke 调用的候选者工厂提供者
- * @param explicitReceiver 显式接收者
+ * @param explicitReceiver 显式接收者(通常是枚举类型本身)
  * @return 优先级组合作用域塔处理器
  */
 fun <C : Candidate> createEnumConstructorProcessor(
@@ -492,7 +517,28 @@ fun <C : Candidate> createEnumConstructorProcessor(
     factoryProviderForInvoke: CandidateFactoryProviderForInvoke<C>,
     explicitReceiver: DetailedReceiver?
 ): PrioritizedCompositeScopeTowerProcessor<C>{
-    // TODO: 实现枚举构造器处理逻辑
+
+    // 处理器 1: 枚举构造器函数调用
+    // 支持简单构造器(作为变量访问)和函数构造器(作为函数调用)
+    val constructorProcessor = createSimpleFunctionProcessor(
+        scopeTower,
+        name,
+        simpleContext,
+        explicitReceiver,
+        classValueReceiver = true  // 支持通过类名访问静态成员
+    )
+
+    // 处理器 2: invoke 约定
+    // 如果枚举构造器返回可调用类型,支持 invoke 调用
+    val invokeProcessor = InvokeTowerProcessor(
+        scopeTower,
+        name,
+        factoryProviderForInvoke,
+        explicitReceiver
+    )
+
+    // 返回优先级组合处理器:构造器优先级高于 invoke 约定
+    return PrioritizedCompositeScopeTowerProcessor(constructorProcessor, invokeProcessor)
 }
 
 /**
