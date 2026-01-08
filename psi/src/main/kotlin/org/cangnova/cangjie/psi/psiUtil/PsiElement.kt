@@ -685,16 +685,15 @@ fun Document.toPsiFile(project: Project): PsiFile? =
  * - 如果不在仓颉文件中，抛出详细的异常信息
  * - 异常信息包含文件内容、元素类型、节点信息，便于调试
  */
-fun LazyParseablePsiElement.getContainingCjFile(): CjFile {
-    val file = this.containingFile
+
+fun getContainingCjFile(psi:LazyParseablePsiElement): CjFile{
+    val file = psi.containingFile
 
     if (file is CjFile) return file
 
     val fileString = if (file != null && file.isValid) file.text else ""
-    throw IllegalStateException("CjElement not inside CjFile: $file with text \"$fileString\" for element $this of type ${this::class.java} node = ${this.node}")
-}
-fun getContainingCjFile(psi:LazyParseablePsiElement): CjFile{
-    return psi.getContainingCjFile()
+    throw IllegalStateException("CjElement not inside CjFile: $file with text \"$fileString\" for element $psi of type ${psi::class.java} node = ${psi.node}")
+
 }
 
 /**

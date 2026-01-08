@@ -604,45 +604,60 @@ class CallExpressionResolver(
         context: ExpressionTypingContext,
         initialDataFlowInfoForArguments: DataFlowInfo
     ): CangJieTypeInfo? {
-        // 只有当存在接收者时才尝试枚举构造器解析
-        if (receiver == null) {
-            return null
-        }
+
 
         val temporaryForEnumConstructor = TemporaryTraceAndCache.create(
             context, "trace to resolveName as enum constructor", nameExpression
         )
 
-        // 检查接收者是否为枚举 Qualifier
-        val qualifier = (nameExpression.parent as? CjExpression)?.let { context.trace[BindingContext.QUALIFIER, it] }
-        if (qualifier is ClassifierQualifier) {
-            val classDescriptor = when (qualifier) {
-                is ClassQualifier -> qualifier.descriptor
-                is TypeAliasQualifier -> qualifier.classDescriptor
-                else -> null
-            }
+        val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
+        val contextForEnum = context.replaceTraceAndCache(temporaryForEnumConstructor)
 
-            // 如果是枚举类型，尝试解析枚举构造器
-            if (classDescriptor != null && DescriptorUtils.isEnum(classDescriptor)) {
-                val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
-                val contextForEnum = context.replaceTraceAndCache(temporaryForEnumConstructor)
+        val results = callResolver.resolveEnumCall(
+            temporaryForEnumConstructor,
+            BasicCallResolutionContext.create(
+                contextForEnum, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+                DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
+            )
+        )
 
-                val results = callResolver.resolveEnumCall(
-                    temporaryForEnumConstructor,
-                    BasicCallResolutionContext.create(
-                        contextForEnum, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
-                        DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
-                    )
-                )
-
-                if (!results.isNothing) {
-                    temporaryForEnumConstructor.commit()
-                    val descriptor = results.resultingDescriptor
-                    return createTypeInfo(descriptor?.returnType, initialDataFlowInfoForArguments)
-                }
-            }
+        if (!results.isNothing) {
+            temporaryForEnumConstructor.commit()
+            val descriptor = results.resultingDescriptor
+            return createTypeInfo(descriptor?.returnType, initialDataFlowInfoForArguments)
         }
 
+
+        // 检查接收者是否为枚举 Qualifier
+//        val qualifier = (nameExpression.parent as? CjExpression)?.let { context.trace[BindingContext.QUALIFIER, it] }
+//        if (qualifier is ClassifierQualifier) {
+//            val classDescriptor = when (qualifier) {
+//                is ClassQualifier -> qualifier.descriptor
+//                is TypeAliasQualifier -> qualifier.classDescriptor
+//                else -> null
+//            }
+//
+//            // 如果是枚举类型，尝试解析枚举构造器
+//            if (classDescriptor != null && DescriptorUtils.isEnum(classDescriptor)) {
+//                val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
+//                val contextForEnum = context.replaceTraceAndCache(temporaryForEnumConstructor)
+//
+//                val results = callResolver.resolveEnumCall(
+//                    temporaryForEnumConstructor,
+//                    BasicCallResolutionContext.create(
+//                        contextForEnum, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+//                        DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
+//                    )
+//                )
+//
+//                if (!results.isNothing) {
+//                    temporaryForEnumConstructor.commit()
+//                    val descriptor = results.resultingDescriptor
+//                    return createTypeInfo(descriptor?.returnType, initialDataFlowInfoForArguments)
+//                }
+//            }
+//        }
+        temporaryForEnumConstructor.commit()
         return null
     }
 

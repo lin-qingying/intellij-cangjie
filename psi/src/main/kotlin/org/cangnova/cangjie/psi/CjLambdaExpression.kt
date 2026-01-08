@@ -89,7 +89,7 @@ class CjLambdaExpression(text: CharSequence?) :
     }
 
     override fun getContainingCjFile(): CjFile {
-        return (this as LazyParseablePsiElement).getContainingCjFile()
+        return getContainingCjFile(this)
     }
 
     @Suppress("unused") // keep for compatibility with potential plugins

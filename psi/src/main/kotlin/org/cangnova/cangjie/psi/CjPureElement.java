@@ -39,7 +39,7 @@ public interface CjPureElement {
      */
     @NotNull
     CjElement getPsiOrParent();
-@Nullable
+
     /**
      * Returns parent source element.
      */

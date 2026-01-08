@@ -186,6 +186,14 @@ class CangJieCallResolver(
                 )
             }
 
+            ENUM_CONSTRUCTOR -> createEnumConstructorProcessor(
+                scopeTower,
+                cangjieCall.name,
+                candidateFactory,
+                resolutionCallbacks.getCandidateFactoryForInvoke(scopeTower, cangjieCall),
+                cangjieCall.explicitReceiver?.receiver
+            )
+
             FUNCTION -> {
                 createFunctionProcessor(
                     scopeTower,
@@ -197,8 +205,6 @@ class CangJieCallResolver(
             }
 
             CALLABLE_REFERENCE -> {
-
-
                 createCallableReferenceProcessor(candidateFactory as CallableReferencesCandidateFactory) as ScopeTowerProcessor<C>
             }
 
@@ -214,7 +220,7 @@ class CangJieCallResolver(
             }
 
             UNSUPPORTED -> throw UnsupportedOperationException()
-            ENUM_CONSTRUCTOR -> TODO()
+
             CASE_ENUM -> TODO()
         }
 
