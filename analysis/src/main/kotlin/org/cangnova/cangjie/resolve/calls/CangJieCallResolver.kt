@@ -166,15 +166,7 @@ class CangJieCallResolver(
         cangjieCall.checkCallInvariants()
 
         val processor = when (cangjieCall.callKind) {
-//            ENUM ->{
-//                createEnumAndEntryProcessor(
-//                    cangjieCall,
-//                    scopeTower,
-//
-//                    candidateFactory,
-//
-//                )
-//            }
+
 
 
             VARIABLE -> {

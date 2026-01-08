@@ -115,7 +115,7 @@ fun resolveQualifierAsStandaloneExpression(
         // 类作为独立表达式
         // 所有类型（包括枚举）作为独立表达式时都需要后续成员访问
         // 枚举构造器需要通过 `EnumType.ConstructorName` 形式访问
-        is ClassDescriptor -> {
+        is ClassAndEnumDescriptor -> {
             // 只有在不是限定表达式的一部分时才报告错误
             if (!isPartOfQualifiedExpression) {
                 context.trace.report(

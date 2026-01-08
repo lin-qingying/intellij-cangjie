@@ -78,6 +78,14 @@ class LazyEnumMemberScope(
         // 枚举不支持主构造函数参数转属性，所以这里不添加任何内容
     }
 
+    override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
+//     枚举返回自身
+//        return thisDescriptor
+        return null
+    }
+    override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
+        return super.getContributedFunctions(name, location)
+    }
     override fun getNonDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>) {
         // 从超类型（接口）获取成员
         val fromSupertypes = ArrayList<PropertyDescriptor>()

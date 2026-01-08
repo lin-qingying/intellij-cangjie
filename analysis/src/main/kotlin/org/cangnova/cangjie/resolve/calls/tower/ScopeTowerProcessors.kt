@@ -24,10 +24,7 @@
 
 package org.cangnova.cangjie.resolve.calls.tower
 
-import org.cangnova.cangjie.descriptors.EnumConstructorDescriptor
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
-import org.cangnova.cangjie.resolve.calls.model.CangJieCall
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.scopes.receivers.DetailedReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.QualifierReceiver
@@ -385,7 +382,7 @@ fun <C : Candidate> createCallableReferenceProcessor(
 
     // 创建函数引用处理器
     val function =
-        createSimpleProcessorWithoutClassValueReceiver(scopeTower, context, explicitReceiver) { getFunctions(name, it) }
+        createSimpleProcessorWithoutClassValueReceiver(scopeTower, context, explicitReceiver) { getFunctions(name) }
 
     // 返回组合处理器(目前只包含函数处理器,未来可能添加变量处理器)
     return SamePriorityCompositeScopeTowerProcessor(/*variable,*/ function)
@@ -409,7 +406,7 @@ fun <C : Candidate> createSimpleFunctionProcessor(
     context: CandidateFactory<C>,
     explicitReceiver: DetailedReceiver?,
     classValueReceiver: Boolean = true
-) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getFunctions(name, it) }
+) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getFunctions(name) }
 
 /**
  * 创建带接收者值或空值的处理器
@@ -477,13 +474,13 @@ class KnownResultProcessor<out C>(
  * 用于解析枚举类型的构造器调用。枚举构造器是枚举类型的静态成员,通过类型名访问。
  *
  * 处理两种枚举构造器:
- * 1. 简单构造器(无关联值): `Color.Red`
- * 2. 函数构造器(有关联值): `Result.Success(value)`
+ * 1. 简单构造器(无关联值): `Color.Red` - 作为变量访问
+ * 2. 函数构造器(有关联值): `Result.Success(value)` - 作为函数调用
  *
  * 工作流程:
- * 1. 查找枚举构造器函数
- * 2. 如果找不到简单构造器,尝试查找同名的关联值构造器
- * 3. 支持 invoke 约定(如果构造器返回可调用类型)
+ * 1. 优先查找简单构造器（无参数，作为属性访问）
+ * 2. 再查找函数构造器（有参数，作为函数调用）
+ * 3. 不使用 invoke 约定，因为枚举构造器直接返回枚举实例
  *
  * 示例:
  * ```cangjie
@@ -498,15 +495,15 @@ class KnownResultProcessor<out C>(
  *     Error(String)
  * }
  *
- * val c1 = Color.Red           // 调用简单构造器
- * val r1 = Result.Success(42)  // 调用函数构造器
+ * val c1 = Color.Red           // 访问简单构造器（属性）
+ * val r1 = Result.Success(42)  // 调用函数构造器（函数）
  * ```
  *
  * @param C 候选者类型
  * @param scopeTower 隐式作用域塔
  * @param name 构造器名称
  * @param simpleContext 简单候选者工厂
- * @param factoryProviderForInvoke invoke 调用的候选者工厂提供者
+ * @param factoryProviderForInvoke invoke 调用的候选者工厂提供者（未使用）
  * @param explicitReceiver 显式接收者(通常是枚举类型本身)
  * @return 优先级组合作用域塔处理器
  */
@@ -518,27 +515,30 @@ fun <C : Candidate> createEnumConstructorProcessor(
     explicitReceiver: DetailedReceiver?
 ): PrioritizedCompositeScopeTowerProcessor<C>{
 
-    // 处理器 1: 枚举构造器函数调用
-    // 支持简单构造器(作为变量访问)和函数构造器(作为函数调用)
-    val constructorProcessor = createSimpleFunctionProcessor(
+    // 处理器 1: 简单构造器（无关联值）
+    // 优先查找作为变量/属性的枚举构造器
+    // 例如：Color.Red
+    val simpleConstructorProcessor = createSimpleProcessor(
         scopeTower,
-        name,
         simpleContext,
         explicitReceiver,
         classValueReceiver = true  // 支持通过类名访问静态成员
+    ) { getVariables(name, it) }
+
+    // 处理器 2: 函数构造器（有关联值）
+    // 查找作为函数的枚举构造器
+    // 例如：Result.Success(42)
+    val functionConstructorProcessor = createSimpleFunctionProcessor(
+        scopeTower, name, simpleContext, explicitReceiver
     )
 
-    // 处理器 2: invoke 约定
-    // 如果枚举构造器返回可调用类型,支持 invoke 调用
-    val invokeProcessor = InvokeTowerProcessor(
-        scopeTower,
-        name,
-        factoryProviderForInvoke,
-        explicitReceiver
+    // 返回优先级组合处理器
+    // 优先级：简单构造器（变量）> 函数构造器（函数）
+    // 注意：不需要 invoke 约定，枚举构造器直接返回枚举实例
+    return PrioritizedCompositeScopeTowerProcessor(
+        simpleConstructorProcessor,
+        functionConstructorProcessor
     )
-
-    // 返回优先级组合处理器:构造器优先级高于 invoke 约定
-    return PrioritizedCompositeScopeTowerProcessor(constructorProcessor, invokeProcessor)
 }
 
 /**

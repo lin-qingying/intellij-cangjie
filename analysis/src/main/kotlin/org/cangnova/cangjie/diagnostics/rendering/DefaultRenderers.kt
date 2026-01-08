@@ -33,6 +33,7 @@ import org.cangnova.cangjie.diagnostics.infos.errors.FUNCTION_EXPECTED
 import org.cangnova.cangjie.diagnostics.infos.errors.INVALID_BINARY_OPERATOR
 import org.cangnova.cangjie.diagnostics.infos.errors.LET_REASSIGNMENT
 import org.cangnova.cangjie.diagnostics.infos.errors.NO_ELSE_IN_MATCH_BY_PATTERN
+import org.cangnova.cangjie.diagnostics.infos.errors.*
 import org.cangnova.cangjie.diagnostics.infos.errors.REDECLARATION
 import org.cangnova.cangjie.diagnostics.infos.errors.TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS
 import org.cangnova.cangjie.diagnostics.infos.errors.UNINITIALIZED_VARIABLE
@@ -192,6 +193,11 @@ internal class DefaultRenderers : DiagnosticRendererProvider {
                 )
             }
             register(LET_REASSIGNMENT) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                renderers(Renderers.NAMED
+                )
+            }
+            register(NO_VALUE_FOR_PARAMETER) {
                 message { CangJieDiagnosisBundle.rawMessage(it) }
                 renderers(Renderers.NAMED
                 )

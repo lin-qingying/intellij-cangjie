@@ -105,7 +105,7 @@ interface ScopeTowerLevel {
      */
     fun getFunctions(
         name: Name,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
+
     ): Collection<CandidateWithBoundDispatchReceiver>
 
     /**
@@ -133,7 +133,7 @@ interface ImplicitScopeTower {
         initialResults: Collection<VariableDescriptor>,
         location: LookupLocation,
         dispatchReceiver: ReceiverValueWithSmartCastInfo?,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
+
     ): Collection<VariableDescriptor>
 
     fun allScopesWithImplicitsResolutionInfo(): Sequence<ScopeWithImplicitsExtensionsResolutionInfo> =
@@ -145,7 +145,7 @@ interface ImplicitScopeTower {
         initialResults: Collection<FunctionDescriptor>,
         location: LookupLocation,
         dispatchReceiver: ReceiverValueWithSmartCastInfo?,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
+
     ): Collection<FunctionDescriptor>
 
     //    val syntheticScopes: SyntheticScopes

@@ -169,7 +169,7 @@ fun <C : Candidate> createCallTowerProcessorForExplicitInvoke(
             scopeTower,
             functionContext,
             expressionForInvoke
-        ) { getFunctions(OperatorNameConventions.INVOKE, it) } // todo operator
+        ) { getFunctions(OperatorNameConventions.INVOKE) } // todo operator
 
         return if (invokeExtensionDescriptor == null) {
             usualInvoke
@@ -209,7 +209,7 @@ class InvokeTowerProcessor<C : Candidate>(
             scopeTower,
             invokeContext,
             variableReceiver
-        ) { getFunctions(OperatorNameConventions.INVOKE, it) }
+        ) { getFunctions(OperatorNameConventions.INVOKE) }
     }
 
     override fun mayDataBeApplicable(data: TowerData) =

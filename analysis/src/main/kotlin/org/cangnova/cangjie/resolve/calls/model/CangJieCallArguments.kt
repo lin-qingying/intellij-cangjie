@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve.calls.model
 
+import org.cangnova.cangjie.descriptors.ClassAndEnumDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.TypeAliasDescriptor
 import org.cangnova.cangjie.name.Name
@@ -71,7 +72,7 @@ sealed class LHSResult {
 
         init {
             if (qualifier != null) {
-                assert(qualifier.descriptor is ClassDescriptor || qualifier.descriptor is TypeAliasDescriptor) {
+                assert(qualifier.descriptor is ClassAndEnumDescriptor || qualifier.descriptor is TypeAliasDescriptor) {
                     "Should be ClassDescriptor: ${qualifier.descriptor}"
                 }
             }

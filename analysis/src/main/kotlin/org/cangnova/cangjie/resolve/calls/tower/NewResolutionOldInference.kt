@@ -124,7 +124,7 @@ class NewResolutionOldInference(
                 context: BasicCallResolutionContext
             ): ScopeTowerProcessor<MyCandidate> {
                 val functionFactory = outer.CandidateFactoryImpl(name, context, tracing)
-                return createFunctionProcessor(
+                return createEnumConstructorProcessor(
                     scopeTower,
                     name,
                     functionFactory,

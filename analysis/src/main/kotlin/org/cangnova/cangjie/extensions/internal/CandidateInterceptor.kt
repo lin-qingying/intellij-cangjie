@@ -100,7 +100,7 @@ class CandidateInterceptor(project: Project) {
         name: Name,
         location: LookupLocation,
         dispatchReceiver: ReceiverValueWithSmartCastInfo?,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
+
     ): Collection<FunctionDescriptor> = extensions.fold(candidates) { it, extension ->
         extension.interceptFunctionCandidates(
             it,
@@ -111,7 +111,7 @@ class CandidateInterceptor(project: Project) {
             name,
             location,
             dispatchReceiver,
-            extensionReceiver
+
         )
     }
 
@@ -144,7 +144,7 @@ class CandidateInterceptor(project: Project) {
         name: Name,
         location: LookupLocation,
         dispatchReceiver: ReceiverValueWithSmartCastInfo?,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
+
     ): Collection<VariableDescriptor> = extensions.fold(candidates) { it, extension ->
         extension.interceptVariableCandidates(
             it,
@@ -155,7 +155,7 @@ class CandidateInterceptor(project: Project) {
             name,
             location,
             dispatchReceiver,
-            extensionReceiver
+
         )
     }
 

@@ -168,7 +168,7 @@ interface EnumDescriptor : ClassAndEnumDescriptor {
  * - 简单case：`Red`
  * - 带关联值的case：`Success(T)`
  */
-interface EnumConstructorDescriptor :ConstructorDescriptor {
+interface EnumConstructorDescriptor :ConstructorDescriptor ,VariableDescriptor{
 
     /**
      * 所属的枚举
@@ -212,9 +212,10 @@ interface EnumConstructorDescriptor :ConstructorDescriptor {
      */
     val isFunctionConstructor: Boolean
         get() = hasArguments
-
-
-
+    override val isConst: Boolean
+        get() = true
+    override val isVar: Boolean
+        get() = false
 
 
     interface CopyBuilder<D : EnumConstructorDescriptor> : FunctionDescriptor.CopyBuilder<D> {

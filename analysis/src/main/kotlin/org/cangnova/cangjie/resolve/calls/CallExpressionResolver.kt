@@ -457,8 +457,11 @@ class CallExpressionResolver(
         // ============================================================
         // 步骤1: 尝试作为变量解析
         // ============================================================
+        val temporaryForVariable = TemporaryTraceAndCache.create(
+            context, "trace to resolveName as variable", nameExpression
+        )
         val variableResult = tryResolveAsVariable(
-            nameExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
+            temporaryForVariable,  nameExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
         )
         if (variableResult != null) {
             return variableResult
@@ -467,8 +470,11 @@ class CallExpressionResolver(
         // ============================================================
         // 步骤2: 尝试作为函数解析
         // ============================================================
+        val temporaryForFunction = TemporaryTraceAndCache.create(
+            context, "trace to resolveName as function", nameExpression
+        )
         val functionResult = tryResolveAsFunction(
-            nameExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
+            temporaryForFunction,  nameExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
         )
         if (functionResult != null) {
             return functionResult
@@ -477,8 +483,11 @@ class CallExpressionResolver(
         // ============================================================
         // 步骤3: 尝试作为 Qualifier 解析（类型/包）
         // ============================================================
+        val temporaryForQualifier = TemporaryTraceAndCache.create(
+            context, "trace to resolveName as qualifier", nameExpression
+        )
         val qualifierResult = tryResolveAsQualifier(
-            nameExpression, receiver, context
+            temporaryForQualifier, nameExpression, receiver, context
         )
         if (qualifierResult != null) {
             return qualifierResult
@@ -487,11 +496,22 @@ class CallExpressionResolver(
         // ============================================================
         // 步骤4: 尝试作为枚举构造器解析
         // ============================================================
+        val temporaryForEnumConstructor = TemporaryTraceAndCache.create(
+            context, "trace to resolveName as enum constructor", nameExpression
+        )
         val enumConstructorResult = tryResolveAsEnumConstructor(
-            nameExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
+            temporaryForEnumConstructor,
+            nameExpression,
+            receiver,
+            callOperationNode,
+            context,
+            initialDataFlowInfoForArguments
         )
         if (enumConstructorResult != null) {
             return enumConstructorResult
+        } else {
+//            提交
+            temporaryForVariable.commit()
         }
 
         // 所有解析策略都失败，返回无类型信息
@@ -504,15 +524,14 @@ class CallExpressionResolver(
      * @return 如果成功解析为变量，返回类型信息；否则返回 null
      */
     private fun tryResolveAsVariable(
+        temporaryForVariable: TemporaryTraceAndCache,
         nameExpression: CjSimpleNameExpression,
         receiver: Receiver?,
         callOperationNode: ASTNode?,
         context: ExpressionTypingContext,
         initialDataFlowInfoForArguments: DataFlowInfo
     ): CangJieTypeInfo? {
-        val temporaryForVariable = TemporaryTraceAndCache.create(
-            context, "trace to resolveName as variable", nameExpression
-        )
+
         val (notNothing, type) = getVariableType(
             nameExpression, receiver, callOperationNode,
             context.replaceTraceAndCache(temporaryForVariable)
@@ -532,6 +551,7 @@ class CallExpressionResolver(
      * @return 如果成功解析为函数，返回类型信息；否则返回 null
      */
     private fun tryResolveAsFunction(
+        temporaryForFunction: TemporaryTraceAndCache,
         nameExpression: CjSimpleNameExpression,
         receiver: Receiver?,
         callOperationNode: ASTNode?,
@@ -540,9 +560,7 @@ class CallExpressionResolver(
     ): CangJieTypeInfo? {
         val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
 
-        val temporaryForFunction = TemporaryTraceAndCache.create(
-            context, "trace to resolveName as function", nameExpression
-        )
+
         val newContext = context.replaceTraceAndCache(temporaryForFunction)
         val (resolveResult, resolvedCall) = getResolvedCallForFunction(
             call, newContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, initialDataFlowInfoForArguments
@@ -566,14 +584,13 @@ class CallExpressionResolver(
      * @return 如果成功解析为 Qualifier，返回类型信息；否则返回 null
      */
     private fun tryResolveAsQualifier(
+        trace: TemporaryTraceAndCache,
         nameExpression: CjSimpleNameExpression,
         receiver: Receiver?,
         context: ExpressionTypingContext
     ): CangJieTypeInfo? {
-        val temporaryForQualifier = TemporaryTraceAndCache.create(
-            context, "trace to resolveName as qualifier", nameExpression
-        )
-        val contextForQualifier = context.replaceTraceAndCache(temporaryForQualifier)
+
+        val contextForQualifier = context.replaceTraceAndCache(trace)
 
         val qualifier = qualifiedExpressionResolver.resolveNameExpressionAsQualifierForDiagnostics(
             nameExpression,
@@ -583,7 +600,7 @@ class CallExpressionResolver(
 
         if (qualifier != null) {
             resolveQualifierAsStandaloneExpression(qualifier, contextForQualifier)
-            temporaryForQualifier.commit()
+            trace.commit()
             return noTypeInfo(context)
         }
 
@@ -598,6 +615,7 @@ class CallExpressionResolver(
      * @return 如果成功解析为枚举构造器，返回类型信息；否则返回 null
      */
     private fun tryResolveAsEnumConstructor(
+        trace: TemporaryTraceAndCache,
         nameExpression: CjSimpleNameExpression,
         receiver: Receiver?,
         callOperationNode: ASTNode?,
@@ -606,15 +624,11 @@ class CallExpressionResolver(
     ): CangJieTypeInfo? {
 
 
-        val temporaryForEnumConstructor = TemporaryTraceAndCache.create(
-            context, "trace to resolveName as enum constructor", nameExpression
-        )
-
         val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
-        val contextForEnum = context.replaceTraceAndCache(temporaryForEnumConstructor)
+        val contextForEnum = context.replaceTraceAndCache(trace)
 
         val results = callResolver.resolveEnumCall(
-            temporaryForEnumConstructor,
+            trace,
             BasicCallResolutionContext.create(
                 contextForEnum, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
                 DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
@@ -622,7 +636,7 @@ class CallExpressionResolver(
         )
 
         if (!results.isNothing) {
-            temporaryForEnumConstructor.commit()
+            trace.commit()
             val descriptor = results.resultingDescriptor
             return createTypeInfo(descriptor?.returnType, initialDataFlowInfoForArguments)
         }
@@ -657,7 +671,7 @@ class CallExpressionResolver(
 //                }
 //            }
 //        }
-        temporaryForEnumConstructor.commit()
+
         return null
     }
 

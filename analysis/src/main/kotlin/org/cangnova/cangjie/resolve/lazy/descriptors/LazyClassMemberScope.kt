@@ -168,6 +168,9 @@ open class LazyClassMemberScope(
 //        }.toList())
     }
 
+    override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
+        return null
+    }
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean

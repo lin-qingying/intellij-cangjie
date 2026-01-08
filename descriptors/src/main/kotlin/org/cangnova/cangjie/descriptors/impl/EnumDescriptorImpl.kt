@@ -179,8 +179,8 @@ abstract class AbstractEnumConstructorDescriptor(
         get() = unsubstitutedValueParameters
     override val returnType: CangJieType
         get() = unsubstitutedReturnType!!
-
-
+    override val type: CangJieType
+        get() = unsubstitutedReturnType!!
 
     /**
      * 调度接收器参数（枚举构造函数不支持）
@@ -800,6 +800,8 @@ open class EnumConstructorDescriptorImpl(
 
             )
     }
+
+
 
 
 }

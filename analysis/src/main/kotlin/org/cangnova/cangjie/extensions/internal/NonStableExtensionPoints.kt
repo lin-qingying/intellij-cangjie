@@ -112,7 +112,6 @@ interface CallResolutionInterceptorExtension {
         name: Name,
         location: LookupLocation,
         dispatchReceiver: ReceiverValueWithSmartCastInfo?,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<FunctionDescriptor> = candidates
 
     fun interceptVariableCandidates(
@@ -134,6 +133,6 @@ interface CallResolutionInterceptorExtension {
         name: Name,
         location: LookupLocation,
         dispatchReceiver: ReceiverValueWithSmartCastInfo?,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
+
     ): Collection<VariableDescriptor> = candidates
 }

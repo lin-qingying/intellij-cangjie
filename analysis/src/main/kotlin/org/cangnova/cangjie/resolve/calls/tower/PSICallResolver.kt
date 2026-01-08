@@ -545,8 +545,7 @@ class PSICallResolver(
             name: Name,
             initialResults: Collection<VariableDescriptor>,
             location: LookupLocation,
-            dispatchReceiver: ReceiverValueWithSmartCastInfo?,
-            extensionReceiver: ReceiverValueWithSmartCastInfo?
+            dispatchReceiver: ReceiverValueWithSmartCastInfo?
         ): Collection<VariableDescriptor> {
             return candidateInterceptor.interceptVariableCandidates(
                 initialResults,
@@ -557,7 +556,7 @@ class PSICallResolver(
                 name,
                 location,
                 dispatchReceiver,
-                extensionReceiver
+
             )
         }
 
@@ -566,8 +565,7 @@ class PSICallResolver(
             name: Name,
             initialResults: Collection<FunctionDescriptor>,
             location: LookupLocation,
-            dispatchReceiver: ReceiverValueWithSmartCastInfo?,
-            extensionReceiver: ReceiverValueWithSmartCastInfo?
+            dispatchReceiver: ReceiverValueWithSmartCastInfo?
         ): Collection<FunctionDescriptor> {
             return candidateInterceptor.interceptFunctionCandidates(
                 initialResults,
@@ -578,7 +576,6 @@ class PSICallResolver(
                 name,
                 location,
                 dispatchReceiver,
-                extensionReceiver
             )
         }
 
@@ -1066,7 +1063,7 @@ class PSICallResolver(
                 val qualifiedExpression = cjExpression.receiverExpression!!
                 val qualifier = expressionTypingContext.trace.get(QUALIFIER, qualifiedExpression)
                 val classifier = doubleColonLhs.type.constructor.declarationDescriptor
-                if (classifier !is ClassDescriptor) {
+                if (classifier !is ClassAndEnumDescriptor) {
                     expressionTypingContext.trace.report(CALLABLE_REFERENCE_LHS_NOT_A_CLASS.on(cjExpression))
                     LHSResult.Error
                 } else {

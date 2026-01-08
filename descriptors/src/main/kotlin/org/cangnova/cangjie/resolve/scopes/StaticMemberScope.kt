@@ -237,8 +237,7 @@ class StaticMemberScope(val memberScope: MemberScope) : MemberScope {
     }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
-        // 仓颉语言不支持类内声明类型（无嵌套类概念）
-        return null
+        return memberScope.getContributedClassifier(name, location) // 过滤非静态函数
     }
 
 
