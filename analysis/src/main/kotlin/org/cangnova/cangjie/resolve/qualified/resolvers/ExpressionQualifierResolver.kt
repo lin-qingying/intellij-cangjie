@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,18 +12,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
  */
 
 package org.cangnova.cangjie.resolve.qualified.resolvers
 
 import com.intellij.codeInsight.completion.CompletionUtilCore
 import org.cangnova.cangjie.config.LanguageVersionSettings
-import org.cangnova.cangjie.config.LanguageVersionSettingsImpl
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.incremental.CangJieLookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.psiUtil.getTopmostParentQualifiedExpressionForSelector
 import org.cangnova.cangjie.resolve.TypeResolver
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.DelegatingBindingTrace
@@ -38,7 +44,7 @@ import org.cangnova.cangjie.resolve.qualified.context.ResolutionContext
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 
 /**
@@ -190,7 +196,7 @@ class ExpressionQualifierResolver(
        
 
             val substitutedDescriptor = if (qualifierDescriptor is ClassifierDescriptorWithTypeParameters && resolvedType != null) {
-                val substitutor =  TypeSubstitutor.create(resolvedType)
+                val substitutor =  DefaultTypeSubstitutor.create(resolvedType)
                 qualifierDescriptor.substitute(substitutor) ?: qualifierDescriptor
             } else {
                 qualifierDescriptor

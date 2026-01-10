@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 //
 //    override val constructor: TypeConstructor
 //        get() = type.constructor
-//    override val arguments: List<TypeProjection>
+//    override val arguments: List<TypeArgument>
 //        get() = type.arguments
 //    override val attributes: TypeAttributes
 //        get() = type.attributes
@@ -94,7 +94,7 @@ open class ErrorType @JvmOverloads internal constructor(
     override val constructor: TypeConstructor,
     override val memberScope: MemberScope,
     val kind: ErrorTypeKind,
-    override val arguments: List<TypeProjection> = emptyList(),
+    override val arguments: List<TypeArgument> = emptyList(),
     override val isOption: Boolean = false,
     private vararg val formatParams: String
 ) : SimpleType() {
@@ -106,7 +106,7 @@ open class ErrorType @JvmOverloads internal constructor(
 
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType = this
 
-//    fun replaceArguments(newArguments: List<TypeProjection>): ErrorType =
+//    fun replaceArguments(newArguments: List<TypeArgument>): ErrorType =
 //        ErrorType(constructor, memberScope, kind, newArguments, isMarkedOption, *formatParams)
 
     override fun makeOptionAsSpecified(isOption: Boolean): SimpleType =

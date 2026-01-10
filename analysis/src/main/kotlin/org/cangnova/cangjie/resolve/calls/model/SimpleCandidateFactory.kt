@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.cangnova.cangjie.descriptors.ClassKind
 import org.cangnova.cangjie.descriptors.PropertyDescriptor
 import org.cangnova.cangjie.resolve.calls.components.CangJieResolutionCallbacks
 import org.cangnova.cangjie.resolve.calls.components.InferenceSession
-import org.cangnova.cangjie.resolve.calls.components.NewConstraintSystemImpl
+import org.cangnova.cangjie.resolve.calls.components.ConstraintSystemImpl
 import org.cangnova.cangjie.resolve.calls.components.candidate.SimpleErrorResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.candidate.SimpleResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.inference.addSubsystemFromArgument
@@ -43,9 +43,8 @@ import org.cangnova.cangjie.resolve.calls.tower.ImplicitScopeTower
 import org.cangnova.cangjie.resolve.calls.tower.isSynthesized
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.cangnova.cangjie.types.ErrorUtils
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.error.ErrorScopeKind
-import org.cangnova.cangjie.types.isDynamic
 
 /**
  * 简单候选项工厂
@@ -103,7 +102,7 @@ class SimpleCandidateFactory(
 
     init {
         // 创建新的约束系统实例
-        val baseSystem = NewConstraintSystemImpl(
+        val baseSystem = ConstraintSystemImpl(
             callComponents.constraintInjector, callComponents.builtIns,
             callComponents.cangjieTypeRefiner, callComponents.languageVersionSettings
         )
@@ -261,7 +260,7 @@ class SimpleCandidateFactory(
         extensionArgumentReceiver: SimpleCangJieCallArgument?,
         extensionArgumentReceiverCandidates: List<SimpleCangJieCallArgument>?,
         initialDiagnostics: Collection<CangJieCallDiagnostic>,
-        knownSubstitutor: TypeSubstitutor?
+        knownSubstitutor: DefaultTypeSubstitutor?
     ): SimpleResolutionCandidate {
         // 创建可变的已解析调用原子
         val resolvedCjCall = MutableResolvedCallAtom(

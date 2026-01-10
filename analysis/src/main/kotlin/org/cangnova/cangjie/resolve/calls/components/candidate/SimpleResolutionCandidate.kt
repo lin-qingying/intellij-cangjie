@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.cangnova.cangjie.resolve.calls.model.CangJieCallComponents
 import org.cangnova.cangjie.resolve.calls.model.MutableResolvedCallAtom
 import org.cangnova.cangjie.resolve.calls.model.ResolvedAtom
 import org.cangnova.cangjie.resolve.calls.tower.ImplicitScopeTower
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 /**
  * 简单解析候选 (Simple Resolution Candidate)
@@ -74,7 +74,7 @@ open class SimpleResolutionCandidate(
     override val scopeTower: ImplicitScopeTower,
     override val baseSystem: ConstraintStorage,
     override val resolvedCall: MutableResolvedCallAtom,
-    override val knownTypeParametersResultingSubstitutor: TypeSubstitutor? = null,
+    override val knownTypeParametersResultingSubstitutor: DefaultTypeSubstitutor? = null,
 ) : ResolutionCandidate() {
     /**
      * invoke 调用时的变量候选

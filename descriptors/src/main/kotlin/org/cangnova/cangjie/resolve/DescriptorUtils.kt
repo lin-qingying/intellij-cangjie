@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,8 +53,8 @@ import org.cangnova.cangjie.types.ErrorUtils.isError
 import org.cangnova.cangjie.types.StubTypeForBuilderInference
 import org.cangnova.cangjie.types.TypeConstructor
 import org.cangnova.cangjie.types.TypeUtils
+import org.cangnova.cangjie.types.checker.AxiomBasedTypeChecker.Companion.withAxioms
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
-import org.cangnova.cangjie.types.checker.CangJieTypeCheckerImpl
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.checker.REFINER_CAPABILITY
 import org.cangnova.cangjie.types.checker.TypeRefinementSupport
@@ -900,7 +900,7 @@ fun descriptorsEqualWithSubstitution(
     if (descriptor1 !is CallableDescriptor) return true
     descriptor2 as CallableDescriptor
 
-    val typeChecker = CangJieTypeCheckerImpl.withAxioms(object : CangJieTypeChecker.TypeConstructorEquality {
+    val typeChecker =  withAxioms(object : CangJieTypeChecker.TypeConstructorEquality {
         override fun equals(a: TypeConstructor, b: TypeConstructor): Boolean {
             val typeParam1 = a.declarationDescriptor as? TypeParameterDescriptor
             val typeParam2 = b.declarationDescriptor as? TypeParameterDescriptor

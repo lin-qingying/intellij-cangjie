@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,14 +28,13 @@ import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilder
 import org.cangnova.cangjie.resolve.calls.inference.addSubtypeConstraintIfCompatible
-import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
+import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.ArgumentConstraintPositionImpl
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintPosition
 import org.cangnova.cangjie.resolve.calls.inference.model.ReceiverConstraintPositionImpl
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isMarkedOption
-import org.cangnova.cangjie.types.checker.captureFromExpression
 import org.cangnova.cangjie.types.checker.hasSupertypeWithGivenTypeConstructor
 
 /**
@@ -136,7 +135,7 @@ private fun checkSubCallArgument(
     // 返回类型可能包含固定的类型变量
     // 获取子调用的当前返回类型（应用类型替换）
     val currentReturnType =
-        (csBuilder.buildCurrentSubstitutor() as NewTypeSubstitutor)
+        (csBuilder.buildCurrentSubstitutor() as AbstractTypeSubstitutor)
             .safeSubstitute(subCallArgument.receiver.receiverValue.type.unwrap())
 
     // 如果是安全调用（?.），返回类型必须是可空的
@@ -397,16 +396,13 @@ fun captureFromTypeParameterUpperBoundIfNeeded(
                     // 并且该超类型包含期望类型构造器的超类型
                     it.unwrap().hasSupertypeWithGivenTypeConstructor(expectedTypeConstructor)
         }
-        // 如果找到了匹配的超类型
+        // 如果找到了匹配的超类型，直接返回该超类型
         if (chosenSupertype != null) {
-            // 从该超类型捕获类型信息
-            val capturedType = captureFromExpression(chosenSupertype.unwrap())
-            // 如果成功捕获且原参数类型是明确非空类型，保持非空属性
-            return if (capturedType != null && argumentType.isDefinitelyNonOptionType)
-                capturedType.makeDefinitelyNonOptionOrNonOption()
+            // 如果原参数类型是明确非空类型，保持非空属性
+            return if (argumentType.isDefinitelyNonOptionType)
+                chosenSupertype.unwrap().makeDefinitelyNonOptionOrNonOption()
             else
-                // 否则返回捕获的类型，如果捕获失败则返回原始类型
-                capturedType ?: argumentType
+                chosenSupertype.unwrap()
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ import org.cangnova.cangjie.resolve.calls.checkers.RttiExpressionInformation
 import org.cangnova.cangjie.resolve.calls.checkers.RttiOperation
 import org.cangnova.cangjie.resolve.calls.context.ContextDependency
 import org.cangnova.cangjie.resolve.calls.model.DataFlowInfoForArgumentsImpl
-import org.cangnova.cangjie.resolve.calls.model.ResolvedCallImpl
+import org.cangnova.cangjie.resolve.calls.model.MutableResolvedCallImpl
 import org.cangnova.cangjie.resolve.calls.results.OverloadResolutionResults
 import org.cangnova.cangjie.resolve.calls.results.OverloadResolutionResultsImpl
 import org.cangnova.cangjie.resolve.calls.results.OverloadResolutionResultsUtil
@@ -106,7 +106,6 @@ import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
 import org.cangnova.cangjie.types.TypeUtils.makeNonOption
 import org.cangnova.cangjie.types.TypeUtils.noExpectedType
-import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.error.ErrorType
 import org.cangnova.cangjie.types.error.ErrorTypeKind
@@ -123,7 +122,7 @@ import org.cangnova.cangjie.types.isDynamic
 import org.cangnova.cangjie.types.isError
 import org.cangnova.cangjie.types.isOptionType
 import java.util.*
-import org.cangnova.cangjie.types.TypeSubstitutor.Companion.create
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor.Companion.create
 
 /**
  * 基础表达式类型访问器
@@ -1700,7 +1699,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             )
 
         val resolvedCall =
-            ResolvedCallImpl.create(
+            MutableResolvedCallImpl.create(
                 resolutionCandidate,
                 TemporaryBindingTrace.create(trace, "Fake trace for fake 'this' or 'super' resolved call"),
                 TracingStrategy.EMPTY,
@@ -1823,7 +1822,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             } else if (classifierCandidate is ClassDescriptor) {
                 for (declaredSupertype in supertypes) {
                     if (declaredSupertype.constructor == classifierCandidate.typeConstructor) {
-                        result = substitutor.safeSubstitute(declaredSupertype, Variance.INVARIANT)
+                        result = substitutor.safeSubstitute(declaredSupertype, )
                         break
                     }
                 }
@@ -1850,7 +1849,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                 }
                 if (supertypesResolvedFromContext.size == 1) {
                     val singleResolvedType = supertypesResolvedFromContext.iterator().next()
-                    result = substitutor.substitute(singleResolvedType, Variance.INVARIANT)
+                    result = substitutor.substitute(singleResolvedType, )
                 } else if (supertypesResolvedFromContext.isEmpty()) {
                     // No supertype found, either with concrete or abstract members.
                     // Resolve to 'Any' (this will cause diagnostics for unresolved member reference).
@@ -1864,7 +1863,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                     components.builtIns.stdlibTypes.anyType
                 else
                     supertypes.iterator().next()
-                result = substitutor.substitute(type, Variance.INVARIANT)
+                result = substitutor.substitute(type, )
             }
         }
         if (result != null) {

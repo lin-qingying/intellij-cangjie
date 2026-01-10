@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ package org.cangnova.cangjie.contracts.model
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 //import org.cangnova.cangjie.contracts.model.visitors.Reducer
 import org.cangnova.cangjie.resolve.calls.inference.components.EmptySubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
+import org.cangnova.cangjie.resolve.calls.inference.components.TypeSubstitutorForConstraints
 
 /**
  * An abstraction of effect-generating nature of some computation.
@@ -42,7 +42,7 @@ import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstituto
 //}
 
 class ESTypeSubstitution(
-    val substitutor: NewTypeSubstitutor,
+    val substitutor: TypeSubstitutorForConstraints,
     val builtIns: CangJieBuiltIns
 ) {
     companion object {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,14 +62,14 @@ import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
  *    - 这体现了它们都是从同一个泛型类定义派生的
  *
  * 2. **不同的包装器实例**:
- *    - `A<Int>` 是一个 [LazySubstitutingClassDescriptor] 实例，持有 `TypeSubstitutor(T -> Int)`
- *    - `A<String>` 是另一个 [LazySubstitutingClassDescriptor] 实例，持有 `TypeSubstitutor(T -> String)`
+ *    - `A<Int>` 是一个 [LazySubstitutingClassDescriptor] 实例，持有 `DefaultTypeSubstitutor(T -> Int)`
+ *    - `A<String>` 是另一个 [LazySubstitutingClassDescriptor] 实例，持有 `DefaultTypeSubstitutor(T -> String)`
  *    - 这两个包装器实例不相等（用 `===` 比较返回 false）
  *
  * 3. **不同的类型表示**:
  *    - 在类型层面（[CangJieType]），它们是完全不同的类型
  *    - 它们有相同的 [typeConstructor]（指向同一个 `ClassDescriptor A`）
- *    - 但有不同的类型参数（[TypeProjection] 列表）
+ *    - 但有不同的类型参数（[TypeArgument] 列表）
  *
  * 4. **不同的成员类型**:
  *    - 访问成员时，类型参数会被动态替换
@@ -85,11 +85,11 @@ import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
  * val originalDescriptor: ClassDescriptor = ... // A<T> 的原始描述符
  *
  * // 创建 A<Int> 的描述符
- * val intSubstitutor = TypeSubstitutor.create(mapOf(T -> IntType))
+ * val intSubstitutor = DefaultTypeSubstitutor.create(mapOf(T -> IntType))
  * val aInt = LazySubstitutingClassDescriptor(originalDescriptor, intSubstitutor)
  *
  * // 创建 A<String> 的描述符
- * val stringSubstitutor = TypeSubstitutor.create(mapOf(T -> StringType))
+ * val stringSubstitutor = DefaultTypeSubstitutor.create(mapOf(T -> StringType))
  * val aString = LazySubstitutingClassDescriptor(originalDescriptor, stringSubstitutor)
  *
  * // aInt 和 aString 是不同的描述符
@@ -114,11 +114,11 @@ import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
  *
  * 支持多层类型替换（如 `A<T>` -> `A<B<T>>` -> `A<B<Int>>`）：
  * ```kotlin
- * override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
+ * override fun substitute(substitutor: DefaultTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
  *     if (substitutor.isEmpty) return this
  *     return LazySubstitutingClassDescriptor(
  *         this,
- *         TypeSubstitutor.createChainedSubstitutor(
+ *         DefaultTypeSubstitutor.createChainedSubstitutor(
  *             substitutor.substitution,
  *             getSubstitutor().substitution
  *         )
@@ -129,23 +129,23 @@ import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
  * @param original 原始的泛型类描述符（如 `A<T>`）
  * @param originalSubstitutor 类型参数替换器（如 `T -> Int`）
  *
- * @see TypeSubstitutor 类型替换器
+ * @see DefaultTypeSubstitutor 类型替换器
  * @see SubstitutingScope 替换作用域
  * @see ClassifierDescriptorWithTypeParameters.substitute 替换方法
  */
 class LazySubstitutingClassDescriptor(
     override val original: ModuleAwareClassDescriptor,
-    private val originalSubstitutor: TypeSubstitutor
+    private val originalSubstitutor: DefaultTypeSubstitutor
 ) : ModuleAwareClassDescriptor(), ClassDescriptor {
 
 
-    private var newSubstitutor: TypeSubstitutor? = null
+    private var newSubstitutor: DefaultTypeSubstitutor? = null
     private lateinit var typeConstructorParameters: MutableList<TypeParameterDescriptor>
     private lateinit var myDeclaredTypeParameters: MutableList<TypeParameterDescriptor>
     private var myTypeConstructor: TypeConstructor? = null
 
 
-    private fun getSubstitutor(): TypeSubstitutor {
+    private fun getSubstitutor(): DefaultTypeSubstitutor {
         if (newSubstitutor == null) {
             if (originalSubstitutor.isEmpty) {
                 newSubstitutor = originalSubstitutor
@@ -180,7 +180,7 @@ class LazySubstitutingClassDescriptor(
     }
 
     override fun getMemberScope(
-        typeArguments: List<TypeProjection>,
+        typeArguments: List<TypeArgument>,
         cangjieTypeRefiner: CangJieTypeRefiner
     ): MemberScope {
         val memberScope =
@@ -192,7 +192,7 @@ class LazySubstitutingClassDescriptor(
     }
 
 
-    override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope {
+    override fun getMemberScope(typeArguments: List<TypeArgument>): MemberScope {
         return getMemberScope(
             typeArguments, DescriptorUtils.getContainingModule(
                 this
@@ -254,14 +254,14 @@ class LazySubstitutingClassDescriptor(
             }
 
             if (myTypeConstructor == null) {
-                val substitutor: TypeSubstitutor = getSubstitutor()
+                val substitutor: DefaultTypeSubstitutor = getSubstitutor()
 
                 val originalSupertypes: Collection<CangJieType> =
                     originalTypeConstructor.supertypes
                 val supertypes =
                     ArrayList<CangJieType>(originalSupertypes.size)
                 for (supertype in originalSupertypes) {
-                    substitutor.substitute(supertype, Variance.INVARIANT)?.let { supertypes.add(it) }
+                    substitutor.substitute(supertype )?.let { supertypes.add(it) }
                 }
 
                 myTypeConstructor = ClassTypeConstructorImpl(
@@ -277,14 +277,14 @@ class LazySubstitutingClassDescriptor(
     override val defaultType: SimpleType
         get() {
 
-            val typeProjections: List<TypeProjection> =
-                TypeUtils.getDefaultTypeProjections(
+            val TypeArguments: List<TypeArgument> =
+                TypeUtils.getDefaultTypeArguments(
                     typeConstructor.parameters
                 )
             return simpleTypeWithNonTrivialMemberScope(
                 DefaultTypeAttributeTranslator.toAttributes(annotations, null, null),
                 typeConstructor,
-                typeProjections,
+                TypeArguments,
                 false,
                 unsubstitutedMemberScope
             )
@@ -299,11 +299,11 @@ class LazySubstitutingClassDescriptor(
         get() = original.modality
 
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
         if (substitutor.isEmpty) return this
         return LazySubstitutingClassDescriptor(
             this,
-            TypeSubstitutor.createChainedSubstitutor(
+            DefaultTypeSubstitutor.createChainedSubstitutor(
                 substitutor.substitution,
                 getSubstitutor().substitution
             )
@@ -369,9 +369,9 @@ class LazySubstitutingClassDescriptor(
     private fun substituteSimpleType(type: SimpleType?): SimpleType? {
         if (type == null || originalSubstitutor.isEmpty) return type
 
-        val substitutor: TypeSubstitutor = getSubstitutor()
+        val substitutor: DefaultTypeSubstitutor = getSubstitutor()
         val substitutedType: CangJieType? =
-            substitutor.substitute(type, Variance.INVARIANT)
+            substitutor.substitute(type )
 
         assert(substitutedType is SimpleType) {
             """
@@ -414,7 +414,7 @@ class LazySubstitutingClassDescriptor(
                 typeParams.joinTo(this, ", ") { param ->
                     // 获取替换后的类型
                     val substitutor = getSubstitutor()
-                    val substitutedType = substitutor.substitute(param.defaultType, Variance.INVARIANT)
+                    val substitutedType = substitutor.substitute(param.defaultType )
                     substitutedType?.toString() ?: param.name.asString()
                 }
                 append(">")

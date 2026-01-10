@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import org.cangnova.cangjie.psi.CjBinaryExpression
 import org.cangnova.cangjie.resolve.calls.CallResolver
 import org.cangnova.cangjie.resolve.calls.util.CallMaker
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.createFunctionType
 import org.cangnova.cangjie.types.expressions.CangJieTypeInfo
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
@@ -90,11 +89,11 @@ class FlowOperatorResolver(
 //        return right(  left    )
 //    }
             val L = TypeParameterDescriptorImpl.createWithDefaultBound(
-                this, Annotations.EMPTY, Variance.INVARIANT, Name.identifier("L"),
+                this, Annotations.EMPTY,   Name.identifier("L"),
                 0, builtIns.storageManager
             )
             val R = TypeParameterDescriptorImpl.createWithDefaultBound(
-                this, Annotations.EMPTY, Variance.INVARIANT, Name.identifier("R"),
+                this, Annotations.EMPTY,  Name.identifier("R"),
                 1, builtIns.storageManager
             )
 
@@ -121,20 +120,18 @@ class FlowOperatorResolver(
 
 
         val composition = FlowFunctionDescriptor(OperatorNameConventions.COMPOSITION).apply {
-            //    func Composition<L, R, RR>(left: (L) -> R, right: (R) -> RR): (L) -> R {
-//        return left
-//    }
+
 
             val L = TypeParameterDescriptorImpl.createWithDefaultBound(
-                this, Annotations.EMPTY, Variance.INVARIANT, Name.identifier("L"),
+                this, Annotations.EMPTY,   Name.identifier("L"),
                 0, builtIns.storageManager
             )
             val R = TypeParameterDescriptorImpl.createWithDefaultBound(
-                this, Annotations.EMPTY, Variance.INVARIANT, Name.identifier("R"),
+                this, Annotations.EMPTY,   Name.identifier("R"),
                 1, builtIns.storageManager
             )
             val RR = TypeParameterDescriptorImpl.createWithDefaultBound(
-                this, Annotations.EMPTY, Variance.INVARIANT, Name.identifier("RR"),
+                this, Annotations.EMPTY,   Name.identifier("RR"),
                 2, builtIns.storageManager
             )
             val typeParameters = mutableListOf(L, R, RR)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
  */
 class EnumType(
     override val constructor: EnumTypeConstructor,
-    arguments: List<TypeProjection>,
+    arguments: List<TypeArgument>,
     memberScope: MemberScope,
 
     isOption: Boolean = false,

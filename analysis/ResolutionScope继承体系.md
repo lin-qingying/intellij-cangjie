@@ -971,7 +971,7 @@ override fun getContributedFunctions(name: Name, location: LookupLocation) =
 
 - [DescriptorKindFilter.kt](../descriptors/src/main/kotlin/org/cangnova/cangjie/resolve/scopes/DescriptorKindFilter.kt) - 描述符类型过滤器
 - [LookupLocation.kt](../descriptors/src/main/kotlin/org/cangnova/cangjie/incremental/components/LookupLocation.kt) - 查找位置(增量编译支持)
-- [TypeSubstitutor.kt](../descriptors/src/main/kotlin/org/cangnova/cangjie/types/TypeSubstitutor.kt) - 类型替换器
+- [DefaultTypeSubstitutor.kt](../descriptors/src/main/kotlin/org/cangnova/cangjie/types/DefaultTypeSubstitutor.kt) - 类型替换器
 
 ---
 

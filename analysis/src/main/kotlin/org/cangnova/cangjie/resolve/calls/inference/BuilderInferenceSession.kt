@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,19 +42,20 @@ import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.TemporaryBindingTrace
 import org.cangnova.cangjie.resolve.calls.ArgumentTypeResolver
 import org.cangnova.cangjie.resolve.calls.components.InferenceSession
-import org.cangnova.cangjie.resolve.calls.components.NewConstraintSystemImpl
+import org.cangnova.cangjie.resolve.calls.components.ConstraintSystemImpl
 import org.cangnova.cangjie.resolve.calls.components.PostponedArgumentsAnalyzer
 import org.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext
 import org.cangnova.cangjie.resolve.calls.inference.components.CangJieConstraintSystemCompleter
 import org.cangnova.cangjie.resolve.calls.inference.components.ConstraintSystemCompletionMode
-import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
+import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
+import org.cangnova.cangjie.resolve.calls.inference.components.TypeSubstitutorByConstructorMap
 import org.cangnova.cangjie.resolve.calls.inference.model.*
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.tower.*
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
 import org.cangnova.cangjie.types.*
-import org.cangnova.cangjie.types.checker.NewCapturedType
+import org.cangnova.cangjie.types.TypeArgumentImpl
+import org.cangnova.cangjie.types.checker.CapturedType
 import org.cangnova.cangjie.types.expressions.ExpressionTypingServices
 
 class BuilderInferenceSession(
@@ -78,7 +79,7 @@ class BuilderInferenceSession(
 ) : StubTypesBasedInferenceSession<CallableDescriptor>(
     psiCallResolver, postponedArgumentsAnalyzer, cangjieConstraintSystemCompleter, callComponents, builtIns
 ) {
-    private val commonSystem = NewConstraintSystemImpl(
+    private val commonSystem = ConstraintSystemImpl(
         callComponents.constraintInjector,
         builtIns,
         callComponents.cangjieTypeRefiner,
@@ -109,7 +110,7 @@ class BuilderInferenceSession(
         val resultingSubstitutor by lazy {
             val storageSubstitutor =
                 initialStorage.buildResultingSubstitutor(commonSystem, transformTypeVariablesToErrorTypes = false)
-            ComposedSubstitutor(storageSubstitutor, commonSystem.buildCurrentSubstitutor() as NewTypeSubstitutor)
+            ComposedSubstitutor(storageSubstitutor, commonSystem.buildCurrentSubstitutor() as AbstractTypeSubstitutor)
         }
 
         val effectivelyEmptyConstraintSystem = initializeCommonSystem(initialStorage)
@@ -161,17 +162,16 @@ class BuilderInferenceSession(
         }
     }
 
-    private fun extractCommonCapturedTypes(a: CangJieType, b: CangJieType): List<NewCapturedType> {
-        val extractedCapturedTypes = mutableSetOf<NewCapturedType>().also { extractCapturedTypesTo(a, it) }
+    private fun extractCommonCapturedTypes(a: CangJieType, b: CangJieType): List<CapturedType> {
+        val extractedCapturedTypes = mutableSetOf<CapturedType>().also { extractCapturedTypesTo(a, it) }
         return extractedCapturedTypes.filter { capturedType -> b.contains { it.constructor === capturedType.constructor } }
     }
 
-    private fun extractCapturedTypesTo(type: CangJieType, to: MutableSet<NewCapturedType>) {
-        if (type is NewCapturedType) {
+    private fun extractCapturedTypesTo(type: CangJieType, to: MutableSet<CapturedType>) {
+        if (type is CapturedType) {
             to.add(type)
         }
         for (typeArgument in type.arguments) {
-
             extractCapturedTypesTo(typeArgument.type, to)
         }
     }
@@ -179,11 +179,11 @@ class BuilderInferenceSession(
     private fun substituteNotFixedVariables(
         lowerType: CangJieType,
         upperType: CangJieType,
-        nonFixedToVariablesSubstitutor: NewTypeSubstitutor
+        nonFixedToVariablesSubstitutor: AbstractTypeSubstitutor
     ): Pair<CangJieType, CangJieType> {
         val commonCapTypes = extractCommonCapturedTypes(lowerType, upperType)
         val substitutedCommonCapType = commonCapTypes.associate {
-            it.constructor as TypeConstructor to nonFixedToVariablesSubstitutor.safeSubstitute(it).asTypeProjection()
+            it.constructor as TypeConstructor to TypeArgumentImpl(nonFixedToVariablesSubstitutor.safeSubstitute(it.unwrap()))
         }
 
         val capTypesSubstitutor =
@@ -199,7 +199,7 @@ class BuilderInferenceSession(
 
     private fun integrateConstraints(
         storage: ConstraintStorage,
-        nonFixedToVariablesSubstitutor: NewTypeSubstitutor,
+        nonFixedToVariablesSubstitutor: AbstractTypeSubstitutor,
         shouldIntegrateAllConstraints: Boolean
     ) {
         storage.notFixedTypeVariables.values.forEach {
@@ -255,7 +255,7 @@ class BuilderInferenceSession(
     }
 
 
-    private fun InitialConstraint.substitute(substitutor: NewTypeSubstitutor): InitialConstraint {
+    private fun InitialConstraint.substitute(substitutor: AbstractTypeSubstitutor): InitialConstraint {
         val lowerSubstituted = substitutor.safeSubstitute(a as UnwrappedType)
         val upperSubstituted = substitutor.safeSubstitute(b as UnwrappedType)
 
@@ -319,7 +319,7 @@ class BuilderInferenceSession(
      * - ...
      * - updating calls within the deepest builder inference call
      */
-    private fun updateAllCalls(substitutor: NewTypeSubstitutor) {
+    private fun updateAllCalls(substitutor: AbstractTypeSubstitutor) {
         updateCalls(
             lambda,
             substitutor = substitutor,
@@ -332,7 +332,7 @@ class BuilderInferenceSession(
             // TODO: exclude injected variables
             nestedSession.updateAllCalls(
                 ComposedSubstitutor(
-                    nestedSession.commonSystem.buildCurrentSubstitutor() as NewTypeSubstitutor,
+                    nestedSession.commonSystem.buildCurrentSubstitutor() as AbstractTypeSubstitutor,
                     substitutor
                 )
             )
@@ -372,7 +372,7 @@ class BuilderInferenceSession(
     }
 
     private fun createNonFixedTypeToVariableSubstitutor() =
-        NewTypeSubstitutorByConstructorMap(createNonFixedTypeToVariableMap())
+        TypeSubstitutorByConstructorMap(createNonFixedTypeToVariableMap())
 
     private fun createNonFixedTypeToVariableMap(): Map<TypeConstructor, UnwrappedType> {
         val bindings = hashMapOf<TypeConstructor, UnwrappedType>()
@@ -404,7 +404,7 @@ class BuilderInferenceSession(
     }
 
     private fun createResolvedAtomCompleter(
-        resultSubstitutor: NewTypeSubstitutor,
+        resultSubstitutor: AbstractTypeSubstitutor,
         context: BasicCallResolutionContext
     ): ResolvedAtomCompleter {
         return ResolvedAtomCompleter(
@@ -434,7 +434,7 @@ class BuilderInferenceSession(
 
     private fun updateCall(
         completedCall: PSICompletedCallInfo,
-        nonFixedTypesToResultSubstitutor: NewTypeSubstitutor,
+        nonFixedTypesToResultSubstitutor: AbstractTypeSubstitutor,
         nonFixedTypesToResult: Map<TypeConstructor, UnwrappedType>
     ) {
         val storage = completedCall.callResolutionResult.constraintSystem.getBuilder().currentStorage()
@@ -443,7 +443,7 @@ class BuilderInferenceSession(
 
         @Suppress("UNCHECKED_CAST")
         val resultingSubstitutor =
-            NewTypeSubstitutorByConstructorMap((resultingCallSubstitutor + nonFixedTypesToResult) as Map<TypeConstructor, UnwrappedType>) // TODO: SUB
+            TypeSubstitutorByConstructorMap((resultingCallSubstitutor + nonFixedTypesToResult) as Map<TypeConstructor, UnwrappedType>) // TODO: SUB
 
         val atomCompleter = createResolvedAtomCompleter(
             resultingSubstitutor,
@@ -455,7 +455,7 @@ class BuilderInferenceSession(
 
     private fun reportErrors(
         completedCall: CallInfo,
-        resolvedCall: NewAbstractResolvedCall<*>,
+        resolvedCall: AbstractResolvedCall<*>,
         errors: List<ConstraintSystemError>
     ) {
         cangjieToResolvedCallTransformer.reportCallDiagnostic(
@@ -470,7 +470,7 @@ class BuilderInferenceSession(
     private fun completeCall(
         callInfo: CallInfo,
         atomCompleter: ResolvedAtomCompleter
-    ): NewAbstractResolvedCall<*>? {
+    ): AbstractResolvedCall<*>? {
         val resultCallAtom = callInfo.callResolutionResult.resultCallAtom
         resultCallAtom.subResolvedAtoms?.forEach { subResolvedAtom ->
             atomCompleter.completeAll(subResolvedAtom)
@@ -484,7 +484,7 @@ class BuilderInferenceSession(
         return resolvedCall
     }
 
-    private fun updateExpressionDescriptorAndType(expression: CjExpression, substitutor: NewTypeSubstitutor) {
+    private fun updateExpressionDescriptorAndType(expression: CjExpression, substitutor: AbstractTypeSubstitutor) {
         val currentExpressionType = trace.getType(expression)
         if (currentExpressionType != null) {
             trace.recordType(expression, substitutor.safeSubstitute(currentExpressionType.unwrap()))
@@ -518,7 +518,7 @@ class BuilderInferenceSession(
     companion object {
         private fun BuilderInferenceSession.updateCalls(
             lambda: ResolvedLambdaAtom,
-            substitutor: NewTypeSubstitutor,
+            substitutor: AbstractTypeSubstitutor,
             errors: List<ConstraintSystemError>
         ) {
             val nonFixedToVariablesSubstitutor = createNonFixedTypeToVariableSubstitutor()
@@ -551,7 +551,8 @@ class BuilderInferenceSession(
     }
 }
 
-class ComposedSubstitutor(val left: NewTypeSubstitutor, val right: NewTypeSubstitutor) : NewTypeSubstitutor {
+class ComposedSubstitutor(val left: AbstractTypeSubstitutor, val right: AbstractTypeSubstitutor) :
+    AbstractTypeSubstitutor() {
     override fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType? {
         val rightSubstitution = right.substituteNotNullTypeWithConstructor(constructor)
         return left.substituteNotNullTypeWithConstructor(rightSubstitution?.constructor ?: constructor)

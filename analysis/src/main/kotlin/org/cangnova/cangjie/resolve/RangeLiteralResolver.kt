@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -180,7 +180,6 @@ class RangeLiteralResolver(
         annotations,
 
         name,
-        Variance.INVARIANT,
         index,
         SourceElement.NO_SOURCE,
 
@@ -190,7 +189,7 @@ class RangeLiteralResolver(
 
         fun CangJieType.replaceArgument(): CangJieType {
             val arguments = listOf(
-                TypeProjectionImpl(this@RangeOfTypeParameterDescriptor.defaultType)
+                TypeArgumentImpl(this@RangeOfTypeParameterDescriptor.defaultType)
 
             )
             return simpleTypeWithNonTrivialMemberScope(

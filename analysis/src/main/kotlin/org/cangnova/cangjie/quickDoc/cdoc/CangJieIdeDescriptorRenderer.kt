@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -757,7 +757,7 @@ open class CangJieIdeDescriptorRenderer(
                 appendHighlighted(": ") { asColon }
             }
 
-            append(renderTypeProjection(typeProjection))
+            append(renderTypeArgument(typeProjection))
         }
 
         appendHighlighted(") ") { asParentheses }
@@ -918,21 +918,18 @@ open class CangJieIdeDescriptorRenderer(
 
     protected fun lt() = highlight(escape("<")) { asOperationSign }
     protected fun gt() = highlight(escape(">")) { asOperationSign }
-    private fun StringBuilder.appendTypeProjections(typeProjections: List<TypeProjection>) {
-        typeProjections.joinTo(this, highlight(", ") { asComma }) {
-
-            val type = renderType(it.type)
-            if (it.projectionKind == Variance.INVARIANT) type
-            else "${highlight(it.projectionKind.toString()) { asKeyword }} $type"
-
+    private fun StringBuilder.appendTypeArguments(typeArguments: List<TypeArgument>) {
+        typeArguments.joinTo(this, highlight(", ") { asComma }) {
+            // 仓颉语言中所有类型参数都是不变的，直接渲染类型
+            renderType(it.type)
         }
     }
 
-    override fun renderTypeArguments(typeArguments: List<TypeProjection>, other: (StringBuilder) -> Unit): String {
+    override fun renderTypeArguments(typeArguments: List<TypeArgument>, other: (StringBuilder) -> Unit): String {
         return if (typeArguments.isEmpty()) ""
         else buildString {
             append(lt())
-            appendTypeProjections(typeArguments)
+            appendTypeArguments(typeArguments)
 
 
             other(this)
@@ -940,8 +937,8 @@ open class CangJieIdeDescriptorRenderer(
         }
     }
 
-    override fun renderTypeProjection(typeProjection: TypeProjection): String = buildString {
-        appendTypeProjections(listOf(typeProjection))
+    override fun renderTypeArgument(typeArgument: TypeArgument): String = buildString {
+        appendTypeArguments(listOf(typeArgument))
     }
 
     override fun renderTypeConstructor(typeConstructor: TypeConstructor): String =
@@ -1019,8 +1016,7 @@ open class CangJieIdeDescriptorRenderer(
             appendHighlighted("/*${typeParameter.index}*/ ") { asInfo }
         }
 
-        val variance = typeParameter.variance.label
-        appendModifier(variance.isNotEmpty(), variance)
+        // 仓颉语言的所有类型参数都是不变的(invariant)，不需要渲染变型修饰符
 
 //        appendAnnotations(typeParameter)
 

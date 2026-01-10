@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,15 +78,15 @@ val SMART_COMPLETION_ITEM_PRIORITY_KEY = Key<SmartCompletionItemPriority>("SMART
 
 class ExpectedInfoMatch
 private constructor(
-    val substitutor: TypeSubstitutor?,
+    val substitutor: DefaultTypeSubstitutor?,
     val makeNotNullable: Boolean
 ) {
     fun isMatch() = substitutor != null && !makeNotNullable
 
     companion object {
         val noMatch = ExpectedInfoMatch(null, false)
-        fun match(substitutor: TypeSubstitutor) = ExpectedInfoMatch(substitutor, false)
-        fun ifNotNullMatch(substitutor: TypeSubstitutor) = ExpectedInfoMatch(substitutor, true)
+        fun match(substitutor: DefaultTypeSubstitutor) = ExpectedInfoMatch(substitutor, false)
+        fun ifNotNullMatch(substitutor: DefaultTypeSubstitutor) = ExpectedInfoMatch(substitutor, true)
     }
 }
 
@@ -255,7 +255,7 @@ private fun MutableCollection<LookupElement>.addLookupElementsForNullable(
     }
 }
 
-private fun <T : DeclarationDescriptor?> T.substituteFixed(substitutor: TypeSubstitutor): T {
+private fun <T : DeclarationDescriptor?> T.substituteFixed(substitutor: DefaultTypeSubstitutor): T {
     if (this is LocalVariableDescriptor || this is ValueParameterDescriptor || this !is Substitutable<*>) {
         return this
     }

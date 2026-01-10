@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -252,7 +252,7 @@ import org.cangnova.cangjie.renderer.DescriptorRenderer
  * ```kotlin
  * class SubstitutedClassDescriptor(
  *     private val original: ClassDescriptor,
- *     private val substitutor: TypeSubstitutor,
+ *     private val substitutor: DefaultTypeSubstitutor,
  *     annotations: Annotations,
  *     name: Name
  * ) : DeclarationDescriptorImpl(annotations, name), ClassDescriptor {

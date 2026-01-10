@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,11 @@ import org.cangnova.cangjie.psi.CjPsiFactory
 import org.cangnova.cangjie.psi.CjTypeArgumentList
 import org.cangnova.cangjie.resolve.caches.analyze
 import org.cangnova.cangjie.resolve.caches.safeAnalyzeNonSourceRootCode
-import org.cangnova.cangjie.resolve.calls.tower.NewResolvedCallImpl
+import org.cangnova.cangjie.resolve.calls.tower.ResolvedCallImpl
 import org.cangnova.cangjie.resolve.calls.util.getResolvedCall
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.types.ErrorUtils
-import org.cangnova.cangjie.types.checker.NewCapturedType
+import org.cangnova.cangjie.types.checker.CapturedType
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.LowPriorityAction
 import com.intellij.openapi.editor.Editor
@@ -45,7 +45,6 @@ import org.cangnova.cangjie.diagnostics.rendering.IdeDescriptorRenderers
 import org.cangnova.cangjie.messages.CangJieCodeInsightBundle
 import org.cangnova.cangjie.quickfix.CangJieSingleIntentionActionFactory
 import org.cangnova.cangjie.resolve.binding.BindingContext
-import org.cangnova.cangjie.resolve.call.inference.CapturedType
 
 
 class CangJieInsertExplicitTypeArgumentsIntention : SelfTargetingRangeIntention<CjCallExpression>(
@@ -68,10 +67,10 @@ class CangJieInsertExplicitTypeArgumentsIntention : SelfTargetingRangeIntention<
             val resolvedCall = element.getResolvedCall(bindingContext) ?: return false
             val typeArgs = resolvedCall.typeArguments
             val valueParameters = resolvedCall.resultingDescriptor.valueParameters
-            if (resolvedCall is NewResolvedCallImpl<*> && valueParameters.any { ErrorUtils.containsErrorType(it.type) }) return false
+            if (resolvedCall is ResolvedCallImpl<*> && valueParameters.any { ErrorUtils.containsErrorType(it.type) }) return false
 
 
-            return typeArgs.isNotEmpty() && typeArgs.values.none { ErrorUtils.containsErrorType(it) || it is CapturedType || it is NewCapturedType }
+            return typeArgs.isNotEmpty() && typeArgs.values.none { ErrorUtils.containsErrorType(it) || it is CapturedType }
         }
 
         fun applyTo(element: CjCallElement, argumentList: CjTypeArgumentList, shortenReferences: Boolean = true) {

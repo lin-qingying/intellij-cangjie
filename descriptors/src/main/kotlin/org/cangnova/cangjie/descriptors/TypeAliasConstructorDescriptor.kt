@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.descriptors
 
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 /**
  * 类型别名构造器描述符接口，继承自`ConstructorDescriptor`和`DescriptorDerivedFromTypeAlias`，用于描述类型别名构造器的元信息。
@@ -66,7 +66,7 @@ interface TypeAliasConstructorDescriptor : ConstructorDescriptor, DescriptorDeri
      * @param substitutor 类型替换器
      * @return 替换后的构造器描述符，可能为`null`
      */
-    override fun substitute(substitutor: TypeSubstitutor): TypeAliasConstructorDescriptor?
+    override fun substitute(substitutor: DefaultTypeSubstitutor): TypeAliasConstructorDescriptor?
 
     /**
      * 获取带有分发接收器的类型别名构造器描述符（如果存在）。

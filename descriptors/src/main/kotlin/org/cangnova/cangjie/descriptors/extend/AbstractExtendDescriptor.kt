@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ abstract class AbstractExtendDescriptor(
 
 
     override fun getMemberScope(
-        typeArguments: List<TypeProjection>,
+        typeArguments: List<TypeArgument>,
 
         ): MemberScope {
         assert(typeArguments.size == declaredTypeParameters.size) {
@@ -79,7 +79,7 @@ abstract class AbstractExtendDescriptor(
         ): MemberScope {
         if (typeSubstitution.isEmpty()) return unsubstitutedMemberScope
 
-        val substitutor = TypeSubstitutor.create(typeSubstitution)
+        val substitutor = DefaultTypeSubstitutor.create(typeSubstitution)
         return SubstitutingScope(unsubstitutedMemberScope, substitutor)
     }
 

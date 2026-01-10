@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,9 @@ import org.cangnova.cangjie.resolve.calls.components.TypeArgumentsToParametersMa
 import org.cangnova.cangjie.resolve.calls.inference.components.ConstraintInjector
 
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
+import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import org.cangnova.cangjie.types.checker.NewCangJieTypeChecker
 
 
 class CangJieCallComponents(
@@ -51,7 +51,7 @@ class CangJieCallComponents(
     val languageVersionSettings: LanguageVersionSettings,
 //    val samConversionOracle: SamConversionOracle,
 //    val samConversionResolver: SamConversionResolver,
-    val cangjieTypeChecker: NewCangJieTypeChecker,
+    val cangjieTypeChecker: CangJieTypeChecker,
     val lookupTracker: LookupTracker,
     val cangjieTypeRefiner: CangJieTypeRefiner,
     val callableReferenceArgumentResolver: CallableReferenceArgumentResolver
@@ -60,5 +60,5 @@ class CangJieCallComponents(
 class GivenCandidate(
     val descriptor: FunctionDescriptor,
     val dispatchReceiver: ReceiverValueWithSmartCastInfo?,
-    val knownTypeParametersResultingSubstitutor: TypeSubstitutor?
+    val knownTypeParametersResultingSubstitutor: DefaultTypeSubstitutor?
 )

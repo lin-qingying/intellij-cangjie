@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -174,8 +174,8 @@ class TypeDeserializer(
         val annotations = Annotations.EMPTY
         val attributes = TypeAttributes.Empty
 
-        // 将类型参数索引转换为 TypeProjection 对象
-        val arguments = semaTy.typeArgs.map { TypeProjectionImpl(type(it)) }
+        // 将类型参数索引转换为 TypeArgument 对象
+        val arguments = semaTy.typeArgs.map { TypeArgumentImpl(type(it)) }
 
         val declarationDescriptor = constructor.declarationDescriptor
 

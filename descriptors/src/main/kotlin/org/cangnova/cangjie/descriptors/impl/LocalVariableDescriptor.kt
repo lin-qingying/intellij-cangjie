@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 open class LocalVariableDescriptor
     (
@@ -43,7 +43,7 @@ open class LocalVariableDescriptor
 
     source: SourceElement
 ) : VariableDescriptorImpl(containingDeclaration, name, type, mutable, source, DescriptorVisibilities.LOCAL) {
-    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): CallableDescriptor? {
         if (substitutor.isEmpty) return this
         throw UnsupportedOperationException() // TODO
     }

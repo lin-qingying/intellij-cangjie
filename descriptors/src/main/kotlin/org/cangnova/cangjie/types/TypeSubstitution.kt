@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ abstract class TypeSubstitution{
      * @param position 类型的变异位置
      * @return 处理后的类型
      */
-    open fun prepareTopLevelType(topLevelType: CangJieType, position: Variance): CangJieType = topLevelType
+    open fun prepareTopLevelType(topLevelType: CangJieType): CangJieType = topLevelType
 
     /**
      * 过滤注解
@@ -73,14 +73,14 @@ abstract class TypeSubstitution{
      * @param key 要替换的类型键
      * @return 对应的类型投影，如果没有替换则返回null
      */
-    abstract operator fun get(key: CangJieType): TypeProjection?
+    abstract operator fun get(key: CangJieType): TypeArgument?
 
     /**
      * 构建类型替换器
      *
      * @return 基于当前替换的类型替换器
      */
-    fun buildSubstitutor(): TypeSubstitutor = TypeSubstitutor.create(this)
+    fun buildSubstitutor(): DefaultTypeSubstitutor = DefaultTypeSubstitutor.create(this)
 
     /**
      * 创建非近似的替换
@@ -93,8 +93,8 @@ abstract class TypeSubstitution{
         override fun approximateCapturedTypes() = false
         override fun approximateContravariantCapturedTypes() = false
         override fun filterAnnotations(annotations: Annotations) = this@TypeSubstitution.filterAnnotations(annotations)
-        override fun prepareTopLevelType(topLevelType: CangJieType, position: Variance) =
-            this@TypeSubstitution.prepareTopLevelType(topLevelType, position)
+        override fun prepareTopLevelType(topLevelType: CangJieType ) =
+            this@TypeSubstitution.prepareTopLevelType(topLevelType)
 
         override fun isEmpty() = this@TypeSubstitution.isEmpty()
     }
@@ -116,8 +116,13 @@ abstract class TypeSubstitution{
     /**
      * 是否对逆变捕获类型进行近似
      *
-     * @return 如果需要对逆变捕获类型进行近似则返回true
+     * @deprecated 仓颉语言不支持协变/逆变，此方法已废弃，始终返回 false
+     * @return 始终返回 false
      */
+    @Deprecated(
+        "Cangjie language does not support covariance/contravariance",
+        ReplaceWith("false")
+    )
     open fun approximateContravariantCapturedTypes(): Boolean = false
 }
 
@@ -125,13 +130,13 @@ abstract class TypeSubstitution{
 abstract class TypeConstructorSubstitution : TypeSubstitution() {
     override fun get(key: CangJieType) = get(key.constructor)
 
-    abstract fun get(key: TypeConstructor): TypeProjection?
+    abstract fun get(key: TypeConstructor): TypeArgument?
 
     companion object {
         @JvmStatic
         @JvmOverloads
         fun createByConstructorsMap(
-            map: Map<TypeConstructor, TypeProjection>,
+            map: Map<TypeConstructor, TypeArgument>,
             approximateCapturedTypes: Boolean = false
         ): TypeConstructorSubstitution =
             object : TypeConstructorSubstitution() {
@@ -141,7 +146,7 @@ abstract class TypeConstructorSubstitution : TypeSubstitution() {
             }
 
         @JvmStatic
-        fun createByParametersMap(map: Map<TypeParameterDescriptor, TypeProjection>): TypeConstructorSubstitution =
+        fun createByParametersMap(map: Map<TypeParameterDescriptor, TypeArgument>): TypeConstructorSubstitution =
             object : TypeConstructorSubstitution() {
                 override fun get(key: TypeConstructor) = map[key.declarationDescriptor]
                 override fun isEmpty() = map.isEmpty()
@@ -151,7 +156,7 @@ abstract class TypeConstructorSubstitution : TypeSubstitution() {
         fun create(CangJieType: CangJieType) = create(CangJieType.constructor, CangJieType.arguments)
 
         @JvmStatic
-        fun create(typeConstructor: TypeConstructor, arguments: List<TypeProjection>): TypeSubstitution {
+        fun create(typeConstructor: TypeConstructor, arguments: List<TypeArgument>): TypeSubstitution {
             val parameters = typeConstructor.parameters
 
             if (parameters.lastOrNull()?.isCapturedFromOuterDeclaration == true) {
@@ -165,7 +170,7 @@ abstract class TypeConstructorSubstitution : TypeSubstitution() {
 
 class IndexedParametersSubstitution(
     val parameters: Array<TypeParameterDescriptor>,
-    val arguments: Array<TypeProjection>,
+    val arguments: Array<TypeArgument>,
     private val approximateContravariantCapturedTypes: Boolean = false
 ) : TypeSubstitution() {
     init {
@@ -176,14 +181,14 @@ class IndexedParametersSubstitution(
 
     constructor(
         parameters: List<TypeParameterDescriptor>,
-        argumentsList: List<TypeProjection>
+        argumentsList: List<TypeArgument>
     ) : this(parameters.toTypedArray(), argumentsList.toTypedArray())
 
     override fun isEmpty(): Boolean = arguments.isEmpty()
 
     override fun approximateContravariantCapturedTypes() = approximateContravariantCapturedTypes
 
-    override fun get(key: CangJieType): TypeProjection? {
+    override fun get(key: CangJieType): TypeArgument? {
         val parameter = key.constructor.declarationDescriptor as? TypeParameterDescriptor ?: return null
         val index = parameter.index
 
@@ -196,7 +201,7 @@ class IndexedParametersSubstitution(
 }
 @JvmOverloads
 fun SimpleType.replace(
-    newArguments: List<TypeProjection> = arguments,
+    newArguments: List<TypeArgument> = arguments,
     newAttributes: TypeAttributes = attributes
 ): SimpleType {
     if (newArguments.isEmpty() && newAttributes === attributes) return this
@@ -231,9 +236,9 @@ open class DelegatedTypeSubstitution(val substitution: TypeSubstitution) : TypeS
 }
 @JvmOverloads
 fun CangJieType.replace(
-    newArguments: List<TypeProjection> = arguments,
+    newArguments: List<TypeArgument> = arguments,
     newAnnotations: Annotations = annotations,
-    newArgumentsForUpperBound: List<TypeProjection> = newArguments
+    newArgumentsForUpperBound: List<TypeArgument> = newArguments
 ): CangJieType {
     if ((newArguments.isEmpty() || newArguments === arguments) && newAnnotations === annotations) return this
 

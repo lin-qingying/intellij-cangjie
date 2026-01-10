@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,9 @@
 package org.cangnova.cangjie.resolve.calls.util
 
 import com.intellij.psi.PsiElement
-import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.diagnostics.infos.errors.NO_CONSTRUCTOR
-import org.cangnova.cangjie.diagnostics.infos.warnings.NO_CONSTRUCTOR_WARNING
 import org.cangnova.cangjie.lexer.CjToken
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
@@ -49,7 +47,7 @@ import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.AbbreviatedType
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 internal fun PsiElement.reportOnElement() =
     (this as? CjConstructorDelegationCall)
@@ -176,7 +174,7 @@ fun createResolutionCandidatesForConstructors(
     val unwrappedType = typeWithConstructors.unwrap()
     val knownSubstitutor =
         if (useKnownTypeSubstitutor)
-            TypeSubstitutor.create(
+            DefaultTypeSubstitutor.create(
                 (unwrappedType as? AbbreviatedType)?.abbreviation ?: unwrappedType
             )
         else null

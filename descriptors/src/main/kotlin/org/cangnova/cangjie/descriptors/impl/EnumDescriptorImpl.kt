@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.annotations.composeAnnotations
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.resolve.DescriptorFactory
 import org.cangnova.cangjie.resolve.scopes.InstanceMemberScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.scopes.StaticMemberScope
@@ -261,7 +260,7 @@ abstract class AbstractEnumConstructorDescriptor(
      * @return 复制构建器
      */
     override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<out ConstructorDescriptor> {
-        return newCopyBuilder(TypeSubstitutor.EMPTY)
+        return newCopyBuilder(DefaultTypeSubstitutor.EMPTY)
     }
 
     /**
@@ -427,7 +426,7 @@ abstract class AbstractEnumConstructorDescriptor(
         }
     }
 
-    protected fun newCopyBuilder(substitutor: TypeSubstitutor): CopyConfiguration {
+    protected fun newCopyBuilder(substitutor: DefaultTypeSubstitutor): CopyConfiguration {
         return CopyConfiguration(
             substitutor.substitution,
             containingDeclaration, modality, visibility, kind, valueParameters,
@@ -565,7 +564,7 @@ abstract class AbstractEnumConstructorDescriptor(
         }
 
         // 替换返回类型
-        val substitutedReturnType = substitutor.substitute(configuration.newReturnType, Variance.INVARIANT)
+        val substitutedReturnType = substitutor.substitute(configuration.newReturnType )
         if (substitutedReturnType == null) {
             return null
         }
@@ -624,7 +623,7 @@ abstract class AbstractEnumConstructorDescriptor(
      * @param substitutor 类型替换器
      * @return 替换后的可调用描述符
      */
-    override fun substitute(substitutor: TypeSubstitutor): ConstructorDescriptor? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): ConstructorDescriptor? {
         if (substitutor.isEmpty) {
             return this
         }
@@ -658,7 +657,7 @@ abstract class AbstractEnumConstructorDescriptor(
         fun getSubstitutedValueParameters(
             substitutedDescriptor: EnumConstructorDescriptor,
             unsubstitutedValueParameters: List<ValueParameterDescriptor>,
-            substitutor: TypeSubstitutor
+            substitutor: DefaultTypeSubstitutor
         ): List<ValueParameterDescriptor>? {
             return getSubstitutedValueParameters(
                 substitutedDescriptor, unsubstitutedValueParameters, substitutor, false, false, null
@@ -669,7 +668,7 @@ abstract class AbstractEnumConstructorDescriptor(
         fun getSubstitutedValueParameters(
             substitutedDescriptor: EnumConstructorDescriptor,
             unsubstitutedValueParameters: List<ValueParameterDescriptor>,
-            substitutor: TypeSubstitutor,
+            substitutor: DefaultTypeSubstitutor,
             dropOriginal: Boolean,
             preserveSourceElement: Boolean,
             wereChanges: BooleanArray?
@@ -677,10 +676,10 @@ abstract class AbstractEnumConstructorDescriptor(
             val result = ArrayList<ValueParameterDescriptor>(unsubstitutedValueParameters.size)
             for (unsubstitutedValueParameter in unsubstitutedValueParameters) {
                 // TODO : Lazy?
-                val substitutedType = substitutor.substitute(unsubstitutedValueParameter.type, Variance.INVARIANT)
+                val substitutedType = substitutor.substitute(unsubstitutedValueParameter.type)
                 val varargElementType = unsubstitutedValueParameter.varargElementType
                 val substituteVarargElementType =
-                    varargElementType?.let { substitutor.substitute(it, Variance.INVARIANT) }
+                    varargElementType?.let { substitutor.substitute(it) }
                 if (substitutedType == null) return null
                 if (substitutedType != unsubstitutedValueParameter.type || varargElementType != substituteVarargElementType) {
                     wereChanges?.set(0, true)

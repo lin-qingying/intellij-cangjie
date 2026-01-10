@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -281,7 +281,7 @@ abstract class ReceiverConstraintPosition<T>(val argument: T) : ConstraintPositi
 }
 
 /**
- * 新约束不匹配接口
+ * 约束不匹配接口
  *
  * 表示在约束合并过程中发现的类型不匹配。
  *
@@ -289,7 +289,7 @@ abstract class ReceiverConstraintPosition<T>(val argument: T) : ConstraintPositi
  * @property upperType 上界类型（超类型）
  * @property position 约束合并位置
  */
-sealed interface NewConstraintMismatch {
+sealed interface ConstraintMismatch {
     val lowerType: CangJieTypeMarker
     val upperType: CangJieTypeMarker
     val position: IncorporationConstraintPosition
@@ -297,9 +297,9 @@ sealed interface NewConstraintMismatch {
 
 
 /**
- * 新约束错误
+ * 约束错误
  *
- * 当新合并的约束违反子类型关系时产生错误。
+ * 当合并的约束违反子类型关系时产生错误。
  * 如果约束来自接收者位置，则标记为 INAPPLICABLE_WRONG_RECEIVER；
  * 否则标记为 INAPPLICABLE。
  *
@@ -307,12 +307,12 @@ sealed interface NewConstraintMismatch {
  * @property upperType 上界类型
  * @property position 约束合并位置
  */
-class NewConstraintError(
+class ConstraintError(
     override val lowerType: CangJieTypeMarker,
     override val upperType: CangJieTypeMarker,
     override val position: IncorporationConstraintPosition,
 ) : ConstraintSystemError(if (position.from is ReceiverConstraintPosition<*>) CandidateApplicability.INAPPLICABLE_WRONG_RECEIVER else CandidateApplicability.INAPPLICABLE),
-    NewConstraintMismatch {
+    ConstraintMismatch {
     override fun toString(): String {
         return "$lowerType <: $upperType"
     }
@@ -358,26 +358,26 @@ class ReceiverConstraintPositionImpl(
 ) : ReceiverConstraintPosition<CangJieCallArgument>(argument)
 
 /**
- * 新约束警告
+ * 约束警告
  *
- * 当新合并的约束存在潜在问题但不影响候选可用性时产生警告。
+ * 当合并的约束存在潜在问题但不影响候选可用性时产生警告。
  *
  * @property lowerType 下界类型
  * @property upperType 上界类型
  * @property position 约束合并位置
  */
-class NewConstraintWarning(
+class ConstraintWarning(
     override val lowerType: CangJieTypeMarker,
     override val upperType: CangJieTypeMarker,
     override val position: IncorporationConstraintPosition,
-) : ConstraintSystemError(CandidateApplicability.RESOLVED), NewConstraintMismatch
+) : ConstraintSystemError(CandidateApplicability.RESOLVED), ConstraintMismatch
 
 /**
- * 将新约束错误转换为警告
+ * 将约束错误转换为警告
  *
  * 用于降低错误级别，允许调用继续但带有警告信息。
  */
-fun NewConstraintError.transformToWarning() = NewConstraintWarning(lowerType, upperType, position)
+fun ConstraintError.transformToWarning() = ConstraintWarning(lowerType, upperType, position)
 
 /**
  * 声明的上界约束位置基类

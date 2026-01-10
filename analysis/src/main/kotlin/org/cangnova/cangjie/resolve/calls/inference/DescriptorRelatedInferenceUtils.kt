@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ package org.cangnova.cangjie.resolve.calls.inference
 
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.resolve.calls.components.PostponedArgumentsAnalyzerContext
-import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
+import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
 import org.cangnova.cangjie.resolve.calls.model.CallableReferenceCangJieCallArgument
 import org.cangnova.cangjie.resolve.calls.model.CangJieCallArgument
@@ -35,19 +35,19 @@ import org.cangnova.cangjie.resolve.calls.model.SubCangJieCallArgument
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.model.TypeSystemInferenceExtensionContext
 
-fun TypeSubstitutor.substitute(type: UnwrappedType): UnwrappedType = safeSubstitute(type, Variance.INVARIANT).unwrap()
+fun DefaultTypeSubstitutor.substitute(type: UnwrappedType): UnwrappedType = safeSubstitute(type, ).unwrap()
 
 fun CallableDescriptor.substituteAndApproximateTypes(
-    substitutor: NewTypeSubstitutor,
+    substitutor: AbstractTypeSubstitutor,
     typeApproximator: TypeApproximator?,
     positionDependentApproximation: Boolean = false
 ): CallableDescriptor {
     if (substitutor.isEmpty) return this
 
     val wrappedSubstitution = object : TypeSubstitution() {
-        override fun get(key: CangJieType): TypeProjection? = null
+        override fun get(key: CangJieType): TypeArgument? = null
 
-        override fun prepareTopLevelType(topLevelType: CangJieType, position: Variance) =
+        override fun prepareTopLevelType(topLevelType: CangJieType ) =
             substitutor.safeSubstitute(topLevelType.unwrap()).let { substitutedType ->
                 typeApproximator?.approximateTo(
                     substitutedType,
@@ -57,25 +57,25 @@ fun CallableDescriptor.substituteAndApproximateTypes(
             }
     }
 
-    return substitute(TypeSubstitutor.create(wrappedSubstitution)) ?: this
+    return substitute(DefaultTypeSubstitutor.create(wrappedSubstitution)) ?: this
 }
 
 fun ConstraintStorage.buildResultingSubstitutor(
     context: TypeSystemInferenceExtensionContext,
     transformTypeVariablesToErrorTypes: Boolean = true
-): NewTypeSubstitutor {
-    return buildAbstractResultingSubstitutor(context, transformTypeVariablesToErrorTypes) as NewTypeSubstitutor
+): AbstractTypeSubstitutor {
+    return buildAbstractResultingSubstitutor(context, transformTypeVariablesToErrorTypes) as AbstractTypeSubstitutor
 }
 
-fun CallableDescriptor.substitute(substitutor: NewTypeSubstitutor): CallableDescriptor {
+fun CallableDescriptor.substitute(substitutor: AbstractTypeSubstitutor): CallableDescriptor {
     if (substitutor.isEmpty) return this
 
     val wrappedSubstitution = object : TypeSubstitution() {
-        override fun get(key: CangJieType): TypeProjection? = null
-        override fun prepareTopLevelType(topLevelType: CangJieType, position: Variance) =
+        override fun get(key: CangJieType): TypeArgument? = null
+        override fun prepareTopLevelType(topLevelType: CangJieType ) =
             substitutor.safeSubstitute(topLevelType.unwrap())
     }
-    return substitute(TypeSubstitutor.create(wrappedSubstitution)) ?: this
+    return substitute(DefaultTypeSubstitutor.create(wrappedSubstitution)) ?: this
 }
 
 fun PostponedArgumentsAnalyzerContext.addSubsystemFromArgument(argument: CangJieCallArgument?): Boolean {

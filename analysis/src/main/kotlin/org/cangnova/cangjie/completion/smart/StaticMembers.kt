@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.cangnova.cangjie.indices.multipleFuzzyTypes
 import org.cangnova.cangjie.psi.CjSimpleNameExpression
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.ResolutionFacade
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.fuzzyReturnType
 import com.intellij.codeInsight.lookup.LookupElement
 import org.cangnova.cangjie.resolve.binding.BindingContext
@@ -115,7 +115,7 @@ class StaticMembers(
 
                 DescriptorUtils.isEnumConstructor(descriptor) && !enumEntriesToSkip.contains(descriptor) -> {
                     /* we do not need to check type of enum entry because it's taken from proper enum */
-                    { ExpectedInfoMatch.match(TypeSubstitutor.EMPTY) }
+                    { ExpectedInfoMatch.match(DefaultTypeSubstitutor.EMPTY) }
                 }
 
                 else -> return

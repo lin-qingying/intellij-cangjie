@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,26 +61,26 @@ object SubstitutionUtils {
      */
     private fun fillInDeepSubstitutor(
         context: CangJieType,
-        substitutor: TypeSubstitutor,
-        substitution: MutableMap<TypeConstructor, TypeProjection>,
-        typeParameterMapping: Multimap<TypeParameterDescriptor, TypeProjection>?
+        substitutor: DefaultTypeSubstitutor,
+        substitution: MutableMap<TypeConstructor, TypeArgument>,
+        typeParameterMapping: Multimap<TypeParameterDescriptor, TypeArgument>?
     ) {
         // 获取类型构造器的类型参数列表
         val parameters: List<TypeParameterDescriptor> =
             context.constructor.parameters
         // 获取类型的类型实参列表
-        val arguments: List<TypeProjection> = context.arguments
+        val arguments: List<TypeArgument> = context.arguments
 
         // 类型参数和类型实参数量必须匹配
         check(parameters.size == arguments.size)
 
         // 为每个类型参数建立到类型实参的映射
         for (i in arguments.indices) {
-            val argument: TypeProjection = arguments[i]
+            val argument: TypeArgument = arguments[i]
             val parameter: TypeParameterDescriptor = parameters[i]
 
             // 使用替换器替换类型实参（处理嵌套的类型参数）
-            val substitute: TypeProjection = checkNotNull(substitutor.substitute(argument))
+            val substitute: TypeArgument = checkNotNull(substitutor.substitute(argument))
             // 将映射添加到替换映射中
             substitution[parameter.typeConstructor] = substitute
             // 如果提供了类型参数映射，也记录在其中
@@ -126,18 +126,18 @@ object SubstitutionUtils {
      * @param type 要分析的类型
      * @return 类型参数到其所有可能的类型实参的多值映射
      */
-    fun buildDeepSubstitutionMultimap(type: CangJieType): Multimap<TypeParameterDescriptor, TypeProjection> {
+    fun buildDeepSubstitutionMultimap(type: CangJieType): Multimap<TypeParameterDescriptor, TypeArgument> {
         // 创建多值映射，用于存储最终结果
-        val fullSubstitution: Multimap<TypeParameterDescriptor, TypeProjection> =
-            LinkedHashMultimap.create<TypeParameterDescriptor, TypeProjection>()
+        val fullSubstitution: Multimap<TypeParameterDescriptor, TypeArgument> =
+            LinkedHashMultimap.create<TypeParameterDescriptor, TypeArgument>()
 
         // 创建替换映射，用于在递归过程中累积类型参数映射
         val substitution =
-            HashMap<TypeConstructor, TypeProjection>()
+            HashMap<TypeConstructor, TypeArgument>()
 
         // 创建类型替换器，基于上面的可变映射
-        val typeSubstitutor: TypeSubstitutor =
-            TypeSubstitutor.create(substitution)
+        val typeSubstitutor: DefaultTypeSubstitutor =
+            DefaultTypeSubstitutor.create(substitution)
 
         // 递归地填充替换映射
         // 注意：这里利用了 substitution 映射的可变性，

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,5 +31,5 @@ interface BuiltInsProvider {
     val builtIns: CangJieBuiltIns
 }
 
-//internal val ConstraintSystemBuilder.builtIns: CangJieBuiltIns get() = ((this as NewConstraintSystemImpl).typeSystemContext as BuiltInsProvider).builtIns
-//internal val NewConstraintSystem.builtIns: CangJieBuiltIns get() = ((this as NewConstraintSystemImpl).typeSystemContext as BuiltInsProvider).builtIns
+//internal val ConstraintSystemBuilder.builtIns: CangJieBuiltIns get() = ((this as ConstraintSystemImpl).typeSystemContext as BuiltInsProvider).builtIns
+//internal val ConstraintSystem.builtIns: CangJieBuiltIns get() = ((this as ConstraintSystemImpl).typeSystemContext as BuiltInsProvider).builtIns

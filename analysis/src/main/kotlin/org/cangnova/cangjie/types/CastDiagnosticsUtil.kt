@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
-import org.cangnova.cangjie.types.checker.TypeCheckingProcedure
+import org.cangnova.cangjie.types.checker.CangJieSubtypeChecker
 import org.cangnova.cangjie.types.checker.TypeIntersector
 
 object CastDiagnosticsUtil {
@@ -218,23 +218,23 @@ object CastDiagnosticsUtil {
 
         // 现在，让我们找到 List<T> 的一个超类型，它是一个 Collection 的某个类型，
         // 在这种情况下，它将是 Collection<T>
-        val supertypeWithVariables = TypeCheckingProcedure.findCorrespondingSupertype(subtypeWithVariables, supertype)
+        val supertypeWithVariables = CangJieSubtypeChecker.findCorrespondingSupertype(subtypeWithVariables, supertype)
 
         val variables = subtypeWithVariables.constructor.parameters
         val variableConstructors = variables.map(TypeParameterDescriptor::typeConstructor).toSet()
 
-        val substitution: MutableMap<TypeConstructor, TypeProjection> = if (supertypeWithVariables != null) {
+        val substitution: MutableMap<TypeConstructor, TypeArgument> = if (supertypeWithVariables != null) {
             // 现在，让我们尝试统一 Collection<T> 和 Collection<Foo>，解决方案是从 T 到 Foo 的映射
             val solution = TypeUnifier.unify(
-                TypeProjectionImpl(supertype),
-                TypeProjectionImpl(supertypeWithVariables),
+                TypeArgumentImpl(supertype),
+                TypeArgumentImpl(supertypeWithVariables),
                 variableConstructors::contains
             )
             Maps.newHashMap(solution.substitution)
         } else {
             // 如果没有对应的超类型，没有确定的变量
             // 这可能是正常的，例如在 'Any as List<*>' 的情况下
-            Maps.newHashMapWithExpectedSize<TypeConstructor, TypeProjection>(variables.size)
+            Maps.newHashMapWithExpectedSize<TypeConstructor, TypeArgument>(variables.size)
         }
 
         // 如果某些参数没有通过统一确定，这意味着这些参数丢失了，
@@ -250,7 +250,7 @@ object CastDiagnosticsUtil {
 
         // 此时我们已经为 List 的所有类型参数确定了值
         // 让我们通过替换它们来创建一个类型：List<T> -> List<Foo>
-        val substituted = TypeSubstitutor.create(substitution).substitute(subtypeWithVariables, Variance.INVARIANT)
+        val substituted = DefaultTypeSubstitutor.create(substitution).substitute(subtypeWithVariables )
 
         return TypeReconstructionResult(substituted, allArgumentsInferred)
     }

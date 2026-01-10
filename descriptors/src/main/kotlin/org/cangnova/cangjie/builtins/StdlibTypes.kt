@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,7 @@ import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.CangJieTypeFactory
 import org.cangnova.cangjie.types.SimpleType
-import org.cangnova.cangjie.types.TypeProjectionImpl
-import org.cangnova.cangjie.types.Variance
+import org.cangnova.cangjie.types.TypeArgumentImpl
 import org.cangnova.cangjie.types.toDefaultAttributes
 
 /**
@@ -393,14 +392,14 @@ class StdlibTypes(
 
     // ============================== Factory ==============================
     fun getArrayType(
-        projectionType: Variance,
+
         argument: CangJieType,
         annotations: Annotations
     ): SimpleType {
         val types =
             listOf(
-                TypeProjectionImpl(
-                    projectionType,
+                TypeArgumentImpl(
+
                     argument
                 )
             )
@@ -416,7 +415,7 @@ class StdlibTypes(
         argument: CangJieType
     ): SimpleType {
         return getArrayType(
-            Variance.INVARIANT,
+
             argument,
             Annotations.EMPTY
         )

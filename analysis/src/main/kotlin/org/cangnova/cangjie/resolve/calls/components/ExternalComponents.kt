@@ -31,13 +31,12 @@ import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
-import org.cangnova.cangjie.resolve.calls.inference.NewConstraintSystem
+import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystem
 import org.cangnova.cangjie.resolve.calls.inference.components.ConstraintInjector
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
 import org.cangnova.cangjie.resolve.calls.inference.model.NewTypeVariable
 import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariableTypeConstructor
 import org.cangnova.cangjie.resolve.calls.model.*
-import org.cangnova.cangjie.resolve.calls.results.SimpleConstraintSystem
 import org.cangnova.cangjie.resolve.calls.tower.CandidateFactoryProviderForInvoke
 import org.cangnova.cangjie.resolve.calls.tower.ImplicitScopeTower
 import org.cangnova.cangjie.resolve.constants.IntegerValueTypeConstant
@@ -238,11 +237,11 @@ interface CangJieResolutionStatelessCallbacks {
      *
      * @param constraintInjector 约束注入器,用于生成类型约束
      * @param builtIns 内置类型定义
-     * @return 用于重载解析的简单约束系统
+     * @return 用于重载解析的约束系统
      */
     fun createConstraintSystemForOverloadResolution(
         constraintInjector: ConstraintInjector, builtIns: CangJieBuiltIns
-    ): SimpleConstraintSystem
+    ): ConstraintSystem
 }
 
 /**
@@ -376,7 +375,7 @@ interface CangJieResolutionCallbacks {
      * @param typeVariable 类型变量构造器
      * @return 推导出的类型,如果未能推导则返回 null
      */
-    fun findResultType(constraintSystem: NewConstraintSystem, typeVariable: TypeVariableTypeConstructor): CangJieType?
+    fun findResultType(constraintSystem: ConstraintSystem, typeVariable: TypeVariableTypeConstructor): CangJieType?
 
     /**
      * 创建空的约束系统
@@ -386,7 +385,7 @@ interface CangJieResolutionCallbacks {
      *
      * @return 新的约束系统实例
      */
-    fun createEmptyConstraintSystem(): NewConstraintSystem
+    fun createEmptyConstraintSystem(): ConstraintSystem
 
     /**
      * 为候选绑定存根已解析调用

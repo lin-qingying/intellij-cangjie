@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -271,6 +271,6 @@ data class ClassLiteralValue(val classId: ClassId, val arrayNestedness: Int) {
 //    constructor(classId: ClassId, arrayDimensions: Int) : this(ClassLiteralValue(classId, arrayDimensions))
 //
 //    override fun getType(module: ModuleDescriptor): CangJieType =
-//        CangJieTypeFactory.simpleNonOptionType(TypeAttributes.Empty, module.builtIns.kClass, listOf(TypeProjectionImpl(getArgumentType(module))))
+//        CangJieTypeFactory.simpleNonOptionType(TypeAttributes.Empty, module.builtIns.kClass, listOf(TypeArgumentImpl(getArgumentType(module))))
 //
 //}

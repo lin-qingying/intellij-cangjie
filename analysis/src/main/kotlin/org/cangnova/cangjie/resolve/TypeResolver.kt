@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ package org.cangnova.cangjie.resolve
 
 import com.intellij.util.SmartList
 import org.cangnova.cangjie.builtins.PlatformToCangJieClassMapper
-import org.cangnova.cangjie.builtins.StandardNames.OPTION
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
@@ -44,13 +43,12 @@ import org.cangnova.cangjie.psi.codeFragmentUtil.suppressDiagnosticsInDebugMode
 import org.cangnova.cangjie.psi.debugtext.getDebugText
 import org.cangnova.cangjie.psi.psiUtil.getNextSiblingIgnoringWhitespaceAndComments
 import org.cangnova.cangjie.psi.psiUtil.getPrevSiblingIgnoringWhitespaceAndComments
-import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import org.cangnova.cangjie.resolve.PossiblyBareType.Companion.bare
 import org.cangnova.cangjie.resolve.PossiblyBareType.Companion.type
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.recordScope
-import org.cangnova.cangjie.resolve.calls.NewCommonSuperTypeCalculator.commonSuperType
+import org.cangnova.cangjie.resolve.calls.CommonSuperTypeCalculator.commonSuperType
 import org.cangnova.cangjie.resolve.qualified.ExpressionQualifierPart
 import org.cangnova.cangjie.resolve.qualified.QualifiedExpressionResolverFacade
 import org.cangnova.cangjie.resolve.qualified.TypeQualifierResolutionResult
@@ -301,26 +299,26 @@ class TypeResolver(
 
 
     /**
-     * 解析类型投影列表
+     * 解析类型参数列表
      *
-     * 解析类型参数列表中的所有类型投影（type projections）。
+     * 解析类型参数列表中的所有类型参数（type arguments）。
      * 对每个类型参数执行以下操作：
      * 1. 检查修饰符是否合法（通过 ModifierCheckerCore）
      * 2. 解析类型引用为具体类型
-     * 3. 创建类型投影（TypeProjection）
+     * 3. 创建类型参数（TypeArgument）
      *
-     * 目前仓颉语言不支持型变（variance），所有投影都是不变的（invariant）。
+     * 仓颉语言中所有类型参数都是不变的（invariant）。
      *
      * @param c 类型解析上下文
      * @param constructor 类型构造器，用于参数数量检查
-     * @param argumentElements 类型投影 PSI 元素列表
-     * @return 解析得到的类型投影列表
+     * @param argumentElements 类型参数 PSI 元素列表
+     * @return 解析得到的类型参数列表
      */
     fun resolveTypeProjections(
         c: TypeResolutionContext,
         constructor: TypeConstructor,
         argumentElements: List<CjTypeProjection>
-    ): List<TypeProjection> {
+    ): List<TypeArgument> {
         return argumentElements.mapIndexed { i, argumentElement ->
 
             ModifierCheckerCore.check(argumentElement, c.trace, null, languageVersionSettings)
@@ -328,7 +326,7 @@ class TypeResolver(
             val type = resolveType(c.noBareTypes(), argumentElement.typeReference!!)
 
 
-            TypeProjectionImpl(type)
+            TypeArgumentImpl(type)
 
 
         }
@@ -489,7 +487,7 @@ class TypeResolver(
                 ) : AbstractVariableDescriptor(containingDeclaration, annotations, name, type, source) {
 
                     override var visibility: DescriptorVisibility = DescriptorVisibilities.LOCAL
-                    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
+                    override fun substitute(substitutor: DefaultTypeSubstitutor): CallableDescriptor {
                         throw UnsupportedOperationException("Should not be called for descriptor of type ${this::class.java}")
                     }
 
@@ -731,7 +729,7 @@ class TypeResolver(
      * 类型别名可以用作 Bare 类型（在 is/as 表达式之后，例如 `x is List`），
      * 当且仅当对应展开类型的所有类型参数满足以下条件：
      * - 是星投影（star projections）
-     * - 或者是该类型别名的类型参数且为不变投影（invariant projection）
+     * - 或者是该类型别名的类型参数且为不变投影（invariant argument）
      * - 且每个类型参数最多只被使用一次
      *
      * 示例：
@@ -787,7 +785,7 @@ class TypeResolver(
         c: TypeResolutionContext,
         classifierDescriptor: ClassifierDescriptorWithTypeParameters,
         qualifierParts: List<ExpressionQualifierPart>
-    ): Pair<List<CjTypeProjection>, List<TypeProjection>?>? {
+    ): Pair<List<CjTypeProjection>, List<TypeArgument>?>? {
         val classifierDescriptorChain = classifierDescriptor.classifierDescriptorsFromInnerToOuter()
         val reversedQualifierParts = qualifierParts.asReversed()
 
@@ -922,7 +920,7 @@ class TypeResolver(
         }
 
         override fun boundsViolationInSubstitution(
-            substitutor: TypeSubstitutor,
+            substitutor: DefaultTypeSubstitutor,
             unsubstitutedArgument: CangJieType,
             argument: CangJieType,
             typeParameter: TypeParameterDescriptor
@@ -1157,7 +1155,7 @@ class TypeResolver(
             )
 
         if (shouldCheckBounds(c, resultingType)) {
-            val substitutor = TypeSubstitutor.create(resultingType)
+            val substitutor = DefaultTypeSubstitutor.create(resultingType)
             for (i in parameters.indices) {
                 val parameter = parameters[i]
                 val argument = arguments[i].type
@@ -1241,7 +1239,7 @@ class TypeResolver(
             )
 
         if (shouldCheckBounds(c, resultingType)) {
-            val substitutor = TypeSubstitutor.create(resultingType)
+            val substitutor = DefaultTypeSubstitutor.create(resultingType)
             for (i in parameters.indices) {
                 val parameter = parameters[i]
                 val argument = arguments[i].type
@@ -1290,10 +1288,10 @@ class TypeResolver(
     ): PossiblyBareType = resolveTypeForClassOrEnum(c, annotations, classDescriptor, element, qualifierResolutionResult)
 
     private fun buildFinalArgumentList(
-        argumentsFromUserType: List<TypeProjection>,
-        argumentsForOuterClass: List<TypeProjection>?,
+        argumentsFromUserType: List<TypeArgument>,
+        argumentsForOuterClass: List<TypeArgument>?,
         parameters: List<TypeParameterDescriptor>
-    ): List<TypeProjection> {
+    ): List<TypeArgument> {
         return argumentsFromUserType +
                 (argumentsForOuterClass ?: appendDefaultArgumentsForLocalClassifier(
                     argumentsFromUserType.size,
@@ -1314,7 +1312,7 @@ class TypeResolver(
         fromIndex: Int,
         constructorParameters: List<TypeParameterDescriptor>
     ) = constructorParameters.subList(fromIndex, constructorParameters.size).map {
-        TypeProjectionImpl(it.original.defaultType)
+        TypeArgumentImpl(it.original.defaultType)
     }
 
     private fun getScopeForTypeParameter(

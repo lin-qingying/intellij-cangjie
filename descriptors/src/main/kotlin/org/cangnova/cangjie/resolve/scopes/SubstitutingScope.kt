@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,10 +32,9 @@ import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.psiUtil.sure
-import org.cangnova.cangjie.resolve.call.inference.wrapWithCapturingSubstitution
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeSubstitutor
-import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.safeSubstitute
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
+import org.cangnova.cangjie.types.checker.wrapWithCapturingSubstitution
 import org.cangnova.cangjie.utils.Printer
 import org.cangnova.cangjie.utils.newLinkedHashSetWithExpectedSize
 
@@ -77,7 +76,7 @@ import org.cangnova.cangjie.utils.newLinkedHashSetWithExpectedSize
  * val listScope = listClassDescriptor.defaultType.memberScope
  * val substitutedScope = SubstitutingScope(
  *     listScope,
- *     TypeSubstitutor.create(mapOf(T -> Int))
+ *     DefaultTypeSubstitutor.create(mapOf(T -> Int))
  * )
  *
  * // 查找 add 函数，返回的参数类型已经是 Int 而非 T
@@ -96,7 +95,7 @@ import org.cangnova.cangjie.utils.newLinkedHashSetWithExpectedSize
  * val parentScope = parentClassDescriptor.defaultType.memberScope
  * val substitutedScope = SubstitutingScope(
  *     parentScope,
- *     TypeSubstitutor.create(mapOf(T -> String))
+ *     DefaultTypeSubstitutor.create(mapOf(T -> String))
  * )
  *
  * // Child 继承的 process 方法的签名是 (String) -> String
@@ -193,7 +192,7 @@ import org.cangnova.cangjie.utils.newLinkedHashSetWithExpectedSize
  * val typeParameter_T = boxClassDescriptor.declaredTypeParameters[0]
  *
  * // 创建替换器：T -> String
- * val substitutor = TypeSubstitutor.create(mapOf(
+ * val substitutor = DefaultTypeSubstitutor.create(mapOf(
  *     typeParameter_T.defaultType to stringType
  * ))
  *
@@ -218,12 +217,12 @@ import org.cangnova.cangjie.utils.newLinkedHashSetWithExpectedSize
  * @property substitutedDescriptors 替换结果缓存，避免重复替换
  * @property _allDescriptors 惰性计算的所有描述符列表（已替换）
  *
- * @see TypeSubstitutor 类型替换器
+ * @see DefaultTypeSubstitutor 类型替换器
  * @see MemberScope 父接口
  * @see ChainedMemberScope 常与本类配合使用的组合作用域
  * @see Substitutable 支持替换的描述符接口
  */
-class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: TypeSubstitutor) : MemberScope {
+class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: DefaultTypeSubstitutor) : MemberScope {
     val substitutor by lazy { givenSubstitutor.substitution.buildSubstitutor() }
 
         private val capturingSubstitutor = givenSubstitutor.substitution.wrapWithCapturingSubstitution().buildSubstitutor()
@@ -240,7 +239,7 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
         get() = workerScope.propertyNames
     fun substitute(type: CangJieType): CangJieType {
         if (capturingSubstitutor.isEmpty) return type
-        return capturingSubstitutor.safeSubstitute(type) as CangJieType
+        return capturingSubstitutor.safeSubstitute(type)
     }
 
     private fun <D : DeclarationDescriptor> substitute(descriptor: D): D {
@@ -253,7 +252,7 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
         val substituted = substitutedDescriptors!!.getOrPut(descriptor) {
             when (descriptor) {
                 is Substitutable<*> -> descriptor.substitute(capturingSubstitutor).sure {
-                    "We expect that no conflict should happen while substitution is guaranteed to generate invariant projection, " +
+                    "We expect that no conflict should happen while substitution is guaranteed to generate invariant argument, " +
                             "but $descriptor substitution fails"
                 }
 

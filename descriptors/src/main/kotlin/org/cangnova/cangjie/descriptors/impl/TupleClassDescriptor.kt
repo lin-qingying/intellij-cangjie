@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,12 +59,12 @@ class TupleClassDescriptor(
     init {
         val result = ArrayList<TypeParameterDescriptor>()
 
-        fun typeParameter(variance: Variance, name: String) {
+        fun typeParameter(name: String) {
             result.add(
                 TypeParameterDescriptorImpl.createWithDefaultBound(
                     this@TupleClassDescriptor,
                     Annotations.EMPTY,
-                    variance,
+
                     Name.identifier(name),
                     result.size,
                     storageManager
@@ -73,7 +73,7 @@ class TupleClassDescriptor(
         }
 
         (1..arity).map { i ->
-            typeParameter(Variance.INVARIANT, "T$i")
+            typeParameter(  "T$i")
         }
 
         parameters = result.toList()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,15 @@ package org.cangnova.cangjie.resolve.calls.inference.components
 
 import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
-import org.cangnova.cangjie.resolve.calls.NewCommonSuperTypeCalculator
+import org.cangnova.cangjie.resolve.calls.CommonSuperTypeCalculator
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilder
 import org.cangnova.cangjie.resolve.calls.inference.model.*
 import org.cangnova.cangjie.resolve.calls.inference.runTransaction
 import org.cangnova.cangjie.types.AbstractTypeApproximator
 import org.cangnova.cangjie.types.AbstractTypeChecker
+import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeApproximatorConfiguration
+import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.error.ErrorType
 import org.cangnova.cangjie.types.model.*
 
@@ -158,10 +160,9 @@ class ResultTypeResolver(
             resultTypeFromEqualConstraint == null -> resultTypeFromDirection
             resultTypeFromDirection == null -> resultTypeFromEqualConstraint
             with(c) { !resultTypeFromDirection.typeConstructor().isNothingConstructor() } &&
-                    AbstractTypeChecker.isSubtypeOf(
-                        c,
-                        resultTypeFromDirection,
-                        resultTypeFromEqualConstraint
+                    CangJieTypeChecker.DEFAULT.isSubtypeOf(
+                        resultTypeFromDirection as CangJieType,
+                        resultTypeFromEqualConstraint as CangJieType
                     ) -> resultTypeFromDirection
 
             else -> resultTypeFromEqualConstraint
@@ -350,7 +351,7 @@ class ResultTypeResolver(
         secondCandidate: CangJieTypeMarker,
     ): CangJieTypeMarker? {
         if (firstCandidate.typeConstructor().isIntersection()) {
-            if (!AbstractTypeChecker.isSubtypeOf(this, firstCandidate.toPublicType(), secondCandidate.toPublicType())) {
+            if (!CangJieTypeChecker.DEFAULT.isSubtypeOf(firstCandidate.toPublicType() as CangJieType, secondCandidate.toPublicType() as CangJieType)) {
                 return createTypeWithUpperBoundForIntersectionResult(firstCandidate, secondCandidate)
             }
         }
@@ -445,7 +446,7 @@ class ResultTypeResolver(
     }
 
     private fun Context.computeCommonSuperType(types: List<CangJieTypeMarker>): CangJieTypeMarker =
-        with(NewCommonSuperTypeCalculator) { commonSuperType(types) }
+        with(CommonSuperTypeCalculator) { commonSuperType(types) }
 
     private fun Context.prepareLowerConstraints(constraints: List<Constraint>): List<CangJieTypeMarker> {
         var atLeastOneProper = false

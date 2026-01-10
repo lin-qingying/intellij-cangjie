@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.cangnova.cangjie.completion.smart.ExpectedInfoMatch
 import org.cangnova.cangjie.completion.smart.SmartCompletionItemPriority
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.resolve.ResolutionFacade
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.PsiElement
@@ -81,7 +81,7 @@ object KeywordValues {
                 }
 
                 if (info.fuzzyType?.type?.isBoolean == true)
-                    ExpectedInfoMatch.match(TypeSubstitutor.EMPTY)
+                    ExpectedInfoMatch.match(DefaultTypeSubstitutor.EMPTY)
                 else
                     ExpectedInfoMatch.noMatch
             }
@@ -96,7 +96,7 @@ object KeywordValues {
 //                when {
 //                    (info.additionalData as? ComparisonOperandAdditionalData)?.suppressNullLiteral == true -> ExpectedInfoMatch.noMatch
 //
-//                    info.fuzzyType?.type?.isMarkedOption == true -> ExpectedInfoMatch.match(TypeSubstitutor.EMPTY)
+//                    info.fuzzyType?.type?.isMarkedOption == true -> ExpectedInfoMatch.match(DefaultTypeSubstitutor.EMPTY)
 //
 //                    else -> ExpectedInfoMatch.noMatch
 //                }

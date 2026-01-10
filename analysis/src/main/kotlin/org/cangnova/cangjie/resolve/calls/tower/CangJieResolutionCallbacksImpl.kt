@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReference
 import org.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext
 import org.cangnova.cangjie.resolve.calls.context.ContextDependency
 import org.cangnova.cangjie.resolve.calls.inference.BuilderInferenceSession
-import org.cangnova.cangjie.resolve.calls.inference.NewConstraintSystem
+import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystem
 import org.cangnova.cangjie.resolve.calls.inference.components.CangJieConstraintSystemCompleter
 import org.cangnova.cangjie.resolve.calls.inference.components.ResultTypeResolver
 import org.cangnova.cangjie.resolve.calls.inference.components.TypeVariableDirectionCalculator
@@ -488,7 +488,7 @@ class CangJieResolutionCallbacksImpl(
      * @return 推导出的仓颉类型,如果找不到则返回 null
      */
     override fun findResultType(
-        constraintSystem: NewConstraintSystem,
+        constraintSystem: ConstraintSystem,
         typeVariable: TypeVariableTypeConstructor
     ): CangJieType? {
         val variableWithConstraints =
@@ -507,7 +507,7 @@ class CangJieResolutionCallbacksImpl(
      *
      * @return 新的约束系统
      */
-    override fun createEmptyConstraintSystem(): NewConstraintSystem = NewConstraintSystemImpl(
+    override fun createEmptyConstraintSystem(): ConstraintSystem = ConstraintSystemImpl(
         callComponents.constraintInjector,
         callComponents.builtIns,
         callComponents.cangjieTypeRefiner,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ import org.cangnova.cangjie.renderer.OverrideRenderingPolicy
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.approximateFlexibleTypes
 import org.cangnova.cangjie.types.builtIns
-import org.cangnova.cangjie.types.checker.NewCapturedTypeConstructor
+import org.cangnova.cangjie.types.checker.CapturedTypeConstructor
 import org.cangnova.cangjie.types.isDynamic
 import kotlin.properties.Delegates
 
@@ -89,7 +89,7 @@ object IdeDescriptorRenderers {
 
     private fun unwrapAnonymousType(type: CangJieType): CangJieType {
         if (type.isDynamic()) return type
-        if (type.constructor is NewCapturedTypeConstructor) return type
+        if (type.constructor is CapturedTypeConstructor) return type
 
         val classifier = type.constructor.declarationDescriptor
         if (classifier != null && !classifier.name.isSpecial) return type

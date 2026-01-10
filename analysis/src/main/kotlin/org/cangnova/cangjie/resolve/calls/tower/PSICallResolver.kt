@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,14 +121,14 @@ class PSICallResolver(
         ResolutionWithStubTypesChecker(cangjieCallResolver)
     )
     val defaultResolutionKinds = setOf(
-        NewResolutionOldInference.ResolutionKind.Function,
-        NewResolutionOldInference.ResolutionKind.Variable,
-        NewResolutionOldInference.ResolutionKind.Invoke,
-//        NewResolutionOldInference.ResolutionKind.Enum,
-        NewResolutionOldInference.ResolutionKind.EnumConstructor,
+        ResolutionOldInference.ResolutionKind.Function,
+        ResolutionOldInference.ResolutionKind.Variable,
+        ResolutionOldInference.ResolutionKind.Invoke,
+//        ResolutionOldInference.ResolutionKind.Enum,
+        ResolutionOldInference.ResolutionKind.EnumConstructor,
 
-        NewResolutionOldInference.ResolutionKind.CaseEnum,
-        NewResolutionOldInference.ResolutionKind.CallableReference
+        ResolutionOldInference.ResolutionKind.CaseEnum,
+        ResolutionOldInference.ResolutionKind.CallableReference
     )
 
     fun createCallableReferenceCangJieCallArgument(
@@ -268,7 +268,7 @@ class PSICallResolver(
                 context.dataFlowInfo.getCollectedTypes(dataFlowValue, context.languageVersionSettings)
                     .compactIfPossible(),
                 dataFlowValue.isStable
-            ).prepareReceiverRegardingCaptureTypes()
+            )
         }
     }
 
@@ -1078,18 +1078,18 @@ class PSICallResolver(
     }
 
 
-    private fun NewResolutionOldInference.ResolutionKind.toCangJieCallKind(): CangJieCallKind =
+    private fun ResolutionOldInference.ResolutionKind.toCangJieCallKind(): CangJieCallKind =
         when (this) {
-            is NewResolutionOldInference.ResolutionKind.Function -> CangJieCallKind.FUNCTION
-            is NewResolutionOldInference.ResolutionKind.Variable -> CangJieCallKind.VARIABLE
-            is NewResolutionOldInference.ResolutionKind.Invoke -> CangJieCallKind.INVOKE
-//            is NewResolutionOldInference.ResolutionKind.Enum -> CangJieCallKind.ENUM
-            is NewResolutionOldInference.ResolutionKind.EnumConstructor -> CangJieCallKind.ENUM_CONSTRUCTOR
+            is ResolutionOldInference.ResolutionKind.Function -> CangJieCallKind.FUNCTION
+            is ResolutionOldInference.ResolutionKind.Variable -> CangJieCallKind.VARIABLE
+            is ResolutionOldInference.ResolutionKind.Invoke -> CangJieCallKind.INVOKE
+//            is ResolutionOldInference.ResolutionKind.Enum -> CangJieCallKind.ENUM
+            is ResolutionOldInference.ResolutionKind.EnumConstructor -> CangJieCallKind.ENUM_CONSTRUCTOR
 
-            is NewResolutionOldInference.ResolutionKind.CaseEnum -> CangJieCallKind.CASE_ENUM
+            is ResolutionOldInference.ResolutionKind.CaseEnum -> CangJieCallKind.CASE_ENUM
 
-            is NewResolutionOldInference.ResolutionKind.CallableReference -> CangJieCallKind.CALLABLE_REFERENCE
-            is NewResolutionOldInference.ResolutionKind.GivenCandidates -> CangJieCallKind.UNSUPPORTED
+            is ResolutionOldInference.ResolutionKind.CallableReference -> CangJieCallKind.CALLABLE_REFERENCE
+            is ResolutionOldInference.ResolutionKind.GivenCandidates -> CangJieCallKind.UNSUPPORTED
         }
 
     private fun refineNameForRemOperator(isBinaryRemOperator: Boolean, name: Name): Name {
@@ -1111,7 +1111,7 @@ class PSICallResolver(
     fun <D : CallableDescriptor> runResolutionAndInference(
         context: BasicCallResolutionContext,
         name: Name,
-        resolutionKind: NewResolutionOldInference.ResolutionKind,
+        resolutionKind: ResolutionOldInference.ResolutionKind,
         tracingStrategy: TracingStrategy
     ): OverloadResolutionResults<D> {
 

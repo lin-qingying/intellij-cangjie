@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import org.cangnova.cangjie.name.FqNameUnsafe
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeConstructor
-import org.cangnova.cangjie.types.TypeProjection
+import org.cangnova.cangjie.types.TypeArgument
 
 abstract class DescriptorRenderer {
     fun withOptions(changeOptions: DescriptorRendererOptions.() -> Unit): DescriptorRenderer {
@@ -50,9 +50,9 @@ abstract class DescriptorRenderer {
 
     abstract fun renderFlexibleType(lowerRendered: String, upperRendered: String, builtIns: CangJieBuiltIns): String
 
-    abstract fun renderTypeArguments(typeArguments: List<TypeProjection>, other: (StringBuilder) -> Unit = {}): String
+    abstract fun renderTypeArguments(typeArguments: List<TypeArgument>, other: (StringBuilder) -> Unit = {}): String
 
-    abstract fun renderTypeProjection(typeProjection: TypeProjection): String
+    abstract fun renderTypeArgument(TypeArgument: TypeArgument): String
 
     abstract fun renderTypeConstructor(typeConstructor: TypeConstructor): String
 

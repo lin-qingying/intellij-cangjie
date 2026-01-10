@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -166,7 +166,6 @@ class CollectionLiteralResolver(
         annotations,
 
         name,
-        Variance.INVARIANT,
         index,
         SourceElement.NO_SOURCE,
 
@@ -235,8 +234,7 @@ class CollectionLiteralResolver(
         companion object {
             fun createWithDefaultBound(
                 containingDeclaration: DeclarationDescriptor,
-                annotations: Annotations,  //            boolean reified,
-                variance: Variance,
+                annotations: Annotations,
                 name: Name,
                 index: Int,
                 storageManager: StorageManager,
@@ -307,7 +305,6 @@ class CollectionLiteralResolver(
             val t = ArrayOfTypeParameterDescriptor.createWithDefaultBound(
                 this,
                 Annotations.EMPTY,
-                Variance.INVARIANT,
                 Name.identifier("T"),
                 0,
 

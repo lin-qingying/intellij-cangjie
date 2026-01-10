@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import org.cangnova.cangjie.resolve.calls.inference.constraintPosition.Constrain
 import org.cangnova.cangjie.resolve.calls.inference.constraintPosition.derivedFrom
 import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariable
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeProjection
-import org.cangnova.cangjie.types.TypeProjectionImpl
+import org.cangnova.cangjie.types.TypeArgument
+import org.cangnova.cangjie.types.TypeArgumentImpl
 import java.util.*
 
 fun ConstraintSystem.getNestedTypeVariables(type: CangJieType): List<TypeVariable> {
@@ -43,24 +43,24 @@ fun ConstraintSystem.filterConstraintsOut(excludePositionKind: ConstraintPositio
 }
 
 internal fun CangJieType.getNestedTypeParameters(): List<TypeParameterDescriptor> {
-    return getNestedArguments().mapNotNull { typeProjection ->
-        typeProjection.type.constructor.declarationDescriptor as? TypeParameterDescriptor
+    return getNestedArguments().mapNotNull { typeArgument ->
+        typeArgument.type.constructor.declarationDescriptor as? TypeParameterDescriptor
     }
 }
 
-internal fun CangJieType.getNestedArguments(): List<TypeProjection> {
-    val result = ArrayList<TypeProjection>()
+internal fun CangJieType.getNestedArguments(): List<TypeArgument> {
+    val result = ArrayList<TypeArgument>()
 
-    val stack = ArrayDeque<TypeProjection>()
-    stack.push(TypeProjectionImpl(this))
+    val stack = ArrayDeque<TypeArgument>()
+    stack.push(TypeArgumentImpl(this))
 
     while (!stack.isEmpty()) {
-        val typeProjection = stack.pop()
+        val typeArgument = stack.pop()
 
 
-        result.add(typeProjection)
+        result.add(typeArgument)
 
-        typeProjection.type.arguments.forEach { stack.add(it) }
+        typeArgument.type.arguments.forEach { stack.add(it) }
     }
     return result
 }

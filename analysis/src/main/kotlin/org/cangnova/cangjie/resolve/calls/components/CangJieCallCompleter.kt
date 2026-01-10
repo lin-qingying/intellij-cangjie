@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,19 +25,18 @@
 package org.cangnova.cangjie.resolve.calls.components
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
-import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.candidate.SimpleResolutionCandidate
-import org.cangnova.cangjie.resolve.calls.inference.NewConstraintSystem
+import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystem
 import org.cangnova.cangjie.resolve.calls.inference.addEqualityConstraintIfCompatible
 import org.cangnova.cangjie.resolve.calls.inference.components.CangJieConstraintSystemCompleter
 import org.cangnova.cangjie.resolve.calls.inference.components.ConstraintSystemCompletionMode
-import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
+import org.cangnova.cangjie.resolve.calls.inference.components.TypeSubstitutorByConstructorMap
 import org.cangnova.cangjie.resolve.calls.inference.components.TrivialConstraintTypeInferenceOracle
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage.Empty.hasContradiction
 import org.cangnova.cangjie.resolve.calls.inference.model.ExpectedTypeConstraintPositionImpl
-import org.cangnova.cangjie.resolve.calls.inference.model.NewConstraintSystemImpl
+import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintSystemImpl
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.tower.CandidateFactory
 import org.cangnova.cangjie.resolve.calls.tower.forceResolution
@@ -47,7 +46,7 @@ import org.cangnova.cangjie.types.UnwrappedType
 import org.cangnova.cangjie.types.error.ErrorType
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 
-internal val NewConstraintSystem.builtIns: CangJieBuiltIns get() = ((this as NewConstraintSystemImpl).typeSystemContext as BuiltInsProvider).builtIns
+internal val ConstraintSystem.builtIns: CangJieBuiltIns get() = ((this as ConstraintSystemImpl).typeSystemContext as BuiltInsProvider).builtIns
 
 /**
  * CangJieCallCompleter 类负责处理函数调用的补全逻辑。
@@ -169,7 +168,7 @@ class CangJieCallCompleter(
     private fun ResolutionCandidate.substitutedReturnType(): UnwrappedType? {
         val returnType = resolvedCall.candidateDescriptor.returnType?.unwrap() ?: return null
         val substitutedReturnTypeWithVariables = resolvedCall.freshVariablesSubstitutor.safeSubstitute(returnType)
-        return (getResultingSubstitutor() as? NewTypeSubstitutorByConstructorMap)?.safeSubstitute(
+        return (getResultingSubstitutor() as? TypeSubstitutorByConstructorMap)?.safeSubstitute(
             substitutedReturnTypeWithVariables
         ) ?: substitutedReturnTypeWithVariables
     }
@@ -205,7 +204,7 @@ class CangJieCallCompleter(
         resolvedCallAtom: ResolvedCallAtom,
         completionMode: ConstraintSystemCompletionMode,
         diagnosticsHolder: CangJieDiagnosticsHolder,
-        constraintSystem: NewConstraintSystem,
+        constraintSystem: ConstraintSystem,
         resolutionCallbacks: CangJieResolutionCallbacks,
         collectAllCandidatesMode: Boolean = false
     ) {

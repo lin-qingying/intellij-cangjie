@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,15 +29,13 @@ import org.cangnova.cangjie.resolve.scopes.DescriptorKindExclude
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.FuzzyType
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.fuzzyReturnType
 import com.intellij.psi.PsiElement
 import com.intellij.util.SmartList
 import org.cangnova.cangjie.codeinsight.ReferenceVariantsHelper
 import org.cangnova.cangjie.resolve.calls.util.CallTypeAndReceiver
 import org.cangnova.cangjie.types.isBuiltinFunctionalTypeOrSubtype
-import java.util.HashSet
-
 
 
 class RealContextVariablesProvider(
@@ -74,8 +72,8 @@ class RealContextVariablesProvider(
             nameFilter = MemberScope.ALL_NAME_FILTER).map { it as VariableDescriptor }
     }
 
-    override fun functionTypeVariables(requiredType: FuzzyType): Collection<Pair<VariableDescriptor, TypeSubstitutor>> {
-        val result = SmartList<Pair<VariableDescriptor, TypeSubstitutor>>()
+    override fun functionTypeVariables(requiredType: FuzzyType): Collection<Pair<VariableDescriptor, DefaultTypeSubstitutor>> {
+        val result = SmartList<Pair<VariableDescriptor, DefaultTypeSubstitutor>>()
         for (variable in allFunctionTypeVariables) {
             val substitutor = variable.fuzzyReturnType()?.checkIsSubtypeOf(requiredType) ?: continue
             result.add(variable to substitutor)

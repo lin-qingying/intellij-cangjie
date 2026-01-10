@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -425,8 +425,8 @@ import org.cangnova.cangjie.types.checker.refineTypes
  *     ): List<CangJieType> {
  *         // 对父类型进行类型参数替换
  *         // 例如：将 Collection<T> 替换为 Collection<Int>
- *         val substitutor = TypeSubstitutor.create(typeParameterSubstitution)
- *         return supertypes.map { substitutor.substitute(it, Variance.INVARIANT)!! }
+ *         val substitutor = DefaultTypeSubstitutor.create(typeParameterSubstitution)
+ *         return supertypes.map { substitutor.substitute(it)!! }
  *     }
  * }
  * ```

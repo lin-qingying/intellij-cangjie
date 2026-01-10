@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,13 @@ package org.cangnova.cangjie.resolve.calls.components.candidate
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.renderer.DescriptorRenderer
 import org.cangnova.cangjie.resolve.calls.components.CangJieResolutionCallbacks
-import org.cangnova.cangjie.resolve.calls.components.NewConstraintSystemImpl
-import org.cangnova.cangjie.resolve.calls.inference.NewConstraintSystem
+import org.cangnova.cangjie.resolve.calls.components.ConstraintSystemImpl
+import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystem
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
-import org.cangnova.cangjie.resolve.calls.inference.model.NewConstraintSystemImpl
+import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintSystemImpl
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.tower.*
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.model.TypeSubstitutorMarker
 
 /**
@@ -115,7 +115,7 @@ sealed class ResolutionCandidate : Candidate, CangJieDiagnosticsHolder {
      * 当部分类型参数已知时(例如通过显式类型参数或外部上下文),
      * 这个替换器用于将已知类型参数应用到候选描述符上。
      */
-    abstract val knownTypeParametersResultingSubstitutor: TypeSubstitutor?
+    abstract val knownTypeParametersResultingSubstitutor: DefaultTypeSubstitutor?
 
     /**
      * 解析回调
@@ -250,7 +250,7 @@ sealed class ResolutionCandidate : Candidate, CangJieDiagnosticsHolder {
      *
      * 类型推导使用的约束系统实例。延迟初始化,只在需要时创建。
      */
-    private var newSystem: NewConstraintSystemImpl? = null
+    private var newSystem: ConstraintSystemImpl? = null
 
     /**
      * 当前适用性
@@ -343,9 +343,9 @@ sealed class ResolutionCandidate : Candidate, CangJieDiagnosticsHolder {
      *
      * @return 约束系统实例
      */
-    fun getSystem(): NewConstraintSystem {
+    fun getSystem(): ConstraintSystem {
         if (newSystem == null) {
-            newSystem = NewConstraintSystemImpl(
+            newSystem = ConstraintSystemImpl(
                 callComponents.constraintInjector, callComponents.builtIns,
                 callComponents.cangjieTypeRefiner, callComponents.languageVersionSettings
             )

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import org.cangnova.cangjie.resolve.binding.AbstractFilteringTrace
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.slicedMap.WritableSlice
-import org.cangnova.cangjie.resolve.calls.NewCommonSuperTypeCalculator.commonSuperType
+import org.cangnova.cangjie.resolve.calls.CommonSuperTypeCalculator.commonSuperType
 import org.cangnova.cangjie.resolve.calls.components.InferenceSession
 import org.cangnova.cangjie.resolve.calls.components.InferenceSession.Companion.default
 import org.cangnova.cangjie.resolve.calls.context.ContextDependency

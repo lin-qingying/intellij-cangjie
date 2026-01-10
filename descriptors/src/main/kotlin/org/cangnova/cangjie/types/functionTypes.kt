@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ import org.cangnova.cangjie.utils.DFS
  * 函数类型作为内置类型实现
  */
 
-fun CangJieType.getValueParameterTypesFromCallableReflectionType(isCallableTypeWithExtension: Boolean): List<TypeProjection> {
+fun CangJieType.getValueParameterTypesFromCallableReflectionType(isCallableTypeWithExtension: Boolean): List<TypeArgument> {
 //    assert(ReflectionTypes.isCCallableType(this)) { "Not a callable reflection type: $this" }
     val arguments = arguments
     val first = if (isCallableTypeWithExtension) 1 else 0
@@ -62,11 +62,11 @@ fun getFunctionTypeArgumentProjections(
     parameterNames: List<Name>?,
     returnType: CangJieType,
     builtIns: CangJieBuiltIns
-): List<TypeProjection> {
+): List<TypeArgument> {
     val arguments =
-        ArrayList<TypeProjection>(parameterTypes.size + (if (receiverType != null) 1 else 0) + 1)
+        ArrayList<TypeArgument>(parameterTypes.size + (if (receiverType != null) 1 else 0) + 1)
 
-    arguments.addIfNotNull(receiverType?.asTypeProjection())
+    arguments.addIfNotNull(receiverType?.asTypeArgument())
 
     parameterTypes.mapIndexedTo(arguments) { index, type ->
         val name = parameterNames?.get(index)?.takeUnless { it.isSpecial }
@@ -80,10 +80,10 @@ fun getFunctionTypeArgumentProjections(
         } else {
             type
         }
-        typeToUse.asTypeProjection()
+        typeToUse.asTypeArgument()
     }
 
-    arguments.add(returnType.asTypeProjection())
+    arguments.add(returnType.asTypeArgument())
 
     return arguments
 }
@@ -166,7 +166,7 @@ val DeclarationDescriptor.isBuiltinFunctionalClassDescriptor: Boolean
 fun CangJieType.contextFunctionTypeParamsCount(): Int = 0
 
 
-fun CangJieType.getValueParameterTypesFromFunctionType(): List<TypeProjection> {
+fun CangJieType.getValueParameterTypesFromFunctionType(): List<TypeArgument> {
     assert(isBuiltinFunctionalType) { "Not a function type: $this" }
     val arguments = arguments
     // CangJie does not have extension function types or context function types

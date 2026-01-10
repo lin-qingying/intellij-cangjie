@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,8 @@ class ExtendManagerImpl(
                 if (excludeExtendId != null && def.id == excludeExtendId) return@forEach
                 val substitutor = buildSubstitutor(def.typeParameters, forTypeArgs)
                 def.interfaces.forEach { iface ->
-                    val applied = substitutor.substitute(iface, org.cangnova.cangjie.types.Variance.INVARIANT)
+                    // 仓颉语言中所有类型参数都是不变的，直接替换即可
+                    val applied = substitutor.substitute(iface)
                     if (applied != null) add(applied)
                 }
             }
@@ -89,10 +90,10 @@ class ExtendManagerImpl(
     private fun buildSubstitutor(
         typeParams: List<TypeParameterDescriptor>,
         typeArgs: List<CangJieType>,
-    ): TypeSubstitutor {
-        val pairs = typeParams.zip(typeArgs).associate { (p, a) -> p to TypeProjectionImpl(a) }
+    ): DefaultTypeSubstitutor {
+        val pairs = typeParams.zip(typeArgs).associate { (p, a) -> p to TypeArgumentImpl(a) }
         val substitution = TypeConstructorSubstitution.createByParametersMap(pairs)
-        return TypeSubstitutor.create(substitution)
+        return DefaultTypeSubstitutor.create(substitution)
     }
 }
 

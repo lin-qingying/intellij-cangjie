@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,6 @@ import org.cangnova.cangjie.resolve.calls.util.*
 import org.cangnova.cangjie.resolve.ideService
 import org.cangnova.cangjie.resolve.scopes.getResolutionScope
 import org.cangnova.cangjie.types.*
-import org.cangnova.cangjie.types.util.*
 import com.intellij.openapi.util.text.StringUtil
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.getTargetFunctionDescriptor
@@ -69,7 +68,7 @@ interface ByTypeFilter {
     /**
      * 判断描述符类型是否匹配期望类型
      *
-     * 返回 null 表示不匹配，返回 [TypeSubstitutor] 表示匹配（可能需要类型替换）。
+     * 返回 null 表示不匹配，返回 [DefaultTypeSubstitutor] 表示匹配（可能需要类型替换）。
      *
      * **类型替换器的作用**：
      * 在泛型场景中，候选项的类型可能包含类型参数，需要替换为具体类型。
@@ -77,9 +76,9 @@ interface ByTypeFilter {
      * 需要返回替换器将 `T` 替换为 `Int`。
      *
      * @param descriptorType 候选项的模糊类型（FuzzyType，包含类型参数信息）
-     * @return TypeSubstitutor? 类型替换器（匹配时），或 null（不匹配时）
+     * @return DefaultTypeSubstitutor? 类型替换器（匹配时），或 null（不匹配时）
      */
-    fun matchingSubstitutor(descriptorType: FuzzyType): TypeSubstitutor?
+    fun matchingSubstitutor(descriptorType: FuzzyType): DefaultTypeSubstitutor?
 
     /**
      * 单个模糊类型
@@ -109,7 +108,7 @@ interface ByTypeFilter {
      * - 显式要求不进行类型过滤
      */
     object All : ByTypeFilter {
-        override fun matchingSubstitutor(descriptorType: FuzzyType) = TypeSubstitutor.EMPTY
+        override fun matchingSubstitutor(descriptorType: FuzzyType) = DefaultTypeSubstitutor.EMPTY
     }
 
     /**
@@ -373,9 +372,9 @@ class ExpectedInfo(
      * 判断类型是否匹配（接受 FuzzyType）
      *
      * @param descriptorType 描述符的模糊类型
-     * @return TypeSubstitutor? 匹配时返回类型替换器，不匹配时返回 null
+     * @return DefaultTypeSubstitutor? 匹配时返回类型替换器，不匹配时返回 null
      */
-    fun matchingSubstitutor(descriptorType: FuzzyType): TypeSubstitutor? = filter.matchingSubstitutor(descriptorType)
+    fun matchingSubstitutor(descriptorType: FuzzyType): DefaultTypeSubstitutor? = filter.matchingSubstitutor(descriptorType)
 
     /**
      * 判断类型是否匹配（接受 CangJieType）
@@ -383,9 +382,9 @@ class ExpectedInfo(
      * 便捷方法，自动将类型转换为模糊类型后调用 [matchingSubstitutor]。
      *
      * @param descriptorType 描述符的类型
-     * @return TypeSubstitutor? 匹配时返回类型替换器，不匹配时返回 null
+     * @return DefaultTypeSubstitutor? 匹配时返回类型替换器，不匹配时返回 null
      */
-    fun matchingSubstitutor(descriptorType: CangJieType): TypeSubstitutor? = matchingSubstitutor(descriptorType.toFuzzyType(emptyList()))
+    fun matchingSubstitutor(descriptorType: CangJieType): DefaultTypeSubstitutor? = matchingSubstitutor(descriptorType.toFuzzyType(emptyList()))
 
     companion object {
         /**
@@ -1144,7 +1143,7 @@ class ExpectedInfos(
      */
     private object NullableTypesFilter : ByTypeFilter {
         override fun matchingSubstitutor(descriptorType: FuzzyType) =
-            if (descriptorType.type.optionality() != TypeOptionality.NOT_OPTION) TypeSubstitutor.EMPTY else null
+            if (descriptorType.type.optionality() != TypeOptionality.NOT_OPTION) DefaultTypeSubstitutor.EMPTY else null
     }
 
     /**
@@ -1402,8 +1401,8 @@ class ExpectedInfos(
         val iterableDetector = resolutionFacade.ideService<IterableTypesDetection>().createDetector(scope)
 
         val byTypeFilter = object : ByTypeFilter {
-            override fun matchingSubstitutor(descriptorType: FuzzyType): TypeSubstitutor? {
-                return if (iterableDetector.isIterable(descriptorType, loopVarType)) TypeSubstitutor.EMPTY else null
+            override fun matchingSubstitutor(descriptorType: FuzzyType): DefaultTypeSubstitutor? {
+                return if (iterableDetector.isIterable(descriptorType, loopVarType)) DefaultTypeSubstitutor.EMPTY else null
             }
         }
         return listOf(ExpectedInfo(byTypeFilter, null, Tail.RPARENTH))
@@ -1419,7 +1418,7 @@ class ExpectedInfos(
         val detector = TypesWithContainsDetector(scope, indicesHelper, leftOperandType)
 
         val byTypeFilter = object : ByTypeFilter {
-            override fun matchingSubstitutor(descriptorType: FuzzyType): TypeSubstitutor? {
+            override fun matchingSubstitutor(descriptorType: FuzzyType): DefaultTypeSubstitutor? {
                 return detector.findOperator(descriptorType)?.second
             }
         }

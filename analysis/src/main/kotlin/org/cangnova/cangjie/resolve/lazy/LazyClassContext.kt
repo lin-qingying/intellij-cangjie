@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import org.cangnova.cangjie.resolve.extensions.SyntheticResolveExtension
 import org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactory
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.WrappedTypeFactory
-import org.cangnova.cangjie.types.checker.NewCangJieTypeChecker
+import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 
 interface LazyClassContext {
 
@@ -62,5 +62,5 @@ interface LazyClassContext {
 
     val enumDescriptorResolver: EnumDescriptorResolver
     val declarationScopeProvider: DeclarationScopeProvider
-    val cangjieTypeCheckerOfOwnerModule: NewCangJieTypeChecker
+    val cangjieTypeCheckerOfOwnerModule: CangJieTypeChecker
 }

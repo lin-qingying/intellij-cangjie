@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.cangnova.cangjie.resolve.module
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.ClassTypeConstructorImpl
-import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 class NotFoundClasses(private val storageManager: StorageManager, private val module: ModuleDescriptor) {
@@ -80,7 +79,7 @@ class NotFoundClasses(private val storageManager: StorageManager, private val mo
             TypeParameterDescriptorImpl.createWithDefaultBound(
                 this,
                 Annotations.EMPTY, /*false,*/
-                Variance.INVARIANT,
+
                 Name.identifier("T$index"),
                 index,
                 storageManager

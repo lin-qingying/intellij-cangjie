@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ open class PropertyDescriptorImpl(
             setter?.let { add(it) }
         }
 
-    override fun substitute(substitutor: TypeSubstitutor): PropertyDescriptor? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): PropertyDescriptor? {
         if (substitutor.isEmpty) return this
 
         return requireNotNull(
@@ -145,7 +145,7 @@ open class PropertyDescriptorImpl(
 
         // 获取并替换输出类型
         val originalOutType = copyConfiguration.returnType
-        val outType = substitutor.substitute(originalOutType, Variance.INVARIANT) ?: return null // TODO : 告知用户该属性已被投影出去
+        val outType = substitutor.substitute(originalOutType ) ?: return null // TODO : 告知用户该属性已被投影出去
 
         // 替换分派接收器
         val substitutedDispatchReceiver = copyConfiguration.dispatchReceiverParameter?.let { dispatchReceiver ->
@@ -177,7 +177,7 @@ open class PropertyDescriptorImpl(
             ).apply {
                 initialSignatureDescriptor =getSubstitutedInitialSignatureDescriptor(substitutor, it)
 
-                initialize(it.returnType?.let { returnType -> substitutor.substitute(returnType, Variance.INVARIANT) })
+                initialize(it.returnType?.let { returnType -> substitutor.substitute(returnType) })
             }
         }
 
@@ -384,12 +384,12 @@ initialSignatureDescriptor = getSubstitutedInitialSignatureDescriptor(substituto
             }
 
         private fun substituteParameterDescriptor(
-            substitutor: TypeSubstitutor,
+            substitutor: DefaultTypeSubstitutor,
             substitutedPropertyDescriptor: PropertyDescriptor,
             receiverParameterDescriptor: ReceiverParameterDescriptor
         ): ReceiverParameterDescriptor? {
             val substitutedType =
-                substitutor.substitute(receiverParameterDescriptor.type, Variance.INVARIANT) ?: return null
+                substitutor.substitute(receiverParameterDescriptor.type) ?: return null
 
             // 对于 extend 接收者，保持其 ImplicitExtendReceiver 类型
             val receiverValue = receiverParameterDescriptor.value
@@ -401,7 +401,7 @@ initialSignatureDescriptor = getSubstitutedInitialSignatureDescriptor(substituto
         }
 
         private fun getSubstitutedInitialSignatureDescriptor(
-            substitutor: TypeSubstitutor,
+            substitutor: DefaultTypeSubstitutor,
             accessorDescriptor: PropertyAccessorDescriptor
         ): FunctionDescriptor? = accessorDescriptor.initialSignatureDescriptor?.substitute(substitutor)
 

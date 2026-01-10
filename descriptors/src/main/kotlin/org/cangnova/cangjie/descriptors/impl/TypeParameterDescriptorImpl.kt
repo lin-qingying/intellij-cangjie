@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.descriptors.impl
 
-import org.cangnova.cangjie.descriptors.ClassifierDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.descriptors.SupertypeLoopChecker
@@ -35,15 +34,13 @@ import org.cangnova.cangjie.resolve.DescriptorUtils.getFqName
 import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeSubstitutor
-import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.isError
 
 class TypeParameterDescriptorImpl private constructor(
     containingDeclaration: DeclarationDescriptor,
     annotations: Annotations,
 
-    variance: Variance,
+
     name: Name,
     index: Int,
     source: SourceElement,
@@ -55,7 +52,7 @@ class TypeParameterDescriptorImpl private constructor(
     containingDeclaration,
     annotations,
     name,
-    variance,  /*reified,*/
+
     index,
     source,
     supertypeLoopsChecker
@@ -120,7 +117,7 @@ class TypeParameterDescriptorImpl private constructor(
             containingDeclaration: DeclarationDescriptor,
             annotations: Annotations,
 
-            variance: Variance,
+
             name: Name,
             index: Int,
             storageManager: StorageManager
@@ -128,7 +125,7 @@ class TypeParameterDescriptorImpl private constructor(
             val typeParameterDescriptor = createForFurtherModification(
                 containingDeclaration,
                 annotations,
-                variance,
+
                 name,
                 index,
                 SourceElement.NO_SOURCE,
@@ -144,14 +141,14 @@ class TypeParameterDescriptorImpl private constructor(
             containingDeclaration: DeclarationDescriptor,
             annotations: Annotations,
 
-            variance: Variance,
+
             name: Name,
             index: Int,
             source: SourceElement,
             storageManager: StorageManager
         ): TypeParameterDescriptorImpl {
             return createForFurtherModification(
-                containingDeclaration, annotations,  variance, name, index, source,
+                containingDeclaration, annotations,    name, index, source,
                 null, SupertypeLoopChecker.EMPTY, storageManager
             )
         }
@@ -159,7 +156,7 @@ class TypeParameterDescriptorImpl private constructor(
         fun createForFurtherModification(
             containingDeclaration: DeclarationDescriptor,
             annotations: Annotations,
-            variance: Variance,
+
             name: Name,
             index: Int,
             source: SourceElement,
@@ -168,7 +165,7 @@ class TypeParameterDescriptorImpl private constructor(
             storageManager: StorageManager
         ): TypeParameterDescriptorImpl {
             return TypeParameterDescriptorImpl(
-                containingDeclaration, annotations, variance, name,
+                containingDeclaration, annotations,  name,
                 index, source, reportCycleError, supertypeLoopsResolver, storageManager
             )
         }

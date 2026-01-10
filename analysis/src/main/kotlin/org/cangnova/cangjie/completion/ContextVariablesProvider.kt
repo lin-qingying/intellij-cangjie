@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,11 @@ package org.cangnova.cangjie.completion
 
 import org.cangnova.cangjie.descriptors.VariableDescriptor
 import org.cangnova.cangjie.types.FuzzyType
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import java.util.HashSet
 
 interface ContextVariablesProvider {
-    fun functionTypeVariables(requiredType: FuzzyType): Collection<Pair<VariableDescriptor, TypeSubstitutor>>
+    fun functionTypeVariables(requiredType: FuzzyType): Collection<Pair<VariableDescriptor, DefaultTypeSubstitutor>>
 }
 class CollectRequiredTypesContextVariablesProvider : ContextVariablesProvider {
     private val _requiredTypes = HashSet<FuzzyType>()
@@ -38,7 +38,7 @@ class CollectRequiredTypesContextVariablesProvider : ContextVariablesProvider {
     val requiredTypes: Set<FuzzyType>
         get() = _requiredTypes
 
-    override fun functionTypeVariables(requiredType: FuzzyType): Collection<Pair<VariableDescriptor, TypeSubstitutor>> {
+    override fun functionTypeVariables(requiredType: FuzzyType): Collection<Pair<VariableDescriptor, DefaultTypeSubstitutor>> {
         _requiredTypes.add(requiredType)
         return emptyList()
     }

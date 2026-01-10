@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,7 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.SpecialNames
 import org.cangnova.cangjie.resolve.scopes.receivers.TransientReceiver
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeSubstitutor
-import org.cangnova.cangjie.types.Variance
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 /**
  * 抽象接收者参数描述符的基类实现。
@@ -103,12 +102,12 @@ abstract class AbstractReceiverParameterDescriptor(annotations: Annotations, nam
      * @param substitutor 类型替换器
      * @return 替换后的 ReceiverParameterDescriptor 或 null
      */
-    override fun substitute(substitutor: TypeSubstitutor): AbstractReceiverParameterDescriptor? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): AbstractReceiverParameterDescriptor? {
         if (substitutor.isEmpty) return this
 
         val substitutedType: CangJieType?
 
-        substitutedType = substitutor.substitute(type, Variance.INVARIANT)
+        substitutedType = substitutor.substitute(type )
 
 
         if (substitutedType == null) return null

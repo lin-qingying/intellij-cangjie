@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.resolve.calls.components.*
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext
-import org.cangnova.cangjie.resolve.calls.inference.NewConstraintSystem
+import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystem
 import org.cangnova.cangjie.resolve.calls.inference.components.CangJieConstraintSystemCompleter
 import org.cangnova.cangjie.resolve.calls.inference.components.ConstraintSystemCompletionMode
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
@@ -83,7 +83,7 @@ class PSIPartialCallInfo(
 class PSICompletedCallInfo(
     override val callResolutionResult: CompletedCallResolutionResult,
     context: BasicCallResolutionContext,
-    val resolvedCall: NewAbstractResolvedCall<*>,
+    val resolvedCall: AbstractResolvedCall<*>,
     tracingStrategy: TracingStrategy
 ) : CallInfo(callResolutionResult, context, tracingStrategy), CompletedCallInfo
 
@@ -186,7 +186,7 @@ abstract class StubTypesBasedInferenceSession<D : CallableDescriptor>(
      * @param commonSystem 公共约束系统，包含所有候选的合并约束
      * @param resolvedCallsInfo 待完成的部分调用信息列表
      */
-    open fun prepareForCompletion(commonSystem: NewConstraintSystem, resolvedCallsInfo: List<PSIPartialCallInfo>) {
+    open fun prepareForCompletion(commonSystem: ConstraintSystem, resolvedCallsInfo: List<PSIPartialCallInfo>) {
         // 默认不做任何操作，子类可覆盖
     }
 
@@ -357,7 +357,7 @@ abstract class StubTypesBasedInferenceSession<D : CallableDescriptor>(
          * @param constraintSystem 待完成的约束系统
          * @param atoms 待分析的原子列表（调用、lambda 等）
          */
-        fun runCompletion(constraintSystem: NewConstraintSystem, atoms: List<ResolvedAtom>) {
+        fun runCompletion(constraintSystem: ConstraintSystem, atoms: List<ResolvedAtom>) {
             val completionMode = ConstraintSystemCompletionMode.FULL
             cangjieConstraintSystemCompleter.runCompletion(
                 constraintSystem.asConstraintSystemCompleterContext(),
@@ -394,7 +394,7 @@ abstract class StubTypesBasedInferenceSession<D : CallableDescriptor>(
 
             for (callInfo in listOf(goodCandidate, badCandidate)) {
                 val atomsToAnalyze = mutableListOf<ResolvedAtom>(callInfo.callResolutionResult)
-                val system = NewConstraintSystemImpl(
+                val system = ConstraintSystemImpl(
                     callComponents.constraintInjector,
                     builtIns,
                     callComponents.cangjieTypeRefiner,
@@ -447,7 +447,7 @@ abstract class StubTypesBasedInferenceSession<D : CallableDescriptor>(
         } else {
             // 策略 B：使用公共约束系统统一完成所有候选
             // 这是正常情况，所有候选要么都成功，要么都失败
-            val commonSystem = NewConstraintSystemImpl(
+            val commonSystem = ConstraintSystemImpl(
                 callComponents.constraintInjector,
                 builtIns,
                 callComponents.cangjieTypeRefiner,
@@ -517,7 +517,7 @@ abstract class StubTypesBasedInferenceSession<D : CallableDescriptor>(
      */
     private fun PartialCallInfo.asCallResolutionResult(
         diagnosticsHolder: CangJieDiagnosticsHolder.SimpleHolder,
-        commonSystem: NewConstraintSystem
+        commonSystem: ConstraintSystem
     ): CallResolutionResult {
         // 合并三种来源的诊断信息：
         // 1. 诊断持有者中的诊断（类型推导过程中产生）

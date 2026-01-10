@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,19 +37,19 @@ import org.cangnova.cangjie.types.CangJieTypeFactory.enumTypeWithNonTrivialMembe
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 class LazySubstitutingEnumDescriptor(
-    override val original: ModuleAwareEnumDescriptor, private val originalSubstitutor: TypeSubstitutor
+    override val original: ModuleAwareEnumDescriptor, private val originalSubstitutor: DefaultTypeSubstitutor
 ) : ModuleAwareEnumDescriptor(), EnumDescriptor {
 
 
 
     val originalEnum = original as EnumDescriptor
-    private var newSubstitutor: TypeSubstitutor? = null
+    private var newSubstitutor: DefaultTypeSubstitutor? = null
     private lateinit var typeConstructorParameters: MutableList<TypeParameterDescriptor>
     private lateinit var myDeclaredTypeParameters: MutableList<TypeParameterDescriptor>
     private var myTypeConstructor: TypeConstructor? = null
 
 
-    private fun getSubstitutor(): TypeSubstitutor {
+    private fun getSubstitutor(): DefaultTypeSubstitutor {
         if (newSubstitutor == null) {
             if (originalSubstitutor.isEmpty) {
                 newSubstitutor = originalSubstitutor
@@ -84,7 +84,7 @@ class LazySubstitutingEnumDescriptor(
     }
 
     override fun getMemberScope(
-        typeArguments: List<TypeProjection>,
+        typeArguments: List<TypeArgument>,
         cangjieTypeRefiner: CangJieTypeRefiner
     ): MemberScope {
         val memberScope =
@@ -97,7 +97,7 @@ class LazySubstitutingEnumDescriptor(
 
 
     
-    override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope {
+    override fun getMemberScope(typeArguments: List<TypeArgument>): MemberScope {
         return getMemberScope(
             typeArguments, DescriptorUtils.getContainingModule(
                 this
@@ -161,14 +161,14 @@ class LazySubstitutingEnumDescriptor(
             }
 
             if (myTypeConstructor == null) {
-                val substitutor: TypeSubstitutor = getSubstitutor()
+                val substitutor: DefaultTypeSubstitutor = getSubstitutor()
 
                 val originalSupertypes: Collection<CangJieType> =
                     originalTypeConstructor.supertypes
                 val supertypes =
                     ArrayList<CangJieType>(originalSupertypes.size)
                 for (supertype in originalSupertypes) {
-                    substitutor.substitute(supertype, Variance.INVARIANT)?.let { supertypes.add(it) }
+                    substitutor.substitute(supertype )?.let { supertypes.add(it) }
                 }
 
                 myTypeConstructor = EnumTypeConstructorImpl(
@@ -184,14 +184,14 @@ class LazySubstitutingEnumDescriptor(
     override val defaultType: SimpleType
         get() {
 
-            val typeProjections: List<TypeProjection> =
-                TypeUtils.getDefaultTypeProjections(
+            val TypeArguments: List<TypeArgument> =
+                TypeUtils.getDefaultTypeArguments(
                     typeConstructor.parameters
                 )
             return enumTypeWithNonTrivialMemberScope(
                 DefaultTypeAttributeTranslator.toAttributes(annotations, null, null),
                 typeConstructor as EnumTypeConstructor,
-                typeProjections,
+                TypeArguments,
                 false,
                 unsubstitutedMemberScope
             )
@@ -206,11 +206,11 @@ class LazySubstitutingEnumDescriptor(
         get() = original.modality
 
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
         if (substitutor.isEmpty) return this
         return LazySubstitutingEnumDescriptor(
             this,
-            TypeSubstitutor.createChainedSubstitutor(
+            DefaultTypeSubstitutor.createChainedSubstitutor(
                 substitutor.substitution,
                 getSubstitutor().substitution
             )
@@ -244,9 +244,9 @@ class LazySubstitutingEnumDescriptor(
     private fun substituteSimpleType(type: SimpleType?): SimpleType? {
         if (type == null || originalSubstitutor.isEmpty) return type
 
-        val substitutor: TypeSubstitutor = getSubstitutor()
+        val substitutor: DefaultTypeSubstitutor = getSubstitutor()
         val substitutedType: CangJieType? =
-            substitutor.substitute(type, Variance.INVARIANT)
+            substitutor.substitute(type)
 
         assert(substitutedType is SimpleType) {
             """
@@ -291,7 +291,7 @@ class LazySubstitutingEnumDescriptor(
                 typeParams.joinTo(this, ", ") { param ->
                     // 获取替换后的类型
                     val substitutor = getSubstitutor()
-                    val substitutedType = substitutor.substitute(param.defaultType, Variance.INVARIANT)
+                    val substitutedType = substitutor.substitute(param.defaultType)
                     substitutedType?.toString() ?: param.name.asString()
                 }
                 append(">")

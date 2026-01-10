@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.SpecialNames
-import org.cangnova.cangjie.resolve.DescriptorFactory
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.storage.getValue
 import org.cangnova.cangjie.types.*
@@ -67,7 +66,7 @@ class TypeAliasConstructorDescriptorImpl private constructor(
         typeAliasDescriptor
 
 
-    override fun substitute(substitutor: TypeSubstitutor): TypeAliasConstructorDescriptorImpl? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): TypeAliasConstructorDescriptorImpl? {
         //    class C<T>(val x: T)
         //    typealias A<Q> = C<List<Q>>
         //
@@ -78,7 +77,7 @@ class TypeAliasConstructorDescriptorImpl private constructor(
         // the unsubstituted underlying constructor with signature '<T> (T) -> C<T>'
         // producing substituted underlying constructor with signature '(List<Int>) -> C<List<Int>>'.
         val substitutedTypeAliasConstructor = super.substitute(substitutor) as TypeAliasConstructorDescriptorImpl
-        val underlyingConstructorSubstitutor = TypeSubstitutor.create(substitutedTypeAliasConstructor.returnType)
+        val underlyingConstructorSubstitutor = DefaultTypeSubstitutor.create(substitutedTypeAliasConstructor.returnType)
         val substitutedUnderlyingConstructor =
             underlyingConstructorDescriptor.original.substitute(underlyingConstructorSubstitutor)
         if (substitutedUnderlyingConstructor != null) {
@@ -160,9 +159,9 @@ class TypeAliasConstructorDescriptorImpl private constructor(
     }
 
     companion object {
-        private fun TypeAliasDescriptor.getTypeSubstitutorForUnderlyingClass(): TypeSubstitutor? {
+        private fun TypeAliasDescriptor.getTypeSubstitutorForUnderlyingClass(): DefaultTypeSubstitutor? {
             if (classDescriptor == null) return null
-            return TypeSubstitutor.create(expandedType)
+            return DefaultTypeSubstitutor.create(expandedType)
         }
 
         fun createIfAvailable(
@@ -192,7 +191,7 @@ class TypeAliasConstructorDescriptorImpl private constructor(
 
             // TypeAlias 构造函数使用 dispatch receiver
             val dispatchReceiverParameter = constructor.dispatchReceiverParameter?.let {
-                val substitutedType = substitutorForUnderlyingClass.safeSubstitute(it.type, Variance.INVARIANT)
+                val substitutedType = substitutorForUnderlyingClass.safeSubstitute(it.type)
                 ReceiverParameterDescriptorImpl(
                     typeAliasConstructor,
                     it.value.replaceType(substitutedType),

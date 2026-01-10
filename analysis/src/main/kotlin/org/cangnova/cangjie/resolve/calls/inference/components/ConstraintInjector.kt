@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,10 @@ import org.cangnova.cangjie.resolve.calls.inference.ForkPointData
 import org.cangnova.cangjie.resolve.calls.inference.model.*
 import org.cangnova.cangjie.types.AbstractTypeApproximator
 import org.cangnova.cangjie.types.AbstractTypeChecker
+import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeApproximatorConfiguration
 import org.cangnova.cangjie.types.TypeCheckerState
+import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.model.*
 import org.cangnova.cangjie.utils.addIfNotNull
 import org.cangnova.cangjie.utils.popLast
@@ -516,9 +518,7 @@ class ConstraintInjector(
         val c: Context,
         val position: IncorporationConstraintPosition
     ) : TypeCheckerStateForConstraintSystem(
-        c,
-        baseState.cangjieTypePreparator,
-        baseState.cangjieTypeRefiner
+        c
     ), ConstraintIncorporator.Context, TypeSystemInferenceExtensionContext by c {
         /**
          * 便捷构造函数，自动创建类型检查器状态
@@ -695,11 +695,9 @@ class ConstraintInjector(
             isFromNullabilityConstraint: Boolean = false
         ) {
             fun isSubtypeOf(upperType: CangJieTypeMarker) =
-                AbstractTypeChecker.isSubtypeOf(
-                    this@TypeCheckerStateForConstraintInjector as TypeCheckerState,
-                    lowerType,
-                    upperType,
-                    isFromNullabilityConstraint
+                CangJieTypeChecker.DEFAULT.isSubtypeOf(
+                    lowerType as CangJieType,
+                    upperType as CangJieType
                 )
 
             if (!isSubtypeOf(upperType)) {
@@ -713,10 +711,10 @@ class ConstraintInjector(
                     require(upperType is SimpleTypeMarker)
                     val flexibleUpperType = createFlexibleType(upperType, upperType.withOption(true))
                     if (!isSubtypeOf(flexibleUpperType)) {
-                        c.addError(NewConstraintError(lowerType, flexibleUpperType, position))
+                        c.addError(ConstraintError(lowerType, flexibleUpperType, position))
                     }
                 } else {
-                    c.addError(NewConstraintError(lowerType, upperType, position))
+                    c.addError(ConstraintError(lowerType, upperType, position))
                 }
             }
         }

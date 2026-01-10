@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1306,9 +1306,7 @@ class DescriptorResolver(
         index: Int,
         trace: BindingTrace
     ): TypeParameterDescriptorImpl {
-        if (typeParameter.variance != Variance.INVARIANT) {
-            trace.report(VARIANCE_ON_TYPE_PARAMETER_NOT_ALLOWED.on(typeParameter))
-        }
+        // 仓颉语言的所有类型参数都是不变的(invariant)，不需要检查 variance
 
         val annotations =
             annotationResolver.resolveAnnotationsWithArguments(
@@ -1321,7 +1319,6 @@ class DescriptorResolver(
             containingDescriptor,
             annotations,
 
-            typeParameter.variance,
             CjPsiUtil.safeName(typeParameter.name),
             index,
             typeParameter.toSourceElement(),

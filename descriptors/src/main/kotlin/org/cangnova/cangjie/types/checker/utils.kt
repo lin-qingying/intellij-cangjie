@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,16 +27,15 @@ package org.cangnova.cangjie.types.checker
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.renderer.DescriptorRenderer
-import org.cangnova.cangjie.resolve.call.inference.wrapWithCapturingSubstitution
 import org.cangnova.cangjie.types.*
 import java.util.*
 
 /**
- * 新类型变量构造器接口
+ * 变量构造器接口
  *
  * 表示类型推断中的类型变量
  */
-interface NewTypeVariableConstructor : TypeConstructor {
+interface TypeVariableConstructor : TypeConstructor {
     /** 原始的类型参数描述符 */
     val originalTypeParameter: TypeParameterDescriptor?
 }
@@ -104,18 +103,10 @@ fun findCorrespondingSupertype(
             // 沿路径向上回溯，应用类型替换
             while (currentPathNode != null) {
                 val currentType = currentPathNode.type
-                // 如果类型参数包含型变，需要使用捕获替换
-                substituted = if (currentType.arguments.any { it.projectionKind != Variance.INVARIANT }) {
-                    TypeConstructorSubstitution.create(currentType)
-                        .wrapWithCapturingSubstitution().buildSubstitutor()
-                        .safeSubstitute(substituted, Variance.INVARIANT)
-                        .approximate()
-                }
-                else {
-                    TypeConstructorSubstitution.create(currentType)
-                        .buildSubstitutor()
-                        .safeSubstitute(substituted, Variance.INVARIANT)
-                }
+                // 仓颉语言所有类型参数都是不变的（invariant），不需要捕获替换
+                substituted = TypeConstructorSubstitution.create(currentType)
+                    .buildSubstitutor()
+                    .safeSubstitute(substituted)
 
                 // 保留可空性标记
                 isAnyMarkedNullable = isAnyMarkedNullable || currentType.isOption

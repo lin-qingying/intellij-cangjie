@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ package org.cangnova.cangjie.resolve.calls.components
 import com.intellij.util.SmartList
 import org.cangnova.cangjie.builtins.UnsignedTypes
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.descriptors.DescriptorVisibilities.PRIVATE
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorNameConventions
 import org.cangnova.cangjie.psi.CjCallExpression
@@ -434,7 +433,8 @@ private fun ResolutionCandidate.getReceiverArgumentWithConstraintIfCompatible(
     val csBuilder = getSystem().getBuilder()
     val expectedTypeUnprepared = argument.getExpectedType(parameter, callComponents.languageVersionSettings)
     val expectedType = prepareExpectedType(expectedTypeUnprepared)
-    val argumentType = captureFromTypeParameterUpperBoundIfNeeded(argument.receiver.stableType, expectedType)
+    // 仓颉语言的类型系统不需要从类型参数上界捕获类型
+    val argumentType = argument.receiver.stableType.unwrap()
     val position = ReceiverConstraintPositionImpl(argument, resolvedCall.atom)
     return if (csBuilder.isSubtypeConstraintCompatible(argumentType, expectedType, position))
         ApplicableContextReceiverArgumentWithConstraint(argument, argumentType, expectedType, position)
@@ -943,13 +943,68 @@ internal object MapTypeArguments : ResolutionPart() {
     }
 }
 
+/**
+ * 收集类型变量使用信息的解析部分
+ *
+ * 这个解析部分分析类型变量在返回类型中的使用位置(协变、逆变、不变),
+ * 并标记那些出现在不变或逆变位置的类型变量。这对于类型推导的正确性很重要。
+ *
+ * ## 变型位置(Variance Position)
+ *
+ * - **协变位置(Covariant)**: 只输出位置,如函数返回类型、属性的 getter
+ * - **逆变位置(Contravariant)**: 只输入位置,如函数参数类型
+ * - **不变位置(Invariant)**: 既输入又输出,如可变属性的 getter/setter
+ *
+ * ## 为什么要收集这些信息?
+ *
+ * 类型变量在不同位置的出现会影响类型推导的策略:
+ * - 协变位置的类型变量可以更宽松地推导
+ * - 不变/逆变位置的类型变量需要更严格的约束
+ *
+ * ## 工作原理
+ *
+ * 1. 遍历所有新鲜类型变量(Fresh Type Variables)
+ * 2. 检查每个变量在返回类型中的位置
+ * 3. 如果变量出现在不变或逆变位置,标记该变量
+ * 4. 考虑类型参数之间的依赖关系
+ *
+ * ## 使用场景
+ *
+ * ```cangjie
+ * // 场景 1: 协变位置
+ * func producer<T>(): T { ... }  // T 在协变位置(返回类型)
+ *
+ * // 场景 2: 逆变位置
+ * func consumer<T>(value: T): Unit { ... }  // T 在逆变位置(参数类型)
+ *
+ * // 场景 3: 不变位置
+ * class Box<T> {
+ *     var value: T  // T 在不变位置(可变属性)
+ * }
+ *
+ * // 场景 4: 复杂嵌套
+ * func process<T>(callback: (T) -> T): T {
+ *     // T 在返回类型中: 协变位置
+ *     // T 在 callback 参数中: 逆变位置
+ *     // T 在 callback 返回类型中: 通过函数参数,整体是逆变位置
+ * }
+ * ```
+ *
+ * @see TypeVariableFromCallableDescriptor 来自可调用描述符的类型变量
+ * @see NewTypeVariableConstructor.isContainedInInvariantOrContravariantPositions 标记字段
+ */
 internal object CollectionTypeVariableUsagesInfo : ResolutionPart() {
+    /**
+     * 判断类型是否已计算完成
+     *
+     * 如果类型不是包装类型,或者包装类型已完成计算,则返回 true。
+     */
     private val CangJieType.isComputed get() = this !is WrappedType || isComputed()
 
-    private fun NewConstraintSystem.isContainedInInvariantOrContravariantPositions(
+    private fun ConstraintSystem.isContainedInInvariantOrContravariantPositions(
         variableTypeConstructor: TypeConstructorMarker,
         baseType: CangJieTypeMarker,
-        wasOutVariance: Boolean = true
+
     ): Boolean {
         if (baseType !is CangJieType) return false
 
@@ -959,19 +1014,13 @@ internal object CollectionTypeVariableUsagesInfo : ResolutionPart() {
         if (declaredTypeParameters.size < baseType.arguments.size) return false
 
         for ((_, argument) in baseType.arguments.withIndex()) {
-//            if ( argument.type.isMarkedOption) continue
-
-            val currentEffectiveVariance = false
-//                declaredTypeParameters[argumentsIndex].variance == Variance.OUT_VARIANCE || argument.projectionKind == Variance.OUT_VARIANCE
-            val effectiveVarianceFromTopLevel = wasOutVariance && currentEffectiveVariance
-
-            if ((argument.type.constructor == dependentTypeParameter || argument.type.constructor == variableTypeConstructor) && !effectiveVarianceFromTopLevel)
+            // 仓颉语言所有类型参数都是不变的(invariant),直接检查类型构造器
+            if (argument.type.constructor == dependentTypeParameter || argument.type.constructor == variableTypeConstructor)
                 return true
 
             if (isContainedInInvariantOrContravariantPositions(
                     variableTypeConstructor,
-                    argument.type,
-                    effectiveVarianceFromTopLevel
+                    argument.type
                 )
             )
                 return true
@@ -987,7 +1036,7 @@ internal object CollectionTypeVariableUsagesInfo : ResolutionPart() {
         it.typeConstructor == checkingType.originalTypeParameter.typeConstructor
     }
 
-    private fun NewConstraintSystem.getDependentTypeParameters(
+    private fun ConstraintSystem.getDependentTypeParameters(
         variable: TypeConstructorMarker,
         dependentTypeParametersSeen: List<Pair<TypeConstructorMarker, CangJieTypeMarker?>> = listOf()
     ): List<Pair<TypeConstructorMarker, CangJieTypeMarker?>> {
@@ -1016,7 +1065,7 @@ internal object CollectionTypeVariableUsagesInfo : ResolutionPart() {
         }
     }
 
-    private fun NewConstraintSystem.isContainedInInvariantOrContravariantPositionsAmongUpperBound(
+    private fun ConstraintSystem.isContainedInInvariantOrContravariantPositionsAmongUpperBound(
         checkingType: TypeConstructorMarker,
         dependentTypeParameters: List<Pair<TypeConstructorMarker, CangJieTypeMarker?>>
     ): Boolean {
@@ -1033,17 +1082,17 @@ internal object CollectionTypeVariableUsagesInfo : ResolutionPart() {
         }
     }
 
-    private fun NewConstraintSystem.getTypeParameterByVariable(typeConstructor: TypeConstructorMarker) =
+    private fun ConstraintSystem.getTypeParameterByVariable(typeConstructor: TypeConstructorMarker) =
         (getBuilder().currentStorage().allTypeVariables[typeConstructor] as? TypeVariableFromCallableDescriptor)?.originalTypeParameter?.typeConstructor
 
-    private fun NewConstraintSystem.getDependingOnTypeParameter(variable: TypeConstructor) =
+    private fun ConstraintSystem.getDependingOnTypeParameter(variable: TypeConstructor) =
         getBuilder().currentStorage().notFixedTypeVariables[variable]?.constraints?.mapNotNull {
             if (it.position.from is DeclaredUpperBoundConstraintPositionImpl && it.kind == ConstraintKind.UPPER) {
                 it.type.typeConstructor(asConstraintSystemCompleterContext())
             } else null
         } ?: emptyList()
 
-    private fun NewConstraintSystem.isContainedInInvariantOrContravariantPositionsWithDependencies(
+    private fun ConstraintSystem.isContainedInInvariantOrContravariantPositionsWithDependencies(
         variable: TypeVariableFromCallableDescriptor,
         declarationDescriptor: DeclarationDescriptor?
     ): Boolean {
@@ -1111,11 +1160,11 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         cangjieCall: CangJieCall,
         csBuilder: ConstraintSystemOperation,
         typeParameters: List<TypeParameterDescriptor> = candidateDescriptor.typeParameters
-    ): FreshVariableNewTypeSubstitutor {
+    ): FreshVariableTypeSubstitutor {
 
         val freshTypeVariables = typeParameters.map { TypeVariableFromCallableDescriptor(it) }
 
-        val toFreshVariables = FreshVariableNewTypeSubstitutor(freshTypeVariables)
+        val toFreshVariables = FreshVariableTypeSubstitutor(freshTypeVariables)
 
         for (freshVariable in freshTypeVariables) {
             csBuilder.registerVariable(freshVariable)
@@ -1186,9 +1235,9 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
     }
 
     private fun createKnownParametersFromFreshVariablesSubstitutor(
-        freshVariableSubstitutor: FreshVariableNewTypeSubstitutor,
-        knownTypeParametersSubstitutor: TypeSubstitutor,
-    ): NewTypeSubstitutor {
+        freshVariableSubstitutor: FreshVariableTypeSubstitutor,
+        knownTypeParametersSubstitutor: DefaultTypeSubstitutor,
+    ): AbstractTypeSubstitutor {
         if (knownTypeParametersSubstitutor.isEmpty)
             return EmptySubstitutor
 
@@ -1198,13 +1247,13 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
                 val substitutedKnownTypeParameter = knownTypeParametersSubstitutor.substitute(typeParameterType)
 
                 if (substitutedKnownTypeParameter !== typeParameterType)
-                    map[typeVariable.defaultType.constructor] = substitutedKnownTypeParameter
+                    map[typeVariable.defaultType.constructor] = substitutedKnownTypeParameter.unwrap()
             }
             map
         }
 
         return knownTypeParametersSubstitutor.composeWith(
-            NewTypeSubstitutorByConstructorMap(
+            TypeSubstitutorByConstructorMap(
                 knownTypeParameterByTypeVariable
             )
         )
@@ -1231,7 +1280,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         val csBuilder = getSystem().getBuilder()
 //        val toFreshVariables =
 //            if (descriptor.typeParameters.isEmpty())
-//                FreshVariableNewTypeSubstitutor.Empty
+//                FreshVariableTypeSubstitutor.Empty
 //            else
 //                createToFreshVariableSubstitutorAndAddInitialConstraints(
 //                    descriptor,
@@ -1242,7 +1291,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         val typeParameters = getTypeParameters()
         val toFreshVariables =
             if (typeParameters.isEmpty())
-                FreshVariableNewTypeSubstitutor.Empty
+                FreshVariableTypeSubstitutor.Empty
             else
                 createToFreshVariableSubstitutorAndAddInitialConstraints(
                     candidateDescriptor,
@@ -1717,7 +1766,7 @@ internal object ErrorDescriptorResolutionPart : ResolutionPart() {
         resolvedCall.typeArgumentMappingByOriginal =
             TypeArgumentsToParametersMapper.TypeArgumentsMapping.NoExplicitArguments
         resolvedCall.argumentMappingByOriginal = emptyMap()
-        resolvedCall.freshVariablesSubstitutor = FreshVariableNewTypeSubstitutor.Empty
+        resolvedCall.freshVariablesSubstitutor = FreshVariableTypeSubstitutor.Empty
         resolvedCall.knownParametersSubstitutor = EmptySubstitutor
         resolvedCall.argumentToCandidateParameter = emptyMap()
 

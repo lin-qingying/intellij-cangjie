@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
  */
 
 /*
-<html>None of the following candidates is applicable:<br/>constructor(captureStatus: CaptureStatus, constructor: NewCapturedTypeConstructor, lowerType: UnwrappedType?, attributes: TypeAttributes = ..., isOption: Boolean = ..., isProjectionNotNull: Boolean = ...): NewCapturedType<br/>constructor(captureStatus: CaptureStatus, lowerType: UnwrappedType?, projection: TypeProjection, typeParameter: TypeParameterDescriptor): NewCapturedType * 仓颉类型系统特殊类型定义
+<html>None of the following candidates is applicable:<br/>constructor(captureStatus: CaptureStatus, constructor: CapturedTypeConstructor, lowerType: UnwrappedType?, attributes: TypeAttributes = ..., isOption: Boolean = ..., isProjectionNotNull: Boolean = ...): CapturedType<br/>constructor(captureStatus: CaptureStatus, lowerType: UnwrappedType?, argument: TypeArgument, typeParameter: TypeParameterDescriptor): CapturedType * 仓颉类型系统特殊类型定义
  *
  * 本文件定义了仓颉语言类型系统中的特殊类型，包括：
  * - 类型缩写（AbbreviatedType）
@@ -42,8 +42,8 @@ import org.cangnova.cangjie.descriptors.impl.TypeParameterDescriptorImpl
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import org.cangnova.cangjie.types.checker.NewCapturedType
-import org.cangnova.cangjie.types.checker.NewTypeVariableConstructor
+import org.cangnova.cangjie.types.checker.CapturedType
+import org.cangnova.cangjie.types.checker.TypeVariableConstructor
 import org.cangnova.cangjie.types.checker.OptionChecker
 import org.cangnova.cangjie.types.model.DefinitelyNonOptionTypeMarker
 
@@ -109,7 +109,7 @@ class AbbreviatedType(override val delegate: SimpleType, val abbreviation: Simpl
 abstract class DelegatingSimpleType : SimpleType() {
     protected abstract val delegate: SimpleType
     override val constructor: TypeConstructor get() = delegate.constructor
-    override val arguments: List<TypeProjection> get() = delegate.arguments
+    override val arguments: List<TypeArgument> get() = delegate.arguments
     override val isOption: Boolean get() = delegate.isOption
     override val memberScope: MemberScope get() = delegate.memberScope
     override val attributes: TypeAttributes get() = delegate.attributes
@@ -136,7 +136,7 @@ abstract class WrappedType : CangJieType() {
     open fun isComputed(): Boolean = true
     protected abstract val delegate: CangJieType
     override val constructor: TypeConstructor get() = delegate.constructor
-    override val arguments: List<TypeProjection> get() = delegate.arguments
+    override val arguments: List<TypeArgument> get() = delegate.arguments
     override val isOption: Boolean get() = delegate.isOption
     override val memberScope: MemberScope get() = delegate.memberScope
     override val attributes: TypeAttributes get() = delegate.attributes
@@ -246,9 +246,9 @@ class DefinitelyNonOptionType private constructor(
          * 判断类型是否可能为未确定Option状态
          */
         private fun UnwrappedType.canHaveUndefinedOption(): Boolean =
-            constructor is NewTypeVariableConstructor
+            constructor is TypeVariableConstructor
                     || constructor.declarationDescriptor is TypeParameterDescriptor
-                    || this is NewCapturedType
+                    || this is CapturedType
                     || this is StubTypeForBuilderInference
     }
     override val delegate: SimpleType
@@ -256,7 +256,7 @@ class DefinitelyNonOptionType private constructor(
     override val isOption: Boolean
         get() = false
     override val isTypeParameter: Boolean
-        get() = delegate.constructor is NewTypeVariableConstructor ||
+        get() = delegate.constructor is TypeVariableConstructor ||
                 delegate.constructor.declarationDescriptor is TypeParameterDescriptor
     /**
      * 类型替换，返回新的明确非Option类型
@@ -281,8 +281,8 @@ class DefinitelyNonOptionType private constructor(
     override fun replaceDelegate(delegate: SimpleType) =
         DefinitelyNonOptionType(delegate, useCorrectedOptionForTypeParameters)
 }
-fun NewCapturedType.withNonOptionProjection() =
-    NewCapturedType(captureStatus, constructor, lowerType, attributes, isOption, isProjectionNotNull = true)
+fun CapturedType.withNonOptionProjection() =
+    CapturedType(captureStatus, constructor, lowerType, attributes, isOption)
 
 /**
  * 将类型转换为明确非Option类型

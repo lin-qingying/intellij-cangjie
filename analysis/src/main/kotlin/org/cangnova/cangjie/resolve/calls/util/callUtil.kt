@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,8 @@ import org.cangnova.cangjie.resolve.calls.results.ResolutionStatus
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import org.cangnova.cangjie.resolve.calls.smartcasts.SmartCastManager
-import org.cangnova.cangjie.resolve.calls.tower.NewResolvedCallImpl
+import org.cangnova.cangjie.resolve.calls.tower.ResolvedCallImpl
+
 import org.cangnova.cangjie.resolve.calls.tower.psiCangJieCall
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.resolve.scopes.getResolutionScope
@@ -81,7 +82,7 @@ import org.cangnova.cangjie.utils.supertypesWithAny
 fun CjElement?.getParentResolvedCall(
     context: BindingContext,
     strict: Boolean = true
-): ResolvedCall<out CallableDescriptor>? {
+): ResolvedCall<CallableDescriptor>? {
     return this?.getParentCall(context, strict)?.getResolvedCall(context)
 }
 
@@ -168,7 +169,7 @@ fun Call.resolveCandidates(
     expectedType: CangJieType = expectedType(this, bindingContext),
     filterOutWrongReceiver: Boolean = true,
     filterOutByVisibility: Boolean = true
-): Collection<ResolvedCall<out FunctionDescriptor>> {
+): Collection<ResolvedCall<FunctionDescriptor>> {
     val resolutionScope = callElement.getResolutionScope(bindingContext, resolutionFacade)
     val inDescriptor = resolutionScope.ownerDescriptor
 
@@ -225,7 +226,7 @@ fun Call.hasUnresolvedArguments(bindingContext: BindingContext, statementFilter:
 
         when (val resolvedCall = argument.getResolvedCall(bindingContext)) {
             is MutableResolvedCall<*> -> if (!resolvedCall.hasInferredReturnType()) return false
-            is NewResolvedCallImpl<*> -> if (resolvedCall.resultingDescriptor.returnType?.isError == true) return false
+            is ResolvedCallImpl<*> -> if (resolvedCall.resultingDescriptor.returnType?.isError == true) return false
         }
 
         val expressionType = bindingContext.getType(argument)
@@ -316,7 +317,7 @@ fun CjElement.safeAnalyze(
     e.returnIfNoDescriptorForDeclarationException { BindingContext.EMPTY }
 }
 
-fun CjElement?.getResolvedCall(context: BindingContext): ResolvedCall<out CallableDescriptor>? {
+fun CjElement?.getResolvedCall(context: BindingContext): ResolvedCall<CallableDescriptor>? {
     return this?.getCall(context)?.getResolvedCall(context)
 }
 

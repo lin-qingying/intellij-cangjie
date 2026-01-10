@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import org.cangnova.cangjie.completion.createLookupElementForType
 import org.cangnova.cangjie.indices.fuzzyType
 import org.cangnova.cangjie.psi.psiUtil.moveCaret
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.Variance
 
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
@@ -57,7 +56,7 @@ object ClassLiteralItems {
             val typeConstructor = fuzzyType.type.constructor
             val klass = typeConstructor.declarationDescriptor as? ClassDescriptor ?: continue
             val typeArgument = fuzzyType.type.arguments.singleOrNull() ?: continue
-            if (typeArgument.projectionKind != Variance.INVARIANT) continue
+            // 仓颉语言中所有类型参数都是不变的，不需要检查 projectionKind
 
 
 

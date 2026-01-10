@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,8 @@ import org.cangnova.cangjie.descriptors.HasScopeDescriptor
 import org.cangnova.cangjie.descriptors.impl.ModuleAwareDescriptorBase.Companion.getRefinedMemberScopeIfPossible
 import org.cangnova.cangjie.descriptors.impl.ModuleAwareDescriptorBase.Companion.getRefinedUnsubstitutedMemberScopeIfPossible
 import org.cangnova.cangjie.resolve.scopes.MemberScope
-import org.cangnova.cangjie.types.TypeProjection
+import org.cangnova.cangjie.types.TypeArgument
+
 import org.cangnova.cangjie.types.TypeSubstitution
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
@@ -86,7 +87,7 @@ abstract class ModuleAwareDescriptorBase<T : ClassifierDescriptor> :
      * @return MemberScope 经过类型参数化和细化的成员作用域
      */
     abstract fun getMemberScope(
-        typeArguments: List<TypeProjection>,
+        typeArguments: List<TypeArgument>,
         cangjieTypeRefiner: CangJieTypeRefiner
     ): MemberScope
 

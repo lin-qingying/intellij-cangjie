@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,6 @@ import org.cangnova.cangjie.resolve.constants.TypedCompileTimeConstant
 import org.cangnova.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.cangnova.cangjie.resolve.controlFlow.multiParentElementReports
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
-import org.cangnova.cangjie.types.AbstractTypeChecker
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isNothing
 import org.cangnova.cangjie.types.checker.intersectWrappedTypes
@@ -237,7 +236,8 @@ class DiagnosticReporterByTrackingStrategy(
     }
 
     private fun unknownError(diagnostic: CangJieCallDiagnostic, onTarget: String) {
-        if (AbstractTypeChecker.RUN_SLOW_ASSERTIONS) {
+        // RUN_SLOW_ASSERTIONS removed - not needed in invariant type system
+        if (false) {
             throw AssertionError("$onTarget should not be called with ${diagnostic::class.java}")
         } else if (reportAdditionalErrors) {
             trace.report(
@@ -378,7 +378,7 @@ class DiagnosticReporterByTrackingStrategy(
             else -> null
         }
         val resolvedCall =
-            smartCastDiagnostic.cangjieCall?.psiCangJieCall?.psiCall?.getResolvedCall(trace.bindingContext) as? NewResolvedCallImpl<*>
+            smartCastDiagnostic.cangjieCall?.psiCangJieCall?.psiCall?.getResolvedCall(trace.bindingContext) as? ResolvedCallImpl<*>
         if (resolvedCall != null && smartCastResult != null) {
             if (resolvedCall.dispatchReceiver == expressionArgument.receiver.receiverValue) {
                 resolvedCall.smartCastDispatchReceiverType = smartCastResult.resultType
@@ -626,7 +626,7 @@ class DiagnosticReporterByTrackingStrategy(
     }
 
     private fun reportArgumentConstraintErrorByPosition(
-        error: NewConstraintMismatch,
+        error: ConstraintMismatch,
         argument: CangJieCallArgument,
         isWarning: Boolean,
         typeMismatchDiagnostic: DiagnosticFactory2<CjExpression, CangJieType, CangJieType>,
@@ -678,7 +678,7 @@ class DiagnosticReporterByTrackingStrategy(
         report(typeMismatchDiagnostic.on(deparenthesized, error.upperCangJieType, error.lowerCangJieType))
     }
 
-    private fun reportConstantTypeMismatch(constraintError: NewConstraintMismatch, expression: CjExpression): Boolean {
+    private fun reportConstantTypeMismatch(constraintError: ConstraintMismatch, expression: CjExpression): Boolean {
         if (expression is CjConstantExpression) {
             val module = context.scope.ownerDescriptor.module
             val constantValue =
@@ -691,13 +691,13 @@ class DiagnosticReporterByTrackingStrategy(
     }
 
     private fun reportCallableReferenceConstraintError(
-        error: NewConstraintMismatch,
+        error: ConstraintMismatch,
         rhsExpression: CjSimpleNameExpression
     ) {
         trace.report(TYPE_MISMATCH.on(rhsExpression, error.lowerCangJieType, error.upperCangJieType))
     }
 
-    private fun reportConstraintErrorByPosition(error: NewConstraintMismatch, position: ConstraintPosition) {
+    private fun reportConstraintErrorByPosition(error: ConstraintMismatch, position: ConstraintPosition) {
         if (position is CallableReferenceConstraintPositionImpl) {
             val callableReferenceExpression = position.callableReferenceCall.call.extractCallableReferenceExpression()
 
@@ -709,7 +709,7 @@ class DiagnosticReporterByTrackingStrategy(
             return
         }
 
-        val isWarning = error is NewConstraintWarning
+        val isWarning = error is ConstraintWarning
         val typeMismatchDiagnostic = if (isWarning) TYPE_MISMATCH_WARNING else TYPE_MISMATCH
         val report = if (isWarning) trace::reportDiagnosticOnce else trace::report
 
@@ -768,7 +768,7 @@ class DiagnosticReporterByTrackingStrategy(
             is FixVariableConstraintPosition<*> -> {
                 val morePreciseDiagnosticExists = allDiagnostics.any { other ->
                     val otherError = other.constraintSystemError ?: return@any false
-                    otherError is NewConstraintError && otherError.position.from !is FixVariableConstraintPositionImpl
+                    otherError is ConstraintError && otherError.position.from !is FixVariableConstraintPositionImpl
                 }
                 if (morePreciseDiagnosticExists) return
 
@@ -816,7 +816,8 @@ class DiagnosticReporterByTrackingStrategy(
             is InjectedAnotherStubTypeConstraintPosition<*>,
             is /*LHSArgumentConstraintPosition<*, *>,*/ SimpleConstraintSystemConstraintPosition/*, ProvideDelegateFixationPosition*/
                 -> {
-                if (AbstractTypeChecker.RUN_SLOW_ASSERTIONS) {
+                // RUN_SLOW_ASSERTIONS removed - not needed in invariant type system
+                if (false) {
                     throw AssertionError("Constraint error in unexpected position: $position")
                 } else if (reportAdditionalErrors) {
 
@@ -918,7 +919,7 @@ class DiagnosticReporterByTrackingStrategy(
 
     override fun constraintError(error: ConstraintSystemError) {
         when (error) {
-            is NewConstraintMismatch -> reportConstraintErrorByPosition(error, error.position.from)
+            is ConstraintMismatch -> reportConstraintErrorByPosition(error, error.position.from)
 
             is CapturedTypeFromSubtyping -> {
                 val position = error.position
@@ -981,7 +982,7 @@ class DiagnosticReporterByTrackingStrategy(
                         is CangJieConstraintSystemDiagnostic -> {
                             val otherError = it.error
                             (otherError is ConstrainingTypeIsError && otherError.typeVariable == error.typeVariable)
-                                    || otherError is NewConstraintError
+                                    || otherError is ConstraintError
                         }
 
                         else -> false
@@ -1103,5 +1104,5 @@ class DiagnosticReporterByTrackingStrategy(
     }
 }
 
-val NewConstraintMismatch.upperCangJieType get() = upperType as CangJieType
-val NewConstraintMismatch.lowerCangJieType get() = lowerType as CangJieType
+val ConstraintMismatch.upperCangJieType get() = upperType as CangJieType
+val ConstraintMismatch.lowerCangJieType get() = lowerType as CangJieType

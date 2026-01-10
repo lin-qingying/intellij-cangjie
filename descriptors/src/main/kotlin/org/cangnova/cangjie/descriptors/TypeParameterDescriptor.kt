@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ package org.cangnova.cangjie.descriptors
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeConstructor
-import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.model.TypeParameterMarker
 
 /**
@@ -36,12 +35,7 @@ import org.cangnova.cangjie.types.model.TypeParameterMarker
 interface TypeParameterDescriptor : ClassifierDescriptor, TypeParameterMarker {
     //    boolean isReified();
 
-    /**
-     * 获取类型参数的方差（`Variance`），如协变（`out`）、逆变（`in`）或不变。
-     *
-     * @return 类型参数的方差
-     */
-    val variance: Variance
+
 
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ abstract class AbstractClassDescriptor(
 
                     if (descriptor is TypeAliasDescriptor) {
                         return descriptor.computeExpandedType(
-                            TypeUtils.getDefaultTypeProjections(descriptor.typeConstructor.parameters)
+                            TypeUtils.getDefaultTypeArguments(descriptor.typeConstructor.parameters)
                         )
                     }
 
@@ -107,7 +107,7 @@ abstract class AbstractClassDescriptor(
 
 
     override fun getMemberScope(
-        typeArguments: List<TypeProjection>,
+        typeArguments: List<TypeArgument>,
         cangjieTypeRefiner: CangJieTypeRefiner
     ): MemberScope {
         assert(typeArguments.size == typeConstructor.parameters.size) {
@@ -125,13 +125,13 @@ abstract class AbstractClassDescriptor(
     ): MemberScope {
         if (typeSubstitution.isEmpty()) return getUnsubstitutedMemberScope(cangjieTypeRefiner)
 
-        val substitutor = TypeSubstitutor.create(typeSubstitution)
+        val substitutor = DefaultTypeSubstitutor.create(typeSubstitution)
         return SubstitutingScope(getUnsubstitutedMemberScope(cangjieTypeRefiner), substitutor)
     }
 
 
     
-    override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope {
+    override fun getMemberScope(typeArguments: List<TypeArgument>): MemberScope {
         return getMemberScope(typeArguments.toList(), DescriptorUtils.getContainingModule(this).getCangJieTypeRefiner())
 
     }
@@ -150,7 +150,7 @@ abstract class AbstractClassDescriptor(
 //    override val unsubstitutedInnerClassesScope: MemberScope
 //        get() = _unsubstitutedInnerClassesScope.invoke()
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
         if (substitutor.isEmpty) {
             return this
         }

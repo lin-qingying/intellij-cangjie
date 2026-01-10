@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,20 +24,30 @@
 package org.cangnova.cangjie.types.checker
 
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.TypeArgument
 import org.cangnova.cangjie.types.TypeConstructor
-import org.cangnova.cangjie.types.TypeProjection
 
 /**
- * 类型检查过程的回调接口。
+ * 类型检查过程的回调接口
  *
  * 实现此接口以定制类型检查期间遇到不同情况时的处理策略：例如两个类型是否应视为相等、
- * 类型构造器是否相等、子类型关系如何判定以及是否接受捕获的类型投影。
+ * 类型构造器是否相等、子类型关系如何判定以及是否接受捕获的类型参数。
  *
- * 所有方法返回 Boolean：返回 true 表示继续类型检查流程，返回 false 表示检查失败并中止。
+ * ## 重要说明
+ * 仓颉语言不支持 Kotlin 风格的类型投影（in/out variance），因此：
+ * - 所有类型参数都是不变的（invariant）
+ * - 不需要处理投影类型（argument kind）
+ * - 类型捕获机制相对简化
+ *
+ * ## 方法返回值
+ * 所有方法返回 Boolean：
+ * - true 表示继续类型检查流程
+ * - false 表示检查失败并中止
  */
+@Deprecated("")
 interface TypeCheckingProcedureCallbacks {
     /**
-     * 断言两个类型相等。
+     * 断言两个类型相等
      *
      * @param a 第一个类型
      * @param b 第二个类型
@@ -47,7 +57,7 @@ interface TypeCheckingProcedureCallbacks {
     fun assertEqualTypes(a: CangJieType, b: CangJieType, typeCheckingProcedure: TypeCheckingProcedure): Boolean
 
     /**
-     * 断言两个类型构造器相等（通常用于忽略类型参数时的比较）。
+     * 断言两个类型构造器相等（通常用于忽略类型参数时的比较）
      *
      * @param a 第一个类型构造器
      * @param b 第二个类型构造器
@@ -56,7 +66,7 @@ interface TypeCheckingProcedureCallbacks {
     fun assertEqualTypeConstructors(a: TypeConstructor, b: TypeConstructor): Boolean
 
     /**
-     * 断言 subtype 是否为 supertype 的子类型。
+     * 断言 subtype 是否为 supertype 的子类型
      *
      * @param subtype 子类型
      * @param supertype 父类型
@@ -70,16 +80,19 @@ interface TypeCheckingProcedureCallbacks {
     ): Boolean
 
     /**
-     * 当遇到需要捕获（capture）的类型投影时调用此回调（例如通配符或星投影的处理）。
+     * 当遇到需要捕获（capture）的类型参数时调用此回调
+     *
+     * 在仓颉语言中，类型捕获主要用于处理泛型类型参数的特殊情况。
+     * 由于仓颉不支持 Kotlin 风格的投影类型，这个方法相对简化。
      *
      * @param type 要捕获的类型
-     * @param typeProjection 与之对应的类型投影信息
+     * @param typeArgument 与之对应的类型参数
      * @return true 表示接受捕获并继续；false 表示拒绝并中止检查
      */
-    fun capture(type: CangJieType, typeProjection: TypeProjection): Boolean
+    fun capture(type: CangJieType, typeArgument: TypeArgument): Boolean
 
     /**
-     * 当找不到与子类型对应的父类型时调用（例如在超类型搜索失败时��。
+     * 当找不到与子类型对应的父类型时调用（例如在超类型搜索失败时）
      *
      * @param subtype 原始子类型
      * @param supertype 期望的父类型

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -199,7 +199,7 @@ enum class ErrorTypeKind(val debugMessage: String, val isUnresolved: Boolean = f
     PARSE_ERROR_ARGUMENT("Error type for parse error argument %s"),
 
     /** 调用中的星投影：星投影（*）直接作为调用的类型实参传递 */
-    STAR_PROJECTION_IN_CALL("Error type for star projection directly passing as a call type argument"),
+    STAR_PROJECTION_IN_CALL("Error type for star argument directly passing as a call type argument"),
 
     /** 禁止的动态类型：在不允许的上下文中使用动态类型 */
     PROHIBITED_DYNAMIC_TYPE("Dynamic type in a not allowed context"),
@@ -256,7 +256,7 @@ enum class ErrorTypeKind(val debugMessage: String, val isUnresolved: Boolean = f
     ERROR_TYPE_PARAMETER("Error type parameter"),
 
     /** 错误类型投影：类型投影（如 out T、in T）是错误的 */
-    ERROR_TYPE_PROJECTION("Error type projection"),
+    ERROR_TYPE_PROJECTION("Error type argument"),
 
     /** 错误父类型：父类型（supertype）是错误的 */
     ERROR_SUPER_TYPE("Error super type"),

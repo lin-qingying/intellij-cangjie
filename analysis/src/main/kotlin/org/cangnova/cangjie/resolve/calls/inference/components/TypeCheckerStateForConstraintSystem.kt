@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,24 +24,18 @@
 
 package org.cangnova.cangjie.resolve.calls.inference.components
 
-import org.cangnova.cangjie.types.AbstractNullabilityChecker
 import org.cangnova.cangjie.types.AbstractTypeChecker
 import org.cangnova.cangjie.types.AbstractTypePreparator
 import org.cangnova.cangjie.types.AbstractTypeRefiner
+import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeCheckerState
+import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.model.*
 
 abstract class TypeCheckerStateForConstraintSystem(
-    val extensionTypeContext: TypeSystemInferenceExtensionContext,
-    cangjieTypePreparator: AbstractTypePreparator,
-    cangjieTypeRefiner: AbstractTypeRefiner
+    val extensionTypeContext: TypeSystemInferenceExtensionContext
 ) : TypeCheckerState(
-    isErrorTypeEqualsToAnything = true,
-    isStubTypeEqualsToAnything = true,
-    allowedTypeVariable = false,
-    typeSystemContext = extensionTypeContext,
-    cangjieTypePreparator,
-    cangjieTypeRefiner
+    typeSystemContext = extensionTypeContext
 ) {
     abstract fun addLowerConstraint(
         typeVariable: TypeConstructorMarker,
@@ -179,7 +173,11 @@ abstract class TypeCheckerStateForConstraintSystem(
                 when {
                     // Foo? (any type which cannot be used as dispatch receiver because of optionality) <: T & Any => ERROR (for K2 only)
                     typeVariable.isDefinitelyNonOptionType() && !subTypeConstructor.isTypeVariable() &&
-                            !AbstractNullabilityChecker.isSubtypeOfAny(extensionTypeContext, subType) -> {
+                            // 检查是否是 Any 的子类型
+                            (subType.isMarkedOption() || !CangJieTypeChecker.DEFAULT.isSubtypeOf(
+                                subType as CangJieType,
+                                extensionTypeContext.anyType() as CangJieType
+                            )) -> {
                         return false
                     }
                     /*
@@ -338,7 +336,7 @@ abstract class TypeCheckerStateForConstraintSystem(
         }
 
     private fun isSubtypeOfByTypeChecker(subType: CangJieTypeMarker, superType: CangJieTypeMarker) =
-        AbstractTypeChecker.isSubtypeOf(this as TypeCheckerState, subType, superType)
+        CangJieTypeChecker.DEFAULT.isSubtypeOf(subType as CangJieType, superType as CangJieType)
 
     private fun simplifyConstraintForPossibleIntersectionSubType(
         subType: CangJieTypeMarker,
@@ -361,10 +359,9 @@ abstract class TypeCheckerStateForConstraintSystem(
 
             // todo: may be we can do better then that.
             if (notTypeVariables.isNotEmpty() &&
-                AbstractTypeChecker.isSubtypeOf(
-                    this as TypeCheckerProviderContext,
-                    intersectTypes(notTypeVariables),
-                    superType
+                CangJieTypeChecker.DEFAULT.isSubtypeOf(
+                    intersectTypes(notTypeVariables) as CangJieType,
+                    superType as CangJieType
                 )
             ) {
                 return true
@@ -385,10 +382,11 @@ abstract class TypeCheckerStateForConstraintSystem(
 //      here we try to add constraint {Any & T} <: S from `id(a)`
 //      Previously we thought that if `Any` isn't a subtype of S => T <: S, which is wrong, now we use weaker upper constraint
 //      TODO: rethink, maybe we should take optionality into account somewhere else
-            if (notTypeVariables.any {
-                    AbstractNullabilityChecker.isSubtypeOfAny(
-                        this as TypeCheckerProviderContext,
-                        it
+            if (notTypeVariables.any { type ->
+                    // 检查是否是 Any 的子类型
+                    !type.isMarkedOption() && CangJieTypeChecker.DEFAULT.isSubtypeOf(
+                        type as CangJieType,
+                        extensionTypeContext.anyType() as CangJieType
                     )
                 }) {
                 return typeVariables.all { simplifyUpperConstraint(it, superType.withOption(true)) }

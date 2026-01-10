@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ class BuiltinsClassDescriptor(
                         TypeParameterDescriptorImpl.createForFurtherModification(
                             this,
                             Annotations.EMPTY,
-                            Variance.INVARIANT,
+
                             Name.identifier("T"),
                             1,
                             SourceElement.NO_SOURCE,
@@ -147,7 +147,7 @@ class BuiltinsClassDescriptor(
                     val parameter = ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                         this, null, 0, Annotations.EMPTY, Name.identifier("pointer"),
                         false, createBuiltinsType(BuiltinsType.CPOINTER).replace(
-                            newArguments = listOf(TypeProjectionImpl(builtIns.uint8Type))
+                            newArguments = listOf(TypeArgumentImpl(builtIns.uint8Type))
                         ), false, SourceElement.NO_SOURCE
                     )
                     initialize(listOf(parameter))

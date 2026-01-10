@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import org.cangnova.cangjie.search.isValidOperator
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.FuzzyType
 import org.cangnova.cangjie.types.TypeOptionality
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.optionality
 import org.cangnova.cangjie.types.toFuzzyType
 import org.cangnova.cangjie.utils.addIfNotNull
@@ -49,7 +49,7 @@ class TypesWithContainsDetector(
     override fun checkIsSuitableByType(
         operator: FunctionDescriptor,
         freeTypeParams: Collection<TypeParameterDescriptor>
-    ): TypeSubstitutor? {
+    ): DefaultTypeSubstitutor? {
         val parameter = operator.valueParameters.single()
         val fuzzyParameterType = parameter.type.toFuzzyType(operator.typeParameters + freeTypeParams)
         return fuzzyParameterType.checkIsSuperTypeOf(argumentType)
@@ -64,9 +64,9 @@ abstract class TypesWithOperatorDetector(
     protected abstract fun checkIsSuitableByType(
         operator: FunctionDescriptor,
         freeTypeParams: Collection<TypeParameterDescriptor>
-    ): TypeSubstitutor?
+    ): DefaultTypeSubstitutor?
 
-    private val cache = HashMap<FuzzyType, Pair<FunctionDescriptor, TypeSubstitutor>?>()
+    private val cache = HashMap<FuzzyType, Pair<FunctionDescriptor, DefaultTypeSubstitutor>?>()
 
     val extensionOperators: Collection<FunctionDescriptor> by lazy {
         val result = ArrayList<FunctionDescriptor>()
@@ -103,7 +103,7 @@ abstract class TypesWithOperatorDetector(
         return this
     }
 
-    fun findOperator(type: FuzzyType): Pair<FunctionDescriptor, TypeSubstitutor>? = if (cache.containsKey(type)) {
+    fun findOperator(type: FuzzyType): Pair<FunctionDescriptor, DefaultTypeSubstitutor>? = if (cache.containsKey(type)) {
         cache[type]
     } else {
         val result = findOperatorNoCache(type)
@@ -111,7 +111,7 @@ abstract class TypesWithOperatorDetector(
         result
     }
 
-    private fun findOperatorNoCache(type: FuzzyType): Pair<FunctionDescriptor, TypeSubstitutor>? {
+    private fun findOperatorNoCache(type: FuzzyType): Pair<FunctionDescriptor, DefaultTypeSubstitutor>? {
         if (type.optionality() != TypeOptionality.OPTIONAL) {
             for (memberFunction in type.type.memberScope.getContributedFunctions(name, NoLookupLocation.FROM_IDE)) {
                 if (memberFunction.isValidOperator()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,14 +29,14 @@ import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.resolve.calls.components.ClassicTypeSystemContextForCS
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilder
-import org.cangnova.cangjie.resolve.calls.inference.model.NewConstraintSystemImpl
+import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintSystemImpl
 import org.cangnova.cangjie.resolve.calls.inference.model.SimpleConstraintSystemConstraintPosition
 import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
 import org.cangnova.cangjie.resolve.calls.inference.substitute
 
 import org.cangnova.cangjie.resolve.calls.results.SimpleConstraintSystem
+import org.cangnova.cangjie.types.TypeArgumentImpl
 import org.cangnova.cangjie.types.TypeConstructorSubstitution
-import org.cangnova.cangjie.types.asTypeProjection
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.model.*
 
@@ -48,7 +48,7 @@ class SimpleConstraintSystemImpl(
     languageVersionSettings: LanguageVersionSettings
 ) : SimpleConstraintSystem {
 
-    val system = NewConstraintSystemImpl(
+    val system = ConstraintSystemImpl(
         constraintInjector, ClassicTypeSystemContextForCS(builtIns, cangjieTypeRefiner), languageVersionSettings
     )
     val csBuilder: ConstraintSystemBuilder =
@@ -60,7 +60,7 @@ class SimpleConstraintSystemImpl(
             val variable = TypeVariableFromCallableDescriptor(it)
             csBuilder.registerVariable(variable)
 
-            it.defaultType.constructor to variable.defaultType.asTypeProjection()
+            it.defaultType.constructor to TypeArgumentImpl(variable.defaultType)
         }
         val substitutor = TypeConstructorSubstitution.createByConstructorsMap(substitutionMap).buildSubstitutor()
         for (typeParameter in typeParameters) {

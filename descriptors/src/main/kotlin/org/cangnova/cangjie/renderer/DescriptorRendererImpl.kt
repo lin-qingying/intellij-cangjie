@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -287,11 +287,11 @@ open class DescriptorRendererImpl(
         return "($lowerRendered..$upperRendered)"
     }
 
-    override fun renderTypeArguments(typeArguments: List<TypeProjection>, other: (StringBuilder) -> Unit): String =
+    override fun renderTypeArguments(typeArguments: List<TypeArgument>, other: (StringBuilder) -> Unit): String =
         if (typeArguments.isEmpty()) ""
         else buildString {
             append(lt())
-            this.appendTypeProjections(typeArguments)
+            this.appendTypeArguments(typeArguments)
             other(this)
             append(gt())
         }
@@ -363,22 +363,21 @@ open class DescriptorRendererImpl(
             else -> error("Unexpected classifier: " + cd::class.java)
         }
 
-    override fun renderTypeProjection(typeProjection: TypeProjection) = buildString {
-        appendTypeProjections(listOf(typeProjection))
+    override fun renderTypeArgument(TypeArgument: TypeArgument) = buildString {
+        appendTypeArguments(listOf(TypeArgument))
     }
 
-    private fun StringBuilder.appendTypeProjections(typeProjections: List<TypeProjection>) {
-        typeProjections.joinTo(this, ", ") {
+    private fun StringBuilder.appendTypeArguments(TypeArguments: List<TypeArgument>) {
+        TypeArguments.joinTo(this, ", ") {
 
-            val type = renderType(it.type)
-            if (it.projectionKind == Variance.INVARIANT) type else "${it.projectionKind} $type"
+            renderType(it.type)
 
         }
     }
 
     private fun StringBuilder.renderTupleType(type: CangJieType) {
         append("(")
-        appendTypeProjections(type.arguments)
+        appendTypeArguments(type.arguments)
         append(")")
     }
 
@@ -408,17 +407,17 @@ open class DescriptorRendererImpl(
 
         // 仓颉没有扩展函数类型，直接渲染参数类型
         val parameterTypes = type.getValueParameterTypesFromFunctionType()
-        for ((index, typeProjection) in parameterTypes.withIndex()) {
+        for ((index, TypeArgument) in parameterTypes.withIndex()) {
             if (index > 0) append(", ")
 
             val name =
-                if (parameterNamesInFunctionalTypes) typeProjection.type.extractParameterNameFromFunctionTypeArgument() else null
+                if (parameterNamesInFunctionalTypes) TypeArgument.type.extractParameterNameFromFunctionTypeArgument() else null
             if (name != null) {
                 append(renderName(name, false))
                 append(": ")
             }
 
-            append(renderTypeProjection(typeProjection))
+            append(renderTypeArgument(TypeArgument))
         }
 
         append(") ").append(arrow()).append(" ")
@@ -644,8 +643,7 @@ open class DescriptorRendererImpl(
         }
 
 //        renderModifier(builder, typeParameter.isReified, "reified")
-        val variance = typeParameter.variance.label
-        renderModifier(builder, variance.isNotEmpty(), variance)
+        // 仓颉语言中所有类型参数都是不变的（invariant），不需要渲染 variance
 
         builder.renderAnnotations(typeParameter)
 

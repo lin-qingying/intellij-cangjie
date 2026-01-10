@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1207,13 +1207,10 @@ internal class MemberScopeTowerLevel(
         if (!isNewInferenceEnabled) return this
 
         val wrappedSubstitution = object : TypeSubstitution() {
-            override fun get(key: CangJieType): TypeProjection? = null
-            override fun prepareTopLevelType(topLevelType: CangJieType, position: Variance) = when (position) {
-                Variance.INVARIANT -> null
-
-            } ?: topLevelType
+            override fun get(key: CangJieType): TypeArgument? = null
+            override fun prepareTopLevelType(topLevelType: CangJieType ) =   topLevelType
         }
-        return substitute(TypeSubstitutor.create(wrappedSubstitution))!!
+        return substitute(DefaultTypeSubstitutor.create(wrappedSubstitution))!!
     }
 
     /**

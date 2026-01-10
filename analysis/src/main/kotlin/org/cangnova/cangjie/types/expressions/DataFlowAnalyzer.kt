@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -585,7 +585,7 @@ class DataFlowAnalyzer(
      * ## 特殊处理（TODO）
      *
      * - 常量表达式的类型检查
-     * - when 表达式的特殊处理
+     * - match 表达式的特殊处理
      * - 智能类型转换的可能性检查
      *
      * @param expressionType 表达式类型
@@ -616,7 +616,7 @@ class DataFlowAnalyzer(
         }
 
         // TODO: 常量表达式类型检查
-        // TODO: when 表达式特殊处理
+        // TODO: match 表达式特殊处理
         // TODO: 智能类型转换检查
 
         if (reportErrorForTypeMismatch &&

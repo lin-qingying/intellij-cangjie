@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ package org.cangnova.cangjie.resolve.calls.components
 import org.cangnova.cangjie.builtins.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilder
-import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
+import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.*
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.types.CangJieType
@@ -65,7 +65,7 @@ fun LambdaWithTypeVariableAsExpectedTypeAtom.transformToResolvedLambda(
     returnTypeVariable: TypeVariableForLambdaReturnType? = null
 ): ResolvedLambdaAtom {
     // 使用当前的类型替换器固定期望类型
-    val fixedExpectedType = (csBuilder.buildCurrentSubstitutor() as NewTypeSubstitutor)
+    val fixedExpectedType = (csBuilder.buildCurrentSubstitutor() as AbstractTypeSubstitutor)
         .safeSubstitute(expectedType ?: this.expectedType)
 
     // 强制解析 lambda 参数
@@ -283,7 +283,7 @@ private fun extraLambdaInfo(
  *
  * 通过类型系统上下文访问仓颉语言的内建类型(如 Int, String, Any 等)。
  */
-internal val ConstraintSystemBuilder.builtIns: CangJieBuiltIns get() = ((this as NewConstraintSystemImpl).typeSystemContext as BuiltInsProvider).builtIns
+internal val ConstraintSystemBuilder.builtIns: CangJieBuiltIns get() = ((this as ConstraintSystemImpl).typeSystemContext as BuiltInsProvider).builtIns
 
 /**
  * 解析仓颉原始调用参数

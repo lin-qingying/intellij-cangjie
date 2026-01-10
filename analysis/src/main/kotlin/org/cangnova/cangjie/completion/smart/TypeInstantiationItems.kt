@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,7 +132,7 @@ class TypeInstantiationItems(
     private fun MutableCollection<InheritanceItemsSearcher>.addInheritorSearcher(
         descriptor: ClassDescriptor,
         cangjieClassDescriptor: ClassDescriptor,
-        typeArgs: List<TypeProjection>,
+        typeArgs: List<TypeArgument>,
         freeParameters: Collection<TypeParameterDescriptor>,
         tail: Tail?
     ) {
@@ -183,7 +183,7 @@ class TypeInstantiationItems(
         if (isAbstract) {
             val typeArgs = fuzzyType.type.arguments
             // drop "in" and "out" from type arguments - they cannot be used in constructor call
-            val typeArgsToUse = typeArgs.map { TypeProjectionImpl(Variance.INVARIANT, it.type) }
+            val typeArgsToUse = typeArgs.map { TypeArgumentImpl(  it.type) }
 
             val allTypeArgsKnown =
                 fuzzyType.freeParameters.isEmpty() || typeArgs.none { it.type.areTypeParametersUsedInside(fuzzyType.freeParameters) }
@@ -234,7 +234,7 @@ class TypeInstantiationItems(
 
                 1 -> {
                     val constructor = visibleConstructors.single()
-                    val substitutor = TypeSubstitutor.create(fuzzyType.presentationType())
+                    val substitutor = DefaultTypeSubstitutor.create(fuzzyType.presentationType())
                     val substitutedConstructor = constructor.substitute(substitutor)
                         ?: constructor // render original signature if failed to substitute
                     BasicLookupElementFactory.SHORT_NAMES_RENDERER.renderFunctionParameters(substitutedConstructor)
@@ -363,7 +363,7 @@ class TypeInstantiationItems(
     private inner class InheritanceSearcher(
         private val psiClass: CjTypeStatement,
         classDescriptor: ClassDescriptor,
-        typeArgs: List<TypeProjection>,
+        typeArgs: List<TypeArgument>,
         private val freeParameters: Collection<TypeParameterDescriptor>,
         private val tail: Tail?
     ) : InheritanceItemsSearcher {
@@ -387,7 +387,7 @@ class TypeInstantiationItems(
                     val substitutor = inheritorFuzzyType.checkIsSubtypeOf(expectedFuzzyType) ?: continue
                     if (!substitutor.isEmpty) {
                         val inheritorTypeSubstituted =
-                            substitutor.substitute(inheritorFuzzyType.type, Variance.INVARIANT)!!
+                            substitutor.substitute(inheritorFuzzyType.type )!!
                         inheritorFuzzyType =
                             inheritorTypeSubstituted.toFuzzyType(freeParameters + inheritorFuzzyType.freeParameters)
                     }

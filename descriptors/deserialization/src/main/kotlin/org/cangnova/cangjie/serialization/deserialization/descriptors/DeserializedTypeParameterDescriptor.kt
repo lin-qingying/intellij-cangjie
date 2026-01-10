@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import org.cangnova.cangjie.metadata.model.wrapper.TypeParameterWrapper
 import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.serialization.deserialization.DeserializationContext
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.Variance
 
 class DeserializedTypeParameterDescriptor(
     private val c: DeserializationContext,
@@ -43,7 +42,6 @@ class DeserializedTypeParameterDescriptor(
     c.containingDeclaration,
     Annotations.EMPTY,
     typeParameter.name, // Generate a name based on ID
-    Variance.INVARIANT, // TODO: Extract variance from constraint if available
     index,
     SourceElement.NO_SOURCE,
     SupertypeLoopChecker.EMPTY

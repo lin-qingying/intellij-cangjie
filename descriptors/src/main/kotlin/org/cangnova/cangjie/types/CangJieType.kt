@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -166,14 +166,14 @@ sealed class CangJieType : Annotated, CangJieTypeMarker {
      * ```kotlin
      * // List<Int> 类型
      * val listType: CangJieType = ...
-     * listType.arguments // [TypeProjection(Int)]
+     * listType.arguments // [TypeArgument(Int)]
      *
      * // Int 类型
      * val intType: CangJieType = BasicType(...)
      * intType.arguments // []
      * ```
      */
-    abstract val arguments: List<TypeProjection>
+    abstract val arguments: List<TypeArgument>
 
     /**
      * 类型属性
@@ -374,7 +374,7 @@ class BasicType(
      * intType.arguments // []
      * ```
      */
-    override val arguments: List<TypeProjection> get() = listOf()
+    override val arguments: List<TypeArgument> get() = listOf()
 
     /**
      * 类型属性（基础类型）
@@ -764,11 +764,11 @@ class OptionType(val innerType: CangJieType) : SimpleType() {
      * 示例：
      * ```kotlin
      * val optionIntType = OptionType(intType)
-     * optionIntType.arguments // [TypeProjection(intType)]
+     * optionIntType.arguments // [TypeArgument(intType)]
      * ```
      */
-    override val arguments: List<TypeProjection>
-        get() = listOf(TypeProjectionImpl(innerType))
+    override val arguments: List<TypeArgument>
+        get() = listOf(TypeArgumentImpl(innerType))
 
     /**
      * 类型属性（Option类型）
@@ -895,11 +895,11 @@ class FunctionType(
      * 返回包含接收者类型、参数类型和返回类型的类型参数列表。
      * 顺序：[...parameterTypes, returnType]
      */
-    override val arguments: List<TypeProjection>
+    override val arguments: List<TypeArgument>
         get() = buildList {
 
-            parameterTypes.forEach { add(TypeProjectionImpl(it)) }
-            add(TypeProjectionImpl(returnType))
+            parameterTypes.forEach { add(TypeArgumentImpl(it)) }
+            add(TypeArgumentImpl(returnType))
         }
 
     /**
@@ -1033,8 +1033,8 @@ class TupleType(
      *
      * 返回包含所有元素类型的类型参数列表。
      */
-    override val arguments: List<TypeProjection>
-        get() = elementTypes.map { TypeProjectionImpl(it) }
+    override val arguments: List<TypeArgument>
+        get() = elementTypes.map { TypeArgumentImpl(it) }
 
     /**
      * 成员作用域（元组类型）
@@ -1327,7 +1327,7 @@ abstract class FlexibleType(val lowerBound: SimpleType, val upperBound: SimpleTy
      * val arguments = flexibleType.arguments // 返回 delegate.arguments
      * ```
      */
-    override val arguments: List<TypeProjection> get() = delegate.arguments
+    override val arguments: List<TypeArgument> get() = delegate.arguments
 
     /**
      * 是否为Option类型（灵活类型）
@@ -1475,7 +1475,7 @@ class ThisType(private val otype: SimpleType) : SimpleType() {
 
     override val constructor: TypeConstructor
         get() = otype.constructor
-    override val arguments: List<TypeProjection>
+    override val arguments: List<TypeArgument>
         get() = otype.arguments
     override val attributes: TypeAttributes
         get() = otype.attributes

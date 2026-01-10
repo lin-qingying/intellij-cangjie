@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ class LazyTypeParameterDescriptor(
     containingDeclaration,
     annotations,
     typeParameter.nameAsSafeName,
-    typeParameter.variance,
+
 
     index,
     typeParameter.toSourceElement(),
@@ -155,6 +155,6 @@ class LazyTypeParameterDescriptor(
         original
         ForceResolveUtil.forceResolveAllContents(typeConstructor)
         ForceResolveUtil.forceResolveAllContents(upperBounds)
-        variance
+
     }
 }

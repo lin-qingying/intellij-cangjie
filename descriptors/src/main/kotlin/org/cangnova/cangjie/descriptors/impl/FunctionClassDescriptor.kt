@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.AbstractClassTypeConstructor
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.FunctionType
-import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.functions.FunctionClassKind
 import org.cangnova.cangjie.types.functions.FunctionTypeKind
@@ -56,7 +55,7 @@ class CFunctionClassDescriptor(
             this@CFunctionClassDescriptor,
             Annotations.EMPTY,
 
-            Variance.INVARIANT,
+
             Name.identifier("T"),
             0,
 
@@ -111,12 +110,12 @@ open class FunctionClassDescriptor(
     init {
         val result = ArrayList<TypeParameterDescriptor>()
 
-        fun typeParameter(variance: Variance, name: String) {
+        fun typeParameter(name: String) {
             result.add(
                 TypeParameterDescriptorImpl.createWithDefaultBound(
                     this@FunctionClassDescriptor,
                     Annotations.EMPTY,
-                    variance,
+
                     Name.identifier(name),
                     result.size,
                     storageManager
@@ -132,13 +131,13 @@ open class FunctionClassDescriptor(
         // "For function type and tuple type, covariant & contravariant are both not allowed"
         // "for elements' value types (implementing interfaces) and class type"
         //
-        // 这意味着在类型参数声明层面,所有参数都应该是 INVARIANT (不变),
+        // 这意味着在类型参数声明层面,所有参数都是不变的 (invariant),
         // 但在子类型检查时,通过特殊逻辑实现参数逆变和返回值协变。
         (1..arity).map { i ->
-            typeParameter(Variance.INVARIANT, "P$i")
+            typeParameter("P$i")
         }
 
-        typeParameter(Variance.INVARIANT, "R")
+        typeParameter("R")
 
         parameters = result.toList()
     }
@@ -189,7 +188,7 @@ open class FunctionClassDescriptor(
 //
 //                // Substitute all type parameters of the super class with our last type parameters
 //                val arguments = parameters.takeLast(descriptor.typeConstructor.parameters.size).map {
-//                    TypeProjectionImpl(it.defaultType)
+//                    TypeArgumentImpl(it.defaultType)
 //                }
 //
 //                CangJieTypeFactory.simpleNonOptionType(TypeAttributes.Empty, descriptor, arguments)

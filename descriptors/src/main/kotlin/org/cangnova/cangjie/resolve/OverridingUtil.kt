@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -440,7 +440,7 @@ class OverridingUtil private constructor(
                     when {
                         // 两个都是 var：类型必须相等
                         a.isVar && b.isVar ->
-                            AbstractTypeChecker.equalTypes(checkerState, aReturnType.unwrap(), bReturnType.unwrap())
+                            CangJieTypeChecker.DEFAULT.equalTypes(aReturnType.unwrap(), bReturnType.unwrap())
                         // a 是 val，b 是 var：不允许
                         // 其他情况：返回类型检查
                         else -> !(!a.isVar && b.isVar) && isReturnTypeMoreSpecific(
@@ -473,8 +473,7 @@ class OverridingUtil private constructor(
             b: CallableDescriptor,
             bReturnType: CangJieType,
             typeCheckerState: TypeCheckerState
-        ): Boolean = AbstractTypeChecker.isSubtypeOf(
-            typeCheckerState,
+        ): Boolean = CangJieTypeChecker.DEFAULT.isSubtypeOf(
             aReturnType.unwrap(),
             bReturnType.unwrap()
         )
@@ -705,8 +704,7 @@ class OverridingUtil private constructor(
             typeCheckerState: TypeCheckerState
         ): Boolean {
             val bothErrors = typeInSuper.isError && typeInSub.isError
-            return bothErrors || AbstractTypeChecker.equalTypes(
-                typeCheckerState,
+            return bothErrors || CangJieTypeChecker.DEFAULT.equalTypes(
                 typeInSuper.unwrap(),
                 typeInSub.unwrap()
             )
@@ -1047,8 +1045,7 @@ class OverridingUtil private constructor(
 
             if (superReturnType != null && subReturnType != null) {
                 val bothErrors = subReturnType.isError && superReturnType.isError
-                if (!bothErrors && !AbstractTypeChecker.isSubtypeOf(
-                        typeCheckerState,
+                if (!bothErrors && !CangJieTypeChecker.DEFAULT.isSubtypeOf(
                         subReturnType.unwrap(),
                         superReturnType.unwrap()
                     )

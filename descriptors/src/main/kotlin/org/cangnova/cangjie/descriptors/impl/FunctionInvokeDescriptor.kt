@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorNameConventions
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.extractParameterNameFromFunctionTypeArgument
 
 class FunctionInvokeDescriptor private constructor(
@@ -91,7 +91,7 @@ class FunctionInvokeDescriptor private constructor(
             it.copy(this, newName, parameterIndex)
         }
 
-        val copyConfiguration = newCopyBuilder(TypeSubstitutor.EMPTY)
+        val copyConfiguration = newCopyBuilder(DefaultTypeSubstitutor.EMPTY)
             .setHasSynthesizedParameterNames(parameterNames.any { it == null })
             .setValueParameters(newValueParameters)
             .setOriginal(original)

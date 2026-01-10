@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ object CommonSupertypes {
         return DFS.dfs(
             listOf(type),
             { current ->
-                val substitutor: TypeSubstitutor = TypeSubstitutor.create(current)
+                val substitutor: DefaultTypeSubstitutor = DefaultTypeSubstitutor.create(current)
                 val supertypes: Collection<CangJieType> = current.constructor.supertypes
                 val result: MutableList<SimpleType> = ArrayList(supertypes.size)
                 for (supertype in supertypes) {
@@ -82,12 +82,7 @@ object CommonSupertypes {
                         continue
                     }
                     result.add(
-                        substitutor.safeSubstitute(
-                            supertype,
-                            Variance.INVARIANT
-                        ).lowerIfFlexible(
-
-                        )
+                        substitutor.safeSubstitute(supertype).lowerIfFlexible()
                     )
                 }
                 result
@@ -274,9 +269,9 @@ object CommonSupertypes {
         }
 
         val parameters: List<TypeParameterDescriptor> = constructor.parameters
-        val newProjections: MutableList<TypeProjection> = ArrayList(parameters.size)
+        val newProjections: MutableList<TypeArgument> = ArrayList(parameters.size)
         for (parameterDescriptor in parameters) {
-            val typeProjections: MutableSet<TypeProjection> = LinkedHashSet()
+            val typeProjections: MutableSet<TypeArgument> = LinkedHashSet()
             for (type in types) {
                 typeProjections.add(type.arguments[parameterDescriptor.index])
             }
@@ -326,46 +321,24 @@ object CommonSupertypes {
 
     private fun computeSupertypeProjection(
         parameterDescriptor: TypeParameterDescriptor,
-        typeProjections: Set<TypeProjection>,
+        typeProjections: Set<TypeArgument>,
         recursionDepth: Int, maxDepth: Int
-    ): TypeProjection {
+    ): TypeArgument {
         val singleBestProjection = typeProjections.singleBestRepresentative()
         if (singleBestProjection != null) {
             return singleBestProjection
         }
 
-
-//        var ins: MutableSet<CangJieType?>? = LinkedHashSet<CangJieType?>()
+        // 仓颉语言所有类型参数都是不变的(invariant)
         val outs: MutableSet<CangJieType> = LinkedHashSet<CangJieType>()
-//
-        val variance = parameterDescriptor.variance
-        when (variance) {
-            Variance.INVARIANT -> {}
 
-        }
         for (projection in typeProjections) {
-
-
             outs.add(projection.type)
-
         }
-//
-//        if (outs != null) {
-//            assert(!outs.isEmpty()) { "Out projections is empty for parameter $parameterDescriptor, type projections $typeProjections" }
-        val projectionKind = Variance.INVARIANT
+
         val superType: CangJieType = findCommonSupertype(outs, recursionDepth + 1, maxDepth)
 
-        return TypeProjectionImpl(projectionKind, superType)
-//        }
-//        if (ins != null) {
-//            assert(!ins.isEmpty()) { "In projections is empty for parameter $parameterDescriptor, type projections $typeProjections" }
-//            val intersection: CangJieType = TypeIntersector.intersectTypes(ins)
-//                ?: return TypeUtils.makeStarProjection(parameterDescriptor)
-//            val projectionKind = if (variance === IN_VARIANCE) Variance.INVARIANT else IN_VARIANCE
-//            return TypeProjectionImpl(projectionKind, intersection)
-//        } else {
-//            return TypeUtils.makeStarProjection(parameterDescriptor)
-//        }
+        return TypeArgumentImpl(superType)
 
 
     }

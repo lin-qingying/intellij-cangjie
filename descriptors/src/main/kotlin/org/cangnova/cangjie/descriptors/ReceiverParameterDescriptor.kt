@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 package org.cangnova.cangjie.descriptors
 
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 
 /**
@@ -45,7 +45,7 @@ interface ReceiverParameterDescriptor : ParameterDescriptor {
      * @param substitutor 类型替换器
      * @return 替换后的接收器参数描述符，可能为`null`
      */
-    override fun substitute(substitutor: TypeSubstitutor): ReceiverParameterDescriptor?
+    override fun substitute(substitutor: DefaultTypeSubstitutor): ReceiverParameterDescriptor?
 
     /**
      * 创建当前接收器参数描述符的副本，并指定新的所有者。

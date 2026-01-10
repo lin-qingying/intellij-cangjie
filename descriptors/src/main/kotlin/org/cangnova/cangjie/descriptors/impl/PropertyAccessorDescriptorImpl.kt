@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ package org.cangnova.cangjie.descriptors.impl
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 /**
  * 属性访问器描述符的抽象实现。
@@ -57,7 +57,7 @@ abstract class PropertyAccessorDescriptorImpl(
     override var initialSignatureDescriptor: FunctionDescriptor? = null
 
 
-    override fun substitute(substitutor: TypeSubstitutor): PropertyAccessorDescriptorImpl? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): PropertyAccessorDescriptorImpl? {
         return this // no substitution since we work with originals of accessors in the backend anyway
     }
 

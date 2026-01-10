@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintSystemError
-import org.cangnova.cangjie.resolve.calls.inference.model.NewConstraintError
-import org.cangnova.cangjie.resolve.calls.inference.model.NewConstraintWarning
+import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintError
+import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintWarning
 import org.cangnova.cangjie.resolve.calls.inference.model.transformToWarning
 import org.cangnova.cangjie.resolve.calls.tower.CandidateApplicability
 import org.cangnova.cangjie.types.CangJieType
@@ -77,10 +77,10 @@ class CangJieConstraintSystemDiagnostic(
     /**
      * 尝试将约束错误转换为警告
      *
-     * 只有 NewConstraintError 类型的错误才能转换为警告
+     * 只有 ConstraintError 类型的错误才能转换为警告
      */
     override fun transformToWarning(): CangJieConstraintSystemDiagnostic? =
-        if (error is NewConstraintError) CangJieConstraintSystemDiagnostic(error.transformToWarning()) else null
+        if (error is ConstraintError) CangJieConstraintSystemDiagnostic(error.transformToWarning()) else null
 }
 
 /**
@@ -338,12 +338,12 @@ class NoneOperatorCallDiagnostic(val left: CangJieType, val right: CangJieType) 
  * 过滤错误级别诊断
  *
  * 从诊断列表中过滤出错误级别的诊断，排除警告。
- * 约束系统中的 NewConstraintWarning 不被视为错误。
+ * 约束系统中的 ConstraintWarning 不被视为错误。
  *
  * @return 仅包含错误的诊断列表
  */
 fun List<CangJieCallDiagnostic>.filterErrorDiagnostics() =
-    filter { it !is CangJieConstraintSystemDiagnostic || it.error !is NewConstraintWarning }
+    filter { it !is CangJieConstraintSystemDiagnostic || it.error !is ConstraintWarning }
 
 // 参数到参数映射器诊断
 

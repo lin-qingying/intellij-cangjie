@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.storage.LockBasedStorageManager
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.SimpleType
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 class ErrorTypeAliasDescriptor : AbstractTypeAliasDescriptor(
     LockBasedStorageManager.NO_LOCKS, ErrorUtils.errorModule,
@@ -51,7 +51,7 @@ class ErrorTypeAliasDescriptor : AbstractTypeAliasDescriptor(
     override val defaultType: SimpleType
         get() = ErrorUtils.createErrorType(ErrorTypeKind.UNRESOLVED_TYPE_ALIAS)
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
         return null
     }
 

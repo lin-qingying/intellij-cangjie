@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,6 @@ import org.cangnova.cangjie.types.model.TypeVariableTypeConstructorMarker
 import org.cangnova.cangjie.utils.SmartSet
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-import kotlin.toString
 
 /**
  * 仓颉语言类型工具类
@@ -171,15 +170,15 @@ object TypeUtils {
      * 示例：
      * ```kotlin
      * val typeParam: TypeParameterDescriptor = ...
-     * val projection = makeProjection(typeParam)
+     * val argument = makeProjection(typeParam)
      * // 创建基于typeParam默认类型的投影
      * ```
      *
      * @param parameterDescriptor 类型参数描述符
      * @return 类型投影
      */
-    fun makeProjection(parameterDescriptor: TypeParameterDescriptor): TypeProjection {
-        return TypeProjectionImpl(parameterDescriptor.defaultType)
+    fun makeProjection(parameterDescriptor: TypeParameterDescriptor): TypeArgument {
+        return TypeArgumentImpl(parameterDescriptor.defaultType)
     }
 
     /**
@@ -191,7 +190,7 @@ object TypeUtils {
      * ```kotlin
      * val typeParam: TypeParameterDescriptor = ...
      * val attr = ErasureTypeAttributes(...)
-     * val projection = makeProjection(typeParam, attr)
+     * val argument = makeProjection(typeParam, attr)
      * // 创建带特定属性的类型投影
      * ```
      *
@@ -201,9 +200,9 @@ object TypeUtils {
      */
     fun makeProjection(
         parameterDescriptor: TypeParameterDescriptor, attr: ErasureTypeAttributes
-    ): TypeProjection {
+    ): TypeArgument {
 //        return if (attr.howThisTypeIsUsed ==  TypeUsage.SUPERTYPE) {
-        return TypeProjectionImpl(parameterDescriptor.projectionType())
+        return TypeArgumentImpl(parameterDescriptor.projectionType())
 //        } else {
 //           StarProjectionImpl(parameterDescriptor)
 //        }
@@ -294,7 +293,7 @@ object TypeUtils {
      * @return 如果类型是类型参数则返回true
      */
     fun isTypeParameter(type: CangJieType): Boolean {
-        return getTypeParameterDescriptorOrNull(type) != null || type.constructor is NewTypeVariableConstructor
+        return getTypeParameterDescriptorOrNull(type) != null || type.constructor is TypeVariableConstructor
     }
 
     /**
@@ -342,9 +341,9 @@ object TypeUtils {
     fun addTypeParameterToStub(stub: CangJieType, vararg other: CangJieType): CangJieType {
 
         if (stub.constructor.parameters.size != other.size) return stub
-        val arguments = mutableListOf<TypeProjection>()
+        val arguments = mutableListOf<TypeArgument>()
         other.forEach {
-            arguments.add(TypeProjectionImpl(it))
+            arguments.add(TypeArgumentImpl(it))
         }
 
         return CangJieTypeFactory.simpleType(
@@ -362,7 +361,7 @@ object TypeUtils {
      * ```kotlin
      * val subType: CangJieType = ...
      * val superType: CangJieType = ...
-     * val substitutor: TypeSubstitutor = TypeSubstitutor.create(subType)
+     * val substitutor: DefaultTypeSubstitutor = DefaultTypeSubstitutor.create(subType)
      * val result = createSubstitutedSupertype(subType, superType, substitutor)
      * // 返回替换后的超类型，并根据subType的Option状态调整
      * ```
@@ -373,9 +372,9 @@ object TypeUtils {
      * @return 替换后的超类型，如果替换失败则返回null
      */
     fun createSubstitutedSupertype(
-        subType: CangJieType, superType: CangJieType, substitutor: TypeSubstitutor
+        subType: CangJieType, superType: CangJieType, substitutor: DefaultTypeSubstitutor
     ): CangJieType? {
-        val substitutedType: CangJieType? = substitutor.substitute(superType, Variance.INVARIANT)
+        val substitutedType: CangJieType? = substitutor.substitute(superType)
         if (substitutedType != null) {
             return makeOptionalIfNeeded(substitutedType, subType.isOption)
         }
@@ -436,31 +435,24 @@ object TypeUtils {
 //        }
 
         val parameters: List<TypeParameterDescriptor> = type.constructor.parameters
-        val arguments: List<TypeProjection> = type.arguments
+        val arguments: List<TypeArgument> = type.arguments
         var i = 0
         val parametersSize = parameters.size
         while (i < parametersSize) {
             val parameterDescriptor: TypeParameterDescriptor = parameters[i]
-            val typeProjection: TypeProjection = arguments[i]
+            val TypeArgument: TypeArgument = arguments[i]
 
+            // 仓颉语言中所有类型参数都是不变的（invariant）
+            val argument: CangJieType = TypeArgument.type
 
-            val projectionKind: Variance = typeProjection.projectionKind
-            val argument: CangJieType = typeProjection.type
-
-            when (parameterDescriptor.variance) {
-                Variance.INVARIANT -> when (projectionKind) {
-                    Variance.INVARIANT -> if (lowerThanBound(
-                            typeChecker, argument, parameterDescriptor
-                        ) || canHaveSubtypes(typeChecker, argument)
-                    ) {
-                        return true
-                    }
-
-
-                }
-
-
+            // 不变类型参数：如果参数低于边界或本身可以有子类型，则类型可以有子类型
+            if (lowerThanBound(
+                    typeChecker, argument, parameterDescriptor
+                ) || canHaveSubtypes(typeChecker, argument)
+            ) {
+                return true
             }
+
             i++
         }
         return false
@@ -531,7 +523,7 @@ object TypeUtils {
      */
     fun getImmediateSupertypes(type: CangJieType): List<CangJieType> {
 
-        val substitutor: TypeSubstitutor = TypeSubstitutor.create(type)
+        val substitutor: DefaultTypeSubstitutor = DefaultTypeSubstitutor.create(type)
         val originalSupertypes: Collection<CangJieType> = type.constructor.supertypes
         val result = ArrayList<CangJieType>(originalSupertypes.size)
         for (supertype in originalSupertypes) {
@@ -935,7 +927,7 @@ object TypeUtils {
      * 示例：
      * ```kotlin
      * val parameters = listOf(typeParam1, typeParam2)
-     * val projections = getDefaultTypeProjections(parameters)
+     * val projections = getDefaultTypeArguments(parameters)
      * // 返回每个参数的默认类型投影
      * ```
      *
@@ -943,10 +935,10 @@ object TypeUtils {
      * @return 默认类型投影列表
      */
     @JvmStatic
-    fun getDefaultTypeProjections(parameters: List<TypeParameterDescriptor>): List<TypeProjection> {
-        val result: MutableList<TypeProjection> = mutableListOf()
+    fun getDefaultTypeArguments(parameters: List<TypeParameterDescriptor>): List<TypeArgument> {
+        val result: MutableList<TypeArgument> = mutableListOf()
         for (parameterDescriptor in parameters) {
-            result.add(TypeProjectionImpl(parameterDescriptor.defaultType))
+            result.add(TypeArgumentImpl(parameterDescriptor.defaultType))
         }
         return result.toList()
     }
@@ -973,7 +965,7 @@ object TypeUtils {
         return type === NO_EXPECTED_TYPE || type === UNIT_EXPECTED_TYPE
     }
 
-    //    fun makeStarProjection(parameterDescriptor:  TypeParameterDescriptor):  TypeProjection {
+    //    fun makeStarProjection(parameterDescriptor:  TypeParameterDescriptor):  TypeArgument {
 //        return  StarProjectionImpl(parameterDescriptor)
 //    }
 
@@ -1002,7 +994,7 @@ object TypeUtils {
         unsubstitutedMemberScope: MemberScope,
         refinedTypeFactory: (CangJieTypeRefiner) -> SimpleType?
     ): SimpleType {
-        val arguments: List<TypeProjection> = getDefaultTypeProjections(typeConstructor.parameters)
+        val arguments: List<TypeArgument> = getDefaultTypeArguments(typeConstructor.parameters)
         return simpleTypeWithNonTrivialMemberScope(
             TypeAttributes.Empty, typeConstructor, arguments, false, unsubstitutedMemberScope, refinedTypeFactory
         )
@@ -1204,7 +1196,7 @@ object TypeUtils {
             return hasOptionSuperType(type)
         }
         if (type is AbstractStubType) {
-            val typeVariableConstructor: NewTypeVariableConstructor = type.originalTypeVariable
+            val typeVariableConstructor: TypeVariableConstructor = type.originalTypeVariable
             val typeParameter = typeVariableConstructor.originalTypeParameter
             return typeParameter == null || hasOptionSuperType(typeParameter.defaultType)
         }
@@ -1280,7 +1272,7 @@ object TypeUtils {
         }
 
 
-//        override val arguments: List<TypeProjection>
+//        override val arguments: List<TypeArgument>
 //            get() = TODO("Not yet implemented")
 //        override val attributes: TypeAttributes
 //            get() = TODO("Not yet implemented")
@@ -1595,7 +1587,7 @@ fun CangJieType.replaceAnnotations(newAnnotations: Annotations): CangJieType {
     return unwrap().replaceAttributes(attributes.replaceAnnotations(newAnnotations))
 }
 
-fun CangJieType.asTypeProjection(): TypeProjection = TypeProjectionImpl(this)
+fun CangJieType.asTypeArgument(): TypeArgument = TypeArgumentImpl(this)
 
 
 fun CangJieType.supertypes(): Collection<CangJieType> = TypeUtils.getAllSupertypes(this)
@@ -1735,7 +1727,7 @@ internal fun CangJieType.substitute(substitution: CangJieTypeSubstitution): Cang
     } else {
         val newArguments = arguments.zip(constructor.parameters).map { pair ->
             val (projection, typeParameter) = pair
-            TypeProjectionImpl(Variance.INVARIANT, projection.type.substitute(substitution))
+            TypeArgumentImpl(  projection.type.substitute(substitution))
         }
         simpleTypeWithNonTrivialMemberScope(
             annotations.toDefaultAttributes(),
@@ -1749,10 +1741,10 @@ internal fun CangJieType.substitute(substitution: CangJieTypeSubstitution): Cang
 
 inline fun SimpleType.replaceArgumentsByExistingArgumentsWith(replacement: (TypeArgumentMarker) -> TypeArgumentMarker): SimpleType {
     if (arguments.isEmpty()) return this
-    return replace(newArguments = arguments.map { replacement(it) as TypeProjection })
+    return replace(newArguments = arguments.map { replacement(it) as TypeArgument })
 }
 
-inline fun CangJieType.replaceArgumentsByParametersWith(replacement: (TypeParameterDescriptor) -> TypeProjection): CangJieType {
+inline fun CangJieType.replaceArgumentsByParametersWith(replacement: (TypeParameterDescriptor) -> TypeArgument): CangJieType {
     val unwrapped = unwrap()
     return when (unwrapped) {
         is FlexibleType -> CangJieTypeFactory.flexibleType(
@@ -1764,7 +1756,7 @@ inline fun CangJieType.replaceArgumentsByParametersWith(replacement: (TypeParame
     }.inheritEnhancement(unwrapped)
 }
 
-inline fun SimpleType.replaceArgumentsByParametersWith(replacement: (TypeParameterDescriptor) -> TypeProjection): SimpleType {
+inline fun SimpleType.replaceArgumentsByParametersWith(replacement: (TypeParameterDescriptor) -> TypeArgument): SimpleType {
     if (constructor.parameters.isEmpty() || constructor.declarationDescriptor == null) return this
 
     val newArguments = constructor.parameters.map(replacement)
@@ -1827,17 +1819,17 @@ fun CangJieType.isAny(): Boolean = CangJieBuiltIns.isAny(this)
 fun CangJieType.containsError() = ErrorUtils.containsErrorType(this)
 fun CangJieType.isSubtypeOf(superType: CangJieType): Boolean = DEFAULT.isSubtypeOf(this, superType)
 
-fun createProjection(
+fun createTypeArgument(
     type: CangJieType,
-    projectionKind: Variance,
+
     typeParameterDescriptor: TypeParameterDescriptor?
-): TypeProjection =
-    TypeProjectionImpl(
-        if (typeParameterDescriptor?.variance == projectionKind) Variance.INVARIANT else projectionKind,
+): TypeArgument =
+    TypeArgumentImpl(
+
         type
     )
 
-fun List<CangJieType>.defaultProjections(): List<TypeProjection> = map(::TypeProjectionImpl)
+fun List<CangJieType>.defaultProjections(): List<TypeArgument> = map(::TypeArgumentImpl)
 
 fun CangJieType.isDefaultBound(): Boolean = CangJieBuiltIns.isDefaultBound(getSupertypeRepresentative())
 
@@ -1904,10 +1896,11 @@ fun createVArrayType(
     return descriptor.defaultType
 
 }
+
 fun CangJieType.replaceArgument(vararg newType: CangJieType): CangJieType {
 
     val arguments = newType.map {
-        TypeProjectionImpl(it)
+        TypeArgumentImpl(it)
     }
     return simpleTypeWithNonTrivialMemberScope(
         attributes,
@@ -1922,10 +1915,12 @@ val CangJieType.isVArray: Boolean
     get() {
         return this is VArrayType
     }
+
 fun CangJieType.containsTypeAliases(): Boolean =
     contains {
         it.constructor.declarationDescriptor is TypeAliasDescriptor
     }
+
 fun ClassifierDescriptor.isTypeAliasParameter(): Boolean =
     this is TypeParameterDescriptor && containingDeclaration is TypeAliasDescriptor
 
@@ -1933,12 +1928,13 @@ fun CangJieType.containsTypeAliasParameters(): Boolean =
     contains {
         it.constructor.declarationDescriptor?.isTypeAliasParameter() ?: false
     }
+
 fun CangJieType.isPrimitiveNumber(): Boolean =
     CangJieBuiltIns.isPrimitiveType(this) &&
             !CangJieBuiltIns.isBoolean(this) &&
             !CangJieBuiltIns.isRune(this)
 
-fun CangJieType.immediateSupertypes(): Collection<CangJieType> =  TypeUtils.getImmediateSupertypes(this)
+fun CangJieType.immediateSupertypes(): Collection<CangJieType> = TypeUtils.getImmediateSupertypes(this)
 
 fun CangJieType.isGenericArrayOfTypeParameter(): Boolean {
     if (!CangJieBuiltIns.isArray(this)) return false
@@ -1967,38 +1963,42 @@ val TypeParameterDescriptor.representativeUpperBound: CangJieType
         } ?: upperBounds.first()
     }
 
-fun unCaptureProjection(projection: TypeProjection): TypeProjection {
-    val unCapturedProjection = (projection.type.constructor as? NewCapturedTypeConstructor)?.projection ?: projection
+fun unCaptureProjection(projection: TypeArgument): TypeArgument {
+    val unCapturedProjection = (projection.type.constructor as? CapturedTypeConstructor)?.argument ?: projection
     if (unCapturedProjection.type is ErrorType) return unCapturedProjection
 
     val newArguments = unCapturedProjection.type.arguments.map(::unCaptureProjection)
-    return TypeProjectionImpl(
-        unCapturedProjection.projectionKind,
+    return TypeArgumentImpl(
+
         unCapturedProjection.type.replace(newArguments)
     )
 }
+
 fun CangJieType.unCapture(): CangJieType = unwrap().unCapture()
 
 fun SimpleType.unCapture(): UnwrappedType {
     if (this is ErrorType) return this
-    if (this is NewCapturedType)
+    if (this is CapturedType)
         return unCaptureTopLevelType()
 
     val newArguments = arguments.map(::unCaptureProjection)
     return replace(newArguments).unwrap()
 }
-private fun NewCapturedType.unCaptureTopLevelType(): UnwrappedType {
+
+private fun CapturedType.unCaptureTopLevelType(): UnwrappedType {
     if (lowerType != null) return lowerType
 
     val supertypes = constructor.supertypes
-    if (supertypes.isNotEmpty()) return intersectTypes(supertypes)
+    if (supertypes.isNotEmpty()) return intersectTypes(supertypes.map { it.unwrap() })
 
-    return constructor.projection.type.unwrap()
+    return constructor.argument.type.unwrap()
 }
+
 fun AbbreviatedType.unCapture(): SimpleType {
     val newType = expandedType.unCapture()
     return AbbreviatedType(newType as? SimpleType ?: expandedType, abbreviation)
 }
+
 fun CangJieType.expandIntersectionTypeIfNecessary(): Collection<CangJieType> {
     if (constructor !is IntersectionTypeConstructor) return listOf(this)
     val types = constructor.supertypes
@@ -2016,6 +2016,7 @@ fun UnwrappedType.unCapture(): UnwrappedType = when (this) {
     is FlexibleType -> unCapture()
 
 }
+
 fun FlexibleType.unCapture(): FlexibleType {
     val unCapturedLowerBound = when (val unCaptured = lowerBound.unCapture()) {
         is SimpleType -> unCaptured
@@ -2029,6 +2030,7 @@ fun FlexibleType.unCapture(): FlexibleType {
 
     return FlexibleTypeImpl(unCapturedLowerBound, unCapturedUpperBound)
 }
+
 fun CangJieType.unwrapEnhancement(): CangJieType = getEnhancement() ?: this
 
 fun CangJieType.approximateFlexibleTypes(
@@ -2082,7 +2084,7 @@ private fun CangJieType.approximateNonDynamicFlexibleTypes(
             if (optionality() == TypeOptionality.NOT_OPTION) approximation.makeOptionAsSpecified(false) else approximation
 
         if (approximation.isMarkedOption() && !lowerBound
-                .isMarkedOption() &&  TypeUtils.isTypeParameter(approximation) && TypeUtils.hasOptionSuperType(
+                .isMarkedOption() && TypeUtils.isTypeParameter(approximation) && TypeUtils.hasOptionSuperType(
                 approximation
             )
         ) {
@@ -2105,25 +2107,27 @@ private fun CangJieType.approximateNonDynamicFlexibleTypes(
 }
 
 
-fun TypeProjection.substitute(doSubstitute: (CangJieType) -> CangJieType): TypeProjection {
+fun TypeArgument.substitute(doSubstitute: (CangJieType) -> CangJieType): TypeArgument {
 
-    return TypeProjectionImpl(projectionKind, doSubstitute(type))
+    return TypeArgumentImpl(doSubstitute(type))
 }
-enum class TypeOptionality{
+
+enum class TypeOptionality {
     NOT_OPTION,
     OPTIONAL,
     FLEXIBLE
 }
+
 fun CangJieType.optionality(): TypeOptionality {
     return when {
         isNullabilityFlexible() -> TypeOptionality.FLEXIBLE
-       TypeUtils.isOptionType(this) -> TypeOptionality.OPTIONAL
+        TypeUtils.isOptionType(this) -> TypeOptionality.OPTIONAL
         else -> TypeOptionality.NOT_OPTION
     }
 }
 
 
-  fun CangJieType.isFlexibleRecursive(): Boolean {
+fun CangJieType.isFlexibleRecursive(): Boolean {
     if (isFlexible()) return true
-    return arguments.any {  it.type.isFlexibleRecursive() }
+    return arguments.any { it.type.isFlexibleRecursive() }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,15 +62,15 @@ fun Collection<CangJieType>.singleBestRepresentative(): CangJieType? {
 }
 
 
-fun Collection<TypeProjection>.singleBestRepresentative(): TypeProjection? {
+fun Collection<TypeArgument>.singleBestRepresentative(): TypeArgument? {
     if (this.size == 1) return this.first()
 
-    val projectionKinds = this.map { it.projectionKind }.toSet()
-    if (projectionKinds.size != 1) return null
+
+
 
     val bestType = this.map { it.type }.singleBestRepresentative() ?: return null
 
-    return TypeProjectionImpl(projectionKinds.single(), bestType)
+    return TypeArgumentImpl(  bestType)
 }
 
 fun CangJieType.lowerIfFlexible(): SimpleType = with(unwrap()) {

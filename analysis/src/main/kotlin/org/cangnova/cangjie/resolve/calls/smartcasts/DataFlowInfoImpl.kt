@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeUtils
-import org.cangnova.cangjie.types.checker.NewCapturedTypeConstructor
+import org.cangnova.cangjie.types.checker.CapturedTypeConstructor
 import org.cangnova.cangjie.types.isFlexible
 import org.cangnova.cangjie.types.isFunctionType
 import org.cangnova.cangjie.types.isSubtypeOf
@@ -417,7 +417,7 @@ internal class DataFlowInfoImpl(
 
             for ((value, types) in updatedTypeInfo) {
                 for (type in types) {
-                    if (value.type == type || type.contains { it.constructor is NewCapturedTypeConstructor }) continue
+                    if (value.type == type || type.contains { it.constructor is CapturedTypeConstructor }) continue
                     resultingTypeInfo = resultingTypeInfo.put(value, type)
                 }
             }

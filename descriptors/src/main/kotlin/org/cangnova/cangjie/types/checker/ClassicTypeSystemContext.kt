@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import org.cangnova.cangjie.descriptors.isFinalClass
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.SpecialNames
 import org.cangnova.cangjie.resolve.DescriptorUtils
-import org.cangnova.cangjie.resolve.call.inference.CapturedType
 import org.cangnova.cangjie.resolve.classId
 import org.cangnova.cangjie.resolve.constants.FloatLiteralTypeConstructor
 import org.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
@@ -215,9 +214,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return declarationDescriptor?.classId?.isLocal == true
     }
 
-    override fun captureFromExpression(type: CangJieTypeMarker): CangJieTypeMarker? {
-        return captureFromExpressionInternal(type as UnwrappedType)
-    }
+    override fun captureFromExpression(type: CangJieTypeMarker): CangJieTypeMarker? = null
 
     override fun TypeConstructorMarker.isAnonymous(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
@@ -226,7 +223,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override val TypeVariableTypeConstructorMarker.typeParameter: TypeParameterMarker?
         get() {
-            require(this is NewTypeVariableConstructor, this::errorMessage)
+            require(this is TypeVariableConstructor, this::errorMessage)
             return this.originalTypeParameter
         }
 
@@ -287,7 +284,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
     override fun CapturedTypeMarker.lowerType(): CangJieTypeMarker? {
-        require(this is NewCapturedType, this::errorMessage)
+        require(this is org.cangnova.cangjie.types.checker.CapturedType, this::errorMessage)
         return this.lowerType
     }
 
@@ -338,7 +335,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun SimpleTypeMarker.asCapturedType(): CapturedTypeMarker? {
         require(this is SimpleType, this::errorMessage)
-        return if (this is SimpleTypeWithEnhancement) origin.asCapturedType() else this as? NewCapturedType
+        return if (this is SimpleTypeWithEnhancement) origin.asCapturedType() else this as? org.cangnova.cangjie.types.checker.CapturedType
     }
 
     override fun SimpleTypeMarker.asDefinitelyNonOptionType(): DefinitelyNonOptionTypeMarker? {
@@ -360,13 +357,13 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
     override fun CapturedTypeMarker.typeConstructor(): CapturedTypeConstructorMarker {
-        require(this is NewCapturedType, this::errorMessage)
+        require(this is org.cangnova.cangjie.types.checker.CapturedType, this::errorMessage)
         return this.constructor
     }
 
     override fun CapturedTypeConstructorMarker.projection(): TypeArgumentMarker {
-        require(this is NewCapturedTypeConstructor, this::errorMessage)
-        return this.projection
+        require(this is CapturedTypeConstructor, this::errorMessage)
+        return this.argument
     }
 
     override fun CangJieTypeMarker.argumentsCount(): Int {
@@ -384,19 +381,16 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return this.arguments
     }
 
-    override fun TypeArgumentMarker.getVariance(): TypeVariance {
-        require(this is TypeProjection, this::errorMessage)
-        return this.projectionKind.convertVariance()
-    }
+
 
     override fun TypeArgumentMarker.replaceType(newType: CangJieTypeMarker): TypeArgumentMarker {
-        require(this is TypeProjection, this::errorMessage)
+        require(this is TypeArgument, this::errorMessage)
         require(newType is CangJieType, this::errorMessage)
         return this.replaceType(newType)
     }
 
     override fun TypeArgumentMarker.getType(): CangJieTypeMarker {
-        require(this is TypeProjection, this::errorMessage)
+        require(this is TypeArgument, this::errorMessage)
         return this.type.unwrap()
     }
 
@@ -467,10 +461,6 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
 
-    override fun TypeParameterMarker.getVariance(): TypeVariance {
-        require(this is TypeParameterDescriptor, this::errorMessage)
-        return this.variance.convertVariance()
-    }
 
     override fun TypeParameterMarker.upperBoundCount(): Int {
         require(this is TypeParameterDescriptor, this::errorMessage)
@@ -543,7 +533,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun CangJieTypeMarker.asTypeArgument(): TypeArgumentMarker {
         require(this is CangJieType, this::errorMessage)
-        return this.asTypeProjection()
+        return this.asTypeArgument()
     }
 
     override fun TypeConstructorMarker.isUnitTypeConstructor(): Boolean {
@@ -564,7 +554,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         require(this is SimpleType, this::errorMessage)
         return !isError &&
                 constructor.declarationDescriptor !is TypeAliasDescriptor &&
-                (constructor.declarationDescriptor != null || this is CapturedType || this is NewCapturedType || this is DefinitelyNonOptionType || constructor is IntegerLiteralTypeConstructor || isSingleClassifierTypeWithEnhancement())
+                (constructor.declarationDescriptor != null || this is CapturedType || this is org.cangnova.cangjie.types.checker.CapturedType || this is DefinitelyNonOptionType || constructor is IntegerLiteralTypeConstructor || isSingleClassifierTypeWithEnhancement())
     }
 
     private fun SimpleTypeMarker.isSingleClassifierTypeWithEnhancement() =
@@ -679,38 +669,31 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
     override fun CapturedTypeMarker.typeConstructorProjection(): TypeArgumentMarker {
-        return when (this) {
-            is NewCapturedType -> this.constructor.projection
-            is CapturedType -> this.typeProjection
-            else -> error("Unsupported captured type")
-        }
+        require(this is CapturedType, this::errorMessage)
+        return this.constructor.argument
     }
 
     override fun CapturedTypeMarker.withNonOptionProjection(): CangJieTypeMarker {
-        require(this is NewCapturedType, this::errorMessage)
+        require(this is org.cangnova.cangjie.types.checker.CapturedType, this::errorMessage)
 
-        return NewCapturedType(
+        return CapturedType(
             captureStatus,
             constructor,
             lowerType,
             attributes,
             isOption,
-            isProjectionNotNull = true
+
         )
     }
 
-    override fun CapturedTypeMarker.isProjectionNonOption(): Boolean {
-        require(this is NewCapturedType, this::errorMessage)
-        return this.isProjectionNotNull
-    }
 
     override fun CapturedTypeMarker.typeParameter(): TypeParameterMarker? {
-        require(this is NewCapturedType, this::errorMessage)
+        require(this is org.cangnova.cangjie.types.checker.CapturedType, this::errorMessage)
         return this.constructor.typeParameter
     }
 
     override fun CapturedTypeMarker.captureStatus(): CaptureStatus {
-        require(this is NewCapturedType, this::errorMessage)
+        require(this is org.cangnova.cangjie.types.checker.CapturedType, this::errorMessage)
         return this.captureStatus
     }
 
@@ -742,22 +725,22 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return CangJieTypeFactory.simpleType(
             DefaultTypeAttributeTranslator.toAttributes(resultingAnnotations),
             constructor,
-            arguments as List<TypeProjection>,
+            arguments as List<TypeArgument>,
             isOption
         )
     }
 
-    override fun createTypeArgument(type: CangJieTypeMarker, variance: TypeVariance): TypeArgumentMarker {
+    override fun createTypeArgument(type: CangJieTypeMarker): TypeArgumentMarker {
         require(type is CangJieType, type::errorMessage)
-        return TypeProjectionImpl(variance.convertVariance(), type)
+        return TypeArgumentImpl( type)
     }
 
 
     override fun CangJieTypeMarker.canHaveUndefinedOption(): Boolean {
         require(this is UnwrappedType, this::errorMessage)
-        return constructor is NewTypeVariableConstructor ||
+        return constructor is TypeVariableConstructor ||
                 constructor.declarationDescriptor is TypeParameterDescriptor ||
-                this is NewCapturedType
+                this is org.cangnova.cangjie.types.checker.CapturedType
     }
 
     override fun SimpleTypeMarker.isExtensionFunction(): Boolean {
@@ -768,7 +751,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     override fun SimpleTypeMarker.replaceArguments(newArguments: List<TypeArgumentMarker>): SimpleTypeMarker {
         require(this is SimpleType, this::errorMessage)
         @Suppress("UNCHECKED_CAST")
-        return this.replace(newArguments as List<TypeProjection>)
+        return this.replace(newArguments as List<TypeArgument>)
     }
 
     override fun SimpleTypeMarker.replaceArguments(replacement: (TypeArgumentMarker) -> TypeArgumentMarker): SimpleTypeMarker {
@@ -805,8 +788,8 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun TypeSubstitutorMarker.safeSubstitute(type: CangJieTypeMarker): CangJieTypeMarker {
         require(type is UnwrappedType, type::errorMessage)
-        require(this is TypeSubstitutor, this::errorMessage)
-        return safeSubstitute(type, Variance.INVARIANT)
+        require(this is DefaultTypeSubstitutor, this::errorMessage)
+        return safeSubstitute(type)
     }
 
     override fun TypeVariableMarker.defaultType(): SimpleTypeMarker {
@@ -892,16 +875,6 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 //        require(this is CangJieType, this::errorMessage)
 //        return !this.attributes.isEmpty() && this.getCustomAttributes().size > 0
 //    }
-//
-//    override fun CangJieTypeMarker.getCustomAttributes(): List<AnnotationMarker> {
-//        require(this is CangJieType, this::errorMessage)
-//        return this.attributes.filterNot { it is AnnotationsTypeAttribute }
-//    }
-
-//    override fun captureFromExpression(type: CangJieTypeMarker): CangJieTypeMarker? {
-//        return captureFromExpressionInternal(type as UnwrappedType)
-//    }
-
     override fun createErrorType(debugName: String, delegatedType: SimpleTypeMarker?): SimpleTypeMarker {
         return ErrorUtils.createErrorType(ErrorTypeKind.RESOLUTION_ERROR_TYPE, debugName)
     }
@@ -915,7 +888,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
     override fun TypeConstructorMarker.isCapturedTypeConstructor(): Boolean {
-        return this is NewCapturedTypeConstructor
+        return this is CapturedTypeConstructor
     }
 
     override fun CangJieTypeMarker.eraseContainingTypeParameters(): CangJieTypeMarker {
@@ -926,8 +899,8 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         val typeParameters = this.extractTypeParameters()
             .map { it as TypeParameterDescriptor }
             .associateWith {
-                TypeProjectionImpl(
-                    Variance.INVARIANT,
+                TypeArgumentImpl(
+
                     eraser.getErasedUpperBound(it, ErasureTypeAttributes(TypeUsage.COMMON))
                 )
             }
@@ -1035,20 +1008,13 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun substitutionSupertypePolicy(type: SimpleTypeMarker): TypeCheckerState.SupertypesPolicy {
         require(type is SimpleType, type::errorMessage)
-        val substitutor = TypeConstructorSubstitution.create(type).buildSubstitutor()
-
-        return object : TypeCheckerState.SupertypesPolicy.DoCustomTransform() {
-            override fun transformType(state: TypeCheckerState, type: CangJieTypeMarker): SimpleTypeMarker {
-                return substitutor.safeSubstitute(
-                    type.lowerBoundIfFlexible() as CangJieType,
-                    Variance.INVARIANT
-                ).asSimpleType()!!
-            }
-        }
+        // 仓颉语言类型系统简化：由于所有类型参数都是不变的，
+        // 替换策略可以直接使用 LowerIfFlexible
+        return TypeCheckerState.SupertypesPolicy.LowerIfFlexible
     }
 
     override fun CangJieTypeMarker.isTypeVariableType(): Boolean {
-        return this is UnwrappedType && constructor is NewTypeVariableConstructor
+        return this is UnwrappedType && constructor is TypeVariableConstructor
     }
 
 
@@ -1070,12 +1036,3 @@ private fun singleBestRepresentative(collection: Collection<CangJieType>) = coll
 
 private fun containsInternal(type: CangJieType, predicate: (CangJieTypeMarker) -> Boolean): Boolean =
     type.contains(predicate)
-
-fun TypeVariance.convertVariance(): Variance {
-    return when (this) {
-        TypeVariance.INV -> Variance.INVARIANT
-
-    }
-}
-
-private fun captureFromExpressionInternal(type: UnwrappedType) = captureFromExpression(type)

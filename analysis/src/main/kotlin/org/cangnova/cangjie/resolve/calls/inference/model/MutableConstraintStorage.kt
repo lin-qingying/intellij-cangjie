@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -189,7 +189,7 @@ class MutableVariableWithConstraints private constructor(
                 }
 
                 if (newConstraintIsUseless(previousConstraint, constraint)) { // 检查新约束是否无用
-                    // 保留具有不同自定义类型属性的约束，以便在 NewCommonSuperTypeCalculator 中联合类型属性。
+                    // 保留具有不同自定义类型属性的约束，以便在 CommonSuperTypeCalculator 中联合类型属性。
                     if (noNewCustomAttributes) { // 如果没有新的自定义属性
                         return previousConstraint to false // 返回现有约束，并标记为未添加新约束
                     }

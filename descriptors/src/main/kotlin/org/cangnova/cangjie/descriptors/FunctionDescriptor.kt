@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.cangnova.cangjie.name.Name
 
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeSubstitution
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 /**
  * 函数描述符接口，继承自`CallableMemberDescriptor`和`EnumMember`，用于描述函数的元信息，如覆盖关系、参数、返回类型等。
@@ -58,7 +58,7 @@ interface FunctionDescriptor : CallableMemberDescriptor, EnumMember {
      * @param substitutor 类型替换器
      * @return 替换后的函数描述符，可能为`null`
      */
-    override fun substitute(substitutor: TypeSubstitutor): FunctionDescriptor?
+    override fun substitute(substitutor: DefaultTypeSubstitutor): FunctionDescriptor?
 
     /**
      * 获取当前函数描述符覆盖的所有函数描述符集合。

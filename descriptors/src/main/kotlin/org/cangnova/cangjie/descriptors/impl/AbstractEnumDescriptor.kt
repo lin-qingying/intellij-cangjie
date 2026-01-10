@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ abstract class AbstractEnumDescriptor(
 
                     if (descriptor is TypeAliasDescriptor) {
                         return descriptor.computeExpandedType(
-                            TypeUtils.getDefaultTypeProjections(descriptor.typeConstructor.parameters)
+                            TypeUtils.getDefaultTypeArguments(descriptor.typeConstructor.parameters)
                         )
                     }
 
@@ -150,7 +150,7 @@ abstract class AbstractEnumDescriptor(
      * @param typeArguments 类型参数列表
      * @return 成员作用域
      */
-    override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope {
+    override fun getMemberScope(typeArguments: List<TypeArgument>): MemberScope {
         // 如果没有类型参数，返回未替换的成员作用域
         if (typeArguments.isEmpty()) {
             return unsubstitutedMemberScope
@@ -232,7 +232,7 @@ abstract class AbstractEnumDescriptor(
      * @param substitutor 类型替换器
      * @return 替换后的分类器描述符
      */
-    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
         if (substitutor.isEmpty) {
             return this
         }
@@ -277,7 +277,7 @@ abstract class AbstractEnumDescriptor(
     ): MemberScope {
         if (typeSubstitution.isEmpty()) return getUnsubstitutedMemberScope(cangjieTypeRefiner)
 
-        val substitutor = TypeSubstitutor.create(typeSubstitution)
+        val substitutor = DefaultTypeSubstitutor.create(typeSubstitution)
         return SubstitutingScope(getUnsubstitutedMemberScope(cangjieTypeRefiner), substitutor)
 
     }
@@ -285,7 +285,7 @@ abstract class AbstractEnumDescriptor(
     override val kind: ClassKind = ClassKind.ENUM
 
     override fun getMemberScope(
-        typeArguments: List<TypeProjection>,
+        typeArguments: List<TypeArgument>,
         cangjieTypeRefiner: CangJieTypeRefiner
     ): MemberScope {
         assert(typeArguments.size == typeConstructor.parameters.size) {

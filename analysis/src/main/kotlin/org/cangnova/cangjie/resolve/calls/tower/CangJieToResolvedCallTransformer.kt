@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ import org.cangnova.cangjie.resolve.calls.components.isVararg
 import org.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext
 import org.cangnova.cangjie.resolve.calls.context.CallPosition
 import org.cangnova.cangjie.resolve.calls.inference.buildResultingSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
+import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import org.cangnova.cangjie.resolve.calls.smartcasts.SmartCastManager
@@ -111,8 +111,8 @@ class CangJieToResolvedCallTransformer(
     }
 
     // todo very beginning code
-    fun runArgumentsChecks(context: BasicCallResolutionContext, resolvedCall: NewAbstractResolvedCall<*>) {
-        if (resolvedCall !is NewResolvedCallImpl<*>) return
+    fun runArgumentsChecks(context: BasicCallResolutionContext, resolvedCall: AbstractResolvedCall<*>) {
+        if (resolvedCall !is ResolvedCallImpl<*>) return
 
         for (valueArgument in resolvedCall.call.valueArguments) {
             val argumentMapping = resolvedCall.getArgumentMapping(valueArgument)
@@ -189,7 +189,7 @@ class CangJieToResolvedCallTransformer(
         if (!ExpressionTypingUtils.dependsOnExpectedType(expression))
             null
         else
-            expression.getResolvedCall(context.trace.bindingContext) as? NewAbstractResolvedCall<*>
+            expression.getResolvedCall(context.trace.bindingContext) as? AbstractResolvedCall<*>
 
     fun updateRecordedType(
         expression: CjExpression,
@@ -320,7 +320,7 @@ class CangJieToResolvedCallTransformer(
     fun reportCallDiagnostic(
         context: BasicCallResolutionContext,
         trace: BindingTrace,
-        resolvedCall: NewAbstractResolvedCall<*>,
+        resolvedCall: AbstractResolvedCall<*>,
         resultingDescriptor: CallableDescriptor,
         diagnostics: Collection<CangJieCallDiagnostic>,
     ) {
@@ -383,11 +383,11 @@ class CangJieToResolvedCallTransformer(
     fun reportDiagnostics(
         context: BasicCallResolutionContext,
         trace: BindingTrace,
-        resolvedCall: NewAbstractResolvedCall<*>,
+        resolvedCall: AbstractResolvedCall<*>,
         diagnostics: Collection<CangJieCallDiagnostic>,
     ) {
         when (resolvedCall) {
-            is NewVariableAsFunctionResolvedCallImpl -> {
+            is VariableAsFunctionResolvedCallImpl -> {
                 val variableCall = resolvedCall.variableCall
                 val functionCall = resolvedCall.functionCall
 
@@ -407,16 +407,16 @@ class CangJieToResolvedCallTransformer(
     fun <D : CallableDescriptor> onlyTransform(
         resolvedCallAtom: ResolvedCallAtom,
         diagnostics: Collection<CangJieCallDiagnostic>,
-    ): NewAbstractResolvedCall<D> = transformToResolvedCall(resolvedCallAtom, null, null, diagnostics)
+    ): AbstractResolvedCall<D> = transformToResolvedCall(resolvedCallAtom, null, null, diagnostics)
 
-    private fun bind(trace: BindingTrace, simpleResolvedCall: NewAbstractResolvedCall<*>) {
+    private fun bind(trace: BindingTrace, simpleResolvedCall: AbstractResolvedCall<*>) {
         val tracing = simpleResolvedCall.psiCangJieCall.tracingStrategy
 
         tracing.bindReference(trace, simpleResolvedCall)
         tracing.bindResolvedCall(trace, simpleResolvedCall)
     }
 
-    private fun bind(trace: BindingTrace, variableAsFunction: NewVariableAsFunctionResolvedCallImpl) {
+    private fun bind(trace: BindingTrace, variableAsFunction: VariableAsFunctionResolvedCallImpl) {
         val outerTracingStrategy = variableAsFunction.baseCall.tracingStrategy
         val variableCall = variableAsFunction.variableCall
         val functionCall = variableAsFunction.functionCall
@@ -427,8 +427,8 @@ class CangJieToResolvedCallTransformer(
     }
 
     internal fun bind(trace: BindingTrace, resolvedCall: ResolvedCall<*>) {
-        (resolvedCall as? NewAbstractResolvedCall<*>)?.let { bind(trace, it) }
-        (resolvedCall as? NewVariableAsFunctionResolvedCallImpl)?.let { bind(trace, it) }
+        (resolvedCall as? AbstractResolvedCall<*>)?.let { bind(trace, it) }
+        (resolvedCall as? VariableAsFunctionResolvedCallImpl)?.let { bind(trace, it) }
     }
 
 
@@ -453,9 +453,9 @@ class CangJieToResolvedCallTransformer(
     fun <D : CallableDescriptor> transformToResolvedCall(
         completedCallAtom: ResolvedCallAtom,
         trace: BindingTrace?,
-        resultSubstitutor: NewTypeSubstitutor? = null, // if substitutor is not null, it means that this call is completed
+        resultSubstitutor: AbstractTypeSubstitutor? = null, // if substitutor is not null, it means that this call is completed
         diagnostics: Collection<CangJieCallDiagnostic>,
-    ): NewAbstractResolvedCall<D> {
+    ): AbstractResolvedCall<D> {
         val psiCangJieCall = completedCallAtom.atom.psiCangJieCall
 
         completedCallAtom.setCandidateDescriptor(
@@ -475,7 +475,7 @@ class CangJieToResolvedCallTransformer(
                 if (completedCallAtom.candidateDescriptor is FunctionDescriptor) diagnostics else emptyList()
 
             @Suppress("UNCHECKED_CAST")
-            NewVariableAsFunctionResolvedCallImpl(
+            VariableAsFunctionResolvedCallImpl(
                 createOrGet(
                     psiCangJieCall.variableCall.resolvedCall,
                     trace,
@@ -483,7 +483,7 @@ class CangJieToResolvedCallTransformer(
                     diagnosticsForVariableCall
                 ),
                 createOrGet(completedCallAtom, trace, resultSubstitutor, diagnosticsForFunctionCall),
-            ) as NewAbstractResolvedCall<D>
+            ) as AbstractResolvedCall<D>
         } else {
             createOrGet(completedCallAtom, trace, resultSubstitutor, diagnostics)
         }
@@ -492,9 +492,9 @@ class CangJieToResolvedCallTransformer(
     private fun <D : CallableDescriptor> createOrGet(
         completedSimpleAtom: ResolvedCallAtom,
         trace: BindingTrace?,
-        resultSubstitutor: NewTypeSubstitutor?,
+        resultSubstitutor: AbstractTypeSubstitutor?,
         diagnostics: Collection<CangJieCallDiagnostic>,
-    ): NewAbstractResolvedCall<D> {
+    ): AbstractResolvedCall<D> {
         if (trace != null) {
             val storedResolvedCall = completedSimpleAtom.atom.psiCangJieCall.getResolvedPsiCangJieCall<D>(trace)
             if (storedResolvedCall != null) {
@@ -503,19 +503,19 @@ class CangJieToResolvedCallTransformer(
                 return storedResolvedCall
             }
         }
-        return NewResolvedCallImpl(
+        return ResolvedCallImpl(
             completedSimpleAtom, resultSubstitutor, diagnostics,
             typeApproximator, expressionTypingServices.languageVersionSettings
         )
 //        return if (completedSimpleAtom.atom.callKind == CangJieCallKind.CALLABLE_REFERENCE) {
-//            NewCallableReferenceResolvedCall(
+//            CallableReferenceResolvedCall(
 //                completedSimpleAtom as ResolvedCallableReferenceCallAtom,
 ////                typeApproximator,
 ////                expressionTypingServices.languageVersionSettings,
 //                resultSubstitutor
 //            )
 //        } else {
-//            NewResolvedCallImpl(
+//            MutableResolvedCallImpl(
 //                completedSimpleAtom, resultSubstitutor, diagnostics,
 ////                typeApproximator, expressionTypingServices.languageVersionSettings
 //            )
@@ -526,8 +526,8 @@ class CangJieToResolvedCallTransformer(
         candidate: ResolvedCallAtom,
         trace: BindingTrace,
         diagnostics: Collection<CangJieCallDiagnostic>,
-        substitutor: NewTypeSubstitutor?,
-    ): NewAbstractResolvedCall<D> {
+        substitutor: AbstractTypeSubstitutor?,
+    ): AbstractResolvedCall<D> {
         val result = transformToResolvedCall<D>(candidate, trace, substitutor, diagnostics)
         val psiCangJieCall = candidate.atom.psiCangJieCall
         val tracing =
@@ -542,7 +542,7 @@ class CangJieToResolvedCallTransformer(
     private fun forwardCallToInferenceSession(
         baseResolvedCall: CallResolutionResult,
         context: BasicCallResolutionContext,
-        resolvedCall: NewAbstractResolvedCall<*>,
+        resolvedCall: AbstractResolvedCall<*>,
         tracingStrategy: TracingStrategy,
     ) {
         if (baseResolvedCall is CompletedCallResolutionResult) {
@@ -561,7 +561,7 @@ class CangJieToResolvedCallTransformer(
         baseResolvedCall: CallResolutionResult,
         context: BasicCallResolutionContext,
         tracingStrategy: TracingStrategy,
-    ): NewAbstractResolvedCall<D> {
+    ): AbstractResolvedCall<D> {
         return when (baseResolvedCall) {
             is PartialCallResolutionResult -> {
                 val candidate = baseResolvedCall.resultCallAtom
@@ -603,7 +603,7 @@ class CangJieToResolvedCallTransformer(
                     forwardCallToInferenceSession(baseResolvedCall, context, stub, tracingStrategy)
 
                     @Suppress("UNCHECKED_CAST")
-                    return stub as NewAbstractResolvedCall<D>
+                    return stub as AbstractResolvedCall<D>
                 }
 
                 val cjPrimitiveCompleter = ResolvedAtomCompleter(
@@ -631,7 +631,7 @@ class CangJieToResolvedCallTransformer(
                 @Suppress("UNCHECKED_CAST")
                 val resolvedCall = cjPrimitiveCompleter.completeResolvedCall(
                     candidate, baseResolvedCall.completedDiagnostic(resultSubstitutor),
-                ) as NewAbstractResolvedCall<D>
+                ) as AbstractResolvedCall<D>
 
                 forwardCallToInferenceSession(baseResolvedCall, context, resolvedCall, tracingStrategy)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,6 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.annotations.composeAnnotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjFunction
-import org.cangnova.cangjie.resolve.DescriptorFactory
 import org.cangnova.cangjie.resolve.source.getPsi
 import org.cangnova.cangjie.types.*
 import org.jetbrains.annotations.NotNull
@@ -92,7 +91,7 @@ abstract class FunctionDescriptorImpl(
         fun getSubstitutedValueParameters(
             substitutedDescriptor: FunctionDescriptor,
             unsubstitutedValueParameters: List<ValueParameterDescriptor>,
-            substitutor: TypeSubstitutor
+            substitutor: DefaultTypeSubstitutor
         ): List<ValueParameterDescriptor>? {
             return getSubstitutedValueParameters(
                 substitutedDescriptor, unsubstitutedValueParameters, substitutor, false, false, null
@@ -103,7 +102,7 @@ abstract class FunctionDescriptorImpl(
         fun getSubstitutedValueParameters(
             substitutedDescriptor: FunctionDescriptor,
             unsubstitutedValueParameters: List<ValueParameterDescriptor>,
-            substitutor: TypeSubstitutor,
+            substitutor: DefaultTypeSubstitutor,
             dropOriginal: Boolean,
             preserveSourceElement: Boolean,
             wereChanges: BooleanArray?
@@ -111,10 +110,10 @@ abstract class FunctionDescriptorImpl(
             val result = ArrayList<ValueParameterDescriptor>(unsubstitutedValueParameters.size)
             for (unsubstitutedValueParameter in unsubstitutedValueParameters) {
                 // TODO : Lazy?
-                val substitutedType = substitutor.substitute(unsubstitutedValueParameter.type, Variance.INVARIANT)
+                val substitutedType = substitutor.substitute(unsubstitutedValueParameter.type )
                 val varargElementType = unsubstitutedValueParameter.varargElementType
                 val substituteVarargElementType =
-                    varargElementType?.let { substitutor.substitute(it, Variance.INVARIANT) }
+                    varargElementType?.let { substitutor.substitute(it ) }
                 if (substitutedType == null) return null
                 if (substitutedType != unsubstitutedValueParameter.type || varargElementType != substituteVarargElementType) {
                     wereChanges?.set(0, true)
@@ -302,7 +301,7 @@ abstract class FunctionDescriptorImpl(
     }
 
 
-    override fun substitute(substitutor: TypeSubstitutor): FunctionDescriptor? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): FunctionDescriptor? {
         if (substitutor.isEmpty) {
             return this
         }
@@ -317,11 +316,11 @@ abstract class FunctionDescriptorImpl(
 
 
     override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<out FunctionDescriptor> {
-        return newCopyBuilder(TypeSubstitutor.EMPTY)
+        return newCopyBuilder(DefaultTypeSubstitutor.EMPTY)
     }
 
     @NotNull
-    protected fun newCopyBuilder(substitutor: TypeSubstitutor): CopyConfiguration {
+    protected fun newCopyBuilder(substitutor: DefaultTypeSubstitutor): CopyConfiguration {
         return CopyConfiguration(
             substitutor.substitution,
             containingDeclaration, modality, visibility, kind, valueParameters, returnType!!, null
@@ -407,7 +406,7 @@ abstract class FunctionDescriptorImpl(
         }
 
         // 替换返回类型
-        val substitutedReturnType = substitutor.substitute(configuration.newReturnType, Variance.INVARIANT)
+        val substitutedReturnType = substitutor.substitute(configuration.newReturnType, )
         if (substitutedReturnType == null) {
             return null
         }

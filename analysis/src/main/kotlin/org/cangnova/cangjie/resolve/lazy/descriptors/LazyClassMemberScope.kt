@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ import org.cangnova.cangjie.storage.NullableLazyValue
 import org.cangnova.cangjie.storage.getValue
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import org.cangnova.cangjie.types.checker.NewCangJieTypeCheckerImpl
+import org.cangnova.cangjie.types.checker.DefaultCangJieTypeChecker
 import org.cangnova.cangjie.utils.reportOnDeclarationAs
 
 open class LazyClassMemberScope(
@@ -272,7 +272,7 @@ open class LazyClassMemberScope(
         result: MutableCollection<D>,
         exactDescriptorClass: Class<out D>
     ) {
-        NewCangJieTypeCheckerImpl(cangjieTypeRefiner).overridingUtil.generateOverridesInFunctionGroup(
+        DefaultCangJieTypeChecker(cangjieTypeRefiner).overridingUtil.generateOverridesInFunctionGroup(
             name,
             fromSupertypes,
             ArrayList(result),

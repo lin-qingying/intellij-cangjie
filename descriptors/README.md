@@ -275,7 +275,7 @@ graph TB
 
     subgraph "类型操作层"
         TypeSubstitutor["TypeSubstitutor<br/>类型替换器"]
-        TypeProjection["TypeProjection<br/>类型投影"]
+        TypeArgument["TypeArgument<br/>类型投影"]
         Variance["Variance<br/>方差 (in/out/*)"]
     end
 
@@ -447,7 +447,7 @@ CangJieType (sealed class - 所有类型的基类)
     │
     ├── SimpleType (简单类型)
     │   ├── constructor: TypeConstructor     # 类型构造器
-    │   ├── arguments: List<TypeProjection>  # 类型参数
+    │   ├── arguments: List<TypeArgument>  # 类型参数
     │   ├── isMarkedNullable: Boolean       # 可空标记
     │   └── memberScope: MemberScope         # 成员作用域
     │

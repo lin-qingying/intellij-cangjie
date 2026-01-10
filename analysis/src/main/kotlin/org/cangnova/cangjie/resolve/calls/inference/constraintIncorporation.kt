@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,13 @@
 
 package org.cangnova.cangjie.resolve.calls.inference
 
-import org.cangnova.cangjie.resolve.call.inference.CapturedType
+import org.cangnova.cangjie.types.checker.CapturedType
 import org.cangnova.cangjie.resolve.calls.inference.constraintPosition.CompoundConstraintPosition
 import org.cangnova.cangjie.resolve.calls.inference.constraintPosition.ConstraintPosition
 import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariable
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeProjectionImpl
-import org.cangnova.cangjie.types.TypeSubstitutor
-import org.cangnova.cangjie.types.Variance
+import org.cangnova.cangjie.types.TypeArgumentImpl
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.approximateCapturedTypes
 
 data class ConstraintContext(
@@ -104,28 +103,23 @@ private fun ConstraintSystemBuilderImpl.generateNewBound(bound: TypeBounds.Bound
     if (bound === substitution) return
     // Let's have a bound 'T <=> My<R>', and a substitution 'R <=> Type'.
     // Here <=> means lower_bound, upper_bound or exact_bound constraint.
-    // Then a new bound 'T <=> My<_/in/out Type>' can be generated.
+    // Then a new bound 'T <=> My<Type>' can be generated.
+    // 仓颉语言所有类型参数都是 invariant，因此简化逻辑
 
     val substitutedType = when (substitution.kind) {
         TypeBounds.BoundKind.EXACT_BOUND -> substitution.constrainingType
         TypeBounds.BoundKind.UPPER_BOUND -> CapturedType(
-            TypeProjectionImpl(
-                Variance.INVARIANT,
-                substitution.constrainingType
-            )
+            TypeArgumentImpl(substitution.constrainingType)
         )
 
         TypeBounds.BoundKind.LOWER_BOUND -> CapturedType(
-            TypeProjectionImpl(
-                Variance.INVARIANT,
-                substitution.constrainingType
-            )
+            TypeArgumentImpl(substitution.constrainingType)
         )
     }
 
-    val newTypeProjection = TypeProjectionImpl(substitutedType)
-    val substitutor = TypeSubstitutor.create(mapOf(substitution.typeVariable.type.constructor to newTypeProjection))
-    val type = substitutor.substitute(bound.constrainingType, Variance.INVARIANT) ?: return
+    val newTypeArgument = TypeArgumentImpl(substitutedType)
+    val substitutor = DefaultTypeSubstitutor.create(mapOf(substitution.typeVariable.type.constructor to newTypeArgument))
+    val type = substitutor.substitute(bound.constrainingType) ?: return
 
     val position = CompoundConstraintPosition(bound.position, substitution.position)
 
@@ -147,11 +141,9 @@ private fun ConstraintSystemBuilderImpl.generateNewBound(bound: TypeBounds.Bound
     }
     val approximationBounds = approximateCapturedTypes(type)
 
-    // todo
-    // if we allow non-trivial type projections, we bump into errors like
-    // "Empty intersection for types [MutableCollection<in ('Int'..'Int?')>, MutableCollection<out Any?>, MutableCollection<in Int>]"
+    // 仓颉语言所有类型参数都是 invariant，因此简化投影检查
     fun CangJieType.containsConstrainingTypeWithoutProjection() = this.getNestedArguments().any {
-        it.type.constructor == substitution.constrainingType.constructor && it.projectionKind == Variance.INVARIANT
+        it.type.constructor == substitution.constrainingType.constructor
     }
     if (approximationBounds.upper.containsConstrainingTypeWithoutProjection() && bound.kind != TypeBounds.BoundKind.LOWER_BOUND) {
         addNewBound(approximationBounds.upper, TypeBounds.BoundKind.UPPER_BOUND)

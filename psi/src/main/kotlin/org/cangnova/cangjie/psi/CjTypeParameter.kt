@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.util.PsiTreeUtil
-import org.cangnova.cangjie.types.Variance
 
 /**
  * 仓颉语言类型参数（泛型参数）PSI 元素
@@ -145,16 +144,7 @@ class CjTypeParameter : CjNamedDeclarationStub<CangJieTypeParameterStub> {
             CjStubElementTypes.TYPE_REFERENCE,
         )
 
-    /**
-     * 类型参数的型变（variance）
-     *
-     * 在仓颉语言中，类型参数目前不支持型变声明（如 Kotlin 的 in/out）
-     * 因此总是返回不变（INVARIANT）
-     *
-     * @return 总是返回 Variance.INVARIANT
-     */
-    val variance: Variance
-        get() = Variance.INVARIANT
+
 
     /**
      * 获取类型参数的使用范围

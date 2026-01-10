@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ class LazyTypeAliasDescriptor(
     override val defaultType: SimpleType
         get() = defaultTypeImpl()
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
         if (substitutor.isEmpty) return this
         val substituted = LazyTypeAliasDescriptor(
             storageManager, trace,
@@ -104,10 +104,10 @@ class LazyTypeAliasDescriptor(
         substituted.initialize(
             declaredTypeParameters,
             storageManager.createLazyValue {
-                substitutor.substitute(underlyingType, Variance.INVARIANT)!!.asSimpleType()
+                substitutor.substitute(underlyingType )!!.asSimpleType()
             },
             storageManager.createLazyValue {
-                substitutor.substitute(expandedType, Variance.INVARIANT)!!.asSimpleType()
+                substitutor.substitute(expandedType )!!.asSimpleType()
             }
         )
         return substituted

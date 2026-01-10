@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ object ErrorUtils {
 
     fun createErrorTypeWithArguments(
         kind: ErrorTypeKind,
-        arguments: List<TypeProjection>,
+        arguments: List<TypeArgument>,
         vararg formatParams: String
     ): ErrorType =
         createErrorTypeWithArguments(kind, arguments, createErrorTypeConstructor(kind, *formatParams), *formatParams)
@@ -115,7 +115,7 @@ object ErrorUtils {
 
     fun createErrorTypeWithArguments(
         kind: ErrorTypeKind,
-        arguments: List<TypeProjection>,
+        arguments: List<TypeArgument>,
         typeConstructor: TypeConstructor,
         vararg formatParams: String
     ): ErrorType = ErrorType(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.resolve.calls.results.ResolutionStatus
 import org.cangnova.cangjie.resolve.calls.tower.CandidateApplicability
-import org.cangnova.cangjie.resolve.calls.tower.NewAbstractResolvedCall
+import org.cangnova.cangjie.resolve.calls.tower.AbstractResolvedCall
 import org.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import org.cangnova.cangjie.resolve.getOwnerForEffectiveDispatchReceiverParameter
 import org.cangnova.cangjie.resolve.scopes.receivers.ClassValueReceiver
@@ -43,7 +43,7 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.DefinitelyNonOptionType
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.StubTypeForBuilderInference
-import org.cangnova.cangjie.types.checker.NewCapturedType
+import org.cangnova.cangjie.types.checker.CapturedType
 import org.cangnova.cangjie.types.contains
 
 fun ResolvedCall<*>.getDispatchReceiverWithSmartCast(): ReceiverValue? =
@@ -94,12 +94,12 @@ fun ResolvedCall<*>.hasThisOrNoDispatchReceiver(
     return dispatchReceiverDescriptor == resultingDescriptor.getOwnerForEffectiveDispatchReceiverParameter()
 }
 
-fun ResolvedCall<*>.isNewNotCompleted(): Boolean = if (this is NewAbstractResolvedCall) !isCompleted() else false
+fun ResolvedCall<*>.isNewNotCompleted(): Boolean = if (this is AbstractResolvedCall) !isCompleted() else false
 fun CallableDescriptor.isNotSimpleCall(): Boolean =
     typeParameters.isNotEmpty() ||
             (returnType?.let { type ->
                 type.contains {
-                    it is NewCapturedType ||
+                    it is CapturedType ||
                             it.constructor is IntegerLiteralTypeConstructor ||
                             it is DefinitelyNonOptionType ||
                             it is StubTypeForBuilderInference

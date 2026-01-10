@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,8 +116,8 @@ abstract class PSICangJieCall : CangJieCall {
  * @return 已解析的调用实现,如果未解析则返回 null
  */
 @Suppress("UNCHECKED_CAST")
-fun <D : CallableDescriptor> CangJieCall.getResolvedPsiCangJieCall(trace: BindingTrace): NewResolvedCallImpl<D>? =
-    psiCangJieCall.psiCall.getResolvedCall(trace.bindingContext) as? NewResolvedCallImpl<D>
+fun <D : CallableDescriptor> CangJieCall.getResolvedPsiCangJieCall(trace: BindingTrace): ResolvedCallImpl<D>? =
+    psiCangJieCall.psiCall.getResolvedCall(trace.bindingContext) as? ResolvedCallImpl<D>
 
 
 /**

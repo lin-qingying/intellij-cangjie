@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,8 @@ import org.cangnova.cangjie.resolve.calls.model.CangJieCallComponents
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import org.cangnova.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
-import org.cangnova.cangjie.types.checker.NewCangJieTypeChecker
+import org.cangnova.cangjie.types.checker.CangJieTypeChecker
+
 import org.cangnova.cangjie.types.expressions.match.PatternMatchingTypingVisitor
 
 /**
@@ -214,7 +215,7 @@ class ExpressionTypingComponents {
 
     /** 类型检查器，执行子类型判断和类型等价性检查 */
     @set:Inject
-    lateinit var cangjieTypeChecker: NewCangJieTypeChecker
+    lateinit var cangjieTypeChecker: CangJieTypeChecker
 
     /** 数据流值工厂，创建数据流分析所需的值 */
     @set:Inject

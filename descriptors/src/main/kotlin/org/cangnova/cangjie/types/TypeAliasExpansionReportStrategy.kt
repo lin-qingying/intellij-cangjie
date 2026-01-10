@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ interface TypeAliasExpansionReportStrategy {
     fun conflictingProjection(typeAlias: TypeAliasDescriptor, typeParameter: TypeParameterDescriptor?, substitutedArgument: CangJieType)
     fun recursiveTypeAlias(typeAlias: TypeAliasDescriptor)
     fun boundsViolationInSubstitution(
-        substitutor: TypeSubstitutor,
+        substitutor: DefaultTypeSubstitutor,
         unsubstitutedArgument: CangJieType,
         argument: CangJieType,
         typeParameter: TypeParameterDescriptor
@@ -53,7 +53,7 @@ interface TypeAliasExpansionReportStrategy {
 
         override fun recursiveTypeAlias(typeAlias: TypeAliasDescriptor) {}
         override fun boundsViolationInSubstitution(
-            substitutor: TypeSubstitutor,
+            substitutor: DefaultTypeSubstitutor,
             unsubstitutedArgument: CangJieType,
             argument: CangJieType,
             typeParameter: TypeParameterDescriptor

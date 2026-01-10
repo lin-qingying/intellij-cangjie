@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@
 
 package org.cangnova.cangjie.types
 
-import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
+import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 
 fun substituteAlternativesInPublicType(type: CangJieType): UnwrappedType {
-    val substitutor = object : NewTypeSubstitutor {
+    val substitutor = object : AbstractTypeSubstitutor() {
         override fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType? {
             if (constructor is IntersectionTypeConstructor) {
                 constructor.getAlternativeType()?.let { alternative ->

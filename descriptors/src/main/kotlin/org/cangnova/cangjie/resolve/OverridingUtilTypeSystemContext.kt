@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,27 +50,15 @@ class OverridingUtilTypeSystemContext(
         errorTypesEqualToAnything: Boolean,
         stubTypesEqualToAnything: Boolean
     ): TypeCheckerState {
-        if (customSubtype == null) {
-            return createClassicTypeCheckerState(
-                errorTypesEqualToAnything,
-                stubTypesEqualToAnything,
-                typeSystemContext = this,
-                cangjieTypeRefiner = cangjieTypeRefiner,
-                cangjieTypePreparator = cangjieTypePreparator,
-            )
-        }
-
-        return object : TypeCheckerState(
-            errorTypesEqualToAnything, stubTypesEqualToAnything, allowedTypeVariable = true,
+        // 仓颉语言的 TypeCheckerState 已简化
+        // customSubtype 功能已不再需要，因为新的类型系统已内置所有必要的子类型检查
+        return createClassicTypeCheckerState(
+            errorTypesEqualToAnything,
+            stubTypesEqualToAnything,
             typeSystemContext = this,
-            cangjieTypePreparator, cangjieTypeRefiner,
-        ) {
-            override fun customIsSubtypeOf(subType: CangJieTypeMarker, superType: CangJieTypeMarker): Boolean {
-                require(subType is CangJieType)
-                require(superType is CangJieType)
-                return customSubtype.invoke(subType, superType)
-            }
-        }
+            cangjieTypeRefiner = cangjieTypeRefiner,
+            cangjieTypePreparator = cangjieTypePreparator,
+        )
     }
 
 

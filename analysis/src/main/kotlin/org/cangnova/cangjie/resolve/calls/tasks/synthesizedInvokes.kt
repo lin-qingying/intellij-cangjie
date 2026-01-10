@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ fun createSynthesizedInvokes(functions: Collection<FunctionDescriptor>): Collect
 //            fakeOverride
 //        }
 //
-//        result.add(synthesized.substitute(TypeSubstitutor.create(invoke.dispatchReceiverParameter!!.type)) ?: continue)
+//        result.add(synthesized.substitute(DefaultTypeSubstitutor.create(invoke.dispatchReceiverParameter!!.type)) ?: continue)
 //    }
 
     return result

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.cangnova.cangjie.descriptors.SupertypeLoopChecker
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.storage.StorageManager
-import org.cangnova.cangjie.types.Variance
 
 /**
  * 延迟解析的类型参数描述符基类。
@@ -44,14 +43,14 @@ abstract class AbstractLazyTypeParameterDescriptor(
     containingDeclaration: DeclarationDescriptor,
     annotations: Annotations,
     name: Name,
-    variance: Variance,
+
 //    isReified: Boolean,
     index: Int,
     source: SourceElement,
     supertypeLoopChecker: SupertypeLoopChecker
 ) :
     AbstractTypeParameterDescriptor(
-        storageManager, containingDeclaration, annotations, name, variance, /*isReified, */index, source,
+        storageManager, containingDeclaration, annotations, name,  /*isReified, */index, source,
         supertypeLoopChecker
     ) {
 

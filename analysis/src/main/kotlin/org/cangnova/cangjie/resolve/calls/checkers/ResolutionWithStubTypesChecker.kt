@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,8 @@ package org.cangnova.cangjie.resolve.calls.checkers
 import org.cangnova.cangjie.resolve.calls.CangJieCallResolver
 import org.cangnova.cangjie.resolve.calls.components.CangJieResolutionCallbacks
 import org.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext
-import org.cangnova.cangjie.resolve.calls.model.LambdaCangJieCallArgument
 import org.cangnova.cangjie.resolve.calls.results.OverloadResolutionResults
 import org.cangnova.cangjie.resolve.calls.tower.ImplicitScopeTower
-import org.cangnova.cangjie.resolve.calls.tower.NewAbstractResolvedCall
 import org.cangnova.cangjie.types.UnwrappedType
 
 class ResolutionWithStubTypesChecker(private val cangjieCallResolver: CangJieCallResolver) :
@@ -45,7 +43,7 @@ class ResolutionWithStubTypesChecker(private val cangjieCallResolver: CangJieCal
         // Don't check builder inference lambdas if the entire builder call itself has resolution ambiguity
         if (!overloadResolutionResults.isSingleResult) return
 
-//        val builderResolvedCall = overloadResolutionResults.resultingCall as? NewAbstractResolvedCall<*> ?: return
+//        val builderResolvedCall = overloadResolutionResults.resultingCall as? AbstractResolvedCall<*> ?: return
 
 //        val builderLambdas = (builderResolvedCall.psiCangJieCall.argumentsInParenthesis + builderResolvedCall.psiCangJieCall.externalArgument)
 //            .filterIsInstance<LambdaCangJieCallArgument>()
@@ -57,7 +55,7 @@ class ResolutionWithStubTypesChecker(private val cangjieCallResolver: CangJieCal
 //            for (errorCall in errorCalls) {
 //                val resolutionResult = errorCall.result
 //                if (resolutionResult.isAmbiguity) {
-//                    val firstResolvedCall = resolutionResult.resultingCalls.first() as? NewAbstractResolvedCall<*> ?: continue
+//                    val firstResolvedCall = resolutionResult.resultingCalls.first() as? AbstractResolvedCall<*> ?: continue
 //                    processResolutionAmbiguityError(context, firstResolvedCall, lambda, resolutionCallbacks, expectedType, scopeTower)
 //                }
 //            }

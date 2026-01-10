@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -248,7 +248,7 @@ class DeserializedTypeAliasDescriptor(
     override val defaultType: SimpleType
         get() = defaultTypeImpl
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
         if (substitutor.isEmpty) return this
         val substituted = DeserializedTypeAliasDescriptor(
             storageManager, containingDeclaration, annotations, name, visibility,
@@ -256,8 +256,8 @@ class DeserializedTypeAliasDescriptor(
         )
         substituted.initialize(
             declaredTypeParameters,
-            substitutor.safeSubstitute(underlyingType, Variance.INVARIANT).asSimpleType(),
-            substitutor.safeSubstitute(expandedType, Variance.INVARIANT).asSimpleType()
+            substitutor.safeSubstitute(underlyingType).asSimpleType(),
+            substitutor.safeSubstitute(expandedType).asSimpleType()
         )
 
         return substituted

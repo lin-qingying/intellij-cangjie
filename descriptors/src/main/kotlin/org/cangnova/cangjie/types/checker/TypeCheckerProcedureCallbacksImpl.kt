@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ package org.cangnova.cangjie.types.checker
 
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeConstructor
-import org.cangnova.cangjie.types.TypeProjection
+import org.cangnova.cangjie.types.TypeArgument
 
 internal open class TypeCheckerProcedureCallbacksImpl : TypeCheckingProcedureCallbacks {
     override fun assertEqualTypes(
@@ -48,7 +48,7 @@ internal open class TypeCheckerProcedureCallbacksImpl : TypeCheckingProcedureCal
         return typeCheckingProcedure.isSubtypeOf(subtype, supertype)
     }
 
-    override fun capture(type: CangJieType, typeProjection: TypeProjection): Boolean {
+    override fun capture(type: CangJieType, TypeArgument: TypeArgument): Boolean {
         return false
     }
 

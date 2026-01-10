@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ object CangJieTypeFactory {
     fun simpleNonOptionType(
         attributes: TypeAttributes,
         descriptor: ClassAndEnumDescriptor,
-        arguments: List<TypeProjection>
+        arguments: List<TypeArgument>
     ): SimpleType = simpleType(attributes, descriptor.typeConstructor, arguments, option = false)
 
     /**
@@ -219,7 +219,7 @@ object CangJieTypeFactory {
 
     private fun computeMemberScope(
         constructor: TypeConstructor,
-        arguments: List<TypeProjection>,
+        arguments: List<TypeArgument>,
         cangjieTypeRefiner: CangJieTypeRefiner? = null
     ): MemberScope {
         return when (val descriptor = constructor.declarationDescriptor) {
@@ -262,7 +262,7 @@ object CangJieTypeFactory {
         baseType: SimpleType,
         annotations: TypeAttributes = baseType.attributes,
         constructor: TypeConstructor = baseType.constructor,
-        arguments: List<TypeProjection> = baseType.arguments,
+        arguments: List<TypeArgument> = baseType.arguments,
         option: Boolean = baseType.isOption
     ): SimpleType = simpleType(annotations, constructor, arguments, option)
 
@@ -272,7 +272,7 @@ object CangJieTypeFactory {
     fun simpleType(
         attributes: TypeAttributes,
         constructor: TypeConstructor,
-        arguments: List<TypeProjection>,
+        arguments: List<TypeArgument>,
         option: Boolean,
         cangjieTypeRefiner: CangJieTypeRefiner? = null
     ): SimpleType {
@@ -301,7 +301,7 @@ object CangJieTypeFactory {
     }
 
     @JvmStatic
-    fun TypeAliasDescriptor.computeExpandedType(arguments: List<TypeProjection>): SimpleType {
+    fun TypeAliasDescriptor.computeExpandedType(arguments: List<TypeArgument>): SimpleType {
         return TypeAliasExpander(TypeAliasExpansionReportStrategy.DO_NOTHING, false).expand(
             TypeAliasExpansion.create(null, this, arguments), TypeAttributes.Empty
         )
@@ -311,7 +311,7 @@ object CangJieTypeFactory {
     private fun refineConstructor(
         constructor: TypeConstructor,
         cangjieTypeRefiner: CangJieTypeRefiner,
-        arguments: List<TypeProjection>
+        arguments: List<TypeArgument>
     ): ExpandedTypeOrRefinedConstructor? {
         val basicDescriptor = constructor.declarationDescriptor
         val descriptor = basicDescriptor?.let { cangjieTypeRefiner.refineDescriptor(it) } ?: return null
@@ -328,7 +328,7 @@ object CangJieTypeFactory {
     fun simpleTypeWithNonTrivialMemberScope(
         attributes: TypeAttributes,
         constructor: TypeConstructor,
-        arguments: List<TypeProjection>,
+        arguments: List<TypeArgument>,
         option: Boolean,
         memberScope: MemberScope,
         refinedTypeFactory: RefinedTypeFactory
@@ -345,7 +345,7 @@ object CangJieTypeFactory {
     fun simpleTypeWithNonTrivialMemberScope(
         attributes: TypeAttributes,
         constructor: TypeConstructor,
-        arguments: List<TypeProjection>,
+        arguments: List<TypeArgument>,
         option: Boolean,
         memberScope: MemberScope
     ): SimpleType =
@@ -373,7 +373,7 @@ object CangJieTypeFactory {
     fun enumTypeWithNonTrivialMemberScope(
         attributes: TypeAttributes,
         constructor: EnumTypeConstructor,
-        arguments: List<TypeProjection>,
+        arguments: List<TypeArgument>,
         option: Boolean,
         memberScope: MemberScope
     ): SimpleType =
@@ -424,7 +424,7 @@ private class SimpleTypeWithAttributes(
 
 class VArrayType(
     val size: Int,
-    argument: TypeProjection,
+    argument: TypeArgument,
 
     constructor: TypeConstructor,
     isOption: Boolean,
@@ -448,7 +448,7 @@ class VArrayType(
 
 open class SimpleTypeImpl(
     override val constructor: TypeConstructor,
-    override val arguments: List<TypeProjection>,
+    override val arguments: List<TypeArgument>,
     override val isOption: Boolean,
     override val memberScope: MemberScope,
     protected val refinedTypeFactory: RefinedTypeFactory

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,12 @@ import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.resolve.calls.components.CallableReceiver
 import org.cangnova.cangjie.resolve.calls.components.CallableReferenceAdaptation
 import org.cangnova.cangjie.resolve.calls.components.CangJieResolutionCallbacks
-import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableNewTypeSubstitutor
+import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.calls.tower.ImplicitScopeTower
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.UnwrappedType
 
 
@@ -95,7 +95,7 @@ class CallableReferenceResolutionCandidate(
      * 可调用引用的右侧不包含类型参数，因此此属性始终为 null。
      * 类型参数的推断发生在引用本身的使用点，而不是在被引用的可调用对象上。
      */
-    override val knownTypeParametersResultingSubstitutor: TypeSubstitutor? =
+    override val knownTypeParametersResultingSubstitutor: DefaultTypeSubstitutor? =
         null // 可调用引用的右侧没有类型参数
 
     /**
@@ -144,7 +144,7 @@ class CallableReferenceResolutionCandidate(
      *
      * 此属性由类型推断系统内部设置。
      */
-    var freshVariablesSubstitutor: FreshVariableNewTypeSubstitutor? = null
+    var freshVariablesSubstitutor: FreshVariableTypeSubstitutor? = null
         internal set
 
     /**

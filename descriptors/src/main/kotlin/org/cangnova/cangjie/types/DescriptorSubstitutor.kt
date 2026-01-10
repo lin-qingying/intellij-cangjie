@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.impl.TypeParameterDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.TypeParameterDescriptorImpl.Companion.createForFurtherModification
-import org.cangnova.cangjie.types.TypeSubstitutor.Companion.createChainedSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor.Companion.createChainedSubstitutor
 
 
 object DescriptorSubstitutor {
@@ -37,7 +37,7 @@ object DescriptorSubstitutor {
         originalSubstitution: TypeSubstitution,
         newContainingDeclaration: DeclarationDescriptor,
         result: MutableList<TypeParameterDescriptor >
-    ): TypeSubstitutor {
+    ): DefaultTypeSubstitutor {
         val substitutor = DescriptorSubstitutor.substituteTypeParameters(
             typeParameters, originalSubstitution, newContainingDeclaration, result, null
         )
@@ -51,8 +51,8 @@ object DescriptorSubstitutor {
         newContainingDeclaration: DeclarationDescriptor,
         result: MutableList<TypeParameterDescriptor>,
         wereChanges: BooleanArray?
-    ): TypeSubstitutor? {
-        val mutableSubstitutionMap: MutableMap<TypeConstructor, TypeProjection> =
+    ): DefaultTypeSubstitutor? {
+        val mutableSubstitutionMap: MutableMap<TypeConstructor, TypeArgument> =
             HashMap()
 
         val substitutedMap: MutableMap<TypeParameterDescriptor?, TypeParameterDescriptorImpl> =
@@ -62,14 +62,14 @@ object DescriptorSubstitutor {
             val substituted = createForFurtherModification(
                 newContainingDeclaration,
                 descriptor.annotations,  //                    descriptor.isReified(),
-                descriptor.variance,
+
                 descriptor.name,
                 index++,
                 SourceElement.NO_SOURCE,
                 descriptor.storageManager
             )
 
-            mutableSubstitutionMap.put(descriptor.typeConstructor, TypeProjectionImpl(substituted.defaultType))
+            mutableSubstitutionMap.put(descriptor.typeConstructor, TypeArgumentImpl(substituted.defaultType))
 
             substitutedMap.put(descriptor, substituted)
             result.add(substituted)
@@ -93,7 +93,7 @@ object DescriptorSubstitutor {
                     else
                         nonApproximatingSubstitutor
 
-                val substitutedBound = boundSubstitutor.substitute(upperBound, Variance.INVARIANT)
+                val substitutedBound = boundSubstitutor.substitute(upperBound)
                 if (substitutedBound == null) return null
 
                 if (substitutedBound !== upperBound && wereChanges != null) {

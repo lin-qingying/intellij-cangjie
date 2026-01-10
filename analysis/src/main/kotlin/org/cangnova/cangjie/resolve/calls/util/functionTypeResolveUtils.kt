@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,12 +31,13 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeProjection
+import org.cangnova.cangjie.types.TypeArgument
+
 import org.cangnova.cangjie.types.isBuiltinFunctionalType
 
 
 fun createValueParametersForInvokeInFunctionType(
-    functionDescriptor: FunctionDescriptor, parameterTypes: List<TypeProjection>
+    functionDescriptor: FunctionDescriptor, parameterTypes: List<TypeArgument>
 ): List<ValueParameterDescriptor> {
     return parameterTypes.mapIndexed { i, typeProjection ->
         ValueParameterDescriptorImpl(

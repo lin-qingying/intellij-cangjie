@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import com.google.common.collect.Maps
 import com.intellij.util.SmartList
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.SmartHashSet
-import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.CallableMemberDescriptor.Kind.DELEGATION
@@ -49,8 +48,7 @@ import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.util.isOrOverridesSynthesized
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import org.cangnova.cangjie.types.checker.NewCangJieTypeCheckerImpl
-import org.cangnova.cangjie.utils.isExtension
+import org.cangnova.cangjie.types.checker.DefaultCangJieTypeChecker
 import java.util.*
 
 //覆盖检查分析
@@ -1082,9 +1080,9 @@ class OverrideResolver(
 
             val subReturnType = subDescriptor.returnType!!
 
-            val substitutedSuperReturnType = typeSubstitutor.substitute(superReturnType, Variance.INVARIANT)!!
+            val substitutedSuperReturnType = typeSubstitutor.substitute(superReturnType )!!
 
-            val typeChecker = NewCangJieTypeCheckerImpl(cangjieTypeRefiner)
+            val typeChecker = DefaultCangJieTypeChecker(cangjieTypeRefiner)
             return if (superDescriptor is PropertyDescriptor && superDescriptor.isVar) typeChecker.equalTypes(
                 subReturnType,
                 substitutedSuperReturnType
@@ -1094,14 +1092,14 @@ class OverrideResolver(
 
         private fun prepareTypeSubstitutor(
             superDescriptor: CallableDescriptor, subDescriptor: CallableDescriptor
-        ): TypeSubstitutor? {
+        ): DefaultTypeSubstitutor? {
             val superTypeParameters = superDescriptor.typeParameters
             val subTypeParameters = subDescriptor.typeParameters
             if (subTypeParameters.size != superTypeParameters.size) return null
 
-            val arguments = ArrayList<TypeProjection>(subTypeParameters.size)
+            val arguments = ArrayList<TypeArgument>(subTypeParameters.size)
             for (i in superTypeParameters.indices) {
-                arguments.add(TypeProjectionImpl(subTypeParameters[i].defaultType))
+                arguments.add(TypeArgumentImpl(subTypeParameters[i].defaultType))
             }
 
             return IndexedParametersSubstitution(superTypeParameters, arguments).buildSubstitutor()

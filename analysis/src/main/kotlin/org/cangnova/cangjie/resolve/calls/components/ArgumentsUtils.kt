@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.cangnova.cangjie.resolve.calls.model.ReceiverCangJieCallArgument
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.cangnova.cangjie.types.UnwrappedType
 import org.cangnova.cangjie.types.checker.intersectWrappedTypes
-import org.cangnova.cangjie.types.checker.prepareArgumentTypeRegardingCaptureTypes
 import org.cangnova.cangjie.utils.DFS
 
 /**
@@ -183,9 +182,7 @@ val ReceiverValueWithSmartCastInfo.stableType: UnwrappedType
          * 这样的冗余类型可能会导致约束系统中的矛盾或不精确的解决方案。
          */
         val intersectionType = intersectWrappedTypes(allOriginalTypes)
-
-        // 准备并返回考虑捕获类型的参数类型，如果没有则返回交集类型
-        return prepareArgumentTypeRegardingCaptureTypes(intersectionType) ?: intersectionType
+        return intersectionType
     }
 
 
@@ -221,6 +218,5 @@ internal val ReceiverValueWithSmartCastInfo.unstableType: UnwrappedType?
             return if (isStable) null else receiverValue.type.unwrap()
 
         val intersectionType = intersectWrappedTypes(allOriginalTypes)
-
-        return prepareArgumentTypeRegardingCaptureTypes(intersectionType) ?: intersectionType
+        return intersectionType
     }

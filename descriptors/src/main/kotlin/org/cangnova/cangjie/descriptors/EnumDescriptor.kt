@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.SimpleType
-import org.cangnova.cangjie.types.TypeProjection
+
 import org.cangnova.cangjie.types.TypeSubstitution
 
 /**

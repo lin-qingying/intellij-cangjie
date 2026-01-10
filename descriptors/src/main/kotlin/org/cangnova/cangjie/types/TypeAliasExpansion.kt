@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,10 @@ import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 class TypeAliasExpansion private constructor(
     val parent: TypeAliasExpansion?,
     val descriptor: TypeAliasDescriptor,
-    val arguments: List<TypeProjection>,
-    val mapping: Map<TypeParameterDescriptor, TypeProjection>
+    val arguments: List<TypeArgument>,
+    val mapping: Map<TypeParameterDescriptor, TypeArgument>
 ) {
-    fun getReplacement(constructor: TypeConstructor): TypeProjection? {
+    fun getReplacement(constructor: TypeConstructor): TypeArgument? {
         val descriptor = constructor.declarationDescriptor
         return if (descriptor is TypeParameterDescriptor)
             mapping[descriptor]
@@ -48,7 +48,7 @@ class TypeAliasExpansion private constructor(
         fun create(
             parent: TypeAliasExpansion?,
             typeAliasDescriptor: TypeAliasDescriptor,
-            arguments: List<TypeProjection>
+            arguments: List<TypeArgument>
         ): TypeAliasExpansion {
             val typeParameters = typeAliasDescriptor.typeConstructor.parameters.map { it.original }
             val mappedArguments = typeParameters.zip(arguments).toMap()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,13 @@
 
 package org.cangnova.cangjie.resolve.calls.model
 
-import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import org.cangnova.cangjie.resolve.calls.components.TypeArgumentsToParametersMapper
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
-import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableNewTypeSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
+import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableTypeSubstitutor
+import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintSystemError
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.constants.IntegerValueTypeConstant
@@ -78,11 +77,11 @@ open class MutableResolvedCallAtom(
 
     override var contextReceiversArguments: List<SimpleCangJieCallArgument> = listOf()
     override lateinit var argumentMappingByOriginal: Map<ValueParameterDescriptor, ResolvedCallArgument>
-    override lateinit var freshVariablesSubstitutor: FreshVariableNewTypeSubstitutor
+    override lateinit var freshVariablesSubstitutor: FreshVariableTypeSubstitutor
     override val argumentsWithSuspendConversion: Map<CangJieCallArgument, UnwrappedType>
         get() = suspendAdapterMap ?: emptyMap()
 
-    override lateinit var knownParametersSubstitutor: NewTypeSubstitutor
+    override lateinit var knownParametersSubstitutor: AbstractTypeSubstitutor
 
     fun registerArgumentWithSuspendConversion(argument: CangJieCallArgument, convertedType: UnwrappedType) {
         if (suspendAdapterMap == null)

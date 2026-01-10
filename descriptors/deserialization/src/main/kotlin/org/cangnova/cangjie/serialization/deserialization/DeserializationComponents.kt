@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.DefaultTypeAttributeTranslator
 import org.cangnova.cangjie.types.SimpleType
 import org.cangnova.cangjie.types.TypeAttributeTranslator
-import org.cangnova.cangjie.types.checker.NewCangJieTypeChecker
+import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 
 /**
  * Configuration interface for handling local classifier types during deserialization.
@@ -96,7 +96,7 @@ class DeserializationComponents(
     val additionalClassPartsProvider: AdditionalClassPartsProvider = AdditionalClassPartsProvider.None,
     val platformDependentDeclarationFilter: PlatformDependentDeclarationFilter = PlatformDependentDeclarationFilter.All,
 //    val extensionRegistryLite: ExtensionRegistryLite,
-    val cangjieTypeChecker: NewCangJieTypeChecker = NewCangJieTypeChecker.Default,
+    val cangjieTypeChecker: CangJieTypeChecker = CangJieTypeChecker.DEFAULT,
 //    val samConversionResolver: SamConversionResolver,
     val typeAttributeTranslators: List<TypeAttributeTranslator> = listOf(DefaultTypeAttributeTranslator),
 //    val enumEntriesDeserializationSupport: EnumEntriesDeserializationSupport = EnumEntriesDeserializationSupport.Default,

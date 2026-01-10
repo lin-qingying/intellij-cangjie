@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ package org.cangnova.cangjie.types.model
 import org.cangnova.cangjie.resolve.checkers.EmptyIntersectionTypeChecker
 import org.cangnova.cangjie.resolve.checkers.EmptyIntersectionTypeInfo
 import org.cangnova.cangjie.types.TypeCheckerState
-import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.functions.FunctionTypeKind
 
 import kotlin.contracts.ExperimentalContracts
@@ -67,22 +66,7 @@ interface TypeSubstitutorMarker
 
 interface AnnotationMarker
 
-/**
- * 类型参数变元协变性（仓颉语言用户自定义类型全部不变，内建类型如元组/函数有协变/逆变）
- */
-enum class TypeVariance(val presentation: String) {
-    INV("");
 
-    override fun toString(): String = presentation
-}
-
-//fun Variance.convertVariance(): TypeVariance {
-//    return when (this) {
-//        Variance.INVARIANT -> TypeVariance.INV
-//        Variance.IN_VARIANCE -> TypeVariance.IN
-//        Variance.OUT_VARIANCE -> TypeVariance.OUT
-//    }
-//}
 
 interface TypeSystemOptimizationContext {
     /**
@@ -115,7 +99,7 @@ interface TypeSystemTypeFactoryContext : TypeSystemBuiltInsContext {
         attributes: List<AnnotationMarker>? = null
     ): SimpleTypeMarker
 
-    fun createTypeArgument(type: CangJieTypeMarker, variance: TypeVariance): TypeArgumentMarker
+    fun createTypeArgument(type: CangJieTypeMarker ): TypeArgumentMarker
     fun createErrorType(debugName: String, delegatedType: SimpleTypeMarker?): SimpleTypeMarker
     fun createUninferredType(constructor: TypeConstructorMarker): CangJieTypeMarker
 }
@@ -343,7 +327,6 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun CangJieTypeMarker.isOptionType(): Boolean
     val TypeVariableTypeConstructorMarker.typeParameter: TypeParameterMarker?
     fun TypeParameterMarker.hasRecursiveBounds(selfConstructor: TypeConstructorMarker? = null): Boolean
-    fun TypeParameterMarker.getVariance(): TypeVariance
     fun CangJieTypeMarker.isDefinitelyNonOptionType(): Boolean = asSimpleType()?.asDefinitelyNonOptionType() != null
 
 
@@ -363,7 +346,6 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun CapturedTypeMarker.isOldCapturedType(): Boolean
     fun CapturedTypeMarker.typeConstructor(): CapturedTypeConstructorMarker
     fun CapturedTypeMarker.captureStatus(): CaptureStatus
-    fun CapturedTypeMarker.isProjectionNonOption(): Boolean
     fun CapturedTypeConstructorMarker.projection(): TypeArgumentMarker
     fun CangJieTypeMarker.argumentsCount(): Int
     fun CangJieTypeMarker.getArgument(index: Int): TypeArgumentMarker
@@ -379,7 +361,6 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun TypeConstructorMarker.unwrapStubTypeVariableConstructor(): TypeConstructorMarker
     fun CangJieTypeMarker.asTypeArgument(): TypeArgumentMarker
     fun CapturedTypeMarker.lowerType(): CangJieTypeMarker?
-    fun TypeArgumentMarker.getVariance(): TypeVariance
     fun TypeArgumentMarker.getType(): CangJieTypeMarker
     fun TypeArgumentMarker.replaceType(newType: CangJieTypeMarker): TypeArgumentMarker
     fun TypeConstructorMarker.parametersCount(): Int
@@ -521,9 +502,3 @@ fun requireOrDescribe(condition: Boolean, value: Any?) {
 @RequiresOptIn("This kinds of type is obsolete and should not be used until you really need it")
 annotation class ObsoleteTypeKind
 
-
-fun Variance.convertVariance(): TypeVariance {
-    return when (this) {
-        Variance.INVARIANT -> TypeVariance.INV
-    }
-}

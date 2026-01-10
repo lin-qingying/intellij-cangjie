@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.resolve.scopes.receivers
 
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
-import org.cangnova.cangjie.types.checker.prepareArgumentTypeRegardingCaptureTypes
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.CangJieType
 
@@ -124,30 +123,4 @@ class ReceiverValueWithSmartCastInfo(
     fun hasTypesFromSmartCasts() = typesFromSmartCasts.isNotEmpty()
 
     override fun toString() = receiverValue.toString()
-}
-
-
-/**
- * 准备接收器以处理捕获类型
- *
- * 这个扩展函数用于处理泛型类型参数的捕获转换。
- * 捕获转换是 Java 泛型系统中的一个概念，用于处理通配符类型。
- *
- * 如果接收器的类型需要进行捕获转换，此函数会创建一个新的
- * [ReceiverValueWithSmartCastInfo] 实例，其中接收器的类型被替换为捕获后的类型。
- *
- * @return 如果需要捕获转换，返回新的 ReceiverValueWithSmartCastInfo；
- *         否则返回当前实例
- *
- * @see ReceiverValueWithSmartCastInfo
- */
-fun ReceiverValueWithSmartCastInfo.prepareReceiverRegardingCaptureTypes(): ReceiverValueWithSmartCastInfo {
-    val preparedBaseType = prepareArgumentTypeRegardingCaptureTypes(receiverValue.type.unwrap()) ?: return this
-
-    return ReceiverValueWithSmartCastInfo(
-        receiverValue.replaceType(preparedBaseType),
-        typesFromSmartCasts,
-        isStable,
-        receiverValue.type
-    )
 }

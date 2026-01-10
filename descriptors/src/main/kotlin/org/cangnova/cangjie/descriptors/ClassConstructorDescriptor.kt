@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.descriptors
 
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 /**
  * 表示类构造函数的描述符接口，扩展自 ConstructorDescriptor。
@@ -48,7 +48,7 @@ interface ClassConstructorDescriptor : ConstructorDescriptor {
      * @param substitutor 类型替换器
      * @return 替换后的 ClassConstructorDescriptor（若替换不可行可返回 null）
      */
-    override fun substitute(substitutor: TypeSubstitutor): ClassConstructorDescriptor?
+    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassConstructorDescriptor?
 
     /**
      * 复制当前构造函数描述符并可修改其属性（拥有者、模态性、可见性、成员种类以及是否复制覆盖关系）。

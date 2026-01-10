@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,6 @@ import org.cangnova.cangjie.resolve.calls.util.CallMaker
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeConstructor
-import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.createFunctionType
 import org.cangnova.cangjie.types.expressions.CangJieTypeInfo
@@ -103,7 +102,6 @@ class UnsafeExpressionResolver(
             annotations,
 
             name,
-            Variance.INVARIANT,
             index,
             SourceElement.NO_SOURCE,
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.SpecialNames
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 
 open class ClassConstructorDescriptorImpl protected constructor(
@@ -126,7 +126,7 @@ open class ClassConstructorDescriptorImpl protected constructor(
     override val original: ClassConstructorDescriptor
         get() = super.original as ClassConstructorDescriptor
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassConstructorDescriptor? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassConstructorDescriptor? {
         return super.substitute(substitutor) as ClassConstructorDescriptor
     }
 

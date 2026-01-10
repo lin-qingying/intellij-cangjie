@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,89 +28,6 @@ import org.cangnova.cangjie.container.DefaultImplementation
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
 
-/**
- * 仓颉类型准备器（旧版）
- *
- * 用于在类型检查前对类型进行预处理和转换。
- * 此类已被 CangJieTypePreparator 替代，保留用于兼容性。
- *
- * 主要功能：
- * - 转换捕获类型
- * - 处理交集类型
- * - 处理整数值类型
- * - 保留类型增强信息
- */
-@DefaultImplementation(impl = CangJiePreparator.Default::class)
-abstract class CangJiePreparator : AbstractTypePreparator() {
-    /**
-     * 将简单类型转换为新的类型表示
-     *
-     * 目前大部分转换逻辑已注释，直接返回原类型
-     */
-    private fun transformToNewType(type: SimpleType): SimpleType {
-//        when (val constructor = type.constructor) {
-        // Type itself can be just SimpleTypeImpl, not CapturedType.
-//            is CapturedTypeConstructorImpl -> {
-//                val lowerType = constructor.projection.takeIf { it.projectionKind == Variance.IN_VARIANCE }?.type?.unwrap()
-//
-//                // it is incorrect calculate this type directly because of recursive star projections
-//                if (constructor.newTypeConstructor == null) {
-//                    constructor.newTypeConstructor =
-//                        NewCapturedTypeConstructor(constructor.projection, constructor.supertypes.map { it.unwrap() })
-//                }
-//                return NewCapturedType(
-//                    CaptureStatus.FOR_SUBTYPING, constructor.newTypeConstructor!!,
-//                    lowerType, type.attributes, type.isMarkedOption
-//                )
-//            }
-//
-//            is IntegerValueTypeConstructor -> {
-//                val newConstructor =
-//                    IntersectionTypeConstructor(constructor.supertypes.map { TypeUtils.makeOptionalAsSpecified(it, type.isMarkedOption) })
-//                return CangJieFactory.simpleTypeWithNonTrivialMemberScope(
-//                    type.attributes,
-//                    newConstructor,
-//                    listOf(),
-//                    false,
-//                    type.memberScope
-//                )
-//            }
-//
-//            is IntersectionTypeConstructor -> if (type.isMarkedOption) {
-//                val newConstructor = constructor.transformComponents(transform = { it.makeOption() }) ?: constructor
-//                return newConstructor.createType()
-//
-//            }
-//        }
-
-        return type
-    }
-
-    /**
-     * 准备类型用于类型检查
-     *
-     * 对简单类型和灵活类型分别进行转换，并保留类型增强信息
-     */
-    override fun prepareType(type: CangJieTypeMarker): UnwrappedType {
-        require(type is CangJieType)
-        val unwrappedType = type.unwrap()
-        return when (unwrappedType) {
-            is SimpleType -> transformToNewType(unwrappedType)
-            is FlexibleType -> {
-                val newLower = transformToNewType(unwrappedType.lowerBound)
-                val newUpper = transformToNewType(unwrappedType.upperBound)
-                if (newLower !== unwrappedType.lowerBound || newUpper !== unwrappedType.upperBound) {
-                    CangJieTypeFactory.flexibleType(newLower, newUpper)
-                } else {
-                    unwrappedType
-                }
-            }
-        }.inheritEnhancement(unwrappedType, ::prepareType)
-    }
-
-    /** 默认实现 */
-    object Default : CangJiePreparator()
-}
 
 /**
  * 仓颉类型准备器
@@ -141,14 +58,14 @@ abstract class CangJieTypePreparator : AbstractTypePreparator() {
             // 类型本身可能只是 SimpleTypeImpl，而不是 CapturedType
 //            is CapturedTypeConstructorImpl -> {
 //                val lowerType =
-//                    constructor.projection.takeIf { it.projectionKind == Variance.IN_VARIANCE }?.type?.unwrap()
+//                    constructor.argument.takeIf { it.projectionKind == Variance.IN_VARIANCE }?.type?.unwrap()
 //
 //                // 由于递归星投影，直接计算此类型是不正确的
 //                if (constructor.newTypeConstructor == null) {
 //                    constructor.newTypeConstructor =
-//                        NewCapturedTypeConstructor(constructor.projection, constructor.supertypes.map { it.unwrap() })
+//                        CapturedTypeConstructor(constructor.argument, constructor.supertypes.map { it.unwrap() })
 //                }
-//                return NewCapturedType(
+//                return CapturedType(
 //                    CaptureStatus.FOR_SUBTYPING, constructor.newTypeConstructor!!,
 //                    lowerType, type.attributes, type.isMarkedOption
 //                )

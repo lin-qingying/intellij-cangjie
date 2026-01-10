@@ -2,6 +2,24 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚠️ 严格禁止的操作
+
+**绝对禁止使用任何 Git 回滚命令:**
+
+- 严禁执行 `git reset`
+- 严禁执行 `git checkout -- <file>`
+- 严禁执行 `git restore`
+- 严禁执行任何会撤销用户手动修改的 Git 命令
+
+**原因**: 用户可能在 Claude 工作期间手动编辑文件,任何 Git 回滚操作都会导致用户的工作丢失。
+
+**如果发现文件被修改**: 这些修改可能来自:
+- 用户的手动编辑 (应该保留)
+- IDE 的自动格式化/Linter (应该保留)
+- 其他工具的自动处理 (应该保留)
+
+**正确做法**: 永远不要试图"恢复"文件到之前的状态,而是在当前状态的基础上继续工作。
+
 ## 项目概述
 
 这是一个为 IntelliJ 平台开发的仓颉语言插件，采用多模块 Gradle 架构。项目包含 22 个子模块，从 PSI 解析到调试器支持的完整语言工具链。

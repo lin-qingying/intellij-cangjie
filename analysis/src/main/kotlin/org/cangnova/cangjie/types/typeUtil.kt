@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,35 +59,32 @@ fun CangJieType.isResolvableInScope(
     return scope != null && scope.findClassifier(descriptor.name, NoLookupLocation.FROM_IDE) == descriptor
 }
 
-private fun TypeProjection.fixTypeProjection(
+private fun TypeArgument.fixTypeProjection(
     scope: LexicalScope?,
     checkTypeParameters: Boolean,
     allowIntersections: Boolean,
 
-    ): TypeProjection? {
+    ): TypeArgument? {
     if (!type.isResolvableInScope(scope, checkTypeParameters, allowIntersections)) return null
     if (type.arguments.isEmpty()) return this
 
-    val resolvableArgs = type.arguments.filterTo(SmartSet.create()) { typeProjection ->
-        typeProjection.type.isResolvableInScope(scope, checkTypeParameters, allowIntersections)
+    val resolvableArgs = type.arguments.filterTo(SmartSet.create()) { typeArgument ->
+        typeArgument.type.isResolvableInScope(scope, checkTypeParameters, allowIntersections)
     }
 
     if (resolvableArgs.containsAll(type.arguments)) {
-
-        type.asTypeProjection()
+        return this
     }
 
 
     val newArguments = (type.arguments zip type.constructor.parameters).map { (arg, param) ->
         when {
             arg in resolvableArgs -> arg
-
-
-            else -> return type.asTypeProjection()
+            else -> return null
         }
     }
 
-    return type.replace(newArguments).asTypeProjection()
+    return type.replace(newArguments).asTypeArgument()
 }
 
 fun CangJieType.getResolvableApproximations(
@@ -98,7 +95,7 @@ fun CangJieType.getResolvableApproximations(
     return (listOf(this) + TypeUtils.getAllSupertypes(this))
         .asSequence()
         .mapNotNull {
-            it.asTypeProjection()
+            it.asTypeArgument()
                 .fixTypeProjection(scope, checkTypeParameters, allowIntersections)
                 ?.type
         }

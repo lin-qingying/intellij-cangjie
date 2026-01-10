@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,16 +32,17 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.storage.LockBasedStorageManager
 import org.cangnova.cangjie.types.ErrorUtils
-import org.cangnova.cangjie.types.TypeProjection
+import org.cangnova.cangjie.types.TypeArgument
+
 import org.cangnova.cangjie.types.TypeSubstitution
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 class ErrorClassDescriptor(name: Name = Name.ERROR_NAME) : ClassDescriptorImpl(
     ErrorUtils.errorModule, name, Modality.OPEN, ClassKind.CLASS, emptyList(), SourceElement.NO_SOURCE, false, LockBasedStorageManager.NO_LOCKS
 
 ) {
-    override fun getMemberScope(typeArguments: List<TypeProjection>, cangjieTypeRefiner: CangJieTypeRefiner): MemberScope =
+    override fun getMemberScope(typeArguments: List<TypeArgument>, cangjieTypeRefiner: CangJieTypeRefiner): MemberScope =
         ErrorUtils.createErrorScope(ErrorScopeKind.SCOPE_FOR_ERROR_CLASS, name.toString(), typeArguments.toString())
 
     override fun getMemberScope(typeSubstitution: TypeSubstitution, cangjieTypeRefiner: CangJieTypeRefiner): MemberScope =
@@ -71,7 +72,7 @@ class ErrorClassDescriptor(name: Name = Name.ERROR_NAME) : ClassDescriptorImpl(
     }
 
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? = this
+    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassifierDescriptorWithTypeParameters? = this
     override fun toString(): String = name.asString()
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,12 +32,12 @@ import org.cangnova.cangjie.resolve.calls.components.TypeArgumentsToParametersMa
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.extractInputOutputTypesFromCallableReferenceExpectedType
-import org.cangnova.cangjie.resolve.calls.inference.NewConstraintSystem
-import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableNewTypeSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.model.NewConstraintError
-import org.cangnova.cangjie.resolve.calls.inference.model.NewConstraintMismatch
-import org.cangnova.cangjie.resolve.calls.inference.model.NewConstraintWarning
+import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystem
+import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableTypeSubstitutor
+import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
+import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintError
+import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintMismatch
+import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintWarning
 import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariableForLambdaReturnType
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.constants.IntegerValueTypeConstant
@@ -87,7 +87,7 @@ data class CandidateWithDiagnostics(val candidate: ResolutionCandidate, val diag
 
 class AllCandidatesResolutionResult(
     val allCandidates: Collection<CandidateWithDiagnostics>,
-    constraintSystem: NewConstraintSystem
+    constraintSystem: ConstraintSystem
 ) : CallResolutionResult(null, emptyList(), constraintSystem)
 
 sealed interface ResolvedCallableReferenceAtom
@@ -101,10 +101,10 @@ abstract class ResolvedCallAtom : ResolvedAtom() {
     abstract val typeArgumentMappingByOriginal: TypeArgumentsToParametersMapper.TypeArgumentsMapping
 
     abstract val argumentMappingByOriginal: Map<ValueParameterDescriptor, ResolvedCallArgument>
-    abstract val freshVariablesSubstitutor: FreshVariableNewTypeSubstitutor
+    abstract val freshVariablesSubstitutor: FreshVariableTypeSubstitutor
     abstract val argumentsWithSuspendConversion: Map<CangJieCallArgument, UnwrappedType>
 
-    abstract val knownParametersSubstitutor: NewTypeSubstitutor
+    abstract val knownParametersSubstitutor: AbstractTypeSubstitutor
 
     abstract val argumentsWithConversion: Map<CangJieCallArgument, SamConversionDescription>
 
@@ -124,26 +124,26 @@ class SamConversionDescription(
 sealed class CallResolutionResult(
     resultCallAtom: ResolvedCallAtom?,
     val diagnostics: List<CangJieCallDiagnostic>,
-    val constraintSystem: NewConstraintSystem
+    val constraintSystem: ConstraintSystem
 ) : ResolvedAtom() {
     override val atom: ResolutionAtom? get() = null
 
     override fun toString(): String = "diagnostics: (${diagnostics.joinToString()})"
 
-    fun completedDiagnostic(substitutor: NewTypeSubstitutor): List<CangJieCallDiagnostic> {
+    fun completedDiagnostic(substitutor: AbstractTypeSubstitutor): List<CangJieCallDiagnostic> {
         return diagnostics.map {
             val error = it.constraintSystemError ?: return@map it
-            if (error !is NewConstraintMismatch) return@map it
+            if (error !is ConstraintMismatch) return@map it
             val lowerType = (error.lowerType as? CangJieType)?.unwrap() ?: return@map it
             val newLowerType = substitutor.safeSubstitute(lowerType.unCapture())
             when (error) {
-                is NewConstraintError -> NewConstraintError(
+                is ConstraintError -> ConstraintError(
                     newLowerType,
                     error.upperType,
                     error.position
                 ).asDiagnostic()
 
-                is NewConstraintWarning -> NewConstraintWarning(
+                is ConstraintWarning -> ConstraintWarning(
                     newLowerType,
                     error.upperType,
                     error.position
@@ -156,13 +156,13 @@ sealed class CallResolutionResult(
 open class SingleCallResolutionResult(
     val resultCallAtom: ResolvedCallAtom,
     diagnostics: List<CangJieCallDiagnostic>,
-    constraintSystem: NewConstraintSystem
+    constraintSystem: ConstraintSystem
 ) : CallResolutionResult(resultCallAtom, diagnostics, constraintSystem)
 
 class PartialCallResolutionResult(
     resultCallAtom: ResolvedCallAtom,
     diagnostics: List<CangJieCallDiagnostic>,
-    constraintSystem: NewConstraintSystem,
+    constraintSystem: ConstraintSystem,
     val forwardToInferenceSession: Boolean = false
 ) : SingleCallResolutionResult(resultCallAtom, diagnostics, constraintSystem)
 
@@ -188,13 +188,13 @@ sealed interface CallableReferenceResolutionAtom : ResolutionAtom {
 class ErrorCallResolutionResult(
     resultCallAtom: ResolvedCallAtom,
     diagnostics: List<CangJieCallDiagnostic>,
-    constraintSystem: NewConstraintSystem
+    constraintSystem: ConstraintSystem
 ) : SingleCallResolutionResult(resultCallAtom, diagnostics, constraintSystem)
 
 class CompletedCallResolutionResult(
     resultCallAtom: ResolvedCallAtom,
     diagnostics: List<CangJieCallDiagnostic>,
-    constraintSystem: NewConstraintSystem
+    constraintSystem: ConstraintSystem
 ) : SingleCallResolutionResult(resultCallAtom, diagnostics, constraintSystem)
 
 abstract class ResolvedCallableReferenceArgumentAtom(

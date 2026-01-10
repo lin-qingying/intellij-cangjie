@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import org.cangnova.cangjie.resolve.calls.tasks.*
 import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategyImpl.Companion.create
-import org.cangnova.cangjie.resolve.calls.tower.NewResolutionOldInference
+import org.cangnova.cangjie.resolve.calls.tower.ResolutionOldInference
 import org.cangnova.cangjie.resolve.calls.tower.PSICallResolver
 import org.cangnova.cangjie.resolve.calls.util.*
 import org.cangnova.cangjie.resolve.calls.util.CallMaker.makeCall
@@ -89,7 +89,7 @@ import org.cangnova.cangjie.utils.PerformanceCounter.Companion.create
  * 解析流程：
  * 1. 创建调用上下文 (BasicCallResolutionContext)
  * 2. 收集候选描述符 (通过 scope 或显式提供)
- * 3. 执行重载解析 (通过 NewResolutionOldInference 或 PSICallResolver)
+ * 3. 执行重载解析 (通过 ResolutionOldInference 或 PSICallResolver)
  * 4. 应用类型推断和约束求解
  * 5. 返回解析结果 (OverloadResolutionResults)
  *
@@ -112,7 +112,7 @@ import org.cangnova.cangjie.utils.PerformanceCounter.Companion.create
  *
  * @see BasicCallResolutionContext
  * @see OverloadResolutionResults
- * @see NewResolutionOldInference
+ * @see ResolutionOldInference
  * @see PSICallResolver
  */
 class CallResolver(
@@ -127,7 +127,7 @@ class CallResolver(
     @set:Inject
       lateinit var argumentTypeResolver: ArgumentTypeResolver
     @set:Inject
-      lateinit var newResolutionOldInference: NewResolutionOldInference
+      lateinit var newResolutionOldInference: ResolutionOldInference
     @set:Inject
       lateinit var psiCallResolver: PSICallResolver
 
@@ -153,7 +153,7 @@ class CallResolver(
         context: BasicCallResolutionContext,
         name: Name,
         referenceExpression: CjReferenceExpression,
-        kind: NewResolutionOldInference.ResolutionKind
+        kind: ResolutionOldInference.ResolutionKind
     ): OverloadResolutionResults<D> {
         // 创建一个追踪策略，用于在解析过程中记录和追踪信息
         val tracing = create(referenceExpression, context.call)
@@ -187,7 +187,7 @@ class CallResolver(
             BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS)
         return computeTasksAndResolveCall(
             callResolutionContext, name, functionReference,
-            NewResolutionOldInference.ResolutionKind.Function
+            ResolutionOldInference.ResolutionKind.Function
         )
     }
 
@@ -215,7 +215,7 @@ class CallResolver(
             callResolutionContext,
             name,
             tracing,
-            NewResolutionOldInference.ResolutionKind.Function
+            ResolutionOldInference.ResolutionKind.Function
         )
     }
 
@@ -250,7 +250,7 @@ class CallResolver(
             val candidates = setOf(candidate)
 
             val resolutionTask = ResolutionTask(
-                NewResolutionOldInference.ResolutionKind.GivenCandidates(), null, candidates
+                ResolutionOldInference.ResolutionKind.GivenCandidates(), null, candidates
             )
             doResolveCallOrGetCachedResults(basicCallResolutionContext, resolutionTask, tracing)
         }
@@ -513,7 +513,7 @@ class CallResolver(
     ): OverloadResolutionResults<D> {
         return callResolvePerfCounter.time {
             val resolutionTask = ResolutionTask(
-                NewResolutionOldInference.ResolutionKind.GivenCandidates(), null, candidates
+                ResolutionOldInference.ResolutionKind.GivenCandidates(), null, candidates
             )
             doResolveCallOrGetCachedResults(context, resolutionTask, tracing)
         }
@@ -550,7 +550,7 @@ class CallResolver(
         tcache: TemporaryTraceAndCache,
 
         context: BasicCallResolutionContext,
-        kind: NewResolutionOldInference.ResolutionKind = NewResolutionOldInference.ResolutionKind.EnumConstructor
+        kind: ResolutionOldInference.ResolutionKind = ResolutionOldInference.ResolutionKind.EnumConstructor
     ): OverloadResolutionResults<out CallableDescriptor> {
         checkCanceled()
 
@@ -618,7 +618,7 @@ class CallResolver(
                 context.call.callElement as CjArrayAccessExpression
             return computeTasksAndResolveCall(
                 context, name, arrayAccessExpression,
-                NewResolutionOldInference.ResolutionKind.Function
+                ResolutionOldInference.ResolutionKind.Function
             )
         }
         when (val calleeExpression = context.call.calleeExpression) {
@@ -626,12 +626,12 @@ class CallResolver(
                 if (context.call is CallMaker.CallImpl) {
                     return computeTasksAndResolveCall(
                         context, calleeExpression.referencedNameAsName, calleeExpression,
-                        NewResolutionOldInference.ResolutionKind.CallableReference
+                        ResolutionOldInference.ResolutionKind.CallableReference
                     )
                 }
                 return computeTasksAndResolveCall(
                     context, calleeExpression.referencedNameAsName, calleeExpression,
-                    NewResolutionOldInference.ResolutionKind.Function
+                    ResolutionOldInference.ResolutionKind.Function
                 )
             }
 
@@ -694,7 +694,7 @@ class CallResolver(
     ): OverloadResolutionResults<FunctionDescriptor> {
         return computeTasksAndResolveCall(
             context, OperatorNameConventions.INVOKE, tracing,
-            NewResolutionOldInference.ResolutionKind.Invoke
+            ResolutionOldInference.ResolutionKind.Invoke
         )
     }
 
@@ -854,7 +854,7 @@ class CallResolver(
         context: BasicCallResolutionContext,
         name: Name,
         tracing: TracingStrategy,
-        kind: NewResolutionOldInference.ResolutionKind
+        kind: ResolutionOldInference.ResolutionKind
     ): OverloadResolutionResults<D> {
         // 通过性能计数器来记录解析调用的时间
         return callResolvePerfCounter.time {
@@ -898,7 +898,7 @@ class CallResolver(
         }
 
         // 如果启用新推断功能且解析种类为给定候选，则执行针对给定候选的解析和推断过程
-        if ( resolutionKind is NewResolutionOldInference.ResolutionKind.GivenCandidates) {
+        if ( resolutionKind is ResolutionOldInference.ResolutionKind.GivenCandidates) {
             checkNotNull(resolutionTask.givenCandidates)
             context.trace.recordScope(context.scope, context.call.calleeExpression)
             return psiCallResolver.runResolutionAndInferenceForGivenCandidates(
@@ -951,7 +951,7 @@ class CallResolver(
         }
 
         val result: OverloadResolutionResultsImpl<D> =
-            if (resolutionTask.resolutionKind !is NewResolutionOldInference.ResolutionKind.GivenCandidates) {
+            if (resolutionTask.resolutionKind !is ResolutionOldInference.ResolutionKind.GivenCandidates) {
 
                 newResolutionOldInference.runResolution(
                     context,
@@ -1010,7 +1010,7 @@ class CallResolver(
         val referencedName = nameExpression.referencedNameAsName
         return computeTasksAndResolveCall(
             context, referencedName, nameExpression,
-            NewResolutionOldInference.ResolutionKind.Variable
+            ResolutionOldInference.ResolutionKind.Variable
         )
     }
 
@@ -1027,7 +1027,7 @@ class CallResolver(
      * @property givenCandidates 预先给定的候选列表，可为 null（用于按名称查找的情况）
      */
     private class ResolutionTask<D : CallableDescriptor>(
-        val resolutionKind: NewResolutionOldInference.ResolutionKind,
+        val resolutionKind: ResolutionOldInference.ResolutionKind,
         val name: Name?,  //                ,
         val givenCandidates: Collection<OldResolutionCandidate<D>>?
     )

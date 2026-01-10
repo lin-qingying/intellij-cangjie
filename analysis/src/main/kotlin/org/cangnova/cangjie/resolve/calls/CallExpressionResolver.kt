@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import org.cangnova.cangjie.resolve.binding.recordScope
 import org.cangnova.cangjie.resolve.calls.context.*
 import org.cangnova.cangjie.resolve.calls.model.DataFlowInfoForArgumentsImpl
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
-import org.cangnova.cangjie.resolve.calls.model.ResolvedCallImpl
+import org.cangnova.cangjie.resolve.calls.model.MutableResolvedCallImpl
 import org.cangnova.cangjie.resolve.calls.results.OverloadResolutionResults
 import org.cangnova.cangjie.resolve.calls.results.OverloadResolutionResultsUtil
 import org.cangnova.cangjie.resolve.calls.results.ResolutionStatus
@@ -75,7 +75,7 @@ import org.cangnova.cangjie.types.toFunctionType
 //A|B
 //}
 //func a() :Unit{
-//    //这里也是一样，ab是枚举，但是B是枚举的一个构造器，ab.B可以使用，单独使用B也是可以的  ，这里错误的报告了 [UNRESOLVED_REFERENCE] Reference not found: REFERENCE_EXPRESSION [OVERLOAD_RESOLUTION_AMBIGUITY] Overload resolution ambiguity:[org.cangnova.cangjie.resolve.calls.tower.NewResolvedCallImpl@4938fe68, org.cangnova.cangjie.resolve.calls.tower.NewResolvedCallImpl@53e36480]
+//    //这里也是一样，ab是枚举，但是B是枚举的一个构造器，ab.B可以使用，单独使用B也是可以的  ，这里错误的报告了 [UNRESOLVED_REFERENCE] Reference not found: REFERENCE_EXPRESSION [OVERLOAD_RESOLUTION_AMBIGUITY] Overload resolution ambiguity:[org.cangnova.cangjie.resolve.calls.tower.MutableResolvedCallImpl@4938fe68, org.cangnova.cangjie.resolve.calls.tower.MutableResolvedCallImpl@53e36480]
 ////枚举的表达式解析目前实现没有，需要实现
 //    let a:ab = ab.B
 //    let a1:ab = ab()
@@ -249,7 +249,7 @@ class CallExpressionResolver(
 
                 // 将属性调用标记为不成功，以避免异常
                 callExpression.getResolvedCall(temporaryForVariable.trace.bindingContext).let {
-                    (it as? ResolvedCallImpl)?.addStatus(ResolutionStatus.OTHER_ERROR)
+                    (it as? MutableResolvedCallImpl)?.addStatus(ResolutionStatus.OTHER_ERROR)
                 }
 
                 temporaryForVariable.commit()

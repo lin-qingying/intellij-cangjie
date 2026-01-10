@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,20 +26,20 @@ package org.cangnova.cangjie.types
 
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import org.cangnova.cangjie.types.checker.NewTypeVariableConstructor
+import org.cangnova.cangjie.types.checker.TypeVariableConstructor
 import org.cangnova.cangjie.types.error.ErrorScopeKind
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.model.StubTypeMarker
 
 
 abstract class AbstractStubType(
-    val originalTypeVariable: NewTypeVariableConstructor,
+    val originalTypeVariable: TypeVariableConstructor,
     override val isOption: Boolean
 ) : SimpleType() {
     override val memberScope: MemberScope =
         ErrorUtils.createErrorScope(ErrorScopeKind.STUB_TYPE_SCOPE, originalTypeVariable.toString())
 
-    override val arguments: List<TypeProjection>
+    override val arguments: List<TypeArgument>
         get() = emptyList()
 
     override val attributes: TypeAttributes
@@ -60,13 +60,13 @@ abstract class AbstractStubType(
     abstract fun materialize(newOption: Boolean): AbstractStubType
 
     companion object {
-        fun createConstructor(originalTypeVariable: NewTypeVariableConstructor) =
+        fun createConstructor(originalTypeVariable: TypeVariableConstructor) =
             ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.STUB_TYPE, originalTypeVariable.toString())
     }
 }
 
 class StubTypeForTypeVariablesInSubtyping(
-    originalTypeVariable: NewTypeVariableConstructor,
+    originalTypeVariable: TypeVariableConstructor,
     isOption: Boolean,
     override val constructor: TypeConstructor = createConstructor(originalTypeVariable)
 ) : AbstractStubType(originalTypeVariable, isOption), StubTypeMarker {
@@ -80,7 +80,7 @@ class StubTypeForTypeVariablesInSubtyping(
 
 
 class StubTypeForBuilderInference(
-    originalTypeVariable: NewTypeVariableConstructor,
+    originalTypeVariable: TypeVariableConstructor,
     isOption: Boolean,
     override val constructor: TypeConstructor = createConstructor(originalTypeVariable)
 ) : AbstractStubType(originalTypeVariable, isOption), StubTypeMarker {

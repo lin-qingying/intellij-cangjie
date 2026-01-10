@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,13 +61,14 @@ import org.cangnova.cangjie.resolve.lazy.descriptors.LazyAnnotations
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyAnnotationsContextImpl
 import org.cangnova.cangjie.storage.*
 import org.cangnova.cangjie.types.WrappedTypeFactory
-import org.cangnova.cangjie.types.checker.NewCangJieTypeChecker
+
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
 import jakarta.inject.Inject
 import org.cangnova.cangjie.ExceptionTracker
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 
 
 /**
@@ -79,7 +80,7 @@ class ResolveSession @Deprecated("Only calls from injectors expected") construct
     private val module: ModuleDescriptor,
     override val declarationProviderFactory: DeclarationProviderFactory,
     delegationTrace: BindingTrace,
-    private val cangjieTypeChecker: NewCangJieTypeChecker
+    private val cangjieTypeChecker: CangJieTypeChecker
 ) : CangJieCodeAnalyzer, LazyClassContext {
 
     // 核心组件
@@ -217,7 +218,7 @@ class ResolveSession @Deprecated("Only calls from injectors expected") construct
 
 
     // LazyClassContext 实现
-    override val cangjieTypeCheckerOfOwnerModule: NewCangJieTypeChecker
+    override val cangjieTypeCheckerOfOwnerModule: CangJieTypeChecker
         get() = cangjieTypeChecker
 
     override val supertypeLoopChecker: SupertypeLoopChecker

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,7 +187,7 @@ object TypeIntersector {
             return ErrorUtils.createErrorType(ErrorTypeKind.INTERSECTION_OF_ERROR_TYPES, types.toString())
         }
 
-        val typeChecker: CangJieTypeChecker = CangJieTypeChecker.DEFAULT
+        val typeChecker = CangJieTypeChecker.DEFAULT
         // 现在移除列表中有子类型的类型
         val resultingTypes: MutableList<CangJieType> = java.util.ArrayList<CangJieType>()
         outer@ for (type in optionStripped) {
@@ -292,7 +292,7 @@ object TypeIntersector {
          */
         val correctOption = inputTypes.mapTo(LinkedHashSet()) {
             if (resultOption == ResultOption.NON_OPTION) {
-                (if (it is NewCapturedType) it.withNonOptionProjection() else it).makeSimpleTypeDefinitelyNonOptionOrNonOption()
+                (if (it is CapturedType) it.withNonOptionProjection() else it).makeSimpleTypeDefinitelyNonOptionOrNonOption()
             } else it
         }
 
@@ -324,7 +324,7 @@ object TypeIntersector {
         IntegerLiteralTypeConstructor.findIntersectionType(filteredEqualTypes)?.let { return it }
 
         // 过滤掉相等的类型
-        val filteredSuperAndEqualTypes = filterTypes(filteredEqualTypes, NewCangJieTypeChecker.Default::equalTypes)
+        val filteredSuperAndEqualTypes = filterTypes(filteredEqualTypes, CangJieTypeChecker.DEFAULT::equalTypes)
         assert(filteredSuperAndEqualTypes.isNotEmpty(), errorMessage)
 
         if (filteredSuperAndEqualTypes.size < 2) return filteredSuperAndEqualTypes.single()
@@ -364,7 +364,7 @@ object TypeIntersector {
      * @return 如果 subtype 是 supertype 的严格子类型则返回 true
      */
     private fun isStrictSupertype(subtype: CangJieType, supertype: CangJieType): Boolean {
-        return with(NewCangJieTypeChecker.Default) {
+        return with(CangJieTypeChecker.DEFAULT) {
             isSubtypeOf(subtype, supertype) && !isSubtypeOf(supertype, subtype)
         }
     }

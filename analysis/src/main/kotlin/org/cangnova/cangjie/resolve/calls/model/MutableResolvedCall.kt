@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import org.cangnova.cangjie.resolve.calls.inference.model.ResolvedValueArgument
 import org.cangnova.cangjie.resolve.calls.results.ResolutionStatus
 import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategy
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 interface MutableResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
 
@@ -61,9 +61,9 @@ interface MutableResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
     var constraintSystem: ConstraintSystem?
 
 
-    fun setSubstitutor(substitutor: TypeSubstitutor)
+    fun setSubstitutor(substitutor: DefaultTypeSubstitutor)
 
-    val knownTypeParametersSubstitutor: TypeSubstitutor?
+    val knownTypeParametersSubstitutor: DefaultTypeSubstitutor?
 
     // todo remove: use value to parameter map status
     val hasInferredReturnType: Boolean

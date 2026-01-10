@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,8 @@ import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.lazy.LazyClassContext
 import org.cangnova.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
-import org.cangnova.cangjie.types.checker.NewCangJieTypeCheckerImpl
+import org.cangnova.cangjie.types.checker.DefaultCangJieTypeChecker
+
 import org.cangnova.cangjie.utils.reportOnDeclarationAs
 
 /**
@@ -172,7 +173,7 @@ class LazyExtendMemberScope(
         result: MutableCollection<D>,
         exactDescriptorClass: Class<out D>
     ) {
-        NewCangJieTypeCheckerImpl(c.cangjieTypeCheckerOfOwnerModule.cangjieTypeRefiner).overridingUtil.generateOverridesInFunctionGroup(
+        DefaultCangJieTypeChecker(c.cangjieTypeCheckerOfOwnerModule.cangjieTypeRefiner).overridingUtil.generateOverridesInFunctionGroup(
             name,
             fromSupertypes,
             ArrayList(result),

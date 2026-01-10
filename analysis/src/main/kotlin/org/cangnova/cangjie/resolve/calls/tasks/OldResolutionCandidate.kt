@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,14 @@ package org.cangnova.cangjie.resolve.calls.tasks
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.psi.Call
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 class OldResolutionCandidate<D : CallableDescriptor> private constructor(
     val call: Call,
     val descriptor: D,
     var dispatchReceiver: ReceiverValue?, // receiver object of a method
     var explicitReceiverKind: ExplicitReceiverKind,
-    val knownTypeParametersResultingSubstitutor: TypeSubstitutor?
+    val knownTypeParametersResultingSubstitutor: DefaultTypeSubstitutor?
 ) {
 
 
@@ -54,7 +54,7 @@ class OldResolutionCandidate<D : CallableDescriptor> private constructor(
         fun <D : CallableDescriptor> create(
             call: Call,
             descriptor: D,
-            knownTypeParametersResultingSubstitutor: TypeSubstitutor?
+            knownTypeParametersResultingSubstitutor: DefaultTypeSubstitutor?
         ): OldResolutionCandidate<D> =
             OldResolutionCandidate(
                 call,
@@ -69,7 +69,7 @@ class OldResolutionCandidate<D : CallableDescriptor> private constructor(
             descriptor: D,
             dispatchReceiver: ReceiverValue?,
             explicitReceiverKind: ExplicitReceiverKind,
-            knownTypeParametersResultingSubstitutor: TypeSubstitutor?
+            knownTypeParametersResultingSubstitutor: DefaultTypeSubstitutor?
         ): OldResolutionCandidate<D> =
             OldResolutionCandidate(
                 call,

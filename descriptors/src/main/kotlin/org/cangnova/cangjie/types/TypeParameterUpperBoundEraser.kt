@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ open class ErasureProjectionComputer {
         typeAttr: ErasureTypeAttributes,
         typeParameterUpperBoundEraser: TypeParameterUpperBoundEraser,
         erasedUpperBound: CangJieType = typeParameterUpperBoundEraser.getErasedUpperBound(parameter, typeAttr)
-    ): TypeProjection = TypeProjectionImpl(Variance.INVARIANT, erasedUpperBound)
+    ): TypeArgument = TypeArgumentImpl( erasedUpperBound)
 }
 class TypeParameterErasureOptions(
     val leaveNonTypeParameterTypes: Boolean,
@@ -105,7 +105,7 @@ class TypeParameterUpperBoundEraser(
         /*
          * We should do erasure of containing type parameters with their erasure to avoid creating inconsistent types.
          * E.g. for `class Foo<T: Foo<B>, B>`, we'd have erasure for lower bound: Foo<Foo<*>, Any>,
-         * but it's wrong type: projection(*) != projection(Any).
+         * but it's wrong type: argument(*) != argument(Any).
          * So we should substitute erasure of the corresponding type parameter: `Foo<Foo<Any>, Any>` or `Foo<Foo<*>, *>`.
          */
         val erasedTypeParameters = typeParameter.defaultType.extractTypeParametersFromUpperBounds(visitedTypeParameters).associate {
@@ -121,7 +121,7 @@ class TypeParameterUpperBoundEraser(
             it.typeConstructor to boundProjection
         }
         val erasedTypeParametersSubstitutor =
-            TypeSubstitutor.create(TypeConstructorSubstitution.createByConstructorsMap(erasedTypeParameters))
+            DefaultTypeSubstitutor.create(TypeConstructorSubstitution.createByConstructorsMap(erasedTypeParameters))
         val erasedUpperBounds =
             erasedTypeParametersSubstitutor.substituteErasedUpperBounds(typeParameter.upperBounds, typeAttr)
 
@@ -138,7 +138,7 @@ class TypeParameterUpperBoundEraser(
         return getDefaultType(typeAttr)
     }
 
-    private fun TypeSubstitutor.substituteErasedUpperBounds(
+    private fun DefaultTypeSubstitutor.substituteErasedUpperBounds(
         upperBounds: List<CangJieType>,
         typeAttr: ErasureTypeAttributes
     ): Set<CangJieType> = buildSet {
@@ -167,7 +167,7 @@ class TypeParameterUpperBoundEraser(
 
     companion object {
         fun CangJieType.replaceArgumentsOfUpperBound(
-            substitutor: TypeSubstitutor,
+            substitutor: DefaultTypeSubstitutor,
             visitedTypeParameters: Set<TypeParameterDescriptor>?,
             leaveNonTypeParameterTypes: Boolean = false
         ): CangJieType {
@@ -185,7 +185,7 @@ class TypeParameterUpperBoundEraser(
                 }
             }
 
-            return substitutor.safeSubstitute(replacedArguments, Variance.INVARIANT)
+            return substitutor.safeSubstitute(replacedArguments)
         }
     }
 }
@@ -195,7 +195,7 @@ private fun buildProjectionTypeByTypeParameters(
     typeParameters: List<TypeConstructor>,
     upperBounds: List<CangJieType>,
     builtIns: CangJieBuiltIns
-) = TypeSubstitutor.create(
+) = DefaultTypeSubstitutor.create(
     object : TypeConstructorSubstitution() {
         override fun get(key: TypeConstructor) =
             if (key in typeParameters)
@@ -204,9 +204,9 @@ private fun buildProjectionTypeByTypeParameters(
             else null
 
     }
-).substitute(upperBounds.first(), Variance.INVARIANT) ?: builtIns.defaultBound
-fun TypeParameterDescriptor.asProjection():TypeProjection{
-    return TypeProjectionImpl(this.projectionType())
+).substitute(upperBounds.first()) ?: builtIns.defaultBound
+fun TypeParameterDescriptor.asProjection():TypeArgument{
+    return TypeArgumentImpl(this.projectionType())
 }
 fun TypeParameterDescriptor.projectionType(): CangJieType {
     return when (val descriptor = this.containingDeclaration) {
@@ -224,6 +224,6 @@ fun TypeParameterDescriptor.projectionType(): CangJieType {
                 builtIns
             )
         }
-        else -> throw IllegalArgumentException("Unsupported descriptor type to build star projection type based on type parameters of it")
+        else -> throw IllegalArgumentException("Unsupported descriptor type to build star argument type based on type parameters of it")
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,19 +27,25 @@ package org.cangnova.cangjie.types.checker
 import org.cangnova.cangjie.types.TypeCheckerState
 
 
+/**
+ * 创建经典类型检查器状态
+ *
+ * 仓颉语言简化版：由于类型系统简化，许多参数不再需要
+ *
+ * @param isErrorTypeEqualsToAnything 错误类型是否等于任何类型（已废弃，保留兼容性）
+ * @param isStubTypeEqualsToAnything Stub 类型是否等于任何类型（已废弃，保留兼容性）
+ * @param typeSystemContext 类型系统上下文
+ * @param cangjieTypePreparator 类型准备器（已废弃，保留兼容性）
+ * @param cangjieTypeRefiner 类型精化器（已废弃，保留兼容性）
+ * @return 类型检查器状态
+ */
 fun createClassicTypeCheckerState(
-    isErrorTypeEqualsToAnything: Boolean,
+    isErrorTypeEqualsToAnything: Boolean = false,
     isStubTypeEqualsToAnything: Boolean = true,
     typeSystemContext: ClassicTypeSystemContext = SimpleClassicTypeSystemContext,
-    cangjieTypePreparator:CangJieTypePreparator =CangJieTypePreparator.Default,
-    cangjieTypeRefiner:CangJieTypeRefiner =CangJieTypeRefiner.Default
+    cangjieTypePreparator: CangJieTypePreparator = CangJieTypePreparator.Default,
+    cangjieTypeRefiner: CangJieTypeRefiner = CangJieTypeRefiner.Default
 ): TypeCheckerState {
-    return TypeCheckerState(
-        isErrorTypeEqualsToAnything,
-        isStubTypeEqualsToAnything,
-        allowedTypeVariable = true,
-        typeSystemContext,
-        cangjieTypePreparator,
-        cangjieTypeRefiner
-    )
+    // 仓颉语言的 TypeCheckerState 已简化，只需要 typeSystemContext
+    return TypeCheckerState(typeSystemContext)
 }

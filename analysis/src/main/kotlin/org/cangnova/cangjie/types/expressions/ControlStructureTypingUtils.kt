@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,7 +185,7 @@ class ControlStructureTypingUtils(
             function: SimpleFunctionDescriptorImpl,
             expectedType: CangJieType,
             languageVersionSettings: LanguageVersionSettings
-        ): TypeSubstitutor? {
+        ): DefaultTypeSubstitutor? {
             if (construct == ResolveConstruct.ELVIS || TypeUtils.noExpectedType(
                     expectedType
                 )
@@ -198,9 +198,9 @@ class ControlStructureTypingUtils(
 
             val typeParameterConstructor: TypeConstructor =
                 function.typeParameters[0].typeConstructor
-            val typeProjection: TypeProjection =
-                TypeProjectionImpl(expectedType)
-            return TypeSubstitutor.create(
+            val typeProjection: TypeArgument =
+                TypeArgumentImpl(expectedType)
+            return DefaultTypeSubstitutor.create(
                 ImmutableMap.of(
                     typeParameterConstructor,
                     typeProjection
@@ -223,7 +223,7 @@ class ControlStructureTypingUtils(
             )
 
             val typeParameter = TypeParameterDescriptorImpl.createWithDefaultBound(
-                function, Annotations.EMPTY, Variance.INVARIANT,
+                function, Annotations.EMPTY,
                 construct.specialTypeParameterName, 0, storageManager
             )
 

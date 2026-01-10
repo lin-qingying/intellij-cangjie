@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,6 @@ package org.cangnova.cangjie.resolve.calls.tower
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.diagnostics.infos.errors.TYPE_INFERENCE_POSTPONED_VARIABLE_IN_RECEIVER_TYPE
-import org.cangnova.cangjie.diagnostics.reportDiagnosticOnce
 import org.cangnova.cangjie.psi.CjCallableReference
 import org.cangnova.cangjie.psi.CjExpression
 import org.cangnova.cangjie.psi.ValueArgument
@@ -44,8 +42,8 @@ import org.cangnova.cangjie.resolve.calls.components.isVararg
 import org.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext
 import org.cangnova.cangjie.resolve.calls.inference.ComposedSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.components.EmptySubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
+import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
+import org.cangnova.cangjie.resolve.calls.inference.components.TypeSubstitutorByConstructorMap
 import org.cangnova.cangjie.resolve.calls.inference.model.ResolvedValueArgument
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
@@ -86,7 +84,7 @@ import org.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
  * @property callComponents 调用组件
  */
 class ResolvedAtomCompleter(
-    private val resultSubstitutor: NewTypeSubstitutor,
+    private val resultSubstitutor: AbstractTypeSubstitutor,
     private val topLevelCallContext: BasicCallResolutionContext,
     private val cangjieToResolvedCallTransformer: CangJieToResolvedCallTransformer,
     private val expressionTypingServices: ExpressionTypingServices,
@@ -199,7 +197,7 @@ class ResolvedAtomCompleter(
             else -> null
         }
         val dataFlowInfo = resolvedAtom.atom.psiCallArgument.dataFlowInfoAfterThisArgument
-        val resolvedCall = NewCallableReferenceResolvedCall<CallableDescriptor>(
+        val resolvedCall = CallableReferenceResolvedCall<CallableDescriptor>(
             resolvedAtom,
             typeApproximator,
             expressionTypingServices.languageVersionSettings
@@ -222,7 +220,7 @@ class ResolvedAtomCompleter(
     private data class CallableReferenceResultTypeInfo(
         val dispatchReceiver: ReceiverValue?,
         val explicitReceiver: ReceiverValue?,
-        val substitutor: NewTypeSubstitutor,
+        val substitutor: AbstractTypeSubstitutor,
         val resultType: CangJieType
     )
 
@@ -296,7 +294,7 @@ class ResolvedAtomCompleter(
      * @param callableReferenceAdaptation 可调用引用的参数适配信息
      */
     private fun recordArgumentAdaptationForCallableReference(
-        resolvedCall: NewAbstractResolvedCall<*>,
+        resolvedCall: AbstractResolvedCall<*>,
         callableReferenceAdaptation: CallableReferenceAdaptation?
     ) {
         if (callableReferenceAdaptation == null) return
@@ -377,7 +375,7 @@ class ResolvedAtomCompleter(
      * @return 如果需要隐式转换返回 true
      */
     private fun isCallableReferenceWithImplicitConversion(
-        resolvedCall: NewAbstractResolvedCall<*>,
+        resolvedCall: AbstractResolvedCall<*>,
         callableReferenceAdaptation: CallableReferenceAdaptation
     ): Boolean {
         val resultingDescriptor = resolvedCall.resultingDescriptor
@@ -407,7 +405,7 @@ class ResolvedAtomCompleter(
     private fun completeCallableReference(
         callableCandidate: CallableReferenceResolutionCandidate,
         recordedDescriptor: CallableDescriptor?,
-        resolvedCall: NewAbstractResolvedCall<*>,
+        resolvedCall: AbstractResolvedCall<*>,
         additionalDataFlowInfo: DataFlowInfo? = null,
     ): CangJieType? {
         val callableReferenceExpression =
@@ -482,7 +480,7 @@ class ResolvedAtomCompleter(
      * @param substitutor 类型替换器
      * @return 更新后的接收者值
      */
-    private fun ReceiverValue.updateReceiverValue(substitutor: NewTypeSubstitutor): ReceiverValue {
+    private fun ReceiverValue.updateReceiverValue(substitutor: AbstractTypeSubstitutor): ReceiverValue {
         val newType = substitutor.safeSubstitute(type.unwrap()).let {
             // 近似到超类型以确保类型安全
             typeApproximator.approximateToSuperType(
@@ -510,7 +508,7 @@ class ResolvedAtomCompleter(
         // 应用类型推断结果到类型参数
         val resultTypeParameters =
             freshSubstitutor.freshVariables.map { resultSubstitutor.safeSubstitute(it.defaultType) }
-        val typeParametersSubstitutor = NewTypeSubstitutorByConstructorMap(
+        val typeParametersSubstitutor = TypeSubstitutorByConstructorMap(
             callableCandidate.candidate.typeParameters.map { it.typeConstructor }.zip(resultTypeParameters).toMap()
         )
         val resultSubstitutor = if (callableCandidate.candidate.isSupportedForCallableReference()) {
@@ -588,7 +586,7 @@ class ResolvedAtomCompleter(
     fun completeResolvedCall(
         resolvedCallAtom: ResolvedCallAtom,
         diagnostics: Collection<CangJieCallDiagnostic>
-    ): NewAbstractResolvedCall<*>? {
+    ): AbstractResolvedCall<*>? {
         // 从部分解析的调用中提取额外的诊断信息
         val diagnosticsFromPartiallyResolvedCall = extractDiagnosticsFromPartiallyResolvedCall(resolvedCallAtom)
 
@@ -610,7 +608,7 @@ class ResolvedAtomCompleter(
 
         // 获取最终的调用（处理 VariableAsFunctionResolvedCall 包装）
         val lastCall = if (resolvedCall is VariableAsFunctionResolvedCall) {
-            resolvedCall.functionCall as NewAbstractResolvedCall<*>
+            resolvedCall.functionCall as AbstractResolvedCall<*>
         } else resolvedCall
         // 如果候选描述符是错误描述符，只运行参数检查
         if (ErrorUtils.isError(resolvedCall.candidateDescriptor)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,7 +135,7 @@ class DisjointKeysUnionTypeSubstitution private constructor(
      * @param key 要查找的类型参数
      * @return 替换后的类型投影，如果两个替换中都没有则返回 null
      */
-    override fun get(key: CangJieType): TypeProjection? = first[key] ?: second[key]
+    override fun get(key: CangJieType): TypeArgument? = first[key] ?: second[key]
 
     /**
      * 准备顶层类型
@@ -162,8 +162,8 @@ class DisjointKeysUnionTypeSubstitution private constructor(
      * @param position 类型参数的型变位置
      * @return 准备后的类型
      */
-    override fun prepareTopLevelType(topLevelType: CangJieType, position: Variance): CangJieType =
-        second.prepareTopLevelType(first.prepareTopLevelType(topLevelType, position), position)
+    override fun prepareTopLevelType(topLevelType: CangJieType ): CangJieType =
+        second.prepareTopLevelType(first.prepareTopLevelType(topLevelType, ),  )
 
     /**
      * 判断替换是否为空

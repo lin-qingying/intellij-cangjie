@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,11 +29,12 @@ import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.parents
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ErrorUtils
-import org.cangnova.cangjie.types.TypeProjection
+import org.cangnova.cangjie.types.TypeArgument
+
 
 class PossiblyInnerType(
     val classifierDescriptor: ClassifierDescriptorWithTypeParameters,
-    val arguments: List<TypeProjection>,
+    val arguments: List<TypeArgument>,
     val outerType: PossiblyInnerType?
 ) {
     val classDescriptor: ClassDescriptor

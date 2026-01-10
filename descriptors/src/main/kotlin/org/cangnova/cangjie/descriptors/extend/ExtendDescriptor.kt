@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,7 +102,7 @@ interface ExtendDescriptor :DeclarationDescriptorWithTypeParameters, Inheritable
      * @param typeArguments 类型实参列表
      * @return 返回计算后的成员作用域
      */
-    override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
+    override fun getMemberScope(typeArguments: List<TypeArgument>): MemberScope
 
     /**
      * 根据指定的类型替换规则返回对应的成员作用域。
@@ -119,7 +119,7 @@ interface ExtendDescriptor :DeclarationDescriptorWithTypeParameters, Inheritable
     val memberScope: MemberScope
         get() {
             if (declaredTypeParameters.isEmpty()) return unsubstitutedMemberScope
-            return getMemberScope(declaredTypeParameters.map { TypeProjectionImpl(it.defaultType) })
+            return getMemberScope(declaredTypeParameters.map { TypeArgumentImpl(it.defaultType) })
         }
 
     /**

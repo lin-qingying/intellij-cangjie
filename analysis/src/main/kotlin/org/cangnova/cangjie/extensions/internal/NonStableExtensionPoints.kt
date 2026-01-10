@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,12 +36,12 @@ import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.CallResolver
 import org.cangnova.cangjie.resolve.calls.CandidateResolver
 import org.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext
-import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
+import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.model.CangJieCallDiagnostic
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCallAtom
 import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategy
 import org.cangnova.cangjie.resolve.calls.tower.ImplicitScopeTower
-import org.cangnova.cangjie.resolve.calls.tower.NewResolutionOldInference
+import org.cangnova.cangjie.resolve.calls.tower.ResolutionOldInference
 import org.cangnova.cangjie.resolve.calls.tower.PSICallResolver
 import org.cangnova.cangjie.resolve.scopes.ResolutionScope
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
@@ -79,19 +79,19 @@ interface CallResolutionInterceptorExtension {
         candidateDescriptor: CallableDescriptor,
         completedCallAtom: ResolvedCallAtom,
         trace: BindingTrace?,
-        resultSubstitutor: NewTypeSubstitutor?,
+        resultSubstitutor: AbstractTypeSubstitutor?,
         diagnostics: Collection<CangJieCallDiagnostic>
     ): CallableDescriptor = candidateDescriptor
 
     fun interceptCandidates(
-        candidates: Collection<NewResolutionOldInference.MyCandidate>,
+        candidates: Collection<ResolutionOldInference.MyCandidate>,
         context: BasicCallResolutionContext,
         candidateResolver: CandidateResolver,
         callResolver: CallResolver,
         name: Name,
-        kind: NewResolutionOldInference.ResolutionKind,
+        kind: ResolutionOldInference.ResolutionKind,
         tracing: TracingStrategy
-    ): Collection<NewResolutionOldInference.MyCandidate> = candidates
+    ): Collection<ResolutionOldInference.MyCandidate> = candidates
 
     fun interceptFunctionCandidates(
         candidates: Collection<FunctionDescriptor>,

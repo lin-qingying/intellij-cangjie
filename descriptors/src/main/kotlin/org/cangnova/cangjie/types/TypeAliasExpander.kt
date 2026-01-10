@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,11 +87,11 @@ class TypeAliasExpander(
      * @param recursionDepth 递归深度，用于检测无限递归
      * @return 展开后的类型投影
      */
-    private fun expandNonArgumentTypeProjection(
-        originalProjection: TypeProjection,
+    private fun expandNonArgumentTypeArgument(
+        originalProjection: TypeArgument,
         typeAliasExpansion: TypeAliasExpansion,
         recursionDepth: Int
-    ): TypeProjection {
+    ): TypeArgument {
         // 解包原始类型，移除包装层
         val originalType = originalProjection.type.unwrap()
 
@@ -121,8 +121,7 @@ class TypeAliasExpander(
                 // 检测循环递归
                 if (typeAliasExpansion.isRecursion(typeDescriptor)) {
                     reportStrategy.recursiveTypeAlias(typeDescriptor)
-                    return TypeProjectionImpl(
-                        Variance.INVARIANT,
+                    return TypeArgumentImpl(
                         ErrorUtils.createErrorType(
                             ErrorTypeKind.RECURSIVE_TYPE_ALIAS, typeDescriptor.name.toString())
                     )
@@ -130,7 +129,7 @@ class TypeAliasExpander(
 
                 // 递归展开所有类型参数
                 val expandedArguments = type.arguments.mapIndexed { i, typeAliasArgument ->
-                    expandTypeProjection(typeAliasArgument, typeAliasExpansion, typeConstructor.parameters[i], recursionDepth + 1)
+                    expandTypeArgument(typeAliasArgument, typeAliasExpansion, typeConstructor.parameters[i], recursionDepth + 1)
                 }
 
                 // 创建嵌套的类型别名展开上下文
@@ -152,7 +151,7 @@ class TypeAliasExpander(
                 val typeWithAbbreviation =
                     if (nestedExpandedType.isDynamic()) nestedExpandedType else nestedExpandedType.withAbbreviation(substitutedType)
 
-                TypeProjectionImpl(originalProjection.projectionKind, typeWithAbbreviation)
+                TypeArgumentImpl(typeWithAbbreviation)
             }
             // 其他类型描述符：只需要替换参数
             else -> {
@@ -161,7 +160,7 @@ class TypeAliasExpander(
                 // TODO: 添加类型参数替换检查
                 //                checkTypeArgumentsSubstitution(type, substitutedType)
 
-                TypeProjectionImpl(originalProjection.projectionKind, substitutedType)
+                TypeArgumentImpl( substitutedType)
             }
         }
     }
@@ -180,13 +179,13 @@ class TypeAliasExpander(
 
         // 逐个展开并替换类型参数
         val substitutedArguments = this.arguments.mapIndexed { i, originalArgument ->
-            val projection = expandTypeProjection(
+            val projection = expandTypeArgument(
                 originalArgument, typeAliasExpansion, typeConstructor.parameters[i], recursionDepth + 1
             )
 
             // 保持原始参数的可选性信息
-            TypeProjectionImpl(
-                projection.projectionKind,
+            TypeArgumentImpl(
+
                 TypeUtils.makeOptionalIfNeeded(projection.type, originalArgument.type.isOption)
             )
         }
@@ -197,7 +196,11 @@ class TypeAliasExpander(
      * 展开类型投影
      *
      * 这是类型别名展开的核心方法，负责展开单个类型投影。
-     * 处理类型参数替换、方差计算和属性合并。
+     * 处理类型参数替换和属性合并。
+     *
+     * 仓颉语言特性：
+     * - 所有类型参数都是不变的（invariant）
+     * - 不需要方差计算
      *
      * @param underlyingProjection 底层的类型投影
      * @param typeAliasExpansion 类型别名展开上下文
@@ -205,13 +208,13 @@ class TypeAliasExpander(
      * @param recursionDepth 当前递归深度
      * @return 展开后的类型投影
      */
-    private fun expandTypeProjection(
-        underlyingProjection: TypeProjection,
+    private fun expandTypeArgument(
+        underlyingProjection: TypeArgument,
         typeAliasExpansion: TypeAliasExpansion,
         typeParameterDescriptor: TypeParameterDescriptor?,
         recursionDepth: Int
-    ): TypeProjection {
-        // TODO: 重构 TypeSubstitutor 以引入自定义诊断
+    ): TypeArgument {
+        // TODO: 重构 DefaultTypeSubstitutor 以引入自定义诊断
 //        assertRecursionDepth(recursionDepth, typeAliasExpansion.descriptor)
 
         // TODO: 处理星号投影
@@ -220,7 +223,7 @@ class TypeAliasExpander(
         val underlyingType = underlyingProjection.type
         // 尝试获取类型参数的替换
         val argument = typeAliasExpansion.getReplacement(underlyingType.constructor)
-            ?: return expandNonArgumentTypeProjection(
+            ?: return expandNonArgumentTypeArgument(
                 underlyingProjection,
                 typeAliasExpansion,
                 recursionDepth
@@ -231,38 +234,8 @@ class TypeAliasExpander(
 
         val argumentType = argument.type.unwrap()
 
-        // 计算最终的方差
-        val resultingVariance = run {
-            val argumentVariance = argument.projectionKind
-            val underlyingVariance = underlyingProjection.projectionKind
-
-            // 计算替换的方差
-            val substitutionVariance =
-                when {
-                    underlyingVariance == argumentVariance -> argumentVariance
-                    underlyingVariance == Variance.INVARIANT -> argumentVariance
-                    argumentVariance == Variance.INVARIANT -> underlyingVariance
-                    else -> {
-                        // 方差冲突，报告错误
-                        reportStrategy.conflictingProjection(typeAliasExpansion.descriptor, typeParameterDescriptor, argumentType)
-                        argumentVariance
-                    }
-                }
-
-            val parameterVariance = typeParameterDescriptor?.variance ?: Variance.INVARIANT
-
-            // 结合参数方差和替换方差
-            when {
-                parameterVariance == substitutionVariance -> substitutionVariance
-                parameterVariance == Variance.INVARIANT -> substitutionVariance
-                substitutionVariance == Variance.INVARIANT -> Variance.INVARIANT
-                else -> {
-                    // 参数方差冲突，报告错误
-                    reportStrategy.conflictingProjection(typeAliasExpansion.descriptor, typeParameterDescriptor, argumentType)
-                    substitutionVariance
-                }
-            }
-        }
+        // 仓颉语言中所有类型参数都是不变的（invariant），不需要方差计算
+        // 直接使用参数类型，不进行方差冲突检查
 
         // TODO: 检查重复的注解
 //        checkRepeatedAnnotations(underlyingType.annotations, argumentType.annotations)
@@ -274,7 +247,7 @@ class TypeAliasExpander(
             else
                 argumentType.asSimpleType().combineOptionAndAnnotations(underlyingType)
 
-        return TypeProjectionImpl(resultingVariance, substitutedType)
+        return TypeArgumentImpl(substitutedType)
     }
     /**
      * 合并简单类型的可选性信息
@@ -336,6 +309,10 @@ class TypeAliasExpander(
      * 这是类型别名展开的主要递归方法，完全展开类型别名到其底层类型。
      * 处理嵌套的类型别名、属性合并和可选的缩写保留。
      *
+     * 仓颉语言特性：
+     * - 所有类型参数都是不变的（invariant）
+     * - 不需要检查投影方差
+     *
      * @param typeAliasExpansion 要展开的类型别名信息
      * @param attributes 额外的类型属性
      * @param isOption 是否为可选类型
@@ -351,26 +328,22 @@ class TypeAliasExpander(
         withAbbreviatedType: Boolean
     ): SimpleType {
         // 创建底层类型的不变投影
-        val underlyingProjection = TypeProjectionImpl(
-            Variance.INVARIANT,
+        val underlyingProjection = TypeArgumentImpl(
             typeAliasExpansion.descriptor.underlyingType
         )
-        
+
         // 展开底层类型投影
-        val expandedProjection = expandTypeProjection(underlyingProjection, typeAliasExpansion, null, recursionDepth)
+        val expandedProjection = expandTypeArgument(underlyingProjection, typeAliasExpansion, null, recursionDepth)
         val expandedType = expandedProjection.type.asSimpleType()
 
         // 如果展开结果是错误类型，直接返回
         if (expandedType.isError) return expandedType
 
-        // 确保结果投影是不变的
-        assert(expandedProjection.projectionKind == Variance.INVARIANT) {
-            "Type alias expansion: result for ${typeAliasExpansion.descriptor} is ${expandedProjection.projectionKind}, should be invariant"
-        }
+        // 仓颉语言中类型参数都是不变的，不需要检查投影方差
 
         // TODO: 检查重复的注解
 //        checkRepeatedAnnotations(expandedType.annotations, attributes.annotations)
-        
+
         // 合并额外的属性并应用可选性
         val expandedTypeWithExtraAnnotations =
             expandedType.combineAttributes(attributes).let { TypeUtils.makeOptionalIfNeeded(it, isOption) }

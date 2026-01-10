@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import org.cangnova.cangjie.resolve.caches.getResolutionFacade
 import org.cangnova.cangjie.resolve.calls.util.getValueParametersCountFromFunctionType
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeProjection
+
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
@@ -47,6 +47,7 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.codeinsight.CangJieNameSuggester
 import org.cangnova.cangjie.diagnostics.rendering.IdeDescriptorRenderers
+import org.cangnova.cangjie.types.TypeArgument
 import org.cangnova.cangjie.types.extractParameterNameFromFunctionTypeArgument
 import org.cangnova.cangjie.types.getValueParameterTypesFromFunctionType
 import org.cangnova.cangjie.types.isFunctionType
@@ -220,7 +221,7 @@ object LambdaSignatureTemplates {
     private fun nameSuggestion(parameterType: CangJieType) = nameSuggestions(parameterType)[0]
 
     private fun functionParameterTypes(functionType: CangJieType): List<CangJieType> {
-        return functionType.getValueParameterTypesFromFunctionType().map(TypeProjection::type)
+        return functionType.getValueParameterTypesFromFunctionType().map(TypeArgument::type)
     }
 }
 

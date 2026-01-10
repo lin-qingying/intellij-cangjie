@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,7 @@ import org.cangnova.cangjie.resolve.calls.context.ContextDependency
 import org.cangnova.cangjie.resolve.calls.context.ResolutionContext
 import org.cangnova.cangjie.resolve.calls.model.MutableResolvedCall
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
-import org.cangnova.cangjie.resolve.calls.tower.NewAbstractResolvedCall
-import org.cangnova.cangjie.resolve.calls.tower.NewVariableAsFunctionResolvedCallImpl
+import org.cangnova.cangjie.resolve.calls.tower.AbstractResolvedCall
 import org.cangnova.cangjie.resolve.calls.util.hasInferredReturnType
 import org.cangnova.cangjie.types.CangJieType
 
@@ -61,9 +60,9 @@ object OverloadResolutionResultsUtil {
     ): ResolvedCall<D>? {
         if (results.isSingleResult && context.contextDependency == ContextDependency.INDEPENDENT) {
             val resultingCall = results.resultingCall
-            val newResolvedCall: NewAbstractResolvedCall<*>? = when (resultingCall) {
-                is NewVariableAsFunctionResolvedCallImpl -> resultingCall.functionCall
-                is NewAbstractResolvedCall<*> -> resultingCall
+            val newResolvedCall: AbstractResolvedCall<*>? = when (resultingCall) {
+                is ModernVariableAsFunctionResolvedCallImpl -> resultingCall.functionCall
+                is AbstractResolvedCall<*> -> resultingCall
                 else -> null
             }
 

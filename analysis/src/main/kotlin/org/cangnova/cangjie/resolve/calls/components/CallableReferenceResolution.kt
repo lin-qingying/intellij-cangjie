@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystemOperation
-import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableNewTypeSubstitutor
+import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.ArgumentConstraintPositionImpl
 import org.cangnova.cangjie.resolve.calls.inference.model.CallableReferenceConstraintPositionImpl
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintPosition
@@ -39,31 +39,23 @@ import org.cangnova.cangjie.resolve.calls.tower.PrioritizedCompositeScopeTowerPr
 import org.cangnova.cangjie.resolve.calls.tower.SamePriorityCompositeScopeTowerProcessor
 import org.cangnova.cangjie.resolve.calls.tower.ScopeTowerProcessor
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
-import org.cangnova.cangjie.types.AbstractTypeChecker
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.UnwrappedType
-import org.cangnova.cangjie.types.checker.captureFromExpression
+// captureFromExpression removed - not needed in invariant type system
 import org.cangnova.cangjie.types.expressions.CoercionStrategy
 import org.cangnova.cangjie.types.getReturnTypeFromFunctionType
 import org.cangnova.cangjie.types.getValueParameterTypesFromFunctionType
 import org.cangnova.cangjie.types.isFunctionType
-import org.cangnova.cangjie.types.model.TypeVariance
-import org.cangnova.cangjie.types.model.convertVariance
+
 import kotlin.Array
 import kotlin.Int
-import kotlin.assert
 import kotlin.collections.List
 import kotlin.collections.Map
 import kotlin.collections.first
-import kotlin.collections.listOfNotNull
 import kotlin.collections.map
-import kotlin.collections.plus
 import kotlin.let
-import kotlin.map
-import kotlin.sequences.map
-import kotlin.text.map
 
 
 /**
@@ -132,7 +124,7 @@ sealed class CallableReceiver(val receiver: ReceiverValueWithSmartCastInfo) {
  * 1. 检查期望类型是否为编号类型（如 KFunction1、KFunction2 等）
  * 2. 提取期望类型的第一个类型参数（通常是接收者类型）
  * 3. 根据类型参数的有效变异性添加相应的约束：
- *    - 不变（INV）：添加相等性约束
+ *    - 不变（INVARIANT）：添加相等性约束
  *    - 逆变（IN）：添加超类型约束（已注释）
  *    - 协变（OUT）：添加子类型约束（已注释）
  *
@@ -147,19 +139,10 @@ private fun ConstraintSystemOperation.addLhsTypeConstraint(
 ) {
     if (!ReflectionTypes.isNumberedTypeWithOneOrMoreNumber(expectedType)) return
 
-    val expectedTypeProjectionForLHS = expectedType.arguments.first()
-    val expectedTypeForLHS = expectedTypeProjectionForLHS.type
-    val expectedTypeVariance = expectedTypeProjectionForLHS.projectionKind.convertVariance()
-    val effectiveVariance = AbstractTypeChecker.effectiveVariance(
-        expectedType.constructor.parameters.first().variance.convertVariance(),
-        expectedTypeVariance
-    ) ?: expectedTypeVariance
-
-    when (effectiveVariance) {
-        TypeVariance.INV -> addEqualityConstraint(lhsType, expectedTypeForLHS, position)
-//        TypeVariance.IN -> addSubtypeConstraint(expectedTypeForLHS, lhsType, position)
-//        TypeVariance.OUT -> addSubtypeConstraint(lhsType, expectedTypeForLHS, position)
-    }
+    // 仓颉语言所有类型参数都是不变的,直接添加相等性约束
+    val expectedTypeArgumentForLHS = expectedType.arguments.first()
+    val expectedTypeForLHS = expectedTypeArgumentForLHS.type
+    addEqualityConstraint(lhsType, expectedTypeForLHS, position)
 }
 
 /**
@@ -205,7 +188,7 @@ class CallableReferenceAdaptation(
  */
 fun CallableReferenceResolutionCandidate.addConstraints(
     constraintSystem: ConstraintSystemOperation,
-    substitutor: FreshVariableNewTypeSubstitutor,
+    substitutor: FreshVariableTypeSubstitutor,
     callableReference: CallableReferenceResolutionAtom
 ) {
     val lhsResult = callableReference.lhsResult
@@ -262,7 +245,7 @@ fun CallableReferenceResolutionCandidate.addConstraints(
  * @param position 约束位置，用于错误报告
  */
 private fun ConstraintSystemOperation.addReceiverConstraint(
-    toFreshSubstitutor: FreshVariableNewTypeSubstitutor,
+    toFreshSubstitutor: FreshVariableTypeSubstitutor,
     receiverArgument: CallableReceiver?,
     receiverParameter: ReceiverParameterDescriptor?,
     position: ConstraintPosition
@@ -274,7 +257,8 @@ private fun ConstraintSystemOperation.addReceiverConstraint(
     }
 
     val expectedType = toFreshSubstitutor.safeSubstitute(receiverParameter.value.type.unwrap())
-    val receiverType = receiverArgument.receiver.stableType.let { captureFromExpression(it) ?: it }
+    // 仓颉语言的类型系统不需要捕获类型,直接使用稳定类型即可
+    val receiverType = receiverArgument.receiver.stableType
 
     addSubtypeConstraint(receiverType, expectedType, position)
 }

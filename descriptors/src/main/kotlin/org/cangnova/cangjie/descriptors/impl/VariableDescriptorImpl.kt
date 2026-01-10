@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -273,7 +273,7 @@ open class VariableDescriptorImpl(
         )
 
         val originalOutType: CangJieType = copyConfiguration._returnType
-        val outType = substitutor.substitute(originalOutType, Variance.INVARIANT)
+        val outType = substitutor.substitute(originalOutType)
             ?: return null // TODO : tell the user that the property was projected out
 
         val substitutedDispatchReceiver: ReceiverParameterDescriptor?
@@ -293,7 +293,7 @@ open class VariableDescriptorImpl(
 
     }
 
-    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor? {
+    override fun substitute(substitutor: DefaultTypeSubstitutor): CallableDescriptor? {
         if (substitutor.isEmpty) {
             return this
         }
@@ -306,11 +306,11 @@ open class VariableDescriptorImpl(
     }
     companion object {
         private fun substituteParameterDescriptor(
-            substitutor: TypeSubstitutor,
+            substitutor: DefaultTypeSubstitutor,
             substitutedPropertyDescriptor: VariableDescriptor,
             receiverParameterDescriptor: ReceiverParameterDescriptor
         ): ReceiverParameterDescriptor? {
-            val substitutedType = substitutor.substitute(receiverParameterDescriptor.type, Variance.INVARIANT)
+            val substitutedType = substitutor.substitute(receiverParameterDescriptor.type)
                 ?: return null
 
             // 对于 extend 接收者，保持其 ImplicitExtendReceiver 类型

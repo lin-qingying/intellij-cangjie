@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import org.cangnova.cangjie.resolve.lazy.*
 import org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactory
 import org.cangnova.cangjie.types.checker.CangJieTypePreparator
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import org.cangnova.cangjie.types.checker.NewCangJieTypeCheckerImpl
+
 import org.cangnova.cangjie.types.expressions.DeclarationScopeProviderForLocalClassifierAnalyzer
 import org.cangnova.cangjie.types.expressions.LocalLazyDeclarationResolver
 import com.intellij.psi.search.GlobalSearchScope
@@ -47,6 +47,7 @@ import org.cangnova.cangjie.extensions.StorageComponentContainerContributor
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.scopes.optimization.OptimizingOptions
 import org.cangnova.cangjie.serialization.deserialization.CompilerDeserializationConfiguration
+import org.cangnova.cangjie.types.checker.DefaultCangJieTypeChecker
 import org.cangnova.cangjie.utils.ProgressManagerBasedCancellationChecker
 
 
@@ -268,7 +269,7 @@ fun StorageComponentContainer.configureModule(
         extension.registerModuleComponents(this, moduleContext.module)
     }
 
-    useImpl<NewCangJieTypeCheckerImpl>()
+    useImpl<DefaultCangJieTypeChecker>()
 
     if (moduleContext.module.isTypeRefinementEnabled()) {
 //        useImpl<CangJieTypeRefinerImpl>()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,8 +43,8 @@ import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.SimpleType
 import org.cangnova.cangjie.types.VArrayType
-import org.cangnova.cangjie.types.Variance
-import org.cangnova.cangjie.types.asTypeProjection
+import org.cangnova.cangjie.types.asTypeArgument
+
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.createFunctionType
 
@@ -81,7 +81,7 @@ class VArrayTypeDescriptor(
         this.argumentType = argumentType
         this.size = size
         typeParameter = TypeParameterDescriptorImpl.createWithDefaultBound(
-            this, Annotations.EMPTY, Variance.INVARIANT,
+            this, Annotations.EMPTY,
             argumentType.constructor.declarationDescriptor?.name ?: Name.identifier("T"), 0, storageManager
         ) as TypeParameterDescriptorImpl
         argumentType.arguments.forEach {
@@ -147,7 +147,7 @@ class VArrayTypeDescriptor(
     private val defaultTypeVarrayType: NotNullLazyValue<VArrayType> = storageManager.createLazyValue {
         checkInitialized()
         VArrayType(
-            size, argumentType.asTypeProjection(), typeConstructor, false, memberScope
+            size, argumentType.asTypeArgument(), typeConstructor, false, memberScope
         ) {
             null
         }

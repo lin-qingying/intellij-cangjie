@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,43 +25,76 @@
 package org.cangnova.cangjie.types
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
-import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
-import org.cangnova.cangjie.renderer.ClassifierNamePolicy
-import org.cangnova.cangjie.renderer.DescriptorRenderer
-import org.cangnova.cangjie.resolve.call.inference.CapturedTypeConstructor
-import org.cangnova.cangjie.resolve.call.inference.isCaptured
-import org.cangnova.cangjie.types.checker.CangJieTypeChecker
+import org.cangnova.cangjie.types.checker.CapturedType
+import org.cangnova.cangjie.types.checker.CapturedTypeConstructor
+import org.cangnova.cangjie.types.checker.isCaptured
 
-
+/**
+ * 类型近似边界
+ *
+ * 表示类型近似的上下界。在仓颉语言中，由于所有用户自定义泛型类型参数都是不变的（invariant），
+ * 类型近似相对简单，主要用于处理捕获类型（Captured Types）。
+ *
+ * @param T 边界类型
+ * @property lower 下界
+ * @property upper 上界
+ */
 data class ApproximationBounds<out T>(
     val lower: T,
     val upper: T
 )
 
+/**
+ * 如果必要，近似类型参数中的捕获类型
+ *
+ * ## 仓颉语言特性
+ * 仓颉语言中所有用户自定义泛型类型参数都是不变的（invariant），因此：
+ * - 不需要处理协变/逆变投影
+ * - 不需要 `approximateContravariant` 参数
+ * - 类型近似逻辑大大简化
+ *
+ * ## 使用场景
+ * 主要用于类型替换时处理捕获类型，将捕获类型替换为其边界类型。
+ *
+ * @param typeArgument 待近似的类型参数
+ * @return 近似后的类型参数，如果不包含捕获类型则返回原类型参数
+ */
 fun approximateCapturedTypesIfNecessary(
-    typeProjection: TypeProjection?,
-    approximateContravariant: Boolean
-): TypeProjection? {
-    if (typeProjection == null) return null
+    typeArgument: TypeArgument?
+): TypeArgument? {
+    if (typeArgument == null) return null
 
-    val type = typeProjection.type
+    val type = typeArgument.type
+    // 检查是否包含捕获类型
     if (!TypeUtils.contains(type, { it.isCaptured() })) {
-        return typeProjection
-    }
-    val howThisTypeIsUsed = typeProjection.projectionKind
-
-
-    if (approximateContravariant) {
-        // TODO: assert that howThisTypeIsUsed is always IN
-        val approximation = approximateCapturedTypes(type).lower
-        return TypeProjectionImpl(howThisTypeIsUsed, approximation)
+        return typeArgument
     }
 
-    return substituteCapturedTypesWithProjections(typeProjection)
+    // 近似捕获类型，使用上界
+    val approximation = approximateCapturedTypes(type).upper
+    return TypeArgumentImpl(approximation)
 }
 
-// todo: dynamic & raw type?
+/**
+ * 近似类型中的捕获类型
+ *
+ * ## 仓颉语言简化逻辑
+ * 由于仓颉语言的类型参数都是不变的，近似过程相对简单：
+ * - 捕获类型直接使用其内部类型或上界
+ * - 不需要根据 variance 调整上下界
+ * - 递归处理嵌套的泛型类型参数
+ *
+ * ## 处理逻辑
+ * 1. **Flexible 类型**：递归处理上下界
+ * 2. **捕获类型**：使用内部类型作为边界
+ * 3. **泛型类型**：递归近似所有类型参数
+ * 4. **简单类型**：直接返回自身
+ *
+ * @param type 待近似的类型
+ * @return 近似边界（上下界）
+ */
 fun approximateCapturedTypes(type: CangJieType): ApproximationBounds<CangJieType> {
+    // 处理 Flexible 类型
     if (type.isFlexible()) {
         val boundsForFlexibleLower = approximateCapturedTypes(type.lowerIfFlexible())
         val boundsForFlexibleUpper = approximateCapturedTypes(type.upperIfFlexible())
@@ -78,107 +111,89 @@ fun approximateCapturedTypes(type: CangJieType): ApproximationBounds<CangJieType
         )
     }
 
+    // 处理捕获类型
+    if (type.isCaptured()) {
+        val capturedType = type as CapturedType
+        val typeConstructor = capturedType.constructor
+
+        // 获取捕获类型的内部类型
+        // 优先使用 lowerType，否则使用 argument 的类型
+        val innerType = capturedType.lowerType ?: typeConstructor.argument.type
+
+        // 仓颉语言中类型参数不变，直接使用内部类型作为上下界
+        val approximatedType = if (type.isOption) {
+            TypeUtils.makeOptionalAsSpecified(innerType, true)
+        } else {
+            innerType
+        }
+
+        return ApproximationBounds(approximatedType, approximatedType)
+    }
+
     val typeConstructor = type.constructor
-//    if (type.isCaptured()) {
-//        val typeProjection = (typeConstructor as CapturedTypeConstructor).projection
-//        fun CangJieType.makeNullableIfNeeded() = TypeUtils.makeOptionalIfNeeded(this, type.isMarkedOption)
-//
-//        return when (typeProjection.projectionKind) {
-//
-//            else -> throw AssertionError("Only nontrivial projections should have been captured, not: $typeProjection")
-//        }
-//    }
+
+    // 处理没有类型参数或类型参数不匹配的情况
     if (type.arguments.isEmpty() || type.arguments.size != typeConstructor.parameters.size) {
         return ApproximationBounds(type, type)
     }
-    val lowerBoundArguments = ArrayList<TypeArgument>()
-    val upperBoundArguments = ArrayList<TypeArgument>()
-    for ((typeProjection, typeParameter) in type.arguments.zip(typeConstructor.parameters)) {
-        val typeArgument = typeProjection.toTypeArgument(typeParameter)
 
-        // Protection from infinite recursion caused by star projection
-
-        val (lower, upper) = approximateProjection(typeArgument)
-        lowerBoundArguments.add(lower)
-        upperBoundArguments.add(upper)
-
+    // 递归近似所有类型参数
+    val approximatedArguments = type.arguments.map { argument ->
+        approximateCapturedTypes(argument.type)
     }
-    val lowerBoundIsTrivial = lowerBoundArguments.any { !it.isConsistent }
+
+    // 检查是否所有下界都有效（不是 Nothing）
+    val lowerBoundIsTrivial = approximatedArguments.any { bounds ->
+        CangJieBuiltIns.isNothing(bounds.lower)
+    }
+
     return ApproximationBounds(
-        if (lowerBoundIsTrivial) type.builtIns.nothingType else type.replaceTypeArguments(lowerBoundArguments),
-        type.replaceTypeArguments(upperBoundArguments)
+        // 如果下界无效，使用 Nothing
+        lower = if (lowerBoundIsTrivial) type.builtIns.nothingType
+        else replaceTypeArguments(type, approximatedArguments.map { it.lower }),
+        // 上界总是有效的
+        upper = replaceTypeArguments(type, approximatedArguments.map { it.upper })
     )
 }
 
-private fun TypeArgument.toTypeProjection(): TypeProjection {
-    assert(isConsistent) {
-        val descriptorRenderer = DescriptorRenderer.withOptions {
-            classifierNamePolicy = ClassifierNamePolicy.FULLY_QUALIFIED
-        }
-        "Only consistent enhanced type projection can be converted to type projection, but " +
-                "[${descriptorRenderer.render(typeParameter)}: <${descriptorRenderer.renderType(inProjection)}, ${
-                    descriptorRenderer.renderType(
-                        outProjection
-                    )
-                }>]" +
-                " was found"
-    }
-    fun removeProjectionIfRedundant(variance: Variance) =
-        if (variance == typeParameter.variance) Variance.INVARIANT else variance
-    return when {
-        inProjection == outProjection  -> TypeProjectionImpl(
-            inProjection
-        )
-
-        CangJieBuiltIns.isNothing(inProjection) && typeParameter.variance != Variance.INVARIANT ->
-            TypeProjectionImpl(removeProjectionIfRedundant(Variance.INVARIANT), outProjection)
-
-        CangJieBuiltIns.isAny(outProjection) -> TypeProjectionImpl(
-            removeProjectionIfRedundant(Variance.INVARIANT),
-            inProjection
-        )
-
-        else -> TypeProjectionImpl(removeProjectionIfRedundant(Variance.INVARIANT), outProjection)
-    }
-}
-
-private fun CangJieType.replaceTypeArguments(newTypeArguments: List<TypeArgument>): CangJieType {
-    assert(arguments.size == newTypeArguments.size) { "Incorrect type arguments $newTypeArguments" }
-    return replace(newTypeArguments.map { it.toTypeProjection() })
-}
-
-private fun approximateProjection(typeArgument: TypeArgument): ApproximationBounds<TypeArgument> {
-    val (inLower, inUpper) = approximateCapturedTypes(typeArgument.inProjection)
-    val (outLower, outUpper) = approximateCapturedTypes(typeArgument.outProjection)
-    return ApproximationBounds(
-        lower = TypeArgument(typeArgument.typeParameter, inUpper, outLower),
-        upper = TypeArgument(typeArgument.typeParameter, inLower, outUpper)
-    )
-}
-
-private class TypeArgument(
-    val typeParameter: TypeParameterDescriptor,
-    val inProjection: CangJieType,
-    val outProjection: CangJieType
-) {
-    val isConsistent: Boolean
-        get() = CangJieTypeChecker.DEFAULT.isSubtypeOf(inProjection, outProjection)
-}
-
-private fun TypeProjection.toTypeArgument(typeParameter: TypeParameterDescriptor) =
-    when (TypeSubstitutor.combine(typeParameter.variance, this)) {
-        Variance.INVARIANT -> TypeArgument(typeParameter, type, type)
-
+/**
+ * 替换类型的类型参数
+ *
+ * @param type 原始类型
+ * @param newTypes 新的类型参数类型列表
+ * @return 替换后的类型
+ */
+private fun replaceTypeArguments(type: CangJieType, newTypes: List<CangJieType>): CangJieType {
+    assert(type.arguments.size == newTypes.size) {
+        "Incorrect type arguments count: expected ${type.arguments.size}, got ${newTypes.size}"
     }
 
-private fun substituteCapturedTypesWithProjections(typeProjection: TypeProjection): TypeProjection? {
-    val typeSubstitutor = TypeSubstitutor.create(object : TypeConstructorSubstitution() {
-        override fun get(key: TypeConstructor): TypeProjection? {
+    // 将类型列表转换为 TypeArgument 列表
+    val newArguments = newTypes.map { TypeArgumentImpl(it) }
+    return type.replace(newArguments)
+}
+
+/**
+ * 将捕获类型替换为其投影类型
+ *
+ * ## 仓颉语言实现
+ * 由于仓颉语言不支持类型投影（in/out variance），这个函数主要用于：
+ * - 将捕获类型替换回其原始类型参数
+ * - 用于类型显示和错误报告
+ *
+ * @param typeArgument 包含捕获类型的类型参数
+ * @return 替换后的类型参数，如果没有捕获类型则返回 null
+ */
+fun substituteCapturedTypesWithProjections(typeArgument: TypeArgument): TypeArgument? {
+    val typeSubstitutor = DefaultTypeSubstitutor.create(object : TypeConstructorSubstitution() {
+        override fun get(key: TypeConstructor): TypeArgument? {
+            // 检查是否为捕获类型构造器
             val capturedTypeConstructor = key as? CapturedTypeConstructor ?: return null
 
-            return capturedTypeConstructor.projection
+            // 返回捕获的原始类型参数
+            return capturedTypeConstructor.argument
         }
     })
-    return typeSubstitutor.substituteWithoutApproximation(typeProjection)
-}
 
+    return typeSubstitutor.substituteWithoutApproximation(typeArgument)
+}
