@@ -24,9 +24,12 @@
 
 package org.cangnova.cangjie.types
 
+import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
+import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.renderer.DescriptorRenderer
 import org.cangnova.cangjie.renderer.DescriptorRendererOptions
+import org.cangnova.cangjie.resolve.fqNameSafe
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 
@@ -158,3 +161,5 @@ class FlexibleTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : Flexibl
         )
     }
 }
+
+

@@ -1,0 +1,1078 @@
+/*
+ * Copyright 2026 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package org.cangnova.cangjie.completion
+
+import org.cangnova.cangjie.resolve.analyzeInContext
+import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.indices.CangJieIndicesHelper
+import org.cangnova.cangjie.indices.ExpectedInfo
+import org.cangnova.cangjie.codeinsight.ReferenceVariantsHelper
+import org.cangnova.cangjie.completion.keywords.DefaultCompletionKeywordHandlerProvider
+import org.cangnova.cangjie.completion.keywords.KeywordCompletion
+import org.cangnova.cangjie.completion.keywords.KeywordValues
+import org.cangnova.cangjie.completion.keywords.createLookups
+import org.cangnova.cangjie.completion.smart.ExpectedInfoMatch
+import org.cangnova.cangjie.completion.smart.SMART_COMPLETION_ITEM_PRIORITY_KEY
+import org.cangnova.cangjie.completion.smart.SmartCompletion
+import org.cangnova.cangjie.completion.smart.SmartCompletionItemPriority
+
+import org.cangnova.cangjie.lexer.CjModifierKeywordToken
+import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.name.FqName
+import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.psiUtil.*
+import org.cangnova.cangjie.references.CjSimpleNameReference
+import org.cangnova.cangjie.references.mainReference
+import org.cangnova.cangjie.renderer.render
+import org.cangnova.cangjie.resolve.*
+import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
+import org.cangnova.cangjie.resolve.sam.SamConstructorDescriptor
+import org.cangnova.cangjie.resolve.sam.SamConstructorDescriptorKindExclude
+import org.cangnova.cangjie.resolve.scopes.*
+import org.cangnova.cangjie.types.FuzzyType
+import org.cangnova.cangjie.utils.safeAs
+import com.intellij.codeInsight.CodeInsightSettings
+import com.intellij.codeInsight.completion.*
+
+import com.intellij.codeInsight.completion.impl.BetterPrefixMatcher
+import com.intellij.codeInsight.lookup.LookupElement
+import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.codeInsight.lookup.LookupElementDecorator
+import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.codeInsight.template.TemplateManager
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.Key
+
+
+import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.search.GlobalSearchScope
+import org.cangnova.cangjie.NotPropertiesService
+import org.cangnova.cangjie.completion.addingPolicy.PolicyController
+import org.cangnova.cangjie.completion.turboComplete.CompletionKind
+import org.cangnova.cangjie.completion.turboComplete.SuggestionGeneratorConsumer
+import org.cangnova.cangjie.completion.turboComplete.SuggestionGeneratorWithArtifact
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.calls.util.CallType
+import org.cangnova.cangjie.resolve.calls.util.CallTypeAndReceiver
+import org.cangnova.cangjie.resolve.calls.util.languageVersionSettings
+import org.cangnova.cangjie.stubindex.CangJiePackageIndexUtils
+import org.cangnova.cangjie.utils.getImportableDescriptor
+import org.cangnova.cangjie.utils.importableFqName
+import org.cangnova.cangjie.utils.isExtension
+import org.cangnova.cangjie.utils.supertypesWithAny
+import kotlin.collections.isNullOrEmpty
+import kotlin.getValue
+
+
+/**
+ * 基础代码补全会话
+ *
+ * 处理标准的代码补全请求,包括:
+ * - 关键字补全
+ * - 引用补全(变量、函数、类等)
+ * - 命名参数补全
+ * - 运算符名称补全
+ * - 声明名称补全
+ * - super 限定符补全
+ * - 扩展函数补全
+ * - 静态成员补全
+ *
+ * @property configuration 补全会话配置
+ * @property completionParameters 补全参数
+ * @property policyController 策略控制器(控制补全项的添加策略)
+ * @property suggestionGeneratorConsumer 建议生成器消费者(接收并执行建议生成器)
+ */
+class BasicCompletionSession(
+    configuration: CompletionSessionConfiguration,
+    completionParameters: CompletionParameters,
+    private val policyController: PolicyController,
+    private val suggestionGeneratorConsumer: SuggestionGeneratorConsumer,
+) : CompletionSession(configuration, completionParameters, policyController.getObeyingResultSet()) {
+
+    /**
+     * 补全类别接口
+     *
+     * 定义不同类型的补全场景(如关键字、引用、声明名称等)
+     */
+    private interface CompletionCategory {
+        /** 此类别接受的描述符类型过滤器 */
+        val descriptorKindFilter: DescriptorKindFilter?
+
+        /** 生成此类别的补全项 */
+        fun generateCategories()
+
+        /** 是否应该禁用自动弹出 */
+        fun shouldDisableAutoPopup(): Boolean = false
+
+        /** 添加自定义权重器到排序器 */
+        fun addWeighers(sorter: CompletionSorter): CompletionSorter = sorter
+    }
+
+    /** 结果集是否为空 */
+    val isNothingAddedToResult: Boolean
+        get() = collector.isResultEmpty
+
+    /** 仅命名参数补全类别(用于函数调用中仅期望命名参数的情况) */
+    private val NAMED_ARGUMENTS_ONLY = object : OneKindCompletionCategory(CangJieCompletionKindName.NAMED_ARGUMENT) {
+        override val descriptorKindFilter: DescriptorKindFilter? get() = null
+        override fun fillResultSet(): Unit =
+            NamedArgumentCompletion.complete(collector, expectedInfos, callTypeAndReceiver.callType)
+    }
+
+    /**
+     * 检测当前位置的补全类别
+     *
+     * 根据上下文判断应该使用哪种补全策略:
+     * - 声明名称
+     * - 运算符名称
+     * - 命名参数
+     * - super 限定符
+     * - 完整补全(默认)
+     */
+    private fun detectCompletionCategory(): CompletionCategory {
+        if (nameExpression == null) {
+            return if ((position.parent as? CjNamedDeclaration)?.nameIdentifier == position) DECLARATION_NAME else KEYWORDS_ONLY
+        }
+
+        if (OPERATOR_NAME.isApplicable()) {
+            return OPERATOR_NAME
+        }
+
+        if (NamedArgumentCompletion.isOnlyNamedArgumentExpected(nameExpression, resolutionFacade)) {
+            return NAMED_ARGUMENTS_ONLY
+        }
+
+        if (nameExpression.getStrictParentOfType<CjSuperExpression>() != null) {
+            return SUPER_QUALIFIER
+        }
+
+        return ALL
+    }
+
+    /**
+     * 完整补全类别
+     *
+     * 提供最全面的补全支持,包括:
+     * - 关键字
+     * - 引用(变量、函数、类等)
+     * - 扩展函数
+     * - 智能补全
+     * - 命名参数
+     * - 包名
+     * - 静态成员
+     * - 未导入的符号
+     */
+    private val ALL = object : CompletionCategory {
+        override val descriptorKindFilter: DescriptorKindFilter by lazy {
+            callTypeAndReceiver.callType.descriptorKindFilter/*.let { filter ->
+                // 排除顶层包(因为它们会单独处理)
+                filter.takeIf { it.kindMask.and(DescriptorKindFilter.PACKAGES_MASK) != 0 }
+                    ?.exclude(DescriptorKindExclude.Module)
+                    ?: filter
+            }*/
+        }
+
+        /**
+         * 判断是否在扩展接收者类型的开始位置
+         *
+         * 仓颉语言使用 extend 块语法实现扩展，不使用 receiverTypeReference
+         */
+        private fun isStartOfExtensionReceiverFor(): CjCallableDeclaration? {
+            // 仓颉语言使用 extend {} 块语法，不使用 receiverTypeReference
+            return null
+        }
+
+        override fun generateCategories() {
+            /**
+             * 添加引用变体到补全结果
+             *
+             * @param lookupElementFactory LookupElement 工厂
+             * @param referenceVariants 引用变体(包含导入和未导入的扩展)
+             */
+            fun addReferenceVariants(lookupElementFactory: LookupElementFactory, referenceVariants: ReferenceVariants) {
+                // 添加已导入的符号(排除未初始化的变量)
+                collector.addDescriptorElements(
+                    referenceVariantsHelper.excludeNonInitializedVariable(referenceVariants.imported, position),
+                    lookupElementFactory, prohibitDuplicates = true
+                )
+
+                // 添加未导入的扩展
+                collector.addDescriptorElements(
+                    referenceVariants.notImportedExtensions, lookupElementFactory,
+                    notImported = true, prohibitDuplicates = true
+                )
+            }
+
+            /**
+             * 创建引用建议生成器
+             *
+             * @param descriptors 描述符过滤器列表
+             * @param lookupElementFactory LookupElement 工厂
+             * @return 建议生成器列表
+             */
+            fun makeReferenceSuggestionGenerators(
+                descriptors: List<DescriptorKindFilter>,
+                lookupElementFactory: LookupElementFactory
+            ): List<SuggestionGeneratorWithArtifact<Unit>> {
+                val generators = descriptors.map { descriptorKindFilter ->
+                    referenceVariantsCollector!!.makeReferenceVariantsCollectors(descriptorKindFilter)
+                }
+
+                val basicReferencesKind =
+                    suggestionGeneratorForCompletionKind(CangJieCompletionKindName.REFERENCE_BASIC) {
+                        generators.forEach {
+                            addReferenceVariants(lookupElementFactory, it.basic.value)
+                        }
+                    }
+
+                val extensionReferencesKind =
+                    suggestionGeneratorForCompletionKind(CangJieCompletionKindName.REFERENCE_EXTENSION) {
+                        generators.forEach {
+                            addReferenceVariants(lookupElementFactory, it.extensions.value)
+                        }
+                    }
+
+                return listOf(basicReferencesKind, extensionReferencesKind)
+            }
+
+            fun collectReferences(descriptors: List<DescriptorKindFilter>): Lazy<Set<FuzzyType>> {
+                val provider = CollectRequiredTypesContextVariablesProvider()
+                val lookupElementFactory = createLookupElementFactory(provider)
+                val generators = makeReferenceSuggestionGenerators(descriptors, lookupElementFactory)
+                /**
+                 * 确认生成器的存在，并将其传递给消费者。
+                 * 消费者（即 [com.intellij.turboComplete.SuggestionGeneratorExecutor]）
+                 * 可以根据需要使用它。
+                 */
+                generators.forEach { suggestionGeneratorConsumer.pass(it) }
+                return lazy {
+                    /**
+                     * 确保在访问此函数返回值时，
+                     * 所有生成器都已生成其产物
+                     */
+                    generators.forEach { it.getArtifact() }
+                    referenceVariantsCollector!!.collectingFinished()
+                    provider.requiredTypes
+
+                }
+            }
+
+            fun completeWithSmartCompletion(lookupElementFactory: LookupElementFactory) {
+                if (smartCompletion != null) {
+                    val (additionalItems, @Suppress("UNUSED_VARIABLE") inheritanceSearcher) = smartCompletion!!.additionalItems(
+                        lookupElementFactory
+                    )
+
+                    // 所有附加项都应该有 SMART_COMPLETION_ITEM_PRIORITY_KEY，以便被 SmartCompletionInBasicWeigher 识别
+                    for (item in additionalItems) {
+                        if (item.getUserData(SMART_COMPLETION_ITEM_PRIORITY_KEY) == null) {
+                            item.putUserData(SMART_COMPLETION_ITEM_PRIORITY_KEY, SmartCompletionItemPriority.DEFAULT)
+                        }
+                    }
+
+                    collector.addElements(additionalItems)
+                }
+            }
+
+            val declaration = isStartOfExtensionReceiverFor()
+            if (declaration != null) {
+                completeDeclarationNameFromUnresolvedOrOverride(declaration)
+
+
+                // 在 "let"、"var" 和 "func" 后不自动弹出补全，因为用户很可能正在输入声明名称
+                if (parameters.invocationCount == 0 && (
+                            // suppressOtherCompletion
+                            declaration !is CjNamedFunction && declaration !is CjVariable<*> ||
+                                    prefixMatcher.prefix.let { it.isEmpty() || it[0].isLowerCase() /* 函数名通常以小写字母开头 */ }
+                            )
+                ) {
+                    if (declaration is CjNamedFunction &&
+                        declaration.modifierList?.allChildren.orEmpty()
+                            .map { it.node.elementType }
+                            .none { it is CjModifierKeywordToken && it !in CjTokens.VISIBILITY_MODIFIERS }
+                    ) {
+                        KEYWORDS_ONLY.generateCategories()
+                    }
+                    return
+                }
+            }
+
+
+            KEYWORDS_ONLY.generateCategories()
+            val contextVariableTypesForSmartCompletion = withCollectRequiredContextVariableTypes(
+                CangJieCompletionKindName.SMART_ADDITIONAL_ITEM,
+                ::completeWithSmartCompletion
+            )
+
+            val descriptors = when {
+                prefix.isEmpty() ||
+                        callTypeAndReceiver.receiver != null ||
+                        CodeInsightSettings.getInstance().completionCaseSensitive == CodeInsightSettings.NONE
+                    -> {
+                    listOf(descriptorKindFilter)
+                }
+
+                prefix[0].isLowerCase() -> {
+                    listOf(
+                        USUALLY_START_LOWER_CASE.intersect(descriptorKindFilter),
+                        USUALLY_START_UPPER_CASE.intersect(descriptorKindFilter)
+                    )
+                }
+
+                else -> {
+                    listOf(
+                        USUALLY_START_UPPER_CASE.intersect(descriptorKindFilter),
+                        USUALLY_START_LOWER_CASE.intersect(descriptorKindFilter)
+                    )
+                }
+            }
+            val references = collectReferences(descriptors)
+            // 从作用域获取根包非常慢，所以我们使用另一种方式处理
+            if (callTypeAndReceiver.receiver == null &&
+                callTypeAndReceiver.callType.descriptorKindFilter.kindMask.and(DescriptorKindFilter.PACKAGES_MASK) != 0
+            ) {
+                addKind(CangJieCompletionKindName.PACKAGE_NAME) {
+                    // TODO: 将此代码移到其他地方？
+                    val packageNames = CangJiePackageIndexUtils.getSubPackageFqNames(
+                        FqName.ROOT,
+                        GlobalSearchScope.allScope(project),
+                        prefixMatcher.asNameFilter()
+                    )
+                        .toHashSet()
+
+
+                    packageNames.forEach {
+                        collector.addElement(
+                            basicLookupElementFactory.createLookupElementForPackage(
+                                it
+                            )
+                        )
+                    }
+                }
+            }
+            addKind(CangJieCompletionKindName.NAMED_ARGUMENT) {
+                NamedArgumentCompletion.complete(collector, expectedInfos, callTypeAndReceiver.callType)
+            }
+            val contextVariablesProvider = RealContextVariablesProvider(referenceVariantsHelper, position)
+            withContextVariablesProvider(contextVariablesProvider) { lookupElementFactory ->
+                if (receiverTypes != null) {
+                    addKind(CangJieCompletionKindName.EXTENSION_FUNCTION_TYPE_VALUE) {
+                        ExtensionFunctionTypeValueCompletion(
+                            receiverTypes,
+                            callTypeAndReceiver.callType,
+                            lookupElementFactory
+                        )
+                            .processVariables(contextVariablesProvider)
+                            .forEach {
+                                val lookupElements = it.factory.createStandardLookupElementsForDescriptor(
+                                    it.invokeDescriptor,
+                                    useReceiverTypes = true,
+                                )
+                                collector.addElements(lookupElements)
+                            }
+                    }
+                }
+
+                addKind(CangJieCompletionKindName.CONTEXT_VARIABLE_TYPE_SC) {
+                    if (contextVariableTypesForSmartCompletion.getArtifact().any {
+                            contextVariablesProvider.functionTypeVariables(it).isNotEmpty()
+                        }) {
+                        completeWithSmartCompletion(lookupElementFactory)
+                    }
+                }
+
+                addKind(CangJieCompletionKindName.CONTEXT_VARIABLE_TYPE_REFERENCE) {
+                    if (references.value.any { contextVariablesProvider.functionTypeVariables(it).isNotEmpty() }) {
+                        val (imported, notImported) = referenceVariantsWithSingleFunctionTypeParameter()!!
+                        collector.addDescriptorElements(imported, lookupElementFactory)
+                        collector.addDescriptorElements(notImported, lookupElementFactory, notImported = true)
+                    }
+                }
+
+                val staticMembersCompletion = lazy {
+                    references.value
+                    StaticMembersCompletion(
+                        prefixMatcher,
+                        resolutionFacade,
+                        lookupElementFactory,
+                        referenceVariantsCollector!!.allCollected.imported,
+
+                        )
+                }
+
+                if (callTypeAndReceiver is CallTypeAndReceiver.DEFAULT) {
+                    addKind(CangJieCompletionKindName.STATIC_MEMBER_FROM_IMPORTS) {
+                        staticMembersCompletion.value.completeFromImports(file, collector)
+                    }
+                }
+
+                addKind(CangJieCompletionKindName.NON_IMPORTED) {
+                    contextVariableTypesForSmartCompletion.getArtifact()
+                    references.value
+                    completeNonImported(lookupElementFactory)
+                }
+
+                if (isDebuggerContext) {
+                    addKind(CangJieCompletionKindName.DEBUGGER_VARIANTS) {
+                        val variantsAndFactory = getRuntimeReceiverTypeReferenceVariants(lookupElementFactory)
+                        if (variantsAndFactory != null) {
+                            val variants = variantsAndFactory.first
+                            val resultLookupElementFactory = variantsAndFactory.second
+                            collector.addDescriptorElements(
+                                variants.imported,
+                                resultLookupElementFactory,
+                                withReceiverCast = true
+                            )
+                            collector.addDescriptorElements(
+                                variants.notImportedExtensions,
+                                resultLookupElementFactory,
+                                withReceiverCast = true,
+                                notImported = true
+                            )
+                        }
+                    }
+                }
+
+                if (!receiverTypes.isNullOrEmpty()) {
+                    // 注意：禁止对成员扩展进行可调用引用
+                    val shouldCompleteExtensionsFromObjects = when (callTypeAndReceiver.callType) {
+                        CallType.DEFAULT, CallType.DOT, CallType.SAFE -> true
+                        else -> false
+                    }
+
+                    if (shouldCompleteExtensionsFromObjects) {
+                        val receiverCangJieTypes by lazy { receiverTypes.map { it.type } }
+
+                        addKind(CangJieCompletionKindName.STATIC_MEMBER_OBJECT_MEMBER) {
+                            staticMembersCompletion.value.completeObjectMemberExtensionsFromIndices(
+                                indicesHelper(mayIncludeInaccessible = false),
+                                receiverCangJieTypes,
+                                callTypeAndReceiver,
+                                collector
+                            )
+                        }
+
+                        addKind(CangJieCompletionKindName.STATIC_MEMBER_EXPLICIT_INHERITED) {
+                            staticMembersCompletion.value.completeExplicitAndInheritedMemberExtensionsFromIndices(
+                                indicesHelper(mayIncludeInaccessible = false),
+                                receiverCangJieTypes,
+                                callTypeAndReceiver,
+                                collector
+                            )
+                        }
+                    }
+                }
+
+                if (configuration.staticMembers && prefix.isNotEmpty()) {
+                    if (callTypeAndReceiver is CallTypeAndReceiver.DEFAULT) {
+                        addKind(CangJieCompletionKindName.STATIC_MEMBER_INACCESSIBLE) {
+                            staticMembersCompletion.value.completeFromIndices(indicesHelper(false), collector)
+                        }
+                    }
+                }
+            }
+
+        }
+
+        private fun completeNonImported(lookupElementFactory: LookupElementFactory) {
+            if (shouldCompleteTopLevelCallablesFromIndex()) {
+                processTopLevelCallables {
+                    collector.addDescriptorElements(it, lookupElementFactory, notImported = true)
+                    flushToResultSet()
+                }
+            }
+
+            if (callTypeAndReceiver.receiver == null && prefix.isNotEmpty()) {
+                val classKindFilter: ((ClassKind) -> Boolean)? = when (callTypeAndReceiver) {
+
+
+                    is CallTypeAndReceiver.DEFAULT, is CallTypeAndReceiver.TYPE -> {
+                        { true }
+                    }
+
+                    else -> null
+                }
+
+                if (classKindFilter != null) {
+                    val prefixMatcher = if (configuration.useBetterPrefixMatcherForNonImportedClasses)
+                        BetterPrefixMatcher(prefixMatcher, collector.bestMatchingDegree)
+                    else
+                        prefixMatcher
+
+                    addClassesFromIndex(
+                        kindFilter = classKindFilter,
+                        prefixMatcher = prefixMatcher,
+                        completionParameters = parameters,
+                        indicesHelper = indicesHelper(true),
+                        classifierDescriptorCollector = {
+                            collector.addElement(basicLookupElementFactory.createLookupElement(it), notImported = true)
+                        },
+
+                        )
+                }
+            } else if (callTypeAndReceiver is CallTypeAndReceiver.DOT) {
+                val qualifier = bindingContext[BindingContext.QUALIFIER, callTypeAndReceiver.receiver]
+                if (qualifier != null) return
+                val receiver = callTypeAndReceiver.receiver as? CjSimpleNameExpression ?: return
+                val descriptors = mutableListOf<ClassifierDescriptorWithTypeParameters>()
+                val fullTextPrefixMatcher = object : PrefixMatcher(receiver.referencedName) {
+                    override fun prefixMatches(name: String): Boolean = name == prefix
+                    override fun cloneWithPrefix(prefix: String): PrefixMatcher =
+                        throw UnsupportedOperationException("Not implemented")
+                }
+
+                addClassesFromIndex(
+                    kindFilter = { true },
+                    prefixMatcher = fullTextPrefixMatcher,
+                    completionParameters = parameters.withPosition(receiver, receiver.startOffset),
+                    indicesHelper = indicesHelper(false),
+                    classifierDescriptorCollector = { descriptors += it },
+
+                    )
+
+                val foundDescriptors = HashSet<DeclarationDescriptor>()
+                val classifiers = descriptors.asSequence().filter {
+
+                    it.kind == ClassKind.ENUM
+
+                }
+
+                for (classifier in classifiers) {
+                    val scope = nameExpression?.getResolutionScope(bindingContext) ?: return
+
+                    val desc = classifier.getImportableDescriptor()
+                    val newScope = scope.addImportingScope(ExplicitImportsScope(listOf(desc)))
+
+                    val newContext = (nameExpression.parent as CjExpression).analyzeInContext(newScope)
+
+                    val rvHelper = ReferenceVariantsHelper(
+                        newContext,
+                        resolutionFacade,
+                        moduleDescriptor,
+                        isVisibleFilter,
+                        NotPropertiesService.getNotProperties(position)
+                    )
+
+                    val rvCollector = ReferenceVariantsCollector(
+                        referenceVariantsHelper = rvHelper,
+                        indicesHelper = indicesHelper(true),
+                        prefixMatcher = prefixMatcher,
+                        applicabilityFilter = applicabilityFilter,
+                        nameExpression = nameExpression,
+                        callTypeAndReceiver = callTypeAndReceiver,
+                        resolutionFacade = resolutionFacade,
+                        bindingContext = newContext,
+                        importableFqNameClassifier = importableFqNameClassifier,
+                        configuration = configuration,
+                        allowExpectedDeclarations = allowExpectedDeclarations,
+                    )
+
+                    val receiverTypes = detectReceiverTypes(newContext, nameExpression, callTypeAndReceiver)
+                    val factory = lookupElementFactory.copy(
+                        receiverTypes = receiverTypes,
+                        standardLookupElementsPostProcessor = { lookupElement ->
+                            val lookupDescriptor = lookupElement.`object`
+                                .safeAs<DescriptorBasedDeclarationLookupObject>()
+                                ?.descriptor as? MemberDescriptor
+                                ?: return@copy lookupElement
+
+                            if (!desc.isAncestorOf(lookupDescriptor, false)) return@copy lookupElement
+
+                            if (lookupDescriptor is CallableMemberDescriptor &&
+                                lookupDescriptor.isExtension
+
+                            ) {
+                                return@copy lookupElement
+                            }
+
+                            val fqNameToImport =
+                                lookupDescriptor.containingDeclaration.importableFqName ?: return@copy lookupElement
+
+                            object : LookupElementDecorator<LookupElement>(lookupElement) {
+                                val name = fqNameToImport.shortName()
+                                val packageName = fqNameToImport.parent()
+
+                                override fun handleInsert(context: InsertionContext) {
+                                    super.handleInsert(context)
+                                    context.commitDocument()
+                                    val file = context.file as? CjFile
+                                    if (file != null) {
+                                        val receiverInFile = file.findElementAt(receiver.startOffset)
+                                            ?.getParentOfType<CjSimpleNameExpression>(false)
+                                            ?: return
+
+                                        receiverInFile.mainReference.bindToFqName(
+                                            fqNameToImport,
+                                            CjSimpleNameReference.ShorteningMode.FORCED_SHORTENING
+                                        )
+                                    }
+                                }
+
+                                override fun renderElement(presentation: LookupElementPresentation) {
+                                    super.renderElement(presentation)
+                                    presentation.appendTailText(
+                                        CangJieCompletionBundle.message(
+                                            "presentation.tail.for.0.in.1",
+                                            name,
+                                            packageName,
+                                        ),
+                                        true,
+                                    )
+                                }
+                            }
+                        },
+                    )
+
+                    rvCollector.collectReferenceVariants(descriptorKindFilter) { (imported, notImportedExtensions) ->
+                        val unique = imported.asSequence()
+                            .filterNot { it.original in foundDescriptors }
+                            .onEach { foundDescriptors += it.original }
+
+                        val uniqueNotImportedExtensions = notImportedExtensions.asSequence()
+                            .filterNot { it.original in foundDescriptors }
+                            .onEach { foundDescriptors += it.original }
+
+                        collector.addDescriptorElements(
+                            unique.toList(), factory,
+                            prohibitDuplicates = true
+                        )
+
+                        collector.addDescriptorElements(
+                            uniqueNotImportedExtensions.toList(), factory,
+                            notImported = true, prohibitDuplicates = true
+                        )
+
+                        flushToResultSet()
+                    }
+                }
+            }
+        }
+
+    }
+
+    private fun addClassesFromIndex(
+        kindFilter: (ClassKind) -> Boolean,
+        prefixMatcher: PrefixMatcher,
+        completionParameters: CompletionParameters,
+        indicesHelper: CangJieIndicesHelper,
+        classifierDescriptorCollector: (ClassifierDescriptorWithTypeParameters) -> Unit,
+
+        ) {
+        AllClassesCompletion(
+            parameters = completionParameters,
+            cangjieIndicesHelper = indicesHelper,
+            prefixMatcher = prefixMatcher,
+            resolutionFacade = resolutionFacade,
+            kindFilter = kindFilter,
+            includeTypeAliases = true,
+
+            ).collect { processWithShadowedFilter(it, classifierDescriptorCollector) }
+    }
+
+
+    fun shouldDisableAutoPopup(): Boolean = completionKind.shouldDisableAutoPopup()
+    private val smartCompletion by lazy {
+        expression?.let {
+            SmartCompletion(
+                expression = it,
+                resolutionFacade = resolutionFacade,
+                bindingContext = bindingContext,
+                moduleDescriptor = moduleDescriptor,
+                visibilityFilter = isVisibleFilter,
+                applicabilityFilter = applicabilityFilter,
+                indicesHelper = indicesHelper(false),
+                prefixMatcher = prefixMatcher,
+                inheritorSearchScope = GlobalSearchScope.EMPTY_SCOPE,
+                toFromOriginalFileMapper = toFromOriginalFileMapper,
+                callTypeAndReceiver = callTypeAndReceiver,
+
+                forBasicCompletion = true,
+            )
+        }
+    }
+    private val completionKind by lazy { detectCompletionCategory() }
+    override val descriptorKindFilter: DescriptorKindFilter? get() = completionKind.descriptorKindFilter
+
+    override val expectedInfos: Collection<ExpectedInfo> get() = smartCompletion?.expectedInfos ?: emptyList()
+
+    private abstract inner class OneKindCompletionCategory(private val name: CangJieCompletionKindName) :
+        CompletionCategory {
+        final override fun generateCategories() {
+            suggestionGeneratorConsumer.pass(suggestionGeneratorForCompletionKind(name) {
+                fillResultSet()
+            })
+        }
+
+        abstract fun fillResultSet()
+    }
+
+    private fun completeDeclarationNameFromUnresolvedOrOverride(declaration: CjNamedDeclaration) {
+        addKind(CangJieCompletionKindName.DECLARATION_NAME_FROM_UNRESOLVED_OVERRIDE) {
+            if (declaration is CjCallableDeclaration && declaration.hasModifier(CjTokens.OVERRIDE_KEYWORD)) {
+                OverridesCompletion(collector, basicLookupElementFactory).complete(position, declaration)
+            } else {
+                val referenceScope = referenceScope(declaration) ?: return@addKind
+                val originalScope = toFromOriginalFileMapper.toOriginalFile(referenceScope) ?: return@addKind
+                val afterOffset = if (referenceScope is CjBlockExpression) parameters.offset else null
+                val descriptor = bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration]
+                FromUnresolvedNamesCompletion(collector, prefixMatcher).addNameSuggestions(
+                    originalScope,
+                    afterOffset,
+                    descriptor
+                )
+            }
+        }
+    }
+
+    private fun addKind(name: CangJieCompletionKindName, generator: () -> Unit) {
+        suggestionGeneratorConsumer.pass(suggestionGeneratorForCompletionKind(name) {
+            generator()
+        })
+    }
+
+    private val OPERATOR_NAME = object : OneKindCompletionCategory(CangJieCompletionKindName.OPERATOR_NAME) {
+        override val descriptorKindFilter: DescriptorKindFilter? get() = null
+
+        fun isApplicable(): Boolean {
+            if (nameExpression == null || nameExpression != expression) return false
+            val func = position.getParentOfType<CjNamedFunction>(strict = false) ?: return false
+            val funcNameIdentifier = func.nameIdentifier ?: return false
+            val identifierInNameExpression = nameExpression.nextLeaf {
+                it is LeafPsiElement && it.elementType == CjTokens.IDENTIFIER
+            } ?: return false
+
+            if (!func.hasModifier(CjTokens.OPERATOR_KEYWORD) || identifierInNameExpression != funcNameIdentifier) return false
+            val originalFunc = toFromOriginalFileMapper.toOriginalFile(func) ?: return false
+            return !originalFunc.isTopLevel || (originalFunc.isExtensionDeclaration())
+        }
+
+        override fun fillResultSet() {
+            OperatorNameCompletion.doComplete(collector, descriptorNameFilter)
+        }
+    }
+    private val SUPER_QUALIFIER = object : OneKindCompletionCategory(CangJieCompletionKindName.SUPER_QUALIFIER) {
+        override val descriptorKindFilter: DescriptorKindFilter
+            get() = DescriptorKindFilter.CLASSIFIERS
+
+        override fun fillResultSet() {
+            val classOrObject = position.parents.firstIsInstanceOrNull<CjTypeStatement>() ?: return
+            val classDescriptor =
+                resolutionFacade.resolveToDescriptor(classOrObject, BodyResolveMode.PARTIAL) as ClassDescriptor
+            val superClasses = classDescriptor.defaultType.constructor.supertypesWithAny()
+                .mapNotNull { it.constructor.declarationDescriptor as? ClassDescriptor }
+
+//            if (callTypeAndReceiver.receiver != null) {
+//                val referenceVariantsSet = referenceVariantsCollector!!.collectReferenceVariants(descriptorKindFilter).imported.toSet()
+//                superClasses = superClasses.filter { it in referenceVariantsSet }
+//            }
+
+            superClasses
+                .map {
+                    basicLookupElementFactory.createLookupElement(
+                        it,
+                        qualifyNestedClasses = true,
+                        includeClassTypeArguments = false
+                    )
+                }
+                .forEach { collector.addElement(it) }
+        }
+    }
+
+    private val DECLARATION_NAME = object : CompletionCategory {
+        override val descriptorKindFilter: DescriptorKindFilter? get() = null
+
+        override fun generateCategories() {
+            val declaration = declaration()
+            if (declaration is CjParameter && !NameWithTypeCompletion.shouldCompleteParameter(declaration)) {
+                return // do not complete also keywords and from unresolved references in such case
+            }
+
+            addKind(CangJieCompletionKindName.DECLARATION_NAME) {
+                collector.addLookupElementPostProcessor { lookupElement ->
+                    lookupElement.apply { suppressItemSelectionByCharsOnTyping = true }
+                }
+            }
+
+            KEYWORDS_ONLY.generateCategories()
+
+            completeDeclarationNameFromUnresolvedOrOverride(declaration)
+
+            when (declaration) {
+                is CjParameter -> completeParameterOrVarNameAndType(withType = true)
+                is CjTypeStatement -> {
+
+                    addKind(CangJieCompletionKindName.TOP_LEVEL_CLASS_NAME) {
+                        completeTopLevelClassName()
+                    }
+
+                }
+            }
+        }
+
+        override fun shouldDisableAutoPopup(): Boolean = when {
+            TemplateManager.getInstance(project).getActiveTemplate(parameters.editor) != null -> true
+            declaration() is CjParameter && wasAutopopupRecentlyCancelled(parameters) -> true
+            else -> false
+        }
+
+        override fun addWeighers(sorter: CompletionSorter): CompletionSorter {
+            val declaration = declaration()
+            return if (declaration is CjParameter && NameWithTypeCompletion.shouldCompleteParameter(declaration))
+                sorter.weighBefore("prefix", VariableOrParameterNameWithTypeCompletion.Weigher)
+            else
+                sorter
+        }
+
+        private fun completeTopLevelClassName() {
+            val name = parameters.originalFile.virtualFile.nameWithoutExtension
+            if (!(Name.isValidIdentifier(name) && Name.identifier(name)
+                    .render() == name && name[0].isUpperCase())
+            ) return
+            if ((parameters.originalFile as CjFile).declarations.any { it is CjTypeStatement && it.name == name }) return
+
+            collector.addElement(LookupElementBuilder.create(name))
+        }
+
+        private fun declaration() = position.parent as CjNamedDeclaration
+    }
+
+    private fun completeParameterOrVarNameAndType(withType: Boolean) {
+        collector.restartCompletionOnPrefixChange(NameWithTypeCompletion.prefixEndsWithUppercaseLetterPattern)
+        addKind(CangJieCompletionKindName.PARAMETER_OR_VAR_NAME_AND_TYPE) {
+            val nameWithTypeCompletion = VariableOrParameterNameWithTypeCompletion(
+                collector,
+                basicLookupElementFactory,
+                prefixMatcher,
+                resolutionFacade,
+                withType,
+            )
+            nameWithTypeCompletion.addFromParametersInFile(position, resolutionFacade, isVisibleFilterCheckAlways)
+            nameWithTypeCompletion.addFromImportedClasses(position, bindingContext, isVisibleFilterCheckAlways)
+            nameWithTypeCompletion.addFromAllClasses(parameters, indicesHelper(false))
+        }
+    }
+
+    private fun wasAutopopupRecentlyCancelled(parameters: CompletionParameters) =
+        LookupCancelService.getInstance(project).wasAutoPopupRecentlyCancelled(parameters.editor, position.startOffset)
+
+    private val KEYWORDS_ONLY = object : OneKindCompletionCategory(CangJieCompletionKindName.KEYWORD_ONLY) {
+        override val descriptorKindFilter: DescriptorKindFilter? get() = null
+
+        private val keywordCompletion = KeywordCompletion(object : KeywordCompletion.LanguageVersionSettingProvider {
+            override fun getLanguageVersionSetting(element: PsiElement) = element.languageVersionSettings
+            override fun getLanguageVersionSetting(module: Module) = module.languageVersionSettings
+        })
+
+        override fun fillResultSet() {
+            val keywordsToSkip = HashSet<String>()
+            val keywordValueConsumer = object : KeywordValues.Consumer {
+                override fun consume(
+                    lookupString: String,
+                    expectedInfoMatcher: (ExpectedInfo) -> ExpectedInfoMatch,
+                    suitableOnPsiLevel: PsiElement.() -> Boolean,
+                    priority: SmartCompletionItemPriority,
+                    factory: () -> LookupElement
+                ) {
+                    keywordsToSkip.add(lookupString)
+                    val lookupElement = factory()
+                    val matched = expectedInfos.any {
+                        val match = expectedInfoMatcher(it)
+                        assert(!match.makeNotNullable) { "不支持可空的关键字值" }
+                        match.isMatch()
+                    }
+
+                    // 'expectedInfos' 由编译器分析填充。
+                    // 在缺少导入语句或未声明变量等情况下，无法获取所需数据。
+                    // 这时我们可以分析 PSI，调用 'suitableOnPsiLevel()' 来解决问题。
+                    if (matched || (expectedInfos.isEmpty() && position.suitableOnPsiLevel())) {
+                        lookupElement.putUserData(SmartCompletionInBasicWeigher.KEYWORD_VALUE_MATCHED_KEY, Unit)
+                        lookupElement.putUserData(SMART_COMPLETION_ITEM_PRIORITY_KEY, priority)
+                    }
+                    collector.addElement(lookupElement)
+                }
+            }
+
+            KeywordValues.process(
+                keywordValueConsumer,
+                position,
+                callTypeAndReceiver,
+                bindingContext,
+                resolutionFacade,
+                moduleDescriptor,
+
+                )
+
+            keywordCompletion.complete(expression ?: position, collector.resultSet.prefixMatcher) { lookupElement ->
+                val keyword = lookupElement.lookupString
+                if (keyword in keywordsToSkip) return@complete
+
+                val completionKeywordHandler = DefaultCompletionKeywordHandlerProvider.getHandlerForKeyword(keyword)
+                if (completionKeywordHandler != null) {
+                    val lookups = completionKeywordHandler.createLookups(parameters, expression, lookupElement, project)
+                    collector.addElements(lookups)
+                    return@complete
+                }
+
+                when (keyword) {
+                    // 如果 "this" 在当前上下文中正确解析 - 插入它以及所有 this@xxx 项
+                    "this" -> {
+                        if (expression != null) {
+                            collector.addElements(
+                                thisExpressionItems(
+                                    bindingContext,
+                                    expression,
+                                    prefix,
+                                    resolutionFacade
+                                ).map { it.createLookupElement() })
+                        } else {
+                            // 用于次构造函数委托调用中的补全
+                            collector.addElement(lookupElement)
+                        }
+                    }
+
+                    // 如果 "return" 在当前上下文中正确解析 - 插入它以及所有 return
+                    "return" -> {
+                        if (expression != null) {
+                            collector.addElements(returnExpressionItems(bindingContext, expression))
+                        }
+                    }
+
+                    "override" -> {
+                        collector.addElement(lookupElement)
+
+                        OverridesCompletion(collector, basicLookupElementFactory).complete(position, declaration = null)
+                    }
+
+                    "class" -> {
+                        if (callTypeAndReceiver !is CallTypeAndReceiver.CALLABLE_REFERENCE) { // 否则应由 KeywordValues 处理
+                            collector.addElement(lookupElement)
+                        }
+                    }
+
+
+//                    "break", "continue" -> {
+//                        if (expression != null) {
+//                            analyze(expression) {
+//                                val cjKeywordToken = when (keyword) {
+//                                    "break" -> CjTokens.BREAK_KEYWORD
+//                                    "continue" -> CjTokens.CONTINUE_KEYWORD
+//                                    else -> error("'$keyword' can only be 'break' or 'continue'")
+//                                }
+//                                collector.addElements(
+//                                    BreakContinueKeywordHandler(cjKeywordToken).createLookups(
+//                                        expression
+//                                    )
+//                                )
+//                            }
+//                        }
+//                    }
+
+                    else -> collector.addElement(lookupElement)
+                }
+            }
+        }
+    }
+
+    override fun doComplete() {
+        assert(parameters.completionType == CompletionType.BASIC)
+
+        if (parameters.isAutoPopup) {
+            collector.addLookupElementPostProcessor { lookupElement ->
+                lookupElement.putUserData(LookupCancelService.AUTO_POPUP_AT, position.startOffset)
+                lookupElement
+            }
+
+            if (isAtFunctionLiteralStart(position)) {
+                collector.addLookupElementPostProcessor { lookupElement ->
+                    lookupElement.apply { suppressItemSelectionByCharsOnTyping = true }
+                }
+            }
+        }
+
+        collector.addLookupElementPostProcessor { lookupElement ->
+            position.argList?.let { lookupElement.argList = it }
+            lookupElement
+        }
+
+        completionKind.generateCategories()
+    }
+
+    private fun <T> suggestionGeneratorForCompletionKind(
+        name: CangJieCompletionKindName,
+        fillResultSet: () -> T
+    ) = object : SuggestionGeneratorWithArtifact<T>(
+        CompletionKind(name, CangJieKindVariety), collector.resultSet, policyController, parameters
+    ) {
+        override fun generateVariantsAndArtifact(): T {
+            val artifact = fillResultSet()
+            flushToResultSet()
+            return artifact
+        }
+    }
+
+    private fun withCollectRequiredContextVariableTypes(
+        kindName: CangJieCompletionKindName,
+        action: (LookupElementFactory) -> Unit
+    ): SuggestionGeneratorWithArtifact<Set<FuzzyType>> {
+        val provider = CollectRequiredTypesContextVariablesProvider()
+        val lookupElementFactory = createLookupElementFactory(provider)
+
+        val actionAsKind = suggestionGeneratorForCompletionKind(kindName) {
+            action(lookupElementFactory)
+            flushToResultSet()
+            provider.requiredTypes
+        }
+
+        suggestionGeneratorConsumer.pass(actionAsKind)
+        return actionAsKind
+    }
+}
+
+var LookupElement.suppressItemSelectionByCharsOnTyping: Boolean by NotNullableUserDataProperty(
+    Key("CANGJIE_SUPPRESS_ITEM_SELECTION_BY_CHARS_ON_TYPING"),
+    defaultValue = false,
+)
+private val USUALLY_START_LOWER_CASE = DescriptorKindFilter(
+    DescriptorKindFilter.CALLABLES_MASK or DescriptorKindFilter.PACKAGES_MASK or DescriptorKindFilter.MODULES_MASK,
+    listOf(SamConstructorDescriptorKindExclude)
+)
+private val USUALLY_START_UPPER_CASE = DescriptorKindFilter(
+    DescriptorKindFilter.CLASSIFIERS_MASK or DescriptorKindFilter.FUNCTIONS_MASK,
+    listOf(
+        NonSamConstructorFunctionExclude,
+        DescriptorKindExclude.Extensions /* 用于加速 getReferenceVariants */
+    )
+)
+
+private object NonSamConstructorFunctionExclude : DescriptorKindExclude() {
+    override fun excludes(descriptor: DeclarationDescriptor) =
+        descriptor is FunctionDescriptor && descriptor !is SamConstructorDescriptor
+
+    override val fullyExcludedDescriptorKinds: Int get() = 0
+}
+
+

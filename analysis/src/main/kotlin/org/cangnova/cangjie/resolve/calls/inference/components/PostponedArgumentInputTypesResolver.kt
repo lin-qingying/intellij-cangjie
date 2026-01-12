@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.resolve.calls.inference.components
 
 import org.cangnova.cangjie.config.LanguageFeature
-import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilderImpl
+
 import org.cangnova.cangjie.resolve.calls.inference.model.Constraint
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintKind
 import org.cangnova.cangjie.resolve.calls.inference.model.VariableWithConstraints

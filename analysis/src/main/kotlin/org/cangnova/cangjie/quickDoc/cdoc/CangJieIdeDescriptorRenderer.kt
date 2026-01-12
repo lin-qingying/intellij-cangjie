@@ -118,8 +118,7 @@ object SourceCodeQualified : ClassifierNamePolicyEx {
         qualifiedNameForSourceCode(classifier)
 
     private fun qualifiedNameForSourceCode(descriptor: ClassifierDescriptor, type: CangJieType? = null): String {
-        val nameString =
-            descriptor.name.render() + (type?.takeIf { it.isDefinitelyNonOptionType }?.let { " & Any" } ?: "")
+        val nameString = descriptor.name.render()
         if (descriptor is TypeParameterDescriptor) {
             return nameString
         }
@@ -836,13 +835,6 @@ open class CangJieIdeDescriptorRenderer(
             }
         } else {
             appendTypeConstructorAndArguments(type)
-        }
-
-
-        if (classifierNamePolicy !is ClassifierNamePolicyEx) {
-            if (type.isDefinitelyNonOptionType) {
-                appendHighlighted(" & Any") { asNonNullAssertion }
-            }
         }
     }
 

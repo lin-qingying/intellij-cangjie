@@ -25,22 +25,14 @@
 package org.cangnova.cangjie.resolve.calls.inference
 
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
-import org.cangnova.cangjie.resolve.calls.inference.constraintPosition.ConstraintPositionKind
-import org.cangnova.cangjie.resolve.calls.inference.constraintPosition.derivedFrom
-import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariable
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeArgument
 import org.cangnova.cangjie.types.TypeArgumentImpl
 import java.util.*
 
-fun ConstraintSystem.getNestedTypeVariables(type: CangJieType): List<TypeVariable> {
-    val nestedTypeParameters = type.getNestedTypeParameters().toSet()
-    return typeVariables.filter { it.originalTypeParameter in nestedTypeParameters }
-}
 
-fun ConstraintSystem.filterConstraintsOut(excludePositionKind: ConstraintPositionKind): ConstraintSystem {
-    return toBuilder { !it.derivedFrom(excludePositionKind) }.build()
-}
+
+
 
 internal fun CangJieType.getNestedTypeParameters(): List<TypeParameterDescriptor> {
     return getNestedArguments().mapNotNull { typeArgument ->

@@ -622,11 +622,6 @@ abstract class AbstractTypeApproximator(
             return approximateParametrizedType(type, conf, toSuper, depth + 1)
         }
 
-        val definitelyNotNullType = type.asDefinitelyNonOptionType()
-        if (definitelyNotNullType != null) {
-            return approximateDefinitelyNotNullType(definitelyNotNullType, conf, toSuper, depth)
-        }
-
         val typeConstructor = type.typeConstructor()
 
         if (typeConstructor.isCapturedTypeConstructor()) {
@@ -661,51 +656,6 @@ abstract class AbstractTypeApproximator(
 
         return approximateLocalTypes(type, conf, toSuper, depth) // 简单分类器类型
     }
-
-    /**
-     * 近似明确非空类型
-     *
-     * 明确非空类型形如 `T & Any`，表示类型 T 一定非空。
-     * 如果 T 已经是非空的（有非空上界），则可以简化为 T。
-     *
-     * @param type 明确非空类型
-     * @param conf 近似配置
-     * @param toSuper 是否向超类型近似
-     * @param depth 当前递归深度
-     * @return 近似结果
-     */
-    private fun approximateDefinitelyNotNullType(
-        type: DefinitelyNonOptionTypeMarker,
-        conf: TypeApproximatorConfiguration,
-        toSuper: Boolean,
-        depth: Int
-    ): CangJieTypeMarker? {
-        val originalType = type.original()
-        val approximatedOriginalType =
-            if (toSuper) approximateToSuperType(originalType, conf, depth) else approximateToSubType(
-                originalType,
-                conf,
-                depth
-            )
-        val typeWithErasedNullability = originalType.withOption(false)
-
-        // 如果 T 已经是非空的（有非空上界），则将 T!! 近似为 T
-        if (originalType.typeConstructor()
-                .isTypeParameterTypeConstructor() && !typeWithErasedNullability.isOptionType()
-        ) {
-            return typeWithErasedNullability
-        }
-
-        return if (conf.definitelyNonOptionType  ) {
-            approximatedOriginalType?.makeDefinitelyNonOptionOrNonOption()
-        } else {
-            if (toSuper)
-                (approximatedOriginalType ?: originalType).withOption(false)
-            else
-                type.defaultResult(toSuper)
-        }
-    }
-
 
     /**
      * 近似参数化类型
@@ -745,7 +695,7 @@ abstract class AbstractTypeApproximator(
             // 仓颉语言所有类型参数都是不变的(invariant)
             val argumentType = newArguments[index]?.getType() ?: argument.getType()
 
-            val capturedType = argumentType.lowerBoundIfFlexible().originalIfDefinitelyNonOption().asCapturedType()
+            val capturedType = argumentType.lowerBoundIfFlexible().asCapturedType()
 
             // 捕获具有自身上界的递归类型时,其超类型可能包含捕获类型
             // 在 approximateCapturedType 中,即使捕获类型本身不需要近似,

@@ -153,7 +153,14 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         require(this is CangJieType, this::errorMessage)
         return this.getPureArgumentsForFunctionalTypeOrSubtype()
     }
+    override fun optionNothingType(): SimpleTypeMarker {
+     return nothingType().withOption(true)
+    }
 
+    override fun optionAnyType(): SimpleTypeMarker {
+        return anyType().withOption(true)
+
+    }
     /**
      * 获取类型的自定义属性
      *
@@ -338,10 +345,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return if (this is SimpleTypeWithEnhancement) origin.asCapturedType() else this as? org.cangnova.cangjie.types.checker.CapturedType
     }
 
-    override fun SimpleTypeMarker.asDefinitelyNonOptionType(): DefinitelyNonOptionTypeMarker? {
-        require(this is SimpleType, this::errorMessage)
-        return this as? DefinitelyNonOptionType
-    }
+
 
     @OptIn(ObsoleteTypeKind::class)
     override fun CangJieTypeMarker.isNonOptionTypeParameter(): Boolean = this is NonOptionTypeParameter
@@ -554,7 +558,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         require(this is SimpleType, this::errorMessage)
         return !isError &&
                 constructor.declarationDescriptor !is TypeAliasDescriptor &&
-                (constructor.declarationDescriptor != null || this is CapturedType || this is org.cangnova.cangjie.types.checker.CapturedType || this is DefinitelyNonOptionType || constructor is IntegerLiteralTypeConstructor || isSingleClassifierTypeWithEnhancement())
+                (constructor.declarationDescriptor != null || this is CapturedType || this is org.cangnova.cangjie.types.checker.CapturedType || constructor is IntegerLiteralTypeConstructor || isSingleClassifierTypeWithEnhancement())
     }
 
     private fun SimpleTypeMarker.isSingleClassifierTypeWithEnhancement() =
@@ -647,16 +651,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
 
-    override fun CangJieTypeMarker.makeDefinitelyNonOptionOrNonOption(): CangJieTypeMarker {
-        require(this is UnwrappedType, this::errorMessage)
-        return makeDefinitelyNonOptionOrNonOptionInternal(this)
-    }
 
-
-    override fun SimpleTypeMarker.makeSimpleTypeDefinitelyNonOptionOrNonOption(): SimpleTypeMarker {
-        require(this is SimpleType, this::errorMessage)
-        return makeSimpleTypeDefinitelyNonOptionOrNonOptionInternal(this)
-    }
 
     override fun CangJieTypeMarker.removeAnnotations(): CangJieTypeMarker {
         require(this is UnwrappedType, this::errorMessage)
@@ -759,10 +754,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return this.replaceArgumentsByExistingArgumentsWith(replacement)
     }
 
-    override fun DefinitelyNonOptionTypeMarker.original(): SimpleTypeMarker {
-        require(this is DefinitelyNonOptionType, this::errorMessage)
-        return this.original
-    }
+
 
     override fun createCapturedType(
         constructorProjection: TypeArgumentMarker,
@@ -1018,14 +1010,6 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
 
-}
-
-private fun makeSimpleTypeDefinitelyNonOptionOrNonOptionInternal(type: SimpleType): SimpleType {
-    return type.makeSimpleTypeDefinitelyNonOptionOrNonOption()
-}
-
-private fun makeDefinitelyNonOptionOrNonOptionInternal(type: UnwrappedType): UnwrappedType {
-    return type.makeDefinitelyNonOptionOrNonOption()
 }
 
 //private fun hasExactInternal(type: UnwrappedType): Boolean {

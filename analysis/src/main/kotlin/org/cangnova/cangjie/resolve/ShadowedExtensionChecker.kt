@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve
 
+import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
 import org.cangnova.cangjie.descriptors.ClassifierDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
@@ -35,7 +36,7 @@ import org.cangnova.cangjie.diagnostics.DiagnosticSink
 import org.cangnova.cangjie.diagnostics.infos.errors.EXTEND_MEMBER_CANNOT_SHADOW
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.psi.CjDeclaration
-import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilderImpl
+import org.cangnova.cangjie.resolve.calls.inference.ecs.ExistentialConstraintSystem
 import org.cangnova.cangjie.resolve.calls.results.*
 import org.cangnova.cangjie.types.isError
 import org.cangnova.cangjie.utils.isExtension
@@ -48,7 +49,15 @@ import org.cangnova.cangjie.utils.isExtension
  * - extend 成员使用 dispatchReceiver（类似普通成员）
  * - 当 extend 成员遮蔽原始成员时，应该报告错误
  */
-class ShadowedExtensionChecker(val typeSpecificityComparator: TypeSpecificityComparator, val trace: DiagnosticSink) {
+class ShadowedExtensionChecker(
+    val builtIns: CangJieBuiltIns,
+    val typeSpecificityComparator: TypeSpecificityComparator,
+    val trace: DiagnosticSink,
+) {
+    /** ECS 实例，用于签名比较 */
+    private val ecs: ExistentialConstraintSystem by lazy {
+        ExistentialConstraintSystem.create(builtIns, typeSpecificityComparator)
+    }
 
     /**
      * 检查扩展函数是否被成员函数遮蔽
@@ -141,16 +150,12 @@ class ShadowedExtensionChecker(val typeSpecificityComparator: TypeSpecificityCom
             }
     }
 
+
     private fun isSignatureNotLessSpecific(
         extensionSignature: FlatSignature<FunctionDescriptor>,
         memberSignature: FlatSignature<FunctionDescriptor>
     ): Boolean =
-        ConstraintSystemBuilderImpl.forSpecificity().isSignatureNotLessSpecific(
-            extensionSignature,
-            memberSignature,
-            OverloadabilitySpecificityCallbacks,
-            typeSpecificityComparator
-        )
+        ecs.isNotLessSpecific(extensionSignature, memberSignature)
 
     private fun checkShadowedExtensionFunction(
         declaration: CjDeclaration,

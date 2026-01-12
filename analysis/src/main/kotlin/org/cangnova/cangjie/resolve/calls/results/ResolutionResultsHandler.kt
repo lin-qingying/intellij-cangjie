@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.resolve.calls.results
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
-import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
@@ -37,7 +36,6 @@ import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.resolve.calls.results.ResolutionStatus.*
 import org.cangnova.cangjie.resolve.calls.results.ResolutionStatus.Companion.SEVERITY_LEVELS
 import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategy
-import org.cangnova.cangjie.resolve.calls.tower.isSynthesized
 import org.cangnova.cangjie.resolve.calls.util.hasUnresolvedArguments
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.utils.CancellationChecker
@@ -59,7 +57,7 @@ class ResolutionResultsHandler(
     cangjieTypeRefiner: CangJieTypeRefiner
 ) {
 
-    private val overloadingConflictResolver: OverloadingConflictResolver<ResolvedCall<*>> =
+    private val overloadingConflictResolver: AbstractOverloadingConflictResolver<ResolvedCall<*>> =
         createOverloadingConflictResolver(
             builtIns,
             module,
@@ -240,7 +238,7 @@ class ResolutionResultsHandler(
             if (thisLevel.isNotEmpty()) {
                 if (severityLevel.contains(ARGUMENTS_MAPPING_ERROR)) {
                     @Suppress("UNCHECKED_CAST")
-                    val myResolver = overloadingConflictResolver as OverloadingConflictResolver<MutableResolvedCall<D>>
+                    val myResolver = overloadingConflictResolver as AbstractOverloadingConflictResolver<MutableResolvedCall<D>>
                     return recordFailedInfo(tracing, trace, myResolver.filterOutEquivalentCalls(LinkedHashSet(thisLevel)))
                 }
 
@@ -275,7 +273,7 @@ class ResolutionResultsHandler(
         checkArgumentsMode: CheckArgumentTypesMode,
         languageVersionSettings: LanguageVersionSettings
     ): OverloadResolutionResultsImpl<D> {
-        val myResolver = overloadingConflictResolver as OverloadingConflictResolver<MutableResolvedCall<D>>
+        val myResolver = overloadingConflictResolver as AbstractOverloadingConflictResolver<MutableResolvedCall<D>>
 
         // 过滤掉合成的候选（如果不支持精细的 SAM 适配器优先级）
         var refinedCandidates = candidates

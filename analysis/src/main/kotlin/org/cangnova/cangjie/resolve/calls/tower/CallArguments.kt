@@ -49,6 +49,8 @@ import org.cangnova.cangjie.resolve.lazy.ForceResolveUtil
 import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.UnwrappedType
+import org.cangnova.cangjie.types.checker.CapturedType
+import org.cangnova.cangjie.types.checker.prepareArgumentTypeRegardingCaptureTypes
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.expressions.CangJieTypeInfo
 
@@ -484,3 +486,10 @@ class LambdaCangJieCallArgumentImpl(
             field = value
         }
 }
+fun ReceiverValueWithSmartCastInfo.prepareReceiverRegardingCaptureTypes(): ReceiverValueWithSmartCastInfo {
+    val preparedBaseType = prepareArgumentTypeRegardingCaptureTypes(receiverValue.type.unwrap()) ?: return this
+
+    return ReceiverValueWithSmartCastInfo(receiverValue.replaceType(preparedBaseType), typesFromSmartCasts, isStable, receiverValue.type)
+}
+
+

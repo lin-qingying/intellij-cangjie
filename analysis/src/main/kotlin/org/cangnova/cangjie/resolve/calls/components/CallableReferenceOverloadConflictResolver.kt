@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ package org.cangnova.cangjie.resolve.calls.components
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
-import org.cangnova.cangjie.resolve.calls.inference.components.ConstraintInjector
 import org.cangnova.cangjie.resolve.calls.results.*
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.utils.CancellationChecker
@@ -37,8 +36,11 @@ import org.cangnova.cangjie.utils.CancellationChecker
 /**
  * 可调用引用重载冲突解析器 (Callable Reference Overload Conflict Resolver)
  *
- * 这是 [OverloadingConflictResolver] 的特化版本,专门用于解析可调用引用的重载冲突。
+ * 这是 [AbstractOverloadingConflictResolver] 的特化版本,专门用于解析可调用引用的重载冲突。
  * 当存在多个同名的函数或属性可以作为可调用引用的目标时,此解析器负责选择最合适的那个。
+ *
+ * @deprecated 此类已弃用。重载冲突解析现在使用 ECS (存在性约束系统) 实现,
+ * 参见 [AbstractOverloadingConflictResolver] 中的 ECS 集成。
  *
  * ## 可调用引用
  * 可调用引用允许将函数或属性作为值传递,而不立即调用它们:
@@ -62,10 +64,9 @@ import org.cangnova.cangjie.utils.CancellationChecker
  * - **无扩展接收者**: 扩展接收者的处理由上层逻辑完成
  *
  * ## 实现细节
- * 此类通过以下方式配置父类 [OverloadingConflictResolver]:
+ * 此类通过以下方式配置父类 [AbstractOverloadingConflictResolver]:
  * - **candidateCall**: 提取 `candidate.candidate` 作为被比较的可调用描述符
  * - **createFlatSignature**: 创建简化的签名用于比较(只包含类型参数和 vararg 信息)
- * - **createEmptyConstraintSystem**: 为重载解析创建新的约束系统
  * - **isDescriptorFromSource**: 判断描述符是否来自源代码
  *
  * @property builtIns 仓颉内置类型定义
@@ -74,13 +75,13 @@ import org.cangnova.cangjie.utils.CancellationChecker
  * @property platformOverloadsSpecificityComparator 平台重载特异性比较器,处理平台特定的重载
  * @property cancellationChecker 取消检查器,用于响应用户取消操作
  * @property statelessCallbacks 无状态回调接口,提供解析辅助功能
- * @property constraintInjector 约束注入器,用于生成类型约束
  * @property cangjieTypeRefiner 类型精炼器,处理智能类型转换
  *
- * @see OverloadingConflictResolver 通用的重载冲突解析器基类
+ * @see AbstractOverloadingConflictResolver 通用的重载冲突解析器基类
  * @see CallableReferenceResolutionCandidate 可调用引用解析候选
  * @see FlatSignature 扁平化的函数签名,用于高效比较
  */
+@Deprecated("使用 ECS (存在性约束系统) 替代，参见 AbstractOverloadingConflictResolver")
 class CallableReferenceOverloadConflictResolver(
     builtIns: CangJieBuiltIns,
     module: ModuleDescriptor,
@@ -88,16 +89,14 @@ class CallableReferenceOverloadConflictResolver(
     platformOverloadsSpecificityComparator: PlatformOverloadsSpecificityComparator,
     cancellationChecker: CancellationChecker,
     statelessCallbacks: CangJieResolutionStatelessCallbacks,
-    constraintInjector: ConstraintInjector,
     cangjieTypeRefiner: CangJieTypeRefiner,
-) : OverloadingConflictResolver<CallableReferenceResolutionCandidate>(
+) : AbstractOverloadingConflictResolver<CallableReferenceResolutionCandidate>(
     builtIns,
     module,
     specificityComparator,
     platformOverloadsSpecificityComparator,
     cancellationChecker,
     { it.candidate },  // 提取被引用的可调用描述符
-    { statelessCallbacks.createConstraintSystemForOverloadResolution(constraintInjector, builtIns) },  // 创建约束系统
     Companion::createFlatSignature,  // 创建扁平化签名
     { null },  // 可调用引用没有调用参数映射
     { statelessCallbacks.isDescriptorFromSource(it) },  // 判断是否来自源代码

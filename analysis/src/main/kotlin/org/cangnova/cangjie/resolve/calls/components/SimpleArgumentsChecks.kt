@@ -398,11 +398,7 @@ fun captureFromTypeParameterUpperBoundIfNeeded(
         }
         // 如果找到了匹配的超类型，直接返回该超类型
         if (chosenSupertype != null) {
-            // 如果原参数类型是明确非空类型，保持非空属性
-            return if (argumentType.isDefinitelyNonOptionType)
-                chosenSupertype.unwrap().makeDefinitelyNonOptionOrNonOption()
-            else
-                chosenSupertype.unwrap()
+            return chosenSupertype.unwrap()
         }
     }
 

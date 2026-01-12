@@ -190,7 +190,7 @@ object CommonSupertypes {
         if (typeSet.isEmpty()) {
             // TODO : attributes
             val builtIns = types.iterator().next().constructor.builtIns
-            return /*if (nullable) builtIns.nullableNothingType else */builtIns.nothingType
+            return /*if (nullable) builtIns.optionNothingType else */builtIns.nothingType
         }
 
         if (typeSet.size == 1) {

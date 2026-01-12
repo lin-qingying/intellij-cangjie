@@ -57,7 +57,7 @@ import org.cangnova.cangjie.types.*
  * ```
  */
 @Deprecated(
-    "Use CangJieTypeChecker with ConstraintCheckContext instead",
+    "",
     ReplaceWith("CangJieTypeChecker.DEFAULT"),
     level = DeprecationLevel.WARNING
 )
@@ -347,38 +347,5 @@ class TypeCheckingProcedure(private val constraints: TypeCheckingProcedureCallba
         return true
     }
 
-    companion object {
-        /**
-         * 查找对应的超类型
-         *
-         * 查找 subtype 的超类型中与 supertype 具有相同构造器的类型，
-         * 并应用类型参数替换。
-         *
-         * @param subtype 子类型
-         * @param supertype 超类型
-         * @param typeCheckingProcedureCallbacks 类型检查回调
-         * @return 对应的超类型，如果不存在则返回 null
-         */
-        @JvmOverloads
-        fun findCorrespondingSupertype(
-            subtype: CangJieType,
-            supertype: CangJieType,
-            typeCheckingProcedureCallbacks: TypeCheckingProcedureCallbacks = TypeCheckerProcedureCallbacksImpl()
-        ): CangJieType? {
-            // 如果类型构造器相同，直接返回 subtype
-            if (CangJieSubtypeChecker.areEqualTypeConstructors(subtype.constructor, supertype.constructor)) {
-                return subtype
-            }
 
-            // 在超类型中查找
-            for (immediateSupertype in subtype.constructor.supertypes) {
-                val result = findCorrespondingSupertype(immediateSupertype, supertype, typeCheckingProcedureCallbacks)
-                if (result != null) {
-                    return result
-                }
-            }
-
-            return null
-        }
-    }
 }

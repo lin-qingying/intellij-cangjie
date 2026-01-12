@@ -53,7 +53,7 @@ import org.cangnova.cangjie.types.ErrorUtils.isError
 import org.cangnova.cangjie.types.StubTypeForBuilderInference
 import org.cangnova.cangjie.types.TypeConstructor
 import org.cangnova.cangjie.types.TypeUtils
-import org.cangnova.cangjie.types.checker.AxiomBasedTypeChecker.Companion.withAxioms
+// 仓颉语言：移除 AxiomBasedTypeChecker，直接使用 CangJieTypeChecker.DEFAULT
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.checker.REFINER_CAPABILITY
@@ -900,21 +900,10 @@ fun descriptorsEqualWithSubstitution(
     if (descriptor1 !is CallableDescriptor) return true
     descriptor2 as CallableDescriptor
 
-    val typeChecker =  withAxioms(object : CangJieTypeChecker.TypeConstructorEquality {
-        override fun equals(a: TypeConstructor, b: TypeConstructor): Boolean {
-            val typeParam1 = a.declarationDescriptor as? TypeParameterDescriptor
-            val typeParam2 = b.declarationDescriptor as? TypeParameterDescriptor
-            if (typeParam1 != null
-                && typeParam2 != null
-                && typeParam1.containingDeclaration == descriptor1
-                && typeParam2.containingDeclaration == descriptor2
-            ) {
-                return typeParam1.index == typeParam2.index
-            }
-
-            return a == b
-        }
-    })
+    // 仓颉语言：移除 AxiomBasedTypeChecker，直接使用默认类型检查器
+    // 原本的自定义类型构造器相等性检查用于处理类型参数重命名的情况
+    // 在仓颉中，我们简化为直接使用默认类型检查器
+    val typeChecker = CangJieTypeChecker.DEFAULT
 
     if (!typeChecker.equalTypesOrNulls(descriptor1.returnType, descriptor2.returnType)) return false
 

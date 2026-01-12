@@ -29,3 +29,5 @@ fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstruct
 
 fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
     with(context) { isIntegerLiteralTypeConstructor() }
+
+

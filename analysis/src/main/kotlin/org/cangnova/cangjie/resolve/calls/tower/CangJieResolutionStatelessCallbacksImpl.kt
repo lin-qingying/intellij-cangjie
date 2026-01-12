@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.resolve.calls.tower
 
-import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
@@ -34,14 +33,11 @@ import org.cangnova.cangjie.psi.CjSuperExpression
 import org.cangnova.cangjie.resolve.calls.components.CangJieResolutionCallbacks
 import org.cangnova.cangjie.resolve.calls.components.CangJieResolutionStatelessCallbacks
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
-import org.cangnova.cangjie.resolve.calls.inference.components.ConstraintInjector
-import org.cangnova.cangjie.resolve.calls.inference.components.SimpleConstraintSystemImpl
 import org.cangnova.cangjie.resolve.calls.inference.isBuilderInferenceCall
 import org.cangnova.cangjie.resolve.calls.model.CallableReferenceCangJieCallArgument
 import org.cangnova.cangjie.resolve.calls.model.CangJieCall
 import org.cangnova.cangjie.resolve.calls.model.CangJieCallArgument
 import org.cangnova.cangjie.resolve.calls.model.SimpleCangJieCallArgument
-import org.cangnova.cangjie.resolve.calls.results.SimpleConstraintSystem
 import org.cangnova.cangjie.resolve.calls.util.isInfixCall
 import org.cangnova.cangjie.resolve.calls.util.isSuperOrDelegatingConstructorCall
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
@@ -125,11 +121,5 @@ class CangJieResolutionStatelessCallbacksImpl(
         return false
 //        return TypeIntersector.intersectTypes(types) == null
     }
-
-
-    override fun createConstraintSystemForOverloadResolution(
-        constraintInjector: ConstraintInjector, builtIns: CangJieBuiltIns
-    ): SimpleConstraintSystem =
-        SimpleConstraintSystemImpl(constraintInjector, builtIns, CangJieTypeRefiner, languageVersionSettings)
 
 }

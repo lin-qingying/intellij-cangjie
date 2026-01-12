@@ -209,7 +209,6 @@ object CommonSuperTypeCalculator {
         val typesToUniquify = buildList {
             for (stubType in stubTypes) {
                 when {
-                    stubType is DefinitelyNonOptionTypeMarker -> add(stubType.original())
                     stubType.isMarkedOption() -> {
                         areThereAnyNullable = true
                         areAllDefNotNull = false
@@ -226,7 +225,6 @@ object CommonSuperTypeCalculator {
 
         return uniquify(typesToUniquify, stateStubTypesNotEqual).singleOrNull()?.let {
             when {
-                areAllDefNotNull -> it.makeSimpleTypeDefinitelyNonOptionOrNonOption()
                 areThereAnyNullable -> it.withOption(true)
                 else -> it
             }

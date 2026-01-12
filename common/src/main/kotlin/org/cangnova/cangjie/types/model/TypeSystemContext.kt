@@ -43,12 +43,6 @@ interface TypeParameterMarker
 interface SimpleTypeMarker : CangJieTypeMarker
 interface CapturedTypeMarker : SimpleTypeMarker
 
-/**
- * 明确非Option类型标记
- * 用于标记类型系统中明确不是Option的类型
- */
-interface DefinitelyNonOptionTypeMarker : SimpleTypeMarker
-
 interface FlexibleTypeMarker : CangJieTypeMarker
 interface DynamicTypeMarker : FlexibleTypeMarker
 interface StubTypeMarker : SimpleTypeMarker
@@ -81,6 +75,8 @@ interface TypeSystemOptimizationContext {
  * 提供获取基础类型（如Any、Nothing）的方法
  */
 interface TypeSystemBuiltInsContext {
+    fun optionNothingType():  SimpleTypeMarker
+    fun optionAnyType():  SimpleTypeMarker
     fun nothingType(): SimpleTypeMarker
     fun anyType(): SimpleTypeMarker
 }
@@ -221,8 +217,6 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
         firstCandidate: CangJieTypeMarker,
         secondCandidate: CangJieTypeMarker
     ): CangJieTypeMarker
-    fun CangJieTypeMarker.hasFlexibleOption() =
-        lowerBoundIfFlexible().isMarkedOption() != upperBoundIfFlexible().isMarkedOption()
 
     fun CangJieTypeMarker.isSpecial(): Boolean
     fun TypeConstructorMarker.isTypeVariable(): Boolean
@@ -308,14 +302,9 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun SimpleTypeMarker.asCapturedType(): CapturedTypeMarker?
     fun CangJieTypeMarker.extractArgumentsForFunctionTypeOrSubtype(): List<CangJieTypeMarker>
     fun CangJieTypeMarker.isCapturedType() = asSimpleType()?.asCapturedType() != null
-    fun SimpleTypeMarker.asDefinitelyNonOptionType(): DefinitelyNonOptionTypeMarker?
-    fun DefinitelyNonOptionTypeMarker.original(): SimpleTypeMarker
     fun TypeParameterMarker.getTypeConstructor(): TypeConstructorMarker
 
     fun CangJieTypeMarker.isNonOptionTypeParameter(): Boolean = false
-
-    fun SimpleTypeMarker.originalIfDefinitelyNonOption(): SimpleTypeMarker =
-        asDefinitelyNonOptionType()?.original() ?: this
 
     fun TypeConstructorMarker.isTypeParameterTypeConstructor(): Boolean
     fun CangJieTypeMarker.upperBoundIfFlexible(): SimpleTypeMarker =
@@ -327,11 +316,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun CangJieTypeMarker.isOptionType(): Boolean
     val TypeVariableTypeConstructorMarker.typeParameter: TypeParameterMarker?
     fun TypeParameterMarker.hasRecursiveBounds(selfConstructor: TypeConstructorMarker? = null): Boolean
-    fun CangJieTypeMarker.isDefinitelyNonOptionType(): Boolean = asSimpleType()?.asDefinitelyNonOptionType() != null
 
-
-    fun CangJieTypeMarker.makeDefinitelyNonOptionOrNonOption(): CangJieTypeMarker
-    fun SimpleTypeMarker.makeSimpleTypeDefinitelyNonOptionOrNonOption(): SimpleTypeMarker
     fun SimpleTypeMarker.isMarkedOption(): Boolean
     fun CangJieTypeMarker.isMarkedOption(): Boolean =
         this is SimpleTypeMarker && isMarkedOption()
@@ -339,6 +324,8 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
 
     fun TypeConstructorMarker.isInterface(): Boolean
     fun CangJieTypeMarker.isFlexible(): Boolean = asFlexibleType() != null
+    fun CangJieTypeMarker.hasFlexibleOption() =
+        lowerBoundIfFlexible().isMarkedOption() != upperBoundIfFlexible().isMarkedOption()
 
     fun SimpleTypeMarker.withOption(isOption: Boolean): SimpleTypeMarker
     fun SimpleTypeMarker.typeConstructor(): TypeConstructorMarker

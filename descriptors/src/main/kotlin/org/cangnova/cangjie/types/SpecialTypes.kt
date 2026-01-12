@@ -45,7 +45,7 @@ import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.checker.CapturedType
 import org.cangnova.cangjie.types.checker.TypeVariableConstructor
 import org.cangnova.cangjie.types.checker.OptionChecker
-import org.cangnova.cangjie.types.model.DefinitelyNonOptionTypeMarker
+
 
 /**
  * 类型缩写（如类型别名）
@@ -57,14 +57,7 @@ fun SimpleType.withAbbreviation(abbreviatedType: SimpleType): SimpleType {
     return AbbreviatedType(this, abbreviatedType)
 }
 
-/**
- * 判断类型是否为明确非Option类型
- * 例如：类型推断、类型检查时用于判定类型是否绝不为Option
- */
-val CangJieType.isDefinitelyNonOptionType: Boolean
-    get() = unwrap() is DefinitelyNonOptionType
-
-/**
+ /**
  * 获取类型的缩写形式
  */
 fun CangJieType.getAbbreviation(): SimpleType? = getAbbreviatedType()?.abbreviation
@@ -182,138 +175,9 @@ class LazyWrappedType(
     }
 }
 
-/**
- * 明确非Option类型
- * 用于标记类型系统中明确不是Option的类型
- * 主要用于类型推断、类型检查、类型属性替换等场景
- */
-class DefinitelyNonOptionType private constructor(
-    val original: SimpleType,
-    private val useCorrectedOptionForTypeParameters: Boolean
-) : DelegatingSimpleType(), CustomTypeParameter,
-    DefinitelyNonOptionTypeMarker {
-
-    companion object {
-        /**
-         * 创建明确非Option类型
-         * @param type 原始类型
-         * @param useCorrectedOptionForTypeParameters 是否修正类型参数的Option状态
-         * @param avoidCheckingActualTypeOption 是否跳过实际Option检查
-         */
-        @JvmOverloads
-        fun makeDefinitelyNonOption(
-            type: UnwrappedType,
-            useCorrectedOptionForTypeParameters: Boolean = false,
-            avoidCheckingActualTypeOption: Boolean = false,
-        ): DefinitelyNonOptionType? {
-            return when {
-                type is DefinitelyNonOptionType -> type
-                avoidCheckingActualTypeOption || makesSenseToBeDefinitelyNonOption(
-                    type,
-                    useCorrectedOptionForTypeParameters
-                ) -> {
-                    if (type is FlexibleType) {
-                        assert(type.lowerBound.constructor == type.upperBound.constructor) {
-                            "DefinitelyNonOptionType 只能用于上下界构造器一致的灵活类型"
-                        }
-                    }
-                    DefinitelyNonOptionType(
-                        type.lowerIfFlexible().makeOptionAsSpecified(false),
-                        useCorrectedOptionForTypeParameters
-                    )
-                }
-                else -> null
-            }
-        }
-        /**
-         * 判断类型是否适合被标记为明确非Option
-         */
-        private fun makesSenseToBeDefinitelyNonOption(
-            type: UnwrappedType,
-            useCorrectedOptionForFlexibleTypeParameters: Boolean
-        ): Boolean {
-            if (!type.canHaveUndefinedOption()) return false
-            if (type is StubTypeForBuilderInference) return TypeUtils.isOptionType(type)
-            if ((type.constructor.declarationDescriptor as? TypeParameterDescriptorImpl)?.isInitialized == false) {
-                return true
-            }
-            if (useCorrectedOptionForFlexibleTypeParameters && type.constructor.declarationDescriptor is TypeParameterDescriptor) {
-                return TypeUtils.isOptionType(type)
-            }
-            return !OptionChecker.isSubtypeOfAny(type)
-        }
-        /**
-         * 判断类型是否可能为未确定Option状态
-         */
-        private fun UnwrappedType.canHaveUndefinedOption(): Boolean =
-            constructor is TypeVariableConstructor
-                    || constructor.declarationDescriptor is TypeParameterDescriptor
-                    || this is CapturedType
-                    || this is StubTypeForBuilderInference
-    }
-    override val delegate: SimpleType
-        get() = original
-    override val isOption: Boolean
-        get() = false
-    override val isTypeParameter: Boolean
-        get() = delegate.constructor is TypeVariableConstructor ||
-                delegate.constructor.declarationDescriptor is TypeParameterDescriptor
-    /**
-     * 类型替换，返回新的明确非Option类型
-     */
-    override fun substitutionResult(replacement: CangJieType): CangJieType =
-        replacement.unwrap().makeDefinitelyNonOptionOrNonOption(useCorrectedOptionForTypeParameters)
-    /**
-     * 替换类型属性，返回新的明确非Option类型
-     */
-    override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType =
-        DefinitelyNonOptionType(delegate.replaceAttributes(newAttributes), useCorrectedOptionForTypeParameters)
-    /**
-     * 按指定Option状态转换类型
-     */
-    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType =
-        if (isOption) delegate.makeOptionAsSpecified(isOption) else this
-    override fun toString(): String = "$delegate & Any"
-    /**
-     * 替换委托类型
-     */
-    
-    override fun replaceDelegate(delegate: SimpleType) =
-        DefinitelyNonOptionType(delegate, useCorrectedOptionForTypeParameters)
-}
-fun CapturedType.withNonOptionProjection() =
-    CapturedType(captureStatus, constructor, lowerType, attributes, isOption)
-
-/**
- * 将类型转换为明确非Option类型
- */
-fun SimpleType.makeSimpleTypeDefinitelyNonOptionOrNonOption(useCorrectedOptionForTypeParameters: Boolean = false): SimpleType =
-    DefinitelyNonOptionType.makeDefinitelyNonOption(this, useCorrectedOptionForTypeParameters)
-        ?: makeIntersectionTypeDefinitelyNonOptionOrNonOption()
-        ?: makeOptionAsSpecified(false)
 
 
-/**
- * 将类型转换为明确非Option类型（适用于未包装类型）
- */
-fun UnwrappedType.makeDefinitelyNonOptionOrNonOption(useCorrectedOptionForTypeParameters: Boolean = false): UnwrappedType =
-    DefinitelyNonOptionType.makeDefinitelyNonOption(this, useCorrectedOptionForTypeParameters)
-        ?: makeIntersectionTypeDefinitelyNonOptionOrNonOption()
-        ?: makeOptionAsSpecified(false)
 
-/**
- * 交集类型转换为明确非Option类型
- */
-private fun IntersectionTypeConstructor.makeDefinitelyNonOptionOrNonOption(): IntersectionTypeConstructor? {
-    return transformComponents({ TypeUtils.isOptionType(it) }, { it.unwrap().makeDefinitelyNonOptionOrNonOption() })
-}
 
-/**
- * 将类型转换为交集类型的明确非Option类型
- */
-private fun CangJieType.makeIntersectionTypeDefinitelyNonOptionOrNonOption(): SimpleType? {
-    val typeConstructor = constructor as? IntersectionTypeConstructor ?: return null
-    val definitelyNonOptionConstructor = typeConstructor.makeDefinitelyNonOptionOrNonOption() ?: return null
-    return definitelyNonOptionConstructor.createType()
-}
+
 

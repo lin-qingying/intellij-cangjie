@@ -47,6 +47,7 @@ import org.cangnova.cangjie.resolve.scopes.receivers.ClassifierQualifier
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.TypeUtils.noExpectedType
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
+import org.cangnova.cangjie.types.checker.TypeCheckingProcedure
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
 import org.cangnova.cangjie.types.model.TypeConstructorMarker
 import org.cangnova.cangjie.utils.compactIfPossible
@@ -1247,7 +1248,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
                 val substitutedKnownTypeParameter = knownTypeParametersSubstitutor.substitute(typeParameterType)
 
                 if (substitutedKnownTypeParameter !== typeParameterType)
-                    map[typeVariable.defaultType.constructor] = substitutedKnownTypeParameter.unwrap()
+                    map[typeVariable.defaultType.constructor] = substitutedKnownTypeParameter!!.unwrap()
             }
             map
         }
@@ -1567,13 +1568,12 @@ internal object CheckDesiredEnumType : ResolutionPart() {
 
             val type = descriptor.returnType
 
-            if (!noExpectedType(expectedType) && type?.let {
-                    CangJieTypeChecker.DEFAULT.equalsIgnoringGenerics(
-                        expectedType,
-                        it
-                    )
-                } != true) {
-                addDiagnostic(EmptyDiagnostic)
+            // 仓颉语言：使用新的类型检查器替代旧的 TypeCheckingProcedure
+            if (!noExpectedType(expectedType) && type != null) {
+                val typeChecker = CangJieTypeChecker.DEFAULT
+                if (!typeChecker.equalTypes(expectedType, type)) {
+                    addDiagnostic(EmptyDiagnostic)
+                }
             }
         }
 

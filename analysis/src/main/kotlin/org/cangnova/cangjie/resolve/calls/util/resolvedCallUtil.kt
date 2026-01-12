@@ -40,7 +40,6 @@ import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.DefinitelyNonOptionType
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.StubTypeForBuilderInference
 import org.cangnova.cangjie.types.checker.CapturedType
@@ -101,7 +100,6 @@ fun CallableDescriptor.isNotSimpleCall(): Boolean =
                 type.contains {
                     it is CapturedType ||
                             it.constructor is IntegerLiteralTypeConstructor ||
-                            it is DefinitelyNonOptionType ||
                             it is StubTypeForBuilderInference
                 }
             } ?: false)

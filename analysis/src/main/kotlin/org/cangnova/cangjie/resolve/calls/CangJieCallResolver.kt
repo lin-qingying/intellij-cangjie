@@ -41,7 +41,7 @@ import org.cangnova.cangjie.types.UnwrappedType
 class CangJieCallResolver(
     private val towerResolver: TowerResolver,
     private val cangjieCallCompleter: CangJieCallCompleter,
-    private val overloadingConflictResolver: ModernOverloadingConflictResolver,
+    private val overloadingConflictResolver: OverloadingConflictResolver,
     private val callableReferenceArgumentResolver: CallableReferenceArgumentResolver,
     private val callComponents: CangJieCallComponents
 
@@ -242,9 +242,9 @@ class CangJieCallResolver(
         var maximallySpecificCandidates =
             if (cangjieCall.callKind == CALLABLE_REFERENCE) {
                 @Suppress("UNCHECKED_CAST")
-                callableReferenceArgumentResolver.callableReferenceOverloadConflictResolver.chooseMaximallySpecificCandidates(
-                    refinedCandidates as Collection<CallableReferenceResolutionCandidate>,
-                    CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+                overloadingConflictResolver.chooseMaximallySpecificCandidates(
+                    refinedCandidates,
+                    CheckArgumentTypesMode.CHECK_CALLABLE_TYPE,
                     discriminateGenerics = false
                 )
             } else {

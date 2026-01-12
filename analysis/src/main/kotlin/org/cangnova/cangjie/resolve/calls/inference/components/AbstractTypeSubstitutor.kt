@@ -40,7 +40,7 @@ abstract class AbstractTypeSubstitutor : TypeSubstitutor  {
     override fun safeSubstitute(type: UnwrappedType): UnwrappedType =
         substitute(type, runCapturedChecks = true, keepAnnotation = true) ?: type
 
-    abstract override fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType?
+    abstract override fun substituteByConstructor(constructor: TypeConstructor): UnwrappedType?
     abstract override val isEmpty: Boolean
     private fun substitute(type: UnwrappedType, keepAnnotation: Boolean, runCapturedChecks: Boolean): UnwrappedType? =
         when (type) {
@@ -67,6 +67,8 @@ abstract class AbstractTypeSubstitutor : TypeSubstitutor  {
         }
 
     private fun substitute(type: SimpleType, keepAnnotation: Boolean, runCapturedChecks: Boolean): UnwrappedType? {
+
+
         if (type.isError) return null
 
         if (type is AbbreviatedType) {
@@ -90,16 +92,14 @@ abstract class AbstractTypeSubstitutor : TypeSubstitutor  {
 
         val typeConstructor = type.constructor
 
-        if (typeConstructor is CapturedTypeConstructor) {
+        if (typeConstructor is CapturedTypeConstructorImpl) {
             if (!runCapturedChecks) return null
 
-            assert(type is CapturedType || (type is DefinitelyNonOptionType && type.original is CapturedType)) {
-
+            assert(type is CapturedType) {
                 "Type is inconsistent -- somewhere we create type with typeConstructor = $typeConstructor " +
                         "and class: ${type::class.java.canonicalName}. type.toString() = $type"
             }
-            val capturedType =
-                if (type is DefinitelyNonOptionType) type.original as CapturedType else type as CapturedType
+            val capturedType = type as CapturedType
 
             val innerType = capturedType.lowerType ?: capturedType.constructor.argument.type.unwrap()
             val substitutedInnerType = substitute(innerType, keepAnnotation, runCapturedChecks = false)
@@ -114,9 +114,9 @@ abstract class AbstractTypeSubstitutor : TypeSubstitutor  {
                         capturedType.captureStatus,
                         CapturedTypeConstructorImpl(
                             argument = TypeArgumentImpl(substitutedInnerType),
-                            supertypes = substitutedSuperTypes,
+
                             typeParameter = typeConstructor.typeParameter
-                        ),
+                        ).also { it.initializeSupertypes(substitutedSuperTypes) },
                         lowerType = if (capturedType.lowerType != null) substitutedInnerType else null,
                         isOption = type.isMarkedOption()
                     )
@@ -138,7 +138,7 @@ abstract class AbstractTypeSubstitutor : TypeSubstitutor  {
             fun updateNullability(substituted: UnwrappedType) =
                 if (type.isMarkedOption()) substituted.makeOptionAsSpecified(true) else substituted
 
-            substituteNotNullTypeWithConstructor(typeConstructor)?.let { return updateNullability(it) }
+            substituteByConstructor(typeConstructor)?.let { return updateNullability(it) }
             var thereAreChanges = false
             val newTypes = typeConstructor.supertypes.map {
                 substitute(it.unwrap(), keepAnnotation, runCapturedChecks)?.apply { thereAreChanges = true }
@@ -149,7 +149,7 @@ abstract class AbstractTypeSubstitutor : TypeSubstitutor  {
         }
 
         // 简单分类器类型
-        var replacement = substituteNotNullTypeWithConstructor(typeConstructor) ?: return null
+        var replacement = substituteByConstructor(typeConstructor) ?: return null
         if (keepAnnotation) {
             replacement = replacement.replaceAttributes(
                 replacement.attributes.add(type.attributes)
@@ -157,9 +157,6 @@ abstract class AbstractTypeSubstitutor : TypeSubstitutor  {
         }
         if (type.isMarkedOption()) {
             replacement = replacement.makeOptionAsSpecified(true)
-        }
-        if (type.isDefinitelyNonOptionType) {
-            replacement = replacement.makeDefinitelyNonOptionOrNonOption()
         }
         if (type is CustomTypeParameter) {
             replacement = type.substitutionResult(replacement).unwrap()
@@ -212,7 +209,7 @@ abstract class AbstractTypeSubstitutor : TypeSubstitutor  {
     /**
      * Returns not null when substitutor manages specific type argument substitution by itself.
      * Intended for corner cases involving interactions with legacy type substitutor,
-     * please consider using substituteNotNullTypeWithConstructor instead of making manual argument substitutions.
+     * please consider using substituteByConstructor instead of making manual argument substitutions.
      */
     open fun substituteArgumentProjection(argument: TypeArgument): TypeArgument? {
         return null
@@ -249,13 +246,13 @@ abstract class AbstractTypeSubstitutor : TypeSubstitutor  {
 }
 
 object EmptySubstitutor : AbstractTypeSubstitutor() {
-    override fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType? = null
+    override fun substituteByConstructor(constructor: TypeConstructor): UnwrappedType? = null
 
     override val isEmpty: Boolean get() = true
 }
 
 class  TypeSubstitutorByConstructorMap(val map: Map<TypeConstructor, UnwrappedType>) : AbstractTypeSubstitutor() {
-    override fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType? = map[constructor]
+    override fun substituteByConstructor(constructor: TypeConstructor): UnwrappedType? = map[constructor]
 
     override val isEmpty: Boolean get() = map.isEmpty()
 }
@@ -264,7 +261,7 @@ class FreshVariableTypeSubstitutor(val freshVariables: List<TypeVariableFromCall
     AbstractTypeSubstitutor (){
 
     val freshVariablesByMap = freshVariables.associateBy { it.originalTypeParameter.typeConstructor }
-    override fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType? {
+    override fun substituteByConstructor(constructor: TypeConstructor): UnwrappedType? {
 //        val indexProposal = (constructor.declarationDescriptor as? TypeParameterDescriptor)?.index ?: return null
 //        val typeVariable = freshVariables.getOrNull(indexProposal) ?: return null
 //        if (typeVariable.originalTypeParameter.typeConstructor != constructor) return null
@@ -298,13 +295,13 @@ fun createCompositeSubstitutor(appliedFirst: DefaultTypeSubstitutor, appliedLast
             return TypeArgumentImpl(resultingType)
         }
 
-        override fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType? {
+        override fun substituteByConstructor(constructor: TypeConstructor): UnwrappedType? {
             val substitutedOnce = constructor.declarationDescriptor?.defaultType?.let {
                 appliedFirst.substitute(it)?.unwrap()
             }
 
             return if (substitutedOnce == null) {
-                appliedLast.substituteNotNullTypeWithConstructor(constructor)
+                appliedLast.substituteByConstructor(constructor)
             } else {
                 appliedLast.safeSubstitute(substitutedOnce)
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,6 @@ import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.resolve.source.getPsi
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.fqNameUnsafe
-import org.cangnova.cangjie.types.isDefinitelyNonOptionType
 import org.cangnova.cangjie.utils.safeAs
 import org.jetbrains.annotations.Nls
 import java.util.function.Consumer

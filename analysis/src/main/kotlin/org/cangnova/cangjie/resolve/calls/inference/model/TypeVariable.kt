@@ -30,7 +30,7 @@ import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.SpecialNames
 import org.cangnova.cangjie.resolve.builtIns
-import org.cangnova.cangjie.resolve.calls.inference.CallHandle
+
 import org.cangnova.cangjie.resolve.calls.model.PostponableCangJieCallArgument
 import org.cangnova.cangjie.resolve.descriptorUtil.hasOnlyInputTypesAnnotation
 import org.cangnova.cangjie.types.*
@@ -96,19 +96,7 @@ sealed class NewTypeVariable(
     override fun toString() = freshTypeConstructor.toString()
 }
 
-class TypeVariable(
-    val call: CallHandle,
-    internal val freshTypeParameter: TypeParameterDescriptor,
-    val originalTypeParameter: TypeParameterDescriptor,
-    val isExternal: Boolean
-) {
-    val name: Name get() = originalTypeParameter.name
 
-    val type: CangJieType get() = freshTypeParameter.defaultType
-
-    fun hasOnlyInputTypesAnnotation(): Boolean =
-        originalTypeParameter.hasOnlyInputTypesAnnotation()
-}
 
 class TypeVariableForCallableReferenceParameterType(
     builtIns: CangJieBuiltIns,

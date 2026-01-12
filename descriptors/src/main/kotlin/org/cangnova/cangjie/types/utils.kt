@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.types
 
-import org.cangnova.cangjie.types.checker.ErrorTypesAreEqualToAnything
+import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 
 /**
  * This is temporary hack for type intersector.
@@ -34,13 +34,17 @@ import org.cangnova.cangjie.types.checker.ErrorTypesAreEqualToAnything
  *  - returned type is subtype of all [types].
  *
  * But it is hack, because it can give unstable result, but it better than exception.
+ *
+ * 仓颉语言：使用 CangJieTypeChecker.DEFAULT 替代 ErrorTypesAreEqualToAnything
  */
 internal fun hackForTypeIntersector(types: Collection<CangJieType>): CangJieType? {
     if (types.size < 2) return types.firstOrNull()
 
+    // 仓颉语言：移除 ErrorTypesAreEqualToAnything，使用默认类型检查器
+    val typeChecker = CangJieTypeChecker.DEFAULT
     return types.firstOrNull { candidate ->
         types.all {
-            ErrorTypesAreEqualToAnything.isSubtypeOf(candidate, it)
+            typeChecker.isSubtypeOf(candidate, it)
         }
     }
 }

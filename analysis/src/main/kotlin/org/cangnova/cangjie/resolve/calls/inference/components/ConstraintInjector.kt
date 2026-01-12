@@ -518,7 +518,9 @@ class ConstraintInjector(
         val c: Context,
         val position: IncorporationConstraintPosition
     ) : TypeCheckerStateForConstraintSystem(
-        c
+        c,
+        baseState.cangjieTypePreparator,
+        baseState.cangjieTypeRefiner
     ), ConstraintIncorporator.Context, TypeSystemInferenceExtensionContext by c {
         /**
          * 便捷构造函数，自动创建类型检查器状态
@@ -607,14 +609,22 @@ class ConstraintInjector(
         override fun addLowerConstraint(
             typeVariable: TypeConstructorMarker,
             subType: CangJieTypeMarker,
-            isFromNullabilityConstraint: Boolean
+            isFromNullabilityConstraint: Boolean,
+            isNoInfer: Boolean
         ) = addConstraint(typeVariable, subType, ConstraintKind.LOWER, isFromNullabilityConstraint)
 
         override fun addEqualityConstraint(typeVariable: TypeConstructorMarker, type: CangJieTypeMarker) =
             addConstraint(typeVariable, type, ConstraintKind.EQUALITY, false)
 
-        override fun addUpperConstraint(typeVariable: TypeConstructorMarker, superType: CangJieTypeMarker) =
+        override fun addUpperConstraint(
+            typeVariable: TypeConstructorMarker,
+            superType: CangJieTypeMarker,
+            isNoInfer: Boolean
+        ) =
             addConstraint(typeVariable, superType, ConstraintKind.UPPER)
+
+        override val languageVersionSettings: LanguageVersionSettings
+            get() = this@ConstraintInjector.languageVersionSettings
 
         override fun isMyTypeVariable(type: SimpleTypeMarker): Boolean =
             c.allTypeVariables.containsKey(type.typeConstructor().unwrapStubTypeVariableConstructor())

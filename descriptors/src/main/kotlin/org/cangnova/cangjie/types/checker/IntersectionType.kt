@@ -284,16 +284,18 @@ object TypeIntersector {
          * resultOption 值描述：
          * ACCEPT_OPTION 表示所有类型都标记为可选
          *
-         * NON_OPTION 表示有一个类型是 Any 的子类型 => 所有类型都可以确定为非可选，
-         * 使类型确定为非可选（不只是非可选）在类型参数交集如 {T!! & S} 时是有意义的
+         * NON_OPTION 表示有一个类型是 Any 的子类型 => 所有类型都是非 Option 的
+         * 仓颉语言：NON_OPTION 表示类型确定不是 Option 类型
          *
          * UNKNOWN 表示我们不知道，即更准确地说，所有单分类器类型如果有的话标记为可选，
          * 其他类型是捕获类型或没有非可选上界的类型参数。例如：`String? & T` 这样的类型我们应该保持原样。
          */
         val correctOption = inputTypes.mapTo(LinkedHashSet()) {
-            if (resultOption == ResultOption.NON_OPTION) {
-                (if (it is CapturedType) it.withNonOptionProjection() else it).makeSimpleTypeDefinitelyNonOptionOrNonOption()
-            } else it
+            // 仓颉语言：移除 DefinitelyNonOptionType 处理
+            // 在仓颉中，Option 是确切的类型，不需要"使类型确定为非 Option"的操作
+            // 如果是 NON_OPTION，类型本身就已经是非 Option 的，不需要额外处理
+            // CapturedType 在仓颉中也不需要特殊的非 Option 投影处理
+            it
         }
 
         val resultAttributes = types.map { it.attributes }.reduce { x, y -> x.intersect(y) }
@@ -410,11 +412,13 @@ object TypeIntersector {
 
         /**
          * 获取解包类型的结果可选性
+         *
+         * 仓颉语言：移除 DefinitelyNonOptionType 检查，简化可选性判断
          */
         protected val UnwrappedType.resultOption: ResultOption
             get() = when {
                 isOption -> ACCEPT_OPTION
-                this is DefinitelyNonOptionType && this.original is StubTypeForBuilderInference -> NON_OPTION
+                // 仓颉语言：DefinitelyNonOptionType 不存在，直接检查是否是 Stub 类型
                 this is StubTypeForBuilderInference -> UNKNOWN
                 OptionChecker.isSubtypeOfAny(this) -> NON_OPTION
                 else -> UNKNOWN

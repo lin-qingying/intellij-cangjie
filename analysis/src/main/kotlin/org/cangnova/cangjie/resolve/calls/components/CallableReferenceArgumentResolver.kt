@@ -41,7 +41,7 @@ import org.cangnova.cangjie.resolve.calls.tower.isInapplicable
  * ## 核心功能
  *
  * 1. **候选解析**：通过 [CangJieResolutionCallbacks] 获取可调用引用的候选符号
- * 2. **重载解析**：使用 [CallableReferenceOverloadConflictResolver] 处理多个候选的情况
+ * 2. **重载解析**：处理多个候选的情况
  * 3. **约束生成**：为选中的候选添加类型约束到约束系统
  * 4. **诊断收集**：收集兼容性警告、可见性错误等诊断信息
  * 5. **延迟解析**：对于有歧义的情况，转换为延迟解析原子
@@ -70,13 +70,10 @@ import org.cangnova.cangjie.resolve.calls.tower.isInapplicable
  * - 原子是 [EagerCallableReferenceAtom]（急切解析模式）
  * - 所有候选都不适用时会报告歧义错误
  *
- * @property callableReferenceOverloadConflictResolver 可调用引用重载冲突解析器，用于处理多个候选的情况
- *
- * @see CallableReferenceOverloadConflictResolver
  * @see ResolvedCallableReferenceArgumentAtom
  * @see CangJieResolutionCallbacks.resolveCallableReferenceArgument
  */
-class CallableReferenceArgumentResolver(val callableReferenceOverloadConflictResolver: CallableReferenceOverloadConflictResolver) {
+class CallableReferenceArgumentResolver {
 
     /**
      * 处理可调用引用参数

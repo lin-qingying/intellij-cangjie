@@ -41,12 +41,18 @@ interface  TypeSubstitutor : TypeSubstitutorMarker {
     fun safeSubstitute(type: UnwrappedType): UnwrappedType
 
     /**
-     * 根据类型构造器替换非空类型
+     * 根据类型构造器查找类型替换
+     *
+     * 在类型替换映射中查找给定类型构造器对应的替换类型。
+     * 这个方法主要用于泛型类型的实例化过程，例如将 `List<T>` 中的 `T` 替换为具体类型。
+     *
+     * 注意：方法名中不包含"NotNull"是因为仓颉语言没有 Kotlin 的可空/非空类型系统，
+     * 而是使用 Option<T> 表示可选类型。
      *
      * @param constructor 类型构造器
      * @return 替换后的类型，如果无法替换则返回 null
      */
-    fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType?
+    fun substituteByConstructor(constructor: TypeConstructor): UnwrappedType?
 
     /**
      * 判断替换器是否为空（没有任何替换规则）

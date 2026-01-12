@@ -41,9 +41,7 @@ import java.util.LinkedHashSet
 import kotlin.collections.get
 import kotlin.text.get
 import io.vavr.Tuple2
-import org.cangnova.cangjie.types.DefinitelyNonOptionType
 import org.cangnova.cangjie.types.contains
-import org.cangnova.cangjie.types.isDefinitelyNonOptionType
 import org.cangnova.cangjie.types.makeNonOption
 
 
@@ -315,8 +313,7 @@ internal class DataFlowInfoImpl(
         }
 
     private fun approximateDefinitelyNotNullableTypes(set: ImmutableSet<CangJieType>): ImmutableSet<CangJieType>? {
-        if (!set.any { it.isDefinitelyNonOptionType }) return null
-        return set.map { if (it is DefinitelyNonOptionType) it.original.makeNonOption() else it }
+        return null
     }
 
     override fun and(other: DataFlowInfo): DataFlowInfo {

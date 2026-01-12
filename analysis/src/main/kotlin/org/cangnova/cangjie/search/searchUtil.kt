@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,9 +59,7 @@ import org.cangnova.cangjie.resolve.caches.getResolutionFacade
 import org.cangnova.cangjie.resolve.caches.resolveToDescriptorIfAny
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.FuzzyType
 
-import org.cangnova.cangjie.types.toFuzzyType
 import org.cangnova.cangjie.utils.CangJiePsiDeclarationRenderer
 import org.cangnova.cangjie.utils.isExtension
 
@@ -129,42 +127,16 @@ fun PsiReference.isImportUsage(): Boolean =
     element.getNonStrictParentOfType<CjImportItem>() != null
 
 fun PsiElement.getReceiverTypeSearcherInfo(): ReceiverTypeSearcherInfo? {
-    val receiverType = runReadAction { extractReceiverType() } ?: return null
-    val psiClass = runReadAction { receiverType.toTypeStatement(project) }
-    return ReceiverTypeSearcherInfo(psiClass) {
-        containsTypeOrDerivedInside(it, receiverType)
-    }
+TODO()
 }
 
 fun CjFile.forceResolveReferences(elements: List<CjElement>) {
     getResolutionFacade().analyze(elements, BodyResolveMode.PARTIAL)
 }
 
-private fun containsTypeOrDerivedInside(declaration: CjDeclaration, typeToSearch: FuzzyType): Boolean {
 
-    fun CangJieType.containsTypeOrDerivedInside(): Boolean {
-        return typeToSearch.checkIsSuperTypeOf(this) != null || arguments.any {  it.type.containsTypeOrDerivedInside() }
-    }
 
-    val descriptor = declaration.resolveToDescriptorIfAny() as? CallableDescriptor
-    val type = descriptor?.returnType
-    return type != null && type.containsTypeOrDerivedInside()
-}
 
-private fun FuzzyType.toTypeStatement(project: Project): CjTypeStatement? {
-    val classDescriptor = type.constructor.declarationDescriptor ?: return null
-    return DescriptorToSourceUtilsIde.getAnyDeclaration(project, classDescriptor) as? CjTypeStatement
-}
-private fun PsiElement.extractReceiverType(): FuzzyType? {
-    val descriptor = resolveTargetToDescriptor()?.takeIf { it.isValidOperator() } ?: return null
-
-    return if (descriptor.isExtension) {
-       TODO()
-    } else {
-        val classDescriptor = descriptor.containingDeclaration as? ClassDescriptor ?: return null
-        classDescriptor.defaultType.toFuzzyType(classDescriptor.typeConstructor.parameters)
-    }
-}
 fun FunctionDescriptor.isValidOperator() = isOperator /*&& OperatorChecks.check(this).isSuccess*/
 private fun PsiElement.resolveTargetToDescriptor( ): FunctionDescriptor? {
 

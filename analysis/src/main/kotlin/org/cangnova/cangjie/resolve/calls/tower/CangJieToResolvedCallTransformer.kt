@@ -387,7 +387,7 @@ class CangJieToResolvedCallTransformer(
         diagnostics: Collection<CangJieCallDiagnostic>,
     ) {
         when (resolvedCall) {
-            is VariableAsFunctionResolvedCallImpl -> {
+            is NewVariableAsFunctionResolvedCallImpl -> {
                 val variableCall = resolvedCall.variableCall
                 val functionCall = resolvedCall.functionCall
 
@@ -416,7 +416,7 @@ class CangJieToResolvedCallTransformer(
         tracing.bindResolvedCall(trace, simpleResolvedCall)
     }
 
-    private fun bind(trace: BindingTrace, variableAsFunction: VariableAsFunctionResolvedCallImpl) {
+    private fun bind(trace: BindingTrace, variableAsFunction: NewVariableAsFunctionResolvedCallImpl) {
         val outerTracingStrategy = variableAsFunction.baseCall.tracingStrategy
         val variableCall = variableAsFunction.variableCall
         val functionCall = variableAsFunction.functionCall
@@ -428,7 +428,7 @@ class CangJieToResolvedCallTransformer(
 
     internal fun bind(trace: BindingTrace, resolvedCall: ResolvedCall<*>) {
         (resolvedCall as? AbstractResolvedCall<*>)?.let { bind(trace, it) }
-        (resolvedCall as? VariableAsFunctionResolvedCallImpl)?.let { bind(trace, it) }
+        (resolvedCall as? NewVariableAsFunctionResolvedCallImpl)?.let { bind(trace, it) }
     }
 
 
@@ -475,7 +475,7 @@ class CangJieToResolvedCallTransformer(
                 if (completedCallAtom.candidateDescriptor is FunctionDescriptor) diagnostics else emptyList()
 
             @Suppress("UNCHECKED_CAST")
-            VariableAsFunctionResolvedCallImpl(
+            NewVariableAsFunctionResolvedCallImpl(
                 createOrGet(
                     psiCangJieCall.variableCall.resolvedCall,
                     trace,
@@ -503,23 +503,20 @@ class CangJieToResolvedCallTransformer(
                 return storedResolvedCall
             }
         }
-        return ResolvedCallImpl(
+
+        return if (completedSimpleAtom.atom.callKind == CangJieCallKind.CALLABLE_REFERENCE) {
+            CallableReferenceResolvedCall(
+                completedSimpleAtom as ResolvedCallableReferenceCallAtom,
+                typeApproximator,
+                expressionTypingServices.languageVersionSettings,
+                resultSubstitutor
+            )
+        } else {
+            ResolvedCallImpl(
             completedSimpleAtom, resultSubstitutor, diagnostics,
             typeApproximator, expressionTypingServices.languageVersionSettings
-        )
-//        return if (completedSimpleAtom.atom.callKind == CangJieCallKind.CALLABLE_REFERENCE) {
-//            CallableReferenceResolvedCall(
-//                completedSimpleAtom as ResolvedCallableReferenceCallAtom,
-////                typeApproximator,
-////                expressionTypingServices.languageVersionSettings,
-//                resultSubstitutor
-//            )
-//        } else {
-//            MutableResolvedCallImpl(
-//                completedSimpleAtom, resultSubstitutor, diagnostics,
-////                typeApproximator, expressionTypingServices.languageVersionSettings
-//            )
-//        }
+            )
+        }
     }
 
     fun <D : CallableDescriptor> createStubResolvedCallAndWriteItToTrace(

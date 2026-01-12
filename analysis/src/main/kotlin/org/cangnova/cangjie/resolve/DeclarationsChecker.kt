@@ -82,7 +82,7 @@ class DeclarationsChecker(
 
     // 在仓颉语言中，extend 成员会遮蔽原始类型的成员
     // 需要 ShadowedExtensionChecker 检查遮蔽情况
-    private val shadowedExtensionChecker = ShadowedExtensionChecker(typeSpecificityComparator, trace)
+    private val shadowedExtensionChecker = ShadowedExtensionChecker(builtins,typeSpecificityComparator, trace)
 
     // 使用trace创建一个修饰符检查器
     private val modifiersChecker = modifiersChecker.withTrace(trace)

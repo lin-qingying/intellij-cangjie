@@ -1189,9 +1189,8 @@ object TypeUtils {
         if (type.isFlexible() && isOptionType(type.asFlexibleType().upperBound)) {
             return true
         }
-        if (type.isDefinitelyNonOptionType) {
-            return false
-        }
+        // 仓颉语言：移除 DefinitelyNonOptionType 检查
+        // Option 是确切的类型，直接通过 isOption 属性判断即可
         if (isTypeParameter(type)) {
             return hasOptionSuperType(type)
         }
@@ -1688,15 +1687,17 @@ fun isUnresolvedType(type: CangJieType): Boolean {
     return type is ErrorType && type.kind.isUnresolved
 }
 
-fun CangJieType.isStubType() = this is AbstractStubType || isDefNonOptionStubType<AbstractStubType>()
-private inline fun <reified S : AbstractStubType> CangJieType.isDefNonOptionStubType() =
-    this is DefinitelyNonOptionType && this.original is S
+// 仓颉语言：移除 DefinitelyNonOptionType 相关的 Stub 类型检查
+// DefinitelyNonOptionType 是 Kotlin 的概念，仓颉不需要
+fun CangJieType.isStubType() = this is AbstractStubType
 
 fun CangJieType.isStubTypeForBuilderInference(): Boolean =
-    this is StubTypeForBuilderInference || isDefNonOptionStubType<StubTypeForBuilderInference>()
+    this is StubTypeForBuilderInference
+
 
 fun CangJieType.isStubTypeForVariableInSubtyping(): Boolean =
-    this is StubTypeForTypeVariablesInSubtyping || isDefNonOptionStubType<StubTypeForTypeVariablesInSubtyping>()
+    this is StubTypeForTypeVariablesInSubtyping
+
 
 fun CangJieType.isSignedOrUnsignedNumberType(): Boolean = isPrimitiveNumberType() /*|| isUnsignedNumberType()*/
 
@@ -2040,7 +2041,7 @@ fun CangJieType.approximateFlexibleTypes(
 ): CangJieType {
     if (this is OptionType) return this
     if (isDynamic()) return this
-    if (isDefinitelyNonOptionType) return this
+    // 仓颉语言：移除 DefinitelyNonOptionType 检查，直接进行灵活类型近似
     return unwrapEnhancement().approximateNonDynamicFlexibleTypes(
         preferNotNull,
         preferStarForRaw,

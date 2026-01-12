@@ -36,8 +36,6 @@ import org.cangnova.cangjie.resolve.calls.CallTransformer
 import org.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext
 import org.cangnova.cangjie.resolve.calls.context.ResolutionContext
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystem
-import org.cangnova.cangjie.resolve.calls.inference.constraintPosition.ConstraintPositionKind
-import org.cangnova.cangjie.resolve.calls.inference.getNestedTypeVariables
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.calls.tasks.OldResolutionCandidate
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
@@ -111,10 +109,16 @@ fun isOrOverridesSynthesized(descriptor: CallableMemberDescriptor): Boolean {
     return false
 }
 
+// TODO: 重构为使用新的约束系统 API
+//private fun CallableDescriptor.hasReturnTypeDependentOnUninferredParams(constraintSystem: ConstraintSystem): Boolean {
+//    val returnType = returnType ?: return false
+//    val nestedTypeVariables = constraintSystem.getNestedTypeVariables(returnType)
+//    return nestedTypeVariables.any { constraintSystem.getTypeBounds(it).value == null }
+//}
+@Suppress("UNUSED_PARAMETER")
 private fun CallableDescriptor.hasReturnTypeDependentOnUninferredParams(constraintSystem: ConstraintSystem): Boolean {
-    val returnType = returnType ?: return false
-    val nestedTypeVariables = constraintSystem.getNestedTypeVariables(returnType)
-    return nestedTypeVariables.any { constraintSystem.getTypeBounds(it).value == null }
+    // 暂时返回 false，等待新约束系统 API 完善
+    return false
 }
 
 fun checkForConstructorCallOnFunctionalType(
@@ -127,11 +131,18 @@ fun checkForConstructorCallOnFunctionalType(
     }
 }
 
+// TODO: 重构为使用新的约束系统 API
+//fun CallableDescriptor.hasInferredReturnType(constraintSystem: ConstraintSystem): Boolean {
+//    if (hasReturnTypeDependentOnUninferredParams(constraintSystem)) return false
+//
+//    // Expected type mismatch was reported before as 'TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH'
+//    if (constraintSystem.status.hasOnlyErrorsDerivedFrom(ConstraintPositionKind.EXPECTED_TYPE_POSITION)) return false
+//    return true
+//}
+@Suppress("UNUSED_PARAMETER")
 fun CallableDescriptor.hasInferredReturnType(constraintSystem: ConstraintSystem): Boolean {
+    // 暂时返回 true，等待新约束系统 API 完善
     if (hasReturnTypeDependentOnUninferredParams(constraintSystem)) return false
-
-    // Expected type mismatch was reported before as 'TYPE_INFERENCE_EXPECTED_TYPE_MISMATCH'
-    if (constraintSystem.status.hasOnlyErrorsDerivedFrom(ConstraintPositionKind.EXPECTED_TYPE_POSITION)) return false
     return true
 }
 

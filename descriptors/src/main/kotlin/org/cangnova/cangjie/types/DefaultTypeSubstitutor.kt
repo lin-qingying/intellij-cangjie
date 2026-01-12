@@ -236,7 +236,7 @@ import org.cangnova.cangjie.utils.isProcessCanceledException
 class DefaultTypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutor {
 
     // 实现 TypeSubstitutor 接口
-    override fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType? {
+    override fun substituteByConstructor(constructor: TypeConstructor): UnwrappedType? {
         val declarationDescriptor = constructor.declarationDescriptor ?: return null
         val defaultType = declarationDescriptor.defaultType
         return substitute(defaultType)?.unwrap()

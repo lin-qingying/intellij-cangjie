@@ -1116,7 +1116,7 @@ internal class MemberScopeTowerLevel(
 ) : AbstractScopeTowerLevel(scopeTower) {
 
     private val syntheticScopes = scopeTower.syntheticScopes
-    private val isNewInferenceEnabled = scopeTower.isNewInferenceEnabled
+
     private val typeApproximator = scopeTower.typeApproximator
 
     /**
@@ -1204,7 +1204,6 @@ internal class MemberScopeTowerLevel(
      * @return 近似后的可调用描述符
      */
     private fun CallableDescriptor.approximateCapturedTypes(approximator: TypeApproximator): CallableDescriptor {
-        if (!isNewInferenceEnabled) return this
 
         val wrappedSubstitution = object : TypeSubstitution() {
             override fun get(key: CangJieType): TypeArgument? = null

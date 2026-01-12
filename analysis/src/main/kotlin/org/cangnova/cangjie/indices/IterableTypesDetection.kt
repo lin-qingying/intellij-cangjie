@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,19 +39,25 @@ import org.cangnova.cangjie.resolve.scopes.collectFunctions
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import org.cangnova.cangjie.search.isValidOperator
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.FuzzyType
+
 import org.cangnova.cangjie.types.TypeUtils
+import org.cangnova.cangjie.types.UnwrappedType
+import org.cangnova.cangjie.types.checker.CangJieTypeChecker
+import org.cangnova.cangjie.types.checker.DefaultCangJieTypeChecker
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 import org.cangnova.cangjie.types.expressions.ForLoopConventionsChecker
-import org.cangnova.cangjie.types.toFuzzyType
+import org.cangnova.cangjie.types.model.TypeSystemContext
+
 import org.cangnova.cangjie.utils.getOrPutNullable
 import org.cangnova.cangjie.utils.isExtension
+
 
 class IterableTypesDetection(
     private val project: Project,
     private val forLoopConventionsChecker: ForLoopConventionsChecker,
     private val languageVersionSettings: LanguageVersionSettings,
-    private val dataFlowValueFactory: DataFlowValueFactory
+    private val dataFlowValueFactory: DataFlowValueFactory,
+
 ) {
     companion object {
         private val iteratorName = Name.identifier("iterator")
@@ -62,56 +68,70 @@ class IterableTypesDetection(
     }
 
     private inner class Detector(private val scope: LexicalScope) : IterableTypesDetector {
-        private val cache = HashMap<FuzzyType, FuzzyType?>()
+        private val cache = HashMap<UnwrappedType, UnwrappedType?>()
+        private val typeChecker = CangJieTypeChecker.DEFAULT
 
-        // 在仓颉语言中，extend 成员的 iterator() 使用 dispatchReceiver
-        private val typesWithExtensionIterator: Collection<CangJieType> = scope
+        private val typesWithExtensionIterator: Collection<UnwrappedType> = scope
             .collectFunctions(iteratorName, NoLookupLocation.FROM_IDE)
             .filter { it.isValidOperator() && it.isExtension }
-            .mapNotNull { it.dispatchReceiverParameter?.type }
+            .mapNotNull { it.dispatchReceiverParameter?.type?.unwrap() }
 
-        override fun isIterable(type: FuzzyType, loopVarType: CangJieType?): Boolean {
+        override fun isIterable(type: UnwrappedType, loopVarType: CangJieType?): Boolean {
             val elementType = elementType(type) ?: return false
-            return loopVarType == null || elementType.checkIsSubtypeOf(loopVarType) != null
+            return loopVarType == null ||
+                    typeChecker.isSubtypeOf(elementType, loopVarType.unwrap())
         }
 
         override fun isIterable(type: CangJieType, loopVarType: CangJieType?): Boolean =
-            isIterable(type.toFuzzyType(emptyList()), loopVarType)
+            isIterable(type.unwrap(), loopVarType)
 
-        private fun elementType(type: FuzzyType): FuzzyType? {
+        private fun elementType(type: UnwrappedType): UnwrappedType? {
             return cache.getOrPutNullable(type) { elementTypeNoCache(type) }
         }
 
-        override fun elementType(type: CangJieType): FuzzyType? = elementType(type.toFuzzyType(emptyList()))
+        override fun elementType(type: CangJieType): UnwrappedType? =
+            elementType(type.unwrap())
 
-        private fun elementTypeNoCache(type: FuzzyType): FuzzyType? {
-            // optimization
+        private fun elementTypeNoCache(type: UnwrappedType): UnwrappedType? {
             if (!canBeIterable(type)) return null
 
             val expression = CjPsiFactory(project).createExpression("fake")
             val context = ExpressionTypingContext.newContext(
-                BindingTraceContext(), scope, DataFlowInfo.EMPTY, TypeUtils.NO_EXPECTED_TYPE, languageVersionSettings, dataFlowValueFactory
+                BindingTraceContext(),
+                scope,
+                DataFlowInfo.EMPTY,
+                TypeUtils.NO_EXPECTED_TYPE,
+                languageVersionSettings,
+                dataFlowValueFactory
             )
-            val expressionReceiver = ExpressionReceiver.create(expression, type.type, context.trace.bindingContext)
-            val elementType = forLoopConventionsChecker.checkIterableConvention(expressionReceiver, context)
-            return elementType?.toFuzzyType(type.freeParameters)
+
+            val expressionReceiver = ExpressionReceiver.create(
+                expression,
+                type,
+                context.trace.bindingContext
+            )
+
+            return forLoopConventionsChecker
+                .checkIterableConvention(expressionReceiver, context)
+                ?.unwrap()
         }
 
-        private fun canBeIterable(type: FuzzyType): Boolean {
-            if (type.type.constructor is IntegerLiteralTypeConstructor) return false
-            return type.type.memberScope.getContributedFunctions(iteratorName, NoLookupLocation.FROM_IDE).isNotEmpty() ||
-                    typesWithExtensionIterator.any {
-                        val freeParams = it.arguments.mapNotNull { it.type.constructor.declarationDescriptor as? TypeParameterDescriptor }
-                        type.checkIsSubtypeOf(it.toFuzzyType(freeParams)) != null
-                    }
+        private fun canBeIterable(type: UnwrappedType): Boolean {
+            if (type.constructor is IntegerLiteralTypeConstructor) return false
+
+            val hasIteratorMember = type.memberScope
+                .getContributedFunctions(iteratorName, NoLookupLocation.FROM_IDE)
+                .isNotEmpty()
+
+            return hasIteratorMember || typesWithExtensionIterator.any {
+                typeChecker.isSubtypeOf(type, it)
+            }
         }
     }
 }
 
 interface IterableTypesDetector {
     fun isIterable(type: CangJieType, loopVarType: CangJieType? = null): Boolean
-
-    fun isIterable(type: FuzzyType, loopVarType: CangJieType? = null): Boolean
-
-    fun elementType(type: CangJieType): FuzzyType?
+    fun isIterable(type: UnwrappedType, loopVarType: CangJieType? = null): Boolean
+    fun elementType(type: CangJieType): UnwrappedType?
 }

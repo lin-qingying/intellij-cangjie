@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.resolve.calls.components
 
-import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
@@ -32,7 +31,6 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystem
-import org.cangnova.cangjie.resolve.calls.inference.components.ConstraintInjector
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
 import org.cangnova.cangjie.resolve.calls.inference.model.NewTypeVariable
 import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariableTypeConstructor
@@ -228,20 +226,6 @@ interface CangJieResolutionStatelessCallbacks {
      * @return 如果交集为空则返回 true
      */
     fun isOldIntersectionIsEmpty(types: Collection<CangJieType>): Boolean
-
-    /**
-     * 为重载解析创建约束系统
-     *
-     * 创建一个简化的约束系统,专门用于重载解析中的候选比较。
-     * 这个约束系统不需要完整的类型推导能力,只需支持类型兼容性检查。
-     *
-     * @param constraintInjector 约束注入器,用于生成类型约束
-     * @param builtIns 内置类型定义
-     * @return 用于重载解析的约束系统
-     */
-    fun createConstraintSystemForOverloadResolution(
-        constraintInjector: ConstraintInjector, builtIns: CangJieBuiltIns
-    ): ConstraintSystem
 }
 
 /**

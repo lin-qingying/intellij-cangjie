@@ -625,9 +625,8 @@ class TypeResolver(
 
                 val baseType = createTypeFromInner(optionType, optionType.getModifierList(), innerType)
 
-                if (!baseType.isBare() && baseType.actualType is DefinitelyNonOptionType) {
-                    c.trace.report(NULLABLE_ON_DEFINITELY_NOT_OPTIONAL.on(optionType))
-                }
+                // 仓颉语言：移除 DefinitelyNonOptionType 检查
+                // 在仓颉中，Option 是确切的类型，不需要"明确非 Option"的概念
 
                 if (baseType.isOptional() || innerType is CjOptionType/* || innerType is CjDynamicType*/) {
                     c.trace.report(REDUNDANT_OPTIONAL.on(optionType))

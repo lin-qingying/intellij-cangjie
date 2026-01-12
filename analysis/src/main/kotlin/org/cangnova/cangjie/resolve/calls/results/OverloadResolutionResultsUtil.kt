@@ -31,6 +31,7 @@ import org.cangnova.cangjie.resolve.calls.context.ResolutionContext
 import org.cangnova.cangjie.resolve.calls.model.MutableResolvedCall
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.resolve.calls.tower.AbstractResolvedCall
+import org.cangnova.cangjie.resolve.calls.tower.NewVariableAsFunctionResolvedCallImpl
 import org.cangnova.cangjie.resolve.calls.util.hasInferredReturnType
 import org.cangnova.cangjie.types.CangJieType
 
@@ -61,7 +62,7 @@ object OverloadResolutionResultsUtil {
         if (results.isSingleResult && context.contextDependency == ContextDependency.INDEPENDENT) {
             val resultingCall = results.resultingCall
             val newResolvedCall: AbstractResolvedCall<*>? = when (resultingCall) {
-                is ModernVariableAsFunctionResolvedCallImpl -> resultingCall.functionCall
+                is NewVariableAsFunctionResolvedCallImpl -> resultingCall.functionCall
                 is AbstractResolvedCall<*> -> resultingCall
                 else -> null
             }

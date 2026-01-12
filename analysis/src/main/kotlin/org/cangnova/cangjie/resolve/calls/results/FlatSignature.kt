@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,38 +25,13 @@
 package org.cangnova.cangjie.resolve.calls.results
 
 import org.cangnova.cangjie.descriptors.CallableDescriptor
-import org.cangnova.cangjie.descriptors.MemberDescriptor
-import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import org.cangnova.cangjie.descriptors.VariableDescriptor
 import org.cangnova.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
 import org.cangnova.cangjie.resolve.calls.components.hasDefaultValue
-import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystem
-import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.UnwrappedType
-import org.cangnova.cangjie.types.checker.CangJieTypeChecker
-import org.cangnova.cangjie.types.checker.CangJieTypePreparator
 import org.cangnova.cangjie.types.getValueParameterTypesFromCallableReflectionType
-import org.cangnova.cangjie.types.model.*
-
-/**
- * 特异性比较回调接口
- *
- * 用于在重载解析过程中比较两个候选函数的特异性时提供自定义行为。
- * 特异性比较是确定哪个重载函数更具体（更适合当前调用）的关键机制。
- */
-interface SpecificityComparisonCallbacks {
-    /**
-     * 判断即使不是子类型关系，特定类型是否也不比一般类型更不特异
-     *
-     * 在某些情况下，即使两个类型之间不存在子类型关系，
-     * 我们仍然可能认为一个类型比另一个更特异。
-     *
-     * @param specific 更特异的类型候选
-     * @param general 更一般的类型候选
-     * @return 如果specific即使不是general的子类型也不算更不特异，则返回true
-     */
-    fun isNonSubtypeNotLessSpecific(specific: CangJieTypeMarker, general: CangJieTypeMarker): Boolean
-}
+import org.cangnova.cangjie.types.model.CangJieTypeMarker
+import org.cangnova.cangjie.types.model.TypeParameterMarker
 
 /**
  * 带转换信息的类型
@@ -102,6 +77,15 @@ fun <T> FlatSignature.Companion.create(
  * 表示函数或属性的签名的扁平化表示，用于重载解析和特异性比较。
  * "扁平"是指将所有相关信息（类型参数、值参数类型等）收集到一个结构中，
  * 便于统一处理和比较。
+ *
+ * ## 使用说明
+ *
+ * FlatSignature 本身只是数据结构，特异性比较逻辑由 ECS (Existential Constraint System) 提供：
+ *
+ * ```kotlin
+ * val ecs = ExistentialConstraintSystem.create(builtIns, specificityComparator)
+ * val isNotLessSpecific = ecs.isNotLessSpecific(signatureA, signatureB)
+ * ```
  *
  * @param T 原始对象的类型
  * @property origin 原始对象（通常是描述符）
@@ -192,125 +176,6 @@ fun <D : CallableDescriptor> FlatSignature.Companion.createFromCallableDescripto
 
 
 /**
- * 判断一个签名是否不比另一个签名更不特异
- *
- * 这是重载解析中的核心比较逻辑。通过建立约束系统来判断 specific 签名
- * 是否至少和 general 签名一样特异（或更特异）。
- *
- * 比较过程：
- * 1. 检查参数数量是否相同
- * 2. 对每个参数位置，检查 specific 的参数类型是否不比 general 的更不特异
- * 3. 如果使用原始 SAM 类型，还需要对转换前的类型进行检查
- * 4. 确保约束系统没有矛盾
- *
- * @param specific 更特异的签名候选
- * @param general 更一般的签名候选
- * @param callbacks 特异性比较回调
- * @param specificityComparator 类型特异性比较器
- * @param useOriginalSamTypes 是否使用原始 SAM 类型进行比较
- * @return 如果 specific 不比 general 更不特异则返回true
- */
-fun <T> ConstraintSystem.isSignatureNotLessSpecific(
-    specific: FlatSignature<T>,
-    general: FlatSignature<T>,
-    callbacks: SpecificityComparisonCallbacks,
-    specificityComparator: TypeSpecificityComparator,
-    useOriginalSamTypes: Boolean = false
-): Boolean {
-    // 参数数量必须相同
-    if (specific.valueParameterTypes.size != general.valueParameterTypes.size)
-        return false
-
-    // 检查结果类型（转换后的类型）
-    if (!isValueParameterTypeNotLessSpecific(specific, general, callbacks, specificityComparator) { it?.resultType }) {
-        return false
-    }
-
-    // 如果需要，检查原始类型（转换前的类型）
-    if (useOriginalSamTypes && !isValueParameterTypeNotLessSpecific(
-            specific, general, callbacks, specificityComparator
-        ) { it?.originalTypeIfWasConverted }
-    ) {
-        return false
-    }
-
-    // 确保约束系统没有矛盾
-    return !hasContradiction
-}
-
-/**
- * 检查值参数类型是否不比另一个更不特异
- *
- * 这是签名比较的核心实现，逐个比较参数位置的类型特异性。
- *
- * @param specific 更特异的签名候选
- * @param general 更一般的签名候选
- * @param callbacks 特异性比较回调
- * @param specificityComparator 类型特异性比较器
- * @param typeKindSelector 类型选择器，用于选择要比较的类型（结果类型或原始类型）
- * @return 如果所有参数位置的类型都不比对应位置更不特异则返回true
- */
-private fun <T> ConstraintSystem.isValueParameterTypeNotLessSpecific(
-    specific: FlatSignature<T>,
-    general: FlatSignature<T>,
-    callbacks: SpecificityComparisonCallbacks,
-    specificityComparator: TypeSpecificityComparator,
-    typeKindSelector: (TypeWithConversion?) -> CangJieTypeMarker?
-): Boolean {
-    val typeParameters = general.typeParameters
-    val csBuilder = getBuilder()
-    // 注册类型参数为类型变量
-    val typeSubstitutor = csBuilder.registerTypeVariables(typeParameters)
-
-
-    var specificValueParameterTypes = specific.valueParameterTypes
-    var generalValueParameterTypes = general.valueParameterTypes
-
-
-    // 遍历每个参数位置
-    for (index in specificValueParameterTypes.indices) {
-        val specificType = typeKindSelector(specificValueParameterTypes[index]) ?: continue
-        val generalType = typeKindSelector(generalValueParameterTypes[index]) ?: continue
-
-        // 如果 specific 的类型明确更不特异，直接返回 false
-        if (specificityComparator.isDefinitelyLessSpecific(specificType, generalType)) {
-            return false
-        }
-
-        // 如果 general 没有类型参数，或者 generalType 不依赖于类型参数
-        if (typeParameters.isEmpty() || !generalType.dependsOnTypeParameters(this, typeParameters)) {
-            // 直接检查子类型关系
-            if (!CangJieTypeChecker.DEFAULT.isSubtypeOf(specificType as CangJieType, generalType as CangJieType)) {
-                // 如果不是子类型，使用回调判断是否仍然不算更不特异
-                if (!callbacks.isNonSubtypeNotLessSpecific(specificType, generalType)) {
-                    return false
-                }
-            }
-        } else {
-            // general 的类型包含类型参数，需要替换后再比较
-            val substitutedGeneralType = typeSubstitutor.safeSubstitute(this, generalType)
-
-            /**
-             * 示例：
-             * fun <X> Array<out X>.sort(): Unit {}
-             * fun <Y: Comparable<Y>> Array<out Y>.sort(): Unit {}
-             *
-             * 当我们尝试解决约束系统 CS(Y 是变量) 时，
-             * Array<out X> <: Array<out Y> 这个系统无法求解，
-             * 因此我们需要从接收者和值参数中捕获类型。
-             */
-            val specificCapturedType = CangJieTypePreparator.Default.prepareType(specificType)
-                .let { this.captureFromExpression(it) ?: it }
-
-            // 添加子类型约束
-            csBuilder.addSubtypeConstraint(specificCapturedType, substitutedGeneralType)
-        }
-    }
-
-    return true
-}
-
-/**
  * 从反射类型信息创建一个 [FlatSignature] 实例
  *
  * 此函数专为处理可调用引用而设计，处理反射类型中的接收者类型、
@@ -354,25 +219,4 @@ fun <T> FlatSignature.Companion.createFromReflectionType(
         numDefaults = numDefaults,
         isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>
     )
-}
-
-
-/**
- * 重载能力特异性比较回调
- *
- * 这是用于重载解析的默认回调实现。
- * 它采用保守策略：如果两个类型之间不存在子类型关系，
- * 就认为它们的特异性无法比较。
- */
-object OverloadabilitySpecificityCallbacks : SpecificityComparisonCallbacks {
-    /**
-     * 对于重载解析，如果类型之间不是子类型关系，
-     * 就认为 specific 比 general 更不特异
-     *
-     * @param specific 更特异的类型候选
-     * @param general 更一般的类型候选
-     * @return 总是返回 false，表示非子类型关系时认为更不特异
-     */
-    override fun isNonSubtypeNotLessSpecific(specific: CangJieTypeMarker, general: CangJieTypeMarker): Boolean =
-        false
 }

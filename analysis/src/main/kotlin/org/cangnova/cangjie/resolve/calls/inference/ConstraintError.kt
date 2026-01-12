@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,21 +23,3 @@
  */
 
 package org.cangnova.cangjie.resolve.calls.inference
-
-import org.cangnova.cangjie.resolve.calls.inference.constraintPosition.ConstraintPosition
-import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariable
-
-open class ConstraintError(val constraintPosition: ConstraintPosition)
-class ParameterConstraintError(constraintPosition: ConstraintPosition) : ConstraintError(constraintPosition)
-
-class ErrorInConstrainingType(constraintPosition: ConstraintPosition) : ConstraintError(constraintPosition)
-
-class TypeInferenceError(constraintPosition: ConstraintPosition) : ConstraintError(constraintPosition)
-
-class CannotCapture(constraintPosition: ConstraintPosition, val typeVariable: TypeVariable) :
-    ConstraintError(constraintPosition)
-
-fun newTypeInferenceOrParameterConstraintError(constraintPosition: ConstraintPosition) =
-    if (constraintPosition.isParameter()) ParameterConstraintError(constraintPosition) else TypeInferenceError(
-        constraintPosition
-    )

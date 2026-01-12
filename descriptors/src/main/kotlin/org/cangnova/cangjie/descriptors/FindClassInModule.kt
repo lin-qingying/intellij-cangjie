@@ -20,14 +20,8 @@
  * The software is provided "as-is", and the authors are not responsible for
  * any damages or issues arising from its use.
  *
- */y the Apache License 2.0,
- * which allows users to freely use, modify, and distribute the code,
- * provided they adhere to the terms of the license.
- *
- * The software is provided "as-is", and the authors are not responsible for
- * any damages or issues arising from its use.
- *
  */
+
 
 package org.cangnova.cangjie.descriptors
 

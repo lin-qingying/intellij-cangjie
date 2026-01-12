@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,29 @@
 
 package org.cangnova.cangjie.resolve
 
+import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilderImpl
+import org.cangnova.cangjie.resolve.calls.inference.ecs.ExistentialConstraintSystem
+import org.cangnova.cangjie.resolve.calls.inference.ecs.OverloadabilityResult
 import org.cangnova.cangjie.resolve.calls.results.*
 import org.cangnova.cangjie.types.ErrorUtils
 
-class OverloadChecker(val specificityComparator: TypeSpecificityComparator) {
+/**
+ * 重载检查器
+ *
+ * 使用存在性约束系统 (ECS) 来判断两个声明是否可以重载。
+ *
+ * @property builtIns 内置类型系统
+ * @property specificityComparator 类型特异性比较器
+ */
+class OverloadChecker(
+    val builtIns: CangJieBuiltIns,
+    val specificityComparator: TypeSpecificityComparator,
+) {
+    /** ECS 实例，用于重载检查 */
+    private val ecs: ExistentialConstraintSystem by lazy {
+        ExistentialConstraintSystem.create(builtIns, specificityComparator)
+    }
 
     /**
      * 检查两个可调用描述符是否可以重载。
@@ -42,39 +59,12 @@ class OverloadChecker(val specificityComparator: TypeSpecificityComparator) {
      * @return 如果两个声明可以重载，返回 true；否则返回 false。
      */
     private fun checkOverloadability(a: CallableDescriptor, b: CallableDescriptor): Boolean {
-        // 检查两个声明是否一个有类型参数而另一个没有。如果有差异，认为可以重载。
-        if (a.typeParameters.isEmpty() != b.typeParameters.isEmpty()) return true
-
-        // 检查是否有错误类型参数。如果有，认为可以重载。
-        if (a is FunctionDescriptor && ErrorUtils.containsErrorTypeInParameters(a) ||
-            b is FunctionDescriptor && ErrorUtils.containsErrorTypeInParameters(b)
-        ) return true
-
-        // 创建两个描述符的扁平签名。
-        val aSignature = FlatSignature.createFromCallableDescriptor(a)
-        val bSignature = FlatSignature.createFromCallableDescriptor(b)
-
-        // 检查 a 的签名是否不比 b 的签名更具体。
-        val aIsNotLessSpecificThanB = ConstraintSystemBuilderImpl.forSpecificity()
-            .isSignatureNotLessSpecific(
-                aSignature,
-                bSignature,
-                OverloadabilitySpecificityCallbacks,
-                specificityComparator
-            )
-
-        // 检查 b 的签名是否不比 a 的签名更具体。
-        val bIsNotLessSpecificThanA = ConstraintSystemBuilderImpl.forSpecificity()
-            .isSignatureNotLessSpecific(
-                bSignature,
-                aSignature,
-                OverloadabilitySpecificityCallbacks,
-                specificityComparator
-            )
-
-        // 如果 a 和 b 的签名都不比对方更具体，则认为不可以重载。
-        return !(aIsNotLessSpecificThanB && bIsNotLessSpecificThanA)
+        // 使用 ECS 进行重载检查
+        val result = ecs.checkOverloadability(a, b)
+        return result == OverloadabilityResult.OVERLOADABLE
     }
+
+
 
 
     private enum class DeclarationCategory {
@@ -86,9 +76,7 @@ class OverloadChecker(val specificityComparator: TypeSpecificityComparator) {
     private fun getDeclarationCategory(a: DeclarationDescriptor): DeclarationCategory =
         when (a) {
             is PropertyDescriptor ->
-//                if (a.isExtensionProperty)
-//                    DeclarationCategory.EXTENSION_PROPERTY
-//                else
+
                 DeclarationCategory.TYPE_OR_VALUE
 
             is FunctionDescriptor ->

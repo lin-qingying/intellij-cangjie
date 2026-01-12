@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,6 @@ import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.resolve.source.getPsi
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.fqNameUnsafe
-import org.cangnova.cangjie.types.isDefinitelyNonOptionType
 import org.cangnova.cangjie.utils.safeAs
 import org.jetbrains.annotations.Nls
 import java.util.function.Consumer
@@ -89,9 +88,6 @@ import java.util.function.Consumer
  * ### 内置类型
  * 对于基本的内置类型（如 Int8、Int16、Bool、Float32 等），不会生成超链接，
  * 直接返回纯文本名称，因为这些类型通常不需要导航到定义处。
- *
- * ### 非 Option 类型
- * 对于标记为非 Option 的类型，会在名称后附加 ` & Any` 标记。
  *
  * @property base 基础的分类器名称策略，用于获取原始名称
  *
@@ -115,15 +111,12 @@ class HtmlClassifierNamePolicy(val base: ClassifierNamePolicy) : ClassifierNameP
      *
      * @param classifier 要渲染的分类器描述符
      * @param renderer 描述符渲染器
-     * @param type 可选的类型信息，用于判断是否为非 Option 类型
+     * @param type 可选的类型信息
      * @return HTML 格式的分类器名称（可能包含超链接）
      */
     private fun render(classifier: ClassifierDescriptor, renderer: DescriptorRenderer, type: CangJieType?): String {
 
-        val name =
-            base.renderClassifier(classifier, renderer) + (type?.takeIf { it.isDefinitelyNonOptionType }
-                ?.let { " & Any" }
-                ?: "")
+        val name = base.renderClassifier(classifier, renderer)
 
         if (classifier.isBoringBuiltinClass())
             return name

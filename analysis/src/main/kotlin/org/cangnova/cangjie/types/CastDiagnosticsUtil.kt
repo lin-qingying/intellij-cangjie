@@ -31,8 +31,8 @@ import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
-import org.cangnova.cangjie.types.checker.CangJieSubtypeChecker
 import org.cangnova.cangjie.types.checker.TypeIntersector
+import org.cangnova.cangjie.types.checker.findCorrespondingSupertype
 
 object CastDiagnosticsUtil {
     /**
@@ -218,7 +218,7 @@ object CastDiagnosticsUtil {
 
         // 现在，让我们找到 List<T> 的一个超类型，它是一个 Collection 的某个类型，
         // 在这种情况下，它将是 Collection<T>
-        val supertypeWithVariables = CangJieSubtypeChecker.findCorrespondingSupertype(subtypeWithVariables, supertype)
+        val supertypeWithVariables = findCorrespondingSupertype(subtypeWithVariables, supertype)
 
         val variables = subtypeWithVariables.constructor.parameters
         val variableConstructors = variables.map(TypeParameterDescriptor::typeConstructor).toSet()
@@ -227,9 +227,8 @@ object CastDiagnosticsUtil {
             // 现在，让我们尝试统一 Collection<T> 和 Collection<Foo>，解决方案是从 T 到 Foo 的映射
             val solution = TypeUnifier.unify(
                 TypeArgumentImpl(supertype),
-                TypeArgumentImpl(supertypeWithVariables),
-                variableConstructors::contains
-            )
+                TypeArgumentImpl(supertypeWithVariables)
+            ) { variableConstructors.contains(it) }
             Maps.newHashMap(solution.substitution)
         } else {
             // 如果没有对应的超类型，没有确定的变量

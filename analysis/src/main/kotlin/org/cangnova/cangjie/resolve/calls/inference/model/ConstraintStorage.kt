@@ -25,7 +25,8 @@
 package org.cangnova.cangjie.resolve.calls.inference.model
 
 import org.cangnova.cangjie.resolve.calls.inference.ForkPointData
-import org.cangnova.cangjie.types.AbstractTypeChecker
+import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
 import org.cangnova.cangjie.types.model.TypeCheckerProviderContext
 import org.cangnova.cangjie.types.model.TypeConstructorMarker
@@ -228,19 +229,33 @@ class InitialConstraint(
 //    return checkConstraint(newB as CangJieTypeMarker, constraintKind, newA as CangJieTypeMarker)
 //}
 
+/**
+ * 检查约束是否满足
+ *
+ * 使用 [CangJieTypeChecker] 来检查类型约束。
+ *
+ * @param context 类型检查器上下文（当前未使用）
+ * @param constraintType 约束类型
+ * @param constraintKind 约束类型（相等、下界或上界）
+ * @param resultType 结果类型
+ * @return 如果约束满足返回 true，否则返回 false
+ */
+@Suppress("UNUSED_PARAMETER")
 fun checkConstraint(
     context: TypeCheckerProviderContext,
     constraintType: CangJieTypeMarker,
     constraintKind: ConstraintKind,
     resultType: CangJieTypeMarker
 ): Boolean {
+    // 将 CangJieTypeMarker 转换为 CangJieType
+    val typeChecker = CangJieTypeChecker.DEFAULT
+    val cType = constraintType as? CangJieType ?: return true
+    val rType = resultType as? CangJieType ?: return true
 
-
-    val typeChecker = AbstractTypeChecker
     return when (constraintKind) {
-        ConstraintKind.EQUALITY -> typeChecker.equalTypes(context, constraintType, resultType)
-        ConstraintKind.LOWER -> typeChecker.isSubtypeOf(context, constraintType, resultType)
-        ConstraintKind.UPPER -> typeChecker.isSubtypeOf(context, resultType, constraintType)
+        ConstraintKind.EQUALITY -> typeChecker.equalTypes(cType, rType)
+        ConstraintKind.LOWER -> typeChecker.isSubtypeOf(cType, rType)
+        ConstraintKind.UPPER -> typeChecker.isSubtypeOf(rType, cType)
     }
 }
 

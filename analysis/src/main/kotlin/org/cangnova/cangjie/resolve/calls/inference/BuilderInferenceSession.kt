@@ -190,9 +190,13 @@ class BuilderInferenceSession(
             TypeConstructorSubstitution.createByConstructorsMap(substitutedCommonCapType).buildSubstitutor()
 
         val substitutedLowerType =
-            nonFixedToVariablesSubstitutor.safeSubstitute(capTypesSubstitutor.substitute(lowerType.unwrap()))
+            nonFixedToVariablesSubstitutor.safeSubstitute(
+                (capTypesSubstitutor.substitute(lowerType) ?: lowerType).unwrap()
+            )
         val substitutedUpperType =
-            nonFixedToVariablesSubstitutor.safeSubstitute(capTypesSubstitutor.substitute(upperType.unwrap()))
+            nonFixedToVariablesSubstitutor.safeSubstitute(
+                (capTypesSubstitutor.substitute(upperType) ?: upperType).unwrap()
+            )
 
         return substitutedLowerType to substitutedUpperType
     }

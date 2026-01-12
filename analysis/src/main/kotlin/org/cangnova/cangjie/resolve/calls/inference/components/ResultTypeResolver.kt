@@ -318,7 +318,9 @@ class ResultTypeResolver(
                 if (constraints.any {
                         it.type.typeConstructor().isTypeVariable() && it.type.hasFlexibleOption()
                     }) {
-                    createFlexibleType(type.makeSimpleTypeDefinitelyNonOptionOrNonOption(), type.withOption(true))
+                    // 仓颉语言：移除 makeSimpleTypeDefinitelyNonOptionOrNonOption 调用
+                    // 在仓颉中，Option 是确切的类型，直接使用原始类型即可
+                    createFlexibleType(type, type.withOption(true))
                 } else type
             }
 

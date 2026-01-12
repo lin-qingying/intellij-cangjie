@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.resolve.calls.inference
 
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
-import org.cangnova.cangjie.resolve.calls.inference.model.NewConstraintSystemImpl
+import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintSystemImpl
 import org.cangnova.cangjie.types.model.*
 
 fun ConstraintStorage.buildNotFixedVariablesToNonSubtypableTypesSubstitutor(
@@ -94,7 +94,7 @@ fun ConstraintStorage.buildAbstractResultingSubstitutor(
     return context.typeSubstitutorByTypeConstructor(currentSubstitutorMap + uninferredSubstitutorMap)
 }
 
-fun NewConstraintSystemImpl.registerTypeVariableIfNotPresent(
+fun ConstraintSystemImpl.registerTypeVariableIfNotPresent(
     typeVariable: TypeVariableMarker
 ) {
     val builder = getBuilder()
