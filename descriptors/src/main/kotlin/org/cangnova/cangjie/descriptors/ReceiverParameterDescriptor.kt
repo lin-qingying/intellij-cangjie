@@ -24,7 +24,7 @@
 package org.cangnova.cangjie.descriptors
 
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 
 
 /**
@@ -45,7 +45,7 @@ interface ReceiverParameterDescriptor : ParameterDescriptor {
      * @param substitutor 类型替换器
      * @return 替换后的接收器参数描述符，可能为`null`
      */
-    override fun substitute(substitutor: DefaultTypeSubstitutor): ReceiverParameterDescriptor?
+    override fun substitute(substitutor: ComposableTypeSubstitutor): ReceiverParameterDescriptor?
 
     /**
      * 创建当前接收器参数描述符的副本，并指定新的所有者。

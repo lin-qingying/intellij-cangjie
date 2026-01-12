@@ -33,7 +33,6 @@ import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReference
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.extractInputOutputTypesFromCallableReferenceExpectedType
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystem
-import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintError
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintMismatch
@@ -42,6 +41,7 @@ import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariableForLambdaR
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.constants.IntegerValueTypeConstant
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.TypeConstructor
 import org.cangnova.cangjie.types.UnwrappedType
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
@@ -101,10 +101,10 @@ abstract class ResolvedCallAtom : ResolvedAtom() {
     abstract val typeArgumentMappingByOriginal: TypeArgumentsToParametersMapper.TypeArgumentsMapping
 
     abstract val argumentMappingByOriginal: Map<ValueParameterDescriptor, ResolvedCallArgument>
-    abstract val freshVariablesSubstitutor: FreshVariableTypeSubstitutor
+    abstract val freshVariablesSubstitutor: ComposableTypeSubstitutor
     abstract val argumentsWithSuspendConversion: Map<CangJieCallArgument, UnwrappedType>
 
-    abstract val knownParametersSubstitutor: AbstractTypeSubstitutor
+    abstract val knownParametersSubstitutor: ComposableTypeSubstitutor
 
     abstract val argumentsWithConversion: Map<CangJieCallArgument, SamConversionDescription>
 
@@ -130,7 +130,7 @@ sealed class CallResolutionResult(
 
     override fun toString(): String = "diagnostics: (${diagnostics.joinToString()})"
 
-    fun completedDiagnostic(substitutor: AbstractTypeSubstitutor): List<CangJieCallDiagnostic> {
+    fun completedDiagnostic(substitutor: ComposableTypeSubstitutor): List<CangJieCallDiagnostic> {
         return diagnostics.map {
             val error = it.constraintSystemError ?: return@map it
             if (error !is ConstraintMismatch) return@map it

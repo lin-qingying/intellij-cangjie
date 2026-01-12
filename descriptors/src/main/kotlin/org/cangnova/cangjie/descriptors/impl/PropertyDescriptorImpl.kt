@@ -98,12 +98,12 @@ open class PropertyDescriptorImpl(
             setter?.let { add(it) }
         }
 
-    override fun substitute(substitutor: DefaultTypeSubstitutor): PropertyDescriptor? {
+    override fun substitute(substitutor: ComposableTypeSubstitutor): PropertyDescriptor? {
         if (substitutor.isEmpty) return this
 
         return requireNotNull(
             newCopyBuilder()
-                .setSubstitution(substitutor.substitution)
+                .setSubstitution(substitutor)
                 .setOriginal(original)
                 .build()
         )
@@ -286,7 +286,7 @@ initialSignatureDescriptor = getSubstitutedInitialSignatureDescriptor(substituto
             private set
         var kind: CallableMemberDescriptor.Kind = this@PropertyDescriptorImpl.kind
             private set
-        var substitution: TypeSubstitution = TypeSubstitution.EMPTY
+        var substitution: ComposableTypeSubstitutor = ComposableTypeSubstitutor.EMPTY
             private set
         var copyOverrides: Boolean = true
             private set
@@ -338,7 +338,7 @@ initialSignatureDescriptor = getSubstitutedInitialSignatureDescriptor(substituto
                 this.dispatchReceiverParameter = dispatchReceiverParameter
             }
 
-        override fun setSubstitution(substitution: TypeSubstitution): CopyConfiguration = apply {
+        override fun setSubstitution(substitution: ComposableTypeSubstitutor): CopyConfiguration = apply {
             this.substitution = substitution
         }
 
@@ -401,7 +401,7 @@ initialSignatureDescriptor = getSubstitutedInitialSignatureDescriptor(substituto
         }
 
         private fun getSubstitutedInitialSignatureDescriptor(
-            substitutor: DefaultTypeSubstitutor,
+            substitutor: ComposableTypeSubstitutor,
             accessorDescriptor: PropertyAccessorDescriptor
         ): FunctionDescriptor? = accessorDescriptor.initialSignatureDescriptor?.substitute(substitutor)
 

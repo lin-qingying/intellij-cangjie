@@ -68,8 +68,9 @@ abstract class AbstractExtendDescriptor(
             "Illegal number of type arguments: expected ${declaredTypeParameters.size} but was ${typeArguments.size} for   ${declaredTypeParameters}"
         }
         if (typeArguments.isEmpty()) return unsubstitutedMemberScope
+        val typeSubstitution = TypeConstructorSubstitution.create(extendType.constructor, typeArguments)
+        val substitutor = TypeSubstitutors.fromSubstitution(typeSubstitution)
 
-        val substitutor = TypeConstructorSubstitution.create(extendType.constructor, typeArguments).buildSubstitutor()
         return SubstitutingScope(unsubstitutedMemberScope, substitutor)
     }
 
@@ -78,8 +79,8 @@ abstract class AbstractExtendDescriptor(
 
         ): MemberScope {
         if (typeSubstitution.isEmpty()) return unsubstitutedMemberScope
+        val substitutor = TypeSubstitutors.fromSubstitution(typeSubstitution)
 
-        val substitutor = DefaultTypeSubstitutor.create(typeSubstitution)
         return SubstitutingScope(unsubstitutedMemberScope, substitutor)
     }
 

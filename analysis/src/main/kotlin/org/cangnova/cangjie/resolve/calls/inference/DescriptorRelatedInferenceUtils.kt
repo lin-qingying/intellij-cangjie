@@ -35,10 +35,9 @@ import org.cangnova.cangjie.resolve.calls.model.SubCangJieCallArgument
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.model.TypeSystemInferenceExtensionContext
 
-fun DefaultTypeSubstitutor.substitute(type: UnwrappedType): UnwrappedType = safeSubstitute(type, ).unwrap()
 
 fun CallableDescriptor.substituteAndApproximateTypes(
-    substitutor: AbstractTypeSubstitutor,
+    substitutor: ComposableTypeSubstitutor,
     typeApproximator: TypeApproximator?,
     positionDependentApproximation: Boolean = false
 ): CallableDescriptor {
@@ -63,20 +62,11 @@ fun CallableDescriptor.substituteAndApproximateTypes(
 fun ConstraintStorage.buildResultingSubstitutor(
     context: TypeSystemInferenceExtensionContext,
     transformTypeVariablesToErrorTypes: Boolean = true
-): AbstractTypeSubstitutor {
-    return buildAbstractResultingSubstitutor(context, transformTypeVariablesToErrorTypes) as AbstractTypeSubstitutor
+): ComposableTypeSubstitutor {
+    return buildAbstractResultingSubstitutor(context, transformTypeVariablesToErrorTypes) as ComposableTypeSubstitutor
 }
 
-fun CallableDescriptor.substitute(substitutor: AbstractTypeSubstitutor): CallableDescriptor {
-    if (substitutor.isEmpty) return this
 
-    val wrappedSubstitution = object : TypeSubstitution() {
-        override fun get(key: CangJieType): TypeArgument? = null
-        override fun prepareTopLevelType(topLevelType: CangJieType ) =
-            substitutor.safeSubstitute(topLevelType.unwrap())
-    }
-    return substitute(DefaultTypeSubstitutor.create(wrappedSubstitution)) ?: this
-}
 
 fun PostponedArgumentsAnalyzerContext.addSubsystemFromArgument(argument: CangJieCallArgument?): Boolean {
     return when (argument) {

@@ -27,6 +27,7 @@ package org.cangnova.cangjie.resolve.calls.tasks
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.psi.Call
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 class OldResolutionCandidate<D : CallableDescriptor> private constructor(
@@ -34,7 +35,7 @@ class OldResolutionCandidate<D : CallableDescriptor> private constructor(
     val descriptor: D,
     var dispatchReceiver: ReceiverValue?, // receiver object of a method
     var explicitReceiverKind: ExplicitReceiverKind,
-    val knownTypeParametersResultingSubstitutor: DefaultTypeSubstitutor?
+    val knownTypeParametersResultingSubstitutor: ComposableTypeSubstitutor?
 ) {
 
 
@@ -54,7 +55,7 @@ class OldResolutionCandidate<D : CallableDescriptor> private constructor(
         fun <D : CallableDescriptor> create(
             call: Call,
             descriptor: D,
-            knownTypeParametersResultingSubstitutor: DefaultTypeSubstitutor?
+            knownTypeParametersResultingSubstitutor: ComposableTypeSubstitutor?
         ): OldResolutionCandidate<D> =
             OldResolutionCandidate(
                 call,
@@ -69,7 +70,7 @@ class OldResolutionCandidate<D : CallableDescriptor> private constructor(
             descriptor: D,
             dispatchReceiver: ReceiverValue?,
             explicitReceiverKind: ExplicitReceiverKind,
-            knownTypeParametersResultingSubstitutor: DefaultTypeSubstitutor?
+            knownTypeParametersResultingSubstitutor: ComposableTypeSubstitutor?
         ): OldResolutionCandidate<D> =
             OldResolutionCandidate(
                 call,

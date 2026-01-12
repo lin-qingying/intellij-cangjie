@@ -538,6 +538,7 @@ class TowerResolver {
     class SuccessfulResultCollector<C : Candidate> : ResultCollector<C>() {
         // 候选项组列表
         private var candidateGroups = arrayListOf<Collection<C>>()
+
         // 是否已找到成功的候选项
         private var isSuccessful = false
 
@@ -1207,9 +1208,9 @@ internal class MemberScopeTowerLevel(
 
         val wrappedSubstitution = object : TypeSubstitution() {
             override fun get(key: CangJieType): TypeArgument? = null
-            override fun prepareTopLevelType(topLevelType: CangJieType ) =   topLevelType
+            override fun prepareTopLevelType(topLevelType: CangJieType) = topLevelType
         }
-        return substitute(DefaultTypeSubstitutor.create(wrappedSubstitution))!!
+        return substitute(ComposableTypeSubstitutor.fromLegacy(DefaultTypeSubstitutor.create(wrappedSubstitution)))!!
     }
 
     /**

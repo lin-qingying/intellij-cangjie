@@ -25,7 +25,9 @@ package org.cangnova.cangjie.descriptors
 
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.TypeSubstitution
+import org.cangnova.cangjie.types.TypeSubstitutor
 
 /**
  * 表示类成员中的可调用实体（如函数、属性访问器等）的描述符。
@@ -130,7 +132,7 @@ interface CallableMemberDescriptor : CallableDescriptor, MemberDescriptor {
         fun setDispatchReceiverParameter(dispatchReceiverParameter: ReceiverParameterDescriptor?): CopyBuilder<D>
 
         /** 设置新描述符的类型替换规则 */
-        fun setSubstitution(substitution: TypeSubstitution): CopyBuilder<D>
+        fun setSubstitution(substitution: ComposableTypeSubstitutor): CopyBuilder<D>
 
         /** 设置是否复制覆盖关系 */
         fun setCopyOverrides(copyOverrides: Boolean): CopyBuilder<D>

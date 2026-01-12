@@ -43,6 +43,7 @@ import org.cangnova.cangjie.resolve.constants.IntegerValueTypeConstant
 import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitClassReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.TypeApproximator
 import org.cangnova.cangjie.types.TypeApproximatorConfiguration
 import org.cangnova.cangjie.types.UnwrappedType
@@ -62,7 +63,7 @@ import org.cangnova.cangjie.types.UnwrappedType
  */
 class ResolvedCallImpl<D : CallableDescriptor>(
     override val resolvedCallAtom: ResolvedCallAtom,
-    substitutor: AbstractTypeSubstitutor?,
+    substitutor: ComposableTypeSubstitutor?,
     diagnostics: Collection<CangJieCallDiagnostic>,
     override val typeApproximator: TypeApproximator,
     override val languageVersionSettings: LanguageVersionSettings,
@@ -120,7 +121,7 @@ class ResolvedCallImpl<D : CallableDescriptor>(
 
     override val psiCangJieCall: PSICangJieCall = resolvedCallAtom.atom.psiCangJieCall
     override val cangjieCall: CangJieCall = resolvedCallAtom.atom
-    override val freshSubstitutor: FreshVariableTypeSubstitutor
+    override val freshSubstitutor: ComposableTypeSubstitutor?
         get() = resolvedCallAtom.freshVariablesSubstitutor
     override val argumentMappingByOriginal: Map<ValueParameterDescriptor, ResolvedCallArgument>
         get() = resolvedCallAtom.argumentMappingByOriginal
@@ -240,7 +241,7 @@ class ResolvedCallImpl<D : CallableDescriptor>(
      */
     private fun calculateExpectedTypeForConvertedArguments(
         arguments: Map<CangJieCallArgument, UnwrappedType>,
-        substitutor: AbstractTypeSubstitutor?,
+        substitutor: ComposableTypeSubstitutor?,
     ): Map<ValueArgument, UnwrappedType>? {
         if (arguments.isEmpty()) return null
 
@@ -257,7 +258,7 @@ class ResolvedCallImpl<D : CallableDescriptor>(
     /**
      * 计算Unit类型转换参数的预期类型映射
      */
-    private fun calculateExpectedTypeForUnitConvertedArgumentMap(substitutor: AbstractTypeSubstitutor?) {
+    private fun calculateExpectedTypeForUnitConvertedArgumentMap(substitutor: ComposableTypeSubstitutor?) {
         expectedTypeForUnitConvertedArgumentMap = calculateExpectedTypeForConvertedArguments(
             resolvedCallAtom.argumentsWithUnitConversion, substitutor
         )
@@ -266,7 +267,7 @@ class ResolvedCallImpl<D : CallableDescriptor>(
     /**
      * 计算SAM类型转换参数的预期类型映射
      */
-    private fun calculateExpectedTypeForSamConvertedArgumentMap(substitutor: AbstractTypeSubstitutor?) {
+    private fun calculateExpectedTypeForSamConvertedArgumentMap(substitutor: ComposableTypeSubstitutor?) {
         expectedTypeForSamConvertedArgumentMap = calculateExpectedTypeForConvertedArguments(
             resolvedCallAtom.argumentsWithConversion.mapValues { it.value.convertedTypeByCandidateParameter },
             substitutor
@@ -276,7 +277,7 @@ class ResolvedCallImpl<D : CallableDescriptor>(
     /**
      * 计算Suspend类型转换参数的预期类型映射
      */
-    private fun calculateExpectedTypeForSuspendConvertedArgumentMap(substitutor: AbstractTypeSubstitutor?) {
+    private fun calculateExpectedTypeForSuspendConvertedArgumentMap(substitutor: ComposableTypeSubstitutor?) {
         expectedTypeForSuspendConvertedArgumentMap = calculateExpectedTypeForConvertedArguments(
             resolvedCallAtom.argumentsWithSuspendConversion, substitutor
         )
@@ -368,7 +369,7 @@ class ResolvedCallImpl<D : CallableDescriptor>(
      *
      * @param substitutor 新的类型替换器，如果为null则使用空替换器
      */
-    override fun setResultingSubstitutor(substitutor: AbstractTypeSubstitutor?) {
+    override fun setResultingSubstitutor(substitutor: ComposableTypeSubstitutor?) {
         // 清除缓存的值
         updateArgumentsMapping(null)
         updateValueArguments(emptyMap())

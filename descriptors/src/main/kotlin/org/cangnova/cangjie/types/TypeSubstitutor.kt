@@ -59,3 +59,14 @@ interface  TypeSubstitutor : TypeSubstitutorMarker {
      */
     val isEmpty: Boolean
 }
+
+/**
+ * 替换 CangJieType
+ *
+ * 仓颉语言的类型替换扩展方法
+ */
+fun TypeSubstitutor.substitute(type: CangJieType): CangJieType {
+    return safeSubstitute(type.unwrap()).let {
+        if (it is SimpleType && type is SimpleType) it else it as CangJieType
+    }
+}

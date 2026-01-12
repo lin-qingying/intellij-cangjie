@@ -27,7 +27,7 @@ package org.cangnova.cangjie.descriptors.impl
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 
 /**
  * 属性访问器描述符的抽象实现。
@@ -57,7 +57,7 @@ abstract class PropertyAccessorDescriptorImpl(
     override var initialSignatureDescriptor: FunctionDescriptor? = null
 
 
-    override fun substitute(substitutor: DefaultTypeSubstitutor): PropertyAccessorDescriptorImpl? {
+    override fun substitute(substitutor: ComposableTypeSubstitutor): PropertyAccessorDescriptorImpl? {
         return this // no substitution since we work with originals of accessors in the backend anyway
     }
 

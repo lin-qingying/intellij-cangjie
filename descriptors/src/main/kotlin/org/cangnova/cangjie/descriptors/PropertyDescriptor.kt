@@ -26,7 +26,7 @@ package org.cangnova.cangjie.descriptors
 import org.cangnova.cangjie.descriptors.impl.PropertyAccessorDescriptor
 import org.cangnova.cangjie.resolve.constants.ConstantValue
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 
 
 /**
@@ -86,7 +86,7 @@ interface PropertyDescriptor :EnumMember, PropertyDescriptorWithAccessors, Calla
      * 类型替换
      * 使用给定的类型替换器创建此属性的新版本
      */
-    override fun substitute(substitutor: DefaultTypeSubstitutor): PropertyDescriptor?
+    override fun substitute(substitutor: ComposableTypeSubstitutor): PropertyDescriptor?
 
     /**
      * 创建复制构建器

@@ -40,6 +40,7 @@ import org.cangnova.cangjie.resolve.calls.tower.SamePriorityCompositeScopeTowerP
 import org.cangnova.cangjie.resolve.calls.tower.ScopeTowerProcessor
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.UnwrappedType
@@ -188,7 +189,7 @@ class CallableReferenceAdaptation(
  */
 fun CallableReferenceResolutionCandidate.addConstraints(
     constraintSystem: ConstraintSystemOperation,
-    substitutor: FreshVariableTypeSubstitutor,
+    substitutor: ComposableTypeSubstitutor,
     callableReference: CallableReferenceResolutionAtom
 ) {
     val lhsResult = callableReference.lhsResult
@@ -245,7 +246,7 @@ fun CallableReferenceResolutionCandidate.addConstraints(
  * @param position 约束位置，用于错误报告
  */
 private fun ConstraintSystemOperation.addReceiverConstraint(
-    toFreshSubstitutor: FreshVariableTypeSubstitutor,
+    toFreshSubstitutor: ComposableTypeSubstitutor,
     receiverArgument: CallableReceiver?,
     receiverParameter: ReceiverParameterDescriptor?,
     position: ConstraintPosition

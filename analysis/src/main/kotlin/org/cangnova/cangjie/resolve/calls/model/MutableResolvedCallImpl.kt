@@ -42,6 +42,7 @@ import org.cangnova.cangjie.resolve.calls.util.hasInferredReturnType
 import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.resolve.shouldBeSubstituteWithStubTypes
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import java.util.*
 
@@ -68,7 +69,7 @@ class MutableResolvedCallImpl<D : CallableDescriptor> : MutableResolvedCall<D> {
     override val call: Call
     override val candidateDescriptor: D
     override val explicitReceiverKind: ExplicitReceiverKind
-    override val knownTypeParametersSubstitutor: DefaultTypeSubstitutor?
+    override val knownTypeParametersSubstitutor: ComposableTypeSubstitutor?
 
     // ========== 可变属性 ==========
 
@@ -147,7 +148,7 @@ class MutableResolvedCallImpl<D : CallableDescriptor> : MutableResolvedCall<D> {
         candidateDescriptor: D,
         dispatchReceiver: ReceiverValue?,
         explicitReceiverKind: ExplicitReceiverKind,
-        knownTypeParametersSubstitutor: DefaultTypeSubstitutor?,
+        knownTypeParametersSubstitutor: ComposableTypeSubstitutor?,
         trace: DelegatingBindingTrace,
         tracing: TracingStrategy,
         dataFlowInfoForArguments: MutableDataFlowInfoForArguments
@@ -201,7 +202,7 @@ class MutableResolvedCallImpl<D : CallableDescriptor> : MutableResolvedCall<D> {
     /**
      * 设置结果替换器
      */
-    fun setResultingSubstitutor(substitutor: DefaultTypeSubstitutor) {
+    fun setResultingSubstitutor(substitutor: ComposableTypeSubstitutor) {
         val descriptorToSubstitute = if (_resultingDescriptor != null && (_resultingDescriptor ?: return).shouldBeSubstituteWithStubTypes()) {
             _resultingDescriptor ?: return
         } else {
@@ -214,23 +215,30 @@ class MutableResolvedCallImpl<D : CallableDescriptor> : MutableResolvedCall<D> {
     /**
      * 设置已解析调用的替换器
      */
-    fun setResolvedCallSubstitutor(substitutor: DefaultTypeSubstitutor) {
-        // 更新类型参数
+    fun setResolvedCallSubstitutor(substitutor: ComposableTypeSubstitutor) {
+        // 第一阶段：直接类型参数替换（等价于 substitution[...]）
         for (typeParameter in candidateDescriptor.typeParameters) {
-            val typeArgumentProjection = substitutor.substitution[typeParameter.defaultType]
-            if (typeArgumentProjection != null) {
-                _typeArguments[typeParameter] = typeArgumentProjection.type
+            val substituted = substitutor.substituteByConstructor(
+                typeParameter.defaultType.constructor
+            )
+
+            if (substituted != null) {
+                _typeArguments[typeParameter] = substituted
             }
         }
 
-        _typeArguments = _typeArguments.mapValues { (param, type) ->
-            substitutor.safeSubstitute(type )
-        }.toMutableMap()
+// 第二阶段：递归替换参数内部（safeSubstitute）
+        _typeArguments = _typeArguments
+            .mapValues { (_, type) ->
+                substitutor.safeSubstitute(type.unwrap())
+            }
+            .toMutableMap()
+
 
         // 更新调度接收者类型
         if (_dispatchReceiver is ExpressionReceiver) {
             _dispatchReceiver = (_dispatchReceiver ?: return).replaceType(
-                substitutor.safeSubstitute((_dispatchReceiver ?: return).type )
+                substitutor.safeSubstitute((_dispatchReceiver ?: return).type.unwrap() )
             )
         }
 
@@ -259,7 +267,7 @@ class MutableResolvedCallImpl<D : CallableDescriptor> : MutableResolvedCall<D> {
         }
     }
 
-    override fun setSubstitutor(substitutor: DefaultTypeSubstitutor) {
+    override fun setSubstitutor(substitutor: ComposableTypeSubstitutor) {
         setResultingSubstitutor(substitutor)
         setResolvedCallSubstitutor(substitutor)
     }

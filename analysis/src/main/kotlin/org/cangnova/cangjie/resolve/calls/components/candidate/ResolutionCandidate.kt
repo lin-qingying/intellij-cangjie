@@ -33,6 +33,7 @@ import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintSystemImpl
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.tower.*
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.model.TypeSubstitutorMarker
 
@@ -115,7 +116,7 @@ sealed class ResolutionCandidate : Candidate, CangJieDiagnosticsHolder {
      * 当部分类型参数已知时(例如通过显式类型参数或外部上下文),
      * 这个替换器用于将已知类型参数应用到候选描述符上。
      */
-    abstract val knownTypeParametersResultingSubstitutor: DefaultTypeSubstitutor?
+    abstract val knownTypeParametersResultingSubstitutor: ComposableTypeSubstitutor?
 
     /**
      * 解析回调

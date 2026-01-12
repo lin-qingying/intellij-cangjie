@@ -28,9 +28,9 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.impl.AbstractTypeAliasDescriptor
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.storage.LockBasedStorageManager
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.SimpleType
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 class ErrorTypeAliasDescriptor : AbstractTypeAliasDescriptor(
     LockBasedStorageManager.NO_LOCKS, ErrorUtils.errorModule,
@@ -51,7 +51,7 @@ class ErrorTypeAliasDescriptor : AbstractTypeAliasDescriptor(
     override val defaultType: SimpleType
         get() = ErrorUtils.createErrorType(ErrorTypeKind.UNRESOLVED_TYPE_ALIAS)
 
-    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
+    override fun substitute(substitutor: ComposableTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
         return null
     }
 

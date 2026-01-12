@@ -84,7 +84,7 @@ import org.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
  * @property callComponents 调用组件
  */
 class ResolvedAtomCompleter(
-    private val resultSubstitutor: AbstractTypeSubstitutor,
+    private val resultSubstitutor: ComposableTypeSubstitutor,
     private val topLevelCallContext: BasicCallResolutionContext,
     private val cangjieToResolvedCallTransformer: CangJieToResolvedCallTransformer,
     private val expressionTypingServices: ExpressionTypingServices,
@@ -106,6 +106,7 @@ class ResolvedAtomCompleter(
         missingSupertypesResolver,
         callComponents,
     )
+
     // 顶层绑定跟踪器
     private val topLevelTrace = topLevelCallCheckerContext.trace
 
@@ -220,7 +221,7 @@ class ResolvedAtomCompleter(
     private data class CallableReferenceResultTypeInfo(
         val dispatchReceiver: ReceiverValue?,
         val explicitReceiver: ReceiverValue?,
-        val substitutor: AbstractTypeSubstitutor,
+        val substitutor: ComposableTypeSubstitutor,
         val resultType: CangJieType
     )
 
@@ -249,7 +250,7 @@ class ResolvedAtomCompleter(
         return CallableReferenceResultTypeInfo(
             dispatchReceiver,
             explicitCallableReceiver,
-            EmptySubstitutor,
+            ComposableTypeSubstitutor.EMPTY,
             // 用描述符的签名替换函数类型的参数类型
             callableCandidate.reflectionCandidateType.replaceFunctionTypeArgumentsByDescriptor(recordedDescriptor)
         )
@@ -412,7 +413,6 @@ class ResolvedAtomCompleter(
             callableCandidate.resolvedCall.atom.psiCangJieCall.extractCallableReferenceExpression() ?: return null
 
 
-
         // 获取结果类型信息（从描述符或更新引用类型）
         val resultTypeInfo = if (recordedDescriptor != null) {
             extractCallableReferenceResultTypeInfoFromDescriptor(callableCandidate, recordedDescriptor)
@@ -480,7 +480,7 @@ class ResolvedAtomCompleter(
      * @param substitutor 类型替换器
      * @return 更新后的接收者值
      */
-    private fun ReceiverValue.updateReceiverValue(substitutor: AbstractTypeSubstitutor): ReceiverValue {
+    private fun ReceiverValue.updateReceiverValue(substitutor: ComposableTypeSubstitutor): ReceiverValue {
         val newType = substitutor.safeSubstitute(type.unwrap()).let {
             // 近似到超类型以确保类型安全
             typeApproximator.approximateToSuperType(
@@ -508,12 +508,13 @@ class ResolvedAtomCompleter(
         // 应用类型推断结果到类型参数
         val resultTypeParameters =
             freshSubstitutor.freshVariables.map { resultSubstitutor.safeSubstitute(it.defaultType) }
-        val typeParametersSubstitutor = TypeSubstitutorByConstructorMap(
-            callableCandidate.candidate.typeParameters.map { it.typeConstructor }.zip(resultTypeParameters).toMap()
-        )
+
         val resultSubstitutor = if (callableCandidate.candidate.isSupportedForCallableReference()) {
-            ComposedSubstitutor(typeParametersSubstitutor, resultSubstitutor)
-        } else EmptySubstitutor
+            ComposableTypeSubstitutor.create(callableCandidate.candidate.typeParameters.map { it.typeConstructor }
+                .zip(resultTypeParameters).toMap())
+                .compose(resultSubstitutor)
+
+        } else ComposableTypeSubstitutor.EMPTY
 
         // 写入可调用引用表达式的类型
         val resultType = resultSubstitutor.safeSubstitute(callableCandidate.reflectionCandidateType)

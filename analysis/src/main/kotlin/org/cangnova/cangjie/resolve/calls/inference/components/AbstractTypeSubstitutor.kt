@@ -34,7 +34,7 @@ import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isMarke
 import org.cangnova.cangjie.types.checker.intersectTypes
 import org.cangnova.cangjie.types.checker.isCaptured
 import org.cangnova.cangjie.types.error.ErrorTypeKind
-
+@Deprecated("use ComposableTypeSubstitutor")
 abstract class AbstractTypeSubstitutor : TypeSubstitutor  {
 
     override fun safeSubstitute(type: UnwrappedType): UnwrappedType =
@@ -244,19 +244,19 @@ abstract class AbstractTypeSubstitutor : TypeSubstitutor  {
         }
     }
 }
-
+@Deprecated("use ComposableTypeSubstitutor")
 object EmptySubstitutor : AbstractTypeSubstitutor() {
     override fun substituteByConstructor(constructor: TypeConstructor): UnwrappedType? = null
 
     override val isEmpty: Boolean get() = true
 }
-
+@Deprecated("use ComposableTypeSubstitutor")
 class  TypeSubstitutorByConstructorMap(val map: Map<TypeConstructor, UnwrappedType>) : AbstractTypeSubstitutor() {
     override fun substituteByConstructor(constructor: TypeConstructor): UnwrappedType? = map[constructor]
 
     override val isEmpty: Boolean get() = map.isEmpty()
 }
-
+@Deprecated("use ComposableTypeSubstitutor")
 class FreshVariableTypeSubstitutor(val freshVariables: List<TypeVariableFromCallableDescriptor>) :
     AbstractTypeSubstitutor (){
 
@@ -278,8 +278,9 @@ class FreshVariableTypeSubstitutor(val freshVariables: List<TypeVariableFromCall
         val Empty = FreshVariableTypeSubstitutor(emptyList())
     }
 }
-
+@Deprecated("use ComposableTypeSubstitutor")
 fun DefaultTypeSubstitutor.composeWith(appliedAfter: AbstractTypeSubstitutor) = createCompositeSubstitutor(this, appliedAfter)
+@Deprecated("use ComposableTypeSubstitutor")
 fun createCompositeSubstitutor(appliedFirst: DefaultTypeSubstitutor, appliedLast: AbstractTypeSubstitutor): AbstractTypeSubstitutor {
     if (appliedFirst.isEmpty) return appliedLast
 

@@ -42,6 +42,7 @@ import org.cangnova.cangjie.resolve.calls.tower.CandidateWithBoundDispatchReceiv
 import org.cangnova.cangjie.resolve.calls.tower.ImplicitScopeTower
 import org.cangnova.cangjie.resolve.calls.tower.isSynthesized
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.error.ErrorScopeKind
@@ -260,7 +261,7 @@ class SimpleCandidateFactory(
         extensionArgumentReceiver: SimpleCangJieCallArgument?,
         extensionArgumentReceiverCandidates: List<SimpleCangJieCallArgument>?,
         initialDiagnostics: Collection<CangJieCallDiagnostic>,
-        knownSubstitutor: DefaultTypeSubstitutor?
+        knownSubstitutor: ComposableTypeSubstitutor?
     ): SimpleResolutionCandidate {
         // 创建可变的已解析调用原子
         val resolvedCjCall = MutableResolvedCallAtom(

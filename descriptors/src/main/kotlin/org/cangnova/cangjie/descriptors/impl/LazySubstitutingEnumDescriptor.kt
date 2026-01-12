@@ -37,19 +37,19 @@ import org.cangnova.cangjie.types.CangJieTypeFactory.enumTypeWithNonTrivialMembe
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 class LazySubstitutingEnumDescriptor(
-    override val original: ModuleAwareEnumDescriptor, private val originalSubstitutor: DefaultTypeSubstitutor
+    override val original: ModuleAwareEnumDescriptor, private val originalSubstitutor: ComposableTypeSubstitutor
 ) : ModuleAwareEnumDescriptor(), EnumDescriptor {
 
 
 
     val originalEnum = original as EnumDescriptor
-    private var newSubstitutor: DefaultTypeSubstitutor? = null
+    private var newSubstitutor: ComposableTypeSubstitutor? = null
     private lateinit var typeConstructorParameters: MutableList<TypeParameterDescriptor>
     private lateinit var myDeclaredTypeParameters: MutableList<TypeParameterDescriptor>
     private var myTypeConstructor: TypeConstructor? = null
 
 
-    private fun getSubstitutor(): DefaultTypeSubstitutor {
+    private fun getSubstitutor(): ComposableTypeSubstitutor {
         if (newSubstitutor == null) {
             if (originalSubstitutor.isEmpty) {
                 newSubstitutor = originalSubstitutor
@@ -59,7 +59,7 @@ class LazySubstitutingEnumDescriptor(
                 typeConstructorParameters =
                     ArrayList(originalTypeParameters.size)
                 newSubstitutor = DescriptorSubstitutor.substituteTypeParameters(
-                    originalTypeParameters, originalSubstitutor.substitution, this, typeConstructorParameters
+                    originalTypeParameters, originalSubstitutor, this, typeConstructorParameters
                 )
 
                 myDeclaredTypeParameters =
@@ -161,14 +161,14 @@ class LazySubstitutingEnumDescriptor(
             }
 
             if (myTypeConstructor == null) {
-                val substitutor: DefaultTypeSubstitutor = getSubstitutor()
+                val substitutor: ComposableTypeSubstitutor = getSubstitutor()
 
                 val originalSupertypes: Collection<CangJieType> =
                     originalTypeConstructor.supertypes
                 val supertypes =
                     ArrayList<CangJieType>(originalSupertypes.size)
                 for (supertype in originalSupertypes) {
-                    substitutor.substitute(supertype )?.let { supertypes.add(it) }
+                    supertypes.add(substitutor.safeSubstitute(supertype.unwrap()))
                 }
 
                 myTypeConstructor = EnumTypeConstructorImpl(
@@ -206,14 +206,11 @@ class LazySubstitutingEnumDescriptor(
         get() = original.modality
 
 
-    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
+    override fun substitute(substitutor: ComposableTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
         if (substitutor.isEmpty) return this
         return LazySubstitutingEnumDescriptor(
             this,
-            DefaultTypeSubstitutor.createChainedSubstitutor(
-                substitutor.substitution,
-                getSubstitutor().substitution
-            )
+            getSubstitutor().compose(substitutor)
         )
 
     }
@@ -244,9 +241,9 @@ class LazySubstitutingEnumDescriptor(
     private fun substituteSimpleType(type: SimpleType?): SimpleType? {
         if (type == null || originalSubstitutor.isEmpty) return type
 
-        val substitutor: DefaultTypeSubstitutor = getSubstitutor()
-        val substitutedType: CangJieType? =
-            substitutor.substitute(type)
+        val substitutor: ComposableTypeSubstitutor = getSubstitutor()
+        val substitutedType: UnwrappedType =
+            substitutor.safeSubstitute(type)
 
         assert(substitutedType is SimpleType) {
             """
@@ -291,8 +288,8 @@ class LazySubstitutingEnumDescriptor(
                 typeParams.joinTo(this, ", ") { param ->
                     // 获取替换后的类型
                     val substitutor = getSubstitutor()
-                    val substitutedType = substitutor.substitute(param.defaultType)
-                    substitutedType?.toString() ?: param.name.asString()
+                    val substitutedType = substitutor.safeSubstitute(param.defaultType)
+                    substitutedType.toString()
                 }
                 append(">")
             }

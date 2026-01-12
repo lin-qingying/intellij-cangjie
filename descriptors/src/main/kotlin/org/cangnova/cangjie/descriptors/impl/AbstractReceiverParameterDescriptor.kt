@@ -29,7 +29,7 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.SpecialNames
 import org.cangnova.cangjie.resolve.scopes.receivers.TransientReceiver
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 
 /**
  * 抽象接收者参数描述符的基类实现。
@@ -102,15 +102,11 @@ abstract class AbstractReceiverParameterDescriptor(annotations: Annotations, nam
      * @param substitutor 类型替换器
      * @return 替换后的 ReceiverParameterDescriptor 或 null
      */
-    override fun substitute(substitutor: DefaultTypeSubstitutor): AbstractReceiverParameterDescriptor? {
+    override fun substitute(substitutor: ComposableTypeSubstitutor): AbstractReceiverParameterDescriptor? {
         if (substitutor.isEmpty) return this
 
-        val substitutedType: CangJieType?
+        val substitutedType = substitutor.safeSubstitute(type.unwrap())
 
-        substitutedType = substitutor.substitute(type )
-
-
-        if (substitutedType == null) return null
         if (substitutedType === type) return this
 
         return ReceiverParameterDescriptorImpl(containingDeclaration, TransientReceiver(substitutedType), annotations)

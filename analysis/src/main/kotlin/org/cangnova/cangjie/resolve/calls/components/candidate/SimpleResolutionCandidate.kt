@@ -30,6 +30,7 @@ import org.cangnova.cangjie.resolve.calls.model.CangJieCallComponents
 import org.cangnova.cangjie.resolve.calls.model.MutableResolvedCallAtom
 import org.cangnova.cangjie.resolve.calls.model.ResolvedAtom
 import org.cangnova.cangjie.resolve.calls.tower.ImplicitScopeTower
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 /**
@@ -74,7 +75,7 @@ open class SimpleResolutionCandidate(
     override val scopeTower: ImplicitScopeTower,
     override val baseSystem: ConstraintStorage,
     override val resolvedCall: MutableResolvedCallAtom,
-    override val knownTypeParametersResultingSubstitutor: DefaultTypeSubstitutor? = null,
+    override val knownTypeParametersResultingSubstitutor: ComposableTypeSubstitutor? = null,
 ) : ResolutionCandidate() {
     /**
      * invoke 调用时的变量候选

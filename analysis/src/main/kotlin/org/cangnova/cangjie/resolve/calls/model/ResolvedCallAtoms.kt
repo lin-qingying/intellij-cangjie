@@ -29,11 +29,10 @@ import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import org.cangnova.cangjie.resolve.calls.components.TypeArgumentsToParametersMapper
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
-import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableTypeSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintSystemError
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.constants.IntegerValueTypeConstant
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.UnwrappedType
 
 /**
@@ -77,11 +76,11 @@ open class MutableResolvedCallAtom(
 
     override var contextReceiversArguments: List<SimpleCangJieCallArgument> = listOf()
     override lateinit var argumentMappingByOriginal: Map<ValueParameterDescriptor, ResolvedCallArgument>
-    override lateinit var freshVariablesSubstitutor: FreshVariableTypeSubstitutor
+    override lateinit var freshVariablesSubstitutor: ComposableTypeSubstitutor
     override val argumentsWithSuspendConversion: Map<CangJieCallArgument, UnwrappedType>
         get() = suspendAdapterMap ?: emptyMap()
 
-    override lateinit var knownParametersSubstitutor: AbstractTypeSubstitutor
+    override lateinit var knownParametersSubstitutor: ComposableTypeSubstitutor
 
     fun registerArgumentWithSuspendConversion(argument: CangJieCallArgument, convertedType: UnwrappedType) {
         if (suspendAdapterMap == null)

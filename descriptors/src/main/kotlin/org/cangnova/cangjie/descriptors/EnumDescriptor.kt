@@ -27,6 +27,7 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.SimpleType
 
 import org.cangnova.cangjie.types.TypeSubstitution
@@ -253,7 +254,7 @@ interface EnumConstructorDescriptor :ConstructorDescriptor ,VariableDescriptor{
 
         override fun setAdditionalAnnotations(additionalAnnotations: Annotations): CopyBuilder<D>
 
-        override fun setSubstitution(substitution: TypeSubstitution): CopyBuilder<D>
+        override fun setSubstitution(substitution: ComposableTypeSubstitutor): CopyBuilder<D>
 
         override fun <V> putUserData(userDataKey: CallableDescriptor.UserDataKey<V>, value: V): CopyBuilder<D>
 

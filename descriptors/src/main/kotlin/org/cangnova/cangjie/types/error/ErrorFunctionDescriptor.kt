@@ -31,6 +31,7 @@ import org.cangnova.cangjie.descriptors.impl.FunctionDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.TypeSubstitution
 
@@ -91,7 +92,7 @@ class ErrorFunctionDescriptor(containingDeclaration: ClassDescriptor) : SimpleFu
                 this
 
             override fun setName(name: Name): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> = this
-            override fun setSubstitution(substitution: TypeSubstitution): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> =
+            override fun setSubstitution(substitution: ComposableTypeSubstitutor): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> =
                 this
 
             override fun setValueParameters(

@@ -232,7 +232,7 @@ abstract class AbstractEnumDescriptor(
      * @param substitutor 类型替换器
      * @return 替换后的分类器描述符
      */
-    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
+    override fun substitute(substitutor: ComposableTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
         if (substitutor.isEmpty) {
             return this
         }
@@ -277,7 +277,7 @@ abstract class AbstractEnumDescriptor(
     ): MemberScope {
         if (typeSubstitution.isEmpty()) return getUnsubstitutedMemberScope(cangjieTypeRefiner)
 
-        val substitutor = DefaultTypeSubstitutor.create(typeSubstitution)
+        val substitutor = TypeSubstitutors.fromSubstitution(typeSubstitution)
         return SubstitutingScope(getUnsubstitutedMemberScope(cangjieTypeRefiner), substitutor)
 
     }
@@ -293,7 +293,8 @@ abstract class AbstractEnumDescriptor(
         }
         if (typeArguments.isEmpty()) return getUnsubstitutedMemberScope(cangjieTypeRefiner)
 
-        val substitutor = TypeConstructorSubstitution.create(typeConstructor, typeArguments).buildSubstitutor()
+        val typeSubstitution = TypeConstructorSubstitution.create(typeConstructor, typeArguments)
+        val substitutor = TypeSubstitutors.fromSubstitution(typeSubstitution)
         return SubstitutingScope(getUnsubstitutedMemberScope(cangjieTypeRefiner), substitutor)
     }
 }

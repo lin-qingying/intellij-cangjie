@@ -27,8 +27,8 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.TypeSubstitution
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 /**
  * 函数描述符接口，继承自`CallableMemberDescriptor`和`EnumMember`，用于描述函数的元信息，如覆盖关系、参数、返回类型等。
@@ -58,7 +58,7 @@ interface FunctionDescriptor : CallableMemberDescriptor, EnumMember {
      * @param substitutor 类型替换器
      * @return 替换后的函数描述符，可能为`null`
      */
-    override fun substitute(substitutor: DefaultTypeSubstitutor): FunctionDescriptor?
+    override fun substitute(substitutor: ComposableTypeSubstitutor): FunctionDescriptor?
 
     /**
      * 获取当前函数描述符覆盖的所有函数描述符集合。
@@ -168,7 +168,7 @@ interface FunctionDescriptor : CallableMemberDescriptor, EnumMember {
 
         fun setAdditionalAnnotations(additionalAnnotations: Annotations): CopyBuilder<D>
 
-        override fun setSubstitution(substitution: TypeSubstitution): CopyBuilder<D>
+        override fun setSubstitution(substitution: ComposableTypeSubstitutor): CopyBuilder<D>
 
         fun <V> putUserData(userDataKey: CallableDescriptor.UserDataKey<V>, value: V): CopyBuilder<D>
 

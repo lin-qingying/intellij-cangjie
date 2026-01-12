@@ -27,8 +27,8 @@ package org.cangnova.cangjie.types
 import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 
 fun substituteAlternativesInPublicType(type: CangJieType): UnwrappedType {
-    val substitutor = object : AbstractTypeSubstitutor() {
-        override fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType? {
+    val substitutor =@Deprecated("use ComposableTypeSubstitutor") object : AbstractTypeSubstitutor() {
+        override fun substituteByConstructor(constructor: TypeConstructor): UnwrappedType? {
             if (constructor is IntersectionTypeConstructor) {
                 constructor.getAlternativeType()?.let { alternative ->
                     return safeSubstitute(alternative.unwrap())
@@ -37,6 +37,8 @@ fun substituteAlternativesInPublicType(type: CangJieType): UnwrappedType {
 
             return null
         }
+
+
 
         override val isEmpty: Boolean by lazy {
             !type.contains { it.constructor is IntersectionTypeConstructor }

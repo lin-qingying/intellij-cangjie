@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.descriptors
 
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 
 /**
  * 类型别名构造器描述符接口，继承自`ConstructorDescriptor`和`DescriptorDerivedFromTypeAlias`，用于描述类型别名构造器的元信息。
@@ -66,7 +66,7 @@ interface TypeAliasConstructorDescriptor : ConstructorDescriptor, DescriptorDeri
      * @param substitutor 类型替换器
      * @return 替换后的构造器描述符，可能为`null`
      */
-    override fun substitute(substitutor: DefaultTypeSubstitutor): TypeAliasConstructorDescriptor?
+    override fun substitute(substitutor: ComposableTypeSubstitutor): TypeAliasConstructorDescriptor?
 
     /**
      * 获取带有分发接收器的类型别名构造器描述符（如果存在）。

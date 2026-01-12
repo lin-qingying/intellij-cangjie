@@ -176,7 +176,7 @@ open class VariableDescriptorImpl(
         var _original: VariableDescriptorImpl? = null
         var _preserveSourceElement = true
         var _kind: CallableMemberDescriptor.Kind = kind
-        var _substitution = TypeSubstitution.EMPTY
+        var _substitution:ComposableTypeSubstitutor = ComposableTypeSubstitutor.EMPTY
         var _copyOverrides = true
         var _dispatchReceiverParameter: ReceiverParameterDescriptor? =
             this@VariableDescriptorImpl.dispatchReceiverParameter
@@ -229,7 +229,7 @@ open class VariableDescriptorImpl(
             return this
         }
 
-        override fun setSubstitution(substitution: TypeSubstitution): CopyConfiguration {
+        override fun setSubstitution(substitution: ComposableTypeSubstitutor): CopyConfiguration {
             this._substitution = substitution
             return this
         }
@@ -293,13 +293,13 @@ open class VariableDescriptorImpl(
 
     }
 
-    override fun substitute(substitutor: DefaultTypeSubstitutor): CallableDescriptor? {
+    override fun substitute(substitutor: ComposableTypeSubstitutor): CallableDescriptor? {
         if (substitutor.isEmpty) {
             return this
         }
 
         return newCopyBuilder()
-            .setSubstitution(substitutor.substitution)
+            .setSubstitution(substitutor)
             .setOriginal(original)
             .build()
 

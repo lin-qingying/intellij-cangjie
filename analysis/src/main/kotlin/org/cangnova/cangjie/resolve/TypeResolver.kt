@@ -487,7 +487,7 @@ class TypeResolver(
                 ) : AbstractVariableDescriptor(containingDeclaration, annotations, name, type, source) {
 
                     override var visibility: DescriptorVisibility = DescriptorVisibilities.LOCAL
-                    override fun substitute(substitutor: DefaultTypeSubstitutor): CallableDescriptor {
+                    override fun substitute(substitutor: ComposableTypeSubstitutor): CallableDescriptor {
                         throw UnsupportedOperationException("Should not be called for descriptor of type ${this::class.java}")
                     }
 

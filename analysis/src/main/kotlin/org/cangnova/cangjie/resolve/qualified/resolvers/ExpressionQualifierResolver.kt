@@ -44,6 +44,7 @@ import org.cangnova.cangjie.resolve.qualified.context.ResolutionContext
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 
@@ -196,7 +197,7 @@ class ExpressionQualifierResolver(
        
 
             val substitutedDescriptor = if (qualifierDescriptor is ClassifierDescriptorWithTypeParameters && resolvedType != null) {
-                val substitutor =  DefaultTypeSubstitutor.create(resolvedType)
+                val substitutor = ComposableTypeSubstitutor.create(resolvedType)
                 qualifierDescriptor.substitute(substitutor) ?: qualifierDescriptor
             } else {
                 qualifierDescriptor

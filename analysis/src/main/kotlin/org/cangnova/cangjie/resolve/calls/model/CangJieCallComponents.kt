@@ -36,6 +36,7 @@ import org.cangnova.cangjie.resolve.calls.components.TypeArgumentsToParametersMa
 import org.cangnova.cangjie.resolve.calls.inference.components.ConstraintInjector
 
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
@@ -60,5 +61,5 @@ class CangJieCallComponents(
 class GivenCandidate(
     val descriptor: FunctionDescriptor,
     val dispatchReceiver: ReceiverValueWithSmartCastInfo?,
-    val knownTypeParametersResultingSubstitutor: DefaultTypeSubstitutor?
+    val knownTypeParametersResultingSubstitutor: ComposableTypeSubstitutor?
 )

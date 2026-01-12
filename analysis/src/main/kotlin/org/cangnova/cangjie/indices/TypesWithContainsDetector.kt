@@ -32,10 +32,10 @@ import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.collectFunctions
 import org.cangnova.cangjie.search.isValidOperator
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.TypeSubstitutor
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isOptionType
-import org.cangnova.cangjie.types.isOptionType
 import org.cangnova.cangjie.utils.addIfNotNull
 import org.cangnova.cangjie.utils.isExtension
 
@@ -68,7 +68,7 @@ class TypesWithContainsDetector(
     override fun checkIsSuitableByType(
         operator: FunctionDescriptor,
         freeTypeParams: Collection<TypeParameterDescriptor>
-    ): TypeSubstitutor? {
+    ): ComposableTypeSubstitutor? {
         val parameter = operator.valueParameters.single()
         val parameterType = parameter.type
 
@@ -82,7 +82,7 @@ class TypesWithContainsDetector(
 
         // 如果类型匹配，返回空替换器（表示不需要类型替换）
         // 如果未来需要支持泛型类型推断，这里需要实现更复杂的替换逻辑
-        return TypeSubstitutor.EMPTY
+        return ComposableTypeSubstitutor.EMPTY
     }
 }
 
@@ -112,7 +112,7 @@ abstract class TypesWithOperatorDetector(
     protected abstract fun checkIsSuitableByType(
         operator: FunctionDescriptor,
         freeTypeParams: Collection<TypeParameterDescriptor>
-    ): TypeSubstitutor?
+    ): ComposableTypeSubstitutor?
 
     /**
      * 缓存类型和对应的操作符及替换器
@@ -231,7 +231,7 @@ abstract class TypesWithOperatorDetector(
             }
 
             // 如果类型匹配，返回操作符和空替换器
-            val substitutor = TypeSubstitutor.EMPTY
+            val substitutor = ComposableTypeSubstitutor.EMPTY
             val substituted = operator.substitute(substitutor) ?: continue
             return substituted to substitutor
         }

@@ -30,7 +30,7 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.constants.ConstantValue
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 
 open class ValueParameterDescriptorImpl(
     containingDeclaration: CallableDescriptor,
@@ -124,7 +124,7 @@ open class ValueParameterDescriptorImpl(
         get() = isDefaultValue && (containingDeclaration as CallableMemberDescriptor).kind.isReal
 
 
-    override fun substitute(substitutor: DefaultTypeSubstitutor): CallableDescriptor? {
+    override fun substitute(substitutor: ComposableTypeSubstitutor): CallableDescriptor? {
         if (substitutor.isEmpty) return this
         throw UnsupportedOperationException() // TODO
     }

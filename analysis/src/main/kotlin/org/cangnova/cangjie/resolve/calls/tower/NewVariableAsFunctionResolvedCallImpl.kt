@@ -28,13 +28,12 @@ import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.FunctionDescriptor
 import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import org.cangnova.cangjie.descriptors.VariableDescriptor
-import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableTypeSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.ResolvedValueArgument
 import org.cangnova.cangjie.resolve.calls.model.CangJieCallDiagnostic
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCallAtom
 import org.cangnova.cangjie.resolve.calls.model.VariableAsFunctionResolvedCall
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.TypeApproximator
 
 /**
@@ -63,7 +62,7 @@ class NewVariableAsFunctionResolvedCallImpl(
     override val resolvedCallAtom: ResolvedCallAtom? = functionCall.resolvedCallAtom
     override val psiCangJieCall: PSICangJieCall = functionCall.psiCangJieCall
     override val typeApproximator: TypeApproximator = functionCall.typeApproximator
-    override val freshSubstitutor: FreshVariableTypeSubstitutor? = functionCall.freshSubstitutor
+    override val freshSubstitutor: ComposableTypeSubstitutor? = functionCall.freshSubstitutor
     override val cangjieCall = functionCall.cangjieCall
     override val languageVersionSettings = functionCall.languageVersionSettings
     override val argumentMappingByOriginal = functionCall.argumentMappingByOriginal
@@ -145,7 +144,7 @@ class NewVariableAsFunctionResolvedCallImpl(
      * 设置结果替换器
      * 同时更新函数调用和变量调用的替换器
      */
-    override fun setResultingSubstitutor(substitutor: AbstractTypeSubstitutor?) {
+    override fun setResultingSubstitutor(substitutor: ComposableTypeSubstitutor?) {
         functionCall.setResultingSubstitutor(substitutor)
         variableCall.setResultingSubstitutor(substitutor)
     }

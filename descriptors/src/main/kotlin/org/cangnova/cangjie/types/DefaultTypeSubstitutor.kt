@@ -38,6 +38,7 @@ import org.cangnova.cangjie.utils.isProcessCanceledException
 
 
 
+
 /**
  * 类型替换器
  *
@@ -233,6 +234,7 @@ import org.cangnova.cangjie.utils.isProcessCanceledException
  * @see LazySubstitutingClassDescriptor 使用替换器的类描述符
  * @see TypeArgument 类型投影（类型 + 型变）
  */
+@Deprecated("use ComposableTypeSubstitutor")
 class DefaultTypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutor {
 
     // 实现 TypeSubstitutor 接口

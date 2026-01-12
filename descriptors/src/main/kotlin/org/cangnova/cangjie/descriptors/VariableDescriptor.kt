@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.descriptors
 
 import org.cangnova.cangjie.resolve.constants.ConstantValue
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 
 /**
  * 变量描述符接口，继承自`ValueDescriptor`和`MemberDescriptor`，用于描述变量的元信息，如编译时常量、是否为`const`或`var`等。
@@ -56,7 +56,7 @@ interface VariableDescriptor : ValueDescriptor, MemberDescriptor/*,
      * @param substitutor 类型替换器
      * @return 替换后的变量描述符，可能为`null`
      */
-    override fun substitute(substitutor: DefaultTypeSubstitutor): CallableDescriptor?
+    override fun substitute(substitutor: ComposableTypeSubstitutor): CallableDescriptor?
 
     /**
      * 检查是否为`const`变量（与`isVar`互斥）。

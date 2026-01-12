@@ -185,7 +185,7 @@ class ControlStructureTypingUtils(
             function: SimpleFunctionDescriptorImpl,
             expectedType: CangJieType,
             languageVersionSettings: LanguageVersionSettings
-        ): DefaultTypeSubstitutor? {
+        ): ComposableTypeSubstitutor? {
             if (construct == ResolveConstruct.ELVIS || TypeUtils.noExpectedType(
                     expectedType
                 )
@@ -200,10 +200,10 @@ class ControlStructureTypingUtils(
                 function.typeParameters[0].typeConstructor
             val typeProjection: TypeArgument =
                 TypeArgumentImpl(expectedType)
-            return DefaultTypeSubstitutor.create(
-                ImmutableMap.of(
-                    typeParameterConstructor,
-                    typeProjection
+            return ComposableTypeSubstitutor.create(
+                mapOf(
+                    typeParameterConstructor to expectedType.unwrap(),
+
                 )
             )
         }

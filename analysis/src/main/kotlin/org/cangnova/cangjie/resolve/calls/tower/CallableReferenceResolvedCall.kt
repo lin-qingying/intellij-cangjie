@@ -38,6 +38,7 @@ import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.calls.util.toResolutionStatus
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.TypeApproximator
 import org.cangnova.cangjie.types.TypeApproximatorConfiguration
 import org.cangnova.cangjie.types.UnwrappedType
@@ -58,7 +59,7 @@ class CallableReferenceResolvedCall<D : CallableDescriptor>(
     val resolvedAtom: ResolvedCallableReferenceAtom,
     override val typeApproximator: TypeApproximator,
     override val languageVersionSettings: LanguageVersionSettings,
-    substitutor: AbstractTypeSubstitutor? = null,
+    substitutor: ComposableTypeSubstitutor? = null,
 ) : AbstractResolvedCall<D>() {
 
     override val positionDependentApproximation: Boolean = true
@@ -97,7 +98,7 @@ class CallableReferenceResolvedCall<D : CallableDescriptor>(
             is ResolvedCallableReferenceArgumentAtom -> resolvedAtom.atom.call.psiCangJieCall
         }
 
-    override val freshSubstitutor: FreshVariableTypeSubstitutor?
+    override val freshSubstitutor: ComposableTypeSubstitutor?
         get() = when (resolvedAtom) {
             is ResolvedCallableReferenceCallAtom -> resolvedAtom.freshVariablesSubstitutor
             is ResolvedCallableReferenceArgumentAtom -> resolvedAtom.candidate?.freshVariablesSubstitutor
@@ -201,7 +202,7 @@ class CallableReferenceResolvedCall<D : CallableDescriptor>(
      * 设置结果替换器
      * 应用类型替换器并计算类型参数
      */
-    override fun setResultingSubstitutor(substitutor: AbstractTypeSubstitutor?) {
+    override fun setResultingSubstitutor(substitutor: ComposableTypeSubstitutor?) {
         substituteReceivers(substitutor)
 
         @Suppress("UNCHECKED_CAST")

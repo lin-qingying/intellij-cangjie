@@ -46,6 +46,7 @@ import org.cangnova.cangjie.resolve.calls.tower.PSICallResolver
 import org.cangnova.cangjie.resolve.scopes.ResolutionScope
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 
 /**
@@ -79,7 +80,7 @@ interface CallResolutionInterceptorExtension {
         candidateDescriptor: CallableDescriptor,
         completedCallAtom: ResolvedCallAtom,
         trace: BindingTrace?,
-        resultSubstitutor: AbstractTypeSubstitutor?,
+        resultSubstitutor: ComposableTypeSubstitutor?,
         diagnostics: Collection<CangJieCallDiagnostic>
     ): CallableDescriptor = candidateDescriptor
 

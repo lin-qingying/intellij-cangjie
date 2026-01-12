@@ -31,11 +31,11 @@ import org.cangnova.cangjie.descriptors.impl.ClassDescriptorImpl
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.storage.LockBasedStorageManager
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.TypeArgument
 
 import org.cangnova.cangjie.types.TypeSubstitution
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 class ErrorClassDescriptor(name: Name = Name.ERROR_NAME) : ClassDescriptorImpl(
@@ -72,7 +72,7 @@ class ErrorClassDescriptor(name: Name = Name.ERROR_NAME) : ClassDescriptorImpl(
     }
 
 
-    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassifierDescriptorWithTypeParameters? = this
+    override fun substitute(substitutor: ComposableTypeSubstitutor): ClassifierDescriptorWithTypeParameters? = this
     override fun toString(): String = name.asString()
 
 }

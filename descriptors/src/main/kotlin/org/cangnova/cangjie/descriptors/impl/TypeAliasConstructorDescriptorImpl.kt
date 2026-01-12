@@ -66,7 +66,7 @@ class TypeAliasConstructorDescriptorImpl private constructor(
         typeAliasDescriptor
 
 
-    override fun substitute(substitutor: DefaultTypeSubstitutor): TypeAliasConstructorDescriptorImpl? {
+    override fun substitute(substitutor: ComposableTypeSubstitutor): TypeAliasConstructorDescriptorImpl? {
         //    class C<T>(val x: T)
         //    typealias A<Q> = C<List<Q>>
         //
@@ -77,7 +77,7 @@ class TypeAliasConstructorDescriptorImpl private constructor(
         // the unsubstituted underlying constructor with signature '<T> (T) -> C<T>'
         // producing substituted underlying constructor with signature '(List<Int>) -> C<List<Int>>'.
         val substitutedTypeAliasConstructor = super.substitute(substitutor) as TypeAliasConstructorDescriptorImpl
-        val underlyingConstructorSubstitutor = DefaultTypeSubstitutor.create(substitutedTypeAliasConstructor.returnType)
+        val underlyingConstructorSubstitutor = ComposableTypeSubstitutor.create(substitutedTypeAliasConstructor.returnType)
         val substitutedUnderlyingConstructor =
             underlyingConstructorDescriptor.original.substitute(underlyingConstructorSubstitutor)
         if (substitutedUnderlyingConstructor != null) {
@@ -159,9 +159,9 @@ class TypeAliasConstructorDescriptorImpl private constructor(
     }
 
     companion object {
-        private fun TypeAliasDescriptor.getTypeSubstitutorForUnderlyingClass(): DefaultTypeSubstitutor? {
+        private fun TypeAliasDescriptor.getTypeSubstitutorForUnderlyingClass(): ComposableTypeSubstitutor? {
             if (classDescriptor == null) return null
-            return DefaultTypeSubstitutor.create(expandedType)
+            return ComposableTypeSubstitutor.create(expandedType)
         }
 
         fun createIfAvailable(
@@ -191,7 +191,7 @@ class TypeAliasConstructorDescriptorImpl private constructor(
 
             // TypeAlias 构造函数使用 dispatch receiver
             val dispatchReceiverParameter = constructor.dispatchReceiverParameter?.let {
-                val substitutedType = substitutorForUnderlyingClass.safeSubstitute(it.type)
+                val substitutedType = substitutorForUnderlyingClass.safeSubstitute(it.type.unwrap())
                 ReceiverParameterDescriptorImpl(
                     typeAliasConstructor,
                     it.value.replaceType(substitutedType),

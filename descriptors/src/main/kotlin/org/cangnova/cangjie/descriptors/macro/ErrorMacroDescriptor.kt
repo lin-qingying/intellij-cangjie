@@ -28,6 +28,7 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.TypeSubstitution
 import org.cangnova.cangjie.types.error.ErrorEntity
@@ -87,7 +88,7 @@ class ErrorMacroDescriptor(containingDeclaration: ClassDescriptor) : MacroDescri
                 this
 
             override fun setName(name: Name): FunctionDescriptor.CopyBuilder<MacroDescriptor> = this
-            override fun setSubstitution(substitution: TypeSubstitution): FunctionDescriptor.CopyBuilder<MacroDescriptor> =
+            override fun setSubstitution(substitution: ComposableTypeSubstitutor): FunctionDescriptor.CopyBuilder<MacroDescriptor> =
                 this
 
             override fun setValueParameters(parameters: List<ValueParameterDescriptor>): FunctionDescriptor.CopyBuilder<MacroDescriptor> = this

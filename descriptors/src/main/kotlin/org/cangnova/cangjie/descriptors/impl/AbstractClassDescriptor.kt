@@ -115,7 +115,8 @@ abstract class AbstractClassDescriptor(
         }
         if (typeArguments.isEmpty()) return getUnsubstitutedMemberScope(cangjieTypeRefiner)
 
-        val substitutor = TypeConstructorSubstitution.create(typeConstructor, typeArguments).buildSubstitutor()
+        val typeSubstitution = TypeConstructorSubstitution.create(typeConstructor, typeArguments)
+        val substitutor = TypeSubstitutors.fromSubstitution(typeSubstitution)
         return SubstitutingScope(getUnsubstitutedMemberScope(cangjieTypeRefiner), substitutor)
     }
 
@@ -125,7 +126,7 @@ abstract class AbstractClassDescriptor(
     ): MemberScope {
         if (typeSubstitution.isEmpty()) return getUnsubstitutedMemberScope(cangjieTypeRefiner)
 
-        val substitutor = DefaultTypeSubstitutor.create(typeSubstitution)
+        val substitutor = TypeSubstitutors.fromSubstitution(typeSubstitution)
         return SubstitutingScope(getUnsubstitutedMemberScope(cangjieTypeRefiner), substitutor)
     }
 
@@ -150,7 +151,7 @@ abstract class AbstractClassDescriptor(
 //    override val unsubstitutedInnerClassesScope: MemberScope
 //        get() = _unsubstitutedInnerClassesScope.invoke()
 
-    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
+    override fun substitute(substitutor: ComposableTypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
         if (substitutor.isEmpty) {
             return this
         }

@@ -453,7 +453,7 @@ class CangJieToResolvedCallTransformer(
     fun <D : CallableDescriptor> transformToResolvedCall(
         completedCallAtom: ResolvedCallAtom,
         trace: BindingTrace?,
-        resultSubstitutor: AbstractTypeSubstitutor? = null, // if substitutor is not null, it means that this call is completed
+        resultSubstitutor: ComposableTypeSubstitutor? = null, // if substitutor is not null, it means that this call is completed
         diagnostics: Collection<CangJieCallDiagnostic>,
     ): AbstractResolvedCall<D> {
         val psiCangJieCall = completedCallAtom.atom.psiCangJieCall
@@ -492,7 +492,7 @@ class CangJieToResolvedCallTransformer(
     private fun <D : CallableDescriptor> createOrGet(
         completedSimpleAtom: ResolvedCallAtom,
         trace: BindingTrace?,
-        resultSubstitutor: AbstractTypeSubstitutor?,
+        resultSubstitutor: ComposableTypeSubstitutor?,
         diagnostics: Collection<CangJieCallDiagnostic>,
     ): AbstractResolvedCall<D> {
         if (trace != null) {
@@ -523,7 +523,7 @@ class CangJieToResolvedCallTransformer(
         candidate: ResolvedCallAtom,
         trace: BindingTrace,
         diagnostics: Collection<CangJieCallDiagnostic>,
-        substitutor: AbstractTypeSubstitutor?,
+        substitutor: ComposableTypeSubstitutor?,
     ): AbstractResolvedCall<D> {
         val result = transformToResolvedCall<D>(candidate, trace, substitutor, diagnostics)
         val psiCangJieCall = candidate.atom.psiCangJieCall

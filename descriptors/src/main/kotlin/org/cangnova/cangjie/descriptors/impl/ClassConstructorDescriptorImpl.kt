@@ -29,7 +29,7 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.SpecialNames
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 
 
 open class ClassConstructorDescriptorImpl protected constructor(
@@ -126,7 +126,7 @@ open class ClassConstructorDescriptorImpl protected constructor(
     override val original: ClassConstructorDescriptor
         get() = super.original as ClassConstructorDescriptor
 
-    override fun substitute(substitutor: DefaultTypeSubstitutor): ClassConstructorDescriptor? {
+    override fun substitute(substitutor: ComposableTypeSubstitutor): ClassConstructorDescriptor? {
         return super.substitute(substitutor) as ClassConstructorDescriptor
     }
 

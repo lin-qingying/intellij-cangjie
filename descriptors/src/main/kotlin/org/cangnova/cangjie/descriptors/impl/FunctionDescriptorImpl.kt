@@ -91,7 +91,7 @@ abstract class FunctionDescriptorImpl(
         fun getSubstitutedValueParameters(
             substitutedDescriptor: FunctionDescriptor,
             unsubstitutedValueParameters: List<ValueParameterDescriptor>,
-            substitutor: DefaultTypeSubstitutor
+            substitutor: ComposableTypeSubstitutor
         ): List<ValueParameterDescriptor>? {
             return getSubstitutedValueParameters(
                 substitutedDescriptor, unsubstitutedValueParameters, substitutor, false, false, null
@@ -102,7 +102,7 @@ abstract class FunctionDescriptorImpl(
         fun getSubstitutedValueParameters(
             substitutedDescriptor: FunctionDescriptor,
             unsubstitutedValueParameters: List<ValueParameterDescriptor>,
-            substitutor: DefaultTypeSubstitutor,
+            substitutor: ComposableTypeSubstitutor,
             dropOriginal: Boolean,
             preserveSourceElement: Boolean,
             wereChanges: BooleanArray?
@@ -301,7 +301,7 @@ abstract class FunctionDescriptorImpl(
     }
 
 
-    override fun substitute(substitutor: DefaultTypeSubstitutor): FunctionDescriptor? {
+    override fun substitute(substitutor: ComposableTypeSubstitutor): FunctionDescriptor? {
         if (substitutor.isEmpty) {
             return this
         }
@@ -316,13 +316,13 @@ abstract class FunctionDescriptorImpl(
 
 
     override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<out FunctionDescriptor> {
-        return newCopyBuilder(DefaultTypeSubstitutor.EMPTY)
+        return newCopyBuilder(ComposableTypeSubstitutor.EMPTY)
     }
 
     @NotNull
-    protected fun newCopyBuilder(substitutor: DefaultTypeSubstitutor): CopyConfiguration {
+    protected fun newCopyBuilder(substitutor: ComposableTypeSubstitutor): CopyConfiguration {
         return CopyConfiguration(
-            substitutor.substitution,
+            substitutor,
             containingDeclaration, modality, visibility, kind, valueParameters, returnType!!, null
         )
     }
@@ -467,7 +467,7 @@ abstract class FunctionDescriptorImpl(
 
         // 处理覆盖描述符
         if (configuration.copyOverrides && original.overriddenDescriptors.isNotEmpty()) {
-            if (configuration.getSubstitution().isEmpty()) {
+            if (configuration.getSubstitution().isEmpty) {
                 val overriddenFunctionsTask = lazyOverriddenFunctionsTask.get()
                 if (overriddenFunctionsTask != null) {
                     substitutedDescriptor.lazyOverriddenFunctionsTask.set(overriddenFunctionsTask)
@@ -542,7 +542,7 @@ abstract class FunctionDescriptorImpl(
     }
 
     inner class CopyConfiguration(
-        private var _substitution: TypeSubstitution,
+        private var _substitution: ComposableTypeSubstitutor,
         var newOwner: DeclarationDescriptor,
         var newModality: Modality,
         var newVisibility: DescriptorVisibility,
@@ -659,6 +659,7 @@ abstract class FunctionDescriptorImpl(
             return this
         }
 
+
         override fun build(): FunctionDescriptor? {
             return doSubstitute(this)
         }
@@ -680,11 +681,11 @@ abstract class FunctionDescriptorImpl(
             return this
         }
 
-        fun getSubstitution(): TypeSubstitution {
+        fun getSubstitution(): ComposableTypeSubstitutor {
             return _substitution
         }
 
-        override fun setSubstitution(substitution: TypeSubstitution): CopyConfiguration {
+        override fun setSubstitution(substitution: ComposableTypeSubstitutor): CopyConfiguration {
             this._substitution = substitution
             return this
         }

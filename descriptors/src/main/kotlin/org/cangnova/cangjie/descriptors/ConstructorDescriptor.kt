@@ -24,7 +24,7 @@
 package org.cangnova.cangjie.descriptors
 
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 
 /**
  * 构造函数描述符接口
@@ -72,7 +72,7 @@ interface ConstructorDescriptor : FunctionDescriptor {
      * @param substitutor 类型替换器
      * @return 替换后的构造函数描述符(可能为null)
      */
-    override fun substitute(substitutor: DefaultTypeSubstitutor): ConstructorDescriptor?
+    override fun substitute(substitutor: ComposableTypeSubstitutor): ConstructorDescriptor?
 
 
     /**

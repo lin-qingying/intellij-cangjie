@@ -260,7 +260,7 @@ abstract class AbstractEnumConstructorDescriptor(
      * @return 复制构建器
      */
     override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<out ConstructorDescriptor> {
-        return newCopyBuilder(DefaultTypeSubstitutor.EMPTY)
+        return newCopyBuilder(ComposableTypeSubstitutor.EMPTY)
     }
 
     /**
@@ -275,7 +275,7 @@ abstract class AbstractEnumConstructorDescriptor(
     }
 
     inner class CopyConfiguration(
-        private var _substitution: TypeSubstitution,
+        private var _substitution: ComposableTypeSubstitutor,
         var newOwner: DeclarationDescriptor,
         var newModality: Modality,
         var newVisibility: DescriptorVisibility,
@@ -410,11 +410,11 @@ abstract class AbstractEnumConstructorDescriptor(
             return this
         }
 
-        fun getSubstitution(): TypeSubstitution {
+        fun getSubstitution(): ComposableTypeSubstitutor {
             return _substitution
         }
 
-        override fun setSubstitution(substitution: TypeSubstitution): CopyConfiguration {
+        override fun setSubstitution(substitution: ComposableTypeSubstitutor): CopyConfiguration {
             this._substitution = substitution
             return this
         }
@@ -426,9 +426,9 @@ abstract class AbstractEnumConstructorDescriptor(
         }
     }
 
-    protected fun newCopyBuilder(substitutor: DefaultTypeSubstitutor): CopyConfiguration {
+    protected fun newCopyBuilder(substitutor: ComposableTypeSubstitutor): CopyConfiguration {
         return CopyConfiguration(
-            substitutor.substitution,
+            substitutor,
             containingDeclaration, modality, visibility, kind, valueParameters,
             returnType!!, null
         )
@@ -623,7 +623,7 @@ abstract class AbstractEnumConstructorDescriptor(
      * @param substitutor 类型替换器
      * @return 替换后的可调用描述符
      */
-    override fun substitute(substitutor: DefaultTypeSubstitutor): ConstructorDescriptor? {
+    override fun substitute(substitutor: ComposableTypeSubstitutor): ConstructorDescriptor? {
         if (substitutor.isEmpty) {
             return this
         }
@@ -657,7 +657,7 @@ abstract class AbstractEnumConstructorDescriptor(
         fun getSubstitutedValueParameters(
             substitutedDescriptor: EnumConstructorDescriptor,
             unsubstitutedValueParameters: List<ValueParameterDescriptor>,
-            substitutor: DefaultTypeSubstitutor
+            substitutor: ComposableTypeSubstitutor
         ): List<ValueParameterDescriptor>? {
             return getSubstitutedValueParameters(
                 substitutedDescriptor, unsubstitutedValueParameters, substitutor, false, false, null
@@ -668,7 +668,7 @@ abstract class AbstractEnumConstructorDescriptor(
         fun getSubstitutedValueParameters(
             substitutedDescriptor: EnumConstructorDescriptor,
             unsubstitutedValueParameters: List<ValueParameterDescriptor>,
-            substitutor: DefaultTypeSubstitutor,
+            substitutor: ComposableTypeSubstitutor,
             dropOriginal: Boolean,
             preserveSourceElement: Boolean,
             wereChanges: BooleanArray?

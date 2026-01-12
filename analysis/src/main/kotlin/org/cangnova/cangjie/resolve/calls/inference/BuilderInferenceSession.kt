@@ -110,7 +110,10 @@ class BuilderInferenceSession(
         val resultingSubstitutor by lazy {
             val storageSubstitutor =
                 initialStorage.buildResultingSubstitutor(commonSystem, transformTypeVariablesToErrorTypes = false)
-            ComposedSubstitutor(storageSubstitutor, commonSystem.buildCurrentSubstitutor() as AbstractTypeSubstitutor)
+            storageSubstitutor.compose(
+                commonSystem.buildCurrentSubstitutor() as ComposableTypeSubstitutor
+            )
+
         }
 
         val effectivelyEmptyConstraintSystem = initializeCommonSystem(initialStorage)
@@ -132,7 +135,8 @@ class BuilderInferenceSession(
 
         if (completionMode == ConstraintSystemCompletionMode.FULL) {
             constraintSystemBuilder.substituteFixedVariables(
-                ComposedSubstitutor(resultingSubstitutor, createNonFixedTypeToVariableSubstitutor())
+                resultingSubstitutor.compose(createNonFixedTypeToVariableSubstitutor())
+
             )
         }
 
@@ -179,7 +183,7 @@ class BuilderInferenceSession(
     private fun substituteNotFixedVariables(
         lowerType: CangJieType,
         upperType: CangJieType,
-        nonFixedToVariablesSubstitutor: AbstractTypeSubstitutor
+        nonFixedToVariablesSubstitutor: ComposableTypeSubstitutor
     ): Pair<CangJieType, CangJieType> {
         val commonCapTypes = extractCommonCapturedTypes(lowerType, upperType)
         val substitutedCommonCapType = commonCapTypes.associate {
@@ -203,7 +207,7 @@ class BuilderInferenceSession(
 
     private fun integrateConstraints(
         storage: ConstraintStorage,
-        nonFixedToVariablesSubstitutor: AbstractTypeSubstitutor,
+        nonFixedToVariablesSubstitutor: ComposableTypeSubstitutor,
         shouldIntegrateAllConstraints: Boolean
     ) {
         storage.notFixedTypeVariables.values.forEach {
@@ -259,7 +263,7 @@ class BuilderInferenceSession(
     }
 
 
-    private fun InitialConstraint.substitute(substitutor: AbstractTypeSubstitutor): InitialConstraint {
+    private fun InitialConstraint.substitute(substitutor: ComposableTypeSubstitutor): InitialConstraint {
         val lowerSubstituted = substitutor.safeSubstitute(a as UnwrappedType)
         val upperSubstituted = substitutor.safeSubstitute(b as UnwrappedType)
 
@@ -323,7 +327,7 @@ class BuilderInferenceSession(
      * - ...
      * - updating calls within the deepest builder inference call
      */
-    private fun updateAllCalls(substitutor: AbstractTypeSubstitutor) {
+    private fun updateAllCalls(substitutor: ComposableTypeSubstitutor) {
         updateCalls(
             lambda,
             substitutor = substitutor,
@@ -335,10 +339,9 @@ class BuilderInferenceSession(
         for (nestedSession in nestedBuilderInferenceSessions) {
             // TODO: exclude injected variables
             nestedSession.updateAllCalls(
-                ComposedSubstitutor(
-                    nestedSession.commonSystem.buildCurrentSubstitutor() as AbstractTypeSubstitutor,
-                    substitutor
-                )
+                (nestedSession.commonSystem.buildCurrentSubstitutor() as ComposableTypeSubstitutor)
+                    .compose(substitutor)
+
             )
         }
     }
@@ -376,7 +379,7 @@ class BuilderInferenceSession(
     }
 
     private fun createNonFixedTypeToVariableSubstitutor() =
-        TypeSubstitutorByConstructorMap(createNonFixedTypeToVariableMap())
+        TypeSubstitutors.create(createNonFixedTypeToVariableMap())
 
     private fun createNonFixedTypeToVariableMap(): Map<TypeConstructor, UnwrappedType> {
         val bindings = hashMapOf<TypeConstructor, UnwrappedType>()
@@ -408,7 +411,7 @@ class BuilderInferenceSession(
     }
 
     private fun createResolvedAtomCompleter(
-        resultSubstitutor: AbstractTypeSubstitutor,
+        resultSubstitutor: ComposableTypeSubstitutor,
         context: BasicCallResolutionContext
     ): ResolvedAtomCompleter {
         return ResolvedAtomCompleter(
@@ -438,7 +441,7 @@ class BuilderInferenceSession(
 
     private fun updateCall(
         completedCall: PSICompletedCallInfo,
-        nonFixedTypesToResultSubstitutor: AbstractTypeSubstitutor,
+        nonFixedTypesToResultSubstitutor: ComposableTypeSubstitutor,
         nonFixedTypesToResult: Map<TypeConstructor, UnwrappedType>
     ) {
         val storage = completedCall.callResolutionResult.constraintSystem.getBuilder().currentStorage()
@@ -447,7 +450,7 @@ class BuilderInferenceSession(
 
         @Suppress("UNCHECKED_CAST")
         val resultingSubstitutor =
-            TypeSubstitutorByConstructorMap((resultingCallSubstitutor + nonFixedTypesToResult) as Map<TypeConstructor, UnwrappedType>) // TODO: SUB
+            ComposableTypeSubstitutor.create((resultingCallSubstitutor + nonFixedTypesToResult) as Map<TypeConstructor, UnwrappedType>)// TODO: SUB
 
         val atomCompleter = createResolvedAtomCompleter(
             resultingSubstitutor,
@@ -488,7 +491,7 @@ class BuilderInferenceSession(
         return resolvedCall
     }
 
-    private fun updateExpressionDescriptorAndType(expression: CjExpression, substitutor: AbstractTypeSubstitutor) {
+    private fun updateExpressionDescriptorAndType(expression: CjExpression, substitutor: ComposableTypeSubstitutor) {
         val currentExpressionType = trace.getType(expression)
         if (currentExpressionType != null) {
             trace.recordType(expression, substitutor.safeSubstitute(currentExpressionType.unwrap()))
@@ -522,14 +525,15 @@ class BuilderInferenceSession(
     companion object {
         private fun BuilderInferenceSession.updateCalls(
             lambda: ResolvedLambdaAtom,
-            substitutor: AbstractTypeSubstitutor,
+            substitutor: ComposableTypeSubstitutor,
             errors: List<ConstraintSystemError>
         ) {
-            val nonFixedToVariablesSubstitutor = createNonFixedTypeToVariableSubstitutor()
+            val map = createNonFixedTypeToVariableMap()
+            val nonFixedToVariablesSubstitutor = TypeSubstitutors.create(map)
 
             val nonFixedTypesToResult =
-                nonFixedToVariablesSubstitutor.map.mapValues { substitutor.safeSubstitute(it.value) }
-            val nonFixedTypesToResultSubstitutor = ComposedSubstitutor(substitutor, nonFixedToVariablesSubstitutor)
+                map.mapValues { substitutor.safeSubstitute(it.value) }
+            val nonFixedTypesToResultSubstitutor = substitutor.compose(nonFixedToVariablesSubstitutor)
 
             val atomCompleter = createResolvedAtomCompleter(
                 nonFixedTypesToResultSubstitutor,
@@ -555,11 +559,13 @@ class BuilderInferenceSession(
     }
 }
 
+@Deprecated("use ComposableTypeSubstitutor")
+
 class ComposedSubstitutor(val left: AbstractTypeSubstitutor, val right: AbstractTypeSubstitutor) :
     AbstractTypeSubstitutor() {
-    override fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType? {
-        val rightSubstitution = right.substituteNotNullTypeWithConstructor(constructor)
-        return left.substituteNotNullTypeWithConstructor(rightSubstitution?.constructor ?: constructor)
+    override fun substituteByConstructor(constructor: TypeConstructor): UnwrappedType? {
+        val rightSubstitution = right.substituteByConstructor(constructor)
+        return left.substituteByConstructor(rightSubstitution?.constructor ?: constructor)
             ?: rightSubstitution
     }
 

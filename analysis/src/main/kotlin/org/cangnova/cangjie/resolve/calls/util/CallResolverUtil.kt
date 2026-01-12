@@ -45,6 +45,7 @@ import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.AbbreviatedType
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 internal fun PsiElement.reportOnElement() =
@@ -185,7 +186,7 @@ fun createResolutionCandidatesForConstructors(
     val unwrappedType = typeWithConstructors.unwrap()
     val knownSubstitutor =
         if (useKnownTypeSubstitutor)
-            DefaultTypeSubstitutor.create(
+            ComposableTypeSubstitutor.create(
                 (unwrappedType as? AbbreviatedType)?.abbreviation ?: unwrappedType
             )
         else null

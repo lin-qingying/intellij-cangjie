@@ -44,6 +44,7 @@ import org.cangnova.cangjie.resolve.calls.tower.ResolutionOldInference
 import org.cangnova.cangjie.resolve.calls.tower.PSICallResolver
 import org.cangnova.cangjie.resolve.scopes.ResolutionScope
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 
 @OptIn(InternalNonStableExtensionPoints::class)
 class CandidateInterceptor(project: Project) {
@@ -53,7 +54,7 @@ class CandidateInterceptor(project: Project) {
         candidateDescriptor: CallableDescriptor,
         completedCallAtom: ResolvedCallAtom,
         trace: BindingTrace?,
-        resultSubstitutor: AbstractTypeSubstitutor?,
+        resultSubstitutor: ComposableTypeSubstitutor?,
         diagnostics: Collection<CangJieCallDiagnostic>
     ): CallableDescriptor = extensions.fold(candidateDescriptor) { it, extension ->
         extension.interceptResolvedCallAtomCandidate(it, completedCallAtom, trace, resultSubstitutor, diagnostics)

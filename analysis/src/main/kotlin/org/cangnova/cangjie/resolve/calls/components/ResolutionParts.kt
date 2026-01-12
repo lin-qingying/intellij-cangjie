@@ -47,7 +47,6 @@ import org.cangnova.cangjie.resolve.scopes.receivers.ClassifierQualifier
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.TypeUtils.noExpectedType
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
-import org.cangnova.cangjie.types.checker.TypeCheckingProcedure
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
 import org.cangnova.cangjie.types.model.TypeConstructorMarker
 import org.cangnova.cangjie.utils.compactIfPossible
@@ -1237,26 +1236,26 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 
     private fun createKnownParametersFromFreshVariablesSubstitutor(
         freshVariableSubstitutor: FreshVariableTypeSubstitutor,
-        knownTypeParametersSubstitutor: DefaultTypeSubstitutor,
-    ): AbstractTypeSubstitutor {
+        knownTypeParametersSubstitutor: ComposableTypeSubstitutor,
+    ): ComposableTypeSubstitutor {
         if (knownTypeParametersSubstitutor.isEmpty)
-            return EmptySubstitutor
+            return ComposableTypeSubstitutor.EMPTY
 
         val knownTypeParameterByTypeVariable = mutableMapOf<TypeConstructor, UnwrappedType>().let { map ->
             for (typeVariable in freshVariableSubstitutor.freshVariables) {
                 val typeParameterType = typeVariable.originalTypeParameter.defaultType
-                val substitutedKnownTypeParameter = knownTypeParametersSubstitutor.substitute(typeParameterType)
+                val substitutedKnownTypeParameter = knownTypeParametersSubstitutor.safeSubstitute(typeParameterType.unwrap())
 
-                if (substitutedKnownTypeParameter !== typeParameterType)
-                    map[typeVariable.defaultType.constructor] = substitutedKnownTypeParameter!!.unwrap()
+                if (substitutedKnownTypeParameter !== typeParameterType.unwrap())
+                    map[typeVariable.defaultType.constructor] = substitutedKnownTypeParameter
             }
             map
         }
 
-        return knownTypeParametersSubstitutor.composeWith(
-            TypeSubstitutorByConstructorMap(
-                knownTypeParameterByTypeVariable
-            )
+
+        // 组合已知参数替换器和类型变量映射
+        return knownTypeParametersSubstitutor.compose(
+            ComposableTypeSubstitutor.create(knownTypeParameterByTypeVariable)
         )
     }
 
@@ -1303,7 +1302,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 
         val knownTypeParametersSubstitutor = knownTypeParametersResultingSubstitutor?.let {
             createKnownParametersFromFreshVariablesSubstitutor(toFreshVariables, it)
-        } ?: EmptySubstitutor
+        } ?: ComposableTypeSubstitutor.EMPTY
 
         resolvedCall.freshVariablesSubstitutor = toFreshVariables
         resolvedCall.knownParametersSubstitutor = knownTypeParametersSubstitutor
@@ -1328,11 +1327,11 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 //            TODO 会不会出现通过索引获取错误的情况，有待验证
             val freshVariable = toFreshVariables.freshVariables[index]
 
-            val knownTypeArgument = knownTypeParametersResultingSubstitutor?.substitute(typeParameter.defaultType)
+            val knownTypeArgument = knownTypeParametersResultingSubstitutor?.safeSubstitute(typeParameter.defaultType.unwrap())
             if (knownTypeArgument != null) {
                 csBuilder.addEqualityConstraint(
                     freshVariable.defaultType,
-                    getTypePreservingFlexibilityWrtTypeVariable(knownTypeArgument.unwrap(), freshVariable),
+                    getTypePreservingFlexibilityWrtTypeVariable(knownTypeArgument, freshVariable),
                     KnownTypeParameterConstraintPositionImpl(knownTypeArgument)
                 )
                 continue
@@ -1766,8 +1765,8 @@ internal object ErrorDescriptorResolutionPart : ResolutionPart() {
         resolvedCall.typeArgumentMappingByOriginal =
             TypeArgumentsToParametersMapper.TypeArgumentsMapping.NoExplicitArguments
         resolvedCall.argumentMappingByOriginal = emptyMap()
-        resolvedCall.freshVariablesSubstitutor = FreshVariableTypeSubstitutor.Empty
-        resolvedCall.knownParametersSubstitutor = EmptySubstitutor
+        resolvedCall.freshVariablesSubstitutor = ComposableTypeSubstitutor.EMPTY
+        resolvedCall.knownParametersSubstitutor = ComposableTypeSubstitutor.EMPTY
         resolvedCall.argumentToCandidateParameter = emptyMap()
 
 //        (cangjieCall.explicitReceiver as? SimpleCangJieCallArgument)?.let {

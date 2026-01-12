@@ -33,6 +33,7 @@ import org.cangnova.cangjie.resolve.calls.inference.model.ResolvedValueArgument
 import org.cangnova.cangjie.resolve.calls.results.ResolutionStatus
 import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategy
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 interface MutableResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
@@ -61,9 +62,9 @@ interface MutableResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
     var constraintSystem: ConstraintSystem?
 
 
-    fun setSubstitutor(substitutor: DefaultTypeSubstitutor)
+    fun setSubstitutor(substitutor: ComposableTypeSubstitutor)
 
-    val knownTypeParametersSubstitutor: DefaultTypeSubstitutor?
+    val knownTypeParametersSubstitutor: ComposableTypeSubstitutor?
 
     // todo remove: use value to parameter map status
     val hasInferredReturnType: Boolean

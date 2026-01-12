@@ -27,16 +27,12 @@ package org.cangnova.cangjie.resolve.calls.tower
 import com.intellij.util.SmartList
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
 import org.cangnova.cangjie.psi.Call
 import org.cangnova.cangjie.psi.ValueArgument
 import org.cangnova.cangjie.resolve.calls.components.isVararg
-import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.TypeSubstitutorByConstructorMap
 import org.cangnova.cangjie.resolve.calls.inference.model.ResolvedValueArgument
-import org.cangnova.cangjie.resolve.calls.inference.substitute
-import org.cangnova.cangjie.resolve.calls.inference.substituteAndApproximateTypes
+
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.calls.util.isNotSimpleCall
@@ -48,7 +44,7 @@ sealed class AbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
     abstract val psiCangJieCall: PSICangJieCall
     abstract val cangjieCall: CangJieCall?
     private var isCompleted: Boolean = false
-    abstract val freshSubstitutor: FreshVariableTypeSubstitutor?
+    abstract val freshSubstitutor: ComposableTypeSubstitutor?
     abstract val typeApproximator: TypeApproximator
     abstract val languageVersionSettings: LanguageVersionSettings
     abstract val argumentMappingByOriginal: Map<ValueParameterDescriptor, ResolvedCallArgument>
@@ -59,7 +55,7 @@ sealed class AbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
     protected open val positionDependentApproximation = false
     private var nonTrivialUpdatedResultInfo: DataFlowInfo? = null
 
-    abstract fun setResultingSubstitutor(substitutor: AbstractTypeSubstitutor?)
+    abstract fun setResultingSubstitutor(substitutor: ComposableTypeSubstitutor?)
     abstract fun updateDispatchReceiverType(newType: CangJieType)
     private var _valueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument>? = null
     override val valueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument>
@@ -121,26 +117,33 @@ sealed class AbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
      * @return 返回经过类型变量替换和近似处理后的可调用描述符
      */
     private fun CallableDescriptor.substituteInferredVariablesAndApproximate(
-        substitutor: AbstractTypeSubstitutor?,
+        inferredSubstitutor: ComposableTypeSubstitutor?,
         shouldApproximate: Boolean = true
     ): CallableDescriptor {
-        // 如果传入的替换器为null，则使用空替换器，不对类型变量进行替换
-        val inferredTypeVariablesSubstitutor = substitutor ?: FreshVariableTypeSubstitutor.Empty
+        // 1️⃣ fresh variables（T → α）
+        val withFreshVariables =
+            freshSubstitutor?.let { substitute(it) } ?: this
 
-        // 使用新鲜变量替换器进行替换，如果新鲜变量替换器为null，则不进行替换
-        val freshVariablesSubstituted = freshSubstitutor?.let(::substitute) ?: this
-        // 使用已知类型参数的替换器进行替换，如果不存在已知类型参数的替换器，则不进行替换
-        val knownTypeParameterSubstituted =
-            resolvedCallAtom?.knownParametersSubstitutor?.let(freshVariablesSubstituted::substitute)
-                ?: freshVariablesSubstituted
+        // 2️⃣ known type parameters（显式类型实参）
+        val withKnownTypeParameters =
+            resolvedCallAtom?.knownParametersSubstitutor
+                ?.let { withFreshVariables.substitute(it) }
+                ?: withFreshVariables
 
-        // 最后一步，使用推断的类型变量替换器和是否近似的标志进行类型替换和近似处理
-        // 如果shouldApproximate为false，则不进行类型近似处理
-        return knownTypeParameterSubstituted.substituteAndApproximateTypes(
-            inferredTypeVariablesSubstitutor,
-            typeApproximator = if (shouldApproximate) typeApproximator else null,
-            positionDependentApproximation
-        )
+        // 3️⃣ inferred variables（α → Int）
+        val fullySubstituted =
+            inferredSubstitutor?.let { withKnownTypeParameters.substitute(it) }
+                ?: withKnownTypeParameters
+
+        // 4️⃣ approximation（独立步骤）
+        return if (shouldApproximate) {
+            fullySubstituted.approximateTypes(
+                typeApproximator,
+                positionDependentApproximation
+            )
+        } else {
+            fullySubstituted
+        }
     }
 
 
@@ -208,7 +211,7 @@ sealed class AbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
         }
 
 
-    fun substituteReceivers(substitutor: AbstractTypeSubstitutor?) {
+    fun substituteReceivers(substitutor: ComposableTypeSubstitutor?) {
         if (substitutor != null) {
             // todo: add asset that we do not complete call many times
             isCompleted = true
@@ -225,63 +228,79 @@ sealed class AbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
         (if (typeArgument.type.isOption) makeOption() else makeNonOption()).unwrap()
 
     private fun getSubstitutorWithoutFlexibleTypes(
-        currentSubstitutor: AbstractTypeSubstitutor?,
-        explicitTypeArguments: List<SimpleTypeArgument>,
-    ): AbstractTypeSubstitutor? {
-        if (currentSubstitutor !is TypeSubstitutorByConstructorMap || explicitTypeArguments.isEmpty()) return currentSubstitutor
-        if (!currentSubstitutor.map.any { (_, value) -> value.isFlexible() }) return currentSubstitutor
+        current: ComposableTypeSubstitutor?,
+        explicitTypeArguments: List<SimpleTypeArgument>
+    ): ComposableTypeSubstitutor? {
 
-        val typeVariables = freshSubstitutor?.freshVariables ?: return null
-        val newSubstitutorMap = currentSubstitutor.map.toMutableMap()
+        if (current == null || explicitTypeArguments.isEmpty()) return current
+        val fresh = freshSubstitutor ?: return current
 
-        explicitTypeArguments.forEachIndexed { index, typeArgument ->
-            val typeVariableConstructor = typeVariables.getOrNull(index)?.freshTypeConstructor ?: return@forEachIndexed
+        // 用 explicit type args 构造一个 override substitutor
+        val overrideSubstitutor = TypeSubstitutors.create(
+            SubstitutorFunction { constructor ->
 
-            newSubstitutorMap[typeVariableConstructor] =
-                newSubstitutorMap[typeVariableConstructor]?.withNullabilityFromExplicitTypeArgument(typeArgument)
-                    ?: return@forEachIndexed
-        }
+                val typeParameter =
+                    constructor.declarationDescriptor as? TypeParameterDescriptor
+                        ?: return@SubstitutorFunction null
 
-        return TypeSubstitutorByConstructorMap(newSubstitutorMap)
+                val index = typeParameter.index
+                val explicitArg =
+                    explicitTypeArguments.getOrNull(index)
+                        ?: return@SubstitutorFunction null
+
+                // 先用原 substitutor 算出类型
+                val substituted =
+                    current.substitute(typeParameter.defaultType)?.unwrap()
+                        ?: return@SubstitutorFunction null
+
+                // 如果不是 flexible，直接忽略
+                if (!substituted.isFlexible()) return@SubstitutorFunction null
+
+                // 用显式类型参数修正 nullability
+                substituted.withNullabilityFromExplicitTypeArgument(explicitArg)
+            }
+        )
+
+        // override 优先级高于 current
+        return overrideSubstitutor.compose(current)
     }
+    protected fun substitutedResultingDescriptor(
+        inferredSubstitutor: ComposableTypeSubstitutor?
+    ): CallableDescriptor {
 
-    protected fun substitutedResultingDescriptor(substitutor: AbstractTypeSubstitutor?) =
-        when (val candidateDescriptor = candidateDescriptor) {
+        val candidate = candidateDescriptor
 
+        // 1️⃣ 是否需要 explicit type argument 修正
+        val explicitTypeArguments =
+            resolvedCallAtom?.atom?.typeArguments
+                ?.filterIsInstance<SimpleTypeArgument>()
+                ?: emptyList()
 
-            is ClassConstructorDescriptor, is SyntheticMemberDescriptor<*> -> {
-                val explicitTypeArguments =
-                    resolvedCallAtom?.atom?.typeArguments?.filterIsInstance<SimpleTypeArgument>() ?: emptyList()
+        val finalSubstitutor =
+            when {
+                explicitTypeArguments.isNotEmpty() ->
+                    getSubstitutorWithoutFlexibleTypes(
+                        inferredSubstitutor,
+                        explicitTypeArguments
+                    )
 
-                candidateDescriptor.substituteInferredVariablesAndApproximate(
-                    getSubstitutorWithoutFlexibleTypes(substitutor, explicitTypeArguments),
-                )
+                else -> inferredSubstitutor
             }
 
-            is FunctionDescriptor -> {
-                candidateDescriptor.substituteInferredVariablesAndApproximate(
-                    substitutor,
-                    candidateDescriptor.isNotSimpleCall()
-                )
+        // 2️⃣ 是否需要 approximate
+        val shouldApproximate =
+            when (candidate) {
+                is FunctionDescriptor -> candidate.isNotSimpleCall()
+                is PropertyDescriptor -> candidate.isNotSimpleCall()
+                is VariableDescriptor -> candidate.isNotSimpleCall()
+                else -> true
             }
 
-            is PropertyDescriptor -> {
-                if (candidateDescriptor.isNotSimpleCall()) {
-                    candidateDescriptor.substituteInferredVariablesAndApproximate(substitutor)
-                } else {
-                    candidateDescriptor
-                }
-            }
-
-            is VariableDescriptor -> {
-                if (candidateDescriptor.isNotSimpleCall()) {
-                    candidateDescriptor.substituteInferredVariablesAndApproximate(substitutor)
-                } else {
-                    candidateDescriptor
-                }
-            }
-
-            else -> candidateDescriptor
-        }
+        // 3️⃣ 统一走 substituteInferredVariablesAndApproximate（Composable 版本）
+        return candidate.substituteInferredVariablesAndApproximate(
+            finalSubstitutor,
+            shouldApproximate
+        )
+    }
 
 }

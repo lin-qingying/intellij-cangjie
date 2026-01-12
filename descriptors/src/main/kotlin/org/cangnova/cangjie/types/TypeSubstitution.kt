@@ -34,6 +34,7 @@ import org.cangnova.cangjie.descriptors.annotations.FilteredAnnotations
  * 定义了类型替换的基本接口和功能，用于在泛型类型系统中进行类型参数的替换操作。
  * 类型替换是类型系统中的核心机制，用于将泛型类型的类型参数替换为具体的类型。
  */
+@Deprecated("使用SubstitutorFunction")
 abstract class TypeSubstitution{
     companion object {
         /**

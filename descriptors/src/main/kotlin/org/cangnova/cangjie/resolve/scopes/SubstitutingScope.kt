@@ -33,8 +33,8 @@ import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.psiUtil.sure
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
-import org.cangnova.cangjie.types.checker.wrapWithCapturingSubstitution
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
+import org.cangnova.cangjie.types.SimpleType
 import org.cangnova.cangjie.utils.Printer
 import org.cangnova.cangjie.utils.newLinkedHashSetWithExpectedSize
 
@@ -76,7 +76,7 @@ import org.cangnova.cangjie.utils.newLinkedHashSetWithExpectedSize
  * val listScope = listClassDescriptor.defaultType.memberScope
  * val substitutedScope = SubstitutingScope(
  *     listScope,
- *     DefaultTypeSubstitutor.create(mapOf(T -> Int))
+ *     ComposableTypeSubstitutor.create(mapOf(T.typeConstructor -> IntType.unwrap()))
  * )
  *
  * // 查找 add 函数，返回的参数类型已经是 Int 而非 T
@@ -95,7 +95,7 @@ import org.cangnova.cangjie.utils.newLinkedHashSetWithExpectedSize
  * val parentScope = parentClassDescriptor.defaultType.memberScope
  * val substitutedScope = SubstitutingScope(
  *     parentScope,
- *     DefaultTypeSubstitutor.create(mapOf(T -> String))
+ *     ComposableTypeSubstitutor.create(mapOf(T.typeConstructor -> StringType.unwrap()))
  * )
  *
  * // Child 继承的 process 方法的签名是 (String) -> String
@@ -107,14 +107,12 @@ import org.cangnova.cangjie.utils.newLinkedHashSetWithExpectedSize
  *
  * ## 实现细节
  *
- * ### 捕获替换器（Capturing Substitutor）
+ * ### 简化的替换器使用
  *
- * 使用 `wrapWithCapturingSubstitution()` 包装原替换器，以正确处理通配符类型：
+ * 新版本直接使用 ComposableTypeSubstitutor，去除了复杂的捕获逻辑包装：
  *
  * ```kotlin
- * private val capturingSubstitutor = givenSubstitutor.substitution
- *     .wrapWithCapturingSubstitution()
- *     .buildSubstitutor()
+ * private val substitutor: ComposableTypeSubstitutor = givenSubstitutor
  * ```
  *
  * ### 替换缓存
@@ -138,7 +136,7 @@ import org.cangnova.cangjie.utils.newLinkedHashSetWithExpectedSize
  * 如果替换器为空（无需替换），直接返回原对象避免不必要的开销：
  *
  * ```kotlin
- * if (capturingSubstitutor.isEmpty) return type // 快速路径
+ * if (substitutor.isEmpty) return type // 快速路径
  * ```
  *
  * ## 替换算法
@@ -192,8 +190,8 @@ import org.cangnova.cangjie.utils.newLinkedHashSetWithExpectedSize
  * val typeParameter_T = boxClassDescriptor.declaredTypeParameters[0]
  *
  * // 创建替换器：T -> String
- * val substitutor = DefaultTypeSubstitutor.create(mapOf(
- *     typeParameter_T.defaultType to stringType
+ * val substitutor = ComposableTypeSubstitutor.create(mapOf(
+ *     typeParameter_T.typeConstructor to stringType.unwrap()
  * ))
  *
  * // 创建替换作用域
@@ -213,19 +211,18 @@ import org.cangnova.cangjie.utils.newLinkedHashSetWithExpectedSize
  *
  * @property workerScope 底层工作作用域，提供原始未替换的符号
  * @property substitutor 类型替换器（public，供外部访问当前的替换规则）
- * @property capturingSubstitutor 包含捕获逻辑的内部替换器
  * @property substitutedDescriptors 替换结果缓存，避免重复替换
  * @property _allDescriptors 惰性计算的所有描述符列表（已替换）
  *
- * @see DefaultTypeSubstitutor 类型替换器
+ * @see ComposableTypeSubstitutor 类型替换器
  * @see MemberScope 父接口
  * @see ChainedMemberScope 常与本类配合使用的组合作用域
  * @see Substitutable 支持替换的描述符接口
  */
-class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: DefaultTypeSubstitutor) : MemberScope {
-    val substitutor by lazy { givenSubstitutor.substitution.buildSubstitutor() }
-
-        private val capturingSubstitutor = givenSubstitutor.substitution.wrapWithCapturingSubstitution().buildSubstitutor()
+class SubstitutingScope(
+    private val workerScope: MemberScope,
+    val substitutor: ComposableTypeSubstitutor
+) : MemberScope {
     private var substitutedDescriptors: MutableMap<DeclarationDescriptor, DeclarationDescriptor>? = null
 
     private val _allDescriptors by lazy { substitute(workerScope.getContributedDescriptors()) }
@@ -237,13 +234,22 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
         get() = workerScope.classifierNames
     override val propertyNames: Set<Name>
         get() = workerScope.propertyNames
+
+    /**
+     * 替换单个类型
+     */
     fun substitute(type: CangJieType): CangJieType {
-        if (capturingSubstitutor.isEmpty) return type
-        return capturingSubstitutor.safeSubstitute(type)
+        if (substitutor.isEmpty) return type
+        return substitutor.safeSubstitute(type.unwrap()).let {
+            if (it is SimpleType) it else it as CangJieType
+        }
     }
 
+    /**
+     * 替换单个描述符
+     */
     private fun <D : DeclarationDescriptor> substitute(descriptor: D): D {
-        if (capturingSubstitutor.isEmpty) return descriptor
+        if (substitutor.isEmpty) return descriptor
 
         if (substitutedDescriptors == null) {
             substitutedDescriptors = HashMap<DeclarationDescriptor, DeclarationDescriptor>()
@@ -251,7 +257,7 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
 
         val substituted = substitutedDescriptors!!.getOrPut(descriptor) {
             when (descriptor) {
-                is Substitutable<*> -> descriptor.substitute(capturingSubstitutor).sure {
+                is Substitutable<*> -> descriptor.substitute(substitutor).sure {
                     "We expect that no conflict should happen while substitution is guaranteed to generate invariant argument, " +
                             "but $descriptor substitution fails"
                 }
@@ -264,8 +270,11 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
         return substituted as D
     }
 
+    /**
+     * 替换描述符集合
+     */
     private fun <D : DeclarationDescriptor> substitute(descriptors: Collection<D>): Collection<D> {
-        if (capturingSubstitutor.isEmpty) return descriptors
+        if (substitutor.isEmpty) return descriptors
         if (descriptors.isEmpty()) return descriptors
 
         val result = newLinkedHashSetWithExpectedSize<D>(descriptors.size)
@@ -317,7 +326,7 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
 
         p.println("substitutor = ")
         p.pushIndent()
-        p.println(capturingSubstitutor)
+        p.println(substitutor)
         p.popIndent()
 
         p.print("workerScope = ")
