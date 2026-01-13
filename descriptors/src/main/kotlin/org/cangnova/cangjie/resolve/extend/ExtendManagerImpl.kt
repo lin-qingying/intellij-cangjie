@@ -77,8 +77,8 @@ class ExtendManagerImpl(
                 val substitutor = buildSubstitutor(def.typeParameters, forTypeArgs)
                 def.interfaces.forEach { iface ->
                     // 仓颉语言中所有类型参数都是不变的，直接替换即可
-                    val applied = substitutor.substitute(iface)
-                    if (applied != null) add(applied)
+                    val applied = substitutor.safeSubstitute(iface.unwrap())
+                    add(applied)
                 }
             }
         }.distinct()
@@ -90,10 +90,11 @@ class ExtendManagerImpl(
     private fun buildSubstitutor(
         typeParams: List<TypeParameterDescriptor>,
         typeArgs: List<CangJieType>,
-    ): DefaultTypeSubstitutor {
-        val pairs = typeParams.zip(typeArgs).associate { (p, a) -> p to TypeArgumentImpl(a) }
-        val substitution = TypeConstructorSubstitution.createByParametersMap(pairs)
-        return DefaultTypeSubstitutor.create(substitution)
+    ): ComposableTypeSubstitutor {
+        val map = typeParams.zip(typeArgs).associate { (p, a) ->
+            p.typeConstructor to a.unwrap()
+        }
+        return ComposableTypeSubstitutor.create(map)
     }
 }
 

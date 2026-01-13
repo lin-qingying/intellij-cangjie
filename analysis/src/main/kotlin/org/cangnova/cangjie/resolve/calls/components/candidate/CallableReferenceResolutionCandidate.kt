@@ -29,13 +29,11 @@ import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.resolve.calls.components.CallableReceiver
 import org.cangnova.cangjie.resolve.calls.components.CallableReferenceAdaptation
 import org.cangnova.cangjie.resolve.calls.components.CangJieResolutionCallbacks
-import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.calls.tower.ImplicitScopeTower
 import org.cangnova.cangjie.types.ComposableTypeSubstitutor
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.UnwrappedType
 
 
@@ -145,7 +143,16 @@ class CallableReferenceResolutionCandidate(
      *
      * 此属性由类型推断系统内部设置。
      */
-    var freshVariablesSubstitutor: FreshVariableTypeSubstitutor? = null
+    var freshVariablesSubstitutor: ComposableTypeSubstitutor? = null
+        internal set
+
+    /**
+     * 新鲜类型变量列表
+     *
+     * 与 freshVariablesSubstitutor 对应的类型变量列表。
+     * 此属性由类型推断系统内部设置。
+     */
+    var freshVariables: List<org.cangnova.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor>? = null
         internal set
 
     /**

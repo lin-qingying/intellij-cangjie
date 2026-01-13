@@ -78,15 +78,15 @@ val SMART_COMPLETION_ITEM_PRIORITY_KEY = Key<SmartCompletionItemPriority>("SMART
 
 class ExpectedInfoMatch
 private constructor(
-    val substitutor: DefaultTypeSubstitutor?,
+    val substitutor: ComposableTypeSubstitutor?,
     val makeNotNullable: Boolean
 ) {
     fun isMatch() = substitutor != null && !makeNotNullable
 
     companion object {
         val noMatch = ExpectedInfoMatch(null, false)
-        fun match(substitutor: DefaultTypeSubstitutor) = ExpectedInfoMatch(substitutor, false)
-        fun ifNotNullMatch(substitutor: DefaultTypeSubstitutor) = ExpectedInfoMatch(substitutor, true)
+        fun match(substitutor: ComposableTypeSubstitutor) = ExpectedInfoMatch(substitutor, false)
+        fun ifNotNullMatch(substitutor: ComposableTypeSubstitutor) = ExpectedInfoMatch(substitutor, true)
     }
 }
 
@@ -255,7 +255,7 @@ private fun MutableCollection<LookupElement>.addLookupElementsForNullable(
     }
 }
 
-private fun <T : DeclarationDescriptor?> T.substituteFixed(substitutor: DefaultTypeSubstitutor): T {
+private fun <T : DeclarationDescriptor?> T.substituteFixed(substitutor: ComposableTypeSubstitutor): T {
     if (this is LocalVariableDescriptor || this is ValueParameterDescriptor || this !is Substitutable<*>) {
         return this
     }

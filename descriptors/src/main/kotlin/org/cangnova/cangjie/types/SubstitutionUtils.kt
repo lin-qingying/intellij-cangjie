@@ -61,7 +61,7 @@ object SubstitutionUtils {
      */
     private fun fillInDeepSubstitutor(
         context: CangJieType,
-        substitutor: DefaultTypeSubstitutor,
+        substitutor: ComposableTypeSubstitutor,
         substitution: MutableMap<TypeConstructor, TypeArgument>,
         typeParameterMapping: Multimap<TypeParameterDescriptor, TypeArgument>?
     ) {
@@ -80,7 +80,12 @@ object SubstitutionUtils {
             val parameter: TypeParameterDescriptor = parameters[i]
 
             // 使用替换器替换类型实参（处理嵌套的类型参数）
-            val substitute: TypeArgument = checkNotNull(substitutor.substitute(argument))
+            val substitutedType = substitutor.substitute(argument.type)
+            val substitute: TypeArgument = if (substitutedType != null && substitutedType != argument.type) {
+                TypeArgumentImpl(substitutedType)
+            } else {
+                argument
+            }
             // 将映射添加到替换映射中
             substitution[parameter.typeConstructor] = substitute
             // 如果提供了类型参数映射，也记录在其中
@@ -136,12 +141,14 @@ object SubstitutionUtils {
             HashMap<TypeConstructor, TypeArgument>()
 
         // 创建类型替换器，基于上面的可变映射
-        val typeSubstitutor: DefaultTypeSubstitutor =
-            DefaultTypeSubstitutor.create(substitution)
+        // 注意：这里使用可变映射构造一个函数，在递归过程中会不断更新映射内容
+        val typeSubstitutor: ComposableTypeSubstitutor = ComposableTypeSubstitutor.create(
+            SubstitutorFunction { key ->
+                substitution[key]?.type?.unwrap()
+            }
+        )
 
         // 递归地填充替换映射
-        // 注意：这里利用了 substitution 映射的可变性，
-        // 在递归过程中会不断更新映射内容
         fillInDeepSubstitutor(
             type,
             typeSubstitutor,

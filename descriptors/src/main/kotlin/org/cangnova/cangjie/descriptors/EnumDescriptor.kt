@@ -30,8 +30,6 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.SimpleType
 
-import org.cangnova.cangjie.types.TypeSubstitution
-
 /**
  * 枚举描述符接口
  *

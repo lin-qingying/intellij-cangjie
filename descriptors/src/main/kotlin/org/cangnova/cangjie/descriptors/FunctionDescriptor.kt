@@ -28,7 +28,6 @@ import org.cangnova.cangjie.name.Name
 
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ComposableTypeSubstitutor
-import org.cangnova.cangjie.types.TypeSubstitution
 
 /**
  * 函数描述符接口，继承自`CallableMemberDescriptor`和`EnumMember`，用于描述函数的元信息，如覆盖关系、参数、返回类型等。

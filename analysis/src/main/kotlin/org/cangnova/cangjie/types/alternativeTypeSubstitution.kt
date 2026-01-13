@@ -24,26 +24,24 @@
 
 package org.cangnova.cangjie.types
 
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
-
+/**
+ * 在公共类型中替换交集类型的替代类型
+ *
+ * 此函数递归地遍历类型树,当遇到交集类型构造器时,使用其替代类型进行替换。
+ * 这在将内部推断类型转换为公共 API 类型时很有用。
+ *
+ * @param type 要处理的类型
+ * @return 替换后的类型
+ */
 fun substituteAlternativesInPublicType(type: CangJieType): UnwrappedType {
-    val substitutor =@Deprecated("use ComposableTypeSubstitutor") object : AbstractTypeSubstitutor() {
-        override fun substituteByConstructor(constructor: TypeConstructor): UnwrappedType? {
-            if (constructor is IntersectionTypeConstructor) {
-                constructor.getAlternativeType()?.let { alternative ->
-                    return safeSubstitute(alternative.unwrap())
-                }
-            }
-
-            return null
+    // 创建一个函数式替换器,专门处理交集类型的替代
+    val substitutor = ComposableTypeSubstitutor.create(SubstitutorFunction { constructor ->
+        if (constructor is IntersectionTypeConstructor) {
+            constructor.getAlternativeType()?.unwrap()
+        } else {
+            null
         }
-
-
-
-        override val isEmpty: Boolean by lazy {
-            !type.contains { it.constructor is IntersectionTypeConstructor }
-        }
-    }
+    })
 
     return substitutor.safeSubstitute(type.unwrap())
 }

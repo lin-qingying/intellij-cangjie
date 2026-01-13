@@ -170,7 +170,12 @@ private fun replaceTypeArguments(type: CangJieType, newTypes: List<CangJieType>)
 
     // 将类型列表转换为 TypeArgument 列表
     val newArguments = newTypes.map { TypeArgumentImpl(it) }
-    return type.replace(newArguments)
+    val unwrapped = type.unwrap()
+    return if (unwrapped is SimpleType) {
+        CangJieTypeFactory.simpleType(unwrapped, arguments = newArguments)
+    } else {
+        type  // 如果不是 SimpleType,保持原样
+    }
 }
 
 /**
@@ -185,15 +190,22 @@ private fun replaceTypeArguments(type: CangJieType, newTypes: List<CangJieType>)
  * @return 替换后的类型参数，如果没有捕获类型则返回 null
  */
 fun substituteCapturedTypesWithProjections(typeArgument: TypeArgument): TypeArgument? {
-    val typeSubstitutor = DefaultTypeSubstitutor.create(object : TypeConstructorSubstitution() {
-        override fun get(key: TypeConstructor): TypeArgument? {
-            // 检查是否为捕获类型构造器
-            val capturedTypeConstructor = key as? CapturedTypeConstructor ?: return null
+    val type = typeArgument.type
 
-            // 返回捕获的原始类型参数
-            return capturedTypeConstructor.argument
-        }
-    })
+    // 创建一个替换器，将捕获类型替换为其原始投影
+    val substitutorFunction = SubstitutorFunction { constructor ->
+        // 检查是否为捕获类型构造器
+        val capturedTypeConstructor = constructor as? CapturedTypeConstructor ?: return@SubstitutorFunction null
 
-    return typeSubstitutor.substituteWithoutApproximation(typeArgument)
+        // 返回捕获的原始类型参数的类型
+        capturedTypeConstructor.argument.type.unwrap()
+    }
+
+    val typeSubstitutor = ComposableTypeSubstitutor.create(substitutorFunction)
+    val substitutedType = typeSubstitutor.safeSubstitute(type.unwrap())
+
+    // 如果类型没有改变，说明没有捕获类型需要替换
+    if (substitutedType === type.unwrap()) return null
+
+    return TypeArgumentImpl(substitutedType)
 }

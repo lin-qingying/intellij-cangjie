@@ -29,7 +29,7 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorNameConventions
 import org.cangnova.cangjie.types.ComposableTypeSubstitutor
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
+
 import org.cangnova.cangjie.types.extractParameterNameFromFunctionTypeArgument
 
 class FunctionInvokeDescriptor private constructor(

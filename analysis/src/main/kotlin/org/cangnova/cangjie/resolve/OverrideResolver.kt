@@ -1092,17 +1092,16 @@ class OverrideResolver(
 
         private fun prepareTypeSubstitutor(
             superDescriptor: CallableDescriptor, subDescriptor: CallableDescriptor
-        ): DefaultTypeSubstitutor? {
+        ): ComposableTypeSubstitutor? {
             val superTypeParameters = superDescriptor.typeParameters
             val subTypeParameters = subDescriptor.typeParameters
             if (subTypeParameters.size != superTypeParameters.size) return null
 
-            val arguments = ArrayList<TypeArgument>(subTypeParameters.size)
-            for (i in superTypeParameters.indices) {
-                arguments.add(TypeArgumentImpl(subTypeParameters[i].defaultType))
+            val substitutorMap = superTypeParameters.zip(subTypeParameters).associate { (superParam, subParam) ->
+                superParam.typeConstructor to subParam.defaultType.unwrap()
             }
 
-            return IndexedParametersSubstitution(superTypeParameters, arguments).buildSubstitutor()
+            return ComposableTypeSubstitutor.create(substitutorMap)
 
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -529,12 +529,12 @@ class CangJieConstraintSystemCompleter(
 
                 is PostponedCallableReferenceAtom -> {
                     getVariablesFromRevisedExpectedType(revisedExpectedType).orEmpty() +
-                            candidate?.freshVariablesSubstitutor?.freshVariables?.map { it.freshTypeConstructor }
+                            candidate?.freshVariables?.map { it.freshTypeConstructor }
                                 .orEmpty()
                 }
 
-                is ResolvedCallAtom -> freshVariablesSubstitutor.freshVariables.map { it.freshTypeConstructor }
-                is ResolvedCallableReferenceArgumentAtom -> candidate?.freshVariablesSubstitutor?.freshVariables?.map { it.freshTypeConstructor }
+                is ResolvedCallAtom -> this.freshVariables.map { it.freshTypeConstructor }
+                is ResolvedCallableReferenceArgumentAtom -> candidate?.freshVariables?.map { it.freshTypeConstructor }
                     .orEmpty()
 
                 else -> emptyList()
@@ -577,8 +577,8 @@ class CangJieConstraintSystemCompleter(
         fun findResolvedAtomBy(typeVariable: TypeVariableMarker, topLevelAtoms: List<ResolvedAtom>): ResolvedAtom? {
             fun ResolvedAtom.check(): ResolvedAtom? {
                 val suitableCall = when (this) {
-                    is ResolvedCallAtom -> typeVariable in freshVariablesSubstitutor.freshVariables
-                    is ResolvedCallableReferenceArgumentAtom -> candidate?.freshVariablesSubstitutor?.freshVariables?.let { typeVariable in it }
+                    is ResolvedCallAtom -> typeVariable in freshVariables
+                    is ResolvedCallableReferenceArgumentAtom -> candidate?.freshVariables?.let { typeVariable in it }
                         ?: false
 
                     is ResolvedLambdaAtom -> typeVariable == typeVariableForLambdaReturnType

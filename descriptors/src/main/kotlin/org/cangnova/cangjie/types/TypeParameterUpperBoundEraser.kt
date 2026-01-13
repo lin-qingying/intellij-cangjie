@@ -120,8 +120,8 @@ class TypeParameterUpperBoundEraser(
 
             it.typeConstructor to boundProjection
         }
-        val erasedTypeParametersSubstitutor =
-            DefaultTypeSubstitutor.create(TypeConstructorSubstitution.createByConstructorsMap(erasedTypeParameters))
+        val substitutorMap = erasedTypeParameters.mapValues { (_, arg) -> arg.type.unwrap() }
+        val erasedTypeParametersSubstitutor = ComposableTypeSubstitutor.create(substitutorMap)
         val erasedUpperBounds =
             erasedTypeParametersSubstitutor.substituteErasedUpperBounds(typeParameter.upperBounds, typeAttr)
 
@@ -138,7 +138,7 @@ class TypeParameterUpperBoundEraser(
         return getDefaultType(typeAttr)
     }
 
-    private fun DefaultTypeSubstitutor.substituteErasedUpperBounds(
+    private fun ComposableTypeSubstitutor.substituteErasedUpperBounds(
         upperBounds: List<CangJieType>,
         typeAttr: ErasureTypeAttributes
     ): Set<CangJieType> = buildSet {
@@ -167,7 +167,7 @@ class TypeParameterUpperBoundEraser(
 
     companion object {
         fun CangJieType.replaceArgumentsOfUpperBound(
-            substitutor: DefaultTypeSubstitutor,
+            substitutor: ComposableTypeSubstitutor,
             visitedTypeParameters: Set<TypeParameterDescriptor>?,
             leaveNonTypeParameterTypes: Boolean = false
         ): CangJieType {
@@ -178,14 +178,14 @@ class TypeParameterUpperBoundEraser(
 
                 val isTypeParameterVisited = visitedTypeParameters != null && typeParameterDescriptor in visitedTypeParameters
 
-                if (argument == null || isTypeParameterVisited || substitutor.substitution[argument.type] == null) {
+                if (argument == null || isTypeParameterVisited || substitutor.substitute(argument.type) == null) {
                 typeParameterDescriptor .asProjection()
                 } else {
                     argument
                 }
             }
 
-            return substitutor.safeSubstitute(replacedArguments)
+            return substitutor.safeSubstitute(replacedArguments.unwrap())
         }
     }
 }
@@ -195,16 +195,14 @@ private fun buildProjectionTypeByTypeParameters(
     typeParameters: List<TypeConstructor>,
     upperBounds: List<CangJieType>,
     builtIns: CangJieBuiltIns
-) = DefaultTypeSubstitutor.create(
-    object : TypeConstructorSubstitution() {
-        override fun get(key: TypeConstructor) =
-            if (key in typeParameters)
-                makeProjection(key.declarationDescriptor as TypeParameterDescriptor)
-
-            else null
-
+): CangJieType {
+    val substitutorMap = typeParameters.associateWith { typeConstructor ->
+        val descriptor = typeConstructor.declarationDescriptor as TypeParameterDescriptor
+        makeProjection(descriptor).type.unwrap()
     }
-).substitute(upperBounds.first()) ?: builtIns.defaultBound
+    val substitutor = ComposableTypeSubstitutor.create(substitutorMap)
+    return substitutor.substitute(upperBounds.first()) ?: builtIns.defaultBound
+}
 fun TypeParameterDescriptor.asProjection():TypeArgument{
     return TypeArgumentImpl(this.projectionType())
 }

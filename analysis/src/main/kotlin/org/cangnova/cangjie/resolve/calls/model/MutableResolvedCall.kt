@@ -34,7 +34,6 @@ import org.cangnova.cangjie.resolve.calls.results.ResolutionStatus
 import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategy
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ComposableTypeSubstitutor
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 interface MutableResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
 

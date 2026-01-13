@@ -44,9 +44,9 @@ import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.scopes.StaticMemberScope
 import org.cangnova.cangjie.resolve.source.toSourceElement
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.EnumTypeConstructorImpl
 import org.cangnova.cangjie.types.TypeConstructor
-import org.cangnova.cangjie.types.TypeSubstitution
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 /**
@@ -351,7 +351,7 @@ class LazyEnumDescriptor(
     /**
      * 创建替换后的成员作用域
      */
-    override fun createSubstitutedMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
+    override fun createSubstitutedMemberScope(substitutor: ComposableTypeSubstitutor): MemberScope {
         return unsubstitutedMemberScope
     }
 

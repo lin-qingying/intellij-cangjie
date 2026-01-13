@@ -29,7 +29,6 @@ import org.cangnova.cangjie.completion.smart.ExpectedInfoMatch
 import org.cangnova.cangjie.completion.smart.SmartCompletionItemPriority
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.resolve.ResolutionFacade
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.PsiElement
@@ -81,7 +80,7 @@ object KeywordValues {
                 }
 
                 if (info.fuzzyType?.type?.isBoolean == true)
-                    ExpectedInfoMatch.match(DefaultTypeSubstitutor.EMPTY)
+                    ExpectedInfoMatch.match(ComposableTypeSubstitutor.EMPTY)
                 else
                     ExpectedInfoMatch.noMatch
             }

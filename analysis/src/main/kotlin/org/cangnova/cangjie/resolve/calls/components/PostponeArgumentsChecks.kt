@@ -27,10 +27,10 @@ package org.cangnova.cangjie.resolve.calls.components
 import org.cangnova.cangjie.builtins.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilder
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.*
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.UnwrappedType
 import org.cangnova.cangjie.types.createFunctionType
@@ -65,7 +65,7 @@ fun LambdaWithTypeVariableAsExpectedTypeAtom.transformToResolvedLambda(
     returnTypeVariable: TypeVariableForLambdaReturnType? = null
 ): ResolvedLambdaAtom {
     // 使用当前的类型替换器固定期望类型
-    val fixedExpectedType = (csBuilder.buildCurrentSubstitutor() as AbstractTypeSubstitutor)
+    val fixedExpectedType = (csBuilder.buildCurrentSubstitutor() as ComposableTypeSubstitutor)
         .safeSubstitute(expectedType ?: this.expectedType)
 
     // 强制解析 lambda 参数

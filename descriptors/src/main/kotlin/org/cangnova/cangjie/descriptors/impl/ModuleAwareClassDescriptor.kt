@@ -33,9 +33,8 @@ import org.cangnova.cangjie.descriptors.HasScopeDescriptor
 import org.cangnova.cangjie.descriptors.impl.ModuleAwareDescriptorBase.Companion.getRefinedMemberScopeIfPossible
 import org.cangnova.cangjie.descriptors.impl.ModuleAwareDescriptorBase.Companion.getRefinedUnsubstitutedMemberScopeIfPossible
 import org.cangnova.cangjie.resolve.scopes.MemberScope
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.TypeArgument
-
-import org.cangnova.cangjie.types.TypeSubstitution
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 
@@ -70,11 +69,11 @@ abstract class ModuleAwareDescriptorBase<T : ClassifierDescriptor> :
      * 该方法允许在类型替换的基础上，进一步通过类型细化器来调整成员作用域。
      * 这对于处理泛型类实例化时的类型解析非常重要。
      *
-     * @param typeSubstitution 类型替换映射，用于将泛型参数替换为具体类型
+     * @param substitutor 类型替换器
      * @param cangjieTypeRefiner 类型细化器，用于根据编译上下文调整类型行为
      * @return MemberScope 经过类型替换和细化的成员作用域
      */
-    abstract fun getMemberScope(typeSubstitution: TypeSubstitution, cangjieTypeRefiner: CangJieTypeRefiner): MemberScope
+    abstract fun getMemberScope(substitutor: ComposableTypeSubstitutor, cangjieTypeRefiner: CangJieTypeRefiner): MemberScope
 
     /**
      * 获取带有类型参数的成员作用域
@@ -126,16 +125,16 @@ abstract class ModuleAwareDescriptorBase<T : ClassifierDescriptor> :
          * 如果目标描述符是ModuleAwareDescriptorBase的实例，则使用其细化方法；
          * 否则回退到标准的类型替换成员作用域。
          *
-         * @param typeSubstitution 类型替换映射
+         * @param substitutor 类型替换器
          * @param cangjieTypeRefiner 类型细化器
          * @return MemberScope 细化后的成员作用域或标准替换成员作用域
          */
         internal fun HasScopeDescriptor.getRefinedMemberScopeIfPossible(
-            typeSubstitution: TypeSubstitution,
+            substitutor: ComposableTypeSubstitutor,
             cangjieTypeRefiner: CangJieTypeRefiner
         ): MemberScope =
-            (this as? ModuleAwareDescriptorBase<*>)?.getMemberScope(typeSubstitution, cangjieTypeRefiner)
-                ?: this.getMemberScope(typeSubstitution)
+            (this as? ModuleAwareDescriptorBase<*>)?.getMemberScope(substitutor, cangjieTypeRefiner)
+                ?: this.getMemberScope(substitutor)
     }
 }
 
@@ -178,11 +177,11 @@ fun HasScopeDescriptor.getRefinedUnsubstitutedMemberScopeIfPossible(
  * 这个公共扩展函数为所有ClassDescriptor实例提供了获取细化替换成员作用域的能力。
  * 它内部调用companion object中的同名函数。
  *
- * @param typeSubstitution 类型替换映射
+ * @param substitutor 类型替换器
  * @param cangjieTypeRefiner 类型细化器
  * @return MemberScope 细化后的成员作用域
  */
 fun HasScopeDescriptor.getRefinedMemberScopeIfPossible(
-    typeSubstitution: TypeSubstitution,
+    substitutor: ComposableTypeSubstitutor,
     cangjieTypeRefiner: CangJieTypeRefiner
-): MemberScope = getRefinedMemberScopeIfPossible(typeSubstitution, cangjieTypeRefiner)
+): MemberScope = getRefinedMemberScopeIfPossible(substitutor, cangjieTypeRefiner)

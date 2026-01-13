@@ -25,8 +25,8 @@
 package org.cangnova.cangjie.descriptors
 
 import org.cangnova.cangjie.resolve.scopes.MemberScope
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.TypeArgument
-import org.cangnova.cangjie.types.TypeSubstitution
 
 /**
  * 具有作用域的声明描述符接口
@@ -68,15 +68,15 @@ interface HasScopeDescriptor : DeclarationDescriptor {
     fun getMemberScope(typeArguments: List<TypeArgument>): MemberScope
     
     /**
-     * 根据指定的类型替换规则返回对应的成员作用域
+     * 根据指定的类型替换器返回对应的成员作用域
      *
      * 这是更通用的类型替换方法，允许复杂的类型映射。
      * 通常用于处理继承、类型别名展开等场景。
      *
-     * @param typeSubstitution 类型替换映射
+     * @param substitutor 类型替换器
      * @return 返回计算后的成员作用域
      */
-    fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
+    fun getMemberScope(substitutor: ComposableTypeSubstitutor): MemberScope
     
     /**
      * 实例级成员作用域

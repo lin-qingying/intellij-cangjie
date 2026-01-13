@@ -32,7 +32,6 @@ import org.cangnova.cangjie.indices.multipleFuzzyTypes
 import org.cangnova.cangjie.psi.CjSimpleNameExpression
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.ResolutionFacade
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 import org.cangnova.cangjie.types.fuzzyReturnType
 import com.intellij.codeInsight.lookup.LookupElement
 import org.cangnova.cangjie.resolve.binding.BindingContext
@@ -115,7 +114,7 @@ class StaticMembers(
 
                 DescriptorUtils.isEnumConstructor(descriptor) && !enumEntriesToSkip.contains(descriptor) -> {
                     /* we do not need to check type of enum entry because it's taken from proper enum */
-                    { ExpectedInfoMatch.match(DefaultTypeSubstitutor.EMPTY) }
+                    { ExpectedInfoMatch.match(ComposableTypeSubstitutor.EMPTY) }
                 }
 
                 else -> return

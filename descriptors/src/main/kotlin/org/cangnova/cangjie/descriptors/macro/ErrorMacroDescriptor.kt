@@ -30,7 +30,6 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.ErrorUtils
-import org.cangnova.cangjie.types.TypeSubstitution
 import org.cangnova.cangjie.types.error.ErrorEntity
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 

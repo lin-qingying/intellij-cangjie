@@ -41,14 +41,14 @@ import org.cangnova.cangjie.psi.CjSimpleNameExpression
 import org.cangnova.cangjie.resolve.DescriptorUtils.getContainingClass
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.types.checker.isCaptured
-import org.cangnova.cangjie.types.checker.wrapWithCapturingSubstitution
 import org.cangnova.cangjie.resolve.calls.context.CallPosition
 import org.cangnova.cangjie.resolve.calls.context.ResolutionContext
 import org.cangnova.cangjie.resolve.calls.model.VariableAsFunctionResolvedCall
 import org.cangnova.cangjie.resolve.calls.util.getEffectiveExpectedType
 import org.cangnova.cangjie.resolve.calls.util.getResolvedCall
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeConstructorSubstitution
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
+import org.cangnova.cangjie.types.SubstitutionOptions
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.TypeUtils.noExpectedType
 import org.cangnova.cangjie.types.isAny
@@ -242,10 +242,10 @@ fun ResolutionContext<*>.reportTypeMismatchDueToTypeProjection(
 
     // 创建不进行捕获类型近似的替换器
     val substitutedDescriptor =
-        TypeConstructorSubstitution
-            .create(receiverType)
-            .wrapWithCapturingSubstitution(needApproximation = false)
-            .buildSubstitutor().let { callableDescriptor.substitute(it) } ?: return false
+        ComposableTypeSubstitutor.create(
+            receiverType,
+            SubstitutionOptions.DEFAULT.copy(approximateCapturedTypes = false)
+        ).let { callableDescriptor.substitute(it) } ?: return false
 
     // 获取非近似的期望类型
     val nonApproximatedExpectedType =

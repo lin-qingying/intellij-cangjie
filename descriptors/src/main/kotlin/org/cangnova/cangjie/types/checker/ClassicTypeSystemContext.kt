@@ -746,7 +746,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     override fun SimpleTypeMarker.replaceArguments(newArguments: List<TypeArgumentMarker>): SimpleTypeMarker {
         require(this is SimpleType, this::errorMessage)
         @Suppress("UNCHECKED_CAST")
-        return this.replace(newArguments as List<TypeArgument>)
+        return CangJieTypeFactory.simpleType(this, arguments = newArguments as List<TypeArgument>)
     }
 
     override fun SimpleTypeMarker.replaceArguments(replacement: (TypeArgumentMarker) -> TypeArgumentMarker): SimpleTypeMarker {
@@ -780,8 +780,11 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun TypeSubstitutorMarker.safeSubstitute(type: CangJieTypeMarker): CangJieTypeMarker {
         require(type is UnwrappedType, type::errorMessage)
-        require(this is DefaultTypeSubstitutor, this::errorMessage)
-        return safeSubstitute(type)
+        return when (this) {
+            is ComposableTypeSubstitutor -> safeSubstitute(type)
+
+            else -> error(this.errorMessage())
+        }
     }
 
     override fun TypeVariableMarker.defaultType(): SimpleTypeMarker {
@@ -892,11 +895,13 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
             .map { it as TypeParameterDescriptor }
             .associateWith {
                 TypeArgumentImpl(
-
                     eraser.getErasedUpperBound(it, ErasureTypeAttributes(TypeUsage.COMMON))
                 )
             }
-        return TypeConstructorSubstitution.createByParametersMap(typeParameters).buildSubstitutor().safeSubstitute(this)
+        val substitutorMap = typeParameters.mapKeys { (param, _) -> param.typeConstructor }
+            .mapValues { (_, arg) -> arg.type.unwrap() }
+        val substitutor = ComposableTypeSubstitutor.create(substitutorMap)
+        return substitutor.safeSubstitute(this)
     }
 
     override fun TypeConstructorMarker.isTypeParameterTypeConstructor(): Boolean {

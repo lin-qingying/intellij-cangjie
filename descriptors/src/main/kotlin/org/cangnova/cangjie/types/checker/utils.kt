@@ -95,7 +95,7 @@ fun findCorrespondingSupertype(
 
         // 检查是否找到匹配的类型构造器
         if (typeCheckingProcedureCallbacks.assertEqualTypeConstructors(constructor, supertypeConstructor)) {
-            var substituted = currentSubtype
+            var substituted = currentSubtype.unwrap()
             var isAnyMarkedNullable = currentSubtype.isOption
 
             var currentPathNode = lastPathNode.previous
@@ -104,9 +104,14 @@ fun findCorrespondingSupertype(
             while (currentPathNode != null) {
                 val currentType = currentPathNode.type
                 // 仓颉语言所有类型参数都是不变的（invariant），不需要捕获替换
-                substituted = TypeConstructorSubstitution.create(currentType)
-                    .buildSubstitutor()
-                    .safeSubstitute(substituted)
+                // 创建从类型构造器参数到类型实参的映射
+                val constructor = currentType.constructor
+                val arguments = currentType.arguments
+                val substitutorMap = constructor.parameters.zip(arguments).associate { (param, arg) ->
+                    param.typeConstructor to arg.type.unwrap()
+                }
+                val substitutor = ComposableTypeSubstitutor.create(substitutorMap)
+                substituted = substitutor.safeSubstitute(substituted)
 
                 // 保留可空性标记
                 isAnyMarkedNullable = isAnyMarkedNullable || currentType.isOption

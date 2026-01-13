@@ -25,11 +25,11 @@
 package org.cangnova.cangjie.resolve.calls.components
 
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilder
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.tower.VisibilityError
 import org.cangnova.cangjie.resolve.calls.tower.VisibilityErrorOnArgument
 import org.cangnova.cangjie.resolve.calls.tower.isInapplicable
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 
 /**
  * 可调用引用参数解析器
@@ -123,7 +123,7 @@ class CallableReferenceArgumentResolver {
 
         // 应用当前类型替换器获取实际期望类型
         val expectedType = resolvedAtom.expectedType?.let {
-            (csBuilder.buildCurrentSubstitutor() as AbstractTypeSubstitutor).safeSubstitute(it)
+            (csBuilder.buildCurrentSubstitutor() as ComposableTypeSubstitutor).safeSubstitute(it)
         }
 
         // 解析可调用引用，获取所有候选符号
@@ -153,7 +153,7 @@ class CallableReferenceArgumentResolver {
         val chosenCandidate = candidates.singleOrNull()
         if (chosenCandidate != null) {
             // 为候选创建新的类型变量替换器，并添加初始约束
-            val toFreshSubstitutor =
+            val (toFreshSubstitutor, _) =
                 CreateFreshVariablesSubstitutor.createToFreshVariableSubstitutorAndAddInitialConstraints(
                     chosenCandidate.candidate,
                     resolvedAtom.atom.call,

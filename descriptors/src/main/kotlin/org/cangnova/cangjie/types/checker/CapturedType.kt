@@ -176,6 +176,11 @@ fun CangJieType.isCaptured(): Boolean = constructor is CapturedTypeConstructor
 
 internal fun captureFromArguments(type: SimpleType, status: CaptureStatus): SimpleType? = null
 
+// 注意: TypeSubstitution 和 IndexedParametersSubstitution 已被删除
+// 新的 ComposableTypeSubstitutor 不需要特殊的捕获包装
+// Note: TypeSubstitution and IndexedParametersSubstitution have been removed
+// The new ComposableTypeSubstitutor doesn't need special capturing wrapping
+/*
 fun TypeSubstitution.wrapWithCapturingSubstitution(needApproximation: Boolean = false): TypeSubstitution =
     if (this is IndexedParametersSubstitution)
         IndexedParametersSubstitution(
@@ -185,6 +190,7 @@ fun TypeSubstitution.wrapWithCapturingSubstitution(needApproximation: Boolean = 
         )
     else
         this
+*/
 
 
 // null means that type should be leaved as is

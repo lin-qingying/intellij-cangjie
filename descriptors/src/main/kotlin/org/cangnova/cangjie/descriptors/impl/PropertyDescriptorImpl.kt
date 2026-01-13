@@ -384,12 +384,12 @@ initialSignatureDescriptor = getSubstitutedInitialSignatureDescriptor(substituto
             }
 
         private fun substituteParameterDescriptor(
-            substitutor: DefaultTypeSubstitutor,
+            substitutor: ComposableTypeSubstitutor,
             substitutedPropertyDescriptor: PropertyDescriptor,
             receiverParameterDescriptor: ReceiverParameterDescriptor
         ): ReceiverParameterDescriptor? {
             val substitutedType =
-                substitutor.substitute(receiverParameterDescriptor.type) ?: return null
+                substitutor.safeSubstitute(receiverParameterDescriptor.type.unwrap())
 
             // 对于 extend 接收者，保持其 ImplicitExtendReceiver 类型
             val receiverValue = receiverParameterDescriptor.value

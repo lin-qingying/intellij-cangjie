@@ -105,12 +105,12 @@ interface ExtendDescriptor :DeclarationDescriptorWithTypeParameters, Inheritable
     override fun getMemberScope(typeArguments: List<TypeArgument>): MemberScope
 
     /**
-     * 根据指定的类型替换规则返回对应的成员作用域。
+     * 根据指定的类型替换器返回对应的成员作用域。
      *
-     * @param typeSubstitution 类型替换映射
+     * @param substitutor 类型替换器
      * @return 返回计算后的成员作用域
      */
-    override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
+    override fun getMemberScope(substitutor: ComposableTypeSubstitutor): MemberScope
 
     /**
      * 未进行类型替换时的成员作用域（原始作用域）。

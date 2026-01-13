@@ -306,12 +306,11 @@ open class VariableDescriptorImpl(
     }
     companion object {
         private fun substituteParameterDescriptor(
-            substitutor: DefaultTypeSubstitutor,
+            substitutor: ComposableTypeSubstitutor,
             substitutedPropertyDescriptor: VariableDescriptor,
             receiverParameterDescriptor: ReceiverParameterDescriptor
         ): ReceiverParameterDescriptor? {
-            val substitutedType = substitutor.substitute(receiverParameterDescriptor.type)
-                ?: return null
+            val substitutedType = substitutor.safeSubstitute(receiverParameterDescriptor.type.unwrap())
 
             // 对于 extend 接收者，保持其 ImplicitExtendReceiver 类型
             val receiverValue = receiverParameterDescriptor.value

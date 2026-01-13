@@ -50,12 +50,12 @@ open class UpperBoundChecker(
         bound: CangJieType,
         argumentType: CangJieType,
         argumentReference: CjTypeReference?,
-        substitutor: DefaultTypeSubstitutor,
+        substitutor: ComposableTypeSubstitutor,
         typeAliasUsageElement: CjElement? = null,
         upperBoundViolatedReporter: UpperBoundViolatedReporter
     ): Boolean {
         // 仓颉语言的所有类型参数都是不变的(invariant)，直接进行类型替换
-        val substitutedBound = substitutor.substitute(bound) ?: bound
+        val substitutedBound = substitutor.safeSubstitute(bound.unwrap())
 
         if (!typeChecker.isSubtypeOf(argumentType, substitutedBound)) {
             if (argumentReference != null) {
@@ -110,7 +110,7 @@ open class UpperBoundChecker(
         // If the numbers of type arguments do not match, the error has been already reported in TypeResolver
         if (cjTypeArguments.size != arguments.size) return
 
-        val substitutor = DefaultTypeSubstitutor.create(type)
+        val substitutor = ComposableTypeSubstitutor.create(type)
 
         for (i in cjTypeArguments.indices) {
             val cjTypeArgument = cjTypeArguments[i]
@@ -127,7 +127,7 @@ open class UpperBoundChecker(
     ) {
         val parameters = type.constructor.parameters
         val arguments = type.arguments
-        val substitutor = DefaultTypeSubstitutor.create(type)
+        val substitutor = ComposableTypeSubstitutor.create(type)
 
         val diagnostic =
             if (reportWarning)
@@ -153,7 +153,7 @@ open class UpperBoundChecker(
         argumentReference: CjTypeReference?,
         argumentType: CangJieType,
         typeParameterDescriptor: TypeParameterDescriptor,
-        substitutor: DefaultTypeSubstitutor,
+        substitutor: ComposableTypeSubstitutor,
         trace: BindingTrace,
         typeAliasUsageElement: CjElement? = null,
         diagnosticForTypeAliases: DiagnosticFactory3<CjElement, CangJieType, CangJieType, ClassifierDescriptor> = UPPER_BOUND_VIOLATED_IN_TYPEALIAS_EXPANSION

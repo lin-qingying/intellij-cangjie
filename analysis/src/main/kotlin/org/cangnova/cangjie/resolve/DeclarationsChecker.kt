@@ -808,7 +808,7 @@ class DeclarationsChecker(
         }
 
         override fun boundsViolationInSubstitution(
-            substitutor: DefaultTypeSubstitutor,
+            substitutor: ComposableTypeSubstitutor,
             unsubstitutedArgument: CangJieType,
             argument: CangJieType,
             typeParameter: TypeParameterDescriptor

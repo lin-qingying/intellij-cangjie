@@ -53,7 +53,6 @@ import org.cangnova.cangjie.resolve.calls.components.isVararg
 import org.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext
 import org.cangnova.cangjie.resolve.calls.context.CallPosition
 import org.cangnova.cangjie.resolve.calls.inference.buildResultingSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import org.cangnova.cangjie.resolve.calls.smartcasts.SmartCastManager

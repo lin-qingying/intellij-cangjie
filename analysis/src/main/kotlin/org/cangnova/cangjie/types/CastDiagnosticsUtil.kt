@@ -249,7 +249,8 @@ object CastDiagnosticsUtil {
 
         // 此时我们已经为 List 的所有类型参数确定了值
         // 让我们通过替换它们来创建一个类型：List<T> -> List<Foo>
-        val substituted = DefaultTypeSubstitutor.create(substitution).substitute(subtypeWithVariables )
+        val typeSubstitution = substitution.mapValues { it.value.type.unwrap() }
+        val substituted = ComposableTypeSubstitutor.create(typeSubstitution).safeSubstitute(subtypeWithVariables.unwrap())
 
         return TypeReconstructionResult(substituted, allArgumentsInferred)
     }

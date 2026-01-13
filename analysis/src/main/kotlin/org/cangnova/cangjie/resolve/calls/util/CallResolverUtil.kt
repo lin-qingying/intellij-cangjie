@@ -46,7 +46,6 @@ import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.AbbreviatedType
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ComposableTypeSubstitutor
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 internal fun PsiElement.reportOnElement() =
     (this as? CjConstructorDelegationCall)

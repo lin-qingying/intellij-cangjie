@@ -156,41 +156,42 @@ abstract class AbstractEnumDescriptor(
             return unsubstitutedMemberScope
         }
 
-        // 如果有类型参数，需要创建类型替换
-        val typeSubstitution = TypeConstructorSubstitution.createByParametersMap(
-            declaredTypeParameters.zip(typeArguments).toMap()
-        )
+        // 如果有类型参数，需要创建类型替换器
+        val substitutorMap = declaredTypeParameters.zip(typeArguments).associate { (param, arg) ->
+            param.typeConstructor to arg.type.unwrap()
+        }
+        val substitutor = ComposableTypeSubstitutor.create(substitutorMap)
 
-        return getMemberScope(typeSubstitution)
+        return getMemberScope(substitutor)
     }
 
     /**
-     * 获取成员作用域（带类型替换）
+     * 获取成员作用域（带类型替换器）
      *
-     * 根据类型替换创建成员作用域，支持泛型枚举的类型参数替换。
+     * 根据类型替换器创建成员作用域，支持泛型枚举的类型参数替换。
      * 子类可重写以提供自定义的类型替换逻辑。
      *
-     * @param typeSubstitution 类型替换
+     * @param substitutor 类型替换器
      * @return 成员作用域
      */
-    override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
+    override fun getMemberScope(substitutor: ComposableTypeSubstitutor): MemberScope {
         // 如果没有类型替换，返回未替换的成员作用域
-        if (typeSubstitution.isEmpty()) {
+        if (substitutor.isEmpty) {
             return unsubstitutedMemberScope
         }
 
         // 创建替换后的成员作用域
-        return createSubstitutedMemberScope(typeSubstitution)
+        return createSubstitutedMemberScope(substitutor)
     }
 
     /**
      * 创建替换后的成员作用域
      * 子类可重写以提供自定义的类型替换成员作用域创建逻辑
      *
-     * @param typeSubstitution 类型替换
+     * @param substitutor 类型替换器
      * @return 替换后的成员作用域
      */
-    protected open fun createSubstitutedMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
+    protected open fun createSubstitutedMemberScope(substitutor: ComposableTypeSubstitutor): MemberScope {
         // 默认实现：返回未替换的成员作用域
         // 子类可以扩展为更复杂的实现，比如替换构造函数和成员函数的类型
         return unsubstitutedMemberScope
@@ -272,12 +273,11 @@ abstract class AbstractEnumDescriptor(
     }
 
     override fun getMemberScope(
-        typeSubstitution: TypeSubstitution,
+        substitutor: ComposableTypeSubstitutor,
         cangjieTypeRefiner: CangJieTypeRefiner
     ): MemberScope {
-        if (typeSubstitution.isEmpty()) return getUnsubstitutedMemberScope(cangjieTypeRefiner)
+        if (substitutor.isEmpty) return getUnsubstitutedMemberScope(cangjieTypeRefiner)
 
-        val substitutor = TypeSubstitutors.fromSubstitution(typeSubstitution)
         return SubstitutingScope(getUnsubstitutedMemberScope(cangjieTypeRefiner), substitutor)
 
     }
@@ -293,8 +293,10 @@ abstract class AbstractEnumDescriptor(
         }
         if (typeArguments.isEmpty()) return getUnsubstitutedMemberScope(cangjieTypeRefiner)
 
-        val typeSubstitution = TypeConstructorSubstitution.create(typeConstructor, typeArguments)
-        val substitutor = TypeSubstitutors.fromSubstitution(typeSubstitution)
+        val substitutorMap = typeConstructor.parameters.zip(typeArguments).associate { (param, arg) ->
+            param.typeConstructor to arg.type.unwrap()
+        }
+        val substitutor = ComposableTypeSubstitutor.create(substitutorMap)
         return SubstitutingScope(getUnsubstitutedMemberScope(cangjieTypeRefiner), substitutor)
     }
 }

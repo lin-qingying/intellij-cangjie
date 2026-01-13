@@ -31,8 +31,6 @@ import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import org.cangnova.cangjie.psi.CjExpression
 import org.cangnova.cangjie.psi.ValueArgument
-import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableTypeSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.*
 
 import org.cangnova.cangjie.resolve.calls.model.*
@@ -382,8 +380,8 @@ class ResolvedCallImpl<D : CallableDescriptor>(
         _resultingDescriptor = substitutedResultingDescriptor(substitutor) as D
 
         // 计算类型参数
-        _typeArguments = freshSubstitutor.freshVariables.map {
-            val substituted = (substitutor ?: FreshVariableTypeSubstitutor.Empty).safeSubstitute(it.defaultType)
+        _typeArguments = resolvedCallAtom.freshVariables.map {
+            val substituted = (substitutor ?: ComposableTypeSubstitutor.EMPTY).safeSubstitute(it.defaultType)
             typeApproximator
                 .approximateToSuperType(substituted, TypeApproximatorConfiguration.IntegerLiteralsTypesApproximation)
                 ?: substituted

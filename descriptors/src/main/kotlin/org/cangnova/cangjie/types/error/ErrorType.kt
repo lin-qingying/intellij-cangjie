@@ -106,8 +106,8 @@ open class ErrorType @JvmOverloads internal constructor(
 
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType = this
 
-//    fun replaceArguments(newArguments: List<TypeArgument>): ErrorType =
-//        ErrorType(constructor, memberScope, kind, newArguments, isMarkedOption, *formatParams)
+    fun replaceArguments(newArguments: List<TypeArgument>): ErrorType =
+        ErrorType(constructor, memberScope, kind, newArguments, isOption, *formatParams)
 
     override fun makeOptionAsSpecified(isOption: Boolean): SimpleType =
         ErrorType(constructor, memberScope, kind, arguments, isOption, *formatParams)

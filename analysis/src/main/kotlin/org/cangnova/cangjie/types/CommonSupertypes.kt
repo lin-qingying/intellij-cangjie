@@ -74,7 +74,7 @@ object CommonSupertypes {
         return DFS.dfs(
             listOf(type),
             { current ->
-                val substitutor: DefaultTypeSubstitutor = DefaultTypeSubstitutor.create(current)
+                val substitutor: ComposableTypeSubstitutor = ComposableTypeSubstitutor.create(current)
                 val supertypes: Collection<CangJieType> = current.constructor.supertypes
                 val result: MutableList<SimpleType> = ArrayList(supertypes.size)
                 for (supertype in supertypes) {
@@ -82,7 +82,7 @@ object CommonSupertypes {
                         continue
                     }
                     result.add(
-                        substitutor.safeSubstitute(supertype).lowerIfFlexible()
+                        substitutor.safeSubstitute(supertype.unwrap()).lowerIfFlexible()
                     )
                 }
                 result

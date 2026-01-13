@@ -919,7 +919,7 @@ class TypeResolver(
         }
 
         override fun boundsViolationInSubstitution(
-            substitutor: DefaultTypeSubstitutor,
+            substitutor: ComposableTypeSubstitutor,
             unsubstitutedArgument: CangJieType,
             argument: CangJieType,
             typeParameter: TypeParameterDescriptor
@@ -1154,7 +1154,7 @@ class TypeResolver(
             )
 
         if (shouldCheckBounds(c, resultingType)) {
-            val substitutor = DefaultTypeSubstitutor.create(resultingType)
+            val substitutor = ComposableTypeSubstitutor.create(resultingType)
             for (i in parameters.indices) {
                 val parameter = parameters[i]
                 val argument = arguments[i].type
@@ -1238,7 +1238,7 @@ class TypeResolver(
             )
 
         if (shouldCheckBounds(c, resultingType)) {
-            val substitutor = DefaultTypeSubstitutor.create(resultingType)
+            val substitutor = ComposableTypeSubstitutor.create(resultingType)
             for (i in parameters.indices) {
                 val parameter = parameters[i]
                 val argument = arguments[i].type

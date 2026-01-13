@@ -26,7 +26,6 @@ package org.cangnova.cangjie.resolve.calls.inference
 
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.resolve.calls.components.PostponedArgumentsAnalyzerContext
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
 import org.cangnova.cangjie.resolve.calls.model.CallableReferenceCangJieCallArgument
 import org.cangnova.cangjie.resolve.calls.model.CangJieCallArgument
@@ -43,20 +42,24 @@ fun CallableDescriptor.substituteAndApproximateTypes(
 ): CallableDescriptor {
     if (substitutor.isEmpty) return this
 
-    val wrappedSubstitution = object : TypeSubstitution() {
-        override fun get(key: CangJieType): TypeArgument? = null
-
-        override fun prepareTopLevelType(topLevelType: CangJieType ) =
-            substitutor.safeSubstitute(topLevelType.unwrap()).let { substitutedType ->
-                typeApproximator?.approximateTo(
+    // 创建一个组合替换器，先替换再近似
+    val substitutorWithApproximation = if (typeApproximator != null) {
+        // 使用 andThen 在替换后应用类型近似
+        val function = SubstitutorFunction { constructor ->
+            substitutor.substituteByConstructor(constructor)?.let { substitutedType ->
+                typeApproximator.approximateTo(
                     substitutedType,
                     TypeApproximatorConfiguration.FinalApproximationAfterResolutionAndInference,
                     !positionDependentApproximation
-                ) ?: substitutedType
+                )
             }
+        }
+        ComposableTypeSubstitutor.create(function)
+    } else {
+        substitutor
     }
 
-    return substitute(DefaultTypeSubstitutor.create(wrappedSubstitution)) ?: this
+    return substitute(substitutorWithApproximation) ?: this
 }
 
 fun ConstraintStorage.buildResultingSubstitutor(

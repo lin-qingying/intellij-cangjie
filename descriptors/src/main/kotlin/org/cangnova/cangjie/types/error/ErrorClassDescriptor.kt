@@ -34,8 +34,6 @@ import org.cangnova.cangjie.storage.LockBasedStorageManager
 import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.TypeArgument
-
-import org.cangnova.cangjie.types.TypeSubstitution
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 class ErrorClassDescriptor(name: Name = Name.ERROR_NAME) : ClassDescriptorImpl(
@@ -45,8 +43,8 @@ class ErrorClassDescriptor(name: Name = Name.ERROR_NAME) : ClassDescriptorImpl(
     override fun getMemberScope(typeArguments: List<TypeArgument>, cangjieTypeRefiner: CangJieTypeRefiner): MemberScope =
         ErrorUtils.createErrorScope(ErrorScopeKind.SCOPE_FOR_ERROR_CLASS, name.toString(), typeArguments.toString())
 
-    override fun getMemberScope(typeSubstitution: TypeSubstitution, cangjieTypeRefiner: CangJieTypeRefiner): MemberScope =
-        ErrorUtils.createErrorScope(ErrorScopeKind.SCOPE_FOR_ERROR_CLASS, name.toString(), typeSubstitution.toString())
+    override fun getMemberScope(substitutor: ComposableTypeSubstitutor, cangjieTypeRefiner: CangJieTypeRefiner): MemberScope =
+        ErrorUtils.createErrorScope(ErrorScopeKind.SCOPE_FOR_ERROR_CLASS, name.toString(), substitutor.toString())
 
 
 

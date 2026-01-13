@@ -228,12 +228,14 @@ object CangJieTypeFactory {
                 val refinerToUse = cangjieTypeRefiner ?: descriptor.module.getCangJieTypeRefiner()
                 if (arguments.isEmpty())
                     descriptor.getRefinedUnsubstitutedMemberScopeIfPossible(refinerToUse)
-                else
-                // REVIEW
-                    descriptor.getRefinedMemberScopeIfPossible(
-                        TypeConstructorSubstitution.create(constructor, arguments),
-                        refinerToUse
-                    )
+                else {
+                    // 创建类型参数到类型实参的映射
+                    val substitutorMap = constructor.parameters.zip(arguments).associate { (param, arg) ->
+                        param.typeConstructor to arg.type.unwrap()
+                    }
+                    val substitutor = ComposableTypeSubstitutor.create(substitutorMap)
+                    descriptor.getRefinedMemberScopeIfPossible(substitutor, refinerToUse)
+                }
             }
 
             is TypeAliasDescriptor -> ErrorUtils.createErrorScope(

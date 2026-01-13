@@ -30,8 +30,8 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.psi.Call
 import org.cangnova.cangjie.psi.ValueArgument
 import org.cangnova.cangjie.resolve.calls.components.isVararg
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.ResolvedValueArgument
+import org.cangnova.cangjie.resolve.calls.inference.substituteAndApproximateTypes
 
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
@@ -137,7 +137,8 @@ sealed class AbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
 
         // 4️⃣ approximation（独立步骤）
         return if (shouldApproximate) {
-            fullySubstituted.approximateTypes(
+            fullySubstituted.substituteAndApproximateTypes(
+                ComposableTypeSubstitutor.EMPTY,
                 typeApproximator,
                 positionDependentApproximation
             )

@@ -32,13 +32,13 @@ import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystem
 import org.cangnova.cangjie.resolve.calls.inference.addEqualityConstraintIfCompatible
 import org.cangnova.cangjie.resolve.calls.inference.components.CangJieConstraintSystemCompleter
 import org.cangnova.cangjie.resolve.calls.inference.components.ConstraintSystemCompletionMode
-import org.cangnova.cangjie.resolve.calls.inference.components.TypeSubstitutorByConstructorMap
 import org.cangnova.cangjie.resolve.calls.inference.components.TrivialConstraintTypeInferenceOracle
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage.Empty.hasContradiction
 import org.cangnova.cangjie.resolve.calls.inference.model.ExpectedTypeConstraintPositionImpl
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintSystemImpl
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.tower.CandidateFactory
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.tower.forceResolution
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.TypeUtils
@@ -167,8 +167,8 @@ class CangJieCallCompleter(
      */
     private fun ResolutionCandidate.substitutedReturnType(): UnwrappedType? {
         val returnType = resolvedCall.candidateDescriptor.returnType?.unwrap() ?: return null
-        val substitutedReturnTypeWithVariables = resolvedCall.freshVariablesSubstitutor.safeSubstitute(returnType)
-        return (getResultingSubstitutor() as? TypeSubstitutorByConstructorMap)?.safeSubstitute(
+        val substitutedReturnTypeWithVariables = (resolvedCall.freshVariablesSubstitutor as ComposableTypeSubstitutor).safeSubstitute(returnType)
+        return (getResultingSubstitutor() as ComposableTypeSubstitutor).safeSubstitute(
             substitutedReturnTypeWithVariables
         ) ?: substitutedReturnTypeWithVariables
     }

@@ -35,7 +35,6 @@ import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.CallResolver
 import org.cangnova.cangjie.resolve.calls.CandidateResolver
 import org.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.model.CangJieCallDiagnostic
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCallAtom
 import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategy

@@ -115,10 +115,10 @@ class EnumDescriptorImpl(
     /**
      * 创建替换后的成员作用域
      *
-     * @param typeSubstitution 类型替换
+     * @param substitutor 类型替换器
      * @return 替换后的成员作用域
      */
-    override fun createSubstitutedMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
+    override fun createSubstitutedMemberScope(substitutor: ComposableTypeSubstitutor): MemberScope {
         /*
         TODO
         对于具体实现，可以在这里添加更复杂的类型替换逻辑

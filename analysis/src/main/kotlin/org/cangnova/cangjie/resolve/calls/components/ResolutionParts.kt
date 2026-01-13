@@ -1128,7 +1128,7 @@ internal object CollectionTypeVariableUsagesInfo : ResolutionPart() {
     }
 
     override fun ResolutionCandidate.process(workIndex: Int) {
-        for (variable in resolvedCall.freshVariablesSubstitutor.freshVariables) {
+        for (variable in resolvedCall.freshVariables) {
             val candidateDescriptor = resolvedCall.candidateDescriptor
             if (candidateDescriptor is ClassConstructorDescriptor) {
                 val typeParameters = candidateDescriptor.containingDeclaration.declaredTypeParameters
@@ -1160,11 +1160,14 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         cangjieCall: CangJieCall,
         csBuilder: ConstraintSystemOperation,
         typeParameters: List<TypeParameterDescriptor> = candidateDescriptor.typeParameters
-    ): FreshVariableTypeSubstitutor {
+    ): Pair<ComposableTypeSubstitutor, List<TypeVariableFromCallableDescriptor>> {
 
         val freshTypeVariables = typeParameters.map { TypeVariableFromCallableDescriptor(it) }
 
-        val toFreshVariables = FreshVariableTypeSubstitutor(freshTypeVariables)
+        val toFreshVariables = ComposableTypeSubstitutor.create(
+            SubstitutorFunction.fromFreshVariables(freshTypeVariables),
+            SubstitutionOptions.INFERENCE
+        )
 
         for (freshVariable in freshTypeVariables) {
             csBuilder.registerVariable(freshVariable)
@@ -1212,7 +1215,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
                 }
             }
         }
-        return toFreshVariables
+        return toFreshVariables to freshTypeVariables
     }
 
     private fun getTypePreservingFlexibilityWrtTypeVariable(
@@ -1235,14 +1238,14 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
     }
 
     private fun createKnownParametersFromFreshVariablesSubstitutor(
-        freshVariableSubstitutor: FreshVariableTypeSubstitutor,
+        freshVariables: List<TypeVariableFromCallableDescriptor>,
         knownTypeParametersSubstitutor: ComposableTypeSubstitutor,
     ): ComposableTypeSubstitutor {
         if (knownTypeParametersSubstitutor.isEmpty)
             return ComposableTypeSubstitutor.EMPTY
 
         val knownTypeParameterByTypeVariable = mutableMapOf<TypeConstructor, UnwrappedType>().let { map ->
-            for (typeVariable in freshVariableSubstitutor.freshVariables) {
+            for (typeVariable in freshVariables) {
                 val typeParameterType = typeVariable.originalTypeParameter.defaultType
                 val substitutedKnownTypeParameter = knownTypeParametersSubstitutor.safeSubstitute(typeParameterType.unwrap())
 
@@ -1289,9 +1292,9 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 //                )
 
         val typeParameters = getTypeParameters()
-        val toFreshVariables =
+        val (toFreshVariables, freshTypeVariables) =
             if (typeParameters.isEmpty())
-                FreshVariableTypeSubstitutor.Empty
+                ComposableTypeSubstitutor.EMPTY to emptyList()
             else
                 createToFreshVariableSubstitutorAndAddInitialConstraints(
                     candidateDescriptor,
@@ -1301,10 +1304,11 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
                 )
 
         val knownTypeParametersSubstitutor = knownTypeParametersResultingSubstitutor?.let {
-            createKnownParametersFromFreshVariablesSubstitutor(toFreshVariables, it)
+            createKnownParametersFromFreshVariablesSubstitutor(freshTypeVariables, it)
         } ?: ComposableTypeSubstitutor.EMPTY
 
         resolvedCall.freshVariablesSubstitutor = toFreshVariables
+        resolvedCall.freshVariables = freshTypeVariables
         resolvedCall.knownParametersSubstitutor = knownTypeParametersSubstitutor
 //        if (descriptor.typeParameters.isEmpty()) {
 //            return
@@ -1325,7 +1329,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         for (index in typeParameters.indices) {
             val typeParameter = typeParameters[index]
 //            TODO 会不会出现通过索引获取错误的情况，有待验证
-            val freshVariable = toFreshVariables.freshVariables[index]
+            val freshVariable = freshTypeVariables[index]
 
             val knownTypeArgument = knownTypeParametersResultingSubstitutor?.safeSubstitute(typeParameter.defaultType.unwrap())
             if (knownTypeArgument != null) {

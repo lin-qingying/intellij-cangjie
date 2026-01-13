@@ -29,7 +29,7 @@ import org.cangnova.cangjie.resolve.scopes.DescriptorKindExclude
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.FuzzyType
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.fuzzyReturnType
 import com.intellij.psi.PsiElement
 import com.intellij.util.SmartList
@@ -72,8 +72,8 @@ class RealContextVariablesProvider(
             nameFilter = MemberScope.ALL_NAME_FILTER).map { it as VariableDescriptor }
     }
 
-    override fun functionTypeVariables(requiredType: FuzzyType): Collection<Pair<VariableDescriptor, DefaultTypeSubstitutor>> {
-        val result = SmartList<Pair<VariableDescriptor, DefaultTypeSubstitutor>>()
+    override fun functionTypeVariables(requiredType: FuzzyType): Collection<Pair<VariableDescriptor, ComposableTypeSubstitutor>> {
+        val result = SmartList<Pair<VariableDescriptor, ComposableTypeSubstitutor>>()
         for (variable in allFunctionTypeVariables) {
             val substitutor = variable.fuzzyReturnType()?.checkIsSubtypeOf(requiredType) ?: continue
             result.add(variable to substitutor)

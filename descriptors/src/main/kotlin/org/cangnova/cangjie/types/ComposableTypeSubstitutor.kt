@@ -165,29 +165,7 @@ class ComposableTypeSubstitutor private constructor(
             return ComposableTypeSubstitutor(listOf(substitutor), options)
         }
 
-        /**
-         * 从旧的 DefaultTypeSubstitutor 转换
-         *
-         * 用于渐进式迁移
-         */
-        @JvmStatic
-        fun fromLegacy(legacy: DefaultTypeSubstitutor): ComposableTypeSubstitutor {
-            if (legacy.isEmpty) return EMPTY
 
-            val substitution = legacy.substitution
-            val substitutor = SubstitutorFunction { constructor ->
-                val descriptor = constructor.declarationDescriptor ?: return@SubstitutorFunction null
-                substitution[descriptor.defaultType]?.type?.unwrap()
-            }
-
-            val options = SubstitutionOptions(
-                approximateCapturedTypes = substitution.approximateCapturedTypes(),
-                keepAnnotations = true,
-                runCapturedChecks = true
-            )
-
-            return ComposableTypeSubstitutor(listOf(substitutor), options)
-        }
     }
 
     override val isEmpty: Boolean
@@ -345,7 +323,7 @@ class ComposableTypeSubstitutor private constructor(
         }
 
         // 构建新类型
-        var result = type.replace(substitutedArguments, type.annotations)
+        var result = CangJieTypeFactory.simpleType(type, arguments = substitutedArguments, annotations = type.attributes)
         if (result is SimpleType && substitutedAbbreviation is SimpleType) {
             result = result.withAbbreviation(substitutedAbbreviation)
         }

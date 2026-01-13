@@ -165,11 +165,11 @@ class LazySubstitutingClassDescriptor(
 
 
     override fun getMemberScope(
-        typeSubstitution: TypeSubstitution,
+        substitutor: ComposableTypeSubstitutor,
         cangjieTypeRefiner: CangJieTypeRefiner
     ): MemberScope {
         val memberScope =
-            original.getMemberScope(typeSubstitution, cangjieTypeRefiner)
+            original.getMemberScope(substitutor, cangjieTypeRefiner)
         if (originalSubstitutor.isEmpty) {
             return memberScope
         }
@@ -201,9 +201,9 @@ class LazySubstitutingClassDescriptor(
     }
 
 
-    override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
+    override fun getMemberScope(substitutor: ComposableTypeSubstitutor): MemberScope {
         return getMemberScope(
-            typeSubstitution, DescriptorUtils.getContainingModule(
+            substitutor, DescriptorUtils.getContainingModule(
                 this
             ).getCangJieTypeRefiner(
 

@@ -27,9 +27,6 @@ package org.cangnova.cangjie.resolve.calls.components
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.resolve.calls.inference.components.ConstraintInjector
-import org.cangnova.cangjie.resolve.calls.inference.components.EmptySubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.TypeSubstitutorByConstructorMap
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintSystemImpl
 import org.cangnova.cangjie.resolve.calls.inference.model.NewTypeVariable
 import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariableTypeConstructor
@@ -183,7 +180,8 @@ class ClassicTypeSystemContextForCS(
     override fun typeSubstitutorByTypeConstructor(map: Map<TypeConstructorMarker, CangJieTypeMarker>): TypeSubstitutorMarker {
         if (map.isEmpty()) return createEmptySubstitutor()
         @Suppress("UNCHECKED_CAST")
-        return TypeSubstitutorByConstructorMap(map as Map<TypeConstructor, UnwrappedType>)
+        val unwrappedMap = (map as Map<TypeConstructor, CangJieType>).mapValues { (_, type) -> type.unwrap() }
+        return ComposableTypeSubstitutor.create(unwrappedMap)
     }
 
     /**
@@ -195,7 +193,7 @@ class ClassicTypeSystemContextForCS(
      * @return 空类型替换器实例
      */
     override fun createEmptySubstitutor(): TypeSubstitutorMarker {
-        return EmptySubstitutor
+        return ComposableTypeSubstitutor.EMPTY
     }
 
     /**
@@ -205,8 +203,7 @@ class ClassicTypeSystemContextForCS(
      * "安全"意味着即使替换失败也不会抛出异常,而是返回错误类型或原类型。
      *
      * ## 支持的替换器类型
-     * - [AbstractTypeSubstitutor]: 新型类型替换器
-     * - [DefaultTypeSubstitutor]: 经典类型替换器
+     * - [ComposableTypeSubstitutor]: 组合式类型替换器
      *
      * @receiver 类型替换器标记
      * @param type 要替换的类型
@@ -217,8 +214,7 @@ class ClassicTypeSystemContextForCS(
         require(type is CangJieType, type::errorMessage)
         val unwrappedType = type.unwrap()
         return when (this) {
-            is AbstractTypeSubstitutor -> safeSubstitute(unwrappedType)
-            is DefaultTypeSubstitutor -> safeSubstitute(unwrappedType )
+            is ComposableTypeSubstitutor -> safeSubstitute(unwrappedType)
             else -> error(this.errorMessage())
         }
     }

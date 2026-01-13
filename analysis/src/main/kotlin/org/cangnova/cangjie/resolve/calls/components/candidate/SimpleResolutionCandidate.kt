@@ -31,7 +31,6 @@ import org.cangnova.cangjie.resolve.calls.model.MutableResolvedCallAtom
 import org.cangnova.cangjie.resolve.calls.model.ResolvedAtom
 import org.cangnova.cangjie.resolve.calls.tower.ImplicitScopeTower
 import org.cangnova.cangjie.types.ComposableTypeSubstitutor
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor
 
 /**
  * 简单解析候选 (Simple Resolution Candidate)

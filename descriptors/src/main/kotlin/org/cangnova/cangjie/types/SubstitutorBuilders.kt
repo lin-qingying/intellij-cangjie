@@ -226,24 +226,15 @@ object TypeSubstitutors {
         ComposableTypeSubstitutor.create(map, SubstitutionOptions.TEST)
 
     /**
-     * 从 TypeSubstitution 创建（兼容旧 API）
+     * 从 TypeSubstitution 创建（已弃用）
      *
-     * 为从旧的 DefaultTypeSubstitutor 迁移提供桥梁。
-     *
-     * ## 迁移路径
-     * ```kotlin
-     * // 旧代码
-     * val oldSubstitutor = DefaultTypeSubstitutor.create(substitution)
-     *
-     * // 新代码
-     * val newSubstitutor = TypeSubstitutors.fromSubstitution(substitution)
-     * ```
-     *
-     * ## 注意
-     * - 这是过渡性 API
-     * - 推荐直接使用 Map 或 SubstitutorFunction
-     * - 将来可能被弃用
+     * **此方法已弃用**：TypeSubstitution 接口已被移除。
+     * 如果需要从旧代码迁移，请使用：
+     * - `TypeSubstitutors.create(map)` - 如果有类型映射
+     * - `ComposableTypeSubstitutor.create(function)` - 如果需要函数式接口
      */
+    // 由于 TypeSubstitution 已被移除，此方法无法编译，已注释
+    /*
     @JvmStatic
     fun fromSubstitution(substitution: TypeSubstitution): ComposableTypeSubstitutor {
         // 空替换优化
@@ -261,6 +252,7 @@ object TypeSubstitutors {
             )
         )
     }
+    */
 
     /**
      * 链式创建（从多个数据源）

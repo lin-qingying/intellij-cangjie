@@ -190,7 +190,7 @@ class TypeAliasExpander(
             )
         }
 
-        return this.replace(newArguments = substitutedArguments)
+        return CangJieTypeFactory.simpleType(this, arguments = substitutedArguments)
     }
     /**
      * 展开类型投影
@@ -301,7 +301,7 @@ class TypeAliasExpander(
      * @return 属性合并后的简单类型
      */
     private fun SimpleType.combineAttributes(newAttributes: TypeAttributes): SimpleType =
-        if (isError) this else replace(newAttributes = createdCombinedAttributes(newAttributes))
+        if (isError) this else CangJieTypeFactory.simpleType(this, annotations = createdCombinedAttributes(newAttributes))
 
     /**
      * 递归展开类型别名

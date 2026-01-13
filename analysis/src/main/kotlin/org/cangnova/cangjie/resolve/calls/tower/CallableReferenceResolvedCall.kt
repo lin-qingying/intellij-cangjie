@@ -29,8 +29,6 @@ import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import org.cangnova.cangjie.psi.ValueArgument
-import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableTypeSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.ResolvedValueArgument
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
@@ -209,14 +207,19 @@ class CallableReferenceResolvedCall<D : CallableDescriptor>(
         _resultingDescriptor = substitutedResultingDescriptor(substitutor) as D
 
         freshSubstitutor?.let { freshSubstitutor ->
-            _typeArguments = freshSubstitutor.freshVariables.map {
-                val substituted = (substitutor ?: FreshVariableTypeSubstitutor.Empty).safeSubstitute(it.defaultType)
+            // 从 resolvedAtom 中获取 freshVariables
+            val freshVariables = when (resolvedAtom) {
+                is ResolvedCallableReferenceCallAtom -> resolvedAtom.freshVariables
+                is ResolvedCallableReferenceArgumentAtom -> resolvedAtom.candidate?.freshVariables
+            }
+            _typeArguments = freshVariables?.map {
+                val substituted = (substitutor ?: ComposableTypeSubstitutor.EMPTY).safeSubstitute(it.defaultType)
                 typeApproximator.approximateToSuperType(
                     substituted,
                     TypeApproximatorConfiguration.IntegerLiteralsTypesApproximation
                 )
                     ?: substituted
-            }
+            } ?: emptyList()
         }
     }
 

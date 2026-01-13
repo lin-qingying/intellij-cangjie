@@ -25,9 +25,12 @@
 package org.cangnova.cangjie.types
 
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
+import org.cangnova.cangjie.descriptors.annotations.Annotations
+import org.cangnova.cangjie.descriptors.annotations.FilteredAnnotations
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.findClassifier
+import org.cangnova.cangjie.types.error.ErrorType
 import org.cangnova.cangjie.utils.SmartSet
 import org.cangnova.cangjie.utils.canBeReferencedViaImport
 
@@ -85,6 +88,51 @@ private fun TypeArgument.fixTypeProjection(
     }
 
     return type.replace(newArguments).asTypeArgument()
+}
+
+@JvmOverloads
+fun CangJieType.replace(
+    newArguments: List<TypeArgument> = arguments,
+    newAnnotations: Annotations = annotations,
+    newArgumentsForUpperBound: List<TypeArgument> = newArguments
+): CangJieType {
+    if ((newArguments.isEmpty() || newArguments === arguments) && newAnnotations === annotations) return this
+
+    val newAttributes = attributes.replaceAnnotations(
+        // Specially handle FilteredAnnotations here due to FilteredAnnotations.isEmpty()
+        if (newAnnotations is FilteredAnnotations && newAnnotations.isEmpty()) Annotations.EMPTY else newAnnotations
+    )
+
+    return when (val unwrapped = unwrap()) {
+        is FlexibleType -> CangJieTypeFactory.flexibleType(
+            unwrapped.lowerBound.replace(newArguments, newAttributes),
+            unwrapped.upperBound.replace(newArgumentsForUpperBound, newAttributes)
+        )
+        is SimpleType -> unwrapped.replace(newArguments, newAttributes)
+    }
+}
+
+@JvmOverloads
+fun SimpleType.replace(
+    newArguments: List<TypeArgument> = arguments,
+    newAttributes: TypeAttributes = attributes
+): SimpleType {
+    if (newArguments.isEmpty() && newAttributes === attributes) return this
+
+    if (newArguments.isEmpty()) {
+        return replaceAttributes(newAttributes)
+    }
+
+    if (this is ErrorType) {
+        return replaceArguments(newArguments)
+    }
+
+    return CangJieTypeFactory.simpleType(
+        newAttributes,
+        constructor,
+        newArguments,
+        isOption
+    )
 }
 
 fun CangJieType.getResolvableApproximations(

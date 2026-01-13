@@ -33,7 +33,6 @@ import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReference
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.extractInputOutputTypesFromCallableReferenceExpectedType
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystem
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintError
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintMismatch
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintWarning
@@ -102,6 +101,7 @@ abstract class ResolvedCallAtom : ResolvedAtom() {
 
     abstract val argumentMappingByOriginal: Map<ValueParameterDescriptor, ResolvedCallArgument>
     abstract val freshVariablesSubstitutor: ComposableTypeSubstitutor
+    abstract val freshVariables: List<org.cangnova.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor>
     abstract val argumentsWithSuspendConversion: Map<CangJieCallArgument, UnwrappedType>
 
     abstract val knownParametersSubstitutor: ComposableTypeSubstitutor

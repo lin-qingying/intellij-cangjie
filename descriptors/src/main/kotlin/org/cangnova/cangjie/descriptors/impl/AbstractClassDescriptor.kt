@@ -115,32 +115,33 @@ abstract class AbstractClassDescriptor(
         }
         if (typeArguments.isEmpty()) return getUnsubstitutedMemberScope(cangjieTypeRefiner)
 
-        val typeSubstitution = TypeConstructorSubstitution.create(typeConstructor, typeArguments)
-        val substitutor = TypeSubstitutors.fromSubstitution(typeSubstitution)
+        val substitutorMap = typeConstructor.parameters.zip(typeArguments).associate { (param, arg) ->
+            param.typeConstructor to arg.type.unwrap()
+        }
+        val substitutor = ComposableTypeSubstitutor.create(substitutorMap)
         return SubstitutingScope(getUnsubstitutedMemberScope(cangjieTypeRefiner), substitutor)
     }
 
     override fun getMemberScope(
-        typeSubstitution: TypeSubstitution,
+        substitutor: ComposableTypeSubstitutor,
         cangjieTypeRefiner: CangJieTypeRefiner
     ): MemberScope {
-        if (typeSubstitution.isEmpty()) return getUnsubstitutedMemberScope(cangjieTypeRefiner)
+        if (substitutor.isEmpty) return getUnsubstitutedMemberScope(cangjieTypeRefiner)
 
-        val substitutor = TypeSubstitutors.fromSubstitution(typeSubstitution)
         return SubstitutingScope(getUnsubstitutedMemberScope(cangjieTypeRefiner), substitutor)
     }
 
 
-    
+
     override fun getMemberScope(typeArguments: List<TypeArgument>): MemberScope {
         return getMemberScope(typeArguments.toList(), DescriptorUtils.getContainingModule(this).getCangJieTypeRefiner())
 
     }
 
 
-    
-    override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
-        return getMemberScope(typeSubstitution, DescriptorUtils.getContainingModule(this).getCangJieTypeRefiner())
+
+    override fun getMemberScope(substitutor: ComposableTypeSubstitutor): MemberScope {
+        return getMemberScope(substitutor, DescriptorUtils.getContainingModule(this).getCangJieTypeRefiner())
     }
 
 

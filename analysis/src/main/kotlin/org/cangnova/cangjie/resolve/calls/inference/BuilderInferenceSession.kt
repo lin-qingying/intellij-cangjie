@@ -47,8 +47,6 @@ import org.cangnova.cangjie.resolve.calls.components.PostponedArgumentsAnalyzer
 import org.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext
 import org.cangnova.cangjie.resolve.calls.inference.components.CangJieConstraintSystemCompleter
 import org.cangnova.cangjie.resolve.calls.inference.components.ConstraintSystemCompletionMode
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.TypeSubstitutorByConstructorMap
 import org.cangnova.cangjie.resolve.calls.inference.model.*
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.tower.*
@@ -190,8 +188,8 @@ class BuilderInferenceSession(
             it.constructor as TypeConstructor to TypeArgumentImpl(nonFixedToVariablesSubstitutor.safeSubstitute(it.unwrap()))
         }
 
-        val capTypesSubstitutor =
-            TypeConstructorSubstitution.createByConstructorsMap(substitutedCommonCapType).buildSubstitutor()
+        val substitutorMap = substitutedCommonCapType.mapValues { (_, arg) -> arg.type.unwrap() }
+        val capTypesSubstitutor = ComposableTypeSubstitutor.create(substitutorMap)
 
         val substitutedLowerType =
             nonFixedToVariablesSubstitutor.safeSubstitute(
@@ -559,15 +557,3 @@ class BuilderInferenceSession(
     }
 }
 
-@Deprecated("use ComposableTypeSubstitutor")
-
-class ComposedSubstitutor(val left: AbstractTypeSubstitutor, val right: AbstractTypeSubstitutor) :
-    AbstractTypeSubstitutor() {
-    override fun substituteByConstructor(constructor: TypeConstructor): UnwrappedType? {
-        val rightSubstitution = right.substituteByConstructor(constructor)
-        return left.substituteByConstructor(rightSubstitution?.constructor ?: constructor)
-            ?: rightSubstitution
-    }
-
-    override val isEmpty: Boolean get() = left.isEmpty && right.isEmpty
-}

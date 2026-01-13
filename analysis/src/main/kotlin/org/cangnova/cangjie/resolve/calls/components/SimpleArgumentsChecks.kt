@@ -28,7 +28,6 @@ import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilder
 import org.cangnova.cangjie.resolve.calls.inference.addSubtypeConstraintIfCompatible
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.ArgumentConstraintPositionImpl
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintPosition
 import org.cangnova.cangjie.resolve.calls.inference.model.ReceiverConstraintPositionImpl
@@ -135,7 +134,7 @@ private fun checkSubCallArgument(
     // 返回类型可能包含固定的类型变量
     // 获取子调用的当前返回类型（应用类型替换）
     val currentReturnType =
-        (csBuilder.buildCurrentSubstitutor() as AbstractTypeSubstitutor)
+        (csBuilder.buildCurrentSubstitutor() as ComposableTypeSubstitutor)
             .safeSubstitute(subCallArgument.receiver.receiverValue.type.unwrap())
 
     // 如果是安全调用（?.），返回类型必须是可空的

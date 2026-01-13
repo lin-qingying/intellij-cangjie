@@ -30,7 +30,6 @@ import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystemOperation
-import org.cangnova.cangjie.resolve.calls.inference.components.FreshVariableTypeSubstitutor
 import org.cangnova.cangjie.resolve.calls.inference.model.ArgumentConstraintPositionImpl
 import org.cangnova.cangjie.resolve.calls.inference.model.CallableReferenceConstraintPositionImpl
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintPosition

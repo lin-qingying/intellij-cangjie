@@ -144,11 +144,14 @@ class BuiltinsClassDescriptor(
                 SourceElement.NO_SOURCE
             ) {
                 init {
+                    val pointerType = createBuiltinsType(BuiltinsType.CPOINTER).unwrap() as SimpleType
+                    val pointerTypeWithArg = CangJieTypeFactory.simpleType(
+                        pointerType,
+                        arguments = listOf(TypeArgumentImpl(builtIns.uint8Type))
+                    )
                     val parameter = ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                         this, null, 0, Annotations.EMPTY, Name.identifier("pointer"),
-                        false, createBuiltinsType(BuiltinsType.CPOINTER).replace(
-                            newArguments = listOf(TypeArgumentImpl(builtIns.uint8Type))
-                        ), false, SourceElement.NO_SOURCE
+                        false, pointerTypeWithArg, false, SourceElement.NO_SOURCE
                     )
                     initialize(listOf(parameter))
                     setReturnType(this@BuiltinsClassDescriptor.defaultType)

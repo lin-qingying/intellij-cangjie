@@ -26,8 +26,13 @@ package org.cangnova.cangjie.types
 
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 
-/**
- * 不相交键并集类型替换
+// ===================================================================
+// 此文件已废弃 - TypeSubstitution 接口已被删除，使用 ComposableTypeSubstitutor 替代
+// This file is deprecated - TypeSubstitution interface has been removed, use ComposableTypeSubstitutor instead
+// ===================================================================
+
+/*
+/** 不相交键并集类型替换
  *
  * 这个类实现了两个类型替换的组合，要求两个替换的键集合不相交（disjoint）。
  * 它通过联合（union）两个类型替换来创建一个新的替换，查找时会依次在两个替换中查找。
@@ -79,6 +84,7 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
  *
  * @see TypeSubstitution 类型替换的基类
  */
+@Deprecated("")
 class DisjointKeysUnionTypeSubstitution private constructor(
     private val first: TypeSubstitution,
     private val second: TypeSubstitution
@@ -248,3 +254,4 @@ class DisjointKeysUnionTypeSubstitution private constructor(
     override fun filterAnnotations(annotations: Annotations): Annotations =
         second.filterAnnotations(first.filterAnnotations(annotations))
 }
+*/

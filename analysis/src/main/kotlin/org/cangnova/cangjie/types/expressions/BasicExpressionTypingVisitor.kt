@@ -99,6 +99,7 @@ import org.cangnova.cangjie.resolve.scopes.getImplicitReceiversHierarchy
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver.Companion.create
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.ErrorUtils.createErrorType
 import org.cangnova.cangjie.types.ErrorUtils.invalidType
 import org.cangnova.cangjie.types.ErrorUtils.isError
@@ -122,7 +123,6 @@ import org.cangnova.cangjie.types.isDynamic
 import org.cangnova.cangjie.types.isError
 import org.cangnova.cangjie.types.isOptionType
 import java.util.*
-import org.cangnova.cangjie.types.DefaultTypeSubstitutor.Companion.create
 
 /**
  * 基础表达式类型访问器
@@ -1784,7 +1784,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         var result: CangJieType? = null
         val thisType = thisReceiver.type
         val supertypes = thisType.constructor.supertypes
-        val substitutor = create(thisType)
+        val substitutor = ComposableTypeSubstitutor.create(thisType)
 
         val superTypeQualifier = expression.superTypeQualifier
         if (superTypeQualifier != null) {
@@ -1822,7 +1822,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             } else if (classifierCandidate is ClassDescriptor) {
                 for (declaredSupertype in supertypes) {
                     if (declaredSupertype.constructor == classifierCandidate.typeConstructor) {
-                        result = substitutor.safeSubstitute(declaredSupertype, )
+                        result = substitutor.safeSubstitute(declaredSupertype.unwrap())
                         break
                     }
                 }
@@ -1849,7 +1849,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                 }
                 if (supertypesResolvedFromContext.size == 1) {
                     val singleResolvedType = supertypesResolvedFromContext.iterator().next()
-                    result = substitutor.substitute(singleResolvedType, )
+                    result = substitutor.safeSubstitute(singleResolvedType.unwrap())
                 } else if (supertypesResolvedFromContext.isEmpty()) {
                     // No supertype found, either with concrete or abstract members.
                     // Resolve to 'Any' (this will cause diagnostics for unresolved member reference).
@@ -1863,7 +1863,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                     components.builtIns.stdlibTypes.anyType
                 else
                     supertypes.iterator().next()
-                result = substitutor.substitute(type, )
+                result = substitutor.safeSubstitute(type.unwrap())
             }
         }
         if (result != null) {

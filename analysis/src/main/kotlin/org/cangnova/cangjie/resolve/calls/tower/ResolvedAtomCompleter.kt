@@ -40,10 +40,6 @@ import org.cangnova.cangjie.resolve.calls.components.CallableReferenceAdaptation
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.isVararg
 import org.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext
-import org.cangnova.cangjie.resolve.calls.inference.ComposedSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.EmptySubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.AbstractTypeSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.components.TypeSubstitutorByConstructorMap
 import org.cangnova.cangjie.resolve.calls.inference.model.ResolvedValueArgument
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
@@ -505,14 +501,15 @@ class ResolvedAtomCompleter(
             callableCandidate.resolvedCall.atom.psiCangJieCall.psiCall.callElement as? CjCallableReference
                 ?: return null
         val freshSubstitutor = callableCandidate.freshVariablesSubstitutor ?: return null
+        val freshVariables = callableCandidate.freshVariables ?: return null
         // 应用类型推断结果到类型参数
         val resultTypeParameters =
-            freshSubstitutor.freshVariables.map { resultSubstitutor.safeSubstitute(it.defaultType) }
+            freshVariables.map { resultSubstitutor.safeSubstitute(it.defaultType) }
 
         val resultSubstitutor = if (callableCandidate.candidate.isSupportedForCallableReference()) {
-            ComposableTypeSubstitutor.create(callableCandidate.candidate.typeParameters.map { it.typeConstructor }
-                .zip(resultTypeParameters).toMap())
-                .compose(resultSubstitutor)
+            val parameterMap = callableCandidate.candidate.typeParameters.map { it.typeConstructor }
+                .zip(resultTypeParameters).toMap()
+            ComposableTypeSubstitutor.create(parameterMap).compose(resultSubstitutor)
 
         } else ComposableTypeSubstitutor.EMPTY
 

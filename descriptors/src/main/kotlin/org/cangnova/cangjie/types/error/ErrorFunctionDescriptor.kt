@@ -33,7 +33,6 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.ErrorUtils
-import org.cangnova.cangjie.types.TypeSubstitution
 
 
 class ErrorFunctionDescriptor(containingDeclaration: ClassDescriptor) : SimpleFunctionDescriptorImpl(

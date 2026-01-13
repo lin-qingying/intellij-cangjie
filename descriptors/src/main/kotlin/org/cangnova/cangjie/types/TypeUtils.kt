@@ -361,7 +361,7 @@ object TypeUtils {
      * ```kotlin
      * val subType: CangJieType = ...
      * val superType: CangJieType = ...
-     * val substitutor: DefaultTypeSubstitutor = DefaultTypeSubstitutor.create(subType)
+     * val substitutor: ComposableTypeSubstitutor = ComposableTypeSubstitutor.create(subType)
      * val result = createSubstitutedSupertype(subType, superType, substitutor)
      * // 返回替换后的超类型，并根据subType的Option状态调整
      * ```
@@ -372,13 +372,10 @@ object TypeUtils {
      * @return 替换后的超类型，如果替换失败则返回null
      */
     fun createSubstitutedSupertype(
-        subType: CangJieType, superType: CangJieType, substitutor: DefaultTypeSubstitutor
+        subType: CangJieType, superType: CangJieType, substitutor: ComposableTypeSubstitutor
     ): CangJieType? {
-        val substitutedType: CangJieType? = substitutor.substitute(superType)
-        if (substitutedType != null) {
-            return makeOptionalIfNeeded(substitutedType, subType.isOption)
-        }
-        return null
+        val substitutedType: CangJieType = substitutor.safeSubstitute(superType.unwrap())
+        return makeOptionalIfNeeded(substitutedType, subType.isOption)
     }
 
     /**
@@ -523,7 +520,7 @@ object TypeUtils {
      */
     fun getImmediateSupertypes(type: CangJieType): List<CangJieType> {
 
-        val substitutor: DefaultTypeSubstitutor = DefaultTypeSubstitutor.create(type)
+        val substitutor: ComposableTypeSubstitutor = ComposableTypeSubstitutor.create(type)
         val originalSupertypes: Collection<CangJieType> = type.constructor.supertypes
         val result = ArrayList<CangJieType>(originalSupertypes.size)
         for (supertype in originalSupertypes) {
@@ -1742,7 +1739,7 @@ internal fun CangJieType.substitute(substitution: CangJieTypeSubstitution): Cang
 
 inline fun SimpleType.replaceArgumentsByExistingArgumentsWith(replacement: (TypeArgumentMarker) -> TypeArgumentMarker): SimpleType {
     if (arguments.isEmpty()) return this
-    return replace(newArguments = arguments.map { replacement(it) as TypeArgument })
+    return CangJieTypeFactory.simpleType(this, arguments = arguments.map { replacement(it) as TypeArgument })
 }
 
 inline fun CangJieType.replaceArgumentsByParametersWith(replacement: (TypeParameterDescriptor) -> TypeArgument): CangJieType {
@@ -1762,7 +1759,7 @@ inline fun SimpleType.replaceArgumentsByParametersWith(replacement: (TypeParamet
 
     val newArguments = constructor.parameters.map(replacement)
 
-    return replace(newArguments)
+    return CangJieTypeFactory.simpleType(this, arguments = newArguments)
 }
 
 fun CangJieType.extractTypeParametersFromUpperBounds(visitedTypeParameters: Set<TypeParameterDescriptor>?): Set<TypeParameterDescriptor> =
@@ -1968,11 +1965,14 @@ fun unCaptureProjection(projection: TypeArgument): TypeArgument {
     val unCapturedProjection = (projection.type.constructor as? CapturedTypeConstructor)?.argument ?: projection
     if (unCapturedProjection.type is ErrorType) return unCapturedProjection
 
-    val newArguments = unCapturedProjection.type.arguments.map(::unCaptureProjection)
-    return TypeArgumentImpl(
-
-        unCapturedProjection.type.replace(newArguments)
-    )
+    val originalType = unCapturedProjection.type
+    val newArguments = originalType.arguments.map(::unCaptureProjection)
+    val newType = if (originalType is SimpleType) {
+        CangJieTypeFactory.simpleType(originalType, arguments = newArguments)
+    } else {
+        originalType  // 如果不是 SimpleType,保持原样
+    }
+    return TypeArgumentImpl(newType)
 }
 
 fun CangJieType.unCapture(): CangJieType = unwrap().unCapture()
@@ -1983,7 +1983,7 @@ fun SimpleType.unCapture(): UnwrappedType {
         return unCaptureTopLevelType()
 
     val newArguments = arguments.map(::unCaptureProjection)
-    return replace(newArguments).unwrap()
+    return CangJieTypeFactory.simpleType(this, arguments = newArguments).unwrap()
 }
 
 private fun CapturedType.unCaptureTopLevelType(): UnwrappedType {

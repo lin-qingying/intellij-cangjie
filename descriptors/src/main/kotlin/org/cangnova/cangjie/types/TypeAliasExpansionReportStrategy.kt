@@ -34,7 +34,7 @@ interface TypeAliasExpansionReportStrategy {
     fun conflictingProjection(typeAlias: TypeAliasDescriptor, typeParameter: TypeParameterDescriptor?, substitutedArgument: CangJieType)
     fun recursiveTypeAlias(typeAlias: TypeAliasDescriptor)
     fun boundsViolationInSubstitution(
-        substitutor: DefaultTypeSubstitutor,
+        substitutor: ComposableTypeSubstitutor,
         unsubstitutedArgument: CangJieType,
         argument: CangJieType,
         typeParameter: TypeParameterDescriptor
@@ -53,7 +53,7 @@ interface TypeAliasExpansionReportStrategy {
 
         override fun recursiveTypeAlias(typeAlias: TypeAliasDescriptor) {}
         override fun boundsViolationInSubstitution(
-            substitutor: DefaultTypeSubstitutor,
+            substitutor: ComposableTypeSubstitutor,
             unsubstitutedArgument: CangJieType,
             argument: CangJieType,
             typeParameter: TypeParameterDescriptor

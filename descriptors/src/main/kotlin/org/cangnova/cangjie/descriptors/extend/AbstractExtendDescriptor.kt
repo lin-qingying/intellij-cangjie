@@ -68,18 +68,20 @@ abstract class AbstractExtendDescriptor(
             "Illegal number of type arguments: expected ${declaredTypeParameters.size} but was ${typeArguments.size} for   ${declaredTypeParameters}"
         }
         if (typeArguments.isEmpty()) return unsubstitutedMemberScope
-        val typeSubstitution = TypeConstructorSubstitution.create(extendType.constructor, typeArguments)
-        val substitutor = TypeSubstitutors.fromSubstitution(typeSubstitution)
+
+        val substitutorMap = declaredTypeParameters.zip(typeArguments).associate { (param, arg) ->
+            param.typeConstructor to arg.type.unwrap()
+        }
+        val substitutor = ComposableTypeSubstitutor.create(substitutorMap)
 
         return SubstitutingScope(unsubstitutedMemberScope, substitutor)
     }
 
     override fun getMemberScope(
-        typeSubstitution: TypeSubstitution,
+        substitutor: ComposableTypeSubstitutor,
 
         ): MemberScope {
-        if (typeSubstitution.isEmpty()) return unsubstitutedMemberScope
-        val substitutor = TypeSubstitutors.fromSubstitution(typeSubstitution)
+        if (substitutor.isEmpty) return unsubstitutedMemberScope
 
         return SubstitutingScope(unsubstitutedMemberScope, substitutor)
     }

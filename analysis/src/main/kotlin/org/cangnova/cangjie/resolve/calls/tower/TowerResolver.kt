@@ -1205,12 +1205,9 @@ internal class MemberScopeTowerLevel(
      * @return 近似后的可调用描述符
      */
     private fun CallableDescriptor.approximateCapturedTypes(approximator: TypeApproximator): CallableDescriptor {
-
-        val wrappedSubstitution = object : TypeSubstitution() {
-            override fun get(key: CangJieType): TypeArgument? = null
-            override fun prepareTopLevelType(topLevelType: CangJieType) = topLevelType
-        }
-        return substitute(ComposableTypeSubstitutor.fromLegacy(DefaultTypeSubstitutor.create(wrappedSubstitution)))!!
+        // 创建一个空替换器,仅用于触发类型近似
+        // 使用 EMPTY 替换器不会改变类型,但会通过 substitute 方法触发类型处理
+        return substitute(ComposableTypeSubstitutor.EMPTY)!!
     }
 
     /**
