@@ -33,6 +33,7 @@ import org.cangnova.cangjie.resolve.scopes.collectFunctions
 import org.cangnova.cangjie.search.isValidOperator
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ComposableTypeSubstitutor
+import org.cangnova.cangjie.types.FuzzyType
 import org.cangnova.cangjie.types.TypeSubstitutor
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isOptionType
@@ -189,6 +190,14 @@ abstract class TypesWithOperatorDetector(
         cache[type] = result
         result
     }
+
+    /**
+     * 查找支持操作符的模糊类型
+     *
+     * @param type 待检查的模糊类型
+     * @return 如果找到合适的操作符，返回操作符描述符和类型替换器的配对；否则返回 null
+     */
+    fun findOperator(type: FuzzyType): Pair<FunctionDescriptor, TypeSubstitutor>? = findOperator(type.type)
 
     /**
      * 查找支持操作符的类型（无缓存版本）

@@ -287,6 +287,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun CangJieTypeMarker.isDynamic(): Boolean = asFlexibleType()?.asDynamicType() != null
     fun CangJieTypeMarker.isFlexibleNothing() =
         this is FlexibleTypeMarker && lowerBound().isNothing() && upperBound().isOptionNothing()
+    fun TypeConstructorMarker.isCommonFinalClassConstructor(): Boolean
 
     fun CangJieTypeMarker.isOptionNothing() = this.typeConstructor().isNothingConstructor() && this.isOptionType()
 

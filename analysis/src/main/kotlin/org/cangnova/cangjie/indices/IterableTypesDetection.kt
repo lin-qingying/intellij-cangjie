@@ -39,6 +39,7 @@ import org.cangnova.cangjie.resolve.scopes.collectFunctions
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import org.cangnova.cangjie.search.isValidOperator
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.FuzzyType
 
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.UnwrappedType
@@ -134,4 +135,14 @@ interface IterableTypesDetector {
     fun isIterable(type: CangJieType, loopVarType: CangJieType? = null): Boolean
     fun isIterable(type: UnwrappedType, loopVarType: CangJieType? = null): Boolean
     fun elementType(type: CangJieType): UnwrappedType?
+
+    /**
+     * 检查 FuzzyType 是否为可迭代类型
+     *
+     * @param type 模糊类型
+     * @param loopVarType 循环变量的期望类型
+     * @return Boolean true 表示是可迭代类型
+     */
+    fun isIterable(type: FuzzyType, loopVarType: CangJieType? = null): Boolean =
+        isIterable(type.type, loopVarType)
 }

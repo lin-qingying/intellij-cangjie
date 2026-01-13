@@ -37,6 +37,7 @@ import org.cangnova.cangjie.indices.IfConditionAdditionalData
 import org.cangnova.cangjie.indices.fuzzyType
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.calls.util.CallTypeAndReceiver
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.isBoolean
 
 

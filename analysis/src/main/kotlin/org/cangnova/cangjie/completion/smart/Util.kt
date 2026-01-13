@@ -144,8 +144,9 @@ fun Collection<FuzzyType>.matchExpectedInfo(expectedInfo: ExpectedInfo): Expecte
         return ExpectedInfoMatch.match(substitutor)
     }
 
-    if (sequence.any { it.optionality() == TypeOptionality.OPTIONAL }) {
-        val substitutor2 = sequence.map { expectedInfo.matchingSubstitutor(it.makeNonOption()) }.firstOrNull()
+    // 在仓颉语言中,检查 Option 类型
+    if (sequence.any { it.type.optionality() != TypeOptionality.NOT_OPTION }) {
+        val substitutor2 = sequence.map { expectedInfo.matchingSubstitutor(it.unwrapOption()) }.firstOrNull()
         if (substitutor2 != null) {
             return ExpectedInfoMatch.ifNotNullMatch(substitutor2)
         }

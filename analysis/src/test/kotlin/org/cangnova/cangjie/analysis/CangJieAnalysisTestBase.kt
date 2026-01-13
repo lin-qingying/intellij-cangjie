@@ -173,6 +173,7 @@ abstract class CangJieAnalysisTestBase : CangJieTestBase() {
 
         val context = AnalysisContext(
             bindingContext = analysisResult.bindingContext,
+            moduleDescriptor = analysisResult.moduleDescriptor,
             file = file
         )
 
@@ -219,11 +220,27 @@ abstract class CangJieAnalysisTestBase : CangJieTestBase() {
      *
      *
      * @property bindingContext 绑定上下文，包含符号解析、类型推导等结果
+     * @property moduleDescriptor 模块描述符，用于访问内置类型等
      * @property file 正在分析的文件
      */
     data class AnalysisContext(
         val bindingContext: BindingContext,
+        val moduleDescriptor: org.cangnova.cangjie.descriptors.ModuleDescriptor,
         val file: CjFile
+    ) {
+        /**
+         * 获取 resolutionFacade 的替代对象
+         * 在测试环境中，直接使用 moduleDescriptor
+         */
+        val resolutionFacade: ResolutionFacadeStub
+            get() = ResolutionFacadeStub(moduleDescriptor)
+    }
+
+    /**
+     * ResolutionFacade 的桩对象，用于测试环境
+     */
+    data class ResolutionFacadeStub(
+        val moduleDescriptor: org.cangnova.cangjie.descriptors.ModuleDescriptor
     )
 
 

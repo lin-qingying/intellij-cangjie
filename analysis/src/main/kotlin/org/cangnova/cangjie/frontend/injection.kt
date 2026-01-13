@@ -269,16 +269,16 @@ fun StorageComponentContainer.configureModule(
         extension.registerModuleComponents(this, moduleContext.module)
     }
 
-    useImpl<DefaultCangJieTypeChecker>()
 
-    if (moduleContext.module.isTypeRefinementEnabled()) {
-//        useImpl<CangJieTypeRefinerImpl>()
-    } else {
-        useInstance(CangJieTypeRefiner.Default)
-    }
+
+//    if (moduleContext.module.isTypeRefinementEnabled()) {
+////        useImpl<CangJieTypeRefinerImpl>()
+//    } else {
+    useInstance(CangJieTypeRefiner.Default)
+//    }
 
     useInstance(CangJieTypePreparator.Default)
-
+    useImpl<DefaultCangJieTypeChecker>()
     configurePlatformIndependentComponents()
 }
 

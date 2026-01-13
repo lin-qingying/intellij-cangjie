@@ -80,7 +80,7 @@ class TypeInstantiationItems(
         val expectedInfosGrouped = LinkedHashMap<FuzzyType, MutableList<ExpectedInfo>>()
         for (expectedInfo in expectedInfos) {
             for (fuzzyType in expectedInfo.multipleFuzzyTypes) {
-                expectedInfosGrouped.getOrPut(fuzzyType.makeNonOption()) { ArrayList() }.add(expectedInfo)
+                expectedInfosGrouped.getOrPut(fuzzyType.unwrapOption()) { ArrayList() }.add(expectedInfo)
             }
         }
 

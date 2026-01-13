@@ -36,6 +36,7 @@ import org.cangnova.cangjie.types.fuzzyReturnType
 import com.intellij.codeInsight.lookup.LookupElement
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.deprecation.isVisible
+import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 
 class StaticMembers(
     private val bindingContext: BindingContext,

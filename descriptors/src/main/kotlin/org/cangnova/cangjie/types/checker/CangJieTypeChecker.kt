@@ -112,7 +112,7 @@ interface CangJieTypeChecker {
          *
          * 使用新的仓颉类型检查系统实现
          */
-        val DEFAULT: CangJieTypeChecker = DefaultCangJieTypeChecker()
+        val DEFAULT: CangJieTypeChecker = DefaultCangJieTypeChecker.INSTANCE
     }
 }
 
@@ -131,9 +131,13 @@ interface CangJieTypeChecker {
  * @param cangjieTypePreparator 类型准备器，用于准备类型进行检查（默认使用 Default）
  */
 class DefaultCangJieTypeChecker(
-    override val cangjieTypeRefiner: CangJieTypeRefiner = CangJieTypeRefiner.Default,
+    override val cangjieTypeRefiner: CangJieTypeRefiner  ,
     override val cangjieTypePreparator: CangJieTypePreparator = CangJieTypePreparator.Default
 ) : CangJieTypeChecker {
+
+    companion object{
+        val INSTANCE = DefaultCangJieTypeChecker(CangJieTypeRefiner.Default, CangJieTypePreparator.Default)
+    }
 
     /** 重写工具，使用类型精化器创建 */
     override val overridingUtil: OverridingUtil by lazy {

@@ -28,6 +28,7 @@ import com.intellij.util.containers.addIfNotNull
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.StandardNames.FqNames
 import org.cangnova.cangjie.descriptors.ClassDescriptor
+import org.cangnova.cangjie.descriptors.ClassKind
 import org.cangnova.cangjie.descriptors.TypeAliasDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.annotations.Annotations
@@ -160,6 +161,11 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     override fun optionAnyType(): SimpleTypeMarker {
         return anyType().withOption(true)
 
+    }
+    override fun TypeConstructorMarker.isCommonFinalClassConstructor(): Boolean {
+        require(this is TypeConstructor, this::errorMessage)
+        val classDescriptor = declarationDescriptor as? ClassDescriptor ?: return false
+        return classDescriptor.isFinalClass
     }
     /**
      * 获取类型的自定义属性
