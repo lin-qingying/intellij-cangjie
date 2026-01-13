@@ -144,7 +144,7 @@ class ComposableTypeSubstitutorTest : CangJieAnalysisTestBase() {
             val vParam = typeParameters[1]
 
             // 创建替换器：K -> String, V -> Int64
-            val stringType = resolutionFacade.moduleDescriptor.builtIns.stringType
+            val stringType = resolutionFacade.moduleDescriptor.builtIns.stdlibTypes.stringType
             val int64Type = resolutionFacade.moduleDescriptor.builtIns.int64Type
             val substitutor = ComposableTypeSubstitutor.create(
                 mapOf(
@@ -206,7 +206,7 @@ class ComposableTypeSubstitutorTest : CangJieAnalysisTestBase() {
             val tParam = typeParameters[0]
 
             // 创建替换器：T -> String
-            val stringType = resolutionFacade.moduleDescriptor.builtIns.stringType
+            val stringType = resolutionFacade.moduleDescriptor.builtIns.stdlibTypes.stringType
             val substitutor = ComposableTypeSubstitutor.create(
                 mapOf(tParam.typeConstructor to stringType.unwrap())
             )
