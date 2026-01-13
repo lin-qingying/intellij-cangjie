@@ -30,6 +30,7 @@ import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.Modality
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.constructors
 import org.cangnova.cangjie.types.deccriptorClass
 
 /**
@@ -81,7 +82,7 @@ class ClassSemanticAnalysisTest : CangJieAnalysisTestBase() {
             assertEquals("Foo", classDecl!!.name)
 
             // 验证类描述符被创建
-            val classDescriptor = bindingContext[BindingContext.CLASS, classDecl!!]
+            val classDescriptor =  bindingContext[BindingContext.CLASS, classDecl!!]
             assertNotNull("应该创建 ClassDescriptor", classDescriptor)
 
             // 验证描述符的基本属性
@@ -120,7 +121,7 @@ class ClassSemanticAnalysisTest : CangJieAnalysisTestBase() {
             val classDecl = PsiTreeUtil.findChildOfType(file, CjClass::class.java)
             assertNotNull("应该找到抽象类声明", classDecl)
 
-            val classDescriptor = bindingContext[BindingContext.CLASS, classDecl!!]
+            val classDescriptor =  bindingContext[BindingContext.CLASS, classDecl!!]
             assertNotNull("应该创建抽象类 ClassDescriptor", classDescriptor)
 
             // 验证模态性为 ABSTRACT
@@ -163,7 +164,7 @@ class ClassSemanticAnalysisTest : CangJieAnalysisTestBase() {
                 .firstOrNull { it.name == "Base" }
             assertNotNull("应该找到 Base 类", baseClass)
 
-            val baseDescriptor = bindingContext[BindingContext.CLASS, baseClass!!]
+            val baseDescriptor =  bindingContext[BindingContext.CLASS, baseClass!!]
             assertNotNull("应该创建 Base ClassDescriptor", baseDescriptor)
 
             // 验证 open 类的模态性
@@ -178,7 +179,7 @@ class ClassSemanticAnalysisTest : CangJieAnalysisTestBase() {
                 .firstOrNull { it.name == "Child" }
             assertNotNull("应该找到 Child 类", childClass)
 
-            val childDescriptor = bindingContext[BindingContext.CLASS, childClass!!]
+            val childDescriptor =  bindingContext[BindingContext.CLASS, childClass!!]
             assertNotNull("应该创建 Child ClassDescriptor", childDescriptor)
 
             // 验证继承关系（通过类型上界）
@@ -210,7 +211,7 @@ class ClassSemanticAnalysisTest : CangJieAnalysisTestBase() {
 
         analyzeForTest(file) {
             val classDecl = PsiTreeUtil.findChildOfType(file, CjClass::class.java)
-            val classDescriptor = bindingContext[BindingContext.CLASS, classDecl!!]
+            val classDescriptor =  bindingContext[BindingContext.CLASS, classDecl!!]
             assertNotNull("应该创建 ClassDescriptor", classDescriptor)
 
             // 验证默认类型
@@ -298,7 +299,8 @@ class ClassSemanticAnalysisTest : CangJieAnalysisTestBase() {
             assertNotNull("应该创建 ClassDescriptor", classDescriptor)
 
             // 验证主构造函数
-            val primaryConstructor = classDescriptor!!.unsubstitutedPrimaryConstructor
+            val constructors = classDescriptor!!.constructors
+            val primaryConstructor = constructors.firstOrNull()
             assertNotNull("Point 应该有主构造函数", primaryConstructor)
 
             // 验证构造函数参数
@@ -343,7 +345,7 @@ class ClassSemanticAnalysisTest : CangJieAnalysisTestBase() {
 
         analyzeForTest(file) {
             val classDecl = PsiTreeUtil.findChildOfType(file, CjClass::class.java)
-            val classDescriptor = bindingContext[BindingContext.CLASS, classDecl!!]
+            val classDescriptor =  bindingContext[BindingContext.CLASS, classDecl!!]
             assertNotNull("应该创建 ClassDescriptor", classDescriptor)
 
             // 验证类的成员作用域

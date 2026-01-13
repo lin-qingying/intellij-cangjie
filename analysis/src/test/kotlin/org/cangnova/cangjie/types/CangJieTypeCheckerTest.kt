@@ -477,7 +477,7 @@ class CangJieTypeCheckerTest : CangJieAnalysisTestBase() {
         analyzeForTest(file) {
             val nothingType = resolutionFacade.moduleDescriptor.builtIns.nothingType
             val int64Type = resolutionFacade.moduleDescriptor.builtIns.int64Type
-            val stringType = resolutionFacade.moduleDescriptor.builtIns.stringType
+            val stringType = resolutionFacade.moduleDescriptor.builtIns.stdlibTypes.stringType
             val typeChecker = CangJieTypeChecker.DEFAULT
 
             assertTrue(
