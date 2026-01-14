@@ -12,6 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
  */
 
 package org.cangnova.cangjie.types
@@ -286,7 +294,7 @@ class CangJieTypeCheckerTest : CangJieAnalysisTestBase() {
                 func onClick(): Unit
             }
 
-            class Button <: Drawable, Clickable {
+            class Button <: Drawable & Clickable {
                 public func draw(): Unit {}
                 public func onClick(): Unit {}
             }
