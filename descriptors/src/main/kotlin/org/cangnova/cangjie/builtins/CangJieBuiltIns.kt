@@ -427,9 +427,7 @@ open class CangJieBuiltIns(
     }
 
 
-    fun geOptionNothingType(): SimpleType {
-        return nothingType.makeOptionAsSpecified(true)
-    }
+ 
 
     fun isMemberOfAny(descriptor: DeclarationDescriptor): Boolean {
         return descriptor.containingDeclaration === stdlibTypes.any

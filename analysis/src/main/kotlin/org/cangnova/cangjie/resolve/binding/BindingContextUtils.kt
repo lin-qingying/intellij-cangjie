@@ -60,6 +60,7 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.expressions.CangJieTypeInfo
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
+import org.cangnova.cangjie.types.makeOption
 import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments
 
 object BindingContextUtils {
@@ -117,7 +118,7 @@ object BindingContextUtils {
     ): CangJieType? {
         if (type == null) return null
 
-        val updatedType = if (shouldBeMadeNullable) TypeUtils.makeOption(type) else type
+        val updatedType = if (shouldBeMadeNullable) type.makeOption() else type
         trace.recordType(expression, updatedType)
         return updatedType
     }

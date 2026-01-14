@@ -307,12 +307,12 @@ class CangJieToResolvedCallTransformer(
         val value = (constant.getValue(NO_EXPECTED_TYPE) as? Number)?.toLong() ?: return null
         val typeConstructor = IntegerLiteralTypeConstructor(value, moduleDescriptor, constant.parameters)
         return CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
-            TypeAttributes.Empty, typeConstructor, emptyList(), false,
+            TypeAttributes.Empty, typeConstructor, emptyList(),
             ErrorUtils.createErrorScope(
                 ErrorScopeKind.INTEGER_LITERAL_TYPE_SCOPE,
                 throwExceptions = true,
                 typeConstructor.toString()
-            ),
+            )
         )
     }
 

@@ -431,7 +431,7 @@ class TypeResolver(
                 }
 
                 // 获取基本类型，并应用 annotations 和 type attributes
-                val resultingType = CangJieTypeFactory.simpleNonOptionType(
+                val resultingType = CangJieTypeFactory.simpleType(
                     typeAttributeTranslators.toAttributes(
                         annotations,
                         classifier.typeConstructor,
@@ -635,17 +635,18 @@ class TypeResolver(
                 }
 
                 result = type(
-                    CangJieTypeFactory.optionType(
+                    OptionTypeUtils.createOptionType(
                         addTypeParameterToStub(
                             resolveOptionType(),
                             baseType.actualType
-                        ) as SimpleType
+                        ) as SimpleType,
+                        moduleDescriptor.builtIns
                     )
                 )
             }
 
             fun resolveOptionType(): CangJieType {
-                return moduleDescriptor.builtIns.stdlibTypes.optionType
+                return moduleDescriptor.builtIns.stdlibTypes.option.defaultType
             }
 
 
@@ -1040,7 +1041,7 @@ class TypeResolver(
                 attributes,
                 descriptor.typeConstructor,
                 arguments,
-                false
+
             )
             type(abbreviatedType)
         } else {
@@ -1143,7 +1144,7 @@ class TypeResolver(
         val arguments = buildFinalArgumentList(argumentsFromUserType, null, parameters)
 
         val resultingType =
-            CangJieTypeFactory.simpleNonOptionType(
+            CangJieTypeFactory.simpleType(
                 typeAttributeTranslators.toAttributes(
                     Annotations.EMPTY,
                     classDescriptor.typeConstructor,
@@ -1227,7 +1228,7 @@ class TypeResolver(
         }
 
         val resultingType =
-            CangJieTypeFactory.simpleNonOptionType(
+            CangJieTypeFactory.simpleType(
                 typeAttributeTranslators.toAttributes(
                     annotations,
                     classDescriptor.typeConstructor,
@@ -1355,7 +1356,6 @@ class TypeResolver(
                 typeAttributeTranslators.toAttributes(annotations, typeParameter.typeConstructor, containing),
                 typeParameter.typeConstructor,
                 listOf(),
-                false,
                 scopeForTypeParameter
             )
     }

@@ -70,7 +70,7 @@ class TypeAliasExpander(
     fun expandWithoutAbbreviation(typeAliasExpansion: TypeAliasExpansion, attributes: TypeAttributes) =
         expandRecursively(
             typeAliasExpansion, attributes,
-            isOption = false, recursionDepth = 0, withAbbreviatedType = false
+             recursionDepth = 0, withAbbreviatedType = false
         )
 
     /**
@@ -139,7 +139,7 @@ class TypeAliasExpander(
                 // 递归展开嵌套的类型别名
                 val nestedExpandedType = expandRecursively(
                     nestedExpansion, type.attributes,
-                    isOption = type.isOption,
+
                     recursionDepth = recursionDepth + 1,
                     withAbbreviatedType = false
                 )
@@ -186,7 +186,7 @@ class TypeAliasExpander(
             // 保持原始参数的可选性信息
             TypeArgumentImpl(
 
-                TypeUtils.makeOptionalIfNeeded(projection.type, originalArgument.type.isOption)
+                OptionTypeUtils.makeOptionalIfNeeded(projection.type, OptionTypeUtils.isOptionType(originalArgument.type))
             )
         }
 
@@ -258,7 +258,7 @@ class TypeAliasExpander(
      * @return 合并可选性后的简单类型
      */
     private fun SimpleType.combineOption(fromType: CangJieType) =
-        TypeUtils.makeOptionalIfNeeded(this, fromType.isOption)
+        OptionTypeUtils.makeOptionalIfNeeded(this, OptionTypeUtils.isOptionType(fromType))
 
     /**
      * 合并简单类型的可选性和注解信息
@@ -323,7 +323,7 @@ class TypeAliasExpander(
     private fun expandRecursively(
         typeAliasExpansion: TypeAliasExpansion,
         attributes: TypeAttributes,
-        isOption: Boolean,
+
         recursionDepth: Int,
         withAbbreviatedType: Boolean
     ): SimpleType {
@@ -344,30 +344,29 @@ class TypeAliasExpander(
         // TODO: 检查重复的注解
 //        checkRepeatedAnnotations(expandedType.annotations, attributes.annotations)
 
-        // 合并额外的属性并应用可选性
-        val expandedTypeWithExtraAnnotations =
-            expandedType.combineAttributes(attributes).let { TypeUtils.makeOptionalIfNeeded(it, isOption) }
+        // 合并额外的属性
+        val expandedTypeWithExtraAnnotations = expandedType.combineAttributes(attributes)
 
         // 根据需要添加缩写信息
         return if (withAbbreviatedType)
-            expandedTypeWithExtraAnnotations.withAbbreviation(typeAliasExpansion.createAbbreviation(attributes, isOption))
+            expandedTypeWithExtraAnnotations.withAbbreviation(typeAliasExpansion.createAbbreviation(attributes))
         else
             expandedTypeWithExtraAnnotations
     }
 
-    private fun TypeAliasExpansion.createAbbreviation(attributes: TypeAttributes, isOption: Boolean) =
+    private fun TypeAliasExpansion.createAbbreviation(attributes: TypeAttributes) =
        CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
             attributes,
             descriptor.typeConstructor,
             arguments,
-            isOption,
+
             MemberScope.Empty
         )
 
     fun expand(typeAliasExpansion: TypeAliasExpansion, attributes: TypeAttributes) =
         expandRecursively(
             typeAliasExpansion, attributes,
-            isOption = false, recursionDepth = 0, withAbbreviatedType = true
+ recursionDepth = 0, withAbbreviatedType = true
         )
 
     companion object{

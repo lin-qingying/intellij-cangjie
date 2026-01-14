@@ -48,6 +48,7 @@ import org.cangnova.cangjie.psi.psiUtil.isIdentifier
 import org.cangnova.cangjie.psi.psiUtil.unquoteCangJieIdentifier
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.types.TypeUtils
+import org.cangnova.cangjie.types.makeNonOption
 import org.cangnova.cangjie.types.builtIns
 import org.cangnova.cangjie.types.isFunctionType
 import org.cangnova.cangjie.utils.decapitalizeSmart
@@ -476,7 +477,7 @@ object  CangJieNameSuggester : AbstractCangJieNameSuggester() {
      * @param validator 名称验证器函数,检查名称是否可用
      */
     private fun MutableCollection<String>.addNamesByType(type: CangJieType, validator: (String) -> Boolean) {
-        val myType = TypeUtils.makeNonOption(type) // wipe out '?'
+        val myType = type.makeNonOption() // wipe out '?'
         val builtIns = myType.builtIns
         val typeChecker = CangJieTypeChecker.DEFAULT
         if (ErrorUtils.containsErrorType(myType)) return

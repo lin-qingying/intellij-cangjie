@@ -299,12 +299,17 @@ open class DescriptorRendererImpl(
     private fun StringBuilder.renderDefaultType(type: CangJieType) {
         this.renderAnnotations(type)
 
-        if (type is OptionType) {
+        if (OptionTypeUtils.isOptionType(type)) {
             append("?")
         }
 
         when {
-            type is OptionType -> renderSimpleType(type.innerType as SimpleType)
+            OptionTypeUtils.isOptionType(type) -> {
+                val innerType = OptionTypeUtils.unwrapOptionType(type)
+                if (innerType != null) {
+                    renderSimpleType(innerType as SimpleType)
+                }
+            }
 
             type.isError -> {
                 if (isUnresolvedType(type) && presentableUnresolvedTypes) {

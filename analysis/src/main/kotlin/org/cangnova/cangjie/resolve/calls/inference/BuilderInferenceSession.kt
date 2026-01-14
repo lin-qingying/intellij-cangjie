@@ -55,6 +55,7 @@ import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.TypeArgumentImpl
 import org.cangnova.cangjie.types.checker.CapturedType
 import org.cangnova.cangjie.types.expressions.ExpressionTypingServices
+import org.cangnova.cangjie.types.model.safeSubstitute
 
 class BuilderInferenceSession(
     psiCallResolver: PSICallResolver,
@@ -95,7 +96,22 @@ class BuilderInferenceSession(
     fun addExpression(expression: CjExpression) {
         commonExpressions.add(expression)
     }
+    fun addExpectedTypeConstraint(
+        callExpression: CjExpression,
+        a: CangJieType,
+        b: CangJieType
+    ) {
+        val nonFixedToVariablesSubstitutor  = createNonFixedTypeToVariableSubstitutor()
+        val (lower, upper) = substituteNotFixedVariables(a, b, nonFixedToVariablesSubstitutor)
+        val position = BuilderInferenceExpectedTypeConstraintPosition(callExpression)
+        val currentSubstitutor = commonSystem.buildCurrentSubstitutor()
 
+        commonSystem.addSubtypeConstraint(
+            currentSubstitutor.safeSubstitute(commonSystem.typeSystemContext, lower),
+            currentSubstitutor.safeSubstitute(commonSystem.typeSystemContext, upper),
+            position
+        )
+    }
     override fun inferPostponedVariables(
         lambda: ResolvedLambdaAtom,
         constraintSystemBuilder: ConstraintSystemBuilder,
@@ -193,11 +209,11 @@ class BuilderInferenceSession(
 
         val substitutedLowerType =
             nonFixedToVariablesSubstitutor.safeSubstitute(
-                (capTypesSubstitutor.substitute(lowerType) ?: lowerType).unwrap()
+                capTypesSubstitutor.substitute(lowerType).unwrap()
             )
         val substitutedUpperType =
             nonFixedToVariablesSubstitutor.safeSubstitute(
-                (capTypesSubstitutor.substitute(upperType) ?: upperType).unwrap()
+                capTypesSubstitutor.substitute(upperType).unwrap()
             )
 
         return substitutedLowerType to substitutedUpperType
@@ -557,3 +573,4 @@ class BuilderInferenceSession(
     }
 }
 
+class BuilderInferenceExpectedTypeConstraintPosition(callElement: CjExpression) : ExpectedTypeConstraintPosition<CjExpression>(callElement)

@@ -177,7 +177,7 @@ object CastDiagnosticsUtil {
 
         // 在 `is` 语句中这是错误，在 `as` 语句中这是警告
         if (supertype.isOption || subtype.isOption) {
-            return isCastErased(TypeUtils.makeNonOption(supertype), TypeUtils.makeNonOption(subtype), typeChecker)
+            return isCastErased(supertype.makeNonOption(), subtype.makeNonOption(), typeChecker)
         }
 
         // 如果是向上转型，永远不会被擦除

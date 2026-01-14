@@ -24,8 +24,6 @@
 
 package org.cangnova.cangjie.resolve.calls.inference.components
 
-import org.cangnova.cangjie.config.LanguageFeature
-
 import org.cangnova.cangjie.resolve.calls.inference.model.Constraint
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintKind
 import org.cangnova.cangjie.resolve.calls.inference.model.VariableWithConstraints
@@ -487,7 +485,6 @@ class PostponedArgumentInputTypesResolver(
         val newExpectedType = createSimpleType(
             functionalConstructor,
             variablesForParameterTypes + variableForReturnType.defaultType().asTypeArgument(),
-            parameterTypesInfo.isNullable,
             isExtensionFunction = when {
                 shouldDiscriminateExtensionFunctionAnnotation -> false
                 argument.isFunctionExpressionWithReceiver() -> true

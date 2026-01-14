@@ -349,8 +349,7 @@ object CommonSuperTypeCalculator {
         ): SimpleTypeMarker? {
         if (constructor.parametersCount() == 0) return createSimpleType(
             constructor,
-            emptyList(),
-            isOption = false
+            emptyList()
         )
 
         val typeCheckerContext = newTypeCheckerState(errorTypesEqualToAnything = false, stubTypesEqualToAnything = true)
@@ -397,7 +396,6 @@ object CommonSuperTypeCalculator {
         return createSimpleType(
             constructor,
             arguments,
-            isOption = false,
             isExtensionFunction = types.all { it.isExtensionFunction() })
     }
 

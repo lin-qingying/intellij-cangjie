@@ -192,7 +192,7 @@ class LazySubstitutingEnumDescriptor(
                 DefaultTypeAttributeTranslator.toAttributes(annotations, null, null),
                 typeConstructor as EnumTypeConstructor,
                 TypeArguments,
-                false,
+
                 unsubstitutedMemberScope
             )
         }

@@ -179,7 +179,6 @@ class MutableVariableWithConstraints private constructor(
         for (previousConstraint in constraints) { // 遍历现有的约束集合
             if (previousConstraint.typeHashCode == constraint.typeHashCode // 检查类型哈希码是否相同
                 && previousConstraint.type == constraint.type // 检查类型是否相同
-                && previousConstraint.isNullabilityConstraint == constraint.isNullabilityConstraint // 检查可空性约束是否相同
             ) {
                 val noNewCustomAttributes = with(context) { // 检查新约束和现有约束是否有相同的自定义属性
                     val previousType = previousConstraint.type
@@ -209,7 +208,6 @@ class MutableVariableWithConstraints private constructor(
                                 ?: previousConstraint.position, // 否则使用现有约束的位置
                             constraint.typeHashCode,
                             derivedFrom = constraint.derivedFrom,
-                            isNullabilityConstraint = false
                         )
                     } else constraint // 如果新约束已经是等式约束，直接使用新约束
                     mutableConstraints.add(actualConstraint) // 将新的等式约束添加到可变约束集合中

@@ -105,7 +105,6 @@ import org.cangnova.cangjie.types.ErrorUtils.invalidType
 import org.cangnova.cangjie.types.ErrorUtils.isError
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
-import org.cangnova.cangjie.types.TypeUtils.makeNonOption
 import org.cangnova.cangjie.types.TypeUtils.noExpectedType
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.error.ErrorType
@@ -122,6 +121,8 @@ import org.cangnova.cangjie.types.isBuiltinTupleType
 import org.cangnova.cangjie.types.isDynamic
 import org.cangnova.cangjie.types.isError
 import org.cangnova.cangjie.types.isOptionType
+import org.cangnova.cangjie.types.makeNonOption
+import org.cangnova.cangjie.types.makeOption
 import java.util.*
 
 /**
@@ -627,8 +628,8 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         }
 
         val result =
-            TypeUtils.makeOption(
-                targetType
+            targetType.makeOption(
+
             )
         val resultTypeInfo: CangJieTypeInfo =
             components.dataFlowAnalyzer.checkType(typeInfo.replaceType(result), expression, context)
@@ -797,7 +798,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 
         // 如果右侧类型不可空，但结果类型可空，强制将结果类型设为不可空
         if (!isOptionType(rightType) && isOptionType(type)) {
-            type = makeNonOption(type)
+            type = type.makeNonOption()
         }
 
         // 如果上下文依赖是 "依赖上下文"，返回类型信息
@@ -915,7 +916,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 
         // 如果右侧类型不可空，但结果类型可空，强制将结果类型设为不可空
         if (!isOptionType(rightType) && isOptionType(type)) {
-            type = makeNonOption(type)
+            type =type. makeNonOption()
         }
 
         // 如果上下文依赖是 "依赖上下文"，返回类型信息

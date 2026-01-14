@@ -213,8 +213,8 @@ class TypeDeserializer(
 
             // 处理普通类型
             else -> {
-                val nullable = false // TODO: 从 semaTy 中提取可空性信息
-                CangJieTypeFactory.simpleType(attributes, constructor, arguments, nullable)
+
+                CangJieTypeFactory.simpleType(attributes, constructor, arguments)
             }
         }
     }

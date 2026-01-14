@@ -140,8 +140,7 @@ class CapturedType(
     val captureStatus: CaptureStatus,
     override val constructor: CapturedTypeConstructorImpl,
     val lowerType: UnwrappedType?,
-    override val attributes: TypeAttributes = TypeAttributes.Empty,
-    override val isOption: Boolean = false
+    override val attributes: TypeAttributes = TypeAttributes.Empty
 ) : SimpleType(), CapturedTypeMarker {
 
     internal constructor(
@@ -157,18 +156,14 @@ class CapturedType(
         get() = ErrorUtils.createErrorScope(ErrorScopeKind.CAPTURED_TYPE_SCOPE, throwExceptions = true)
 
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType =
-        CapturedType(captureStatus, constructor, lowerType, newAttributes, isOption)
-
-    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType =
-        CapturedType(captureStatus, constructor, lowerType, attributes, isOption)
+        CapturedType(captureStatus, constructor, lowerType, newAttributes)
 
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) =
         CapturedType(
             captureStatus,
             constructor.refine(cangjieTypeRefiner),
             lowerType?.let { cangjieTypeRefiner.refineType(it).unwrap() },
-            attributes,
-            isOption
+            attributes
         )
 }
 
@@ -215,7 +210,7 @@ private fun captureArguments(type: UnwrappedType, status: CaptureStatus): List<T
     return null
 }
 private fun UnwrappedType.replaceArguments(arguments: List<TypeArgument>) =
-   CangJieTypeFactory.simpleType(attributes, constructor, arguments, isOption)
+   CangJieTypeFactory.simpleType(attributes, constructor, arguments)
 
 private fun captureFromArguments(type: UnwrappedType, status: CaptureStatus): UnwrappedType? {
     val capturedArguments = captureArguments(type, status) ?: return null
@@ -268,13 +263,11 @@ fun captureFromExpression(type: UnwrappedType): UnwrappedType? {
 
     return if (type is FlexibleType) {
         val lowerIntersectedType = intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type.lowerBound))
-            .makeOptionAsSpecified(type.lowerBound.isOption)
         val upperIntersectedType = intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type.upperBound))
-            .makeOptionAsSpecified(type.upperBound.isOption)
 
         CangJieTypeFactory.flexibleType(lowerIntersectedType, upperIntersectedType)
     } else {
-        intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type)).makeOptionAsSpecified(type.isOption)
+        intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type))
     }
 }
 private class CapturedArguments(val capturedArguments: List<TypeArgument>, private val originalType: CangJieType) {

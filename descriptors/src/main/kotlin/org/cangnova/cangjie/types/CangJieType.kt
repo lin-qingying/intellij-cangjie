@@ -187,24 +187,7 @@ sealed class CangJieType : Annotated, CangJieTypeMarker {
      */
     abstract val attributes: TypeAttributes
 
-    /**
-     * 是否为Option类型
-     *
-     * 表示该类型是否为Option类型（如 ?Int、Option<Int>）。
-     * 用于区分普通类型和Option类型。
-     *
-     * 示例：
-     * ```kotlin
-     * // Int 类型
-     * val intType: CangJieType = BasicType(...)
-     * intType.isOption // false
-     *
-     * // ?Int 类型
-     * val optionIntType: CangJieType = OptionType(intType)
-     * optionIntType.isOption // true
-     * ```
-     */
-    abstract val isOption: Boolean
+
 
     /**
      * 成员作用域
@@ -235,6 +218,7 @@ sealed class CangJieType : Annotated, CangJieTypeMarker {
 
     abstract fun refine(cangjieTypeRefiner: CangJieTypeRefiner): CangJieType
 }
+val CangJieType.isOption get() = OptionTypeUtils.isOptionType(this)
 
 /**
  * 未包装类型基类
@@ -302,33 +286,7 @@ sealed class UnwrappedType : CangJieType() {
 
     abstract override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType
 
-    /**
-     * 转换为指定的Option状态
-     *
-     * 将类型转换为指定的Option状态。如果类型已经是目标状态，则返回自身；
-     * 否则进行相应的转换。
-     *
-     * 示例：
-     * ```kotlin
-     * val intType: UnwrappedType = BasicType(...)
-     *
-     * // 转换为Option类型
-     * val optionIntType = intType.makeOptionAsSpecified(true) // 返回 OptionType(intType)
-     * optionIntType.isOption // true
-     *
-     * // 转换为非Option类型
-     * val nonOptionType = optionIntType.makeOptionAsSpecified(false) // 返回 intType
-     * nonOptionType.isOption // false
-     *
-     * // 已经是目标状态时返回自身
-     * val sameType = intType.makeOptionAsSpecified(false) // 返回 intType（无变化）
-     * val sameOptionType = optionIntType.makeOptionAsSpecified(true) // 返回 optionIntType（无变化）
-     * ```
-     *
-     * @param isOption 目标Option状态
-     * @return 转换后的类型
-     */
-    abstract fun makeOptionAsSpecified(isOption: Boolean): UnwrappedType
+
 }
 
 /**
@@ -389,18 +347,7 @@ class BasicType(
      */
     override val attributes: TypeAttributes get() = TypeAttributes.Empty
 
-    /**
-     * 是否为Option类型（基础类型）
-     *
-     * 基础类型不是Option类型，始终返回false。
-     *
-     * 示例：
-     * ```kotlin
-     * val intType = BasicType(...)
-     * intType.isOption // false
-     * ```
-     */
-    override val isOption: Boolean get() = false
+
 
     /**
      * 相等性比较
@@ -488,35 +435,7 @@ class BasicType(
      */
     override fun replaceAttributes(newAttributes: TypeAttributes) = this
 
-    /**
-     * 转换为指定的Option状态（基础类型）
-     *
-     * 将基础类型转换为指定的Option状态。
-     * 如果isOption为true，包装为OptionType；否则返回自身。
-     *
-     * 示例：
-     * ```kotlin
-     * val intType = BasicType(...)
-     *
-     * // 转换为Option类型
-     * val optionIntType = intType.makeOptionAsSpecified(true) // 返回 OptionType(intType)
-     * optionIntType.isOption // true
-     *
-     * // 转换为非Option类型
-     * val nonOptionType = intType.makeOptionAsSpecified(false) // 返回 intType
-     * nonOptionType.isOption // false
-     * ```
-     *
-     * @param isOption 目标Option状态
-     * @return 转换后的类型
-     */
-    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
-        return if (isOption) {
-            OptionType(this)
-        } else {
-            this
-        }
-    }
+
 
     /**
      * 哈希码计算
@@ -588,26 +507,6 @@ abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListM
      */
     abstract override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType
 
-    /**
-     * 转换为指定的Option状态（简单类型）
-     *
-     * 将简单类型转换为指定的Option状态。
-     *
-     * 示例：
-     * ```kotlin
-     * val intType: SimpleType = BasicType(...)
-     *
-     * // 转换为Option类型
-     * val optionIntType = intType.makeOptionAsSpecified(true) // 返回 OptionType(intType)
-     *
-     * // 转换为非Option类型
-     * val nonOptionType = optionIntType.makeOptionAsSpecified(false) // 返回 intType
-     * ```
-     *
-     * @param isOption 目标Option状态
-     * @return 转换后的简单类型
-     */
-    abstract override fun makeOptionAsSpecified(isOption: Boolean): SimpleType
 
     /**
      * 字符串表示（简单类型）
@@ -658,189 +557,6 @@ abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListM
     }
 }
 
-/**
- * Option类型
- *
- * 表示仓颉语言中的Option类型，统一处理语法糖（?Int）和显式形式（Option<Int>）。
- * 在IDE插件中，不需要区分语法糖和显式形式，统一使用OptionType表示。
- *
- * 特点：
- * - isOption = true
- * - 包含内部类型（innerType）
- * - 支持嵌套Option（如 Option<Option<Int>>）
- * - 支持Option解包和嵌套层级计算
- *
- * 示例：
- * ```kotlin
- * // ?Int 类型（语法糖形式）
- * val intType: CangJieType = BasicType(...)
- * val optionIntType = OptionType(intType)
- * optionIntType.isOption // true
- * optionIntType.toString() // "?Int"
- * optionIntType.unwrapOption() // 返回 Int 类型
- * optionIntType.countOptionNestedLevel() // 1
- *
- * // Option<Int> 类型（显式形式）
- * val explicitOptionType = OptionType(intType)
- * explicitOptionType.isOption // true
- * explicitOptionType.toString() // "Option<Int>?"
- *
- * // Option<Option<Int>> 类型（嵌套Option）
- * val nestedOptionType = OptionType(optionIntType)
- * nestedOptionType.isOption // true
- * nestedOptionType.unwrapOption() // 返回 Option<Int> 类型
- * nestedOptionType.countOptionNestedLevel() // 2
- *
- * // 转换为非Option类型
- * val nonOptionType = optionIntType.makeOptionAsSpecified(false) // 返回 Int 类型
- * nonOptionType.isOption // false
- *
- * // 转换为Option类型
- * val newOptionType = intType.makeOptionAsSpecified(true) // 返回 OptionType(intType)
- * newOptionType.isOption // true
- * ```
- */
-class OptionType(val innerType: CangJieType) : SimpleType() {
-    /**
-     * 替换类型属性（Option类型）
-     *
-     * 创建具有新属性的Option类型副本，同时替换内部类型的属性。
-     *
-     * 示例：
-     * ```kotlin
-     * val optionIntType = OptionType(intType)
-     * val newAttributes = TypeAttributes(...)
-     * val newOptionType = optionIntType.replaceAttributes(newAttributes) // 替换属性
-     * ```
-     *
-     * @param newAttributes 新的类型属性
-     * @return 具有新属性的Option类型
-     */
-    override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType {
-        val unwrappedInnerType = innerType.unwrap()
-        val replacedInnerType = unwrappedInnerType.replaceAttributes(newAttributes)
-        return OptionType(replacedInnerType)
-    }
-
-    /**
-     * 类型精化（Option类型）
-     *
-     * 对Option类型进行精化，同时精化其内部类型。
-     *
-     * 示例：
-     * ```kotlin
-     * val optionIntType = OptionType(intType)
-     * val refinedType = optionIntType.refine(typeRefiner) // 精化类型
-     * ```
-     *
-     * @param cangjieTypeRefiner 类型精化器
-     * @return 精化后的Option类型
-     */
-
-    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType {
-        val refinedInnerType = innerType.refine(cangjieTypeRefiner)
-        return OptionType(refinedInnerType)
-    }
-
-    /**
-     * 类型构造器（Option类型）
-     *
-     * 委托给内部类型的构造器。
-     *
-     * 示例：
-     * ```kotlin
-     * val optionIntType = OptionType(intType)
-     * val constructor = optionIntType.constructor // 返回 intType.constructor
-     * ```
-     */
-    override val constructor: TypeConstructor
-        get() = innerType.constructor
-
-    /**
-     * 类型参数列表（Option类型）
-     *
-     * 返回包含内部类型的类型参数列表。
-     *
-     * 示例：
-     * ```kotlin
-     * val optionIntType = OptionType(intType)
-     * optionIntType.arguments // [TypeArgument(intType)]
-     * ```
-     */
-    override val arguments: List<TypeArgument>
-        get() = listOf(TypeArgumentImpl(innerType))
-
-    /**
-     * 类型属性（Option类型）
-     *
-     * 委托给内部类型的属性。
-     *
-     * 示例：
-     * ```kotlin
-     * val optionIntType = OptionType(intType)
-     * val attributes = optionIntType.attributes // 返回 intType.attributes
-     * ```
-     */
-    override val attributes: TypeAttributes
-        get() = innerType.attributes
-
-    /**
-     * 是否为Option类型（Option类型）
-     *
-     * Option类型始终返回true。
-     *
-     * 示例：
-     * ```kotlin
-     * val optionIntType = OptionType(intType)
-     * optionIntType.isOption // true
-     * ```
-     */
-    override val isOption: Boolean
-        get() = true
-
-    /**
-     * 成员作用域（Option类型）
-     *
-     * 委托给内部类型的成员作用域。
-     *
-     * 示例：
-     * ```kotlin
-     * val optionIntType = OptionType(intType)
-     * val memberScope = optionIntType.memberScope // 返回 intType.memberScope
-     * ```
-     */
-    override val memberScope: MemberScope
-        get() = innerType.memberScope
-
-    /**
-     * 转换为指定的Option状态（Option类型）
-     *
-     * 将Option类型转换为指定的Option状态。
-     * 如果isOption为true，返回自身；否则返回内部类型。
-     *
-     * 示例：
-     * ```kotlin
-     * val optionIntType = OptionType(intType)
-     *
-     * // 转换为Option类型（已经是Option类型）
-     * val sameOptionType = optionIntType.makeOptionAsSpecified(true) // 返回 optionIntType
-     *
-     * // 转换为非Option类型
-     * val nonOptionType = optionIntType.makeOptionAsSpecified(false) // 返回 intType
-     * nonOptionType.isOption // false
-     * ```
-     *
-     * @param isOption 目标Option状态
-     * @return 转换后的简单类型
-     */
-    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
-        return if (isOption) {
-            this
-        } else {
-            innerType.unwrap() as SimpleType
-        }
-    }
-}
 
 /**
  * Function类型
@@ -884,7 +600,7 @@ class FunctionType(
 
     val parameterTypes: List<CangJieType>,
     val returnType: CangJieType,
-    override val isOption: Boolean = false,
+
     override val attributes: TypeAttributes = TypeAttributes.Empty,
 ) : SimpleType() {
 
@@ -922,7 +638,7 @@ class FunctionType(
 
             parameterTypes = parameterTypes,
             returnType = returnType,
-            isOption = isOption
+
         )
     }
 
@@ -939,23 +655,11 @@ class FunctionType(
             attributes = attributes,
             parameterTypes = refinedParameterTypes,
             returnType = refinedReturnType,
-            isOption = isOption
+
         )
     }
 
-    /**
-     * 转换为指定的Option状态（函数类型）
-     */
-    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
-        if (this.isOption == isOption) return this
-        return FunctionType(
-            constructor = constructor,
-            attributes = attributes,
-            parameterTypes = parameterTypes,
-            returnType = returnType,
-            isOption = isOption
-        )
-    }
+
 
     /**
      * 字符串表示（函数类型）
@@ -1024,7 +728,6 @@ class TupleType(
     override val constructor: TupleClassDescriptor.TupleTypeConstructor,
 
     val elementTypes: List<CangJieType>,
-    override val isOption: Boolean = false,
     override val attributes: TypeAttributes = TypeAttributes.Empty
 ) : SimpleType() {
 
@@ -1053,7 +756,6 @@ class TupleType(
             constructor = constructor,
             attributes = newAttributes,
             elementTypes = elementTypes,
-            isOption = isOption
         )
     }
 
@@ -1068,22 +770,9 @@ class TupleType(
             constructor = constructor,
             attributes = attributes,
             elementTypes = refinedElementTypes,
-            isOption = isOption
         )
     }
 
-    /**
-     * 转换为指定的Option状态（元组类型）
-     */
-    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
-        if (this.isOption == isOption) return this
-        return TupleType(
-            constructor = constructor,
-            attributes = attributes,
-            elementTypes = elementTypes,
-            isOption = isOption
-        )
-    }
 
     /**
      * 字符串表示（元组类型）
@@ -1329,19 +1018,7 @@ abstract class FlexibleType(val lowerBound: SimpleType, val upperBound: SimpleTy
      */
     override val arguments: List<TypeArgument> get() = delegate.arguments
 
-    /**
-     * 是否为Option类型（灵活类型）
-     *
-     * 委托给委托类型的Option状态。
-     *
-     * 示例：
-     * ```kotlin
-     * val flexibleType = FlexibleType(...)
-     * val isOption = flexibleType.isOption // 返回 delegate.isOption
-     * ```
-     */
-    override val isOption: Boolean
-        get() = delegate.isOption
+
 
     /**
      * 成员作用域（灵活类型）
@@ -1405,15 +1082,7 @@ abstract class FlexibleType(val lowerBound: SimpleType, val upperBound: SimpleTy
  * @return 解包后的内部类型
  */
 fun CangJieType.unwrapOption(): CangJieType {
-    return if (this is OptionType) {
-        if (innerType.isOption) {
-            innerType.unwrapOption()
-        } else {
-            innerType
-        }
-    } else {
-        this
-    }
+   return OptionTypeUtils.unwrapOptionType(this) ?: this
 }
 
 /**
@@ -1444,20 +1113,11 @@ fun CangJieType.unwrapOption(): CangJieType {
  * @return Option嵌套层级数
  */
 fun CangJieType.countOptionNestedLevel(): Int {
-    return if (this is OptionType) {
-        1 + innerType.countOptionNestedLevel()
-    } else {
-        0
-    }
+    return OptionTypeUtils.getOptionNestedLevel(this)
 }
 
 class ThisType(private val otype: SimpleType) : SimpleType() {
 
-
-    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
-        return otype.makeOptionAsSpecified(isOption)
-
-    }
 
     fun getType(): CangJieType {
         return otype.arguments[0].type
@@ -1479,8 +1139,7 @@ class ThisType(private val otype: SimpleType) : SimpleType() {
         get() = otype.arguments
     override val attributes: TypeAttributes
         get() = otype.attributes
-    override val isOption: Boolean
-        get() = false
+
     override val memberScope: MemberScope
         get() = otype.memberScope
 }

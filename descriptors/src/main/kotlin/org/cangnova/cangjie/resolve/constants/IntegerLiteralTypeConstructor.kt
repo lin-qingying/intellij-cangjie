@@ -88,7 +88,7 @@ class FloatLiteralTypeConstructor : TypeConstructor {
         this.possibleTypes = possibleTypes
     }
 
-    private val type = CangJieTypeFactory.floatLiteralType(TypeAttributes.Empty, this, false)
+    private val type = CangJieTypeFactory.floatLiteralType(TypeAttributes.Empty, this,  )
 
     private fun isContainsOnlyUnsignedTypes(): Boolean = module.allSignedLiteralTypes.all { it !in possibleTypes }
     override val supertypes: Collection<CangJieType> = emptyList()
@@ -216,7 +216,7 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
             // 创建一个新的整数字面量类型构造器，结合了left和right的可能类型
             val constructor = IntegerLiteralTypeConstructor(left.value, left.module, possibleTypes)
             // 使用CangJie类型工厂创建并返回一个新的整数字面量类型
-            return CangJieTypeFactory.integerLiteralType(TypeAttributes.Empty, constructor, false)
+            return CangJieTypeFactory.integerLiteralType(TypeAttributes.Empty, constructor,  )
         }
 
         private fun fold(left: IntegerLiteralTypeConstructor, right: SimpleType): SimpleType? =
@@ -285,7 +285,7 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
         this.possibleTypes = possibleTypes
     }
 
-    private val type = CangJieTypeFactory.integerLiteralType(TypeAttributes.Empty, this, false)
+    private val type = CangJieTypeFactory.integerLiteralType(TypeAttributes.Empty, this,  )
 
     private fun isContainsOnlyUnsignedTypes(): Boolean = module.allSignedLiteralTypes.all { it !in possibleTypes }
 

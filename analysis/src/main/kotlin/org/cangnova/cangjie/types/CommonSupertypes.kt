@@ -161,7 +161,6 @@ object CommonSupertypes {
 
         return null
     }
-
     private fun commonSuperTypeForInflexible(
         types: Collection<SimpleType>,
         recursionDepth: Int,
@@ -170,31 +169,28 @@ object CommonSupertypes {
         assert(!types.isEmpty())
         val typeSet: MutableCollection<SimpleType> = mutableSetOf()
 
-        // If any of the types is nullable, the result must be nullable
-        // This also removed Nothing and Nothing? because they are subtypes of everything else
-        var nullable = false
+        // 移除 Nothing 类型和处理错误类型
         val iterator = typeSet.iterator()
         while (iterator.hasNext()) {
             val type: CangJieType = checkNotNull(iterator.next())
             assert(!type.isFlexible()) { "Flexible type $type passed to commonSuperTypeForInflexible" }
+
             if (CangJieBuiltIns.isNothing(type)) {
                 iterator.remove()
             }
             if (type.isError) {
                 return ErrorUtils.createErrorType(ErrorTypeKind.SUPER_TYPE_FOR_ERROR_TYPE, type.toString())
             }
-            nullable = nullable or type.isOption
         }
 
-        // Everything deleted => it's Nothing or Nothing?
+        // Everything deleted => it's Nothing
         if (typeSet.isEmpty()) {
-            // TODO : attributes
             val builtIns = types.iterator().next().constructor.builtIns
-            return /*if (nullable) builtIns.optionNothingType else */builtIns.nothingType
+            return builtIns.nothingType
         }
 
         if (typeSet.size == 1) {
-            return TypeUtils.makeOptionalIfNeeded(typeSet.iterator().next(), nullable)
+            return typeSet.iterator().next()
         }
 
         // constructor of the supertype -> all of its instantiations occurring as supertypes
@@ -232,9 +228,8 @@ object CommonSupertypes {
         // Reconstructing type arguments if possible
         val result: SimpleType =
             computeSupertypeProjections(entry.key, entry.value, recursionDepth, maxDepth)
-        return TypeUtils.makeOptionalIfNeeded(result, nullable)
+        return result
     }
-
     private fun renderTypeFully(type: CangJieType): String {
         return DescriptorRenderer.FQ_NAMES_IN_TYPES.renderType(type) + ", typeConstructor debug: " +
                 renderTypeConstructorVerboseDebugInformation(type.constructor)
@@ -307,9 +302,8 @@ object CommonSupertypes {
             TypeAttributes.Empty,
             constructor,
             newProjections,
-            nullable,
             newScope
-        )
+        ).makeOptionalAsSpecified(nullable)
     }
 
     private fun depth(type: CangJieType): Int {

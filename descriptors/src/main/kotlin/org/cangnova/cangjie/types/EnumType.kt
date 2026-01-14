@@ -79,10 +79,9 @@ class EnumType(
     arguments: List<TypeArgument>,
     memberScope: MemberScope,
 
-    isOption: Boolean = false,
     refinedTypeFactory: RefinedTypeFactory
 ) : SimpleTypeImpl(
-    constructor, arguments, isOption, memberScope, refinedTypeFactory
+    constructor, arguments,  memberScope, refinedTypeFactory
 ) {
 
     /**
@@ -124,19 +123,7 @@ class EnumType(
 
 
 
-    /**
-     * 转换为指定的Option状态
-     *
-     * @param isOption 目标Option状态
-     * @return 转换后的简单类型
-     */
-    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
-        return if (isOption == this.isOption) {
-            this
-        } else {
-            EnumType(constructor, arguments, memberScope, isOption, refinedTypeFactory)
-        }
-    }
+
 
     /**
      * 类型精化

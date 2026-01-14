@@ -32,62 +32,79 @@ import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 
 /**
- * 获取类型的内在可空性
+ * 获取类型的 Option 状态 (推荐使用)
  *
- * Option类型具有未知的可空性(因为可能是Some或None)
- * 其他类型默认为非空
+ * - Option<T> 类型 → OptionStatus.OPTION
+ * - 非 Option 类型 → OptionStatus.DEFINITE
  */
+private val CangJieType.immanentOptionStatus: OptionStatus
+    get() = if (TypeUtils.isOptionType(this)) OptionStatus.OPTION else OptionStatus.DEFINITE
+
+/**
+ * 获取类型的内在可空性 (已废弃)
+ *
+ * ⚠️ 此属性基于 Kotlin 的 null 语义,不适合仓颉语言。
+ * 请使用 [immanentOptionStatus] 替代。
+ *
+ * @see immanentOptionStatus
+ */
+@Deprecated(
+    "Use immanentOptionStatus instead. Nullability is based on Kotlin's nullable types.",
+    ReplaceWith("immanentOptionStatus")
+)
 private val CangJieType.immanentNullability: Nullability
     get() = if (TypeUtils.isOptionType(this)) Nullability.UNKNOWN else Nullability.NOT_NULL
 
 /**
  * 数据流值
  *
- * 表示数据流分析中的一个值，用于支持智能类型转换(smart cast)。
- * 数据流值包含标识符信息、类型和可空性信息，用于追踪值在代码执行过程中的类型变化。
+ * ⚠️ 注意: 仓颉语言的数据流分析与 Kotlin 有本质区别
  *
- * 核心概念：
- * - **标识符信息**: 值的来源(变量、属性、表达式等)
- * - **类型**: 值的类型信息
- * - **可空性**: 值是否可能为null
- * - **稳定性**: 值是否可能被意外修改
+ * ## 仓颉语言特性
  *
- * 智能类型转换示例：
- * ```cangjie
- * let x: Option<String> = Some("hello")
- * if (x is Some) {
- *     // 这里x被智能转换为Some类型，可以安全访问内部值
- *     println(x.value)
- * }
- * ```
+ * 仓颉语言**不需要运行时 null 检查**:
+ * - 没有 null 值,只有 `Option<T>` 枚举类型
+ * - Option 解包通过模式匹配,不需要智能转换
+ * - `?.` 操作符是语法糖,仅适用于 Option 类型
  *
- * 稳定性影响智能转换：
- * ```cangjie
- * class Foo {
- *     public var bar: Option<Int> = Some(42)  // 可变属性，不稳定
- * }
+ * ## 当前实现状态
  *
- * func test(foo: Foo) {
- *     if (foo.bar is Some) {
- *         // 警告：foo.bar可能在检查后被其他线程修改
- *         // 智能转换不安全
- *     }
- * }
- * ```
+ * 此类来自 Kotlin 编译器,主要用于:
+ * - **类型推导**: 追踪表达式的类型信息
+ * - **稳定性分析**: 判断变量是否可能被意外修改
+ * - **模式匹配**: 支持 match 表达式的类型细化
+ *
+ * **不再用于**: 运行时 null 状态追踪 (Kotlin 的智能转换)
+ *
+ * ## 迁移说明
+ *
+ * - 使用 `immanentOptionStatus` 替代 `immanentNullability`
+ * - `immanentOptionStatus` 表示静态类型状态:
+ *   - `OptionStatus.OPTION` = 类型是 `Option<T>`
+ *   - `OptionStatus.DEFINITE` = 类型是确定的非 Option 类型
  *
  * @param identifierInfo 标识符信息，描述值的来源
  * @param type 值的类型
- * @param immanentNullability 内在可空性，默认从类型推导
+ * @param immanentNullability [已废弃] 内在可空性,请使用 immanentOptionStatus
  *
  * @see IdentifierInfo
- * @see Nullability
+ * @see OptionStatus
  * @see DataFlowInfo
  */
 class DataFlowValue(
     val identifierInfo: IdentifierInfo,
     val type: CangJieType,
+    @Deprecated("Use immanentOptionStatus instead")
     val immanentNullability: Nullability = type.immanentNullability
 ) {
+
+    /**
+     * 值的 Option 类型状态 (推荐使用)
+     *
+     * - `OptionStatus.OPTION`: 值的类型是 `Option<T>`
+     * - `OptionStatus.DEFINITE`: 值的类型是确定的非 Option 类型
+     */
+    val immanentOptionStatus: OptionStatus = type.immanentOptionStatus
 
     /** 数据流值的种类，决定智能转换的安全性 */
     val kind: Kind get() = identifierInfo.kind
@@ -297,7 +314,7 @@ class DataFlowValue(
         return true
     }
 
-    override fun toString() = "$kind $identifierInfo $immanentNullability"
+    override fun toString() = "$kind $identifierInfo $immanentOptionStatus"
 
     /** 缓存的哈希码 */
     private var hashCode = 0
@@ -322,13 +339,33 @@ class DataFlowValue(
     companion object {
 
         /**
-         * 创建null值的数据流值
+         * 创建 None 值的数据流值 (推荐使用)
+         *
+         * 仓颉语言中没有 null,用 Option::None 表示"无值"。
          *
          * @param builtIns 内置类型提供者
-         * @return 表示null的数据流值
+         * @return 表示 None 的数据流值
          */
-        fun nullValue(builtIns: CangJieBuiltIns) =
-            DataFlowValue(IdentifierInfo.NULL, builtIns.nothingType, Nullability.NULL)
+        fun noneValue(builtIns: CangJieBuiltIns) =
+            DataFlowValue(
+                IdentifierInfo.NULL,
+                builtIns.nothingType,
+                @Suppress("DEPRECATION") Nullability.NULL
+            )
+
+        /**
+         * 创建 null 值的数据流值 (已废弃)
+         *
+         * ⚠️ 仓颉语言中没有 null,请使用 [noneValue] 替代。
+         *
+         * @param builtIns 内置类型提供者
+         * @return 表示 null 的数据流值
+         */
+        @Deprecated(
+            "Cangjie has no null value. Use noneValue() instead.",
+            ReplaceWith("noneValue(builtIns)")
+        )
+        fun nullValue(builtIns: CangJieBuiltIns) = noneValue(builtIns)
 
         /**
          * 错误数据流值
@@ -338,7 +375,7 @@ class DataFlowValue(
         val ERROR = DataFlowValue(
             IdentifierInfo.ERROR,
             ErrorUtils.createErrorType(ErrorTypeKind.ERROR_DATA_FLOW_TYPE),
-            Nullability.IMPOSSIBLE
+            @Suppress("DEPRECATION") Nullability.IMPOSSIBLE
         )
     }
 }

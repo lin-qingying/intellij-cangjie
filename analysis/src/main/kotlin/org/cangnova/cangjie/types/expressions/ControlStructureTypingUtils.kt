@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.types.expressions
 
-import com.google.common.collect.ImmutableMap
 import com.google.common.collect.Lists
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.diagnostic.Logger
@@ -106,7 +105,7 @@ class ControlStructureTypingUtils(
             return createIndependentDataFlowInfoForArgumentsForCall(conditionInfo, dataFlowInfoForArgumentsMap)
         }
 
-        
+
         fun createDataFlowInfoForArgumentsOfMatchCall(
             callForWhen: Call,
             subjectDataFlowInfo: DataFlowInfo,
@@ -121,7 +120,6 @@ class ControlStructureTypingUtils(
         }
 
 
-        
         fun createDataFlowInfoForArgumentsOfTryCall(
             callForTry: Call,
             dataFlowInfoBeforeTry: DataFlowInfo,
@@ -140,7 +138,7 @@ class ControlStructureTypingUtils(
             )
         }
 
-        
+
         fun createCallForSpecialConstruction(
             expression: CjExpression,
             calleeExpression: CjExpression,
@@ -204,7 +202,7 @@ class ControlStructureTypingUtils(
                 mapOf(
                     typeParameterConstructor to expectedType.unwrap(),
 
-                )
+                    )
             )
         }
 
@@ -228,7 +226,7 @@ class ControlStructureTypingUtils(
             )
 
             val type = typeParameter.defaultType
-            val nullableType = TypeUtils.makeOption(type)
+            val nullableType = type.makeOption()
 
             val valueParameters = ArrayList<ValueParameterDescriptor>(argumentNames.size)
             for (i in argumentNames.indices) {
@@ -384,7 +382,7 @@ class ControlStructureTypingUtils(
 
             fun makeTypeNullable(): CheckTypeContext {
                 if (TypeUtils.noExpectedType(expectedType)) return this
-                return CheckTypeContext(trace, TypeUtils.makeOption(expectedType))
+                return CheckTypeContext(trace, expectedType.makeOption())
             }
         }
 
@@ -452,43 +450,43 @@ class ControlStructureTypingUtils(
 //                }
 
                 override fun visitIfExpression(
-                    ifExpression: CjIfExpression,
-                    c: CheckTypeContext
+                    expression: CjIfExpression,
+                    data: CheckTypeContext
                 ): Boolean {
-                    val thenBranch = ifExpression.then
-                    val elseBranch = ifExpression.`else`
+                    val thenBranch = expression.then
+                    val elseBranch = expression.`else`
                     if (thenBranch == null || elseBranch == null) {
-                        return checkExpressionType(ifExpression, c)
+                        return checkExpressionType(expression, data)
                     }
-                    return checkSubExpressions(thenBranch, elseBranch, ifExpression, c, c, c)
+                    return checkSubExpressions(thenBranch, elseBranch, expression, data, data, data)
                 }
 
                 override fun visitBlockExpression(
                     expression: CjBlockExpression,
-                    c: CheckTypeContext
+                    data: CheckTypeContext
                 ): Boolean {
                     if (expression.statements.isEmpty()) {
-                        return checkExpressionType(expression, c)
+                        return checkExpressionType(expression, data)
                     }
                     val lastStatement =
                         CjPsiUtil.getLastStatementInABlock(expression)
                     if (lastStatement != null) {
-                        return checkExpressionTypeRecursively(lastStatement, c)
+                        return checkExpressionTypeRecursively(lastStatement, data)
                     }
                     return false
                 }
 
                 override fun visitPostfixExpression(
                     expression: CjPostfixExpression,
-                    c: CheckTypeContext
+                    data: CheckTypeContext
                 ): Boolean {
 
-                    return super.visitPostfixExpression(expression, c) == true
+                    return super.visitPostfixExpression(expression, data) == true
                 }
 
                 override fun visitBinaryExpression(
                     expression: CjBinaryExpression,
-                    c: CheckTypeContext
+                    data: CheckTypeContext
                 ): Boolean {
                     if (expression.operationReference
                             .referencedNameElementType === CjTokens.COALESCING
@@ -497,19 +495,19 @@ class ControlStructureTypingUtils(
                             expression.left,
                             expression.right,
                             expression,
-                            c.makeTypeNullable(),
-                            c,
-                            c
+                            data.makeTypeNullable(),
+                            data,
+                            data
                         )
                     }
-                    return super.visitBinaryExpression(expression, c) == true
+                    return super.visitBinaryExpression(expression, data) == true
                 }
 
                 override fun visitExpression(
                     expression: CjExpression,
-                    c: CheckTypeContext
+                    data: CheckTypeContext
                 ): Boolean {
-                    return checkExpressionType(expression, c)
+                    return checkExpressionType(expression, data)
                 }
             }
 
@@ -539,7 +537,7 @@ class ControlStructureTypingUtils(
                 trace: BindingTrace,
                 resolvedCall: ResolvedCall<D>
             ) {
-                trace.record (
+                trace.record(
                     BindingContext.RESOLVED_CALL,
                     call,
                     resolvedCall
@@ -597,7 +595,7 @@ class ControlStructureTypingUtils(
                 trace: BindingTrace,
                 expectedType: CangJieType
             ): Boolean {
-                return java.lang.Boolean.TRUE !== expression.accept(
+                return true  == expression.accept(
                     checkTypeVisitor,
                     CheckTypeContext(trace, expectedType)
                 )

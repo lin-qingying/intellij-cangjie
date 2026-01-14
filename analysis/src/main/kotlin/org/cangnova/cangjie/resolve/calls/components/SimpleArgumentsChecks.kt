@@ -111,18 +111,13 @@ private fun checkSubCallArgument(
     receiverInfo: ReceiverInfo,
     inferenceSession: InferenceSession?
 ): ResolvedAtom {
-    // 创建已解析的子调用参数原子
-    // 如果是接收者且推断会话要求独立解析接收者，则标记为独立解析
     val subCallResult = ResolvedSubCallArgument(
-        subCallArgument, receiverInfo.isReceiver && inferenceSession?.resolveReceiverIndependently() == true
+        subCallArgument,
+        receiverInfo.isReceiver && inferenceSession?.resolveReceiverIndependently() == true
     )
 
-    // 如果没有期望类型，直接返回结果（无需类型检查）
     if (expectedType == null) return subCallResult
 
-    // 创建期望类型的可空版本（用于安全调用检查）
-    val expectedNullableType = expectedType.makeOptionAsSpecified(true)
-    // 确定约束位置：接收者或普通参数
     val position =
         if (receiverInfo.isReceiver) ReceiverConstraintPositionImpl(
             subCallArgument,
@@ -130,67 +125,16 @@ private fun checkSubCallArgument(
         )
         else ArgumentConstraintPositionImpl(subCallArgument)
 
-    // 子调用参数不能有稳定的智能转换
-    // 返回类型可能包含固定的类型变量
-    // 获取子调用的当前返回类型（应用类型替换）
     val currentReturnType =
         (csBuilder.buildCurrentSubstitutor() as ComposableTypeSubstitutor)
             .safeSubstitute(subCallArgument.receiver.receiverValue.type.unwrap())
 
-    // 如果是安全调用（?.），返回类型必须是可空的
-    if (subCallArgument.isSafeCall) {
-        csBuilder.addSubtypeConstraint(currentReturnType, expectedNullableType, position)
-        return subCallResult
-    }
-
-    // 非安全调用时的类型检查
-    // 如果是接收者参数，需要检查是否需要报告不安全调用错误
-    if (receiverInfo.isReceiver
-        && !csBuilder.addSubtypeConstraintIfCompatible(currentReturnType, expectedType, position)
-        && csBuilder.addSubtypeConstraintIfCompatible(currentReturnType, expectedNullableType, position)
-    ) {
-        // 返回类型与非空期望类型不兼容，但与可空期望类型兼容
-        // 这意味着在可空接收者上进行了不安全调用
-        if (receiverInfo.shouldReportUnsafeCall) {
-            diagnosticsHolder.addDiagnostic(
-                UnsafeCallError(
-                    subCallArgument,
-                    isForImplicitInvoke = receiverInfo.reportUnsafeCallAsUnsafeImplicitInvoke
-                )
-            )
-        }
-        return subCallResult
-    }
-
-    // 添加标准的子类型约束
+    // 直接添加子类型约束,让类型系统自己处理兼容性
     csBuilder.addSubtypeConstraint(currentReturnType, expectedType, position)
+
     return subCallResult
 }
 
-/**
- * 检查表达式参数
- *
- * 处理直接表达式作为参数的情况。这是最常见的参数类型，包括：
- * - 变量引用
- * - 字面量
- * - 复杂表达式
- * - 智能转换后的表达式
- *
- * 此函数负责：
- * 1. 处理智能转换（stable/unstable）
- * 2. 检查可空性（nullability）
- * 3. 添加类型约束
- * 4. 报告不安全调用和可空性错误
- *
- * @param csBuilder 约束系统构建器
- * @param expressionArgument 表达式参数
- * @param expectedType 期望的参数类型
- * @param diagnosticsHolder 诊断信息持有者
- * @param isReceiver 是否为接收者参数
- * @param convertedType 转换后的类型（如果有）
- * @param selectorCall 选择器调用
- * @return 已解析的表达式原子
- */
 
 private fun checkExpressionArgument(
     csBuilder: ConstraintSystemBuilder,
@@ -201,144 +145,32 @@ private fun checkExpressionArgument(
     convertedType: UnwrappedType?,
     selectorCall: CangJieCall?
 ): ResolvedAtom {
-    // 创建已解析的表达式原子
     val resolvedExpression = ResolvedExpressionAtom(expressionArgument)
-    // 如果没有期望类型，无需类型检查，直接返回
     if (expectedType == null) return resolvedExpression
 
-    // TODO: 只为调用运行一次此近似
-    // 获取参数的实际类型：使用转换后的类型或从类型参数上界捕获
     val argumentType = convertedType ?: captureFromTypeParameterUpperBoundIfNeeded(
         expressionArgument.receiver.stableType,
         expectedType
     )
 
-    /**
-     * 处理不稳定智能转换或子类型错误
-     *
-     * 此内部函数尝试添加类型约束，并在失败时生成相应的诊断信息。
-     * 处理三种情况：
-     * 1. 不稳定智能转换可以满足约束
-     * 2. 可空性不匹配（可空类型传递给非空类型）
-     * 3. 类型完全不兼容
-     *
-     * @param unstableType 不稳定智能转换后的类型
-     * @param actualExpectedType 实际期望的类型
-     * @param position 约束位置
-     * @return 诊断信息，如果成功添加约束则返回 null
-     */
-    fun unstableSmartCastOrSubtypeError(
-        unstableType: UnwrappedType?, actualExpectedType: UnwrappedType, position: ConstraintPosition
-    ): CangJieCallDiagnostic? {
-
-//        if (diagnosticsHolder is ResolutionCandidate) {
-//            if (OperatorConventions.isConventionName(diagnosticsHolder.resolvedCall.descriptor.name)) {
-////              可以为重载的运算符 并且找的了重载函数，但是参数类型不正确 报告可能需要的重载函数
-//                return NoneOperatorCallDiagnostic(actualExpectedType, argumentType)
-//            }
-//        }
-
-        // 尝试使用不稳定类型添加约束
-        if (unstableType != null) {
-            if (csBuilder.addSubtypeConstraintIfCompatible(unstableType, actualExpectedType, position)) {
-                // 不稳定智能转换可以满足类型要求，但需要警告
-                return UnstableSmartCast(expressionArgument, unstableType, isReceiver)
-            }
-        }
-
-        // 检查可空性不匹配
-        if (argumentType.isMarkedOption()) {
-            // 参数类型是可空的
-            if (csBuilder.addSubtypeConstraintIfCompatible(argumentType, actualExpectedType, position)) return null
-            // 尝试使用非空版本的参数类型
-            if (csBuilder.addSubtypeConstraintIfCompatible(
-                    argumentType.makeNonOption(),
-                    actualExpectedType,
-                    position
-                )
-            ) {
-                // 非空版本可以满足约束，报告可空性错误
-                return ArgumentNullabilityErrorDiagnostic(actualExpectedType, argumentType, expressionArgument)
-            }
-        }
-
-        // 类型完全不兼容，添加约束（将导致类型推断错误）
-        csBuilder.addSubtypeConstraint(argumentType, actualExpectedType, position)
-
-
-        return null
-    }
-
-    // 确定约束位置：接收者或普通参数
     val position =
         if (isReceiver) ReceiverConstraintPositionImpl(expressionArgument, selectorCall)
         else ArgumentConstraintPositionImpl(expressionArgument)
 
-    // 用于带有 @NotNull 注解的参数
-    // 如果期望非空类型参数但传递了可空值，立即报告错误
-    if (expectedType is NonOptionTypeParameter && argumentType.isMarkedOption()) {
-        diagnosticsHolder.addDiagnostic(
-            ArgumentNullabilityErrorDiagnostic(
-                expectedType,
-                argumentType,
-                expressionArgument
-            )
-        )
-    }
-
-    // 处理安全调用（?.）的情况
-    if (expressionArgument.isSafeCall) {
-        // 安全调用的结果总是可空的，所以期望类型也应该是可空的
-        val expectedNullableType = expectedType.makeOptionAsSpecified(true)
-        if (!csBuilder.addSubtypeConstraintIfCompatible(argumentType, expectedNullableType, position)) {
-            // 即使安全调用，类型仍然不兼容
-            diagnosticsHolder.addDiagnosticIfNotNull(
-                unstableSmartCastOrSubtypeError(
-                    expressionArgument.receiver.unstableType,
-                    expectedNullableType,
-                    position
-                )
-            )
-        }
-        return resolvedExpression
-    }
-
-    // 非安全调用的类型检查
+    // 尝试添加子类型约束
     if (!csBuilder.addSubtypeConstraintIfCompatible(argumentType, expectedType, position)) {
-        // 参数类型与期望类型不兼容
-        if (!isReceiver) {
-            // 普通参数：报告智能转换或子类型错误
-            diagnosticsHolder.addDiagnosticIfNotNull(
-                unstableSmartCastOrSubtypeError(
-                    expressionArgument.receiver.unstableType,
-                    expectedType,
-                    position
-                )
-            )
-
-            return resolvedExpression
-        }
-
-        // 接收者参数的特殊处理
+        // 类型不兼容,尝试不稳定智能转换
         val unstableType = expressionArgument.receiver.unstableType
-        val expectedNullableType = expectedType.makeOptionAsSpecified(true)
-
-        // 尝试使用不稳定智能转换
         if (unstableType != null && csBuilder.addSubtypeConstraintIfCompatible(unstableType, expectedType, position)) {
-            // 不稳定智能转换可以满足要求
             diagnosticsHolder.addDiagnostic(UnstableSmartCast(expressionArgument, unstableType, isReceiver))
-        } else if (csBuilder.addSubtypeConstraintIfCompatible(argumentType, expectedNullableType, position)) {
-            // 参数类型与可空期望类型兼容，报告不安全调用错误
-            diagnosticsHolder.addDiagnostic(UnsafeCallError(expressionArgument))
         } else {
-            // 类型完全不兼容，添加约束（将导致类型推断错误）
+            // 完全不兼容,添加约束让类型推断报错
             csBuilder.addSubtypeConstraint(argumentType, expectedType, position)
         }
     }
 
     return resolvedExpression
 }
-
 /**
  * 从类型参数上界捕获类型（如果需要）
  *

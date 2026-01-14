@@ -148,8 +148,8 @@ object TypeUnifier {
         // 如果两边都是可选类型，去掉可选标记后继续统一
         if (known.isOption && withVariables.isOption) {
             doUnify(
-                TypeArgumentImpl(TypeUtils.makeNonOption(known)),
-                TypeArgumentImpl(TypeUtils.makeNonOption(withVariables)),
+                TypeArgumentImpl(known.makeNonOption()),
+                TypeArgumentImpl(withVariables.makeNonOption()),
                 isVariable,
                 result
             )

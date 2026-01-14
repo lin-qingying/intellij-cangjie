@@ -197,7 +197,7 @@ class IntersectionTypeConstructor(typesToIntersect: Collection<CangJieType>) : T
      */
     fun createType(): SimpleType =
         CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
-            TypeAttributes.Empty, this, listOf(), false, this.createScopeForCangJieType()
+            TypeAttributes.Empty, this, listOf(), this.createScopeForCangJieType()
         ) { cangjieTypeRefiner ->
             this.refine(cangjieTypeRefiner).createType()
         }

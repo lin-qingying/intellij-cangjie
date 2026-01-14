@@ -38,6 +38,7 @@ import org.cangnova.cangjie.resolve.calls.inference.model.NewTypeVariable
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.StubTypeForBuilderInference
+import org.cangnova.cangjie.types.isOptionType
 import org.cangnova.cangjie.types.UnwrappedType
 import org.cangnova.cangjie.types.getValueParameterTypesFromFunctionType
 import org.cangnova.cangjie.types.isBuiltinFunctionalType
@@ -211,7 +212,7 @@ class PostponedArgumentsAnalyzer(
             c.canBeProper(rawReturnType) -> substitute(rawReturnType)
 
             // For Unit-coercion
-            !rawReturnType.isOption && c.hasUpperOrEqualUnitConstraint(rawReturnType) -> builtIns.unitType
+            !rawReturnType.isOptionType() && c.hasUpperOrEqualUnitConstraint(rawReturnType) -> builtIns.unitType
 
             else -> null
         }

@@ -222,10 +222,10 @@ class DoubleColonExpressionResolver(
 
 
             val arguments = descriptor.typeConstructor.parameters.map(TypeUtils::makeProjection)
-            CangJieTypeFactory.simpleType(
-                TypeAttributes.Empty, descriptor.typeConstructor, arguments,
-                possiblyBareType.isOptional()
+            val baseType = CangJieTypeFactory.simpleType(
+                TypeAttributes.Empty, descriptor.typeConstructor, arguments
             )
+            if (possiblyBareType.isOptional()) baseType.makeOption() else baseType
         } else {
             val actualType = possiblyBareType.actualType
             /*            if (doubleColonExpression.hasQuestionMarks) actualType.makeOption() else */actualType

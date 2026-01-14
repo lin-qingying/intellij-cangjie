@@ -33,8 +33,7 @@ import org.cangnova.cangjie.types.model.StubTypeMarker
 
 
 abstract class AbstractStubType(
-    val originalTypeVariable: TypeVariableConstructor,
-    override val isOption: Boolean
+    val originalTypeVariable: TypeVariableConstructor
 ) : SimpleType() {
     override val memberScope: MemberScope =
         ErrorUtils.createErrorScope(ErrorScopeKind.STUB_TYPE_SCOPE, originalTypeVariable.toString())
@@ -47,17 +46,7 @@ abstract class AbstractStubType(
 
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType = this
 
-
-
-    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
-        return if (isOption == isOption) this else materialize(isOption)
-
-    }
-
-    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) = this
-
-    abstract fun materialize(newOption: Boolean): AbstractStubType
 
     companion object {
         fun createConstructor(originalTypeVariable: TypeVariableConstructor) =
@@ -67,30 +56,22 @@ abstract class AbstractStubType(
 
 class StubTypeForTypeVariablesInSubtyping(
     originalTypeVariable: TypeVariableConstructor,
-    isOption: Boolean,
     override val constructor: TypeConstructor = createConstructor(originalTypeVariable)
-) : AbstractStubType(originalTypeVariable, isOption), StubTypeMarker {
-    override fun materialize(newOption: Boolean): AbstractStubType =
-        StubTypeForTypeVariablesInSubtyping(originalTypeVariable, newOption, constructor)
-
+) : AbstractStubType(originalTypeVariable), StubTypeMarker {
     override fun toString(): String {
-        return "Stub (subtyping): $originalTypeVariable${if (isOption) "?" else ""}"
+        return "Stub (subtyping): $originalTypeVariable"
     }
 }
 
 
 class StubTypeForBuilderInference(
     originalTypeVariable: TypeVariableConstructor,
-    isOption: Boolean,
     override val constructor: TypeConstructor = createConstructor(originalTypeVariable)
-) : AbstractStubType(originalTypeVariable, isOption), StubTypeMarker {
-    override fun materialize(newOption: Boolean): AbstractStubType =
-        StubTypeForBuilderInference(originalTypeVariable, newOption, constructor)
-
+) : AbstractStubType(originalTypeVariable), StubTypeMarker {
     override val memberScope: MemberScope = originalTypeVariable.builtIns.stdlibTypes.anyType.memberScope
 
     override fun toString(): String {
         // BI means builder inference
-        return "Stub (BI): $originalTypeVariable${if (isOption) "?" else ""}"
+        return "Stub (BI): $originalTypeVariable"
     }
 }

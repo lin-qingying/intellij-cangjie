@@ -118,14 +118,10 @@ fun approximateCapturedTypes(type: CangJieType): ApproximationBounds<CangJieType
 
         // 获取捕获类型的内部类型
         // 优先使用 lowerType，否则使用 argument 的类型
-        val innerType = capturedType.lowerType ?: typeConstructor.argument.type
+
 
         // 仓颉语言中类型参数不变，直接使用内部类型作为上下界
-        val approximatedType = if (type.isOption) {
-            TypeUtils.makeOptionalAsSpecified(innerType, true)
-        } else {
-            innerType
-        }
+        val approximatedType = capturedType.lowerType ?: typeConstructor.argument.type
 
         return ApproximationBounds(approximatedType, approximatedType)
     }

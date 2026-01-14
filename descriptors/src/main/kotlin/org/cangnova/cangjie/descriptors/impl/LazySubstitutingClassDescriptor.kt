@@ -289,7 +289,6 @@ class LazySubstitutingClassDescriptor(
                 DefaultTypeAttributeTranslator.toAttributes(annotations, null, null),
                 typeConstructor,
                 TypeArguments,
-                false,
                 unsubstitutedMemberScope
             )
         }

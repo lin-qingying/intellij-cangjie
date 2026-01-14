@@ -63,9 +63,7 @@ class FlexibleTypeWithEnhancement(
         origin.replaceAttributes(newAttributes).wrapEnhancement(enhancement)
 
 
-    override fun makeOptionAsSpecified(isOption: Boolean): UnwrappedType {
-    return     origin.makeOptionAsSpecified(isOption).wrapEnhancement(enhancement.unwrap().makeOptionAsSpecified(isOption))
-    }
+
     override fun render(renderer: DescriptorRenderer, options: DescriptorRendererOptions): String {
 //        if (options.enhancedTypes) {
 //            return renderer.renderType(enhancement)
@@ -96,9 +94,6 @@ class SimpleTypeWithEnhancement(
 
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType =
         origin.replaceAttributes(newAttributes).wrapEnhancement(enhancement) as SimpleType
-//
-    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType = origin.makeOptionAsSpecified(isOption)
-        .wrapEnhancement(enhancement.unwrap().makeOptionAsSpecified(isOption)) as SimpleType
 
     
     override fun replaceDelegate(delegate: SimpleType) = SimpleTypeWithEnhancement(delegate, enhancement)

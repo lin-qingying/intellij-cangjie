@@ -129,7 +129,7 @@ fun createFunctionType(
 
     // 创建并返回简单的、非空的函数类型
     // CangJie does not have extension function type annotations or context receivers
-    return CangJieTypeFactory.simpleNonOptionType(annotations.toDefaultAttributes(), classDescriptor, arguments)
+    return CangJieTypeFactory.simpleType(annotations.toDefaultAttributes(), classDescriptor, arguments)
 }
 
 

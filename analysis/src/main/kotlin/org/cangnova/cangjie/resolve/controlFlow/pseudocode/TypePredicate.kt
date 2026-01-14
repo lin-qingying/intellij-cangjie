@@ -28,6 +28,7 @@ package org.cangnova.cangjie.resolve.controlFlow.pseudocode
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.renderer.DescriptorRenderer
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.isOptionType
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import com.intellij.util.SmartFMap
 import org.cangnova.cangjie.types.TypeUtils
@@ -84,7 +85,7 @@ fun or(predicates: Collection<TypePredicate>): TypePredicate? =
     }
 
 fun CangJieType.getSubtypesPredicate(): TypePredicate = when {
-    CangJieBuiltIns.isAny(this) && isOption -> AllTypes
+    CangJieBuiltIns.isAny(this) && isOptionType() -> AllTypes
     TypeUtils.canHaveSubtypes(CangJieTypeChecker.DEFAULT, this) -> AllSubtypes(this)
     else -> SingleType(this)
 }

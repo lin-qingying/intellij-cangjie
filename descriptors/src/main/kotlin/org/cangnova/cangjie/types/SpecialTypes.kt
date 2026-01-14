@@ -83,11 +83,7 @@ class AbbreviatedType(override val delegate: SimpleType, val abbreviation: Simpl
     /**
      * 按指定Option状态转换类型
      */
-    override fun makeOptionAsSpecified(isOption: Boolean) =
-        AbbreviatedType(
-            delegate.makeOptionAsSpecified(isOption),
-            abbreviation.makeOptionAsSpecified(isOption)
-        )
+
     /**
      * 替换委托类型
      */
@@ -103,7 +99,6 @@ abstract class DelegatingSimpleType : SimpleType() {
     protected abstract val delegate: SimpleType
     override val constructor: TypeConstructor get() = delegate.constructor
     override val arguments: List<TypeArgument> get() = delegate.arguments
-    override val isOption: Boolean get() = delegate.isOption
     override val memberScope: MemberScope get() = delegate.memberScope
     override val attributes: TypeAttributes get() = delegate.attributes
 
@@ -130,7 +125,6 @@ abstract class WrappedType : CangJieType() {
     protected abstract val delegate: CangJieType
     override val constructor: TypeConstructor get() = delegate.constructor
     override val arguments: List<TypeArgument> get() = delegate.arguments
-    override val isOption: Boolean get() = delegate.isOption
     override val memberScope: MemberScope get() = delegate.memberScope
     override val attributes: TypeAttributes get() = delegate.attributes
 

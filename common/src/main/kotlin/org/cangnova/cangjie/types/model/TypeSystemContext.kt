@@ -90,7 +90,7 @@ interface TypeSystemTypeFactoryContext : TypeSystemBuiltInsContext {
     fun createSimpleType(
         constructor: TypeConstructorMarker,
         arguments: List<TypeArgumentMarker>,
-        isOption: Boolean,
+
         isExtensionFunction: Boolean = false,
         attributes: List<AnnotationMarker>? = null
     ): SimpleTypeMarker

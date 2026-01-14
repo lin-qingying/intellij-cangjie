@@ -82,7 +82,7 @@ abstract class AbstractTypeParameterDescriptor protected constructor(
         this._defaultType = storageManager.createLazyValue {
             simpleTypeWithNonTrivialMemberScope(
                 Empty,
-                typeConstructor, emptyList(), false,
+                typeConstructor, emptyList(),
                 LazyScopeAdapter {
                     TypeIntersectionScope. create(
                         "Scope for type parameter " + name.asString(),

@@ -60,6 +60,7 @@ import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.calls.util.CallTypeAndReceiver
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.isBoolean
+import org.cangnova.cangjie.types.isOptionType
 import org.cangnova.cangjie.types.makeNonOption
 
 interface InheritanceItemsSearcher {
@@ -264,7 +265,7 @@ class SmartCompletion(
                 addNameAndValue(parameterName, "true", SmartCompletionItemPriority.NAMED_ARGUMENT_TRUE, expectedInfo)
                 addNameAndValue(parameterName, "false", SmartCompletionItemPriority.NAMED_ARGUMENT_FALSE, expectedInfo)
             }
-            if (expectedInfo.fuzzyType?.type?.isOption == true) {
+            if (expectedInfo.fuzzyType?.type?.isOptionType() == true) {
                 addNameAndValue(parameterName, "null", SmartCompletionItemPriority.NAMED_ARGUMENT_NULL, expectedInfo)
             }
         }

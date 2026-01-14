@@ -69,6 +69,7 @@ import org.cangnova.cangjie.types.expressions.ExpressionTypingServices
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import org.cangnova.cangjie.types.isError
+import org.cangnova.cangjie.types.makeOption
 import org.cangnova.cangjie.types.toFunctionType
 
 // 枚举的解析没有正确实现，enum ab{
@@ -865,12 +866,21 @@ class CallExpressionResolver(
      *
      * 根据调用是安全调用（`?.`）还是普通调用（`.`）来处理选择器。
      *
-     * ## 安全调用处理
+     * ## 仓颉语言的 `?.` 语义
      *
-     * 对于安全调用：
-     * - 添加 "接收者 != null" 的数据流信息
-     * - 如果接收者不可能为空，报告 `UNNECESSARY_SAFE_CALL` 警告
-     * - 将结果类型包装为 `Option<T>`
+     * `?.` 是 **Option 类型的语法糖**,不是运行时 null 检查:
+     * - **仅适用于 `Option<T>` 类型的接收者**
+     * - 如果接收者不是 Option 类型,应报告编译错误
+     * - 结果类型始终为 `Option<U>` (U 是选择器的结果类型)
+     *
+     * 示例:
+     * ```cangjie
+     * let x: Option<Foo> = Some(Foo())
+     * let y = x?.bar  // 类型: Option<BarType>
+     *
+     * let z: Foo = Foo()
+     * let w = z?.bar  // 编译错误: 不能在非 Option 类型上使用 ?.
+     * ```
      *
      * @param receiver 接收者
      * @param element 调用表达式元素
@@ -883,32 +893,24 @@ class CallExpressionResolver(
         context: ExpressionTypingContext
     ):
             CangJieTypeInfo {
-        var initialDataFlowInfoForArguments = context.dataFlowInfo
-        val receiverDataFlowValue =
-            (receiver as? ReceiverValue)?.let { dataFlowValueFactory.createDataFlowValue(it, context) }
-
-        val receiverCanBeNull =
-            receiverDataFlowValue != null && initialDataFlowInfoForArguments.getStableNullability(receiverDataFlowValue)
-                .canBeNull()
-        // 默认启用：安全调用总是返回可空类型
-        val shouldNullifySafeCallType = receiverCanBeNull || true
+        val initialDataFlowInfoForArguments = context.dataFlowInfo
 
         val callOperationNode =
             AstLoadingFilter.forceAllowTreeLoading(element.qualified.containingFile, ThrowableComputable {
                 element.node
             })
 
-        if (receiverDataFlowValue != null && element.safe) {
-            // 如果是安全调用，应该应用额外的 "receiver != null" 信息
-            if (shouldNullifySafeCallType) {
-                initialDataFlowInfoForArguments = initialDataFlowInfoForArguments.disequate(
-                    receiverDataFlowValue, DataFlowValue.nullValue(builtIns), languageVersionSettings
-                )
-            }
-            if (!receiverCanBeNull) {
+        // 仓颉语言: 检查 ?. 操作符的使用是否正确
+        if (element.safe && receiver is ReceiverValue) {
+            val receiverType = receiver.type
+            val isReceiverOption = TypeUtils.isOptionType(receiverType)
+
+            if (!isReceiverOption) {
+                // 仓颉语言: ?. 只能用于 Option<T> 类型
+                // 这是编译错误,不是警告
                 reportUnnecessarySafeCall(
                     context.trace,
-                    receiver.type,
+                    receiverType,
                     element.qualified,
                     callOperationNode,
                     receiver,
@@ -918,7 +920,6 @@ class CallExpressionResolver(
         }
 
         val selector = element.selector
-
 
         var selectorTypeInfo =
             getUnsafeSelectorTypeInfo(receiver, callOperationNode, selector, context, initialDataFlowInfoForArguments)
@@ -933,10 +934,10 @@ class CallExpressionResolver(
 
         val selectorType = selectorTypeInfo.type
         if (selectorType != null) {
-            if (element.safe && shouldNullifySafeCallType) {
-                selectorTypeInfo = selectorTypeInfo.replaceType(TypeUtils.makeOption(selectorType))
+            // 仓颉语言: 如果使用 ?. 操作符,结果类型总是 Option<T>
+            if (element.safe) {
+                selectorTypeInfo = selectorTypeInfo.replaceType(selectorType.makeOption())
             }
-            // TODO: 这段代码可疑：是否应该移除？
             if (selector != null) {
                 context.trace.recordType(selector, selectorTypeInfo.type)
             }

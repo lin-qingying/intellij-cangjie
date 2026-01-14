@@ -28,6 +28,7 @@ import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.UnsignedTypes
 import org.cangnova.cangjie.diagnostics.infos.errors.INVALID_TYPE_OF_ANNOTATION_MEMBER
 import org.cangnova.cangjie.diagnostics.infos.errors.OPTIONAL_TYPE_OF_ANNOTATION_MEMBER
+import org.cangnova.cangjie.types.isOptionType
 import org.cangnova.cangjie.psi.CjExpression
 import org.cangnova.cangjie.psi.CjParameter
 import org.cangnova.cangjie.psi.CjPsiUtil
@@ -42,6 +43,7 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.isError
 import org.cangnova.cangjie.types.isFunctionType
+import org.cangnova.cangjie.types.isOption
 
 object CompileTimeConstantUtils {
 
@@ -83,7 +85,7 @@ object CompileTimeConstantUtils {
             val arguments = parameterType.arguments
             if (arguments.size == 1) {
                 val arrayType = arguments[0].type
-                if (arrayType.isOption) return false
+                if (arrayType.isOptionType()) return false
                 val arrayTypeDescriptor = TypeUtils.getClassDescriptor(arrayType)
                 if (arrayTypeDescriptor != null) {
                     return isEnum(arrayTypeDescriptor) ||

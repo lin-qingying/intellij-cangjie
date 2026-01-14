@@ -256,14 +256,14 @@ open class FunctionClassDescriptor(
         parameterTypes: List<CangJieType>,
         returnType: CangJieType,
 
-        isOption: Boolean = false
+
     ): FunctionType {
         return FunctionType(
             constructor = typeConstructor,
 
             parameterTypes = parameterTypes,
             returnType = returnType,
-            isOption = isOption
+
         )
     }
 }

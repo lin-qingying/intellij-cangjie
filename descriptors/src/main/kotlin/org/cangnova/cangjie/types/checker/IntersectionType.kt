@@ -174,12 +174,12 @@ object TypeIntersector {
                 nothingOrOptionNothing = type
             }
             allOption = allOption and type.isOption
-            optionStripped.add(TypeUtils.makeNonOption(type))
+            optionStripped.add(OptionTypeUtils.unwrapOptionType(type) ?: type)
         }
 
         // 如果有 Nothing 类型，根据整体可选性返回相应的 Nothing 类型
         if (nothingOrOptionNothing != null) {
-            return TypeUtils.makeOptionalAsSpecified(nothingOrOptionNothing, allOption)
+            return nothingOrOptionNothing
         }
 
         // 如果所有类型都是错误类型
@@ -242,11 +242,11 @@ object TypeIntersector {
             if (bestRepresentative == null) {
                 return null
             }
-            return TypeUtils.makeOptionalAsSpecified(bestRepresentative, allOption)
+            return bestRepresentative
         }
 
         if (resultingTypes.size == 1) {
-            return TypeUtils.makeOptionalAsSpecified(resultingTypes[0], allOption)
+            return resultingTypes[0]
         }
 
         return IntersectionTypeConstructor(resultingTypes).createType()
@@ -270,7 +270,8 @@ object TypeIntersector {
         for (type in types) {
             if (type.constructor is IntersectionTypeConstructor) {
                 inputTypes.addAll(type.constructor.supertypes.map {
-                    it.upperIfFlexible().let { if (type.isOption) it.makeOptionAsSpecified(true) else it }
+                    val upper = it.upperIfFlexible()
+                    if (type.isOption) OptionTypeUtils.makeOptionalIfNeeded(upper, true) else upper
                 })
             } else {
                 inputTypes.add(type)

@@ -87,7 +87,7 @@ class ConstraintIncorporator(
                         it.type,
                         constraint.type,
                         shouldBeTypeVariableFlexible,
-                        it.isNullabilityConstraint
+
                     )
                 }
             }
@@ -419,14 +419,9 @@ class ConstraintIncorporator(
             baseConstraint.position.from as? OnlyInputTypeConstraintPosition
                 ?: baseConstraint.inputTypePositionBeforeIncorporation
 
-        // 确定是否是可空性约束
-        val isNewConstraintUsefulForNullability = isUsefulForNullabilityConstraint && newConstraint.isOptionNothing()
-        val isOtherConstraintUsefulForNullability =
-            otherConstraint.isNullabilityConstraint && otherConstraint.type.isOptionNothing()
-        val isNullabilityConstraint = isNewConstraintUsefulForNullability || isOtherConstraintUsefulForNullability
 
         // 创建约束上下文
-        val constraintContext = ConstraintContext(kind, derivedFrom, inputTypePosition, isNullabilityConstraint)
+        val constraintContext = ConstraintContext(kind, derivedFrom, inputTypePosition)
 
         // 添加新的合并约束
         addNewIncorporatedConstraint(targetVariable, newConstraint, constraintContext)
@@ -551,14 +546,12 @@ class ConstraintIncorporator(
          * @param lowerType 下界类型（子类型）
          * @param upperType 上界类型（超类型）
          * @param shouldTryUseDifferentFlexibilityForUpperType 是否尝试为上界类型使用不同的灵活性
-         * @param isFromNullabilityConstraint 是否来自可空性约束
          * @param isFromDeclaredUpperBound 是否来自声明的上界
          */
         fun addNewIncorporatedConstraint(
             lowerType: CangJieTypeMarker,
             upperType: CangJieTypeMarker,
             shouldTryUseDifferentFlexibilityForUpperType: Boolean,
-            isFromNullabilityConstraint: Boolean = false,
             isFromDeclaredUpperBound: Boolean = false
         )
 

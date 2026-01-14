@@ -28,7 +28,6 @@ import com.intellij.util.containers.addIfNotNull
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.StandardNames.FqNames
 import org.cangnova.cangjie.descriptors.ClassDescriptor
-import org.cangnova.cangjie.descriptors.ClassKind
 import org.cangnova.cangjie.descriptors.TypeAliasDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.annotations.Annotations
@@ -207,8 +206,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
         (firstCandidate.constructor as? IntersectionTypeConstructor)?.let { intersectionConstructor ->
             val intersectionTypeWithAlternative = intersectionConstructor.setAlternative(secondCandidate).createType()
-            return if (firstCandidate.isOption) intersectionTypeWithAlternative.makeOptionAsSpecified(true)
-            else intersectionTypeWithAlternative
+            return intersectionTypeWithAlternative
 
         } ?: error("Expected intersection type, found $firstCandidate")
     }
@@ -254,7 +252,8 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun SimpleTypeMarker.withOption(isOption: Boolean): SimpleTypeMarker {
         require(this is SimpleType, this::errorMessage)
-        return this.makeOptionAsSpecified(isOption)
+        // TODO: 需要使用 OptionTypeUtils 重新实现
+        return this
     }
 
     override fun CangJieTypeMarker.isError(): Boolean {
@@ -681,9 +680,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
             captureStatus,
             constructor,
             lowerType,
-            attributes,
-            isOption,
-
+            attributes
         )
     }
 
@@ -712,7 +709,6 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     override fun createSimpleType(
         constructor: TypeConstructorMarker,
         arguments: List<TypeArgumentMarker>,
-        isOption: Boolean,
         isExtensionFunction: Boolean,
         attributes: List<AnnotationMarker>?
     ): SimpleTypeMarker {
@@ -727,7 +723,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
             DefaultTypeAttributeTranslator.toAttributes(resultingAnnotations),
             constructor,
             arguments as List<TypeArgument>,
-            isOption
+
         )
     }
 
@@ -949,8 +945,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
         (firstCandidate.constructor as? IntersectionTypeConstructor)?.let { intersectionConstructor ->
             val intersectionTypeWithAlternative = intersectionConstructor.setAlternative(secondCandidate).createType()
-            return if (firstCandidate.isOption) intersectionTypeWithAlternative.makeOptionAsSpecified(true)
-            else intersectionTypeWithAlternative
+            return intersectionTypeWithAlternative
 
         } ?: error("Expected intersection type, found $firstCandidate")
     }

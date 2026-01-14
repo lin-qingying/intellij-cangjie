@@ -31,6 +31,7 @@ import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.types.UnwrappedType
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.expandIntersectionTypeIfNecessary
+import org.cangnova.cangjie.types.makeOptionAsSpecified
 
 
 /**
@@ -169,7 +170,7 @@ class AdditionalDiagnosticReporter(
         val expectedType =
             parameter.type.unwrap().let { if (receiver.isSafeCall) it.makeOptionAsSpecified(true) else it }
 
-        val smartCastDiagnostic = createSmartCastDiagnostic(candidate, receiver, expectedType) ?: return null
+        val smartCastDiagnostic = createSmartCastDiagnostic(candidate, receiver, expectedType.unwrap()) ?: return null
 
         // todo may be we have smart cast to Int?
         return smartCastDiagnostic.takeIf {

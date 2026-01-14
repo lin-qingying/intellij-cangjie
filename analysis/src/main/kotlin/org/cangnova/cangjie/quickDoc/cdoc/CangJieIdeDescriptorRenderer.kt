@@ -818,9 +818,12 @@ open class CangJieIdeDescriptorRenderer(
 
     private fun StringBuilder.appendDefaultType(type: CangJieType) {
 
-        if (type is OptionType) {
+        if (type.isOptionType()) {
             appendHighlighted("?") { asNullityMarker }
-            appendTypeConstructorAndArguments(type.innerType)
+            val innerType = type.unwrapOptionType()
+            if (innerType != null) {
+                appendTypeConstructorAndArguments(innerType)
+            }
 
         } else if (type.isError) {
             if (isUnresolvedType(type) && presentableUnresolvedTypes) {

@@ -42,7 +42,6 @@ import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.source.getPsi
 import org.cangnova.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope
 import org.cangnova.cangjie.types.TypeUtils.contains
-import org.cangnova.cangjie.types.TypeUtils.makeOptionalAsSpecified
 import org.cangnova.cangjie.types.TypeUtils.makeProjection
 import org.cangnova.cangjie.types.checker.*
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker.Companion.DEFAULT
@@ -347,7 +346,7 @@ object TypeUtils {
         }
 
         return CangJieTypeFactory.simpleType(
-            stub.attributes, stub.constructor, arguments, true, null
+            stub.attributes, stub.constructor, arguments,  null
         )
 
     }
@@ -375,7 +374,7 @@ object TypeUtils {
         subType: CangJieType, superType: CangJieType, substitutor: ComposableTypeSubstitutor
     ): CangJieType? {
         val substitutedType: CangJieType = substitutor.safeSubstitute(superType.unwrap())
-        return makeOptionalIfNeeded(substitutedType, subType.isOption)
+        return substitutedType
     }
 
     /**
@@ -797,124 +796,7 @@ object TypeUtils {
         return getDefaultPrimitiveNumberType(numberValueTypeConstructor)
     }
 
-    /**
-     * 将类型转换为Option类型
-     *
-     * 将任意类型转换为Option类型，如果已经是Option类型则返回自身。
-     *
-     * 示例：
-     * ```kotlin
-     * val intType: CangJieType = BasicType(...)
-     * val optionIntType = makeOption(intType) // 返回 OptionType(intType)
-     * optionIntType.isOption // true
-     * ```
-     *
-     * @param type 要转换的类型
-     * @return Option类型
-     */
-    @JvmStatic
-    fun makeOption(type: CangJieType): CangJieType {
-        return makeOptionalAsSpecified(type, true)
-    }
 
-    /**
-     * 将类型转换为非Option类型
-     *
-     * 将Option类型转换为非Option类型，如果已经是非Option类型则返回自身。
-     *
-     * 示例：
-     * ```kotlin
-     * val optionIntType: CangJieType = OptionType(intType)
-     * val intType = makeNonOption(optionIntType) // 返回 intType
-     * intType.isOption // false
-     * ```
-     *
-     * @param type 要转换的类型
-     * @return 非Option类型
-     */
-    @JvmStatic
-    fun makeNonOption(type: CangJieType): CangJieType {
-        return makeOptionalAsSpecified(type, false)
-    }
-
-
-    /**
-     * 将类型转换为指定的Option状态
-     *
-     * 通过调用UnwrappedType.makeOptionAsSpecified方法，将类型转换为指定的Option状态。
-     * 如果类型已经是目标状态，则返回自身；否则进行相应的转换。
-     *
-     * 示例：
-     * ```kotlin
-     * val intType: CangJieType = BasicType(...)
-     *
-     * // 转换为Option类型
-     * val optionIntType = makeOptionalAsSpecified(intType, true) // 返回 OptionType(intType)
-     * optionIntType.isOption // true
-     *
-     * // 转换为非Option类型
-     * val nonOptionType = makeOptionalAsSpecified(optionIntType, false) // 返回 intType
-     * nonOptionType.isOption // false
-     *
-     * // 已经是目标状态时返回自身
-     * val sameType = makeOptionalAsSpecified(intType, false) // 返回 intType（无变化）
-     * val sameOptionType = makeOptionalAsSpecified(optionIntType, true) // 返回 optionIntType（无变化）
-     * ```
-     *
-     * @param type 要转换的类型
-     * @param optional 目标Option状态
-     * @return 转换后的类型
-     */
-    @JvmStatic
-    fun makeOptionalAsSpecified(
-        type: CangJieType, optional: Boolean
-    ): CangJieType {
-        return type.unwrap().makeOptionAsSpecified(optional)
-    }
-
-    /**
-     * 根据需要将类型转换为Option类型
-     *
-     * 只有当optional为true且类型不是Option类型时，才进行转换。
-     * 如果optional为false或类型已经是Option类型，则返回原类型。
-     *
-     * 示例：
-     * ```kotlin
-     * val intType: SimpleType = BasicType(...)
-     *
-     * // 需要转换为Option类型
-     * val optionIntType = makeOptionalIfNeeded(intType, true) // 返回 OptionType(intType)
-     * optionIntType.isOption // true
-     *
-     * // 不需要转换为Option类型
-     * val sameType = makeOptionalIfNeeded(intType, false) // 返回 intType（无变化）
-     * val sameOptionType = makeOptionalIfNeeded(optionIntType, true) // 返回 optionIntType（无变化）
-     * ```
-     *
-     * @param type 要转换的类型
-     * @param optional 是否需要转换为Option类型
-     * @return 转换后的类型
-     */
-    @JvmStatic
-    fun makeOptionalIfNeeded(
-        type: SimpleType, optional: Boolean
-    ): SimpleType {
-        if (optional) {
-            return type.makeOptionAsSpecified(true)
-        }
-        return type
-    }
-
-    @JvmStatic
-    fun makeOptionalIfNeeded(
-        type: CangJieType,
-        optional: Boolean
-    ): CangJieType {
-        if (optional) {
-            return makeOption(type)
-        }
-        return type
-    }
 
     /**
      * 获取类型参数的默认类型投影列表
@@ -993,7 +875,7 @@ object TypeUtils {
     ): SimpleType {
         val arguments: List<TypeArgument> = getDefaultTypeArguments(typeConstructor.parameters)
         return simpleTypeWithNonTrivialMemberScope(
-            TypeAttributes.Empty, typeConstructor, arguments, false, unsubstitutedMemberScope, refinedTypeFactory
+            TypeAttributes.Empty, typeConstructor, arguments,   unsubstitutedMemberScope, refinedTypeFactory
         )
     }
 
@@ -1247,10 +1129,7 @@ object TypeUtils {
             }
 
 
-        override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
-            throw IllegalStateException(name)
 
-        }
 
 
         override fun toString(): String {
@@ -1401,69 +1280,7 @@ fun countOptionNestedLevel(type: CangJieType): Int {
     return type.countOptionNestedLevel()
 }
 
-/**
- * 创建Option类型
- *
- * 将给定的内部类型包装为Option类型。
- * 这是创建Option类型的标准方法，适用于IDE插件。
- *
- * 示例：
- * ```kotlin
- * val intType: CangJieType = BasicType(...)
- * val optionIntType = makeOptionType(intType) // 创建 Option<Int>
- *
- * val stringType: CangJieType = BasicType(...)
- * val optionStringType = makeOptionType(stringType) // 创建 Option<String>
- *
- * // 嵌套Option
- * val nestedOptionType = makeOptionType(optionIntType) // 创建 Option<Option<Int>>
- * ```
- *
- * @param innerType 要包装的内部类型
- * @return 包装后的Option类型
- */
-fun makeOptionType(innerType: CangJieType): CangJieType {
-    return OptionType(innerType)
-}
 
-fun CangJieType.makeOption() = TypeUtils.makeOption(this)
-fun CangJieType.makeNonOption() = TypeUtils.makeNonOption(this)
-
-/**
- * 创建嵌套的Option类型
- *
- * 创建指定层级的嵌套Option类型。level参数指定要包装的Option层数。
- *
- * 示例：
- * ```kotlin
- * val intType: CangJieType = BasicType(...)
- *
- * // 创建1层Option
- * val optionIntType = createNestedOptionType(intType, 1) // Option<Int>
- *
- * // 创建2层Option
- * val nestedOptionType = createNestedOptionType(intType, 2) // Option<Option<Int>>
- *
- * // 创建3层Option
- * val tripleNestedType = createNestedOptionType(intType, 3) // Option<Option<Option<Int>>>
- *
- * // level为0或负数时返回原类型
- * val sameType = createNestedOptionType(intType, 0) // 返回 intType
- * ```
- *
- * @param baseType 基础类型
- * @param level 要创建的Option嵌套层级
- * @return 嵌套的Option类型
- */
-fun createNestedOptionType(baseType: CangJieType, level: Int): CangJieType {
-    if (level <= 0) return baseType
-
-    var result = baseType
-    repeat(level) {
-        result = OptionType(result)
-    }
-    return result
-}
 
 /**
  * 检查类型是否接受Option值
@@ -1542,12 +1359,11 @@ fun getOptionInnerType(type: CangJieType): CangJieType? {
  * @return Option类型的字符串表示
  */
 fun optionTypeToString(type: CangJieType): String {
-    return when (type) {
-        is OptionType -> {
-            "Option<${optionTypeToString(type.innerType)}>"
-        }
-
-        else -> type.toString()
+    val innerType = OptionTypeUtils.unwrapOptionType(type)
+    return if (innerType != null) {
+        "Option<${optionTypeToString(innerType)}>"
+    } else {
+        type.toString()
     }
 }
 
@@ -1569,12 +1385,11 @@ fun optionTypeToString(type: CangJieType): String {
  * @return Option类型的语法糖字符串表示
  */
 fun optionTypeToSugarString(type: CangJieType): String {
-    return when (type) {
-        is OptionType -> {
-            "${optionTypeToSugarString(type.innerType)}?"
-        }
-
-        else -> type.toString()
+    val innerType = OptionTypeUtils.unwrapOptionType(type)
+    return if (innerType != null) {
+        "${optionTypeToSugarString(innerType)}?"
+    } else {
+        type.toString()
     }
 }
 
@@ -1716,22 +1531,26 @@ fun CangJieType.substitute(byType: CangJieType): CangJieType {
 }
 
 internal fun CangJieType.substitute(substitution: CangJieTypeSubstitution): CangJieType {
-    val nullable = isOption
-    val currentType = makeNonOption()
+    val isOptionType = OptionTypeUtils.isOptionType(this)
+    val currentType = OptionTypeUtils.unwrapOptionType(this) ?: this
 
-    return if (DEFAULT.equalTypes(currentType, substitution.forType)
-    ) {
-        makeOptionalAsSpecified(substitution.byType, nullable)
+    return if (DEFAULT.equalTypes(currentType, substitution.forType)) {
+        // 如果需要保持 Option 状态，则包装结果
+        if (isOptionType) {
+            OptionTypeUtils.createOptionType(substitution.byType, substitution.byType.builtIns)
+        } else {
+            substitution.byType
+        }
     } else {
         val newArguments = arguments.zip(constructor.parameters).map { pair ->
             val (projection, typeParameter) = pair
-            TypeArgumentImpl(  projection.type.substitute(substitution))
+            TypeArgumentImpl(projection.type.substitute(substitution))
         }
         simpleTypeWithNonTrivialMemberScope(
             annotations.toDefaultAttributes(),
             constructor,
             newArguments,
-            isOption,
+
             memberScope
         )
     }
@@ -1904,7 +1723,7 @@ fun CangJieType.replaceArgument(vararg newType: CangJieType): CangJieType {
         attributes,
         constructor,
         arguments,
-        isOption,
+
         memberScope
     )
 }
@@ -2004,7 +1823,7 @@ fun CangJieType.expandIntersectionTypeIfNecessary(): Collection<CangJieType> {
     if (constructor !is IntersectionTypeConstructor) return listOf(this)
     val types = constructor.supertypes
     return if (isMarkedOption()) {
-        types.map { it.makeOption() }
+        types.map { OptionTypeUtils.createOptionType(it, it.builtIns) }
     } else {
         types
     }
@@ -2039,7 +1858,7 @@ fun CangJieType.approximateFlexibleTypes(
     preferStarForRaw: Boolean = false,
     preferUpperBoundsForCollections: Boolean = false,
 ): CangJieType {
-    if (this is OptionType) return this
+    if (OptionTypeUtils.isOptionType(this)) return this
     if (isDynamic()) return this
     // 仓颉语言：移除 DefinitelyNonOptionType 检查，直接进行灵活类型近似
     return unwrapEnhancement().approximateNonDynamicFlexibleTypes(
@@ -2066,31 +1885,13 @@ private fun CangJieType.approximateNonDynamicFlexibleTypes(
 
         var approximation =
             if (isCollection) {
-
                 val bound = if (preferUpperBoundsForCollections) upperBound else lowerBound
-                if (lowerBound.isMarkedOption() != upperBound.isMarkedOption())
-                    bound.makeOptionAsSpecified(!preferNotNull)
-                else
-                    bound
+                bound
             } else {
-                if (this is RawType && preferStarForRaw)
-                    upperBound.makeOptionAsSpecified(!preferNotNull)
-                else
-                    if (preferNotNull) lowerBound else upperBound
+                if (preferNotNull) lowerBound else upperBound
             }
 
         approximation = approximation.approximateNonDynamicFlexibleTypes()
-
-        approximation =
-            if (optionality() == TypeOptionality.NOT_OPTION) approximation.makeOptionAsSpecified(false) else approximation
-
-        if (approximation.isMarkedOption() && !lowerBound
-                .isMarkedOption() && TypeUtils.isTypeParameter(approximation) && TypeUtils.hasOptionSuperType(
-                approximation
-            )
-        ) {
-            approximation = approximation.makeOptionAsSpecified(false)
-        }
 
         return approximation
     }
@@ -2102,7 +1903,7 @@ private fun CangJieType.approximateNonDynamicFlexibleTypes(
         annotations.toDefaultAttributes(),
         constructor,
         arguments.map { it.substitute { type -> type.approximateFlexibleTypes(preferNotNull = true) } },
-        isMarkedOption(),
+
         ErrorUtils.createErrorScope(ErrorScopeKind.UNSUPPORTED_TYPE_SCOPE, true, constructor.toString())
     )
 }

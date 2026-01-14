@@ -176,7 +176,7 @@ class SpecifyTypeExplicitlyIntention : SelfTargetingRangeIntention<CjCallableDec
                 with(getResolvableApproximations(scope, checkTypeParameters = false).toList()) {
                     when {
                         exprType.isNullabilityFlexible() -> flatMap {
-                            listOf(TypeUtils.makeNonOption(it), TypeUtils.makeOption(it))
+                            listOf(it.makeNonOption(), it.makeOption())
                         }
 
                         else -> this
@@ -199,7 +199,7 @@ class SpecifyTypeExplicitlyIntention : SelfTargetingRangeIntention<CjCallableDec
                 if (contextElement.containingCjFile.findDescendantOfType<PsiComment>()?.takeIf {
                         it.text == "// CHOOSE_NULLABLE_TYPE_IF_EXISTS"
                     } != null) {
-                    val targetType = types.firstOrNull { it.isOption } ?: types.first()
+                    val targetType = types.firstOrNull { it.isOptionType() } ?: types.first()
                     return TypeChooseValueExpression(listOf(targetType), targetType)
                 }
                 // This helps to be sure something except Nothing is suggested

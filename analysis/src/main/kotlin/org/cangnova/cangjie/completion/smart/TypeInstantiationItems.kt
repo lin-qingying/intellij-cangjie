@@ -369,7 +369,7 @@ class TypeInstantiationItems(
     ) : InheritanceItemsSearcher {
 
         private val baseHasTypeArgs = classDescriptor.declaredTypeParameters.isNotEmpty()
-        private val expectedType = CangJieTypeFactory.simpleNonOptionType(TypeAttributes.Empty, classDescriptor, typeArgs)
+        private val expectedType = CangJieTypeFactory.simpleType(TypeAttributes.Empty, classDescriptor, typeArgs)
         private val expectedFuzzyType = expectedType.toFuzzyType(freeParameters)
 
         override fun search(nameFilter: (String) -> Boolean, consumer: (LookupElement) -> Unit) {
@@ -387,7 +387,7 @@ class TypeInstantiationItems(
                     val substitutor = inheritorFuzzyType.checkIsSubtypeOf(expectedFuzzyType) ?: continue
                     if (!substitutor.isEmpty) {
                         val inheritorTypeSubstituted =
-                            substitutor.substitute(inheritorFuzzyType.type )!!
+                            substitutor.substitute(inheritorFuzzyType.type )
                         inheritorFuzzyType =
                             inheritorTypeSubstituted.toFuzzyType(freeParameters + inheritorFuzzyType.freeParameters)
                     }

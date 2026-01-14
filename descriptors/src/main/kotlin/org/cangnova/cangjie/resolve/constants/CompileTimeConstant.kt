@@ -127,7 +127,7 @@ class IntegerValueTypeConstant(
             IntegerValueTypeConstructor(value.toLong(), moduleDescriptor, parameters)
         }
     val unknownIntegerType = CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
-        TypeAttributes.Empty, typeConstructor, emptyList(), false,
+        TypeAttributes.Empty, typeConstructor, emptyList(),
         ErrorUtils.createErrorScope(
             ErrorScopeKind.INTEGER_LITERAL_TYPE_SCOPE,
             throwExceptions = true,
@@ -275,7 +275,7 @@ class FloatValueTypeConstant(
         }
     }
     val unknownIntegerType = CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
-        TypeAttributes.Empty, typeConstructor, emptyList(), false,
+        TypeAttributes.Empty, typeConstructor, emptyList(),
         ErrorUtils.createErrorScope(
             ErrorScopeKind.INTEGER_LITERAL_TYPE_SCOPE,
             throwExceptions = true,

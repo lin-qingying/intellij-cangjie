@@ -147,7 +147,7 @@ class VArrayTypeDescriptor(
     private val defaultTypeVarrayType: NotNullLazyValue<VArrayType> = storageManager.createLazyValue {
         checkInitialized()
         VArrayType(
-            size, argumentType.asTypeArgument(), typeConstructor, false, memberScope
+            size, argumentType.asTypeArgument(), typeConstructor,   memberScope
         ) {
             null
         }

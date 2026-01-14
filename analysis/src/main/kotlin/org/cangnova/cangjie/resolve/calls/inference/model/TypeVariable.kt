@@ -67,7 +67,7 @@ fun TypeConstructor.typeForTypeVariable(): SimpleType {
     require(this is TypeVariableTypeConstructor)
     return CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
         TypeAttributes.Empty, this, emptyList(),
-        false, builtIns.stdlibTypes.any.unsubstitutedMemberScope
+      builtIns.stdlibTypes.any.unsubstitutedMemberScope
     )
 }
 

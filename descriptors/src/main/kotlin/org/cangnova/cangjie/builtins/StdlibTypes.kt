@@ -403,7 +403,7 @@ class StdlibTypes(
                     argument
                 )
             )
-        return CangJieTypeFactory.simpleNonOptionType(
+        return CangJieTypeFactory.simpleType(
             annotations.toDefaultAttributes(),
             array,
             types

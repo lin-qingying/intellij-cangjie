@@ -155,7 +155,6 @@ class TupleClassDescriptor(
     fun createTupleType(
         elementTypes: List<CangJieType>,
         attributes: TypeAttributes = TypeAttributes.Empty,
-        isOption: Boolean = false
     ): TupleType {
         require(elementTypes.size == arity) { 
             "Element types count (${elementTypes.size}) must match tuple arity ($arity)" 
@@ -164,7 +163,6 @@ class TupleClassDescriptor(
             constructor = typeConstructor,
             attributes = attributes,
             elementTypes = elementTypes,
-            isOption = isOption
         )
     }
 }

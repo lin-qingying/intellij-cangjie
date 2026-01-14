@@ -59,6 +59,7 @@ import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.isError
 import org.cangnova.cangjie.types.isGenericArrayOfTypeParameter
 import org.cangnova.cangjie.types.isSubtypeOf
+import org.cangnova.cangjie.types.makeNonOption
 import java.math.BigInteger
 
 
@@ -398,7 +399,7 @@ private class ConstantExpressionEvaluatorVisitor(
     private class OperationArgument(val value: Any, val ctcType: CompileTimeType, val expression: CjExpression)
 
     private fun getCompileTimeType(c: CangJieType): CompileTimeType? =
-        when (TypeUtils.makeNonOption(c)) {
+        when (c.makeNonOption()) {
             builtIns.int32Type -> CompileTimeType.Int32
             builtIns.int8Type -> CompileTimeType.Int8
             builtIns.int16Type -> CompileTimeType.Int16

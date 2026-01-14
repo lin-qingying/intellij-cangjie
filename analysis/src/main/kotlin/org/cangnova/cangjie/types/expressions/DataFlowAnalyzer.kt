@@ -47,14 +47,17 @@ import org.cangnova.cangjie.psi.CjExpression
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.context.ResolutionContext
+import org.cangnova.cangjie.resolve.calls.inference.BuilderInferenceSession
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValue
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import org.cangnova.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.StubTypeForBuilderInference
 import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
 import org.cangnova.cangjie.types.TypeUtils.UNIT_EXPECTED_TYPE
 import org.cangnova.cangjie.types.TypeUtils.noExpectedType
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
+import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.contains
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 
@@ -603,13 +606,14 @@ class DataFlowAnalyzer(
         reportErrorForTypeMismatch: Boolean
     ): CangJieType {
         // TODO: 构建器推导类型处理
-        // if (!noExpectedType(c.expectedType) && TypeUtilsKt.contains(expressionType, { it is StubTypeForBuilderInference })) {
-        //     if (c.inferenceSession is BuilderInferenceSession) {
-        //         (c.inferenceSession as BuilderInferenceSession).addExpectedTypeConstraint(expression, expressionType, c.expectedType)
-        //     }
-        // }
+         if (!noExpectedType(c.expectedType) && expressionType .contains { it is StubTypeForBuilderInference }) {
+             if (c.inferenceSession is BuilderInferenceSession) {
+                 c.inferenceSession.addExpectedTypeConstraint(expression, expressionType, c.expectedType)
+             }
+         }
 
-        if (noExpectedType(c.expectedType) || !c.expectedType.constructor.isDenotable ||
+        val isExpectedTypeDenotable = !noExpectedType(c.expectedType) && c.expectedType.constructor.isDenotable
+        if (noExpectedType(c.expectedType) || !isExpectedTypeDenotable ||
             cangjieTypeChecker.isSubtypeOf(expressionType, c.expectedType)
         ) {
             return expressionType

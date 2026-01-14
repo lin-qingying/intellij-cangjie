@@ -40,7 +40,7 @@ fun CangJieType.asFlexibleType(): FlexibleType = unwrap() as FlexibleType
 
 fun CangJieType.isNullabilityFlexible(): Boolean {
     val flexibility = unwrap() as? FlexibleType ?: return false
-            return flexibility.lowerBound.isOption != flexibility.upperBound.isOption
+    return OptionTypeUtils.isOptionType(flexibility.lowerBound) != OptionTypeUtils.isOptionType(flexibility.upperBound)
 }
 
 // 该函数主要用于集合：因为 CangJieType.equals() 表示类型的语法等价性，
@@ -131,7 +131,11 @@ class FlexibleTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : Flexibl
         val unwrapped = replacement.unwrap()
         return when (unwrapped) {
             is FlexibleType -> unwrapped
-            is SimpleType -> CangJieTypeFactory.flexibleType(unwrapped, unwrapped.makeOptionAsSpecified(true))
+            is SimpleType -> {
+                // 创建灵活类型：下界是原类型，上界是 Option 包装的类型
+                val upperBound = OptionTypeUtils.createOptionType(unwrapped, unwrapped.builtIns)
+                CangJieTypeFactory.flexibleType(unwrapped, upperBound)
+            }
         }.inheritEnhancement(unwrapped)
     }
 
@@ -147,10 +151,7 @@ class FlexibleTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : Flexibl
 
     override fun toString() = "($lowerBound..$upperBound)"
 
-    override fun makeOptionAsSpecified(isOption: Boolean): UnwrappedType = CangJieTypeFactory.flexibleType(
-        lowerBound.makeOptionAsSpecified(isOption),
-        upperBound.makeOptionAsSpecified(isOption)
-    )
+
 
     
     

@@ -29,6 +29,10 @@ import org.cangnova.cangjie.types.CastDiagnosticsUtil
 import org.cangnova.cangjie.types.TypeConstructor
 import org.cangnova.cangjie.types.TypeReconstructionResult
 import org.cangnova.cangjie.types.TypeUtils
+import org.cangnova.cangjie.types.makeNonOption
+import org.cangnova.cangjie.types.makeOption
+import org.cangnova.cangjie.types.isOptionType
+import org.cangnova.cangjie.types.OptionTypeUtils
 
 /**
  * 裸类型类似于原始类型，但在 CangJie 中仅允许在 is/as 操作的右侧使用。
@@ -75,7 +79,7 @@ class PossiblyBareType private constructor(
      */
     fun isOptional(): Boolean {
         if (isBare()) return isBareTypeNullable()
-        return actualType.isOption
+        return actualType.isOptionType()
     }
 
     /**
@@ -89,7 +93,7 @@ class PossiblyBareType private constructor(
 
         // 查找静态已知的子类型
         val reconstructionResult = CastDiagnosticsUtil.findStaticallyKnownSubtype(
-            TypeUtils.makeNonOption(subjectType),
+            subjectType.makeNonOption(),
             bareTypeConstructor
         )
         val type = reconstructionResult.resultingType
@@ -97,7 +101,7 @@ class PossiblyBareType private constructor(
         if (type == null) return reconstructionResult
 
         // 根据是否可空调整结果类型
-        val resultingType = TypeUtils.makeOptionalAsSpecified(type, isBareTypeNullable())
+        val resultingType = OptionTypeUtils.makeOptionalIfNeeded(type, isBareTypeNullable())
         return TypeReconstructionResult(resultingType, reconstructionResult.isAllArgumentsInferred)
     }
 
@@ -111,7 +115,7 @@ class PossiblyBareType private constructor(
             return if (isBareTypeNullable()) this else bare(bareTypeConstructor, true)
         }
 
-        return type(TypeUtils.makeOption(actualType))
+        return type(actualType.makeOption())
     }
 
 

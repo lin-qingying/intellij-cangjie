@@ -37,6 +37,7 @@ import org.cangnova.cangjie.resolve.getCangJieTypeRefiner
 import org.cangnova.cangjie.resolve.module
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
+import org.cangnova.cangjie.types.checker.TypeVariableConstructor
 import org.cangnova.cangjie.types.error.ErrorScopeKind
 
 private class ExpandedTypeOrRefinedConstructor(val expandedType: SimpleType?, val refinedConstructor: TypeConstructor?)
@@ -94,11 +95,11 @@ object CangJieTypeFactory {
      * @return 非空的简单类型
      */
     @JvmStatic
-    fun simpleNonOptionType(
+    fun simpleType(
         attributes: TypeAttributes,
         descriptor: ClassAndEnumDescriptor,
         arguments: List<TypeArgument>
-    ): SimpleType = simpleType(attributes, descriptor.typeConstructor, arguments, option = false)
+    ): SimpleType = simpleType(attributes, descriptor.typeConstructor, arguments)
 
     /**
      * 创建基础类型
@@ -145,12 +146,12 @@ object CangJieTypeFactory {
     fun floatLiteralType(
         attributes: TypeAttributes,
         constructor: FloatLiteralTypeConstructor,
-        option: Boolean
+
     ): SimpleType = simpleTypeWithNonTrivialMemberScope(
         attributes,
         constructor,
         emptyList(),
-        option,
+
         ErrorUtils.createErrorScope(
             ErrorScopeKind.FLOAT_LITERAL_TYPE_SCOPE,
             throwExceptions = true,
@@ -180,12 +181,12 @@ object CangJieTypeFactory {
     fun integerLiteralType(
         attributes: TypeAttributes,
         constructor: IntegerLiteralTypeConstructor,
-        option: Boolean
+
     ): SimpleType = simpleTypeWithNonTrivialMemberScope(
         attributes,
         constructor,
         emptyList(),
-        option,
+
         ErrorUtils.createErrorScope(
             ErrorScopeKind.INTEGER_LITERAL_TYPE_SCOPE,
             throwExceptions = true,
@@ -247,16 +248,22 @@ object CangJieTypeFactory {
                     return constructor.createScopeForCangJieType()
                 }
 
+                // Handle TypeVariableConstructor
+                if (constructor is TypeVariableConstructor) {
+                    // Type variables use the member scope of their supertypes (typically Any)
+                    return constructor.builtIns.stdlibTypes.any.unsubstitutedMemberScope
+                }
+
+                // Handle IntegerLiteralTypeConstructor and FloatLiteralTypeConstructor
+                if (constructor is IntegerLiteralTypeConstructor ||
+                    constructor is FloatLiteralTypeConstructor) {
+                    // Integer/Float literal types don't have members, return empty scope
+                    return MemberScope.Empty
+                }
+
                 throw IllegalStateException("Unsupported classifier: $descriptor for constructor: $constructor")
             }
         }
-    }
-
-    @JvmStatic
-    fun optionType(
-        type: SimpleType,
-    ): SimpleType {
-        return OptionType(type)
     }
 
     @JvmStatic
@@ -265,8 +272,7 @@ object CangJieTypeFactory {
         annotations: TypeAttributes = baseType.attributes,
         constructor: TypeConstructor = baseType.constructor,
         arguments: List<TypeArgument> = baseType.arguments,
-        option: Boolean = baseType.isOption
-    ): SimpleType = simpleType(annotations, constructor, arguments, option)
+    ): SimpleType = simpleType(annotations, constructor, arguments)
 
     @JvmStatic
     @JvmOverloads
@@ -275,10 +281,10 @@ object CangJieTypeFactory {
         attributes: TypeAttributes,
         constructor: TypeConstructor,
         arguments: List<TypeArgument>,
-        option: Boolean,
+
         cangjieTypeRefiner: CangJieTypeRefiner? = null
     ): SimpleType {
-        if (attributes.isEmpty() && arguments.isEmpty() && !option && constructor.declarationDescriptor != null) {
+        if (attributes.isEmpty() && arguments.isEmpty()   && constructor.declarationDescriptor != null) {
             constructor.declarationDescriptor?.defaultType?.let {
                 return it
             }
@@ -287,7 +293,7 @@ object CangJieTypeFactory {
 
         return simpleTypeWithNonTrivialMemberScope(
             attributes, constructor, arguments,
-            option,
+
             computeMemberScope(constructor, arguments, cangjieTypeRefiner)
         ) f@{ refiner ->
             val expandedTypeOrRefinedConstructor = refineConstructor(constructor, refiner, arguments) ?: return@f null
@@ -296,7 +302,7 @@ object CangJieTypeFactory {
             simpleType(
                 attributes,
                 expandedTypeOrRefinedConstructor.refinedConstructor!!,
-                arguments, option,
+                arguments,
                 refiner
             )
         }
@@ -331,11 +337,11 @@ object CangJieTypeFactory {
         attributes: TypeAttributes,
         constructor: TypeConstructor,
         arguments: List<TypeArgument>,
-        option: Boolean,
+
         memberScope: MemberScope,
         refinedTypeFactory: RefinedTypeFactory
     ): SimpleType =
-        SimpleTypeImpl(constructor, arguments, option, memberScope, refinedTypeFactory)
+        SimpleTypeImpl(constructor, arguments,  memberScope, refinedTypeFactory)
             .let {
                 if (attributes.isEmpty())
                     it
@@ -348,10 +354,10 @@ object CangJieTypeFactory {
         attributes: TypeAttributes,
         constructor: TypeConstructor,
         arguments: List<TypeArgument>,
-        option: Boolean,
+
         memberScope: MemberScope
     ): SimpleType =
-        SimpleTypeImpl(constructor, arguments, option, memberScope) { cangjieTypeRefiner ->
+        SimpleTypeImpl(constructor, arguments,   memberScope) { cangjieTypeRefiner ->
             val expandedTypeOrRefinedConstructor =
                 refineConstructor(constructor, cangjieTypeRefiner, arguments) ?: return@SimpleTypeImpl null
             expandedTypeOrRefinedConstructor.expandedType?.let { return@SimpleTypeImpl it }
@@ -360,7 +366,7 @@ object CangJieTypeFactory {
                 attributes,
                 expandedTypeOrRefinedConstructor.refinedConstructor!!,
                 arguments,
-                option,
+
                 memberScope
             )
         }.let {
@@ -376,10 +382,9 @@ object CangJieTypeFactory {
         attributes: TypeAttributes,
         constructor: EnumTypeConstructor,
         arguments: List<TypeArgument>,
-        option: Boolean,
         memberScope: MemberScope
     ): SimpleType =
-        EnumType(constructor, arguments, memberScope, option) { cangjieTypeRefiner ->
+        EnumType(constructor, arguments, memberScope) { cangjieTypeRefiner ->
             val expandedTypeOrRefinedConstructor =
                 refineConstructor(constructor, cangjieTypeRefiner, arguments) ?: return@EnumType null
             expandedTypeOrRefinedConstructor.expandedType?.let { return@EnumType it }
@@ -388,8 +393,6 @@ object CangJieTypeFactory {
                 attributes,
                 expandedTypeOrRefinedConstructor.refinedConstructor!! as EnumTypeConstructor,
                 arguments,
-
-                option,
                 memberScope,
             )
         }.let {
@@ -407,11 +410,6 @@ abstract class DelegatingSimpleTypeImpl(override val delegate: SimpleType) : Del
             SimpleTypeWithAttributes(this, newAttributes)
         else
             this
-
-    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
-//        if (newOption == isOption) return this
-        return delegate.makeOptionAsSpecified(isOption).replaceAttributes(attributes)
-    }
 }
 
 
@@ -427,14 +425,11 @@ private class SimpleTypeWithAttributes(
 class VArrayType(
     val size: Int,
     argument: TypeArgument,
-
     constructor: TypeConstructor,
-    isOption: Boolean,
     memberScope: MemberScope,
     refinedTypeFactory: RefinedTypeFactory
 ) : SimpleTypeImpl(
-
-    constructor, listOf(argument), isOption, memberScope, refinedTypeFactory
+    constructor, listOf(argument), memberScope, refinedTypeFactory
 ) {
 
     val typeName = "VArray"
@@ -451,17 +446,12 @@ class VArrayType(
 open class SimpleTypeImpl(
     override val constructor: TypeConstructor,
     override val arguments: List<TypeArgument>,
-    override val isOption: Boolean,
+
     override val memberScope: MemberScope,
     protected val refinedTypeFactory: RefinedTypeFactory
 ) : SimpleType() {
 
 
-    override fun makeOptionAsSpecified(isOption: Boolean) = when {
-        isOption == isOption -> this
-        isOption -> OptionalSimpleType(this)
-        else -> NotNullSimpleType(this)
-    }
 
     override fun replaceAttributes(newAttributes: TypeAttributes) =
         if (newAttributes.isEmpty())
@@ -478,18 +468,4 @@ open class SimpleTypeImpl(
 
 }
 
-class OptionalSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImpl(delegate) {
-    override val isOption: Boolean
-        get() = true
 
-
-    override fun replaceDelegate(delegate: SimpleType) = OptionalSimpleType(delegate)
-}
-
-class NotNullSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImpl(delegate) {
-    override val isOption: Boolean
-        get() = false
-
-
-    override fun replaceDelegate(delegate: SimpleType) = NotNullSimpleType(delegate)
-}

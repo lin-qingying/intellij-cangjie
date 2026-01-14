@@ -127,12 +127,12 @@ fun SimpleType.replace(
         return replaceArguments(newArguments)
     }
 
-    return CangJieTypeFactory.simpleType(
+    val baseType = CangJieTypeFactory.simpleType(
         newAttributes,
         constructor,
-        newArguments,
-        isOption
+        newArguments
     )
+    return if (this.isOption) baseType.makeOption() else baseType
 }
 
 fun CangJieType.getResolvableApproximations(

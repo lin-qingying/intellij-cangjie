@@ -118,7 +118,6 @@ class ExistentialTypeVariable private constructor(
         TypeAttributes.Empty,
         freshTypeConstructor,
         emptyList(),
-        false,
         freshTypeConstructor.builtIns.stdlibTypes.any.unsubstitutedMemberScope
     )
 

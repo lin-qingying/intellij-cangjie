@@ -270,6 +270,18 @@ fun FuzzyType.makeOption(): FuzzyType {
  * @receiver FuzzyType 模糊类型
  * @return FuzzyType 非 Option 的模糊类型
  */
+fun FuzzyType.makeNonOption(): FuzzyType {
+    return type.makeNonOption().toFuzzyType(freeParameters)
+}
+
+/**
+ * 将模糊类型从 Option 类型中解包 (别名)
+ *
+ * 在仓颉语言中,将 Option<T> 转换为 T。
+ *
+ * @receiver FuzzyType 模糊类型
+ * @return FuzzyType 非 Option 的模糊类型
+ */
 fun FuzzyType.unwrapOption(): FuzzyType {
     return unboxOptionType(type).toFuzzyType(freeParameters)
 }

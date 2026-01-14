@@ -96,7 +96,6 @@ fun findCorrespondingSupertype(
         // 检查是否找到匹配的类型构造器
         if (typeCheckingProcedureCallbacks.assertEqualTypeConstructors(constructor, supertypeConstructor)) {
             var substituted = currentSubtype.unwrap()
-            var isAnyMarkedNullable = currentSubtype.isOption
 
             var currentPathNode = lastPathNode.previous
 
@@ -113,9 +112,6 @@ fun findCorrespondingSupertype(
                 val substitutor = ComposableTypeSubstitutor.create(substitutorMap)
                 substituted = substitutor.safeSubstitute(substituted)
 
-                // 保留可空性标记
-                isAnyMarkedNullable = isAnyMarkedNullable || currentType.isOption
-
                 currentPathNode = currentPathNode.previous
             }
 
@@ -128,7 +124,9 @@ fun findCorrespondingSupertype(
                         typeCheckingProcedureCallbacks.assertEqualTypeConstructors(substitutedConstructor, supertypeConstructor))
             }
 
-            return TypeUtils.makeOptionalAsSpecified(substituted, isAnyMarkedNullable)
+            // 仓颉语言：Option 是确切的泛型类型，不需要"传播"Option 属性
+            // 直接返回替换后的类型即可
+            return substituted
         }
 
         // 将所有直接父类型加入队列

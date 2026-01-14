@@ -95,7 +95,7 @@ open class ErrorType @JvmOverloads internal constructor(
     override val memberScope: MemberScope,
     val kind: ErrorTypeKind,
     override val arguments: List<TypeArgument> = emptyList(),
-    override val isOption: Boolean = false,
+
     private vararg val formatParams: String
 ) : SimpleType() {
     val debugMessage = String.format(kind.debugMessage, *formatParams)
@@ -107,10 +107,8 @@ open class ErrorType @JvmOverloads internal constructor(
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType = this
 
     fun replaceArguments(newArguments: List<TypeArgument>): ErrorType =
-        ErrorType(constructor, memberScope, kind, newArguments, isOption, *formatParams)
+        ErrorType(constructor, memberScope, kind, newArguments,  *formatParams)
 
-    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType =
-        ErrorType(constructor, memberScope, kind, arguments, isOption, *formatParams)
 
     
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) = this

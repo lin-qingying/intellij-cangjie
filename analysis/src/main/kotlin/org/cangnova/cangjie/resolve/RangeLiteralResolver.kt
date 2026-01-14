@@ -192,13 +192,13 @@ class RangeLiteralResolver(
                 TypeArgumentImpl(this@RangeOfTypeParameterDescriptor.defaultType)
 
             )
-            return simpleTypeWithNonTrivialMemberScope(
+            val baseType = CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
                 attributes,
                 constructor,
                 arguments,
-                isOption,
                 memberScope
             )
+            return baseType.makeOptionalAsSpecified(isOption)
         }
 
         override val typeConstructor: TypeConstructor

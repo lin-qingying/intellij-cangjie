@@ -24,6 +24,25 @@
 
 package org.cangnova.cangjie.resolve.calls.smartcasts
 
+/**
+ * Nullability 枚举 - 已废弃
+ *
+ * ⚠️ 此枚举来自 Kotlin 的可空性系统,不适合仓颉语言。
+ *
+ * 在仓颉语言中:
+ * - 没有运行时 null 值
+ * - Option<T> 是一个标准的枚举类型
+ * - 不需要跟踪"可空性"状态
+ *
+ * 请使用 [OptionStatus] 替代。
+ *
+ * @see OptionStatus 用于仓颉语言的 Option 类型状态
+ */
+@Deprecated(
+    "Use OptionStatus instead. Nullability is based on Kotlin's nullable types, " +
+            "which don't match Cangjie's Option<T> design.",
+    ReplaceWith("OptionStatus", "org.cangnova.cangjie.resolve.calls.smartcasts.OptionStatus")
+)
 enum class Nullability(private val canBeNull: Boolean, private val canBeNonNull: Boolean) {
     NULL(true, false),
     NOT_NULL(false, true),
@@ -73,12 +92,36 @@ enum class Nullability(private val canBeNull: Boolean, private val canBeNonNull:
         return fromFlags(this.canBeNull || other.canBeNull, this.canBeNonNull || other.canBeNonNull)
     }
 
+    /**
+     * 转换为 OptionStatus
+     *
+     * 迁移映射:
+     * - NULL → OPTION (用 Option::None 表示)
+     * - NOT_NULL → DEFINITE (非 Option 类型)
+     * - UNKNOWN → UNKNOWN (保持不变)
+     */
+    fun toOptionStatus(): OptionStatus = when (this) {
+        NULL -> OptionStatus.OPTION
+        NOT_NULL -> OptionStatus.DEFINITE
+        UNKNOWN -> OptionStatus.UNKNOWN
+        IMPOSSIBLE -> OptionStatus.UNKNOWN
+    }
+
     companion object {
         fun fromFlags(canBeNull: Boolean, canBeNonNull: Boolean): Nullability {
             if (!canBeNull && !canBeNonNull) return IMPOSSIBLE
             if (!canBeNull && canBeNonNull) return NOT_NULL
             if (canBeNull && !canBeNonNull) return NULL
             return UNKNOWN
+        }
+
+        /**
+         * 从 OptionStatus 转换 (用于向后兼容)
+         */
+        fun fromOptionStatus(status: OptionStatus): Nullability = when (status) {
+            OptionStatus.DEFINITE -> NOT_NULL
+            OptionStatus.OPTION -> NULL  // 注意: 这是近似映射
+            OptionStatus.UNKNOWN -> UNKNOWN
         }
     }
 }
