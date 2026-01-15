@@ -33,7 +33,6 @@ import org.cangnova.cangjie.resolve.ResolutionFacade
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValue
 import org.cangnova.cangjie.resolve.calls.smartcasts.IdentifierInfo
-import org.cangnova.cangjie.resolve.calls.smartcasts.Nullability
 import org.cangnova.cangjie.resolve.dataFlowValueFactory
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.getResolutionScope
@@ -44,6 +43,7 @@ import com.intellij.psi.PsiElement
 import io.vavr.Tuple2
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.getDataFlowInfoBefore
+import org.cangnova.cangjie.resolve.calls.smartcasts.OptionStatus
 import org.cangnova.cangjie.types.isSubtypeOf
 import org.cangnova.cangjie.types.makeNonOption
 import java.util.HashMap
@@ -142,8 +142,8 @@ class SmartCastCalculator(
             }
         }
 
-        for ((dataFlowValue, nullability) in dataFlowInfo.completeNullabilityInfo) {
-            if (nullability == Nullability.NOT_NULL) {
+        for ((dataFlowValue, optionStatus) in dataFlowInfo.completeOptionStatusInfo) {
+            if (optionStatus == OptionStatus.DEFINITE) {
                 val entity = dataFlowValueToEntity(dataFlowValue) ?: continue
                 entityToInfo.getOrPut(entity) { SmartCastInfo() }.notNull = true
             }

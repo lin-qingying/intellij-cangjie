@@ -54,11 +54,11 @@ private fun <K, V> ImmutableMultimap<K, V>.put(key: K, value: V): ImmutableMulti
 
 internal class DataFlowInfoImpl(
 
-    override val completeNullabilityInfo: ImmutableMap<DataFlowValue, Nullability>,
+    override val completeOptionStatusInfo: ImmutableMap<DataFlowValue, OptionStatus>,
     override val completeTypeInfo: ImmutableMultimap<DataFlowValue, CangJieType>
 ) : DataFlowInfo {
 
-    constructor() : this(EMPTY_NULLABILITY_INFO, EMPTY_TYPE_INFO)
+    constructor() : this(EMPTY_OPTION_STATUS_INFO, EMPTY_TYPE_INFO)
 
 
     override fun getCollectedTypes(key: DataFlowValue, languageVersionSettings: LanguageVersionSettings) =
@@ -68,28 +68,28 @@ internal class DataFlowInfoImpl(
         a: DataFlowValue, b: DataFlowValue, languageVersionSettings: LanguageVersionSettings
     ): DataFlowInfo = equateOrDisequate(a, b, languageVersionSettings, identityEquals = false, isEquate = false)
 
-    private fun putNullabilityAndTypeInfo(
-        map: MutableMap<DataFlowValue, Nullability>,
+    private fun putOptionStatusAndTypeInfo(
+        map: MutableMap<DataFlowValue, OptionStatus>,
         value: DataFlowValue,
-        nullability: Nullability,
+        optionStatus: OptionStatus,
         languageVersionSettings: LanguageVersionSettings,
         newTypeInfoBuilder: SetMultimap<DataFlowValue, CangJieType>? = null,
         // XXX: set to false only as a workaround for OI,   for details (in NI everything works automagically)
         recordUnstable: Boolean = true
     ) {
         if (value.isStable || recordUnstable) {
-            map[value] = nullability
+            map[value] = optionStatus
         }
 
         val identifierInfo = value.identifierInfo
-        if (!nullability.canBeNull() && languageVersionSettings.supportsFeature(LanguageFeature.SafeCallBoundSmartCasts)) {
+        if (!optionStatus.canBeOption() && languageVersionSettings.supportsFeature(LanguageFeature.SafeCallBoundSmartCasts)) {
             when (identifierInfo) {
                 is IdentifierInfo.Qualified -> {
                     val receiverType = identifierInfo.receiverType
                     if (identifierInfo.safe && receiverType != null) {
                         val receiverValue = DataFlowValue(identifierInfo.receiverInfo, receiverType)
-                        putNullabilityAndTypeInfo(
-                            map, receiverValue, nullability,
+                        putOptionStatusAndTypeInfo(
+                            map, receiverValue, optionStatus,
                             languageVersionSettings, newTypeInfoBuilder, recordUnstable = recordUnstable
                         )
                     }
@@ -102,8 +102,8 @@ internal class DataFlowInfoImpl(
                     ) {
 
                         val subjectValue = DataFlowValue(identifierInfo.subjectInfo, subjectType)
-                        putNullabilityAndTypeInfo(
-                            map, subjectValue, nullability,
+                        putOptionStatusAndTypeInfo(
+                            map, subjectValue, optionStatus,
                             languageVersionSettings, newTypeInfoBuilder, recordUnstable = false
                         )
                         if (subjectValue.isStable) {
@@ -113,8 +113,8 @@ internal class DataFlowInfoImpl(
                 }
 
                 is IdentifierInfo.Variable -> identifierInfo.bound?.let {
-                    putNullabilityAndTypeInfo(
-                        map, it, nullability,
+                    putOptionStatusAndTypeInfo(
+                        map, it, optionStatus,
                         languageVersionSettings, newTypeInfoBuilder, recordUnstable = recordUnstable
                     )
                 }
@@ -129,34 +129,34 @@ internal class DataFlowInfoImpl(
         identityEquals: Boolean,
         isEquate: Boolean
     ): DataFlowInfo {
-        val resultNullabilityInfo = hashMapOf<DataFlowValue, Nullability>()
+        val resultOptionStatusInfo = hashMapOf<DataFlowValue, OptionStatus>()
         val newTypeInfoBuilder = newTypeInfoBuilder()
 
-        val nullabilityOfA = getStableNullability(a)
-        val nullabilityOfB = getStableNullability(b)
-        val newANullability = nullabilityOfA.refine(if (isEquate) nullabilityOfB else nullabilityOfB.invert())
-        val newBNullability = nullabilityOfB.refine(if (isEquate) nullabilityOfA else nullabilityOfA.invert())
+        val optionStatusOfA = getStableOptionStatus(a)
+        val optionStatusOfB = getStableOptionStatus(b)
+        val newAOptionStatus = optionStatusOfA.refine(if (isEquate) optionStatusOfB else optionStatusOfB)
+        val newBOptionStatus = optionStatusOfB.refine(if (isEquate) optionStatusOfA else optionStatusOfA)
 
-        putNullabilityAndTypeInfo(
-            resultNullabilityInfo,
+        putOptionStatusAndTypeInfo(
+            resultOptionStatusInfo,
             a,
-            newANullability,
+            newAOptionStatus,
             languageVersionSettings,
             newTypeInfoBuilder
         )
 
-        putNullabilityAndTypeInfo(
-            resultNullabilityInfo,
+        putOptionStatusAndTypeInfo(
+            resultOptionStatusInfo,
             b,
-            newBNullability,
+            newBOptionStatus,
             languageVersionSettings,
             newTypeInfoBuilder
         )
 
-        var changed = getCollectedNullability(a) != newANullability || getCollectedNullability(b) != newBNullability
+        var changed = getCollectedOptionStatus(a) != newAOptionStatus || getCollectedOptionStatus(b) != newBOptionStatus
 
         // NB: == has no guarantees of type equality,
-        if (isEquate && (identityEquals || !nullabilityOfA.canBeNonNull() || !nullabilityOfB.canBeNonNull())) {
+        if (isEquate && (identityEquals || !optionStatusOfA.canBeNonOption() || !optionStatusOfB.canBeNonOption())) {
             newTypeInfoBuilder.putAll(a, getStableTypes(b, false, languageVersionSettings))
             newTypeInfoBuilder.putAll(b, getStableTypes(a, false, languageVersionSettings))
             if (a.type != b.type) {
@@ -171,7 +171,7 @@ internal class DataFlowInfoImpl(
             changed = changed or !newTypeInfoBuilder.isEmpty
         }
 
-        return if (changed) create(this, resultNullabilityInfo, newTypeInfoBuilder) else this
+        return if (changed) create(this, resultOptionStatusInfo, newTypeInfoBuilder) else this
     }
 
     override fun getStableTypes(key: DataFlowValue, languageVersionSettings: LanguageVersionSettings) =
@@ -184,14 +184,14 @@ internal class DataFlowInfoImpl(
     ) =
         if (!key.isStable) LinkedHashSet() else getCollectedTypes(key, enrichWithNotNull, languageVersionSettings)
 
-    override fun getStableNullability(key: DataFlowValue): Nullability = getNullability(key, true)
-    override fun getCollectedNullability(key: DataFlowValue) = getNullability(key, false)
+    override fun getStableOptionStatus(key: DataFlowValue): OptionStatus = getOptionStatus(key, true)
+    override fun getCollectedOptionStatus(key: DataFlowValue) = getOptionStatus(key, false)
 
-    private fun getNullability(key: DataFlowValue, stableOnly: Boolean): Nullability =
+    private fun getOptionStatus(key: DataFlowValue, stableOnly: Boolean): OptionStatus =
         if (stableOnly && !key.isStable) {
-            key.immanentNullability
+            key.immanentOptionStatus
         } else {
-            completeNullabilityInfo[key].getOrElse(key.immanentNullability)
+            completeOptionStatusInfo[key].getOrElse(key.immanentOptionStatus)
         }
 
     override fun getCollectedTypes(key: DataFlowValue/*, languageVersionSettings: LanguageVersionSettings*/) =
@@ -233,18 +233,18 @@ internal class DataFlowInfoImpl(
         if (getCollectedTypes(value, languageVersionSettings).contains(type)) return this
         if (!value.type.isFlexible() && value.type.isSubtypeOf(type)) return this
 
-        val nullabilityInfo = hashMapOf<DataFlowValue, Nullability>()
+        val optionStatusInfo = hashMapOf<DataFlowValue, OptionStatus>()
 
         // 默认使用改进的类型推断系统
-        val isTypeNotNull = !TypeUtils.isOptionType(type)
+        val isTypeNotOption = !TypeUtils.isOptionType(type)
 
-        if (isTypeNotNull) {
-            putNullabilityAndTypeInfo(nullabilityInfo, value, Nullability.NOT_NULL, languageVersionSettings)
+        if (isTypeNotOption) {
+            putOptionStatusAndTypeInfo(optionStatusInfo, value, OptionStatus.DEFINITE, languageVersionSettings)
         }
 
         return create(
             this,
-            nullabilityInfo,
+            optionStatusInfo,
             listOf(Tuple2(value, listOf(type)))
         )
     }
@@ -256,10 +256,10 @@ internal class DataFlowInfoImpl(
 
         assert(other is DataFlowInfoImpl) { "Unknown DataFlowInfo type: " + other }
 
-        val resultNullabilityInfo = hashMapOf<DataFlowValue, Nullability>()
-        for ((key, otherFlags) in other.completeNullabilityInfo) {
-            val thisFlags = getCollectedNullability(key)
-            resultNullabilityInfo.put(key, thisFlags.or(otherFlags))
+        val resultOptionStatusInfo = hashMapOf<DataFlowValue, OptionStatus>()
+        for ((key, otherFlags) in other.completeOptionStatusInfo) {
+            val thisFlags = getCollectedOptionStatus(key)
+            resultOptionStatusInfo.put(key, thisFlags.or(otherFlags))
         }
 
         val myTypeInfo = completeTypeInfo
@@ -275,13 +275,13 @@ internal class DataFlowInfoImpl(
                 )
             }
         }
-        return create(null, resultNullabilityInfo, newTypeInfoBuilder)
+        return create(null, resultOptionStatusInfo, newTypeInfoBuilder)
     }
 
     override fun clearValueInfo(value: DataFlowValue, languageVersionSettings: LanguageVersionSettings): DataFlowInfo {
-        val resultNullabilityInfo = hashMapOf<DataFlowValue, Nullability>()
-        putNullabilityAndTypeInfo(resultNullabilityInfo, value, value.immanentNullability, languageVersionSettings)
-        return create(this, resultNullabilityInfo, EMPTY_TYPE_INFO, value)
+        val resultOptionStatusInfo = hashMapOf<DataFlowValue, OptionStatus>()
+        putOptionStatusAndTypeInfo(resultOptionStatusInfo, value, value.immanentOptionStatus, languageVersionSettings)
+        return create(this, resultOptionStatusInfo, EMPTY_TYPE_INFO, value)
 
     }
 
@@ -362,10 +362,10 @@ internal class DataFlowInfoImpl(
     }
 
     override fun toString() =
-        if (completeTypeInfo.isEmpty && completeNullabilityInfo.isEmpty) "EMPTY" else "Non-trivial DataFlowInfo"
+        if (completeTypeInfo.isEmpty && completeOptionStatusInfo.isEmpty) "EMPTY" else "Non-trivial DataFlowInfo"
 
     companion object {
-        private val EMPTY_NULLABILITY_INFO: ImmutableMap<DataFlowValue, Nullability> =
+        private val EMPTY_OPTION_STATUS_INFO: ImmutableMap<DataFlowValue, OptionStatus> =
             ImmutableHashMap.empty()
 
         private val EMPTY_TYPE_INFO: ImmutableMultimap<DataFlowValue, CangJieType> =
@@ -376,32 +376,32 @@ internal class DataFlowInfoImpl(
 
         private fun create(
             parent: DataFlowInfo?,
-            updatedNullabilityInfo: Map<DataFlowValue, Nullability>,
+            updatedOptionStatusInfo: Map<DataFlowValue, OptionStatus>,
             updatedTypeInfo: SetMultimap<DataFlowValue, CangJieType>
         ): DataFlowInfo =
             create(
                 parent,
-                updatedNullabilityInfo,
+                updatedOptionStatusInfo,
                 updatedTypeInfo.asMap().entries.map { Tuple2(it.key, it.value) }
             )
 
         private fun create(
             parent: DataFlowInfo?,
-            updatedNullabilityInfo: Map<DataFlowValue, Nullability>,
+            updatedOptionStatusInfo: Map<DataFlowValue, OptionStatus>,
             // NB: typeInfo must be mutable here!
             updatedTypeInfo: Iterable<Tuple2<DataFlowValue, out Iterable<CangJieType>>>,
             valueToClearPreviousTypeInfo: DataFlowValue? = null
         ): DataFlowInfo {
-            if (updatedNullabilityInfo.isEmpty() && updatedTypeInfo.none() && valueToClearPreviousTypeInfo == null) {
+            if (updatedOptionStatusInfo.isEmpty() && updatedTypeInfo.none() && valueToClearPreviousTypeInfo == null) {
                 return parent ?: DataFlowInfo.EMPTY
             }
 
-            val resultingNullabilityInfo =
-                updatedNullabilityInfo.entries.fold(
-                    parent?.completeNullabilityInfo ?: EMPTY_NULLABILITY_INFO
-                ) { result, (dataFlowValue, nullability) ->
-                    if (dataFlowValue.immanentNullability != nullability)
-                        result.put(dataFlowValue, nullability)
+            val resultingOptionStatusInfo =
+                updatedOptionStatusInfo.entries.fold(
+                    parent?.completeOptionStatusInfo ?: EMPTY_OPTION_STATUS_INFO
+                ) { result, (dataFlowValue, optionStatus) ->
+                    if (dataFlowValue.immanentOptionStatus != optionStatus)
+                        result.put(dataFlowValue, optionStatus)
                     else
                         result.remove(dataFlowValue)
                 }
@@ -419,12 +419,12 @@ internal class DataFlowInfoImpl(
                 }
             }
 
-            if (resultingNullabilityInfo.isEmpty && resultingTypeInfo.isEmpty) return DataFlowInfo.EMPTY
-            if (resultingNullabilityInfo === parent?.completeNullabilityInfo && resultingTypeInfo === parent.completeTypeInfo) {
+            if (resultingOptionStatusInfo.isEmpty && resultingTypeInfo.isEmpty) return DataFlowInfo.EMPTY
+            if (resultingOptionStatusInfo === parent?.completeOptionStatusInfo && resultingTypeInfo === parent.completeTypeInfo) {
                 return parent
             }
 
-            return DataFlowInfoImpl(resultingNullabilityInfo, resultingTypeInfo)
+            return DataFlowInfoImpl(resultingOptionStatusInfo, resultingTypeInfo)
         }
     }
 }

@@ -32,7 +32,7 @@ import org.cangnova.cangjie.types.expressions.ControlStructureTypingUtils
 import org.cangnova.cangjie.types.isError
 import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.diagnostics.infos.warnings.USELESS_ELVIS
-import org.cangnova.cangjie.resolve.calls.smartcasts.Nullability
+import org.cangnova.cangjie.resolve.calls.smartcasts.OptionStatus
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.contains
 
@@ -55,7 +55,7 @@ class UselessElvisCallChecker : CallChecker {
         }
 
         val dataFlowValue = context.dataFlowValueFactory.createDataFlowValue(left, leftType, context.resolutionContext)
-        if (context.dataFlowInfo.getStableNullability(dataFlowValue) == Nullability.NOT_NULL) {
+        if (context.dataFlowInfo.getStableOptionStatus(dataFlowValue) == OptionStatus.DEFINITE) {
             context.trace.reportDiagnosticOnce(USELESS_ELVIS.on(elvisBinaryExpression, leftType))
             return
         }

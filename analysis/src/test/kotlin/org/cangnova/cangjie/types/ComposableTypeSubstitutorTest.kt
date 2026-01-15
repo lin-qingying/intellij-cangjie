@@ -422,9 +422,9 @@ class ComposableTypeSubstitutorTest : CangJieAnalysisTestBase() {
                 mapOf(tParam.typeConstructor to int64Type)
             )
 
-            // 修改选项
+            // 修改选项 - 修改为不同的值以确保返回新实例
             val modifiedSubstitutor = substitutor.withOptions {
-                copy(keepAnnotations = true)
+                copy(keepAnnotations = false)  // 修改为 false,与默认值 true 不同
             }
 
             assertNotNull("修改选项后应该返回新的替换器", modifiedSubstitutor)

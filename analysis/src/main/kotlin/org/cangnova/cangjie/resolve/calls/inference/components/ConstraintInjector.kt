@@ -35,7 +35,6 @@ import org.cangnova.cangjie.types.AbstractTypeChecker
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeApproximatorConfiguration
 import org.cangnova.cangjie.types.TypeCheckerState
-import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.model.*
 import org.cangnova.cangjie.utils.addIfNotNull
 import org.cangnova.cangjie.utils.popLast
@@ -913,9 +912,8 @@ class ConstraintInjector(
         override fun addLowerConstraint(
             typeVariable: TypeConstructorMarker,
             subType: CangJieTypeMarker,
-            isFromNullabilityConstraint: Boolean,
             isNoInfer: Boolean
-        ) = addConstraint(typeVariable, subType, ConstraintKind.LOWER, isFromNullabilityConstraint)
+        ) = addConstraint(typeVariable, subType, ConstraintKind.LOWER,  )
 
         /**
          * 添加相等性约束（T == A）

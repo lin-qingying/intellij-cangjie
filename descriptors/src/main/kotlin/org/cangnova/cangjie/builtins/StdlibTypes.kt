@@ -119,7 +119,7 @@ class StdlibTypes(
         if (classifier == null) {
             throw AssertionError("Stdlib class std.core.$name is not found")
         }
-        if (classifier !is ClassDescriptor) {
+        if (classifier !is ClassAndEnumDescriptor) {
             throw AssertionError("Must be a class descriptor $name, but was $classifier")
         }
         classifier
@@ -161,7 +161,7 @@ class StdlibTypes(
 
     // ============================== Helper Methods ==============================
 
-    private fun getStdCoreClassByName(simpleName: Name): ClassDescriptor {
+    private fun getStdCoreClassByName(simpleName: Name): ClassAndEnumDescriptor {
         return myStdCoreBuiltInClassesByName.invoke(simpleName)
     }
 
@@ -295,7 +295,7 @@ class StdlibTypes(
     /**
      * std.core.Range 类描述符
      */
-    val range: ClassDescriptor
+    val range: ClassAndEnumDescriptor
         get() = getStdCoreClassByName(RANGE)
 
     /**
@@ -307,13 +307,13 @@ class StdlibTypes(
     /**
      * std.core.Resource 类描述符
      */
-    val resource: ClassDescriptor
+    val resource: ClassAndEnumDescriptor
         get() = getStdCoreClassByName(RESOURCE)
 
     /**
      * std.core.Equatable 类描述符
      */
-    val equatable: ClassDescriptor
+    val equatable: ClassAndEnumDescriptor
         get() = getStdCoreClassByName(EQUATABLE)
 
     /**
@@ -325,7 +325,7 @@ class StdlibTypes(
     /**
      * std.core.Comparable 类描述符
      */
-    val comparable: ClassDescriptor
+    val comparable: ClassAndEnumDescriptor
         get() = getStdCoreClassByName(COMPARABLE)
 
     /**
@@ -337,7 +337,7 @@ class StdlibTypes(
     /**
      * std.core.Countable 类描述符
      */
-    val countable: ClassDescriptor
+    val countable: ClassAndEnumDescriptor
         get() = getStdCoreClassByName(COUNTABLE)
 
     /**

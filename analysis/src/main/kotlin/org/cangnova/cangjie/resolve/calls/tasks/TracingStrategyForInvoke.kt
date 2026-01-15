@@ -38,19 +38,50 @@ import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.types.isFunctionType
 
-
+/**
+ * Invoke 调用的追踪策略
+ *
+ * 用于处理函数类型变量的调用（invoke 调用）的绑定和错误报告。
+ * 例如：当 `foo` 是一个函数类型的变量时，`foo(a, b)` 实际上是 `foo.invoke(a, b)` 的语法糖。
+ *
+ * 主要职责：
+ * - 区分"变量作为函数调用"和普通的 invoke 调用
+ * - 绑定调用信息到 BindingContext
+ * - 处理未解析引用的错误报告
+ *
+ * @property calleeType 被调用对象的类型
+ */
 class TracingStrategyForInvoke(
     reference: CjExpression,
     call: Call,
     private val calleeType: CangJieType
 ) : AbstractTracingStrategy(reference, call) {
+    /**
+     * 绑定调用信息
+     *
+     * 将调用信息记录到 BindingTrace 中。
+     * 特殊处理：如果引用是简单名称表达式（如 `foo(a, b)` 中的 `foo`），
+     * 则不绑定 invoke 调用，因为外层调用已经被绑定。
+     *
+     * @param trace 绑定追踪器
+     * @param call 调用对象
+     */
     override fun bindCall(trace: BindingTrace, call: Call) {
-        // If reference is a simple name, it's 'variable as function call' case ('foo(a, b)' where 'foo' is a variable).
-        // The outer call is bound ('foo(a, b)'), while 'invoke' call for this case is 'foo.invoke(a, b)' and shouldn't be bound.
+        // 如果引用是简单名称，这是"变量作为函数调用"的情况（例如 `foo(a, b)`，其中 `foo` 是变量）
+        // 外层调用已被绑定（`foo(a, b)`），而此情况下的 invoke 调用是 `foo.invoke(a, b)`，不应该被绑定
         if (reference is CjSimpleNameExpression) return
         trace.record(BindingContext.CALL, reference, call)
     }
 
+    /**
+     * 绑定引用目标
+     *
+     * 将引用表达式绑定到其解析的候选描述符。
+     * 仅当调用元素是引用表达式时才进行绑定。
+     *
+     * @param trace 绑定追踪器
+     * @param resolvedCall 已解析的调用
+     */
     override fun <D : CallableDescriptor> bindReference(
         trace: BindingTrace, resolvedCall: ResolvedCall<D>
     ) {
@@ -60,6 +91,15 @@ class TracingStrategyForInvoke(
         }
     }
 
+    /**
+     * 绑定已解析的调用
+     *
+     * 将已解析的调用信息记录到 BindingTrace 中。
+     * 特殊处理：如果引用是简单名称表达式，则不绑定，因为外层调用已经被绑定。
+     *
+     * @param trace 绑定追踪器
+     * @param resolvedCall 已解析的调用
+     */
     override fun <D : CallableDescriptor> bindResolvedCall(
         trace: BindingTrace, resolvedCall: ResolvedCall<D>
     ) {
@@ -67,10 +107,27 @@ class TracingStrategyForInvoke(
         trace.record(BindingContext.RESOLVED_CALL, call, resolvedCall)
     }
 
+    /**
+     * 处理未解析的引用
+     *
+     * 当引用无法解析时，报告相应的错误。
+     * 根据被调用对象的类型，报告"期望函数类型"或"不允许接收者"错误。
+     *
+     * @param trace 绑定追踪器
+     */
     override fun unresolvedReference(trace: BindingTrace) {
         functionExpectedOrNoReceiverAllowed(trace)
     }
 
+    /**
+     * 处理接收者错误的未解析引用
+     *
+     * 当存在候选项但接收者类型不匹配时，报告相应的错误。
+     * 根据被调用对象的类型，报告"期望函数类型"或"不允许接收者"错误。
+     *
+     * @param trace 绑定追踪器
+     * @param candidates 候选的已解析调用集合
+     */
     override fun <D : CallableDescriptor> unresolvedReferenceWrongReceiver(
         trace: BindingTrace, candidates: Collection<ResolvedCall<D>>
     ) {
@@ -78,6 +135,15 @@ class TracingStrategyForInvoke(
     }
 
 
+    /**
+     * 报告"期望函数类型"或"不允许接收者"错误
+     *
+     * 根据被调用对象的类型决定报告哪种错误：
+     * - 如果是函数类型：报告"不允许接收者"错误（仓颉没有扩展函数类型）
+     * - 如果不是函数类型：报告"期望函数类型"错误
+     *
+     * @param trace 绑定追踪器
+     */
     private fun functionExpectedOrNoReceiverAllowed(trace: BindingTrace) {
         // 仓颉没有扩展函数类型，所有函数类型都是非扩展的
         if (calleeType.isFunctionType) {

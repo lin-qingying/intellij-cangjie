@@ -67,7 +67,7 @@ abstract class TypeCheckerStateForConstraintSystem(
     abstract fun addLowerConstraint(
         typeVariable: TypeConstructorMarker,
         subType: CangJieTypeMarker,
-        isFromNullabilityConstraint: Boolean = false,
+
         isNoInfer: Boolean,
     )
 
@@ -100,8 +100,7 @@ abstract class TypeCheckerStateForConstraintSystem(
      */
     final override fun addSubtypeConstraint(
         subType: CangJieTypeMarker,
-        superType: CangJieTypeMarker,
-        isFromNullabilityConstraint: Boolean
+        superType: CangJieTypeMarker
     ): Boolean? {
         val subTypeHasNoInfer = subType.isTypeVariableWithNoInfer()
         val superTypeHasNoInfer = superType.isTypeVariableWithNoInfer()
@@ -117,10 +116,10 @@ abstract class TypeCheckerStateForConstraintSystem(
         val mySubType = if (hasExact) extractTypeForProjectedType(subType, out = true) ?: subType else subType
         val mySuperType = if (hasExact) extractTypeForProjectedType(superType, out = false) ?: superType else superType
 
-        val result = internalAddSubtypeConstraint(mySubType, mySuperType, isFromNullabilityConstraint, isNoInfer)
+        val result = internalAddSubtypeConstraint(mySubType, mySuperType, isNoInfer)
         if (!hasExact) return result
 
-        val result2 = internalAddSubtypeConstraint(mySuperType, mySubType, isFromNullabilityConstraint, isNoInfer)
+        val result2 = internalAddSubtypeConstraint(mySuperType, mySubType, isNoInfer)
 
         if (result == null && result2 == null) return null
         return (result ?: true) && (result2 ?: true)
@@ -157,7 +156,6 @@ abstract class TypeCheckerStateForConstraintSystem(
     private fun internalAddSubtypeConstraint(
         subType: CangJieTypeMarker,
         superType: CangJieTypeMarker,
-        isFromNullabilityConstraint: Boolean,
         isNoInfer: Boolean,
     ): Boolean? {
         assertInputTypes(subType, superType)
@@ -165,7 +163,7 @@ abstract class TypeCheckerStateForConstraintSystem(
         var answer: Boolean? = null
 
         if (superType.anyBound(this::isMyTypeVariable)) {
-            answer = simplifyLowerConstraint(superType, subType, isNoInfer, isFromNullabilityConstraint)
+            answer = simplifyLowerConstraint(superType, subType, isNoInfer)
         }
 
         if (subType.anyBound(this::isMyTypeVariable)) {
@@ -224,11 +222,10 @@ abstract class TypeCheckerStateForConstraintSystem(
         typeVariable: CangJieTypeMarker,
         subType: CangJieTypeMarker,
         isNoInfer: Boolean,
-        isFromNullabilityConstraint: Boolean = false
     ): Boolean = with(extensionTypeContext) {
         // 仓颉语言：直接使用 subType，不做任何 Option 标记的修改
         // Option 是确切的类型，不能被改变
-        addLowerConstraint(typeVariable.typeConstructor(), subType, isFromNullabilityConstraint, isNoInfer)
+        addLowerConstraint(typeVariable.typeConstructor(), subType, isNoInfer)
         return true
     }
 

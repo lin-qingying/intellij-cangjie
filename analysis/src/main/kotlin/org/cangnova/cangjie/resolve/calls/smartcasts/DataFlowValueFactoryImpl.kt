@@ -68,14 +68,16 @@ class DataFlowValueFactoryImpl : DataFlowValueFactory {
             type.isError -> DataFlowValue.ERROR
 
             CangJieBuiltIns.isNothing(type) ->
-                DataFlowValue.nullValue(containingDeclarationOrModule.builtIns) // 'null' is the only inhabitant of 'Nothing?'
+                // 仓颉语言: Nothing 类型表示"无返回值",与 null 无关
+                // 但为了兼容性,仍然使用 noneValue
+                @Suppress("DEPRECATION")
+                DataFlowValue.nullValue(containingDeclarationOrModule.builtIns)
 
-            // In most cases type of `E!!`-expression is strictly not nullable and we could get proper Nullability
-            // by calling `getImmanentNullability` (as it happens below).
-            //
-            // But there are some problem with types built on type parameters, e.g.
-            // fun <T : Any?> foo(x: T) = x!!.hashCode() // there no way in type system to denote that `x!!` is not nullable
+            // 仓颉语言: !! 操作符不存在 (无 null,只有 Option)
+            // 如果出现类似语法,应该是编译错误
+            // 保留此逻辑用于与 Kotlin 代码的兼容性
             ExpressionTypingUtils.isExclExclExpression(CjPsiUtil.deparenthesize(expression)) ->
+                @Suppress("DEPRECATION")
                 DataFlowValue(IdentifierInfo.Expression(expression), type, Nullability.NOT_NULL)
 
             isComplexExpression(expression) ->

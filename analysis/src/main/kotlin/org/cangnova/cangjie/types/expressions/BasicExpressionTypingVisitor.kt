@@ -771,7 +771,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             val nullValue = nullValue(components.builtIns)
 
             // 如果右侧为空或在右侧数据流中左值不能为 null，则更新数据流信息
-            if (jumpInRight || !rightDataFlowInfo.getStableNullability(leftValue).canBeNull()) {
+            if (jumpInRight || !rightDataFlowInfo.getStableOptionStatus(leftValue).canBeOption()) {
                 dataFlowInfo = dataFlowInfo.disequate(leftValue, nullValue, components.languageVersionSettings)
                 // 如果左操作数是带有类型 RHS 的二元表达式，进一步建立子类型关系
                 if (left is CjBinaryExpressionWithTypeRHS) {
@@ -889,7 +889,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             val nullValue = nullValue(components.builtIns)
 
             // 如果右侧为空或在右侧数据流中左值不能为 null，则更新数据流信息
-            if (jumpInRight || !rightDataFlowInfo.getStableNullability(leftValue).canBeNull()) {
+            if (jumpInRight || !rightDataFlowInfo.getStableOptionStatus(leftValue).canBeOption()) {
                 dataFlowInfo = dataFlowInfo.disequate(leftValue, nullValue, components.languageVersionSettings)
                 // 如果左操作数是带有类型 RHS 的二元表达式，进一步建立子类型关系
                 if (left is CjBinaryExpressionWithTypeRHS) {

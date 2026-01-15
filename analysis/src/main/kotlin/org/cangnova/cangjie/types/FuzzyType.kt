@@ -237,18 +237,7 @@ fun CallableDescriptor.fuzzyReturnType(): FuzzyType? {
     return returnType?.toFuzzyType(typeParameters)
 }
 
-/**
- * 获取可调用描述符的模糊扩展接收者类型
- *
- * 使用描述符的类型参数作为自由参数。
- *
- * @receiver CallableDescriptor 可调用描述符
- * @return FuzzyType? 模糊扩展接收者类型,如果没有扩展接收者则返回 null
- */
-fun CallableDescriptor.fuzzyExtensionReceiverType(): FuzzyType? {
-    // 在仓颉语言中, extend 成员使用 dispatchReceiver
-    return dispatchReceiverParameter?.type?.toFuzzyType(typeParameters)
-}
+
 
 /**
  * 将模糊类型转换为 Option 类型

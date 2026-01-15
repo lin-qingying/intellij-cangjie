@@ -112,7 +112,7 @@ abstract class CangJieAnalysisTestBase : CangJieTestBase() {
         // 创建 PSI 工厂
         factory = CjPsiFactory(project)
 
-        // TODO: 配置 SDK（如果测试需要）
+
          setupSdk()
     }
 

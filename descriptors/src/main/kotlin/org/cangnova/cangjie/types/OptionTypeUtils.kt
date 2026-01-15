@@ -300,7 +300,7 @@ fun CangJieType.makeOptionAsSpecified(shouldBeOption: Boolean): CangJieType {
  * SimpleType 版本的 makeOption
  */
 fun SimpleType.makeOption(): SimpleType {
-    if (this.isOptionType()) return this
+
     return OptionTypeUtils.createOptionType(this, this.builtIns)
 }
 

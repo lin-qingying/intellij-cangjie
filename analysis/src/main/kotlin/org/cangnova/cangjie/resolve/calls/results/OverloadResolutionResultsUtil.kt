@@ -35,7 +35,25 @@ import org.cangnova.cangjie.resolve.calls.tower.NewVariableAsFunctionResolvedCal
 import org.cangnova.cangjie.resolve.calls.util.hasInferredReturnType
 import org.cangnova.cangjie.types.CangJieType
 
+/**
+ * 重载解析结果工具类
+ *
+ * 提供处理函数/方法重载解析结果的工具方法，包括：
+ * - 合并多个歧义的解析结果
+ * - 获取解析结果的返回类型
+ * - 获取最终的调用结果
+ */
 object OverloadResolutionResultsUtil {
+    /**
+     * 合并两个重载解析结果为一个歧义结果
+     *
+     * 当存在多个同样优先级的候选函数时，需要将它们合并为一个歧义结果，
+     * 以便后续报告"调用歧义"错误。
+     *
+     * @param results1 第一个解析结果集
+     * @param results2 第二个解析结果集
+     * @return 包含所有候选调用的歧义结果
+     */
     @Suppress("UNCHECKED_CAST")
     fun <D : CallableDescriptor> ambiguity(
         results1: OverloadResolutionResults<D>,
@@ -47,6 +65,15 @@ object OverloadResolutionResultsUtil {
         return OverloadResolutionResultsImpl.ambiguity(resultingCalls)
     }
 
+    /**
+     * 获取重载解析结果的返回类型
+     *
+     * 从解析结果中提取最终调用的返回类型。如果解析失败或存在歧义，返回 null。
+     *
+     * @param results 重载解析结果
+     * @param context 解析上下文
+     * @return 返回类型，如果无法确定则返回 null
+     */
     fun <D : CallableDescriptor> getResultingType(
         results: OverloadResolutionResults<D>,
         context: ResolutionContext<*>
@@ -55,12 +82,28 @@ object OverloadResolutionResultsUtil {
         return resultingCall?.resultingDescriptor?.returnType
     }
 
+    /**
+     * 获取重载解析的最终调用结果
+     *
+     * 从解析结果中提取唯一确定的调用。该方法会进行以下检查：
+     * 1. 确保解析结果是唯一的（非歧义）
+     * 2. 在独立上下文中，验证返回类型是否已推导
+     * 3. 处理"变量作为函数"的特殊情况
+     *
+     * @param results 重载解析结果
+     * @param context 解析上下文，用于判断是否需要类型推导
+     * @return 唯一确定的调用结果，如果存在歧义或类型未推导则返回 null
+     */
     fun <D : CallableDescriptor> getResultingCall(
         results: OverloadResolutionResults<D>,
         context: ResolutionContext<*>
     ): ResolvedCall<D>? {
+        // 仅在结果唯一且上下文独立时进行返回类型检查
         if (results.isSingleResult && context.contextDependency == ContextDependency.INDEPENDENT) {
             val resultingCall = results.resultingCall
+
+            // 提取实际的解析调用对象
+            // 对于"变量作为函数"的情况，需要获取其内部的函数调用
             val newResolvedCall: AbstractResolvedCall<*>? = when (resultingCall) {
                 is NewVariableAsFunctionResolvedCallImpl -> resultingCall.functionCall
                 is AbstractResolvedCall<*> -> resultingCall
@@ -68,6 +111,8 @@ object OverloadResolutionResultsUtil {
             }
 
             if (newResolvedCall != null) {
+                // 检查返回类型是否已推导
+                // 构造函数除外，因为需要对 class<T> 进行诊断报告
                 if (!newResolvedCall.hasInferredReturnType()
                     // TODO 这里排除构造函数，是为了对class<T>进行诊断报告
                     && resultingCall.resultingDescriptor !is ClassConstructorDescriptor
@@ -75,9 +120,12 @@ object OverloadResolutionResultsUtil {
                     return null
                 }
             } else if (!(resultingCall as MutableResolvedCall<D>).hasInferredReturnType()) {
+                // 对于其他类型的调用，同样检查返回类型是否已推导
                 return null
             }
         }
+
+        // 返回唯一结果，如果存在歧义则返回 null
         return if (results.isSingleResult) results.resultingCall else null
     }
 }

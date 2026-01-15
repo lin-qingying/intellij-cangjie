@@ -433,57 +433,6 @@ class FuzzyTypeTest : CangJieAnalysisTestBase() {
         }
     }
 
-    /**
-     * 测试 fuzzyExtensionReceiverType 扩展函数
-     *
-     * 验证：
-     * 1. 能获取 extend 成员的接收者类型
-     * 2. 在仓颉语言中使用 dispatchReceiver
-     */
-    fun `test fuzzyExtensionReceiverType extension function`() {
-        val file = createFile(
-            """
-            package test
-
-            class MyClass {
-                func normalMethod(): Unit {}
-            }
-
-            extend<T> MyClass <: MyInterface {
-                func extendMethod(): T {
-                    return default<T>()
-                }
-            }
-
-            interface MyInterface {}
-            """.trimIndent()
-        )
-
-        analyzeForTest(file) {
-            // 注意：这个测试需要完整的 extend 成员解析支持
-            // 这里主要测试方法存在且不抛出异常
-
-            val myClass = PsiTreeUtil.findChildOfType(file, CjClass::class.java)
-            assertNotNull("应该找到 MyClass", myClass)
-
-            val myClassDescriptor = bindingContext[BindingContext.CLASS, myClass!!] as? ClassDescriptor
-            assertNotNull("应该能获取 MyClass 的描述符", myClassDescriptor)
-
-            // 测试普通方法（没有 dispatchReceiver）
-            val normalMethod = myClassDescriptor!!.unsubstitutedMemberScope
-                .getContributedFunctions(
-                    org.cangnova.cangjie.name.Name.identifier("normalMethod"),
-                    org.cangnova.cangjie.incremental.components.NoLookupLocation.FROM_IDE
-                )
-                .firstOrNull()
-
-            if (normalMethod != null) {
-                val fuzzyReceiver = normalMethod.fuzzyExtensionReceiverType()
-                // 普通方法没有 extend 接收者
-                assertNull("普通方法不应该有 extend 接收者类型", fuzzyReceiver)
-            }
-        }
-    }
 
     // ==================== presentationType 测试 ====================
 

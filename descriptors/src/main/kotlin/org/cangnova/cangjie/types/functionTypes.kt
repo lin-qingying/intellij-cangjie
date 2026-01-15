@@ -142,16 +142,43 @@ val DeclarationDescriptor.fqNameUnsafe: FqNameUnsafe
 fun getFunctionDescriptor(builtIns: CangJieBuiltIns, parameterCount: Int) =
     /*   if (isSuspendFunction) builtIns.getSuspendFunction(parameterCount) else*/ builtIns.getFunction(parameterCount)
 
+/**
+ * 获取函数类型种类
+ *
+ * 仓颉语言没有显式的 Function0/Function1 类型定义,而是由编译器内部创建 FunctionClassDescriptor。
+ * 因此不能通过 FqName 匹配来识别函数类型,而应该直接检查 Descriptor 的类型。
+ *
+ * @return 如果是函数类型则返回对应的 FunctionTypeKind,否则返回 null
+ */
 fun DeclarationDescriptor.getFunctionTypeKind(): FunctionTypeKind? {
-    if (this !is ClassDescriptor) return null
-//    if (!CangJieBuiltIns.isUnderCangJiePackage(this)) return null
+    // 直接从 FunctionClassDescriptor 获取 functionTypeKind
+    if (this is org.cangnova.cangjie.descriptors.impl.FunctionClassDescriptor) {
+        return this.functionTypeKind
+    }
 
-    return fqNameUnsafe.getFunctionTypeKind()
+    // 对于其他情况(如错误恢复、兼容性等),尝试从 FqName 推断
+    // 但这仅作为后备方案,不应该是主要逻辑
+    if (this is ClassDescriptor) {
+        return fqNameUnsafe.getFunctionTypeKind()
+    }
+
+    return null
 }
 
-private fun FqNameUnsafe.getFunctionTypeKind(): FunctionTypeKind? {
+/**
+ * 从 FqName 推断函数类型种类（后备方案）
+ *
+ * ⚠️ 此方法仅用于兼容性和错误恢复。
+ * 仓颉语言的函数类型是由编译器内部创建的 FunctionClassDescriptor,
+ * 对于 DeclarationDescriptor 应该使用 getFunctionTypeKind() 扩展方法。
+ *
+ * 此方法主要用于:
+ * - 从序列化数据恢复类型信息
+ * - 错误恢复场景
+ * - 无法访问 Descriptor 的场景
+ */
+fun FqNameUnsafe.getFunctionTypeKind(): FunctionTypeKind? {
     if (!isSafe || isRoot) return null
-
     return FunctionTypeKindExtractor.Default.getFunctionalClassKind(toSafe().parent(), shortName().asString())
 }
 

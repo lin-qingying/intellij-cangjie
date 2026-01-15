@@ -47,7 +47,7 @@ class PreliminaryLoopVisitor private constructor() : AssignedVariablesSearcher()
     ): DataFlowInfo {
         var resultFlowInfo = dataFlowInfo
         val nonTrivialValues = ObjectOpenHashSet<DataFlowValue>().apply {
-            addAll(dataFlowInfo.completeNullabilityInfo.iterator().map { it._1 })
+            addAll(dataFlowInfo.completeOptionStatusInfo.iterator().map { it._1 })
             addAll(dataFlowInfo.completeTypeInfo.iterator().map { it._1 })
         }
         val valueSetToClear = LinkedHashSet<DataFlowValue>()

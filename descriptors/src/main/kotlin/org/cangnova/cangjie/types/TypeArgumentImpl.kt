@@ -27,7 +27,9 @@ import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 class TypeArgumentImpl(override val type: CangJieType) : TypeArgument{
 
-
+    override fun toString(): String {
+        return type.toString()
+    }
 
     
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeArgument {

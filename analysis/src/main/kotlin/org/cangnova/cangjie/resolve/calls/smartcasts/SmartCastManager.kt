@@ -34,8 +34,43 @@ import org.cangnova.cangjie.resolve.calls.context.ResolutionContext
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.CangJieType
 
-
+/**
+ * 类型变体管理器
+ *
+ * ⚠️ 重要: 此类来自 Kotlin 的智能转换系统,但在仓颉语言中用途不同。
+ *
+ * ## 仓颉语言中的用途
+ *
+ * 仓颉语言**不需要 Kotlin 风格的智能转换**:
+ * - **无运行时 null 检查**: 没有 `if (x != null)` 风格的智能转换
+ * - **模式匹配**: 通过 `match` 表达式进行类型细化,不是自动智能转换
+ * - **类型收集**: 此类主要用于收集表达式的可能类型(用于类型推导)
+ *
+ * ## 当前状态
+ *
+ * 大部分 Kotlin 智能转换逻辑已被注释掉。活跃的方法:
+ * - [getSmartCastVariants]: 收集值的可能类型(不是智能转换,只是类型推导)
+ * - [checkAndRecordPossibleCast]: 已禁用,总是返回 null
+ *
+ * @see DataFlowInfo
+ * @see DataFlowValue
+ */
 class SmartCastManager(private val argumentTypeResolver: ArgumentTypeResolver) {
+    /**
+     * 获取值的类型变体
+     *
+     * 收集接收者的所有可能类型,用于类型推导。
+     *
+     * 注意: 这不是 Kotlin 风格的智能转换,只是收集类型信息。
+     *
+     * @param receiverToCast 接收者值
+     * @param bindingContext 绑定上下文
+     * @param containingDeclarationOrModule 包含声明或模块
+     * @param dataFlowInfo 数据流信息
+     * @param languageVersionSettings 语言版本设置
+     * @param dataFlowValueFactory 数据流值工厂
+     * @return 可能的类型列表(第一个是接收者的原始类型)
+     */
     fun getSmartCastVariants(
         receiverToCast: ReceiverValue,
         bindingContext: BindingContext,
@@ -71,6 +106,18 @@ class SmartCastManager(private val argumentTypeResolver: ArgumentTypeResolver) {
         return dataFlowInfo.getCollectedTypes(dataFlowValue, languageVersionSettings)
     }
 
+    /**
+     * 检查并记录可能的类型转换 (已禁用)
+     *
+     * ⚠️ 此方法来自 Kotlin 的智能转换系统,在仓颉语言中已被禁用。
+     *
+     * 仓颉语言不需要自动智能转换:
+     * - 类型细化通过 `match` 表达式的模式匹配完成
+     * - 没有 `if (x != null)` 风格的自动类型缩窄
+     * - Option 类型通过显式解包,不是隐式转换
+     *
+     * @return 总是返回 null (功能已禁用)
+     */
     fun checkAndRecordPossibleCast(
         dataFlowValue: DataFlowValue,
         expectedType: CangJieType,

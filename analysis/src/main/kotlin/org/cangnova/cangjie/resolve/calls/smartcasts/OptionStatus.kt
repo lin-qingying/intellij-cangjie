@@ -161,24 +161,26 @@ enum class OptionStatus(
             else -> UNKNOWN
         }
 
-        /**
-         * 从 Kotlin 的 Nullability 迁移到 OptionStatus
-         *
-         * 迁移映射:
-         * - NULL → OPTION (用 Option::None 表示)
-         * - NOT_NULL → DEFINITE (非 Option 类型)
-         * - UNKNOWN → UNKNOWN (保持不变)
-         * - IMPOSSIBLE → UNKNOWN (无效状态视为未知)
-         */
-        @Deprecated(
-            "Use OptionStatus directly instead of converting from Nullability",
-            ReplaceWith("OptionStatus.DEFINITE or OptionStatus.OPTION")
-        )
-        fun fromNullability(nullability: Nullability): OptionStatus = when (nullability) {
-            Nullability.NULL -> OPTION  // null 在仓颉中用 None 表示
-            Nullability.NOT_NULL -> DEFINITE  // 非 null 即非 Option
-            Nullability.UNKNOWN -> UNKNOWN
-            Nullability.IMPOSSIBLE -> UNKNOWN  // 无效状态
-        }
     }
 }
+
+/**
+ * Nullability 兼容层(已废弃)
+ *
+ * ⚠️ 仅用于向后兼容,请使用 OptionStatus 替代。
+ */
+@Deprecated("Use OptionStatus instead", ReplaceWith("OptionStatus"))
+enum class Nullability {
+    NOT_NULL,
+    NULL,
+    UNKNOWN,
+    IMPOSSIBLE;
+
+    fun toOptionStatus(): OptionStatus = when (this) {
+        NOT_NULL -> OptionStatus.DEFINITE
+        NULL -> OptionStatus.OPTION
+        UNKNOWN -> OptionStatus.UNKNOWN
+        IMPOSSIBLE -> OptionStatus.UNKNOWN
+    }
+}
+

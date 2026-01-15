@@ -549,7 +549,7 @@ abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListM
             for (annotation in annotations) {
                 append("[", DescriptorRenderer.DEBUG_TEXT.renderAnnotation(annotation), "] ")
             }
-            if (isOption) append("?")  // 显示Option标记
+
 
             append(constructor)
             if (arguments.isNotEmpty()) arguments.joinTo(this, separator = ", ", prefix = "<", postfix = ">")

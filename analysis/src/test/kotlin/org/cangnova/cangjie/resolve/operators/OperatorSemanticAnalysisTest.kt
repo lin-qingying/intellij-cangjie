@@ -477,7 +477,7 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            open class Animal
+            open class Animal{}
 
             class Dog <: Animal {
                 public func bark(): Unit {
@@ -494,7 +494,7 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
             main() {
                 let animal: Animal = Cat()
                 let maybeDog = animal as? Dog
-                if (maybeDog != null) {
+                if (maybeDog != None) {
                     maybeDog.bark()
                 }
             }

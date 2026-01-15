@@ -24,20 +24,49 @@
 
 package org.cangnova.cangjie.resolve.calls.smartcasts
 
+import io.vavr.collection.HashMap
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.utils.ImmutableMap
 import org.cangnova.cangjie.utils.ImmutableSet
 
 /**
- *此接口用于提供和编辑有关值为空和可能类型的信息。
- *数据流信息是不可变的，因此函数永远不会更改它。
+ * 数据流信息接口
+ *
+ * ⚠️ 注意: 仓颉语言的数据流分析与 Kotlin 有本质区别
+ *
+ * ## 仓颉语言特性
+ *
+ * - **无运行时 null**: 仓颉没有 null 值,只有 Option<T> 枚举
+ * - **类型细化**: 通过模式匹配进行类型细化,不是运行时检查
+ * - **稳定性追踪**: 追踪变量是否可能被意外修改(闭包捕获、可变属性等)
+ *
+ * ## 主要用途
+ *
+ * 1. **类型推导**: 追踪表达式的可能类型
+ * 2. **稳定性分析**: 判断值是否稳定(影响模式匹配的安全性)
+ * 3. **类型细化**: 支持 match 表达式的类型细化
+ *
+ * 数据流信息是不可变的,所有函数返回新的 DataFlowInfo 实例。
+ *
+ * @see DataFlowValue
+ * @see OptionStatus
  */
 interface DataFlowInfo {
 
+    /**
+     * 完整的 Option 状态信息 (推荐使用)
+     *
+     * 记录每个值的 Option 类型状态:
+     * - DEFINITE: 非 Option 类型
+     * - OPTION: Option<T> 类型
+     * - UNKNOWN: 未确定
+     */
+    val completeOptionStatusInfo: ImmutableMap<DataFlowValue, OptionStatus>
 
-    val completeNullabilityInfo: ImmutableMap<DataFlowValue, Nullability>
 
+
+    /** 完整的类型信息 */
     val completeTypeInfo: ImmutableMap<DataFlowValue, ImmutableSet<CangJieType>>
 
     /**
@@ -104,15 +133,26 @@ interface DataFlowInfo {
     fun getStableTypes(key: DataFlowValue, languageVersionSettings: LanguageVersionSettings): Set<CangJieType>
 
     /**
-     * Returns collected optionality for the given value if it's stable.
-     * Otherwise basic value optionality is returned
+     * 获取稳定值的 Option 状态 (推荐使用)
+     *
+     * 如果值是稳定的,返回收集到的 Option 状态。
+     * 否则返回基本的 Option 状态(从类型推导)。
+     *
+     * @param key 数据流值
+     * @return Option 状态
      */
-    fun getStableNullability(key: DataFlowValue): Nullability
+    fun getStableOptionStatus(key: DataFlowValue): OptionStatus
+
 
     /**
-     * Returns collected optionality for the given value, NOT taking its stability into account.
+     * 获取收集到的 Option 状态 (推荐使用)
+     *
+     * 返回收集到的 Option 状态,不考虑值的稳定性。
+     *
+     * @param key 数据流值
+     * @return Option 状态
      */
-    fun getCollectedNullability(key: DataFlowValue): Nullability
+    fun getCollectedOptionStatus(key: DataFlowValue): OptionStatus
 
     /**
      * Call this function when b is assigned to a
