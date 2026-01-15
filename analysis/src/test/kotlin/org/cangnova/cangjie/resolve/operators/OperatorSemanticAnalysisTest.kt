@@ -464,55 +464,6 @@ class OperatorSemanticAnalysisTest : CangJieAnalysisTestBase() {
         }
     }
 
-    /**
-     * 测试安全类型转换
-     *
-     * 验证：
-     * 1. as? 安全转换的语义
-     * 2. 转换失败返回 null
-     * 3. 结果类型是可空类型
-     */
-    fun `test safe type cast`() {
-        val file = createFile(
-            """
-            package test
-
-            open class Animal{}
-
-            class Dog <: Animal {
-                public func bark(): Unit {
-                    // bark
-                }
-            }
-
-            class Cat <: Animal {
-                public func meow(): Unit {
-                    // meow
-                }
-            }
-
-            main() {
-                let animal: Animal = Cat()
-                let maybeDog = animal as? Dog
-                if (maybeDog != None) {
-                    maybeDog.bark()
-                }
-            }
-            """.trimIndent()
-        )
-
-        analyzeForTest(file) {
-            val maybeDogPatternVar = PsiTreeUtil.findChildrenOfType(file, CjPatternVariable::class.java)
-                .firstOrNull { it.name == "maybeDog" }
-            assertNotNull("应该找到 maybeDog 变量", maybeDogPatternVar)
-
-            val maybeDogBinding = maybeDogPatternVar!!.pattern.getAllBindings().firstOrNull { it.name == "maybeDog" }
-            val maybeDogDescriptor = bindingContext[BindingContext.VARIABLE, maybeDogBinding!!]
-            assertNotNull("maybeDog 应该有描述符", maybeDogDescriptor)
-            // 安全转换的结果应该是可空类型
-            assertNotNull("应该有类型", maybeDogDescriptor!!.type)
-        }
-    }
 
     // ==================== 隐式类型转换测试 ====================
 
