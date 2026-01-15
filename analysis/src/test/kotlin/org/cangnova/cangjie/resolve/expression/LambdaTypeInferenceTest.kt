@@ -148,10 +148,11 @@ class LambdaTypeInferenceTest : CangJieAnalysisTestBase() {
             """
             package test
 
-            main() {
-                let multiply = { x: Int64, y: Int64 : Int64 => x * y }
-                let product = multiply(5, 6)
-            }
+        main() {
+    let multiply = {x: Int64, y: Int64 => x * y}
+    let product = multiply(5, 6)
+}
+
             """.trimIndent()
         )
 
