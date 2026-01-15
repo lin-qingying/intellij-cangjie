@@ -278,17 +278,34 @@ fun FuzzyType.unwrapOption(): FuzzyType {
 /**
  * 检查模糊类型是否"几乎是所有类型"
  *
- * 检查类型是否为 Option<Nothing> 类型。
- * 在仓颉语言中,Option<Nothing> 只能是 None,可以匹配任何 Option 类型。
+ * 检查类型是否为嵌套 Option 包装的 Nothing 类型。
+ * 在仓颉语言中,Option<Nothing>、Option<Option<Nothing>> 等最终解包后是 Nothing 的类型，
+ * 都只能表示 None 值,可以匹配任何对应嵌套层级的 Option 类型。
+ *
+ * **实现逻辑**:
+ * - 完全解包所有 Option 层级
+ * - 检查最内层类型是否是 Nothing
+ *
+ * **示例**:
+ * - `Option<Nothing>` → 解包所有层级 → `Nothing` → true
+ * - `Option<Option<Nothing>>` → 解包所有层级 → `Nothing` → true
+ * - `Option<Int64>` → 解包所有层级 → `Int64` → false
+ * - `Int64` → 不是 Option 类型 → false
  *
  * **使用场景**:
  * 在代码补全中,用于特殊处理 None 字面量的情况。
  *
  * @receiver FuzzyType 模糊类型
- * @return Boolean true 表示是 Option<Nothing> 类型
+ * @return Boolean true 表示是嵌套 Option 包装的 Nothing 类型
  */
 fun FuzzyType.isAlmostEverything(): Boolean {
-    return type.isNothing() && type.optionality() != TypeOptionality.NOT_OPTION
+    // 检查类型是否是 Option 类型
+    if (!type.isOptionType()) return false
+
+    // 完全解包所有 Option 层级，检查最内层类型是否是 Nothing
+    // 这样 Option<Nothing>, Option<Option<Nothing>> 等都会返回 true
+    val innerType = type.unwrapOptionType(-1) ?: return false
+    return innerType.isNothing()
 }
 
 /**

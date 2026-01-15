@@ -136,16 +136,40 @@ object OptionTypeUtils {
      * 如果类型不是 Option 类型，返回 null。
      *
      * @param type Option 类型
+     * @param levels 解包层级，默认 1（解包一层），-1 表示解包所有层级
      * @return 元素类型 T，如果不是 Option 类型则返回 null
      */
     @JvmStatic
-    fun unwrapOptionType(type: CangJieType): CangJieType? {
+    @JvmOverloads
+    fun unwrapOptionType(type: CangJieType, levels: Int = 1): CangJieType? {
+        if (levels == 0) return type
         if (!isOptionType(type)) return null
 
         val unwrapped = type.unwrap()
         if (unwrapped !is SimpleType) return null
 
-        return unwrapped.arguments.firstOrNull()?.type
+        val elementType = unwrapped.arguments.firstOrNull()?.type ?: return null
+
+        // 如果 levels == -1，递归解包所有层级
+        if (levels == -1) {
+            return if (isOptionType(elementType)) {
+                unwrapOptionType(elementType, -1)
+            } else {
+                elementType
+            }
+        }
+
+        // 如果 levels > 1，继续递归解包
+        if (levels > 1) {
+            return if (isOptionType(elementType)) {
+                unwrapOptionType(elementType, levels - 1)
+            } else {
+                elementType
+            }
+        }
+
+        // levels == 1，返回解包一层的结果
+        return elementType
     }
 
     /**
@@ -254,8 +278,10 @@ fun CangJieType.isOptionType(): Boolean = OptionTypeUtils.isOptionType(this)
 
 /**
  * 扩展函数：从 Option<T> 中提取元素类型 T
+ *
+ * @param levels 解包层级，默认 1（解包一层），-1 表示解包所有层级
  */
-fun CangJieType.unwrapOptionType(): CangJieType? = OptionTypeUtils.unwrapOptionType(this)
+fun CangJieType.unwrapOptionType(levels: Int = 1): CangJieType? = OptionTypeUtils.unwrapOptionType(this, levels)
 
 /**
  * 扩展函数：获取 Option 嵌套层级

@@ -355,21 +355,37 @@ class FuzzyTypeTest : CangJieAnalysisTestBase() {
 
         analyzeForTest(file) {
             val nothingType = resolutionFacade.moduleDescriptor.builtIns.nothingType
+
+            // 测试 Option<Nothing>
             val optionNothing = nothingType.makeOption()
             val fuzzyOptionNothing = optionNothing.toFuzzyType(emptyList())
-
             assertTrue(
                 "Option<Nothing> 应该返回 true",
                 fuzzyOptionNothing.isAlmostEverything()
             )
 
+            // 测试 Option<Option<Nothing>>
+            val optionOptionNothing = optionNothing.makeOption()
+            val fuzzyOptionOptionNothing = optionOptionNothing.toFuzzyType(emptyList())
+            assertTrue(
+                "Option<Option<Nothing>> 应该返回 true（解包所有层级后是 Nothing）",
+                fuzzyOptionOptionNothing.isAlmostEverything()
+            )
+
             // 测试普通类型
             val int64Type = resolutionFacade.moduleDescriptor.builtIns.int64Type
             val fuzzyInt = int64Type.toFuzzyType(emptyList())
-
             assertFalse(
                 "Int64 应该返回 false",
                 fuzzyInt.isAlmostEverything()
+            )
+
+            // 测试 Option<Int64>
+            val optionInt = int64Type.makeOption()
+            val fuzzyOptionInt = optionInt.toFuzzyType(emptyList())
+            assertFalse(
+                "Option<Int64> 应该返回 false",
+                fuzzyOptionInt.isAlmostEverything()
             )
         }
     }
