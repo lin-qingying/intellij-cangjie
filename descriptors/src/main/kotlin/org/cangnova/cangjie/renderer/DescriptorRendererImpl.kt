@@ -299,9 +299,7 @@ open class DescriptorRendererImpl(
     private fun StringBuilder.renderDefaultType(type: CangJieType) {
         this.renderAnnotations(type)
 
-        if (OptionTypeUtils.isOptionType(type)) {
-            append("?")
-        }
+
 
         when {
             OptionTypeUtils.isOptionType(type) -> {
@@ -419,7 +417,6 @@ open class DescriptorRendererImpl(
 
         if (needParenthesis) append(")")
 
-        if (isOption) append("?")
     }
 
 

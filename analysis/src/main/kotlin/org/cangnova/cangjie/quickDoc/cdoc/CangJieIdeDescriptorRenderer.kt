@@ -766,7 +766,6 @@ open class CangJieIdeDescriptorRenderer(
 
         if (needParenthesis) appendHighlighted(")") { asParentheses }
 
-        if (isNullable) appendHighlighted("?") { asNullityMarker }
     }
 
     //    private fun StringBuilder.appendTypeConstructorAndArguments(
@@ -818,14 +817,14 @@ open class CangJieIdeDescriptorRenderer(
 
     private fun StringBuilder.appendDefaultType(type: CangJieType) {
 
-        if (type.isOptionType()) {
+     /*   if (type.isOptionType()) {
             appendHighlighted("?") { asNullityMarker }
             val innerType = type.unwrapOptionType()
             if (innerType != null) {
                 appendTypeConstructorAndArguments(innerType)
             }
 
-        } else if (type.isError) {
+        } else */if (type.isError) {
             if (isUnresolvedType(type) && presentableUnresolvedTypes) {
                 appendHighlighted(ErrorUtils.unresolvedTypeAsItIs(type)) { asError }
             } else {
@@ -939,28 +938,28 @@ open class CangJieIdeDescriptorRenderer(
     override fun renderTypeConstructor(typeConstructor: TypeConstructor): String =
         when (val cd = typeConstructor.declarationDescriptor) {
             is TypeParameterDescriptor -> highlight(renderClassifierName(cd)) { asTypeParameterName }
-            is ClassDescriptor -> highlight(renderClassifierName(cd)) { asClassName }
+            is ClassAndEnumDescriptor -> highlight(renderClassifierName(cd)) { asClassName }
             is TypeAliasDescriptor -> highlight(renderClassifierName(cd)) { asTypeAlias }
             null -> highlight(escape(typeConstructor.toString())) { asClassName }
             else -> error("Unexpected classifier: " + cd::class.java)
         }
 
-    fun renderClassifierNameWithType(klass: ClassifierDescriptor, type: CangJieType): String =
-        if (ErrorUtils.isError(klass)) {
-            klass.typeConstructor.toString()
+    fun renderClassifierNameWithType(cclass: ClassifierDescriptor, type: CangJieType): String =
+        if (ErrorUtils.isError(cclass)) {
+            cclass.typeConstructor.toString()
         } else {
             val policy = classifierNamePolicy
             if (policy is ClassifierNamePolicyEx) {
-                policy.renderClassifierWithType(klass, this, type)
+                policy.renderClassifierWithType(cclass, this, type)
             } else {
-                policy.renderClassifier(klass, this)
+                policy.renderClassifier(cclass, this)
             }
         }
 
     private fun renderTypeConstructorOfType(typeConstructor: TypeConstructor, type: CangJieType): String =
         when (val cd = typeConstructor.declarationDescriptor) {
             is TypeParameterDescriptor -> highlight(renderClassifierNameWithType(cd, type)) { asTypeParameterName }
-            is ClassDescriptor -> highlight(renderClassifierNameWithType(cd, type)) { asClassName }
+            is ClassAndEnumDescriptor -> highlight(renderClassifierNameWithType(cd, type)) { asClassName }
             is TypeAliasDescriptor -> highlight(renderClassifierNameWithType(cd, type)) { asTypeAlias }
             null -> highlight(escape(typeConstructor.toString())) { asClassName }
             else -> error("Unexpected classifier: " + cd::class.java)
