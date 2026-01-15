@@ -307,13 +307,15 @@ class ClassicTypeSystemContextForCS(
      */
     override fun newTypeCheckerState(
         errorTypesEqualToAnything: Boolean,
-        stubTypesEqualToAnything: Boolean
+        stubTypesEqualToAnything: Boolean,
+        allowOptionBoxing: Boolean
     ): TypeCheckerState {
         return createClassicTypeCheckerState(
             errorTypesEqualToAnything,
             stubTypesEqualToAnything,
             typeSystemContext = this,
-            cangjieTypeRefiner = cangjieTypeRefiner
+            cangjieTypeRefiner = cangjieTypeRefiner,
+            allowOptionBoxing = allowOptionBoxing
         )
     }
 

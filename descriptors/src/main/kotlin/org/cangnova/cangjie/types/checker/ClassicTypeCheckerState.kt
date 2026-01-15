@@ -37,6 +37,7 @@ import org.cangnova.cangjie.types.TypeCheckerState
  * @param typeSystemContext 类型系统上下文
  * @param cangjieTypePreparator 类型准备器
  * @param cangjieTypeRefiner 类型精化器
+ * @param allowOptionBoxing 是否允许 Option 自动装箱（默认 true）
  * @return 类型检查器状态
  */
 fun createClassicTypeCheckerState(
@@ -44,7 +45,8 @@ fun createClassicTypeCheckerState(
     isStubTypeEqualsToAnything: Boolean = true,
     typeSystemContext: ClassicTypeSystemContext = SimpleClassicTypeSystemContext,
     cangjieTypePreparator: CangJieTypePreparator = CangJieTypePreparator.Default,
-    cangjieTypeRefiner: CangJieTypeRefiner = CangJieTypeRefiner.Default
+    cangjieTypeRefiner: CangJieTypeRefiner = CangJieTypeRefiner.Default,
+    allowOptionBoxing: Boolean = true
 ): TypeCheckerState {
     // 仓颉语言的 TypeCheckerState 构造
     // isDnnTypesEqualToFlexible: 仓颉没有 DNN 类型，设为 false
@@ -56,6 +58,7 @@ fun createClassicTypeCheckerState(
         allowedTypeVariable = false,
         typeSystemContext = typeSystemContext,
         cangjieTypePreparator = cangjieTypePreparator,
-        cangjieTypeRefiner = cangjieTypeRefiner
+        cangjieTypeRefiner = cangjieTypeRefiner,
+        allowOptionBoxing = allowOptionBoxing
     )
 }

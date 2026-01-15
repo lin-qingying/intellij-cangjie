@@ -40,24 +40,64 @@ import org.cangnova.cangjie.types.model.*
 object AbstractOptionChecker {
 
     /**
+     * 计算类型的 Option 嵌套层级
+     *
+     * 例如:
+     * - Int64 → 0
+     * - Option<Int64> → 1
+     * - Option<Option<Int64>> → 2
+     *
+     * @param type 要检查的类型
+     * @param context 类型系统上下文
+     * @return Option 嵌套层级
+     */
+    context(c: TypeSystemContext)
+    fun countOptionNestedLevel(type: SimpleTypeMarker): Int {
+        var level = 0
+        var currentType: SimpleTypeMarker? = type
+
+        while (currentType != null && currentType.isMarkedOption()) {
+            level++
+            // 尝试获取类型参数（Option 类型应该有一个类型参数）
+            val typeConstructor = currentType.typeConstructor()
+            if (typeConstructor.parametersCount() == 1) {
+                val arg = currentType.getArgumentOrNull(0)
+                currentType = arg?.getType()?.asSimpleType()
+            } else {
+                break
+            }
+        }
+
+        return level
+    }
+
+    /**
      * 检查从 Option 角度看，subType 是否可能是 superType 的子类型
      *
      * 这是一个快速检查，用于在完整子类型检查之前过滤掉明显不可能的情况。
      *
      * ## 仓颉语言 Option 规则：
-     * 1. T <: ?T  (任何类型都是其 Option 版本的子类型)
+     * 1. T <: ?T  (任何类型都是其 Option 版本的子类型) - 仅当 allowOptionBoxing = true 时
      * 2. ?T <: ?U 需要 T <: U
      * 3. ?T 不能是 T 的子类型（除非 T 本身是 Option）
+     *
+     * ## Option 装箱控制（根据仓颉编译器实现）：
+     * - Option 装箱要求：subType 的 Option 嵌套层级必须小于 superType
+     * - 例如：
+     *   - `Int64` (层级0) <: `Option<Int64>` (层级1) ✓ (0 < 1)
+     *   - `Option<Int64>` (层级1) <: `Option<Option<Int64>>` (层级2) ✗ (1 不< 2，因为这需要递归检查)
      *
      * @param state 类型检查器状态
      * @param subType 子类型
      * @param superType 父类型
+     * @param allowOptionBoxing 是否允许 Option 自动装箱 (默认 true)
      * @return 如果从 Option 角度看可能存在子类型关系，返回 true；否则返回 false
      */
     fun isPossibleSubtype(
         state: TypeCheckerState,
         subType: SimpleTypeMarker,
-        superType: SimpleTypeMarker
+        superType: SimpleTypeMarker,
+        allowOptionBoxing: Boolean = true
     ): Boolean = with(state.typeSystemContext) {
         // 1. 如果两个类型的 Option 标记相同，继续检查
         if (subType.isMarkedOption() == superType.isMarkedOption()) {
@@ -65,9 +105,16 @@ object AbstractOptionChecker {
         }
 
         // 2. 如果 subType 不是 Option，superType 是 Option
-        //    这是允许的：T <: ?T
+        //    这是 Option 装箱: T <: ?T
+        //    根据仓颉编译器实现，只有当 subType 的 Option 层级 < superType 的 Option 层级时才允许
         if (!subType.isMarkedOption() && superType.isMarkedOption()) {
-            return true
+            if (!allowOptionBoxing) {
+                return false
+            }
+            // 检查嵌套层级：subType 层级必须小于 superType 层级
+            val subLevel = countOptionNestedLevel(subType)
+            val superLevel = countOptionNestedLevel(superType)
+            return subLevel < superLevel
         }
 
         // 3. 如果 subType 是 Option，superType 不是 Option

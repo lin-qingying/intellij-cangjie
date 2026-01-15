@@ -48,7 +48,8 @@ class OverridingUtilTypeSystemContext(
 
     override fun newTypeCheckerState(
         errorTypesEqualToAnything: Boolean,
-        stubTypesEqualToAnything: Boolean
+        stubTypesEqualToAnything: Boolean,
+        allowOptionBoxing: Boolean
     ): TypeCheckerState {
         // 仓颉语言的 TypeCheckerState 已简化
         // customSubtype 功能已不再需要，因为新的类型系统已内置所有必要的子类型检查
@@ -58,6 +59,7 @@ class OverridingUtilTypeSystemContext(
             typeSystemContext = this,
             cangjieTypeRefiner = cangjieTypeRefiner,
             cangjieTypePreparator = cangjieTypePreparator,
+            allowOptionBoxing = allowOptionBoxing
         )
     }
 

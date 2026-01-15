@@ -638,12 +638,14 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun newTypeCheckerState(
         errorTypesEqualToAnything: Boolean,
-        stubTypesEqualToAnything: Boolean
+        stubTypesEqualToAnything: Boolean,
+        allowOptionBoxing: Boolean
     ): TypeCheckerState {
         return createClassicTypeCheckerState(
             errorTypesEqualToAnything,
             stubTypesEqualToAnything,
-            typeSystemContext = this
+            typeSystemContext = this,
+            allowOptionBoxing = allowOptionBoxing
         )
     }
 

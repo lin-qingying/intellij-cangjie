@@ -28,7 +28,6 @@ import com.intellij.util.SmartList
 import org.cangnova.cangjie.types.model.*
 import org.cangnova.cangjie.utils.SmartSet
 import java.util.*
-import kotlin.collections.get
 
 /**
  * 类型检查器上下文
@@ -55,7 +54,9 @@ open class TypeCheckerState(
     /** 仓颉类型预处理器 */
     val cangjieTypePreparator: AbstractTypePreparator,
     /** 仓颉类型精化器 */
-    val cangjieTypeRefiner: AbstractTypeRefiner
+    val cangjieTypeRefiner: AbstractTypeRefiner,
+    /** 是否允许 Option 自动装箱（默认 true）。在类型相等性检查时应设为 false */
+    val allowOptionBoxing: Boolean = true
 ) {
 
     /**
@@ -84,6 +85,7 @@ open class TypeCheckerState(
     /** 类型参数嵌套深度计数器，用于防止无限递归 */
     protected var argumentsDepth = 0
 
+
     /**
      * 在参数设置下运行代码块
      *
@@ -99,9 +101,12 @@ open class TypeCheckerState(
             error("参数深度过高。相关参数：$subArgument")
         }
 
+
         argumentsDepth++
         val result = f()
         argumentsDepth--
+
+
         return result
     }
 
@@ -122,13 +127,11 @@ open class TypeCheckerState(
      *
      * @param subType 子类型
      * @param superType 超类型
-     * @param isFromNullabilityConstraint 是否来自可空性约束
      * @return 如果在推断上下文中，返回约束是否成功添加；否则返回 null
      */
     open fun addSubtypeConstraint(
         subType: CangJieTypeMarker,
         superType: CangJieTypeMarker,
-        isFromNullabilityConstraint: Boolean = false
     ): Boolean? = null
 
     /**
@@ -438,17 +441,18 @@ object AbstractTypeChecker {
         stubTypesEqualToAnything: Boolean = true
     ): Boolean {
         return equalTypes(
-            context.newTypeCheckerState(errorTypesEqualToAnything = false, stubTypesEqualToAnything),
+            context.newTypeCheckerState(
+                allowOptionBoxing = false ,
+                errorTypesEqualToAnything = false, stubTypesEqualToAnything =stubTypesEqualToAnything),
             a, b
         )
     }
 
-    @JvmOverloads
+
     fun isSubtypeOf(
         state:  TypeCheckerState,
         subType: CangJieTypeMarker,
         superType: CangJieTypeMarker,
-        isFromNullabilityConstraint: Boolean = false
     ): Boolean {
         if (subType === superType) return true
 
@@ -456,7 +460,7 @@ object AbstractTypeChecker {
 
         return with(state) {
             with(state.typeSystemContext) {
-                completeIsSubTypeOf(subType, superType, isFromNullabilityConstraint)
+                completeIsSubTypeOf(subType, superType,  )
             }
         }
     }
@@ -472,6 +476,18 @@ object AbstractTypeChecker {
 
             // 快速检查：类型构造器必须相同
             if (!areEqualTypeConstructors(refinedA.typeConstructor(), refinedB.typeConstructor())) {
+                // 类型构造器不同，使用双向子类型检查
+                // 根据仓颉编译器实现，类型相等性检查时应禁止 Option 装箱
+                val context = state.typeSystemContext
+                if (context is TypeCheckerProviderContext) {
+                    val stateWithoutBoxing = context.newTypeCheckerState(
+                        errorTypesEqualToAnything = state.isErrorTypeEqualsToAnything,
+                        stubTypesEqualToAnything = state.isStubTypeEqualsToAnything,
+                        allowOptionBoxing = false
+                    )
+                    return isSubtypeOf(stateWithoutBoxing, a, b) && isSubtypeOf(stateWithoutBoxing, b, a)
+                }
+                // 降级：如果上下文不支持创建新状态，使用原始状态
                 return isSubtypeOf(state, a, b) && isSubtypeOf(state, b, a)
             }
 
@@ -484,6 +500,17 @@ object AbstractTypeChecker {
             }
 
             // 有参数类型：使用完整的双向子类型检查
+            // 根据仓颉编译器实现，类型相等性检查时应禁止 Option 装箱
+            val context = state.typeSystemContext
+            if (context is TypeCheckerProviderContext) {
+                val stateWithoutBoxing = context.newTypeCheckerState(
+                    errorTypesEqualToAnything = state.isErrorTypeEqualsToAnything,
+                    stubTypesEqualToAnything = state.isStubTypeEqualsToAnything,
+                    allowOptionBoxing = false
+                )
+                return isSubtypeOf(stateWithoutBoxing, a, b) && isSubtypeOf(stateWithoutBoxing, b, a)
+            }
+            // 降级：如果上下文不支持创建新状态，使用原始状态
             return isSubtypeOf(state, a, b) && isSubtypeOf(state, b, a)
         }
 
@@ -502,7 +529,6 @@ object AbstractTypeChecker {
     private fun completeIsSubTypeOf(
         subType: CangJieTypeMarker,
         superType: CangJieTypeMarker,
-        isFromNullabilityConstraint: Boolean
     ): Boolean {
         // 准备和精化类型
         val preparedSubType = state.prepareType(state.refineType(subType))
@@ -510,12 +536,12 @@ object AbstractTypeChecker {
 
         // 检查特殊情况 (Error类型, Nothing, Any等)
         checkSubtypeForSpecialCases(preparedSubType.lowerBoundIfFlexible(), preparedSuperType.upperBoundIfFlexible())?.let {
-            state.addSubtypeConstraint(preparedSubType, preparedSuperType, isFromNullabilityConstraint)
+            state.addSubtypeConstraint(preparedSubType, preparedSuperType)
             return it
         }
 
         // 在推断上下文中添加约束
-        state.addSubtypeConstraint(preparedSubType, preparedSuperType, isFromNullabilityConstraint)?.let { return it }
+        state.addSubtypeConstraint(preparedSubType, preparedSuperType)?.let { return it }
 
         // 执行实际的子类型检查
         return isSubtypeOfForSingleClassifierType(preparedSubType.lowerBoundIfFlexible(), preparedSuperType.upperBoundIfFlexible())
@@ -530,7 +556,11 @@ object AbstractTypeChecker {
 
         fun isTypeInIntegerLiteralType(integerLiteralType: SimpleTypeMarker, type: SimpleTypeMarker, checkSupertypes: Boolean): Boolean =
             integerLiteralType.possibleIntegerTypes().any { possibleType ->
-                (possibleType.typeConstructor() == type.typeConstructor()) || (checkSupertypes && isSubtypeOf(state, type, possibleType))
+                (possibleType.typeConstructor() == type.typeConstructor()) || (checkSupertypes && isSubtypeOf(
+                    state,
+                    type,
+                    possibleType
+                ))
             }
 
         fun isIntegerLiteralTypeInIntersectionComponents(type: SimpleTypeMarker): Boolean {
@@ -600,7 +630,8 @@ object AbstractTypeChecker {
             }
         }
 
-        if (!AbstractOptionChecker.isPossibleSubtype(state, subType, superType)) return false
+
+        if (!AbstractOptionChecker.isPossibleSubtype(state, subType, superType, state.allowOptionBoxing)) return false
 
         checkSubtypeForIntegerLiteralType(subType, superType)?.let {
             state.addSubtypeConstraint(subType, superType)
@@ -613,7 +644,7 @@ object AbstractTypeChecker {
         if (superType.typeConstructor().isAnyConstructor()) return true
 
         val supertypesWithSameConstructor = with(findCorrespondingSupertypes(state, subType, superConstructor)) {
-            // 仓颉语言简化：不需要区分 K1/K2 分支
+
             // 对于多个候选超类型，去重以避免不必要的分叉
             if (size > 1) {
                 mapTo(mutableSetOf()) { state.prepareType(it).asSimpleType() ?: it }
@@ -727,8 +758,16 @@ object AbstractTypeChecker {
                 lowerType
             }
             when (state.getLowerCapturedTypePolicy(subType, superTypeCaptured)) {
-                TypeCheckerState.LowerCapturedTypePolicy.CHECK_ONLY_LOWER -> return isSubtypeOf(state, subType, optionLowerType)
-                TypeCheckerState.LowerCapturedTypePolicy.CHECK_SUBTYPE_AND_LOWER -> if (isSubtypeOf(state, subType, optionLowerType)) return true
+                TypeCheckerState.LowerCapturedTypePolicy.CHECK_ONLY_LOWER -> return isSubtypeOf(
+                    state,
+                    subType,
+                    optionLowerType
+                )
+                TypeCheckerState.LowerCapturedTypePolicy.CHECK_SUBTYPE_AND_LOWER -> if (isSubtypeOf(
+                        state,
+                        subType,
+                        optionLowerType
+                    )) return true
                 TypeCheckerState.LowerCapturedTypePolicy.SKIP_LOWER -> Unit
             }
         }
