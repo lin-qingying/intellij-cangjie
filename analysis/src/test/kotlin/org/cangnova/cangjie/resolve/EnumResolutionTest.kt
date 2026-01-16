@@ -323,6 +323,11 @@ class EnumResolutionTest : CangJieAnalysisTestBase() {
 
     /**
      * 测试枚举构造函数调用解析
+     *
+     * 验证：
+     * 1. Color.Red 正确解析到 Red 构造函数
+     * 2. 表达式类型为 Color
+     * 3. 引用目标是 EnumConstructorDescriptor
      */
     fun `test enum constructor call resolution`() {
         val file = createFile(
@@ -342,13 +347,47 @@ class EnumResolutionTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            // 这里可以添加引用解析测试
-            // 验证 Color.Red 正确解析到 Red 构造函数
+            val function = com.intellij.psi.util.PsiTreeUtil.findChildOfType(file, org.cangnova.cangjie.psi.CjFunction::class.java)
+            assertNotNull("应该找到 getColor 函数", function)
+
+            // 查找函数体中的引用表达式 (Color.Red)
+            val referenceExpressions = com.intellij.psi.util.PsiTreeUtil.findChildrenOfType(
+                function,
+                org.cangnova.cangjie.psi.CjReferenceExpression::class.java
+            )
+            assertFalse("应该找到引用表达式", referenceExpressions.isEmpty())
+
+            // 找到 Color.Red 中的 Red 引用
+            val redReference = referenceExpressions.firstOrNull { it.text == "Red" }
+            assertNotNull("应该找到 Red 引用", redReference)
+
+            // 验证引用解析到枚举构造函数
+            val target = bindingContext[BindingContext.REFERENCE_TARGET, redReference!!]
+            assertNotNull("Red 应该解析到描述符", target)
+            assertTrue("应该解析到枚举构造函数", target is EnumConstructorDescriptor)
+
+            if (target is EnumConstructorDescriptor) {
+                assertEquals("Red", target.name.asString())
+                assertTrue("构造函数应该是静态的", target.isStatic)
+                assertTrue("构造函数应该是常量", target.isConst)
+                assertFalse("简单构造函数不应该有参数", target.hasArguments)
+            }
+
+            // 验证表达式类型
+            val typeInfo = bindingContext[BindingContext.EXPRESSION_TYPE_INFO, redReference]
+            assertNotNull("表达式应该有类型信息", typeInfo)
+            assertEquals("Color", typeInfo?.type?.toString())
         }
     }
 
     /**
      * 测试带参数的枚举构造函数调用
+     *
+     * 验证：
+     * 1. Result.Success(42) 正确解析
+     * 2. 参数类型正确匹配
+     * 3. 返回类型为 Result
+     * 4. 解析到带参数的枚举构造函数
      */
     fun `test enum constructor call with arguments`() {
         val file = createFile(
@@ -367,7 +406,199 @@ class EnumResolutionTest : CangJieAnalysisTestBase() {
         )
 
         analyzeForTest(file) {
-            // 验证构造函数调用的参数类型检查
+            val function = com.intellij.psi.util.PsiTreeUtil.findChildOfType(file, org.cangnova.cangjie.psi.CjFunction::class.java)
+            assertNotNull("应该找到 createResult 函数", function)
+
+            // 查找调用表达式 Result.Success(42)
+            val callExpressions = com.intellij.psi.util.PsiTreeUtil.findChildrenOfType(
+                function,
+                org.cangnova.cangjie.psi.CjCallExpression::class.java
+            )
+            assertFalse("应该找到调用表达式", callExpressions.isEmpty())
+
+            // 获取 Success 引用
+            val referenceExpressions = com.intellij.psi.util.PsiTreeUtil.findChildrenOfType(
+                function,
+                org.cangnova.cangjie.psi.CjReferenceExpression::class.java
+            )
+            val successReference = referenceExpressions.firstOrNull { it.text == "Success" }
+            assertNotNull("应该找到 Success 引用", successReference)
+
+            // 验证引用解析到枚举构造函数
+            val target = bindingContext[BindingContext.REFERENCE_TARGET, successReference!!]
+            assertNotNull("Success 应该解析到描述符", target)
+            assertTrue("应该解析到枚举构造函数", target is EnumConstructorDescriptor)
+
+            if (target is EnumConstructorDescriptor) {
+                assertEquals("Success", target.name.asString())
+                assertTrue("构造函数应该有参数", target.hasArguments)
+                assertTrue("应该是函数构造函数", target.isFunctionConstructor)
+                assertFalse("不应该是简单构造函数", target.isSimpleConstructor)
+
+                // 验证参数
+                val valueParams = target.valueParameters
+                assertEquals(1, valueParams.size)
+                assertEquals("Int64", valueParams[0].type.toString())
+            }
+
+            // 验证调用表达式的类型
+            val callExpr = callExpressions.first()
+            val callTypeInfo = bindingContext[BindingContext.EXPRESSION_TYPE_INFO, callExpr]
+            assertNotNull("调用表达式应该有类型信息", callTypeInfo)
+            assertEquals("Result", callTypeInfo?.type?.toString())
+        }
+    }
+
+    /**
+     * 测试直接调用枚举构造器（不使用类型前缀）
+     *
+     * 验证：
+     * 1. 直接使用 Red（而不是 Color.Red）能够正确解析
+     * 2. 引用目标是 EnumConstructorDescriptor
+     * 3. 表达式类型为 Color
+     * 4. 作用域内可以直接访问枚举构造器
+     */
+    fun `test direct enum constructor call`() {
+        val file = createFile(
+            """
+            package test
+
+            enum Color {
+                Red |
+                Green |
+                Blue
+            }
+
+            func getColor(): Color {
+                return Red
+            }
+            """.trimIndent()
+        )
+
+        analyzeForTest(file) {
+            val function = com.intellij.psi.util.PsiTreeUtil.findChildOfType(
+                file,
+                org.cangnova.cangjie.psi.CjFunction::class.java
+            )
+            assertNotNull("应该找到 getColor 函数", function)
+
+            // 查找函数体中的引用表达式 (直接使用 Red)
+            val referenceExpressions = com.intellij.psi.util.PsiTreeUtil.findChildrenOfType(
+                function,
+                org.cangnova.cangjie.psi.CjReferenceExpression::class.java
+            )
+            val redReference = referenceExpressions.firstOrNull { it.text == "Red" }
+            assertNotNull("应该找到 Red 引用", redReference)
+
+            // 验证引用解析到枚举构造函数
+            val target = bindingContext[BindingContext.REFERENCE_TARGET, redReference!!]
+            assertNotNull("Red 应该解析到描述符", target)
+            assertTrue("应该解析到枚举构造函数", target is EnumConstructorDescriptor)
+
+            if (target is EnumConstructorDescriptor) {
+                assertEquals("Red", target.name.asString())
+                assertTrue("构造函数应该是静态的", target.isStatic)
+                assertTrue("构造函数应该是常量", target.isConst)
+                assertFalse("简单构造函数不应该有参数", target.hasArguments)
+
+                // 验证所属枚举类型
+                val containingDeclaration = target.containingDeclaration
+                assertTrue("应该属于枚举类型", containingDeclaration is EnumDescriptor)
+                if (containingDeclaration is EnumDescriptor) {
+                    assertEquals("Color", containingDeclaration.name.asString())
+                }
+            }
+
+            // 验证表达式类型
+            val typeInfo = bindingContext[BindingContext.EXPRESSION_TYPE_INFO, redReference]
+            assertNotNull("表达式应该有类型信息", typeInfo)
+            assertEquals("Color", typeInfo?.type?.toString())
+        }
+    }
+
+    /**
+     * 测试直接调用带参数的枚举构造器
+     *
+     * 验证：
+     * 1. 直接使用 Success(42) 能够正确解析
+     * 2. 参数类型检查正确
+     * 3. 返回类型为 Result
+     */
+    fun `test direct enum constructor call with arguments`() {
+        val file = createFile(
+            """
+            package test
+
+            enum Result {
+                Success(Int64) |
+                Error(String)
+            }
+
+            func createSuccess(): Result {
+                return Success(42)
+            }
+
+            func createError(): Result {
+                return Error("failed")
+            }
+            """.trimIndent()
+        )
+
+        analyzeForTest(file) {
+            val functions = com.intellij.psi.util.PsiTreeUtil.findChildrenOfType(
+                file,
+                org.cangnova.cangjie.psi.CjFunction::class.java
+            )
+
+            // 测试 Success(42)
+            val createSuccessFunc = functions.firstOrNull { it.name == "createSuccess" }
+            assertNotNull("应该找到 createSuccess 函数", createSuccessFunc)
+
+            val successCallExpr = com.intellij.psi.util.PsiTreeUtil.findChildOfType(
+                createSuccessFunc,
+                org.cangnova.cangjie.psi.CjCallExpression::class.java
+            )
+            assertNotNull("应该找到调用表达式", successCallExpr)
+
+            val successRefs = com.intellij.psi.util.PsiTreeUtil.findChildrenOfType(
+                createSuccessFunc,
+                org.cangnova.cangjie.psi.CjReferenceExpression::class.java
+            )
+            val successRef = successRefs.firstOrNull { it.text == "Success" }
+            assertNotNull("应该找到 Success 引用", successRef)
+
+            val successTarget = bindingContext[BindingContext.REFERENCE_TARGET, successRef!!]
+            assertNotNull("Success 应该解析到描述符", successTarget)
+            assertTrue("应该解析到枚举构造函数", successTarget is EnumConstructorDescriptor)
+
+            if (successTarget is EnumConstructorDescriptor) {
+                assertEquals("Success", successTarget.name.asString())
+                assertTrue("应该有参数", successTarget.hasArguments)
+                assertEquals(1, successTarget.valueParameters.size)
+                assertEquals("Int64", successTarget.valueParameters[0].type.toString())
+            }
+
+            // 测试 Error("failed")
+            val createErrorFunc = functions.firstOrNull { it.name == "createError" }
+            assertNotNull("应该找到 createError 函数", createErrorFunc)
+
+            val errorRefs = com.intellij.psi.util.PsiTreeUtil.findChildrenOfType(
+                createErrorFunc,
+                org.cangnova.cangjie.psi.CjReferenceExpression::class.java
+            )
+            val errorRef = errorRefs.firstOrNull { it.text == "Error" }
+            assertNotNull("应该找到 Error 引用", errorRef)
+
+            val errorTarget = bindingContext[BindingContext.REFERENCE_TARGET, errorRef!!]
+            assertNotNull("Error 应该解析到描述符", errorTarget)
+            assertTrue("应该解析到枚举构造函数", errorTarget is EnumConstructorDescriptor)
+
+            if (errorTarget is EnumConstructorDescriptor) {
+                assertEquals("Error", errorTarget.name.asString())
+                assertTrue("应该有参数", errorTarget.hasArguments)
+                assertEquals(1, errorTarget.valueParameters.size)
+                assertEquals("String", errorTarget.valueParameters[0].type.toString())
+            }
         }
     }
 

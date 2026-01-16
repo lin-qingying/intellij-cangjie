@@ -104,7 +104,7 @@ class EnumTypeConstructorImpl(
      * @return 枚举类型构造函数的字符串表示
      */
     override fun toString(): String {
-        return "EnumTypeConstructor(${enumDescriptor.name})"
+        return enumDescriptor.name.asString()
     }
 
     /**
