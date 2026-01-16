@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.resolve.calls.tower
 
 import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.resolve.EnumConstructorFinder
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.scopes.receivers.DetailedReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.QualifierReceiver
@@ -469,6 +470,64 @@ class KnownResultProcessor<out C>(
 }
 
 /**
+ * 枚举构造器查找处理器
+ *
+ * 使用 EnumConstructorFinder 的混合策略快速查找枚举构造器。
+ * 这个处理器专门用于无显式接收者的枚举构造器调用（如 `Red` 而不是 `Color.Red`）。
+ *
+ * @param C 候选者类型
+ * @param scopeTower 隐式作用域塔
+ * @param name 构造器名称
+ * @param context 候选者工厂
+ */
+private class EnumConstructorFinderProcessor<C : Candidate>(
+    private val scopeTower: ImplicitScopeTower,
+    private val name: Name,
+    private val context: CandidateFactory<C>
+) : AbstractSimpleScopeTowerProcessor<C>(context) {
+
+    override fun simpleProcess(data: TowerData): Collection<C> {
+        // 仅处理顶层作用域查找（TowerLevel），不处理其他类型
+        if (data !is TowerData.TowerLevel) {
+            return emptyList()
+        }
+
+        // 使用 EnumConstructorFinder 查找构造器
+        val lexicalScope = scopeTower.lexicalScope
+
+        // 获取 project：通过 ownerDescriptor 向上查找 ModuleDescriptor
+
+        // 查找枚举构造器（arity = null 表示不限制参数数量）
+        val constructors = EnumConstructorFinder.findConstructor(
+            name = name,
+            arity = null,  // 在这个阶段不限制参数数量，后续由重载解析处理
+            scope = lexicalScope,
+
+        )
+
+        if (constructors.isEmpty()) {
+            return emptyList()
+        }
+
+        // 将找到的枚举构造器转换为 CandidateWithBoundDispatchReceiver
+        val candidatesWithReceiver = constructors.map { constructor ->
+            CandidateWithBoundDispatchReceiver(
+                dispatchReceiver = null,  // 无显式接收者
+                descriptor = constructor,
+                diagnostics = emptyList()
+            )
+        }
+
+        // 使用基类的 createCandidates 方法转换为最终候选者
+        return createCandidates(candidatesWithReceiver, ExplicitReceiverKind.NO_EXPLICIT_RECEIVER)
+    }
+
+    override fun recordLookups(skippedData: Collection<TowerData>, name: Name) {
+        // EnumConstructorFinder 已经处理了查找，不需要额外记录
+    }
+}
+
+/**
  * 创建枚举构造器处理器
  *
  * 用于解析枚举类型的构造器调用。枚举构造器是枚举类型的静态成员,通过类型名访问。
@@ -498,6 +557,7 @@ class KnownResultProcessor<out C>(
  * val c1 = Color.Red           // 访问简单构造器（属性）
  * val r1 = Result.Success(42)  // 调用函数构造器（函数）
  * ```
+ *createEnumConstructorProcessor只负责找到名称为某某的枚举构造器，类型推导，是否正确由类型推导系统和约束系统进行
  *
  * @param C 候选者类型
  * @param scopeTower 隐式作用域塔
@@ -513,7 +573,15 @@ fun <C : Candidate> createEnumConstructorProcessor(
     simpleContext: CandidateFactory<C>,
     factoryProviderForInvoke: CandidateFactoryProviderForInvoke<C>,
     explicitReceiver: DetailedReceiver?
-): PrioritizedCompositeScopeTowerProcessor<C>{
+): PrioritizedCompositeScopeTowerProcessor<C> {
+
+    // 如果没有显式接收者，优先使用 EnumConstructorFinder 进行快速查找
+    // 例如：直接使用 Red 而不是 Color.Red
+    val enumFinderProcessor = if (explicitReceiver == null) {
+        EnumConstructorFinderProcessor(scopeTower, name, simpleContext)
+    } else {
+        null
+    }
 
     // 处理器 1: 简单构造器（无关联值）
     // 优先查找作为变量/属性的枚举构造器
@@ -533,12 +601,22 @@ fun <C : Candidate> createEnumConstructorProcessor(
     )
 
     // 返回优先级组合处理器
-    // 优先级：简单构造器（变量）> 函数构造器（函数）
-    // 注意：不需要 invoke 约定，枚举构造器直接返回枚举实例
-    return PrioritizedCompositeScopeTowerProcessor(
-        simpleConstructorProcessor,
-        functionConstructorProcessor
-    )
+    // 优先级：
+    // 1. EnumConstructorFinder（无显式接收者时）- 最快
+    // 2. 简单构造器（变量）
+    // 3. 函数构造器（函数）
+    return if (enumFinderProcessor != null) {
+        PrioritizedCompositeScopeTowerProcessor(
+            enumFinderProcessor,
+            simpleConstructorProcessor,
+            functionConstructorProcessor
+        )
+    } else {
+        PrioritizedCompositeScopeTowerProcessor(
+            simpleConstructorProcessor,
+            functionConstructorProcessor
+        )
+    }
 }
 
 /**
@@ -603,8 +681,6 @@ fun <C : Candidate> createPropertyProcessor(
 ) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getVariables(name, it) }
 
 
-
-
 /**
  * 创建变量处理器
  *
@@ -623,13 +699,6 @@ fun <C : Candidate> createVariableProcessor(
     scopeTower: ImplicitScopeTower, name: Name,
     context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
 ) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getVariables(name, it) }
-
-
-
-
-
-
-
 
 
 /**

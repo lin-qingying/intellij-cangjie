@@ -182,95 +182,63 @@ class CallExpressionResolver(
         context: ExpressionTypingContext,
         initialDataFlowInfoForArguments: DataFlowInfo
     ): CangJieTypeInfo {
-        val call = CallMaker.makeCall(receiver, callOperationNode, callExpression)
-
-
+        // ============================================================
+        // 步骤1: 尝试作为函数调用解析
+        // ============================================================
         val temporaryForFunction = TemporaryTraceAndCache.create(
             context, "trace to resolveName as function call", callExpression
         )
-//        函数是一级公民
-        val (resolveResult, resolvedCall) = getResolvedCallForFunction(
-            call,
-            context.replaceTraceAndCache(temporaryForFunction),
-            CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+        val functionResult = tryResolveCallAsFunction(
+            temporaryForFunction,
+            callExpression,
+            receiver,
+            callOperationNode,
+            context,
             initialDataFlowInfoForArguments
         )
-        if (resolveResult) {
-            val functionDescriptor = resolvedCall?.resultingDescriptor
+        if (functionResult != null) {
+            return functionResult
+        }
+
+        // ============================================================
+        // 步骤2: 尝试作为枚举构造器调用解析
+        // ============================================================
+        val temporaryForEnumConstructor = TemporaryTraceAndCache.create(
+            context, "trace to resolveName as enum constructor call", callExpression
+        )
+        val enumConstructorResult = tryResolveCallAsEnumConstructor(
+            temporaryForEnumConstructor,
+            callExpression,
+            receiver,
+            callOperationNode,
+            context,
+            initialDataFlowInfoForArguments
+        )
+        if (enumConstructorResult != null) {
+            return enumConstructorResult
+        }
+
+        // ============================================================
+        // 步骤3: 尝试作为变量 + invoke 约定解析
+        // ============================================================
+        val temporaryForVariable = TemporaryTraceAndCache.create(
+            context, "trace to resolveName as variable with 'invoke' call", callExpression
+        )
+        val variableInvokeResult = tryResolveCallAsVariableInvoke(
+            temporaryForVariable,
+            callExpression,
+            receiver,
+            callOperationNode,
+            context,
+            initialDataFlowInfoForArguments
+        )
+        if (variableInvokeResult != null) {
+            return variableInvokeResult
+        } else {
+            // 所有解析策略都失败，提交第一个临时trace
             temporaryForFunction.commit()
-
-
-            if (callExpression.valueArgumentList == null && callExpression.lambdaArguments.isEmpty()) {
-                // 只有类型参数，没有值参数
-                val hasValueParameters = functionDescriptor == null || functionDescriptor.valueParameters.isNotEmpty()
-                context.trace.report(FUNCTION_CALL_EXPECTED.on(callExpression, callExpression, hasValueParameters))
-            }
-
-            if (functionDescriptor == null) {
-                return noTypeInfo(context)
-            }
-            if (functionDescriptor is ConstructorDescriptor) {
-                val constructedClass = functionDescriptor.constructedClass
-
-                if (DescriptorUtils.isSealedClass(constructedClass)) {
-                    context.trace.report(SEALED_CLASS_CONSTRUCTOR_CALL.on(callExpression))
-                }
-            }
-
-            val type = functionDescriptor.returnType
-            // 从参数中提取跳出可能性和跳出点数据流信息（如有）
-            val arguments = callExpression.valueArguments
-            val resultFlowInfo = resolvedCall.dataFlowInfoForArguments.resultInfo
-            var jumpFlowInfo = resultFlowInfo
-            var jumpOutPossible = false
-            for (argument in arguments) {
-                val argTypeInfo =
-                    context.trace[BindingContext.EXPRESSION_TYPE_INFO, argument.getArgumentExpression()!!]
-                if (argTypeInfo != null && argTypeInfo.jumpOutPossible) {
-                    jumpOutPossible = true
-                    jumpFlowInfo = argTypeInfo.jumpFlowInfo
-                    break
-                }
-            }
-            return createTypeInfo(type, resultFlowInfo, jumpOutPossible, jumpFlowInfo)
         }
 
-
-        val calleeExpression = callExpression.calleeExpression
-        if (calleeExpression is CjSimpleNameExpression && callExpression.typeArgumentList == null) {
-            val temporaryForVariable = TemporaryTraceAndCache.create(
-                context, "trace to resolveName as variable with 'invoke' call", callExpression
-            )
-            val (notNothing, type) = getVariableType(
-                calleeExpression, receiver, callOperationNode,
-                context.replaceTraceAndCache(temporaryForVariable)
-            )
-            val qualifier = temporaryForVariable.trace[BindingContext.QUALIFIER, calleeExpression]
-            if (notNothing && (qualifier == null || qualifier !is PackageQualifier)) {
-
-                // 将属性调用标记为不成功，以避免异常
-                callExpression.getResolvedCall(temporaryForVariable.trace.bindingContext).let {
-                    (it as? MutableResolvedCallImpl)?.addStatus(ResolutionStatus.OTHER_ERROR)
-                }
-
-                temporaryForVariable.commit()
-                context.trace.report(
-                    FUNCTION_EXPECTED.on(
-                        calleeExpression, calleeExpression,
-                        type ?: ErrorUtils.createErrorType(ErrorTypeKind.ERROR_EXPECTED_TYPE)
-                    )
-                )
-                argumentTypeResolver.analyzeArgumentsAndRecordTypes(
-                    BasicCallResolutionContext.create(
-                        context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
-                        DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
-                    ),
-                    ResolveArgumentsMode.RESOLVE_FUNCTION_ARGUMENTS
-                )
-                return noTypeInfo(context)
-            }
-        }
-        temporaryForFunction.commit()
         return noTypeInfo(context)
     }
 
@@ -672,6 +640,160 @@ class CallExpressionResolver(
 //                }
 //            }
 //        }
+
+        return null
+    }
+
+    /**
+     * 步骤1（调用）: 尝试将调用表达式解析为函数调用
+     *
+     * @return 如果成功解析为函数调用，返回类型信息；否则返回 null
+     */
+    private fun tryResolveCallAsFunction(
+        temporaryForFunction: TemporaryTraceAndCache,
+        callExpression: CjCallExpression,
+        receiver: Receiver?,
+        callOperationNode: ASTNode?,
+        context: ExpressionTypingContext,
+        initialDataFlowInfoForArguments: DataFlowInfo
+    ): CangJieTypeInfo? {
+        val call = CallMaker.makeCall(receiver, callOperationNode, callExpression)
+
+        val (resolveResult, resolvedCall) = getResolvedCallForFunction(
+            call,
+            context.replaceTraceAndCache(temporaryForFunction),
+            CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+            initialDataFlowInfoForArguments
+        )
+
+        if (resolveResult) {
+            val functionDescriptor = resolvedCall?.resultingDescriptor
+
+            // 排除枚举构造器（在步骤2中处理）
+            if (functionDescriptor is EnumConstructorDescriptor) {
+                return null
+            }
+
+            temporaryForFunction.commit()
+
+            if (callExpression.valueArgumentList == null && callExpression.lambdaArguments.isEmpty()) {
+                // 只有类型参数，没有值参数
+                val hasValueParameters = functionDescriptor == null || functionDescriptor.valueParameters.isNotEmpty()
+                context.trace.report(FUNCTION_CALL_EXPECTED.on(callExpression, callExpression, hasValueParameters))
+            }
+
+            if (functionDescriptor == null) {
+                return noTypeInfo(context)
+            }
+
+            if (functionDescriptor is ConstructorDescriptor) {
+                val constructedClass = functionDescriptor.constructedClass
+                if (DescriptorUtils.isSealedClass(constructedClass)) {
+                    context.trace.report(SEALED_CLASS_CONSTRUCTOR_CALL.on(callExpression))
+                }
+            }
+
+            val type = functionDescriptor.returnType
+            // 从参数中提取跳出可能性和跳出点数据流信息（如有）
+            val arguments = callExpression.valueArguments
+            val resultFlowInfo = resolvedCall.dataFlowInfoForArguments.resultInfo
+            var jumpFlowInfo = resultFlowInfo
+            var jumpOutPossible = false
+            for (argument in arguments) {
+                val argTypeInfo =
+                    context.trace[BindingContext.EXPRESSION_TYPE_INFO, argument.getArgumentExpression()!!]
+                if (argTypeInfo != null && argTypeInfo.jumpOutPossible) {
+                    jumpOutPossible = true
+                    jumpFlowInfo = argTypeInfo.jumpFlowInfo
+                    break
+                }
+            }
+            return createTypeInfo(type, resultFlowInfo, jumpOutPossible, jumpFlowInfo)
+        }
+
+        return null
+    }
+
+    /**
+     * 步骤2（调用）: 尝试将调用表达式解析为枚举构造器调用
+     *
+     * @return 如果成功解析为枚举构造器调用，返回类型信息；否则返回 null
+     */
+    private fun tryResolveCallAsEnumConstructor(
+        trace: TemporaryTraceAndCache,
+        callExpression: CjCallExpression,
+        receiver: Receiver?,
+        callOperationNode: ASTNode?,
+        context: ExpressionTypingContext,
+        initialDataFlowInfoForArguments: DataFlowInfo
+    ): CangJieTypeInfo? {
+        val call = CallMaker.makeCall(receiver, callOperationNode, callExpression)
+        val contextForEnum = context.replaceTraceAndCache(trace)
+
+        val results = callResolver.resolveEnumCall(
+            trace,
+            BasicCallResolutionContext.create(
+                contextForEnum, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+                DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
+            )
+        )
+
+        if (!results.isNothing) {
+            trace.commit()
+            val descriptor = results.resultingDescriptor
+            return createTypeInfo(descriptor.returnType, initialDataFlowInfoForArguments)
+        }
+
+        return null
+    }
+
+    /**
+     * 步骤3（调用）: 尝试将调用表达式解析为变量 + invoke 约定
+     *
+     * @return 如果成功解析为变量+invoke，返回类型信息；否则返回 null
+     */
+    private fun tryResolveCallAsVariableInvoke(
+        temporaryForVariable: TemporaryTraceAndCache,
+        callExpression: CjCallExpression,
+        receiver: Receiver?,
+        callOperationNode: ASTNode?,
+        context: ExpressionTypingContext,
+        initialDataFlowInfoForArguments: DataFlowInfo
+    ): CangJieTypeInfo? {
+        val calleeExpression = callExpression.calleeExpression
+        if (calleeExpression !is CjSimpleNameExpression || callExpression.typeArgumentList != null) {
+            return null
+        }
+
+        val call = CallMaker.makeCall(receiver, callOperationNode, callExpression)
+        val (notNothing, type) = getVariableType(
+            calleeExpression, receiver, callOperationNode,
+            context.replaceTraceAndCache(temporaryForVariable)
+        )
+        val qualifier = temporaryForVariable.trace[BindingContext.QUALIFIER, calleeExpression]
+
+        if (notNothing && (qualifier == null || qualifier !is PackageQualifier)) {
+            // 将属性调用标记为不成功，以避免异常
+            callExpression.getResolvedCall(temporaryForVariable.trace.bindingContext).let {
+                (it as? MutableResolvedCallImpl)?.addStatus(ResolutionStatus.OTHER_ERROR)
+            }
+
+            temporaryForVariable.commit()
+            context.trace.report(
+                FUNCTION_EXPECTED.on(
+                    calleeExpression, calleeExpression,
+                    type ?: ErrorUtils.createErrorType(ErrorTypeKind.ERROR_EXPECTED_TYPE)
+                )
+            )
+            argumentTypeResolver.analyzeArgumentsAndRecordTypes(
+                BasicCallResolutionContext.create(
+                    context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+                    DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
+                ),
+                ResolveArgumentsMode.RESOLVE_FUNCTION_ARGUMENTS
+            )
+            return noTypeInfo(context)
+        }
 
         return null
     }

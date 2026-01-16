@@ -782,22 +782,6 @@ class PSICallResolver(
         } else {
             emptyList()
         }
-//            .apply {
-//                //        如果存在静态访问行为
-////        上一层原子
-////        val topTypeArguments = resolvedExplicitReceiver?.receiver
-//                if (resolvedExplicitReceiver?.receiver is ClassQualifier) {
-////
-//
-//                    addAll(
-//                        resolveTypeArguments(context,
-//                            (resolvedExplicitReceiver.receiver as? ClassQualifier)?.referenceExpression?.getTypeArguments()
-//                                ?: emptyList()
-//                        )
-//                    )
-//                }
-//            }
-
         val lambdasOutsideParenthesis = oldCall.functionLiteralArguments.size
         val extraArgumentsNumber =
             if (oldCall.callType == Call.CallType.ARRAY_SET_METHOD) 1 else lambdasOutsideParenthesis
@@ -1135,11 +1119,6 @@ class PSICallResolver(
             scopeTower, resolutionCallbacks, cangjieCall, expectedType, context.collectAllCandidates
         )
 
-//        val shouldUseOperatorRem = languageVersionSettings.supportsFeature(LanguageFeature.OperatorRem)
-//        if (isBinaryRemOperator && shouldUseOperatorRem && (result.isEmpty() || result.areAllInapplicable())) {
-//            result = resolveToDeprecatedMod(name, context, cangjieCallKind, tracingStrategy, scopeTower, resolutionCallbacks, expectedType)
-//        }
-//
         if (result.isEmpty() && reportAdditionalDiagnosticIfNoCandidates(
                 context,
                 scopeTower,
