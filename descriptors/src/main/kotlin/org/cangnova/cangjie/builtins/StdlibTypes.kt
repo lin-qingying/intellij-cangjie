@@ -169,15 +169,15 @@ class StdlibTypes(
         return myStdCoreBuiltInClassesByName.invoke(Name.identifier(simpleName))
     }
 
-    private fun getStdSyncClassByName(simpleName: Name): ClassDescriptor {
+    private fun getStdSyncClassByName(simpleName: Name): ClassAndEnumDescriptor {
         return myStdSyncBuiltInClassesByName.invoke(simpleName)
     }
 
-    private fun getStdSyncClassByName(simpleName: String): ClassDescriptor {
+    private fun getStdSyncClassByName(simpleName: String): ClassAndEnumDescriptor {
         return myStdSyncBuiltInClassesByName.invoke(Name.identifier(simpleName))
     }
 
-    private fun getStdAstClassByName(simpleName: String): ClassDescriptor {
+    private fun getStdAstClassByName(simpleName: String): ClassAndEnumDescriptor {
         return myStdAstBuiltInClassesByName.invoke(Name.identifier(simpleName))
     }
 
@@ -356,7 +356,7 @@ class StdlibTypes(
      * std.sync.ReentrantMutex 类描述符
      */
     val reentrantMutex: ClassDescriptor
-        get() = getStdSyncClassByName("ReentrantMutex")
+        get() = getStdSyncClassByName("ReentrantMutex") as ClassDescriptor
 
     /**
      * std.sync.ReentrantMutex 类型
@@ -368,7 +368,7 @@ class StdlibTypes(
      * std.sync.Future 类描述符
      */
     val future: ClassDescriptor
-        get() = getStdSyncClassByName(FUTURE)
+        get() = getStdSyncClassByName(FUTURE) as ClassDescriptor
 
     /**
      * std.sync.Future 类型
@@ -382,7 +382,7 @@ class StdlibTypes(
      * std.ast.Tokens 类描述符
      */
     val tokens: ClassDescriptor
-        get() = getStdAstClassByName("Tokens")
+        get() = getStdAstClassByName("Tokens") as ClassDescriptor
 
     /**
      * std.ast.Tokens 类型

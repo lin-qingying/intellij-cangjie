@@ -639,7 +639,7 @@ class CallExpressionResolver(
         if (!results.isNothing) {
             trace.commit()
             val descriptor = results.resultingDescriptor
-            return createTypeInfo(descriptor?.returnType, initialDataFlowInfoForArguments)
+            return createTypeInfo(descriptor.returnType, initialDataFlowInfoForArguments)
         }
 
 

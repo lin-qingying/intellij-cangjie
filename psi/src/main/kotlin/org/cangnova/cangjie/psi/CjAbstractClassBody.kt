@@ -30,6 +30,7 @@ import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.psi.stubs.CangJieEnumStub
 import org.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.*
 import org.cangnova.cangjie.psi.stubs.elements.CjTokenSets
@@ -46,6 +47,14 @@ class CjEnumBody : CjAbstractClassBody {
     constructor(stub: CangJiePlaceHolderStub<CjEnumBody>) : super(stub, ENUM_BODY)
 
     val constructor get() = getStubOrPsiChildrenAsList(ENUM_CONSTRUCTOR)
+    /**
+     * 是否非穷枚举
+     */
+    val isNonExhaustive: Boolean
+        get() {
+
+            return findChildByType<PsiElement>(CjTokens.ELLIPSIS) != null
+        }
 }
 
 class CjClassBody : CjAbstractClassBody {

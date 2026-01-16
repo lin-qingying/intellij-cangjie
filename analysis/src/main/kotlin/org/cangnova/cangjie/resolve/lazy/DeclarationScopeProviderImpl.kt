@@ -26,6 +26,7 @@ package org.cangnova.cangjie.resolve.lazy
 
 import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.descriptors.ClassDescriptorWithResolutionScopes
+import org.cangnova.cangjie.descriptors.DescriptorWithResolutionScopes
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.CjStubbedPsiUtil.getContainingDeclaration
@@ -60,7 +61,7 @@ open class DeclarationScopeProviderImpl(
             val parentClassDescriptor = lazyDeclarationResolver.getClassDescriptor(
                 parentDeclaration,
                 NoLookupLocation.MATCH_GET_DECLARATION_SCOPE
-            ) as ClassDescriptorWithResolutionScopes
+            ) as DescriptorWithResolutionScopes
 
             if (cjDeclaration is CjProperty ||
                 cjDeclaration is CjVariable<*>

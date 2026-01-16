@@ -58,7 +58,7 @@ class CjEnum : CjTypeStatement {
             if (stub != null) {
                 return stub.isNonExhaustive()
             }
-            return findChildByType<PsiElement>(CjTokens.ELLIPSIS) != null
+            return body?.isNonExhaustive == true
         }
 
     val constructor: List<CjEnumConstructor>
