@@ -115,9 +115,10 @@ class EnumDescriptorResolver(
         }
 
         // 初始化构造器描述符
+        // 枚举构造器继承枚举的类型参数（如 Option<T> 的 Some(T) 继承 T）
         constructorDescriptor.initialize(
             dispatchReceiverParameter = null,
-            typeParameters = emptyList(),
+            typeParameters = enumDescriptor.declaredTypeParameters,
             unsubstitutedValueParameters = valueParameters,
             unsubstitutedReturnType = enumDescriptor.defaultType,
             modality = Modality.FINAL,

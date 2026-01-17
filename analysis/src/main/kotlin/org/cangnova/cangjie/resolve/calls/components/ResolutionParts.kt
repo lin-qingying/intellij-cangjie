@@ -1562,28 +1562,6 @@ object CaseEnumArgument : CangJieCallArgument {
 
 }
 
-//当具有期望类型时
-internal object CheckDesiredEnumType : ResolutionPart() {
-    override fun ResolutionCandidate.process(workIndex: Int) {
-
-        if (scopeTower is PSICallResolver.ASTScopeTower) {
-            val expectedType = (scopeTower as PSICallResolver.ASTScopeTower).context.expectedType
-
-            val type = descriptor.returnType
-
-            // 仓颉语言：使用新的类型检查器替代旧的 TypeCheckingProcedure
-            if (!noExpectedType(expectedType) && type != null) {
-                val typeChecker = CangJieTypeChecker.DEFAULT
-                if (!typeChecker.equalTypes(expectedType, type)) {
-                    addDiagnostic(EmptyDiagnostic)
-                }
-            }
-        }
-
-
-    }
-
-}
 
 internal object CheckCaseEnumArgumentSize : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {

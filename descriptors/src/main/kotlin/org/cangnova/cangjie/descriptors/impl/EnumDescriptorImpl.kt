@@ -157,7 +157,7 @@ abstract class AbstractEnumConstructorDescriptor(
 
     override val source: SourceElement,
 
-    ) : EnumConstructorDescriptor {
+    ) :   DeclarationDescriptorImpl(Annotations.EMPTY, name), EnumConstructorDescriptor {
     protected var userDataMap: Map<CallableDescriptor.UserDataKey<*>, Any>? = null
 
     /**
@@ -194,7 +194,11 @@ abstract class AbstractEnumConstructorDescriptor(
 
 
     /**
-     * 类型参数(枚举构造器通常不需要)
+     * 类型参数(继承自枚举声明)
+     *
+     * 枚举构造器继承所属枚举的类型参数。
+     * 例如：对于 `enum Option<T> { Some(T), None }`，
+     * 构造器 Some 和 None 都继承类型参数 T。
      */
     override var typeParameters: List<TypeParameterDescriptor> = emptyList()
 

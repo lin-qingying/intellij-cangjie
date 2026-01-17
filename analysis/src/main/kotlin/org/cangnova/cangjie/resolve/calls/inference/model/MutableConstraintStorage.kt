@@ -33,30 +33,95 @@ import org.cangnova.cangjie.utils.trimToSize
 
 private typealias Context = TypeSystemInferenceExtensionContext
 
+/**
+ * 可变类型变量与约束集合
+ *
+ * 这个类用于在类型推断过程中管理类型变量及其关联的约束。
+ * 它维护两个约束列表：
+ * 1. mutableConstraints - 原始约束集合,可以被修改
+ * 2. simplifiedConstraints - 简化后的约束集合,用于优化查询性能
+ *
+ * 主要功能：
+ * - 添加新约束时自动进行简化和去重
+ * - 检测并合并相同类型的约束
+ * - 支持约束的延迟简化以提高性能
+ * - 提供约束的增删改查操作
+ *
+ * @property context 类型系统推断扩展上下文,提供类型相关操作
+ * @property typeVariable 此约束集合关联的类型变量
+ * @param constraints 初始约束列表(假定已简化和去重),可为 null
+ */
 class MutableVariableWithConstraints private constructor(
     private val context: Context,
     override val typeVariable: TypeVariableMarker,
     constraints: List<Constraint>? // assume simplified and deduplicated
 ) : VariableWithConstraints {
+    /**
+     * 构造函数 - 创建一个空的约束集合
+     *
+     * @param context 类型系统推断扩展上下文
+     * @param typeVariable 要管理约束的类型变量
+     */
     constructor(context: Context, typeVariable: TypeVariableMarker) : this(context, typeVariable, null)
 
+    /**
+     * 复制构造函数 - 从另一个 VariableWithConstraints 创建新实例
+     *
+     * @param context 类型系统推断扩展上下文
+     * @param other 要复制的源变量约束
+     */
     constructor(context: Context, other: VariableWithConstraints) : this(context, other.typeVariable, other.constraints)
 
+    /**
+     * 可变约束集合 - 存储所有添加的原始约束
+     * 使用 SmartList 以优化内存占用(小集合时使用数组,大集合时使用 ArrayList)
+     */
     private val mutableConstraints = if (constraints == null) SmartList() else SmartList(constraints)
 
     /**
-     * The contract for mutating this list is that the only allowed mutation is appending items.
-     * In any other case, it must be set to `null`, so that it will be recomputed when [constraints] is called.
+     * 简化后的约束集合 - 用于优化查询性能的缓存
      *
-     * The reason is that the list might be mutated while it's being iterated.
-     * For this reason, we use an index loop in
-     * [org.cangnova.cangjie.resolve.calls.inference.components.ConstraintIncorporator.forEachConstraint].
+     * 变更契约：
+     * - 唯一允许的变更操作是追加元素
+     * - 其他任何情况下必须设置为 null,以便在调用 [constraints] 时重新计算
+     *
+     * 原因：
+     * - 在迭代过程中列表可能会被修改
+     * - 因此在 [org.cangnova.cangjie.resolve.calls.inference.components.ConstraintIncorporator.forEachConstraint]
+     *   中使用索引循环而不是迭代器
+     *
+     * 简化规则：
+     * 1. 移除被更强约束覆盖的弱约束
+     * 2. 合并相同类型的约束
+     * 3. 移除冗余的灵活类型下界约束
      */
     private var simplifiedConstraints: SmartList<Constraint>? = mutableConstraints
+
+    /**
+     * 简化约束集合 - 执行完整的约束简化流程
+     *
+     * 简化步骤：
+     * 1. simplifyLowerConstraints() - 简化下界约束
+     * 2. simplifyEqualityConstraints() - 简化等式约束
+     *
+     * @return 简化后的约束列表
+     */
     private fun SmartList<Constraint>.simplifyConstraints(): SmartList<Constraint> =
         simplifyLowerConstraints().simplifyEqualityConstraints()
 
-    // see @OnlyInputTypes annotation
+    /**
+     * 获取投影的输入调用类型
+     *
+     * 此方法提取所有仅输入类型位置的约束类型,用于参数类型推断。
+     * 主要用于从调用上下文中收集实参类型信息。
+     *
+     * 相关注解: @OnlyInputTypes - 标记仅用于输入位置的类型参数
+     *
+     * @param utilContext 约束系统工具上下文,提供类型操作辅助方法
+     * @return 类型和约束种类的配对集合,每个配对代表一个输入类型约束
+     *         - first: 去除捕获类型后的类型标记
+     *         - second: 约束种类(LOWER/UPPER/EQUALITY)
+     */
     fun getProjectedInputCallTypes(utilContext: ConstraintSystemUtilContext): Collection<Pair<CangJieTypeMarker, ConstraintKind>> {
         return with(utilContext) {
             mutableConstraints
@@ -68,6 +133,19 @@ class MutableVariableWithConstraints private constructor(
         }
     }
 
+    /**
+     * 简化等式约束
+     *
+     * 移除被等式约束覆盖的冗余上界和下界约束。
+     * 例如: 如果有 T = Int, 则 T <: Int 和 T :> Int 都是冗余的。
+     *
+     * 算法：
+     * 1. 收集所有等式约束并按类型哈希码分组
+     * 2. 对于每个非等式约束,检查是否存在相同类型的等式约束
+     * 3. 如果存在,该约束是冗余的,可以被移除
+     *
+     * @return 简化后的约束列表
+     */
     private fun SmartList<Constraint>.simplifyEqualityConstraints(): SmartList<Constraint> {
         val equalityConstraints = filter { it.kind == ConstraintKind.EQUALITY }.groupBy { it.typeHashCode }
         return when {
@@ -76,12 +154,37 @@ class MutableVariableWithConstraints private constructor(
         }
     }
 
+    /**
+     * 判断约束是否有用(不被等式约束覆盖)
+     *
+     * @param constraint 要检查的约束
+     * @param equalityConstraints 按类型哈希码分组的等式约束映射
+     * @return true 如果约束有用(不冗余), false 如果约束被等式约束覆盖
+     *
+     * 判断规则：
+     * - 等式约束总是有用的
+     * - 对于非等式约束,如果存在相同类型的等式约束,则该约束无用
+     */
     private fun isUsefulConstraint(constraint: Constraint, equalityConstraints: Map<Int, List<Constraint>>): Boolean {
         if (constraint.kind == ConstraintKind.EQUALITY) return true
         return equalityConstraints[constraint.typeHashCode]?.none { it.type == constraint.type } ?: true
     }
 
-    // Such constraint is applicable for simplification
+    /**
+     * 检查约束是否为具有默认非空下界的灵活类型下界约束
+     *
+     * 灵活类型(Flexible Type)表示类型的范围,例如 Kotlin 的平台类型 String!
+     * 可以表示为 String..String? (从 String 到 String?)。
+     *
+     * 此方法检查约束是否满足以下条件：
+     * 1. 约束种类是 LOWER (下界约束)
+     * 2. 约束类型是灵活类型
+     * 3. 灵活类型的下界不是可选类型(Option)
+     *
+     * 这种约束适合进行简化,因为可能被更强的约束覆盖。
+     *
+     * @return true 如果约束是可简化的灵活类型下界约束
+     */
     private fun Constraint.isLowerAndFlexibleTypeWithDefNotNullLowerBound(): Boolean {
         return with(context) {
             kind == ConstraintKind.LOWER && type.isFlexible() && !type.lowerBoundIfFlexible().isMarkedOption()

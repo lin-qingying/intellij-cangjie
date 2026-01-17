@@ -64,7 +64,9 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
         )
 
         val local = c.childContext(descriptor, listOf())
+        // 枚举构造器继承枚举的类型参数
         descriptor.initialize(
+            typeParameters = classDescriptor.declaredTypeParameters,
             unsubstitutedValueParameters = local.declDeserializer.valueParameters(
                 decl.valueParameters,
             ),

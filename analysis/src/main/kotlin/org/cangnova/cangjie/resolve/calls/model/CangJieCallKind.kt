@@ -94,7 +94,7 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
 
     ENUM_CONSTRUCTOR(
         /**FUNCTION.resolutionSequence.toTypedArray(),CheckEnumCall */
-        CheckDesiredEnumType,
+
         MapTypeArguments,
         MapArguments,
         ArgumentsToCandidateParameterDescriptor,
@@ -102,7 +102,7 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
         CheckArgumentsInParenthesis
     ),
     CASE_ENUM(
-        CheckDesiredEnumType,
+        
         MapTypeArguments,
         MapArguments,
         ArgumentsToCandidateParameterDescriptor,

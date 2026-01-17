@@ -633,7 +633,7 @@ class LazyImportScope(
                 // 从导入作用域中获取分类描述符
                 val descriptor = getImportScope(directive).getContributedClassifier(name, location)
                 // 如果描述符不是类描述符或类型别名描述符，或者不可见，则继续下一次循环
-                if (descriptor !is ClassDescriptor && descriptor !is TypeAliasDescriptor || !isClassifierVisible(
+                if (descriptor !is ClassAndEnumDescriptor && descriptor !is TypeAliasDescriptor || !isClassifierVisible(
                         descriptor
                     )
                 )

@@ -37,8 +37,19 @@ interface ContextIndependentParameterRenderer<in O> : DiagnosticParameterRendere
     fun render(obj: O): String
 }
 
-fun <P> renderParameter(parameter: P, renderer: DiagnosticParameterRenderer<P>?, context: RenderingContext): Any? =
-    renderer?.render(parameter, context) ?: parameter
+fun <P> renderParameter(parameter: P, renderer: DiagnosticParameterRenderer<P>?, context: RenderingContext): Any? {
+    // 如果没有渲染器，直接返回原始参数
+    if (renderer == null) return parameter
+
+    // 对于基本数值类型，返回原始对象以支持 MessageFormat 的数字格式化器
+    // 例如: {0,number,integer} 需要接收 Number 对象，而不是字符串
+    if (parameter is Number) {
+        return parameter
+    }
+
+    // 其他类型使用渲染器处理
+    return renderer.render(parameter, context)
+}
 
 fun <O> renderer(block: (O) -> String) = object : ContextIndependentParameterRenderer<O> {
     override fun render(obj: O): String = block(obj)
