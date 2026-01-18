@@ -50,6 +50,16 @@ import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
 import org.cangnova.cangjie.types.model.TypeConstructorMarker
 import org.cangnova.cangjie.utils.compactIfPossible
+import java.util.concurrent.ConcurrentHashMap
+
+/**
+ * 存储显式类类型参数的映射
+ *
+ * Key: resolvedCall.atom.psiCangJieCall 的 identity hash
+ * Value: 类型参数到具体类型的映射
+ */
+private val explicitClassTypeArgumentsCache =
+    ConcurrentHashMap<Int, Map<TypeParameterDescriptor, CangJieType>>()
 
 /**
  * 检查操作符函数调用的解析部分
@@ -1263,20 +1273,69 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
     }
 
     /**
+     * 获取需要进行类型推导的类型参数列表
      *
+     * 此方法会检查是否有显式指定的类型参数（如 a<Int64>.method()），
+     * 并将显式类型参数信息存储到 resolvedCall 中，以便后续添加约束。
+     *
+     * ## 问题背景
+     *
+     * 对于调用 `a<Int64>.a1()`：
+     * - `a` 是 ClassValueReceiver，其 type 为 `A<Int64>`
+     * - Int64 是显式指定的类型参数，应该添加 EQUALITY 约束
+     *
+     * ## 解决方案
+     *
+     * 1. 返回所有类型参数（包括类和方法的类型参数）
+     * 2. 将显式指定的类型参数信息存储到 resolvedCall 的扩展属性中
+     * 3. 在 process() 方法中检查并添加 EQUALITY 约束
+     *
+     * @return 所有需要处理的类型参数列表
      */
     fun ResolutionCandidate.getTypeParameters(): List<TypeParameterDescriptor> {
+        // 如果接收器是 DISPATCH_RECEIVER，并且它是一个静态调用，需要分析类的类型参数
+        if (resolvedCall.dispatchReceiverArgument != null &&
+            resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue is ClassValueReceiver) {
 
+            val classValueReceiver = resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue as ClassValueReceiver
+            val classDescriptor = classValueReceiver.classQualifier.descriptor
+            val receiverType = classValueReceiver.type
 
+            // 获取类声明的类型参数
+            val declaredTypeParameters = classDescriptor.declaredTypeParameters
 
-//        如果接收器是DISPATCH_RECEIVER ，并且它是一个静态调用，可能要分析上一层的类型参数
-        if (resolvedCall.dispatchReceiverArgument != null && resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue is ClassValueReceiver) {
+            // 检查 receiver.type 中是否有显式的类型参数
+            val explicitTypeArguments = receiverType.arguments
 
-            return (resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue as ClassValueReceiver).classQualifier.descriptor.declaredTypeParameters + candidateDescriptor.original.typeParameters
+            // 收集显式指定的类型参数（不是类型变量的）
+            val explicitTypeParamMap = mutableMapOf<TypeParameterDescriptor, CangJieType>()
+
+            declaredTypeParameters.forEachIndexed { index, typeParam ->
+                val typeArg = explicitTypeArguments.getOrNull(index)
+                if (typeArg != null) {
+                    val argType = typeArg.type
+                    // 检查类型参数是否是类型变量
+                    val isTypeVariable = argType.constructor is org.cangnova.cangjie.types.model.TypeVariableTypeConstructorMarker
+
+                    // 如果是显式指定的具体类型，记录下来
+                    if (!isTypeVariable) {
+                        explicitTypeParamMap[typeParam] = argType
+                    }
+                }
+            }
+
+            // 将显式类型参数信息存储到缓存中
+            if (explicitTypeParamMap.isNotEmpty()) {
+                // 使用 identity hash code 作为 key
+                val cacheKey = System.identityHashCode(resolvedCall.atom.psiCangJieCall)
+                explicitClassTypeArgumentsCache[cacheKey] = explicitTypeParamMap
+            }
+
+            // 返回所有类型参数（类的 + 方法的）
+            return declaredTypeParameters + candidateDescriptor.original.typeParameters
         }
 
         return candidateDescriptor.original.typeParameters
-
     }
 
     override fun ResolutionCandidate.process(workIndex: Int) {
@@ -1325,11 +1384,32 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
             return
         }
 
+        // 获取显式类类型参数信息（如果有）
+        val cacheKey = System.identityHashCode(resolvedCall.atom.psiCangJieCall)
+        val explicitClassTypeArguments = explicitClassTypeArgumentsCache[cacheKey]
+
 //        val typeParameters = descriptor.original.typeParameters
         for (index in typeParameters.indices) {
             val typeParameter = typeParameters[index]
 //            TODO 会不会出现通过索引获取错误的情况，有待验证
             val freshVariable = freshTypeVariables[index]
+
+            // 检查是否是显式指定的类类型参数
+            val explicitClassTypeArg: CangJieType? = explicitClassTypeArguments?.get(typeParameter)
+            if (explicitClassTypeArg != null) {
+                // 为显式类类型参数添加 EQUALITY 约束
+                // 创建一个简单的类型参数实现
+                val typeArgument = object : org.cangnova.cangjie.resolve.calls.model.SimpleTypeArgument {
+                    override val type: UnwrappedType = explicitClassTypeArg.unwrap()
+                }
+
+                csBuilder.addEqualityConstraint(
+                    freshVariable.defaultType,
+                    getTypePreservingFlexibilityWrtTypeVariable(explicitClassTypeArg, freshVariable),
+                    ExplicitTypeParameterConstraintPositionImpl(typeArgument)
+                )
+                continue
+            }
 
             val knownTypeArgument = knownTypeParametersResultingSubstitutor?.safeSubstitute(typeParameter.defaultType.unwrap())
             if (knownTypeArgument != null) {
