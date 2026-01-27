@@ -279,6 +279,9 @@ private class NoExplicitReceiverScopeTowerProcessor<C : Candidate>(
  * - 如果是限定符接收者,创建 [QualifierScopeTowerProcessor]
  * - 如果没有接收者,创建 [NoExplicitReceiverScopeTowerProcessor]
  *
+ * 注意：在仓颉语言中，类不能作为值使用，只能作为类型限定符。
+ * 因此不存在"类值接收者"的概念，所有通过类名的访问都通过静态作用域处理。
+ *
  * @param C 候选者类型
  * @param scopeTower 隐式作用域塔
  * @param context 候选者工厂
@@ -286,7 +289,7 @@ private class NoExplicitReceiverScopeTowerProcessor<C : Candidate>(
  * @param collectCandidates 候选者收集函数
  * @return 简单作用域塔处理器
  */
-private fun <C : Candidate> createSimpleProcessorWithoutClassValueReceiver(
+private fun <C : Candidate> createSimpleProcessor(
     scopeTower: ImplicitScopeTower,
     context: CandidateFactory<C>,
     explicitReceiver: DetailedReceiver?,
@@ -301,7 +304,9 @@ private fun <C : Candidate> createSimpleProcessorWithoutClassValueReceiver(
             collectCandidates
         )
 
-        // 显式接收者是限定符(包、对象、伴生对象等)
+        // 显式接收者是限定符(包、类名等)
+        // 仓颉语言中，类只能作为类型限定符，不能作为值
+        // 通过 QualifierScopeTowerProcessor 在静态作用域中查找
         is QualifierReceiver -> QualifierScopeTowerProcessor(scopeTower, context, explicitReceiver, collectCandidates)
 
         // 没有显式接收者
@@ -313,49 +318,6 @@ private fun <C : Candidate> createSimpleProcessorWithoutClassValueReceiver(
             NoExplicitReceiverScopeTowerProcessor(context, collectCandidates)
         }
     }
-
-/**
- * 创建简单处理器(支持类值接收者)
- *
- * 类值接收者是指通过限定符访问的伴生对象或对象的实例。
- * 例如: `MyClass.Companion` 中,`MyClass` 是限定符,`Companion` 是类值接收者。
- *
- * 如果需要处理类值接收者且显式接收者是限定符:
- * 1. 先尝试不使用类值接收者查找(优先级更高)
- * 2. 再使用类值接收者查找(优先级较低)
- *
- * @param C 候选者类型
- * @param scopeTower 隐式作用域塔
- * @param context 候选者工厂
- * @param explicitReceiver 显式接收者
- * @param classValueReceiver 是否考虑类值接收者
- * @param collectCandidates 候选者收集函数
- * @return 作用域塔处理器
- */
-private fun <C : Candidate> createSimpleProcessor(
-    scopeTower: ImplicitScopeTower,
-    context: CandidateFactory<C>,
-    explicitReceiver: DetailedReceiver?,
-    classValueReceiver: Boolean,
-    collectCandidates: CandidatesCollector
-): ScopeTowerProcessor<C> {
-    // 先创建不考虑类值接收者的处理器
-    val withoutClassValueProcessor =
-        createSimpleProcessorWithoutClassValueReceiver(scopeTower, context, explicitReceiver, collectCandidates)
-
-    // 如果需要类值接收者且显式接收者是限定符
-    if (classValueReceiver && explicitReceiver is QualifierReceiver) {
-        val classValue = explicitReceiver.classValueReceiverWithSmartCastInfo ?: return withoutClassValueProcessor
-
-        // 返回优先级组合处理器:先查找限定符成员,再查找类值接收者成员
-        return PrioritizedCompositeScopeTowerProcessor(
-            withoutClassValueProcessor,
-            ExplicitReceiverScopeTowerProcessor(scopeTower, context, classValue, collectCandidates)
-        )
-    }
-
-    return withoutClassValueProcessor
-}
 
 /**
  * 创建可调用引用处理器
@@ -383,7 +345,7 @@ fun <C : Candidate> createCallableReferenceProcessor(
 
     // 创建函数引用处理器
     val function =
-        createSimpleProcessorWithoutClassValueReceiver(scopeTower, context, explicitReceiver) { getFunctions(name) }
+        createSimpleProcessor(scopeTower, context, explicitReceiver) { getFunctions(name) }
 
     // 返回组合处理器(目前只包含函数处理器,未来可能添加变量处理器)
     return SamePriorityCompositeScopeTowerProcessor(/*variable,*/ function)
@@ -399,22 +361,28 @@ fun <C : Candidate> createCallableReferenceProcessor(
  * @param name 函数名称
  * @param context 候选者工厂
  * @param explicitReceiver 显式接收者
- * @param classValueReceiver 是否考虑类值接收者(默认为 true)
+ * @param isEnumConstructor 是否是枚举构造器
  * @return 作用域塔处理器
  */
 fun <C : Candidate> createSimpleFunctionProcessor(
     scopeTower: ImplicitScopeTower, name: Name,
     context: CandidateFactory<C>,
     explicitReceiver: DetailedReceiver?,
-    classValueReceiver: Boolean = true
-) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getFunctions(name) }
+    isEnumConstructor: Boolean = false
+) = createSimpleProcessor(scopeTower, context, explicitReceiver) {
+    getFunctions(
+        name,
+        isEnumConstructor
+    )
+}
 
 /**
  * 创建带接收者值或空值的处理器
  *
- * 用于处理可能有类值接收者的情况。
- * 如果显式接收者是限定符且有类值接收者,则使用类值接收者创建处理器;
- * 否则返回已知空结果的处理器。
+ * 用于处理可能有接收者的情况。
+ * 如果显式接收者是限定符(QualifierReceiver),则返回空结果处理器,
+ * 因为在仓颉语言中类不能作为值使用;
+ * 否则使用接收者值创建处理器。
  *
  * @param C 候选者类型
  * @param explicitReceiver 显式接收者
@@ -426,9 +394,9 @@ fun <C : Candidate> createProcessorWithReceiverValueOrEmpty(
     create: (ReceiverValueWithSmartCastInfo?) -> ScopeTowerProcessor<C>
 ): ScopeTowerProcessor<C> {
     return if (explicitReceiver is QualifierReceiver) {
-        // 如果有类值接收者,使用它创建处理器;否则返回空结果
-        explicitReceiver.classValueReceiverWithSmartCastInfo?.let(create)
-            ?: KnownResultProcessor(listOf())
+        // 仓颉语言中,类不能作为值使用,只能作为类型限定符
+        // 因此 QualifierReceiver 不提供类值接收者
+        KnownResultProcessor(listOf())
     } else {
         // 使用接收者值(可能为 null)创建处理器
         create(explicitReceiver as ReceiverValueWithSmartCastInfo?)
@@ -503,7 +471,7 @@ private class EnumConstructorFinderProcessor<C : Candidate>(
             arity = null,  // 在这个阶段不限制参数数量，后续由重载解析处理
             scope = lexicalScope,
 
-        )
+            )
 
         if (constructors.isEmpty()) {
             return emptyList()
@@ -589,9 +557,8 @@ fun <C : Candidate> createEnumConstructorProcessor(
     val simpleConstructorProcessor = createSimpleProcessor(
         scopeTower,
         simpleContext,
-        explicitReceiver,
-        classValueReceiver = true  // 支持通过类名访问静态成员
-    ) { getVariables(name, it) }
+        explicitReceiver
+    ) { getVariables(name, it, true) }
 
     // 处理器 2: 函数构造器（有关联值）
     // 查找作为函数的枚举构造器
@@ -672,13 +639,12 @@ fun <C : Candidate> createFunctionProcessor(
  * @param name 属性名称
  * @param context 候选者工厂
  * @param explicitReceiver 显式接收者
- * @param classValueReceiver 是否考虑类值接收者(默认为 true)
  * @return 作用域塔处理器
  */
 fun <C : Candidate> createPropertyProcessor(
     scopeTower: ImplicitScopeTower, name: Name,
-    context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
-) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getVariables(name, it) }
+    context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?
+) = createSimpleProcessor(scopeTower, context, explicitReceiver) { getVariables(name, it) }
 
 
 /**
@@ -692,13 +658,12 @@ fun <C : Candidate> createPropertyProcessor(
  * @param name 变量名称
  * @param context 候选者工厂
  * @param explicitReceiver 显式接收者
- * @param classValueReceiver 是否考虑类值接收者(默认为 true)
  * @return 作用域塔处理器
  */
 fun <C : Candidate> createVariableProcessor(
     scopeTower: ImplicitScopeTower, name: Name,
-    context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
-) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getVariables(name, it) }
+    context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?
+) = createSimpleProcessor(scopeTower, context, explicitReceiver) { getVariables(name, it) }
 
 
 /**

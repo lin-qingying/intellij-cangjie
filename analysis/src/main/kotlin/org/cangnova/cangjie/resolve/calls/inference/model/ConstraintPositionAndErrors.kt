@@ -259,6 +259,42 @@ class ArgumentConstraintPositionImpl(argument: CangJieCallArgument) :
     ArgumentConstraintPosition<CangJieCallArgument>(argument)
 
 /**
+ * 基于索引的参数约束位置
+ *
+ * 用于迭代类型推断引擎，通过参数索引标识约束来源。
+ *
+ * @property argumentIndex 参数索引
+ */
+class ArgumentConstraintPositionByIndex(val argumentIndex: Int) : ConstraintPosition(),
+    OnlyInputTypeConstraintPosition {
+    override fun toString(): String = "Argument at index $argumentIndex"
+}
+
+/**
+ * Lambda 返回类型约束位置
+ *
+ * 表示约束来自于 Lambda 返回类型推导。
+ * 用于迭代推断中的 Last Resort 机制。
+ *
+ * @property argumentIndex Lambda 参数的索引
+ */
+class LambdaReturnTypePosition(val argumentIndex: Int) : ConstraintPosition() {
+    override fun toString(): String = "Lambda return type at index $argumentIndex"
+}
+
+/**
+ * 类型变量固定约束位置
+ *
+ * 表示约束来自于类型变量的固定操作。
+ * 用于迭代推断中固定类型变量。
+ *
+ * @property typeVariable 被固定的类型变量
+ */
+class TypeVariableFixationPosition(val typeVariable: TypeVariableMarker) : ConstraintPosition() {
+    override fun toString(): String = "Fix type variable $typeVariable"
+}
+
+/**
  * 可调用引用约束位置的实现类
  *
  * 封装具体的可调用引用仓颉调用。

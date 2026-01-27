@@ -67,6 +67,30 @@ interface Qualifier : QualifierReceiver {
 interface ClassifierQualifier : Qualifier {
     /** 带类型参数的类分类符描述符 */
     override val descriptor: ClassifierDescriptorWithTypeParameters
+
+
+    /**
+     * 获取类型参数到具体类型的映射，用于约束系统的类型推导
+     *
+     * 这个方法专门为约束系统设计，用于从限定符中提取显式类型参数信息。
+     * 例如对于 `Option<Int>`，返回 `{T -> Int}`
+     *
+     * ## 使用场景
+     *
+     * 在解析 `Option<Int>.None` 时：
+     * 1. `Option<Int>` 是限定符
+     * 2. `None` 是枚举构造器
+     * 3. 约束系统需要知道 `T = Int` 来正确推导类型
+     *
+     * ## 注意
+     *
+     * 这个方法不会改变 `classValueReceiver` 的语义。
+     * 对于枚举类型，`classValueReceiver` 仍然是 null（因为枚举不能作为值使用），
+     * 但类型参数信息可以通过这个方法获取。
+     *
+     * @return 类型参数到具体类型的映射，如果没有显式类型参数则返回空映射
+     */
+    fun getTypeArgumentsForConstraints(): Map<TypeParameterDescriptor, CangJieType> = emptyMap()
 }
 
 /**
@@ -108,8 +132,6 @@ class PackageQualifier(
     override val referenceExpression: CjSimpleNameExpression,
     override val descriptor: PackageViewDescriptor
 ) : Qualifier {
-    /** 包没有类值接收器，总是返回 null */
-    override val classValueReceiver: ReceiverValue? get() = null
 
     /** 包的静态作用域，即包的成员作用域 */
     override val staticScope: MemberScope get() = descriptor.memberScope
@@ -144,23 +166,9 @@ class PackageQualifier(
 class ClassQualifier(
     override val referenceExpression: CjSimpleNameExpression,
     override val descriptor: ClassAndEnumDescriptor,
-    _cangjieType: CangJieType? = null
+    private val qualifierType: CangJieType? = null
 ) : ClassifierQualifier {
 
-    /**
-     * 类值接收器
-     *
-     * - 对于枚举类：返回 null（枚举不能作为值使用，只能访问其构造器）
-     * - 对于普通类：如果有伴生对象或 class 类型值，返回对应接收器
-     */
-    override val classValueReceiver: ClassValueReceiver? =
-        if (descriptor.kind == ClassKind.ENUM) {
-            // 枚举类不提供 classValueReceiver
-            // 枚举构造器通过 staticScope 访问
-            null
-        } else {
-            _cangjieType?.let { ClassValueReceiver(this, it) }
-        }
 
     /**
      * 静态作用域
@@ -179,36 +187,51 @@ class ClassQualifier(
             )
         )
 
+    /**
+     * 获取类型参数到具体类型的映射
+     *
+     * 从限定符的类型中提取显式类型参数。
+     * 例如对于 `Option<Int>`，返回 `{T -> Int}`
+     *
+     * ## 过滤规则
+     *
+     * 只返回具体类型，过滤掉：
+     * - 类型变量（TypeVariableTypeConstructorMarker）
+     * - 类型参数（TypeParameterDescriptor）
+     *
+     * 这确保了只有显式指定的具体类型才会被添加到约束系统中。
+     */
+    override fun getTypeArgumentsForConstraints(): Map<TypeParameterDescriptor, CangJieType> {
+        val type = qualifierType ?: return emptyMap()
+        val typeParams = descriptor.declaredTypeParameters
+        val typeArgs = type.arguments
+
+        if (typeParams.isEmpty() || typeArgs.isEmpty()) return emptyMap()
+
+        return typeParams.zip(typeArgs).mapNotNull { (param, arg) ->
+            // 只返回具体类型，不返回类型变量或类型参数
+            val argType = arg.type
+            val constructor = argType.constructor
+
+            // 过滤类型变量（推断过程中创建的临时类型变量）
+            if (constructor is org.cangnova.cangjie.types.model.TypeVariableTypeConstructorMarker) {
+                return@mapNotNull null
+            }
+
+            // 过滤类型参数（如 T, D 等声明的类型参数）
+            // TypeParameterTypeConstructor 的 declarationDescriptor 是 TypeParameterDescriptor
+            if (constructor.declarationDescriptor is TypeParameterDescriptor) {
+                return@mapNotNull null
+            }
+
+            param to argType
+        }.toMap()
+    }
+
     override fun toString() = "Class{$descriptor}"
 }
 
-/**
- * 类值接收器
- *
- * ClassValueReceiver 表示类作为值使用时的接收器。
- * 这允许将类作为一个值传递或使用，例如访问类的伴生对象成员。
- *
- * @param classQualifier 类限定符
- * @param type 接收器的类型
- * @param original 原始的接收器值
- *
- * @see ExpressionReceiver
- * @see ClassifierQualifier
- */
-class ClassValueReceiver @JvmOverloads constructor(
-    val classQualifier: ClassifierQualifier,
-    override val type: CangJieType,
-    original: ClassValueReceiver? = null
-) : ExpressionReceiver {
-    override val original = original ?: this
 
-
-    override val expression: CjExpression
-        get() = classQualifier.expression
-
-    override fun replaceType(newType: CangJieType) = ClassValueReceiver(classQualifier, newType, original)
-
-}
 
 /**
  * 类型参数限定符
@@ -225,8 +248,6 @@ class TypeParameterQualifier(
     override val referenceExpression: CjSimpleNameExpression,
     override val descriptor: TypeParameterDescriptor
 ) : Qualifier {
-    /** 类型参数没有类值接收器 */
-    override val classValueReceiver: ReceiverValue? get() = null
 
     /** 类型参数没有静态作用域 */
     override val staticScope: MemberScope get() = MemberScope.Empty
@@ -251,14 +272,7 @@ class TypeAliasQualifier(
     override val descriptor: TypeAliasDescriptor,
     val classDescriptor: ClassDescriptor
 ) : ClassifierQualifier {
-    /**
-     * 类值接收器
-     *
-     * 类型别名不提供 classValueReceiver，与 ClassQualifier 保持一致。
-     * 枚举构造器通过 staticScope 访问。
-     */
-    override val classValueReceiver: ClassValueReceiver?
-        get() = null
+
 
     override val staticScope: MemberScope
         get() = when {

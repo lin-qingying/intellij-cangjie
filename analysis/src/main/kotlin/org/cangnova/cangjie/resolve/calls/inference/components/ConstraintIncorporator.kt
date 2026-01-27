@@ -30,6 +30,8 @@ import org.cangnova.cangjie.progress.ProgressIndicatorAndCompilationCanceledStat
 import org.cangnova.cangjie.resolve.calls.inference.model.*
 import org.cangnova.cangjie.types.AbstractTypeApproximator
 import org.cangnova.cangjie.types.TypeApproximatorConfiguration
+import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isTypeVariable
+import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.useRefinedBoundsForTypeVariableInFlexiblePosition
 import org.cangnova.cangjie.types.model.*
 import org.cangnova.cangjie.utils.SmartSet
 
@@ -48,12 +50,44 @@ import org.cangnova.cangjie.utils.SmartSet
  * @property typeApproximator 类型近似器，用于将复杂类型近似为更简单的上界或下界
  * @property trivialConstraintTypeInferenceOracle 简单约束类型推断预言器，用于判断约束是否平凡
  * @property utilContext 约束系统工具上下文
+ * @property inferenceLogger 推断日志记录器，用于调试和跟踪类型推断过程（可选）
  */
 class ConstraintIncorporator(
     val typeApproximator: AbstractTypeApproximator,
     val trivialConstraintTypeInferenceOracle: TrivialConstraintTypeInferenceOracle,
-    val utilContext: ConstraintSystemUtilContext
+    val utilContext: ConstraintSystemUtilContext,
+    inferenceLoggerParameter: InferenceLogger? = null
 ) {
+    /**
+     * 推断日志记录器
+     *
+     * 用于记录类型推断过程中的约束合并操作，便于调试和分析。
+     * 如果传入的是 Dummy 实例，则设置为 null 以避免不必要的性能开销。
+     */
+    val inferenceLogger = inferenceLoggerParameter.takeIf { it !is InferenceLogger.Dummy }
+
+
+    /**
+     * 遍历指定类型变量的所有约束，并对每个约束执行给定的操作
+     *
+     * 此函数设计为内联函数，以避免额外的函数调用栈创建，从而提高性能，
+     * 尤其是在循环或频繁调用的情况下。
+     *
+     * @param typeVariable 需要遍历约束的类型变量标记
+     * @param action 对每个约束执行的操作
+     */
+
+    context(c: Context)
+    private inline fun  TypeVariableMarker.forEachConstraint(  action: (Constraint) -> Unit) {
+        // 使用索引循环是因为在迭代过程中集合可能会被修改
+        // 然而，唯一可能的修改是追加元素，因此这样做应该是安全的
+        val constraints = c.getConstraintsForVariable(this)
+        var i = 0
+        while (i < constraints.size) {
+            action(constraints[i++])
+        }
+    }
+
     /**
      * 处理与类型变量直接相关的约束传递
      *
@@ -63,32 +97,31 @@ class ConstraintIncorporator(
      * @param typeVariable 中间的类型变量 α
      * @param constraint 新添加的约束
      */
-    private fun Context.directWithVariable(
+    context(c: Context)
+    private fun  directWithVariable(
         typeVariable: TypeVariableMarker,
         constraint: Constraint
     ) {
-        // 确定类型变量是否应该是灵活的（flexible）
-        // 灵活类型允许在上下界之间有一定的变化空间
-        val shouldBeTypeVariableFlexible =
-            if (useRefinedBoundsForTypeVariableInFlexiblePosition())
-                false
-            else
-                with(utilContext) { typeVariable.shouldBeFlexible() }
+        val shouldBeTypeVariableFlexible = with(utilContext) { typeVariable.shouldBeFlexible() }
+
 
         // 情况1: α <: constraint.type
         // 如果新约束不是下界约束（即是上界或相等约束）
         if (constraint.kind != ConstraintKind.LOWER) {
             // 遍历该类型变量的所有现有约束
-            forEachConstraint(typeVariable) {
+            typeVariable. forEachConstraint  {
                 // 如果现有约束不是上界约束（即是下界或相等约束）
                 if (it.kind != ConstraintKind.UPPER) {
-                    // 添加传递约束: it.type <: constraint.type
-                    addNewIncorporatedConstraint(
-                        it.type,
-                        constraint.type,
-                        shouldBeTypeVariableFlexible,
-
-                    )
+                    inferenceLogger.withOrigins(typeVariable, it, typeVariable, constraint) {
+                      c. processNewInitialConstraintFromIncorporation(
+                            lowerType = it.type,
+                            upperType = constraint.type,
+                            shouldTryUseDifferentFlexibilityForUpperType = shouldBeTypeVariableFlexible,
+                            newDerivedFrom = constraint.computeNewDerivedFrom(it),
+                            isFromDeclaredUpperBound = false,
+                            isNoInfer = constraint.isNoInfer || it.isNoInfer,
+                        )
+                    }
                 }
             }
         }
@@ -97,26 +130,38 @@ class ConstraintIncorporator(
         // 如果新约束不是上界约束（即是下界或相等约束）
         if (constraint.kind != ConstraintKind.UPPER) {
             // 遍历该类型变量的所有现有约束
-            forEachConstraint(typeVariable) {
+            typeVariable.forEachConstraint  {
                 // 如果现有约束不是下界约束（即是上界或相等约束）
                 if (it.kind != ConstraintKind.LOWER) {
-                    // 检查约束是否来自声明的上界，且类型不是类型变量
-                    val isFromDeclaredUpperBound =
-                        it.position.from is DeclaredUpperBoundConstraintPosition<*> && !it.type.typeConstructor()
-                            .isTypeVariable()
+                    inferenceLogger.withOrigins(typeVariable, it, typeVariable, constraint) {
+                        // 检查约束是否来自声明的上界，且类型不是类型变量
+                        val isFromDeclaredUpperBound =
+                            it.position.from is DeclaredUpperBoundConstraintPosition<*> && !it.type.typeConstructor()
+                                .isTypeVariable()
 
-                    // 添加传递约束: constraint.type <: it.type
-                    addNewIncorporatedConstraint(
-                        constraint.type,
-                        it.type,
-                        shouldBeTypeVariableFlexible,
-                        isFromDeclaredUpperBound = isFromDeclaredUpperBound
-                    )
+
+                        // 添加传递约束: constraint.type <: it.type
+                     c.   processNewInitialConstraintFromIncorporation(
+                            lowerType = constraint.type,
+                            upperType = it.type,
+                            shouldTryUseDifferentFlexibilityForUpperType = shouldBeTypeVariableFlexible,
+                            newDerivedFrom = constraint.computeNewDerivedFrom(it),
+                            isFromDeclaredUpperBound = isFromDeclaredUpperBound,
+
+                            isNoInfer = constraint.isNoInfer || it.isNoInfer
+                        )
+                    }
                 }
             }
         }
     }
-
+    // NB: The result is reflexive
+    private fun Constraint.computeNewDerivedFrom(other: Constraint): Set<TypeVariableMarker> =
+        when {
+            derivedFrom.isEmpty() -> other.derivedFrom
+            other.derivedFrom.isEmpty() -> derivedFrom
+            else -> derivedFrom + other.derivedFrom
+        }
     /**
      * 检查是否存在递归约束
      *
@@ -141,7 +186,8 @@ class ConstraintIncorporator(
      * @param typeVariable 要添加约束的类型变量 α
      * @param constraint 新添加的约束
      */
-    fun incorporate(c: Context, typeVariable: TypeVariableMarker, constraint: Constraint) {
+    context(c: Context)
+    fun incorporate(  typeVariable: TypeVariableMarker, constraint: Constraint) {
         // 检查编译是否被取消
         ProgressIndicatorAndCompilationCanceledStatus.checkCanceled()
 
@@ -150,9 +196,9 @@ class ConstraintIncorporator(
         if (c.areThereRecursiveConstraints(typeVariable, constraint)) return
 
         // 处理与该类型变量直接相关的约束传递
-        c.directWithVariable(typeVariable, constraint)
+       directWithVariable(typeVariable, constraint)
         // 处理该类型变量在其他约束中的出现
-        c.insideOtherConstraint(typeVariable, constraint)
+       insideOtherConstraint(typeVariable, constraint)
     }
 
     /**
@@ -167,20 +213,22 @@ class ConstraintIncorporator(
      * @param typeVariable 被更新的类型变量 β
      * @param constraint β 的新约束
      */
-    private fun Context.insideOtherConstraint(
+    context(c: Context)
+    private fun  insideOtherConstraint(
         typeVariable: TypeVariableMarker,
         constraint: Constraint
     ) {
-        val freshTypeConstructor = typeVariable.freshTypeConstructor()
-        // 遍历所有其他类型变量
-        for (typeVariableWithConstraint in this@insideOtherConstraint.allTypeVariablesWithConstraints) {
-            // 找出包含当前类型变量的所有约束
-            val constraintsWhichConstraintMyVariable = typeVariableWithConstraint.constraints.filter {
-                containsTypeVariable(it.type, freshTypeConstructor)
-            }
-            // 为每个这样的约束生成新的合并约束
-            constraintsWhichConstraintMyVariable.forEach {
-                generateNewConstraint(typeVariableWithConstraint.typeVariable, it, typeVariable, constraint)
+        // 防止循环：如果约束已经从当前类型变量派生而来，则跳过
+        if (typeVariable in constraint.derivedFrom) return
+
+        // 使用优化方法获取包含当前类型变量的所有约束
+        // 子类可以通过维护索引来提供更高效的实现
+        val variablesWithConstraints = c.getVariablesWithConstraintsContainingGivenTypeVariable(typeVariable)
+
+        // 为每个包含当前类型变量的约束生成新的合并约束
+        for ((variableWithConstraints, baseConstraint) in variablesWithConstraints) {
+            inferenceLogger.withOrigins(variableWithConstraints.typeVariable, baseConstraint, typeVariable, constraint) {
+               c.generateNewConstraint(variableWithConstraints.typeVariable, baseConstraint, typeVariable, constraint)
             }
         }
     }
@@ -421,7 +469,9 @@ class ConstraintIncorporator(
 
 
         // 创建约束上下文
-        val constraintContext = ConstraintContext(kind, derivedFrom, inputTypePosition)
+        // 如果任一源约束是 NoInfer，派生约束也应该是 NoInfer
+        val isNoInfer = baseConstraint.isNoInfer || otherConstraint.isNoInfer
+        val constraintContext = ConstraintContext(kind, derivedFrom, inputTypePosition, isNoInfer)
 
         // 添加新的合并约束
         addNewIncorporatedConstraint(targetVariable, newConstraint, constraintContext)
@@ -495,25 +545,6 @@ class ConstraintIncorporator(
         else typeApproximator.approximateToSubType(type, TypeApproximatorConfiguration.IncorporationConfiguration)
             ?: type
 
-    /**
-     * 遍历指定类型变量的所有约束，并对每个约束执行给定的操作
-     *
-     * 此函数设计为内联函数，以避免额外的函数调用栈创建，从而提高性能，
-     * 尤其是在循环或频繁调用的情况下。
-     *
-     * @param typeVariable 需要遍历约束的类型变量标记
-     * @param action 对每个约束执行的操作
-     */
-    private inline fun Context.forEachConstraint(typeVariable: TypeVariableMarker, action: (Constraint) -> Unit) {
-        // 使用索引循环是因为在迭代过程中集合可能会被修改
-        // 然而，唯一可能的修改是追加元素，因此这样做应该是安全的
-        val constraints = getConstraintsForVariable(typeVariable)
-        var i = 0
-        while (i < constraints.size) {
-            action(constraints[i++])
-        }
-    }
-
 
     /**
      * 约束合并上下文接口
@@ -541,18 +572,42 @@ class ConstraintIncorporator(
         fun getConstraintsForVariable(typeVariable: TypeVariableMarker): List<Constraint>
 
         /**
-         * 添加新的合并约束（类型之间的子类型关系）
+         * 获取约束中包含给定类型变量的所有类型变量
          *
-         * @param lowerType 下界类型（子类型）
-         * @param upperType 上界类型（超类型）
-         * @param shouldTryUseDifferentFlexibilityForUpperType 是否尝试为上界类型使用不同的灵活性
-         * @param isFromDeclaredUpperBound 是否来自声明的上界
+         * 这是一个性能优化方法。在 insideOtherConstraint 中，我们需要找出
+         * 所有约束类型中包含给定类型变量的其他类型变量。
+         *
+         * 默认实现遍历所有类型变量，但子类可以通过维护索引来优化。
+         *
+         * @param typeVariable 要查找的类型变量
+         * @return 包含该类型变量的约束所属的类型变量列表，以及相关约束
          */
-        fun addNewIncorporatedConstraint(
+        fun getVariablesWithConstraintsContainingGivenTypeVariable(
+            typeVariable: TypeVariableMarker
+        ): List<Pair<VariableWithConstraints, Constraint>> {
+            val result = mutableListOf<Pair<VariableWithConstraints, Constraint>>()
+            val freshTypeConstructor = typeVariable.freshTypeConstructor()
+            for (variableWithConstraints in allTypeVariablesWithConstraints) {
+                for (constraint in variableWithConstraints.constraints) {
+                    if (containsTypeVariable(constraint.type, freshTypeConstructor)) {
+                        result.add(variableWithConstraints to constraint)
+                    }
+                }
+            }
+            return result
+        }
+
+
+        fun processNewInitialConstraintFromIncorporation(
+            // A
             lowerType: CangJieTypeMarker,
+            // B
             upperType: CangJieTypeMarker,
             shouldTryUseDifferentFlexibilityForUpperType: Boolean,
-            isFromDeclaredUpperBound: Boolean = false
+            // Union of `derivedFrom` for `A <:(=) \alpha` and `\alpha <:(=) B`
+            newDerivedFrom: Set<TypeVariableMarker>,
+            isFromDeclaredUpperBound: Boolean,
+            isNoInfer: Boolean,
         )
 
         /**

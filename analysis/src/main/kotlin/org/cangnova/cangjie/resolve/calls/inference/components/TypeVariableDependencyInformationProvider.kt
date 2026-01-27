@@ -107,7 +107,7 @@ class TypeVariableDependencyInformationProvider(
         }
 
         for (variableWithConstraints in notFixedTypeVariables.values) {
-            val from = variableWithConstraints.typeVariable.freshTypeConstructor(typeSystemContext)
+            val from = variableWithConstraints.typeVariable.freshTypeConstructor(typeSystemContext )
 
             for (constraint in variableWithConstraints.constraints) {
                 val constraintTypeConstructor = constraint.type.typeConstructor(typeSystemContext)

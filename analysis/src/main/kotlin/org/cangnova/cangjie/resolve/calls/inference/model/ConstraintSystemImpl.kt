@@ -39,6 +39,9 @@ import org.cangnova.cangjie.resolve.checkers.EmptyIntersectionTypeInfo
 import org.cangnova.cangjie.utils.SmartSet
 import org.cangnova.cangjie.utils.trimToSize
 import kotlin.also
+import kotlin.collections.addAll
+import kotlin.collections.putAll
+import kotlin.collections.set
 import kotlin.math.max
 
 /**
@@ -193,7 +196,13 @@ class ConstraintSystemImpl(
      */
     override fun asReadOnlyStorage(): ConstraintStorage {
         checkState(State.BUILDING, State.FREEZED)
+        if (  areThereContradictionsInForks()) {
+            // If there are contradictions already, we might apply all the forks because CS is anyway already failed
+            resolveForkPointsConstraints()
+        }
+
         state = State.FREEZED
+
         return storage
     }
 
@@ -396,13 +405,19 @@ class ConstraintSystemImpl(
      * @return true 表示存在矛盾，false 表示没有矛盾
      */
     override val hasContradiction: Boolean
-        get() = storage.hasContradiction.also {
+        get() {
             checkState(
                 State.FREEZED,
                 State.BUILDING,
                 State.COMPLETION,
                 State.TRANSACTION
             )
+
+            if (storage.hasContradiction) return true
+
+
+            // Since 2.2 at each hasContradiction check, we make sure that all forks might be successfully resolved, too
+            return areThereContradictionsInForks()
         }
 
     /**
@@ -545,13 +560,12 @@ class ConstraintSystemImpl(
         lowerType: CangJieTypeMarker,
         upperType: CangJieTypeMarker,
         position: ConstraintPosition
-    ) =
-        constraintInjector.addInitialSubtypeConstraint(
-            apply { checkState(State.BUILDING, State.COMPLETION, State.TRANSACTION) },
-            lowerType,
-            upperType,
-            position
-        )
+    ) {
+        checkState(State.BUILDING, State.COMPLETION, State.TRANSACTION)
+        constraintInjector.addInitialSubtypeConstraint(lowerType, upperType, position)
+
+    }
+
 
     /**
      * 添加相等性约束
@@ -569,13 +583,10 @@ class ConstraintSystemImpl(
      * @param b 第二个类型
      * @param position 约束位置，用于错误报告
      */
-    override fun addEqualityConstraint(a: CangJieTypeMarker, b: CangJieTypeMarker, position: ConstraintPosition) =
-        constraintInjector.addInitialEqualityConstraint(
-            apply { checkState(State.BUILDING, State.COMPLETION, State.TRANSACTION) },
-            a,
-            b,
-            position
-        )
+    override fun addEqualityConstraint(a: CangJieTypeMarker, b: CangJieTypeMarker, position: ConstraintPosition) {
+        checkState(State.BUILDING, State.COMPLETION, State.TRANSACTION)
+        constraintInjector.addInitialEqualityConstraint(a, b, position)
+    }
 
     /**
      * 判断类型是否为 proper 类型
@@ -640,6 +651,8 @@ class ConstraintSystemImpl(
             checkState(State.BUILDING, State.COMPLETION, State.TRANSACTION)
             return storage.fixedTypeVariables
         }
+    override val approximatorCaches: TypeApproximatorCachesPerConfiguration
+        get() = storage.approximatorCaches
 
     override val constraintsFromAllForkPoints: MutableList<Pair<IncorporationConstraintPosition, ForkPointData>>
         get() {
@@ -669,7 +682,14 @@ class ConstraintSystemImpl(
             return storage.postponedTypeVariables
         }
 
-
+    /**
+     * @see org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintStorage.typeVariableDependencies
+     */
+    override val typeVariableDependencies: MutableMap<TypeConstructorMarker, MutableSet<TypeConstructorMarker>>
+        get() {
+            checkState( State.BUILDING,   State.COMPLETION,  State.TRANSACTION)
+            return storage.typeVariableDependencies
+        }
     override fun containsOnlyFixedOrPostponedVariables(type: CangJieTypeMarker): Boolean {
         checkState(State.BUILDING, State.COMPLETION)
         return !type.contains {
@@ -678,7 +698,68 @@ class ConstraintSystemImpl(
             variable !in storage.postponedTypeVariables && storage.notFixedTypeVariables.containsKey(typeConstructor)
         }
     }
+    private fun <T> MutableList<T>.addAllDistinct(other: List<T>) {
+        val set = identityHashSetFromSum(this, other)
+        clear()
+        addAll(set)
+    }
 
+    private fun doAddOtherSystem(otherSystem: ConstraintStorage, mergeMode: Boolean) {
+        if (otherSystem.allTypeVariables.isNotEmpty()) {
+            otherSystem.allTypeVariables.forEach {
+                transactionRegisterVariable(it.value)
+            }
+            storage.allTypeVariables.putAll(otherSystem.allTypeVariables)
+            notProperTypesCache.clear()
+        }
+
+        for ((k, v) in otherSystem.approximatorCaches) {
+            storage.approximatorCaches.getOrPut(k) { AbstractTypeApproximator.Cache() } += v
+        }
+
+        for ((variable, constraints) in otherSystem.notFixedTypeVariables) {
+            if (!mergeMode) {
+                notFixedTypeVariables[variable] = MutableVariableWithConstraints(this, constraints)
+            } else {
+                val previous = notFixedTypeVariables[variable]
+                if (previous != null) {
+                    notFixedTypeVariables[variable] = MutableVariableWithConstraints(this, previous, constraints)
+                } else {
+                    notFixedTypeVariables[variable] = MutableVariableWithConstraints(this, constraints)
+                }
+            }
+        }
+
+        for ((variable, variablesThatReferenceGivenOne) in otherSystem.typeVariableDependencies) {
+            if (!mergeMode || variable !in typeVariableDependencies) {
+                typeVariableDependencies[variable] = variablesThatReferenceGivenOne.toMutableSet()
+            } else {
+                typeVariableDependencies[variable]?.addAll(variablesThatReferenceGivenOne)
+            }
+        }
+
+        // Merge mode: filtering identical constraints
+        if (mergeMode) {
+            storage.initialConstraints.addAllDistinct(otherSystem.initialConstraints)
+            storage.constraintsFromAllForkPoints.addAllDistinct(otherSystem.constraintsFromAllForkPoints)
+            storage.errors.addAllDistinct(otherSystem.errors)
+        } else {
+            storage.initialConstraints.addAll(otherSystem.initialConstraints)
+            storage.constraintsFromAllForkPoints.addAll(otherSystem.constraintsFromAllForkPoints)
+            storage.errors.addAll(otherSystem.errors)
+        }
+
+        storage.maxTypeDepthFromInitialConstraints =
+            max(storage.maxTypeDepthFromInitialConstraints, otherSystem.maxTypeDepthFromInitialConstraints)
+        // Keys are compared by identity only.
+        // Sometimes we create structurally identical type variables (at least in K2),
+        // and they should be considered different.
+        storage.fixedTypeVariables.putAll(otherSystem.fixedTypeVariables)
+        // K1-only, so merge isn't important here
+        storage.postponedTypeVariables.addAll(otherSystem.postponedTypeVariables)
+
+        hasContradictionInForkPointsCache = null
+    }
     override fun containsOnlyFixedVariables(type: CangJieTypeMarker): Boolean {
         checkState(State.BUILDING, State.COMPLETION)
         return !type.contains {
@@ -691,6 +772,81 @@ class ConstraintSystemImpl(
     override fun addError(error: ConstraintSystemError) {
         checkState(State.BUILDING, State.COMPLETION, State.TRANSACTION)
         storage.errors.add(error)
+    }
+    private var hasContradictionInForkPointsCache: Boolean? = null
+
+    override fun onNewConstraintOrForkPoint() {
+        hasContradictionInForkPointsCache = null
+
+    }
+    private fun applyForkPointBranch(
+        constraintSetForForkBranch: ForkPointBranchDescription,
+        position: IncorporationConstraintPosition,
+    ) {
+        checkState( State.BUILDING,   State.COMPLETION,   State.TRANSACTION)
+        constraintInjector.processGivenForkPointBranchConstraints(
+            constraintSetForForkBranch,
+            position,
+        )
+
+        // Some new fork points constraints might be introduced, and we apply them immediately because we anyway at the
+        // completion state (as we already started resolving them)
+        resolveForkPointsConstraints()
+    }
+    /**
+     * Applies the first successful branch if there's any.
+     * Otherwise, applies just the first branch (containing contradictions)
+     *
+     * @return true if there is a successful constraint set for the fork point.
+     */
+    private fun applyTheBestBranchFromForkPoint(
+        forkPointData: ForkPointData,
+        position: IncorporationConstraintPosition,
+    ): Boolean {
+        val isSuccessful = forkPointData.any { constraintSetForForkBranch ->
+            runTransaction {
+                applyForkPointBranch(constraintSetForForkBranch, position)
+
+                !storage.hasContradiction
+            }
+        }
+
+        if (!isSuccessful) {
+            applyForkPointBranch(forkPointData.first(), position)
+        }
+
+        return isSuccessful
+    }
+    /**
+     * Checks if the current state of forked constraints is not contradictory.
+     *
+     * That function is expected to be pure, i.e., it should leave the system in the same state it was found before the call.
+     *
+     */
+    fun areThereContradictionsInForks(): Boolean {
+        // Before freezing, we guarantee to apply contradictions to the regular storage if there are any
+        // (see NewConstraintSystemImpl.asReadOnlyStorage)
+        if (state ==  State.FREEZED) return false
+
+        if (constraintsFromAllForkPoints.isEmpty()) return false
+
+        hasContradictionInForkPointsCache?.let { return it }
+
+        val allForkPointsData = constraintsFromAllForkPoints.toList()
+        constraintsFromAllForkPoints.clear()
+
+        val isThereAnyUnsuccessful: Boolean
+        runTransaction {
+            isThereAnyUnsuccessful = allForkPointsData.any { (position, forkPointData) ->
+                !applyTheBestBranchFromForkPoint(forkPointData, position)
+            }
+
+            false
+        }
+
+        constraintsFromAllForkPoints.addAll(allForkPointsData)
+
+        return isThereAnyUnsuccessful.also { hasContradictionInForkPointsCache = it }
     }
 
     override fun getEmptyIntersectionTypeKind(types: Collection<CangJieTypeMarker>): EmptyIntersectionTypeInfo? {
@@ -739,27 +895,6 @@ class ConstraintSystemImpl(
     override fun asPostponedArgumentsAnalyzerContext() = apply { checkState(State.BUILDING) }
 
 
-    private fun checkMissedConstraints() {
-        val constraintSystem = this@ConstraintSystemImpl
-        val errorsByMissedConstraints = buildList {
-            runTransaction {
-                for ((position, constraints) in storage.missedConstraints) {
-                    val fixedVariableConstraints =
-                        constraints.filter { (typeVariable, _) -> typeVariable.freshTypeConstructor() in notFixedTypeVariables }
-                    constraintInjector.processMissedConstraints(constraintSystem, position, fixedVariableConstraints)
-                }
-                errors.filterIsInstance<ConstraintError>().forEach(::add)
-                false
-            }
-        }
-        val constraintErrors = constraintSystem.errors.filterIsInstance<ConstraintError>()
-        // Don't report warning if an error on the same call has already been reported
-        if (constraintErrors.isEmpty()) {
-            errorsByMissedConstraints.forEach {
-                constraintSystem.addError(it.transformToWarning())
-            }
-        }
-    }
 
     /**
      * 固定类型变量
@@ -812,18 +947,12 @@ class ConstraintSystemImpl(
 
         // 添加相等性约束：T = resultType
         constraintInjector.addInitialEqualityConstraint(
-            this@ConstraintSystemImpl,
+
             variable.defaultType(),
             resultType,
             position
         )
 
-        /*
-         * 检查缺失约束可能会引入新的类型不匹配警告。
-         * 这对于废弃仅因约束注入器中的不正确优化而工作的代码是必要的。
-         * TODO: 移除此代码（和 `substituteMissedConstraints`）以及 `ProperTypeInferenceConstraintsProcessing` 特性
-         */
-        checkMissedConstraints()
 
         val freshTypeConstructor = variable.freshTypeConstructor()
         val variableWithConstraints = notFixedTypeVariables.remove(freshTypeConstructor)
@@ -949,41 +1078,10 @@ class ConstraintSystemImpl(
         // 1. {Xv=Int} – is a one-element set (but potentially there might be more constraints in the set)
         // 2. {Xv=T} – second constraints set
         for ((position, forkPointData) in allForkPointsData) {
-            if (!applyConstraintsFromFirstSuccessfulBranchOfTheFork(forkPointData, position)) {
-                addError(NoSuccessfulFork(position))
-            }
+            applyTheBestBranchFromForkPoint(forkPointData, position)
         }
     }
 
-    /**
-     * @return true if there is a successful constraints set for the fork
-     */
-    private fun applyConstraintsFromFirstSuccessfulBranchOfTheFork(
-        forkPointData: ForkPointData,
-        position: IncorporationConstraintPosition,
-    ): Boolean {
-        return forkPointData.any { constraintSetForForkBranch ->
-            runTransaction {
-                constraintInjector.processGivenForkPointBranchConstraints(
-                    this@ConstraintSystemImpl.apply {
-                        checkState(
-                            State.BUILDING,
-                            State.COMPLETION,
-                            State.TRANSACTION
-                        )
-                    },
-                    constraintSetForForkBranch,
-                    position,
-                )
-
-                if (constraintsFromAllForkPoints.isNotEmpty()) {
-                    resolveForkPointsConstraints()
-                }
-
-                !hasContradiction
-            }
-        }
-    }
 
 
     override fun <R> withTypeVariablesThatAreCountedAsProperTypes(

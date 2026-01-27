@@ -28,6 +28,7 @@ import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.resolve.DescriptorEquivalenceForOverrides
 import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.resolve.scopes.LazyScopeAdapter
 import org.cangnova.cangjie.resolve.scopes.TypeIntersectionScope
@@ -172,12 +173,12 @@ abstract class AbstractTypeParameterDescriptor protected constructor(
         }
 
         override fun isSameClassifier(classifier: ClassifierDescriptor): Boolean {
-            return classifier is TypeParameterDescriptor /*&&
-                    DescriptorEquivalenceForOverrides.INSTANCE.areTypeParametersEquivalent(
-                            AbstractTypeParameterDescriptor.this,
-                            (TypeParameterDescriptor) classifier,
-                            true
-                    )*/
+            if (classifier !is TypeParameterDescriptor) return false
+            return DescriptorEquivalenceForOverrides.areTypeParametersEquivalent(
+                this@AbstractTypeParameterDescriptor,
+                classifier,
+                allowCopiesFromTheSameDeclaration = true
+            )
         }
     }
 }

@@ -76,7 +76,7 @@ val CandidateWithBoundDispatchReceiver.requiresExtensionReceiver: Boolean
  * ## 工作原理
  *
  * 1. 使用 [qualifier] 的静态作用域 ([QualifierReceiver.staticScope]) 进行查找
- * 2. 支持类值接收者 ([QualifierReceiver.classValueReceiverWithSmartCastInfo]),用于访问类的静态成员
+ * 2. 在仓颉语言中,类不能作为值使用,只能作为类型限定符
  * 3. 创建的候选者没有分发接收者 (dispatchReceiver = null),因为访问的是静态成员
  *
  * ## 与其他层级的区别
@@ -106,7 +106,7 @@ val CandidateWithBoundDispatchReceiver.requiresExtensionReceiver: Boolean
  * ```
  *
  * @property scopeTower 隐式作用域塔,提供上下文信息
- * @property qualifier 限定符接收者,包含静态作用域和可能的类值接收者
+ * @property qualifier 限定符接收者,包含静态作用域
  *
  * @see QualifierReceiver 限定符接收者的定义
  * @see AbstractScopeTowerLevel 作用域塔层级的抽象基类
@@ -124,7 +124,7 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
      * ## 查找过程
      *
      * 1. 在限定符的静态作用域 ([qualifier.staticScope]) 中查找
-     * 2. 传递类值接收者 ([qualifier.classValueReceiverWithSmartCastInfo])
+     * 2. 仓颉语言中类不能作为值使用,没有类值接收者
      * 3. 可选的扩展接收者用于查找扩展属性
      * 4. 将找到的变量描述符包装为候选者,不设置分发接收者
      *
@@ -143,15 +143,27 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
      */
     override fun getVariables(
         name: Name,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): Collection<CandidateWithBoundDispatchReceiver> = qualifier.staticScope
-        .getContributedVariablesAndInterceptAndEnumConstructor(
-            name,
-            location,
-            qualifier,
-            qualifier.classValueReceiverWithSmartCastInfo,
-            scopeTower
-        ).map {
+        extensionReceiver: ReceiverValueWithSmartCastInfo?,
+        isEnumConstructor: Boolean
+    ): Collection<CandidateWithBoundDispatchReceiver> = qualifier.staticScope.run {
+        if (isEnumConstructor) {
+            getContributedVariablesAndInterceptAndEnumConstructor(
+                name,
+                location,
+                qualifier,
+                null,  // 仓颉语言中类不能作为值使用
+                scopeTower
+            )
+        } else {
+            getContributedVariablesAndIntercept(
+                name,
+                location,
+                null,  // 仓颉语言中类不能作为值使用
+                scopeTower
+            )
+        }
+    }
+        .map {
             createCandidateDescriptor(it, dispatchReceiver = null)
         }
 
@@ -164,7 +176,7 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
      * ## 查找过程
      *
      * 1. 在限定符的静态作用域 ([qualifier.staticScope]) 中查找
-     * 2. 传递类值接收者 ([qualifier.classValueReceiverWithSmartCastInfo])
+     * 2. 仓颉语言中类不能作为值使用,没有类值接收者
      * 3. 可选的扩展接收者用于查找扩展函数
      * 4. 将找到的函数/构造器描述符包装为候选者,不设置分发接收者
      *
@@ -194,16 +206,27 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
      * @return 找到的函数/构造器候选者集合,每个候选者都没有分发接收者
      */
     override fun getFunctions(
-        name: Name
-    ): Collection<CandidateWithBoundDispatchReceiver> = qualifier.staticScope
-        .getContributedFunctionsAndEnumConstructors(
-            name,
-            location,
-            qualifier,
-            qualifier.classValueReceiverWithSmartCastInfo,
-
-            scopeTower
-        ).map {
+        name: Name,
+        isEnumConstructor: Boolean
+    ): Collection<CandidateWithBoundDispatchReceiver> = qualifier.staticScope.run {
+        if(isEnumConstructor){
+            getContributedFunctionsAndEnumConstructors(
+                name,
+                location,
+                qualifier,
+                null,  // 仓颉语言中类不能作为值使用
+                scopeTower
+            )
+        }else{
+            getContributedFunctionsAndConstructors (
+                name,
+                location,
+                null,  // 仓颉语言中类不能作为值使用
+                scopeTower
+            )
+        }
+    }
+       .map {
             createCandidateDescriptor(it, dispatchReceiver = null)
         }
 

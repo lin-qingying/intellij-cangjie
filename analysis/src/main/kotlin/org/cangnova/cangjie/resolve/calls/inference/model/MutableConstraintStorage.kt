@@ -29,9 +29,23 @@ import org.cangnova.cangjie.resolve.calls.inference.components.ConstraintSystemU
 import org.cangnova.cangjie.resolve.calls.tower.isSuccess
 import org.cangnova.cangjie.types.model.*
 import com.intellij.util.SmartList
+import org.cangnova.cangjie.resolve.calls.inference.components.TypeApproximatorCachesPerConfiguration
+import org.cangnova.cangjie.resolve.calls.inference.extractAllContainingTypeVariables
 import org.cangnova.cangjie.utils.trimToSize
+import java.util.IdentityHashMap
+import java.util.LinkedHashMap
 
 private typealias Context = TypeSystemInferenceExtensionContext
+
+fun <T> identityHashSetFromSum(first: List<T>, second: List<T>): Set<T> =
+    IdentityHashMap<T, Boolean>().apply {
+        for (elem in first) {
+            put(elem, true)
+        }
+        for (elem in second) {
+            put(elem, true)
+        }
+    }.keys
 
 /**
  * 可变类型变量与约束集合
@@ -71,6 +85,12 @@ class MutableVariableWithConstraints private constructor(
      * @param other 要复制的源变量约束
      */
     constructor(context: Context, other: VariableWithConstraints) : this(context, other.typeVariable, other.constraints)
+    constructor(context:  Context, first: VariableWithConstraints, second: VariableWithConstraints) : this(
+        context,
+        first.typeVariable.also { require(it == second.typeVariable) },
+        identityHashSetFromSum(first.constraints, second.constraints)
+            .toList(),
+    )
 
     /**
      * 可变约束集合 - 存储所有添加的原始约束
@@ -264,6 +284,13 @@ class MutableVariableWithConstraints private constructor(
             ConstraintKind.UPPER -> new.kind.isUpper()
         }
     }
+    /**
+     * A map that for a specified key (type constructor of a type variable) returns a collection of constraints that contains
+     * the type variable.
+     *
+     * The property is necessary for the sake of optimizations only and expected to be nullified after any modifications [constraints]
+     */
+    private var constraintsGroupedByContainedTypeVariables: Map<TypeConstructorMarker, Collection<Constraint>>? = null
 
     /**
      * 添加一个新的约束到现有的约束集合中。
@@ -362,6 +389,24 @@ class MutableVariableWithConstraints private constructor(
             return simplifiedConstraints!!
         }
 
+
+
+    private fun computeConstraintsGroupedByContainedTypeVariables(): Map<TypeConstructorMarker, Collection<Constraint>> = with(context) {
+        buildMap<TypeConstructorMarker, MutableCollection<Constraint>> {
+            for (constraint in constraints) {
+                for (otherTypeVariable in constraint.type.extractAllContainingTypeVariables()) {
+                    this.getOrPut(otherTypeVariable) { SmartList() }.add(constraint)
+                }
+            }
+        }
+    }
+    override fun getConstraintsContainedSpecifiedTypeVariable(typeVariableConstructor: TypeConstructorMarker): Collection<Constraint> {
+        if (constraintsGroupedByContainedTypeVariables == null) {
+            constraintsGroupedByContainedTypeVariables = computeConstraintsGroupedByContainedTypeVariables()
+        }
+
+        return constraintsGroupedByContainedTypeVariables!![typeVariableConstructor] ?: emptyList()
+    }
     override fun toString(): String {
         return "Constraints for $typeVariable"
     }
@@ -371,6 +416,10 @@ internal class MutableConstraintStorage : ConstraintStorage {
     override val allTypeVariables: MutableMap<TypeConstructorMarker, TypeVariableMarker> = LinkedHashMap()
     override val notFixedTypeVariables: MutableMap<TypeConstructorMarker, MutableVariableWithConstraints> =
         LinkedHashMap()
+    override val typeVariableDependencies: MutableMap<TypeConstructorMarker, MutableSet<TypeConstructorMarker>> =
+        LinkedHashMap()
+    override val approximatorCaches: TypeApproximatorCachesPerConfiguration = mutableMapOf()
+
     override val missedConstraints: MutableList<Pair<IncorporationConstraintPosition, MutableList<Pair<TypeVariableMarker, Constraint>>>> =
         SmartList()
     override val initialConstraints: MutableList<InitialConstraint> = SmartList()

@@ -85,13 +85,37 @@ abstract class AbstractTypeApproximator(
     val ctx: TypeSystemInferenceExtensionContext,
     protected val languageVersionSettings: LanguageVersionSettings,
 ) : TypeSystemInferenceExtensionContext by ctx {
+    class Cache {
+        val resultsForSupertype = mutableMapOf<CapturedTypeMarker, ApproximationResult>()
+        val resultsForSubtype = mutableMapOf<CapturedTypeMarker,  ApproximationResult>()
+
+        // We assume that no approximation cycles should be met when approximating to a type's lower bound
+        // Currently, the known sources of approximation cycles are
+        // - captured types with recursive bounds
+        // - recursive local types
+        val typesBeingApproximatedToSupertype = mutableSetOf<SimpleTypeMarker>()
+
+        // Non-trivial lower bounds are always brought via explicitly specified/inferred `in` projection where no recursion should happen.
+
+        val typesBeingApproximatedToSubtype = mutableSetOf<SimpleTypeMarker>()
+
+        operator fun plusAssign(other: Cache) {
+            resultsForSupertype += other.resultsForSupertype
+            resultsForSubtype += other.resultsForSubtype
+
+
+            check(other.typesBeingApproximatedToSupertype.isEmpty() && other.typesBeingApproximatedToSubtype.isEmpty()) {
+                "Combination of caches/Constraint storages is not expected to happen during type approximation"
+            }
+        }
+    }
 
     /**
      * 近似结果的包装类
      *
      * @property type 近似后的类型，null 表示输入类型本身就是结果（无需近似）
      */
-    private class ApproximationResult(val type: CangJieTypeMarker?)
+    class ApproximationResult(val type: CangJieTypeMarker?)
 
     /** 向超类型近似时的缓存（仅用于 IncorporationConfiguration） */
     private val cacheForIncorporationConfigToSuperDirection =

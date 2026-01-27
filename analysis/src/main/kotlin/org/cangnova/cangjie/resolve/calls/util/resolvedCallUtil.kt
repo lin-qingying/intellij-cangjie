@@ -35,7 +35,6 @@ import org.cangnova.cangjie.resolve.calls.tower.CandidateApplicability
 import org.cangnova.cangjie.resolve.calls.tower.AbstractResolvedCall
 import org.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import org.cangnova.cangjie.resolve.getOwnerForEffectiveDispatchReceiverParameter
-import org.cangnova.cangjie.resolve.scopes.receivers.ClassValueReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
@@ -77,9 +76,10 @@ fun ResolvedCall<*>.hasThisOrNoDispatchReceiver(
         is ImplicitReceiver -> // foo() -- implicit receiver
             dispatchReceiverDescriptor = dispatchReceiverValue.declarationDescriptor
 
-        is ClassValueReceiver -> {
-            dispatchReceiverDescriptor = dispatchReceiverValue.classQualifier.descriptor
-        }
+        // 注意：仓颉语言中类不能作为值使用，只能作为类型限定符
+        // 因此不存在 ClassValueReceiver 的情况
+        // 通过类名访问静态成员时（如 ClassName.staticMethod()），
+        // 分发接收器为 null，静态成员通过 ClassifierQualifier 的 staticScope 访问
 
         is ExpressionReceiver -> {
             val expression = CjPsiUtil.deparenthesize(dispatchReceiverValue.expression)

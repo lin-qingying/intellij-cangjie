@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.resolve.calls.inference.model
 
 import org.cangnova.cangjie.resolve.calls.inference.ForkPointData
+import org.cangnova.cangjie.resolve.calls.inference.components.TypeApproximatorCachesPerConfiguration
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
@@ -140,6 +141,18 @@ interface ConstraintStorage {
      * ```
      */
     val allTypeVariables: Map<TypeConstructorMarker, TypeVariableMarker>
+    /**
+     * For a type variable X (its type constructor) as a key, the map contains a set of type variables
+     * that may have constraints referring to X (containing it inside the type).
+     *
+     * Mostly, this property is necessary for the sake of incorporation optimizations.
+     *
+     * Note that the resulting set might contain some false positives, i.e., there might be some variables that actually don't contain
+     * the constraints containing the requested variable X. That situation might occur due to a situation
+     * when constraints have been added and then removed during a transaction rollback.
+     */
+    val typeVariableDependencies: Map<TypeConstructorMarker, Set<TypeConstructorMarker>>
+    val approximatorCaches: TypeApproximatorCachesPerConfiguration
 
     /**
      * 未固定的类型变量及其约束
@@ -367,6 +380,10 @@ interface ConstraintStorage {
     object Empty : ConstraintStorage {
         /** 空的类型变量映射 */
         override val allTypeVariables: Map<TypeConstructorMarker, TypeVariableMarker> get() = emptyMap()
+        override val typeVariableDependencies: Map<TypeConstructorMarker, Set<TypeConstructorMarker>>
+            get() = emptyMap()
+        override val approximatorCaches: TypeApproximatorCachesPerConfiguration
+            get() = mutableMapOf()
 
         /** 空的未固定类型变量映射 */
         override val notFixedTypeVariables: Map<TypeConstructorMarker, VariableWithConstraints> get() = emptyMap()
@@ -563,6 +580,7 @@ enum class ConstraintKind {
  * @property typeHashCode 类型的哈希码，用于优化相等性比较
  * @property derivedFrom 此约束派生自哪些类型变量
  * @property inputTypePositionBeforeIncorporation 合并前的输入类型位置
+ * @property isNoInfer 是否标记为 NoInfer（不参与类型推断）
  *
  * 关于 inputTypePositionBeforeIncorporation：
  * 此值为 true 表示约束形式为 `Nothing? <: Tv`，
@@ -571,6 +589,10 @@ enum class ConstraintKind {
  * 该参数的主要作用：
  * 1. 我们不将这类约束视为"正确的"约束（表示变量已准备好完成）
  * 2. K1 中有额外的逻辑，如果只有这类下界约束，不允许将变量固定为 `Nothing?`
+ *
+ * 关于 isNoInfer：
+ * 当此值为 true 时，该约束不应该影响类型变量的最终推断结果。
+ * 常用于标记不希望参与类型推断的约束，例如某些辅助函数的类型约束。
  *
  * 示例：
  * ```
@@ -589,7 +611,8 @@ class Constraint(
     val position: IncorporationConstraintPosition,
     val typeHashCode: Int = type.hashCode(),
     val derivedFrom: Set<TypeVariableMarker>,
-    val inputTypePositionBeforeIncorporation: OnlyInputTypeConstraintPosition? = null
+    val inputTypePositionBeforeIncorporation: OnlyInputTypeConstraintPosition? = null,
+    val isNoInfer: Boolean = false
 ) {
     /**
      * 判断两个约束是否相等
@@ -672,6 +695,11 @@ interface VariableWithConstraints {
      * 3. 确定类型变量的上下界
      */
     val constraints: List<Constraint>
+    /**
+     * Only necessary for incorporation optimization
+     */
+    fun getConstraintsContainedSpecifiedTypeVariable(typeVariableConstructor: TypeConstructorMarker): Collection< Constraint>
+
 }
 
 /**
@@ -836,5 +864,6 @@ fun Constraint.replaceType(newType: CangJieTypeMarker) =
         position,
         typeHashCode,
         derivedFrom,
-        inputTypePositionBeforeIncorporation
+        inputTypePositionBeforeIncorporation,
+        isNoInfer
     )

@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.types
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.anyUFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.optionUFqName
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
@@ -161,6 +162,9 @@ object TypeUtils {
         return type is SpecialType
     }
 
+    fun isAny(type: CangJieType): Boolean {
+        return isConstructedFromGivenClass(type, anyUFqName)
+    }
     /**
      * 为类型参数创建类型投影
      *

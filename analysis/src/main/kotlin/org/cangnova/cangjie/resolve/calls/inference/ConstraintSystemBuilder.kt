@@ -32,6 +32,9 @@ import org.cangnova.cangjie.types.model.CangJieTypeMarker
 import org.cangnova.cangjie.types.model.TypeConstructorMarker
 import org.cangnova.cangjie.types.model.TypeSubstitutorMarker
 import org.cangnova.cangjie.types.model.TypeVariableMarker
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 
 /**
@@ -275,16 +278,20 @@ interface ConstraintSystemOperation {
  * @see ConstraintSystemBuilder.prepareTransaction
  * @see ConstraintSystemTransaction
  */
+@OptIn(ExperimentalContracts::class)
+
 inline fun ConstraintSystemBuilder.runTransaction(crossinline runOperations: ConstraintSystemOperation.() -> Boolean): Boolean {
+    contract {
+        callsInPlace(runOperations, InvocationKind.EXACTLY_ONCE)
+    }
     val transactionState = prepareTransaction()
 
-    // 执行操作，如果返回 true 则提交事务
+    // typeVariablesTransaction is clear
     if (runOperations()) {
         transactionState.closeTransaction()
         return true
     }
 
-    // 操作失败，回滚事务
     transactionState.rollbackTransaction()
     return false
 }

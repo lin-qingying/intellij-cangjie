@@ -60,6 +60,7 @@ interface TypeSubstitutorMarker
 
 interface AnnotationMarker
 
+interface ConstraintSystemMarker : TypeSystemInferenceExtensionContext
 
 
 interface TypeSystemOptimizationContext {
@@ -202,8 +203,8 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
         }
     }
 
+    fun TypeVariableMarker.freshTypeConstructor(): TypeVariableTypeConstructorMarker
     fun TypeConstructorMarker.isFinalClassConstructor(): Boolean
-    fun TypeVariableMarker.freshTypeConstructor(): TypeConstructorMarker
     fun CapturedTypeMarker.typeConstructorProjection(): TypeArgumentMarker
     fun CapturedTypeMarker.typeParameter(): TypeParameterMarker?
     fun CapturedTypeMarker.withNonOptionProjection(): CangJieTypeMarker
@@ -432,6 +433,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
             return argument
         }
     }
+    fun CangJieTypeMarker.isAny() = this.typeConstructor().isAnyConstructor()
 
     fun TypeConstructorMarker.isAnyConstructor(): Boolean
     fun TypeConstructorMarker.isNothingConstructor(): Boolean

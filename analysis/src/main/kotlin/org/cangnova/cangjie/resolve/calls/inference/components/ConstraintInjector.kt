@@ -294,6 +294,7 @@ import kotlin.math.max
  */
 fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
     with(context) { typeConstructor() }
+typealias TypeApproximatorCachesPerConfiguration = MutableMap<TypeApproximatorConfiguration, AbstractTypeApproximator.Cache>
 
 /**
  * 约束注入器
@@ -316,13 +317,16 @@ class ConstraintInjector(
     val constraintIncorporator: ConstraintIncorporator,
     val typeApproximator: AbstractTypeApproximator,
     private val languageVersionSettings: LanguageVersionSettings,
-) {
+    inferenceLoggerParameter: InferenceLogger? = null,
+
+    ) {
     /**
      * 约束合并时允许的最大类型深度增量
      *
      * 用于防止类型深度在约束合并过程中无限增长
      */
     private val ALLOWED_DEPTH_DELTA_FOR_INCORPORATION = 1
+    val inferenceLogger = inferenceLoggerParameter.takeIf { it !is InferenceLogger.Dummy }
 
     /**
      * 处理给定分支点的约束
@@ -334,48 +338,19 @@ class ConstraintInjector(
      * @param constraintSet 该分支产生的约束集合
      * @param position 约束合并位置
      */
+    context(c: Context)
+
     fun processGivenForkPointBranchConstraints(
-        c: Context,
         constraintSet: Collection<Pair<TypeVariableMarker, Constraint>>,
         position: IncorporationConstraintPosition
     ) {
-        processGivenConstraints(
-            c,
-            TypeCheckerStateForConstraintInjector(c, position),
-            constraintSet,
-        )
-    }
 
-    /**
-     * 处理错过的约束
-     *
-     * 在旧的约束处理系统中，某些约束可能被错误的优化跳过。
-     * 此方法用于补充处理这些被错过的约束。
-     *
-     * 注意：当启用正确的约束处理特性时，此方法直接返回，
-     * 因为新系统不会产生错过的约束。
-     *
-     * @param c 约束系统上下文
-     * @param position 约束合并位置
-     * @param missedConstraints 被错过的约束列表
-     */
-    fun processMissedConstraints(
-        c: Context,
-        position: IncorporationConstraintPosition,
-        missedConstraints: List<Pair<TypeVariableMarker, Constraint>>
-    ) {
-        // 默认启用：使用正确的类型推断约束处理
-        val properConstraintsProcessingEnabled = true
-
-        // 如果启用了正确的约束处理，则不会有错过的约束
-        if (properConstraintsProcessingEnabled) return
-
-        val typeCheckerState = TypeCheckerStateForConstraintInjector(c, position)
-        for ((variable, constraint) in missedConstraints) {
-            typeCheckerState.addPossibleNewConstraint(variable, constraint)
+        with(TypeCheckerStateForConstraintInjector(c, position)) {
+            processGivenConstraints(constraintSet)
+                processConstraintsIgnoringForksData()
         }
-        processConstraints(c, typeCheckerState, skipProperEqualityConstraints = false)
     }
+
 
     /**
      * 通过子类型关系添加初始相等性约束
@@ -390,16 +365,18 @@ class ConstraintInjector(
      * @param b 第二个类型
      * @param typeCheckerState 类型检查器状态
      */
-    private fun Context.addInitialEqualityConstraintThroughSubtyping(
+    context(c: Context, typeCheckerState: TypeCheckerStateForConstraintInjector)
+
+    private fun  addInitialEqualityConstraintThroughSubtyping(
         a: CangJieTypeMarker,
         b: CangJieTypeMarker,
-        typeCheckerState: TypeCheckerStateForConstraintInjector
     ) {
-        updateAllowedTypeDepth(this, a)
-        updateAllowedTypeDepth(this, b)
-        addSubTypeConstraintAndIncorporateIt(this, a, b, typeCheckerState)
-        addSubTypeConstraintAndIncorporateIt(this, b, a, typeCheckerState)
+        updateAllowedTypeDepth(a)
+        updateAllowedTypeDepth(b)
+        addSubTypeConstraintAndIncorporateIt(a, b)
+        addSubTypeConstraintAndIncorporateIt(b, a)
     }
+
 
     /**
      * 添加初始相等性约束
@@ -418,8 +395,9 @@ class ConstraintInjector(
      * @param b 第二个类型（可能是类型变量）
      * @param position 约束位置
      */
+    context(c: Context)
     fun addInitialEqualityConstraint(
-        c: Context,
+
         a: CangJieTypeMarker,
         b: CangJieTypeMarker,
         position: ConstraintPosition
@@ -435,18 +413,24 @@ class ConstraintInjector(
         val initialConstraint = InitialConstraint(typeVariable, equalType, ConstraintKind.EQUALITY, position).also {
             c.addInitialConstraint(it)
         }
-        val typeCheckerState =
-            TypeCheckerStateForConstraintInjector(c, IncorporationConstraintPosition(initialConstraint))
+        inferenceLogger?.logInitial(initialConstraint, c)
 
-        // 对于非简单类型或可选类型，使用旧的方式（通过子类型添加约束）
-        if (!typeVariable.isSimpleType() || typeVariable.isOptionType()) {
-            addInitialEqualityConstraintThroughSubtyping(typeVariable, equalType, typeCheckerState)
-            return
+        with(TypeCheckerStateForConstraintInjector(c, IncorporationConstraintPosition(initialConstraint))) {
+            // 对于可选类型或复杂类型（如 T? == Foo!），使用旧的方式（通过双向子类型约束）添加约束
+            if (!typeVariable.isSimpleType() || typeVariable.isOptionType()) {
+                inferenceLogger.withOrigin(initialConstraint) {
+                    addInitialEqualityConstraintThroughSubtyping(typeVariable, equalType)
+                }
+                return
+            }
+
+            updateAllowedTypeDepth(equalType)
+            inferenceLogger.withOrigin(initialConstraint) {
+                addEqualityConstraintAndIncorporateIt(typeVariable, equalType)
+            }
         }
 
-        // 对于简单类型，直接添加相等性约束
-        updateAllowedTypeDepth(c, equalType)
-        addEqualityConstraintAndIncorporateIt(c, typeVariable, equalType, typeCheckerState)
+
     }
 
     /**
@@ -459,21 +443,16 @@ class ConstraintInjector(
      * @param equalType 与类型变量相等的类型
      * @param typeCheckerState 类型检查器状态
      */
+    context(c: Context, typeCheckerState: TypeCheckerStateForConstraintInjector)
+
     private fun addEqualityConstraintAndIncorporateIt(
-        c: Context,
         typeVariable: CangJieTypeMarker,
         equalType: CangJieTypeMarker,
-        typeCheckerState: TypeCheckerStateForConstraintInjector
     ) {
         typeCheckerState.setConstrainingTypesToPrintDebugInfo(typeVariable, equalType)
         typeCheckerState.addEqualityConstraint(typeVariable.typeConstructor(c), equalType)
 
-        // 错过的约束是由于错误的优化而在约束处理器中跳过的约束
-        val missedConstraints = processConstraints(c, typeCheckerState)
-
-        if (missedConstraints != null) {
-            c.addMissedConstraints(typeCheckerState.position, missedConstraints)
-        }
+        processConstraints()
     }
 
     /**
@@ -484,7 +463,8 @@ class ConstraintInjector(
      * @param c 约束系统上下文
      * @param initialType 初始类型
      */
-    private fun updateAllowedTypeDepth(c: Context, initialType: CangJieTypeMarker) = with(c) {
+    context(c: Context)
+    private fun updateAllowedTypeDepth(initialType: CangJieTypeMarker) = with(c) {
         c.maxTypeDepthFromInitialConstraints = max(c.maxTypeDepthFromInitialConstraints, initialType.typeDepth())
     }
 
@@ -499,22 +479,21 @@ class ConstraintInjector(
      * @param skipProperEqualityConstraints 是否跳过正确的相等性约束（默认为 true）
      * @return 被错过的约束列表，如果没有则返回 null
      */
-    private fun processConstraints(
-        c: Context,
-        typeCheckerState: TypeCheckerStateForConstraintInjector,
-        skipProperEqualityConstraints: Boolean = true
-    ): MutableList<Pair<TypeVariableMarker, Constraint>>? {
-        return processConstraintsIgnoringForksData(typeCheckerState, c, skipProperEqualityConstraints).also {
-            // 提取所有分支点数据
-            typeCheckerState.extractForkPointsData()?.let { allForkPointsData ->
-                allForkPointsData.mapTo(c.constraintsFromAllForkPoints) { forkPointData ->
-                    typeCheckerState.position to forkPointData
-                }
+    context(c: Context, typeCheckerState: TypeCheckerStateForConstraintInjector)
 
-                // 在完成阶段，我们立即开始处理分支约束
-                if (c.atCompletionState) {
-                    c.resolveForkPointsConstraints()
-                }
+    private fun processConstraints(
+    )  {
+        processConstraintsIgnoringForksData()
+        typeCheckerState.extractForkPointsData()?.let { allForkPointsData ->
+            allForkPointsData.mapTo(c.constraintsFromAllForkPoints) { forkPointData ->
+                typeCheckerState.position to forkPointData
+            }
+
+            c.onNewConstraintOrForkPoint()
+
+            // During completion, we start processing fork constrains immediately
+            if (c.atCompletionState) {
+                c.resolveForkPointsConstraints()
             }
         }
     }
@@ -532,28 +511,24 @@ class ConstraintInjector(
      * @param constraint 约束
      * @return true 如果应该跳过此约束
      */
-    private fun Context.shouldWeSkipConstraint(typeVariable: TypeVariableMarker, constraint: Constraint): Boolean {
-        // 不跳过相等性约束
+    context(c: Context)
+
+    private fun shouldWeSkipConstraint(typeVariable: TypeVariableMarker, constraint: Constraint): Boolean {
         if (constraint.kind == ConstraintKind.EQUALITY)
             return false
 
         val constraintType = constraint.type
 
-        // 检查是否是自反约束（类型变量约束其自身）
+        // 自反约束: T <: T 或 T :> T
         if (constraintType.typeConstructor() == typeVariable.freshTypeConstructor()) {
-            // T? <: T 不应该跳过
-            if (constraintType.lowerBoundIfFlexible()
-                    .isOptionType() && constraint.kind == ConstraintKind.LOWER
-            ) return false
-
-            return true // T <: T(?!) 应该跳过
+            return true // T <: T 没有意义
         }
 
-        // 跳过 T <: Any? 这样的上界约束
+        // 顶层类型约束: T <: Any (在没有可空类型的语言中)
         if (constraint.position.from is DeclaredUpperBoundConstraintPosition<*> &&
-            constraint.kind == ConstraintKind.UPPER && constraintType.isOptionAny()
+            constraint.kind == ConstraintKind.UPPER && constraintType.isAny()  // 改为 isAny()
         ) {
-            return true
+            return true // T <: Any 是冗余的
         }
 
         return false
@@ -581,14 +556,14 @@ class ConstraintInjector(
      * @param typeCheckerState 类型检查器状态，用于约束合并
      * @param constraintsToProcess 待处理的约束集合，每个元素是 (类型变量, 约束) 对
      */
+    context(c: Context, typeCheckerState: TypeCheckerStateForConstraintInjector)
+
     private fun processGivenConstraints(
-        c: Context,
-        typeCheckerState: TypeCheckerStateForConstraintInjector,
         constraintsToProcess: Collection<Pair<TypeVariableMarker, Constraint>>
     ) {
         for ((typeVariable, constraint) in constraintsToProcess) {
-            // 跳过冗余约束（如 T <: T, T <: Any? 等）
-            if (c.shouldWeSkipConstraint(typeVariable, constraint)) continue
+            // 跳过冗余约束（如 T <: T, T <: Any 等）
+            if ( shouldWeSkipConstraint(typeVariable, constraint)) continue
 
             // 获取类型变量的约束集合
             // 如果类型变量已固定，则报错（不应该为已固定的类型变量添加约束）
@@ -604,12 +579,14 @@ class ConstraintInjector(
 
             // 判断是否需要合并此约束
             val constraintToIncorporate = when {
+                // 情况 1：新添加的约束需要合并
+                wasAdded -> addedOrNonRedundantExistedConstraint
 
                 // 情况 2：固定类型变量的相等性约束需要合并
                 // 这种情况发生在类型变量被固定为某个具体类型时
                 positionFrom is FixVariableConstraintPosition<*> &&
-                positionFrom.variable == typeVariable &&
-                constraint.kind == ConstraintKind.EQUALITY ->
+                        positionFrom.variable == typeVariable &&
+                        constraint.kind == ConstraintKind.EQUALITY ->
                     addedOrNonRedundantExistedConstraint
 
                 // 其他情况不需要合并
@@ -618,7 +595,7 @@ class ConstraintInjector(
 
             // 如果需要合并，调用约束合并器
             if (constraintToIncorporate != null) {
-                constraintIncorporator.incorporate(typeCheckerState, typeVariable, constraintToIncorporate)
+                constraintIncorporator.incorporate(  typeVariable, constraintToIncorporate)
             }
         }
     }
@@ -650,48 +627,14 @@ class ConstraintInjector(
      * @param skipProperEqualityConstraints 是否启用旧的优化（默认 true，但新系统会忽略）
      * @return 错过的约束列表（新系统中总是返回 null）
      */
+    context(c: Context, typeCheckerState: TypeCheckerStateForConstraintInjector)
+
     private fun processConstraintsIgnoringForksData(
-        typeCheckerState: TypeCheckerStateForConstraintInjector,
-        c: Context,
-        skipProperEqualityConstraints: Boolean
-    ): MutableList<Pair<TypeVariableMarker, Constraint>>? {
-        // 新系统默认启用正确的约束处理
-        // 注释掉的代码是旧的特性开关检查
-        val properConstraintsProcessingEnabled = true
-//            languageVersionSettings.supportsFeature(LanguageFeature.ProperTypeInferenceConstraintsProcessing)
-
-        // 主处理循环：持续处理直到没有新约束产生
+    ) {
         while (typeCheckerState.hasConstraintsToProcess()) {
-            // 提取并处理当前所有待处理的约束
-            processGivenConstraints(c, typeCheckerState, typeCheckerState.extractAllConstraints()!!)
-
-            val contextOps = c as? ConstraintSystemOperation
-
-            // 判断是否使用旧的不正确优化
-            // 只有在明确要求跳过且未启用新系统时才使用
-            val useIncorrectOptimization = skipProperEqualityConstraints && !properConstraintsProcessingEnabled
-
-            // 新系统不使用优化，直接继续循环
-            if (!useIncorrectOptimization) continue
-
-            // === 以下是旧系统的优化逻辑（新系统不会执行） ===
-
-            // 检查是否每个类型变量都有"正确的"相等性约束
-            // "正确的"约束指：约束类型不包含其他类型变量
-            val hasProperEqualityConstraintForEachVariable =
-                contextOps != null && c.notFixedTypeVariables.all { typeVariable ->
-                    typeVariable.value.constraints.any { constraint ->
-                        constraint.kind == ConstraintKind.EQUALITY && contextOps.isProperType(constraint.type)
-                    }
-                }
-
-            // 如果满足条件，提前终止并返回剩余约束作为"错过的约束"
-            // 这些约束会在后续通过 processMissedConstraints 处理
-            if (hasProperEqualityConstraintForEachVariable) return typeCheckerState.extractAllConstraints()
+            processGivenConstraints(typeCheckerState.extractAllConstraints()!!)
         }
 
-        // 正常完成，没有错过的约束
-        return null
     }
 
 
@@ -705,21 +648,15 @@ class ConstraintInjector(
      * @param upperType 超类型（上界）
      * @param typeCheckerState 类型检查器状态
      */
+    context(c: ConstraintInjector.Context, typeCheckerState: TypeCheckerStateForConstraintInjector)
     private fun addSubTypeConstraintAndIncorporateIt(
-        c: Context,
         lowerType: CangJieTypeMarker,
         upperType: CangJieTypeMarker,
-        typeCheckerState: TypeCheckerStateForConstraintInjector
     ) {
         typeCheckerState.setConstrainingTypesToPrintDebugInfo(lowerType, upperType)
         typeCheckerState.runIsSubtypeOf(lowerType, upperType)
 
-        // 错过的约束是由于错误的优化而在约束处理器中跳过的约束
-        val missedConstraints = processConstraints(c, typeCheckerState)
-
-        if (missedConstraints != null) {
-            c.addMissedConstraints(typeCheckerState.position, missedConstraints)
-        }
+        processConstraints()
     }
 
     /**
@@ -732,21 +669,26 @@ class ConstraintInjector(
      * @param upperType 超类型
      * @param position 约束位置
      */
+    context(c: Context)
+
     fun addInitialSubtypeConstraint(
-        c: Context,
+
         lowerType: CangJieTypeMarker,
         upperType: CangJieTypeMarker,
         position: ConstraintPosition
     ) {
         val initialConstraint =
             InitialConstraint(lowerType, upperType, ConstraintKind.UPPER, position).also { c.addInitialConstraint(it) }
-        val typeCheckerState =
-            TypeCheckerStateForConstraintInjector(c, IncorporationConstraintPosition(initialConstraint))
+        inferenceLogger?.logInitial(initialConstraint, c)
 
-        updateAllowedTypeDepth(c, lowerType)
-        updateAllowedTypeDepth(c, upperType)
+        updateAllowedTypeDepth(lowerType)
+        updateAllowedTypeDepth(upperType)
+        inferenceLogger.withOrigin(initialConstraint) {
+            with(TypeCheckerStateForConstraintInjector(c, IncorporationConstraintPosition(initialConstraint))) {
+                addSubTypeConstraintAndIncorporateIt(lowerType, upperType)
+            }
+        }
 
-        addSubTypeConstraintAndIncorporateIt(c, lowerType, upperType, typeCheckerState)
     }
 
     /**
@@ -755,7 +697,7 @@ class ConstraintInjector(
      * 定义了约束注入器所需的所有操作接口。
      * 实现此接口的类通常是约束系统的核心实现类。
      */
-    interface Context : TypeSystemInferenceExtensionContext {
+    interface Context : TypeSystemInferenceExtensionContext, ConstraintSystemMarker {
         /** 所有类型变量的映射（从类型构造器到类型变量） */
         val allTypeVariables: Map<TypeConstructorMarker, TypeVariableMarker>
 
@@ -767,6 +709,7 @@ class ConstraintInjector(
 
         /** 已固定的类型变量及其确定的类型 */
         val fixedTypeVariables: MutableMap<TypeConstructorMarker, CangJieTypeMarker>
+        val approximatorCaches: TypeApproximatorCachesPerConfiguration
 
         /** 所有分支点的约束数据 */
         val constraintsFromAllForkPoints: MutableList<Pair<IncorporationConstraintPosition, ForkPointData>>
@@ -777,8 +720,13 @@ class ConstraintInjector(
         /** 添加初始约束 */
         fun addInitialConstraint(initialConstraint: InitialConstraint)
 
+        /**
+         * @see org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintStorage.typeVariableDependencies
+         */
+        val typeVariableDependencies: Map<TypeConstructorMarker, Set<TypeConstructorMarker>>
         /** 添加错误 */
         fun addError(error: ConstraintSystemError)
+        fun onNewConstraintOrForkPoint()
 
         /** 添加错过的约束 */
         fun addMissedConstraints(
@@ -857,6 +805,9 @@ class ConstraintInjector(
         /** 是否正在合并来自声明上界的约束 */
         private var isIncorporatingConstraintFromDeclaredUpperBound = false
 
+        /** 当前约束的派生来源集合，用于防止循环约束 */
+        private var currentDerivedFrom: Set<TypeVariableMarker> = emptySet()
+
         /**
          * 提取所有约束并清空约束列表
          *
@@ -894,7 +845,7 @@ class ConstraintInjector(
             if (possibleNewConstraints == null) {
                 possibleNewConstraints = SmartList()
             }
-//            TODO 排除掉来自扩展的约束，因为那并不一定来字扩展
+//            TODO 排除掉来自扩展的约束，因为那并不一定来自扩展
 //            if (constraint.position.from is ReceiverConstraintPosition<*>) return
             possibleNewConstraints!!.add(variable to constraint)
         }
@@ -913,7 +864,7 @@ class ConstraintInjector(
             typeVariable: TypeConstructorMarker,
             subType: CangJieTypeMarker,
             isNoInfer: Boolean
-        ) = addConstraint(typeVariable, subType, ConstraintKind.LOWER,  )
+        ) = addConstraint(typeVariable, subType, ConstraintKind.LOWER, isNoInfer)
 
         /**
          * 添加相等性约束（T == A）
@@ -940,7 +891,7 @@ class ConstraintInjector(
             superType: CangJieTypeMarker,
             isNoInfer: Boolean
         ) =
-            addConstraint(typeVariable, superType, ConstraintKind.UPPER)
+            addConstraint(typeVariable, superType, ConstraintKind.UPPER, isNoInfer)
 
         /** 获取语言版本设置 */
         override val languageVersionSettings: LanguageVersionSettings
@@ -1014,11 +965,13 @@ class ConstraintInjector(
                 // 情况 2：只有一个分支（立即处理）
                 else -> {
                     // 空集合的情况已在上面处理，这里一定是单个非空分支
-                    processGivenForkPointBranchConstraints(
-                        c,
-                        constraintSets.single(),
-                        position,
-                    )
+
+                    with(c) {
+                        processGivenForkPointBranchConstraints(
+                            constraintSets.single(),
+                            position,
+                        )
+                    }
                 }
             }
 
@@ -1181,38 +1134,61 @@ class ConstraintInjector(
          * @param typeVariableConstructor 类型变量的构造器
          * @param type 约束的类型
          * @param kind 约束种类（UPPER、LOWER 或 EQUALITY）
-         * @param isFromNullabilityConstraint 是否来自可空性约束
+         * @param isNoInfer 是否标记为 NoInfer（不参与类型推断）
          */
         private fun addConstraint(
             typeVariableConstructor: TypeConstructorMarker,
             type: CangJieTypeMarker,
             kind: ConstraintKind,
-            isFromNullabilityConstraint: Boolean = false
+            isNoInfer: Boolean = false
         ) {
             // 查找类型变量，如果不存在则报错
             val typeVariable = c.allTypeVariables[typeVariableConstructor.unwrapStubTypeVariableConstructor()]
                 ?: error("Should by type variableConstructor: $typeVariableConstructor. ${c.allTypeVariables.values}")
 
-            // 添加新的合并约束
+            // 添加新的合并约束，使用当前的派生来源集合
             addNewIncorporatedConstraint(
                 typeVariable,
                 type,
-                ConstraintContext(kind, emptySet())
+                ConstraintContext(kind, currentDerivedFrom, isNoInfer = isNoInfer)
             )
         }
 
+        private var currentDerivedFromSet: Set<TypeVariableMarker> = emptySet()
+
+        private var isIncorporatingConstraintFromNoInfer = false
+
         /**
-         * 从声明的上界添加新的合并约束
+         * 使用新的约束合并配置执行代码块
          *
-         * 当约束来自类型参数的声明上界时（如 T: Number），
-         * 需要特殊标记，以便在错误报告时提供更好的信息。
+         * 这是一个辅助方法，用于在约束合并过程中临时设置派生来源集合和其他配置。
+         * 执行完毕后会自动恢复之前的配置。
          *
-         * @param runIsSubtypeOf 执行子类型检查的函数
+         * @param newDerivedFromSet 新的派生来源集合
+         * @param isFromDeclaredUpperBound 是否来自声明的上界
+         * @param isNoInfer 是否标记为 NoInfer
+         * @param b 要执行的代码块
          */
-        private fun addNewIncorporatedConstraintFromDeclaredUpperBound(runIsSubtypeOf: Runnable) {
-            isIncorporatingConstraintFromDeclaredUpperBound = true
-            runIsSubtypeOf.run()
-            isIncorporatingConstraintFromDeclaredUpperBound = false
+        private inline fun withNewConfigurationForIncorporationConstraints(
+            newDerivedFromSet: Set<TypeVariableMarker>,
+            isFromDeclaredUpperBound: Boolean,
+            isNoInfer: Boolean,
+            b: () -> Unit,
+        ) {
+            // 不应该发生立即递归的合并，因此 currentDerivedFromSet 会在 finally 中重置
+            check(currentDerivedFromSet.isEmpty())
+
+            try {
+                currentDerivedFromSet = newDerivedFromSet
+                isIncorporatingConstraintFromDeclaredUpperBound = isFromDeclaredUpperBound
+                isIncorporatingConstraintFromNoInfer = isNoInfer
+                b()
+            } finally {
+                // 注意：emptySet() 返回一个单例对象，因此不会产生额外的内存开销
+                currentDerivedFromSet = emptySet()
+                isIncorporatingConstraintFromDeclaredUpperBound = false
+                isIncorporatingConstraintFromNoInfer = false
+            }
         }
 
         /**
@@ -1225,29 +1201,30 @@ class ConstraintInjector(
          * @param upperType 上界类型
          * @param shouldTryUseDifferentFlexibilityForUpperType 是否尝试不同的灵活性
          * @param isFromDeclaredUpperBound 是否来自声明的上界
+         * @param newDerivedFrom 新的派生来源集合，用于防止循环约束
+         * @param isNoInfer 是否标记为 NoInfer（不参与类型推断）
          */
-        override fun addNewIncorporatedConstraint(
+        override fun processNewInitialConstraintFromIncorporation(
             lowerType: CangJieTypeMarker,
             upperType: CangJieTypeMarker,
+
             shouldTryUseDifferentFlexibilityForUpperType: Boolean,
-            isFromDeclaredUpperBound: Boolean
-        ) {
+            newDerivedFrom: Set<TypeVariableMarker>,
+            isFromDeclaredUpperBound: Boolean,
+            isNoInfer: Boolean,
+        ) = with(c) {
             // 如果两个类型相同，无需添加约束
             if (lowerType === upperType) return
-
-            // 只处理允许深度范围内的类型
             if (c.isAllowedType(lowerType) && c.isAllowedType(upperType)) {
-                fun runIsSubtypeOf() =
-                    runIsSubtypeOf(
-                        lowerType,
-                        upperType,
-                        shouldTryUseDifferentFlexibilityForUpperType,
-
-                    )
-
-                // 如果来自声明上界，使用特殊处理
-                if (isFromDeclaredUpperBound) addNewIncorporatedConstraintFromDeclaredUpperBound(::runIsSubtypeOf) else runIsSubtypeOf()
+                withNewConfigurationForIncorporationConstraints(
+                    newDerivedFromSet = newDerivedFrom,
+                    isFromDeclaredUpperBound = isFromDeclaredUpperBound,
+                    isNoInfer = isNoInfer,
+                ) {
+                    runIsSubtypeOf(lowerType, upperType, shouldTryUseDifferentFlexibilityForUpperType)
+                }
             }
+
         }
 
         /**
@@ -1270,7 +1247,7 @@ class ConstraintInjector(
             type: CangJieTypeMarker,
             constraintContext: ConstraintContext
         ) {
-            val (kind, derivedFrom, inputTypePosition) = constraintContext
+            val (kind, derivedFrom, inputTypePosition, isNoInfer) = constraintContext
 
             var targetType = type
 
@@ -1331,11 +1308,14 @@ class ConstraintInjector(
                 targetType,
                 position,
                 derivedFrom = derivedFrom,
-                inputTypePositionBeforeIncorporation = inputTypePosition
+                inputTypePositionBeforeIncorporation = inputTypePosition,
+                isNoInfer = isNoInfer
             )
 
             // 添加到待处理约束列表
             addPossibleNewConstraint(typeVariable, newConstraint)
+            inferenceLogger?.log(typeVariable, newConstraint, c)
+
         }
 
         /** 获取所有带约束的类型变量 */
@@ -1421,12 +1401,13 @@ private typealias Stack<E> = MutableList<E>
  * @property kind 约束种类（UPPER、LOWER 或 EQUALITY）
  * @property derivedFrom 该约束派生自哪些类型变量
  * @property inputTypePositionBeforeIncorporation 合并前的输入类型位置（如果有）
+ * @property isNoInfer 是否标记为 NoInfer（不参与类型推断）
  */
 data class ConstraintContext(
     val kind: ConstraintKind,
     val derivedFrom: Set<TypeVariableMarker>,
     val inputTypePositionBeforeIncorporation: OnlyInputTypeConstraintPosition? = null,
-
+    val isNoInfer: Boolean = false,
 )
 
 /**
@@ -1435,4 +1416,6 @@ data class ConstraintContext(
  * @param c 类型系统推断扩展上下文
  * @return 新鲜类型构造器
  */
+context(c: TypeSystemInferenceExtensionContext)
+fun TypeVariableMarker.freshTypeConstructor(): TypeVariableTypeConstructorMarker = with(c) { freshTypeConstructor() }
 fun TypeVariableMarker.freshTypeConstructor(c: TypeSystemInferenceExtensionContext) = with(c) { freshTypeConstructor() }

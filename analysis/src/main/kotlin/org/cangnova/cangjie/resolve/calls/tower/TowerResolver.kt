@@ -246,7 +246,8 @@ internal class SyntheticScopeBasedTowerLevel(
      */
     override fun getVariables(
         name: Name,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
+        extensionReceiver: ReceiverValueWithSmartCastInfo?,
+        isEnumConstructor: Boolean
     ): Collection<CandidateWithBoundDispatchReceiver> {
         // 如果没有扩展接收者，返回空列表
         if (extensionReceiver == null) return emptyList()
@@ -268,7 +269,8 @@ internal class SyntheticScopeBasedTowerLevel(
      * @return 空集合
      */
     override fun getFunctions(
-        name: Name
+        name: Name,
+        isEnumConstructor: Boolean
     ): Collection<CandidateWithBoundDispatchReceiver> =
         emptyList()
 
@@ -343,7 +345,8 @@ internal class ContextReceiversGroupScopeTowerLevel(
      */
     override fun getVariables(
         name: Name,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
+        extensionReceiver: ReceiverValueWithSmartCastInfo?,
+        isEnumConstructor: Boolean
     ): Collection<CandidateWithBoundDispatchReceiver> {
         return contextReceiversGroup.map { contextReceiver ->
             collectMembers {
@@ -365,7 +368,8 @@ internal class ContextReceiversGroupScopeTowerLevel(
      * @return 带有绑定分发接收者的候选项集合
      */
     override fun getFunctions(
-        name: Name
+        name: Name,
+        isEnumConstructor: Boolean
     ): Collection<CandidateWithBoundDispatchReceiver> {
 
         val collectMembers = { contextReceiver: ReceiverValueWithSmartCastInfo ->
@@ -1234,7 +1238,8 @@ internal class MemberScopeTowerLevel(
      */
     override fun getVariables(
         name: Name,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
+        extensionReceiver: ReceiverValueWithSmartCastInfo?,
+        isEnumConstructor: Boolean
     ): Collection<CandidateWithBoundDispatchReceiver> {
         return collectMembers {
             getContributedVariablesAndIntercept(
@@ -1254,7 +1259,8 @@ internal class MemberScopeTowerLevel(
      * @return 带有绑定分发接收者的候选项集合
      */
     override fun getFunctions(
-        name: Name
+        name: Name,
+        isEnumConstructor: Boolean
     ): Collection<CandidateWithBoundDispatchReceiver> {
 
         return collectMembers {

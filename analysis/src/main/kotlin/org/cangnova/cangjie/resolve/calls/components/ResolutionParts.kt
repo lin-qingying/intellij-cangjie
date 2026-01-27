@@ -30,6 +30,7 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorNameConventions
 import org.cangnova.cangjie.psi.CjCallExpression
+import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.inference.*
@@ -42,7 +43,6 @@ import org.cangnova.cangjie.resolve.calls.util.getReceiverValueWithSmartCast
 import org.cangnova.cangjie.resolve.isInsideInterface
 import org.cangnova.cangjie.resolve.isStatic
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
-import org.cangnova.cangjie.resolve.scopes.receivers.ClassValueReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ClassifierQualifier
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.TypeUtils.noExpectedType
@@ -52,14 +52,6 @@ import org.cangnova.cangjie.types.model.TypeConstructorMarker
 import org.cangnova.cangjie.utils.compactIfPossible
 import java.util.concurrent.ConcurrentHashMap
 
-/**
- * 存储显式类类型参数的映射
- *
- * Key: resolvedCall.atom.psiCangJieCall 的 identity hash
- * Value: 类型参数到具体类型的映射
- */
-private val explicitClassTypeArgumentsCache =
-    ConcurrentHashMap<Int, Map<TypeParameterDescriptor, CangJieType>>()
 
 /**
  * 检查操作符函数调用的解析部分
@@ -369,31 +361,30 @@ fun ResolutionCandidate.isStaticContext(): Boolean {
  */
 internal object CheckStaticCall : ResolutionPart() {
 
-
     override fun ResolutionCandidate.process(workIndex: Int) {
-//        val descriptor = this.descriptor
-//
-//
-////        是否为static上下文
-//        val isStaticContext = isStaticContext()
-//
-//        val kind = descriptor.getDescriptorKind()
-//        val memberStatic = descriptor.isStatic()
-////        非静态上下文访问静态成员
-//        if (memberStatic && (!isStaticContext && (resolvedCall.explicitReceiverKind == ExplicitReceiverKind.DISPATCH_RECEIVER || resolvedCall.explicitReceiverKind == ExplicitReceiverKind.EXTENSION_RECEIVER))) {
-//            addDiagnostic(NonStaticContextAccessStaticMemberDiagnostic(kind, descriptor))
-//        }
-//
-////静态上下文访问非静成员
-//        if (!memberStatic && isStaticContext && !descriptor.isLocal && !descriptor.isTopLevel
-//
-//        ) {
-//            addDiagnostic(StaticContextAccessNonStaticMemberDiagnostic(kind, descriptor))
-//        }
+        val descriptor = this.descriptor
 
+        // 是否为static上下文
+        val isStaticContext = isStaticContext()
 
+        val kind = descriptor.getDescriptorKind()
+        val memberStatic = descriptor.isStatic()
+
+        // 非静态上下文访问静态成员
+        // 例如：在实例方法中通过 this.staticMember 访问静态成员
+        if (memberStatic && !isStaticContext &&
+            resolvedCall.explicitReceiverKind == ExplicitReceiverKind.DISPATCH_RECEIVER) {
+            addDiagnostic(NonStaticContextAccessStaticMemberDiagnostic(kind, descriptor))
+        }
+
+        // 静态上下文访问非静态成员
+        // 例如：在静态方法中访问实例成员（排除本地变量和顶层声明）
+        if (!memberStatic && isStaticContext &&
+            !DescriptorUtils.isLocal(descriptor) &&
+            !DescriptorUtils.isTopLevelDeclaration(descriptor)) {
+            addDiagnostic(StaticContextAccessNonStaticMemberDiagnostic(kind, descriptor))
+        }
     }
-
 }
 
 /**
@@ -1157,288 +1148,11 @@ internal object CollectionTypeVariableUsagesInfo : ResolutionPart() {
     }
 }
 
-internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
-    fun TypeParameterDescriptor.shouldBeFlexible(flexibleCheck: (CangJieType) -> Boolean = { it.isFlexible() }): Boolean {
-        return upperBounds.any {
-            flexibleCheck(it) || ((it.constructor.declarationDescriptor as? TypeParameterDescriptor)?.run { shouldBeFlexible() }
-                ?: false)
-        }
-    }
-
-    fun createToFreshVariableSubstitutorAndAddInitialConstraints(
-        candidateDescriptor: CallableDescriptor,
-        cangjieCall: CangJieCall,
-        csBuilder: ConstraintSystemOperation,
-        typeParameters: List<TypeParameterDescriptor> = candidateDescriptor.typeParameters
-    ): Pair<ComposableTypeSubstitutor, List<TypeVariableFromCallableDescriptor>> {
-
-        val freshTypeVariables = typeParameters.map { TypeVariableFromCallableDescriptor(it) }
-
-        val toFreshVariables = ComposableTypeSubstitutor.create(
-            SubstitutorFunction.fromFreshVariables(freshTypeVariables),
-            SubstitutionOptions.INFERENCE
-        )
-
-        for (freshVariable in freshTypeVariables) {
-            csBuilder.registerVariable(freshVariable)
-        }
-
-        fun TypeVariableFromCallableDescriptor.addSubtypeConstraint(
-            upperBound: CangJieType,
-            position: DeclaredUpperBoundConstraintPositionImpl
-        ) {
-            csBuilder.addSubtypeConstraint(
-                defaultType,
-                toFreshVariables.safeSubstitute(upperBound.unwrap()),
-                position
-            )
-        }
-
-        for (index in typeParameters.indices) {
-            val typeParameter = typeParameters[index]
-            val freshVariable = freshTypeVariables[index]
-            val position = DeclaredUpperBoundConstraintPositionImpl(typeParameter, cangjieCall)
-
-            for (upperBound in typeParameter.upperBounds) {
-                freshVariable.addSubtypeConstraint(upperBound, position)
-            }
-        }
-
-        if (candidateDescriptor is TypeAliasConstructorDescriptor) {
-            val typeAliasDescriptor = candidateDescriptor.typeAliasDescriptor
-            val originalTypes = typeAliasDescriptor.underlyingType.arguments.map { it.type }
-            val originalTypeParameters = candidateDescriptor.underlyingConstructorDescriptor.typeParameters
-            for (index in typeParameters.indices) {
-                val typeParameter = typeParameters[index]
-                val freshVariable = freshTypeVariables[index]
-                val typeMapping = originalTypes.mapIndexedNotNull { i: Int, cangjieType: CangJieType ->
-                    if (cangjieType == typeParameter.defaultType) i else null
-                }
-                for (originalIndex in typeMapping) {
-                    // there can be null in case we already captured type parameter in outer class (in case of inner classes)
-                    // see test innerClassTypeAliasConstructor.cj
-                    val originalTypeParameter = originalTypeParameters.getOrNull(originalIndex) ?: continue
-                    val position = DeclaredUpperBoundConstraintPositionImpl(originalTypeParameter, cangjieCall)
-                    for (upperBound in originalTypeParameter.upperBounds) {
-                        freshVariable.addSubtypeConstraint(upperBound, position)
-                    }
-                }
-            }
-        }
-        return toFreshVariables to freshTypeVariables
-    }
-
-    private fun getTypePreservingFlexibilityWrtTypeVariable(
-        type: CangJieType,
-        typeVariable: TypeVariableFromCallableDescriptor
-    ): CangJieType {
-        fun createFlexibleType() =
-            CangJieTypeFactory.flexibleType(
-                type.makeNonOption().lowerIfFlexible(),
-                type.makeOption().upperIfFlexible()
-            )
-
-        return when {
-            typeVariable.originalTypeParameter.shouldBeFlexible { it is FlexibleTypeWithEnhancement } ->
-                createFlexibleType().wrapEnhancement(type)
-
-            typeVariable.originalTypeParameter.shouldBeFlexible() -> createFlexibleType()
-            else -> type
-        }
-    }
-
-    private fun createKnownParametersFromFreshVariablesSubstitutor(
-        freshVariables: List<TypeVariableFromCallableDescriptor>,
-        knownTypeParametersSubstitutor: ComposableTypeSubstitutor,
-    ): ComposableTypeSubstitutor {
-        if (knownTypeParametersSubstitutor.isEmpty)
-            return ComposableTypeSubstitutor.EMPTY
-
-        val knownTypeParameterByTypeVariable = mutableMapOf<TypeConstructor, UnwrappedType>().let { map ->
-            for (typeVariable in freshVariables) {
-                val typeParameterType = typeVariable.originalTypeParameter.defaultType
-                val substitutedKnownTypeParameter = knownTypeParametersSubstitutor.safeSubstitute(typeParameterType.unwrap())
-
-                if (substitutedKnownTypeParameter !== typeParameterType.unwrap())
-                    map[typeVariable.defaultType.constructor] = substitutedKnownTypeParameter
-            }
-            map
-        }
 
 
-        // 组合已知参数替换器和类型变量映射
-        return knownTypeParametersSubstitutor.compose(
-            ComposableTypeSubstitutor.create(knownTypeParameterByTypeVariable)
-        )
-    }
-
-    /**
-     * 获取需要进行类型推导的类型参数列表
-     *
-     * 此方法会检查是否有显式指定的类型参数（如 a<Int64>.method()），
-     * 并将显式类型参数信息存储到 resolvedCall 中，以便后续添加约束。
-     *
-     * ## 问题背景
-     *
-     * 对于调用 `a<Int64>.a1()`：
-     * - `a` 是 ClassValueReceiver，其 type 为 `A<Int64>`
-     * - Int64 是显式指定的类型参数，应该添加 EQUALITY 约束
-     *
-     * ## 解决方案
-     *
-     * 1. 返回所有类型参数（包括类和方法的类型参数）
-     * 2. 将显式指定的类型参数信息存储到 resolvedCall 的扩展属性中
-     * 3. 在 process() 方法中检查并添加 EQUALITY 约束
-     *
-     * @return 所有需要处理的类型参数列表
-     */
-    fun ResolutionCandidate.getTypeParameters(): List<TypeParameterDescriptor> {
-        // 如果接收器是 DISPATCH_RECEIVER，并且它是一个静态调用，需要分析类的类型参数
-        if (resolvedCall.dispatchReceiverArgument != null &&
-            resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue is ClassValueReceiver) {
-
-            val classValueReceiver = resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue as ClassValueReceiver
-            val classDescriptor = classValueReceiver.classQualifier.descriptor
-            val receiverType = classValueReceiver.type
-
-            // 获取类声明的类型参数
-            val declaredTypeParameters = classDescriptor.declaredTypeParameters
-
-            // 检查 receiver.type 中是否有显式的类型参数
-            val explicitTypeArguments = receiverType.arguments
-
-            // 收集显式指定的类型参数（不是类型变量的）
-            val explicitTypeParamMap = mutableMapOf<TypeParameterDescriptor, CangJieType>()
-
-            declaredTypeParameters.forEachIndexed { index, typeParam ->
-                val typeArg = explicitTypeArguments.getOrNull(index)
-                if (typeArg != null) {
-                    val argType = typeArg.type
-                    // 检查类型参数是否是类型变量
-                    val isTypeVariable = argType.constructor is org.cangnova.cangjie.types.model.TypeVariableTypeConstructorMarker
-
-                    // 如果是显式指定的具体类型，记录下来
-                    if (!isTypeVariable) {
-                        explicitTypeParamMap[typeParam] = argType
-                    }
-                }
-            }
-
-            // 将显式类型参数信息存储到缓存中
-            if (explicitTypeParamMap.isNotEmpty()) {
-                // 使用 identity hash code 作为 key
-                val cacheKey = System.identityHashCode(resolvedCall.atom.psiCangJieCall)
-                explicitClassTypeArgumentsCache[cacheKey] = explicitTypeParamMap
-            }
-
-            // 返回所有类型参数（类的 + 方法的）
-            return declaredTypeParameters + candidateDescriptor.original.typeParameters
-        }
-
-        return candidateDescriptor.original.typeParameters
-    }
-
-    override fun ResolutionCandidate.process(workIndex: Int) {
-        val csBuilder = getSystem().getBuilder()
-//        val toFreshVariables =
-//            if (descriptor.typeParameters.isEmpty())
-//                FreshVariableTypeSubstitutor.Empty
-//            else
-//                createToFreshVariableSubstitutorAndAddInitialConstraints(
-//                    descriptor,
-//                    resolvedCall.atom,
-//                    csBuilder
-//                )
-
-        val typeParameters = getTypeParameters()
-        val (toFreshVariables, freshTypeVariables) =
-            if (typeParameters.isEmpty())
-                ComposableTypeSubstitutor.EMPTY to emptyList()
-            else
-                createToFreshVariableSubstitutorAndAddInitialConstraints(
-                    candidateDescriptor,
-                    resolvedCall.atom,
-                    csBuilder,
-                    getTypeParameters()
-                )
-
-        val knownTypeParametersSubstitutor = knownTypeParametersResultingSubstitutor?.let {
-            createKnownParametersFromFreshVariablesSubstitutor(freshTypeVariables, it)
-        } ?: ComposableTypeSubstitutor.EMPTY
-
-        resolvedCall.freshVariablesSubstitutor = toFreshVariables
-        resolvedCall.freshVariables = freshTypeVariables
-        resolvedCall.knownParametersSubstitutor = knownTypeParametersSubstitutor
-//        if (descriptor.typeParameters.isEmpty()) {
-//            return
-//        }
-        if (typeParameters.isEmpty()) {
-            return
-        }
-
-        // bad function -- error on declaration side
-        if (csBuilder.hasContradiction) return
-
-        // optimization
-        if (resolvedCall.typeArgumentMappingByOriginal == TypeArgumentsToParametersMapper.TypeArgumentsMapping.NoExplicitArguments && knownTypeParametersResultingSubstitutor == null) {
-            return
-        }
-
-        // 获取显式类类型参数信息（如果有）
-        val cacheKey = System.identityHashCode(resolvedCall.atom.psiCangJieCall)
-        val explicitClassTypeArguments = explicitClassTypeArgumentsCache[cacheKey]
-
-//        val typeParameters = descriptor.original.typeParameters
-        for (index in typeParameters.indices) {
-            val typeParameter = typeParameters[index]
-//            TODO 会不会出现通过索引获取错误的情况，有待验证
-            val freshVariable = freshTypeVariables[index]
-
-            // 检查是否是显式指定的类类型参数
-            val explicitClassTypeArg: CangJieType? = explicitClassTypeArguments?.get(typeParameter)
-            if (explicitClassTypeArg != null) {
-                // 为显式类类型参数添加 EQUALITY 约束
-                // 创建一个简单的类型参数实现
-                val typeArgument = object : org.cangnova.cangjie.resolve.calls.model.SimpleTypeArgument {
-                    override val type: UnwrappedType = explicitClassTypeArg.unwrap()
-                }
-
-                csBuilder.addEqualityConstraint(
-                    freshVariable.defaultType,
-                    getTypePreservingFlexibilityWrtTypeVariable(explicitClassTypeArg, freshVariable),
-                    ExplicitTypeParameterConstraintPositionImpl(typeArgument)
-                )
-                continue
-            }
-
-            val knownTypeArgument = knownTypeParametersResultingSubstitutor?.safeSubstitute(typeParameter.defaultType.unwrap())
-            if (knownTypeArgument != null) {
-                csBuilder.addEqualityConstraint(
-                    freshVariable.defaultType,
-                    getTypePreservingFlexibilityWrtTypeVariable(knownTypeArgument, freshVariable),
-                    KnownTypeParameterConstraintPositionImpl(knownTypeArgument)
-                )
-                continue
-            }
-
-            val typeArgument = resolvedCall.typeArgumentMappingByOriginal.getTypeArgument(typeParameter)
-
-            if (typeArgument is SimpleTypeArgument) {
-                csBuilder.addEqualityConstraint(
-                    freshVariable.defaultType,
-                    getTypePreservingFlexibilityWrtTypeVariable(typeArgument.type, freshVariable),
-                    ExplicitTypeParameterConstraintPositionImpl(typeArgument)
-                )
-            } else {
-                assert(typeArgument == TypeArgumentPlaceholder) {
-                    "Unexpected typeArgument: $typeArgument, ${typeArgument.javaClass.canonicalName}"
-                }
-            }
-        }
-    }
 
 
-}
+
 
 /**
  * 无参数的解析部分
@@ -1636,43 +1350,81 @@ class ReceiverInfo(
     }
 }
 
+/**
+ * Case 枚举参数对象
+ *
+ * 这是一个特殊的调用参数,用于表示 case 枚举的参数。
+ * 它不支持展开运算符,也没有参数名。
+ */
 object CaseEnumArgument : CangJieCallArgument {
+    /** 是否使用展开运算符,对于 case 枚举始终为 false */
     override val isSpread: Boolean = false
-    override val argumentName: Name? = null
 
+    /** 参数名,对于 case 枚举始终为 null */
+    override val argumentName: Name? = null
 }
 
-
+/**
+ * 检查 Case 枚举参数数量的解析部分
+ *
+ * 此类负责验证 case 枚举调用时传入的参数数量是否与声明的参数数量匹配。
+ * 会报告参数过多或缺少参数的错误。
+ */
 internal object CheckCaseEnumArgumentSize : ResolutionPart() {
+    /**
+     * 处理参数数量检查
+     *
+     * 比较实际传入的参数数量与声明的参数数量,并添加相应的诊断信息。
+     *
+     * @param workIndex 工作索引(未使用)
+     */
     override fun ResolutionCandidate.process(workIndex: Int) {
-
+        // 获取声明的参数数量
         val dASize = candidateDescriptor.valueParameters.size
+        // 获取实际传入的参数数量
         val argSize = cangjieCall.argumentsInParenthesis.size
-        if (argSize > dASize) {
-//          参数过多
 
+        if (argSize > dASize) {
+            // 参数过多:实际参数多于声明的参数
             addDiagnostic(TooManyArguments(CaseEnumArgument, candidateDescriptor))
         } else if (argSize < dASize) {
-//          确实参数
-//         未传递参数
+            // 缺少参数:实际参数少于声明的参数
+            // 找出所有未传递参数的形参
             val args = candidateDescriptor.valueParameters.dropLast(dASize - argSize)
             args.forEach {
+                // 为每个缺失的参数添加诊断信息
                 addDiagnostic(NoValueForParameter(it, candidateDescriptor))
-
             }
-
-
         }
-
-
     }
 
+    /**
+     * 返回工作数量
+     *
+     * @return 括号内参数的数量
+     */
     override fun ResolutionCandidate.workCount() = cangjieCall.argumentsInParenthesis.size
 }
 
+/**
+ * 检查括号内参数的解析部分
+ *
+ * 此类负责逐个解析和检查括号内的每个参数,
+ * 将实参与形参进行匹配并执行类型检查。
+ */
 internal object CheckArgumentsInParenthesis : ResolutionPart() {
+    /**
+     * 处理单个参数的解析
+     *
+     * 根据工作索引获取对应的参数,并解析该参数。
+     *
+     * @param workIndex 当前处理的参数索引
+     */
     override fun ResolutionCandidate.process(workIndex: Int) {
+        // 获取指定索引的参数
         val argument = cangjieCall.argumentsInParenthesis[workIndex]
+
+        // 解析该参数,传入对应的候选参数描述符
         resolveCangJieArgument(
             argument,
             resolvedCall.argumentToCandidateParameter[argument],
@@ -1680,19 +1432,44 @@ internal object CheckArgumentsInParenthesis : ResolutionPart() {
         )
     }
 
+    /**
+     * 返回工作数量
+     *
+     * @return 括号内参数的总数
+     */
     override fun ResolutionCandidate.workCount() = cangjieCall.argumentsInParenthesis.size
 }
 
+/**
+ * 解析仓颉调用参数
+ *
+ * 这是参数解析的核心方法,处理参数的类型转换、类型检查和约束添加。
+ * 主要执行以下步骤:
+ * 1. 获取参数的期望类型
+ * 2. 在子类型检查前尝试类型转换
+ * 3. 处理常量转换(如有符号到无符号)
+ * 4. 解析参数并添加类型约束
+ * 5. 如果需要,在子类型检查后再次尝试类型转换
+ *
+ * @param argument 要解析的调用参数
+ * @param candidateParameter 对应的候选参数描述符,可能为 null
+ * @param receiverInfo 接收器信息,指示该参数是否是接收器
+ */
 private fun ResolutionCandidate.resolveCangJieArgument(
     argument: CangJieCallArgument,
     candidateParameter: ParameterDescriptor?,
     receiverInfo: ReceiverInfo
 ) {
     val csBuilder = getSystem().getBuilder()
+
+    // 获取参数的期望类型
     val candidateExpectedType =
         candidateParameter?.let { argument.getExpectedType(it, callComponents.languageVersionSettings) }
 
     val isReceiver = receiverInfo.isReceiver
+
+    // 在子类型检查前尝试组合类型转换
+    // 如果是接收器、没有候选参数或没有期望类型,则跳过转换
     val conversionDataBeforeSubtyping =
         if (isReceiver || candidateParameter == null || candidateExpectedType == null) {
             null
@@ -1702,29 +1479,34 @@ private fun ResolutionCandidate.resolveCangJieArgument(
             )
         }
 
+    // 获取转换后的类型或原始期望类型
     val convertedExpectedType = conversionDataBeforeSubtyping?.convertedType
     val unsubstitutedExpectedType = conversionDataBeforeSubtyping?.convertedType ?: candidateExpectedType
     val expectedType = unsubstitutedExpectedType?.let { prepareExpectedType(it) }
 
+    // 处理常量转换(例如有符号整数到无符号整数)
     val convertedArgument =
         if (expectedType != null && !isReceiver && shouldRunConversionForConstants(expectedType)) {
+            // 尝试将有符号常量转换为无符号常量
             val convertedConstant = resolutionCallbacks.convertSignedConstantToUnsigned(argument)
             if (convertedConstant != null) {
+                // 注册常量转换信息
                 resolvedCall.registerArgumentWithConstantConversion(argument, convertedConstant)
             }
-
             convertedConstant
         } else null
 
-
     val inferenceSession = resolutionCallbacks.inferenceSession
-    if (candidateExpectedType == null || // Nothing to convert
-        convertedExpectedType != null || // Type is already converted
-        isReceiver || // Receivers don't participate in conversions
-        conversionDataBeforeSubtyping?.wasConversion == true || // We tried to convert type but failed
-        conversionDataBeforeSubtyping?.conversionDefinitelyNotNeeded == true ||
-        csBuilder.hasContradiction
+
+    // 判断是否需要在子类型检查后进行类型转换
+    if (candidateExpectedType == null || // 没有期望类型,无需转换
+        convertedExpectedType != null || // 类型已经转换
+        isReceiver || // 接收器不参与类型转换
+        conversionDataBeforeSubtyping?.wasConversion == true || // 已尝试转换但失败
+        conversionDataBeforeSubtyping?.conversionDefinitelyNotNeeded == true || // 明确不需要转换
+        csBuilder.hasContradiction // 约束系统已有矛盾
     ) {
+        // 直接解析参数
         val resolvedAtom = resolveCjPrimitive(
             csBuilder,
             argument,
@@ -1735,10 +1517,12 @@ private fun ResolutionCandidate.resolveCangJieArgument(
             inferenceSession,
             selectorCall = receiverInfo.selectorCall
         )
-
         addResolvedCjPrimitive(resolvedAtom)
     } else {
+        // 需要在子类型检查后可能进行类型转换
         var convertedTypeAfterSubtyping: UnwrappedType? = null
+
+        // 在事务中尝试解析参数
         csBuilder.runTransaction {
             val resolvedAtom = resolveCjPrimitive(
                 csBuilder,
@@ -1750,11 +1534,13 @@ private fun ResolutionCandidate.resolveCangJieArgument(
                 inferenceSession
             )
 
+            // 如果没有矛盾,直接提交事务
             if (!hasContradiction) {
                 addResolvedCjPrimitive(resolvedAtom)
                 return@runTransaction true
             }
 
+            // 有矛盾,尝试在子类型检查后进行类型转换
             convertedTypeAfterSubtyping =
                 TypeConversions.performCompositeConversionAfterSubtyping(
                     this@resolveCangJieArgument,
@@ -1763,14 +1549,17 @@ private fun ResolutionCandidate.resolveCangJieArgument(
                     candidateExpectedType
                 )?.let { prepareExpectedType(it) }
 
+            // 如果转换失败,保留原始解析结果
             if (convertedTypeAfterSubtyping == null) {
                 addResolvedCjPrimitive(resolvedAtom)
                 return@runTransaction true
             }
 
+            // 回滚事务,准备使用转换后的类型重新解析
             false
         }
 
+        // 如果成功获得转换后的类型,使用新类型重新解析参数
         if (convertedTypeAfterSubtyping != null) {
             val resolvedAtom = resolveCjPrimitive(
                 csBuilder,
@@ -1783,27 +1572,42 @@ private fun ResolutionCandidate.resolveCangJieArgument(
             )
             addResolvedCjPrimitive(resolvedAtom)
         }
-
     }
 }
 
+/**
+ * 判断是否应该对常量运行转换
+ *
+ * 检查期望类型是否是无符号类型,或者是否是被约束为无符号类型的类型变量。
+ * 如果是,则应该尝试将有符号常量转换为无符号常量。
+ *
+ * @param expectedType 期望的类型
+ * @return 如果应该运行常量转换则返回 true
+ */
 private fun ResolutionCandidate.shouldRunConversionForConstants(expectedType: UnwrappedType): Boolean {
+    // 如果期望类型本身就是无符号类型,直接返回 true
     if (UnsignedTypes.isUnsignedType(expectedType)) return true
+
     val csBuilder = getSystem().getBuilder()
+
+    // 检查期望类型是否是类型变量
     if (csBuilder.isTypeVariable(expectedType)) {
+        // 获取类型变量的约束信息
         val variableWithConstraints =
             csBuilder.currentStorage().notFixedTypeVariables[expectedType.constructor] ?: return false
+
+        // 检查是否存在等式约束,且约束的类型是无符号类型
+        // 这种情况发生在类型变量被显式指定为无符号类型时
+        // 例如: fun<T> foo(x: T) 调用时 foo<UInt64>(...)
         return variableWithConstraints.constraints.any {
             it.kind == ConstraintKind.EQUALITY &&
                     it.position.from is ExplicitTypeParameterConstraintPositionImpl &&
                     UnsignedTypes.isUnsignedType(it.type as UnwrappedType)
-
         }
     }
 
     return false
 }
-
 /**
  * 根据预期类型准备实际类型
  * 此函数通过应用当前解析上下文中的变量替换和参数替换，来调整预期类型
@@ -1818,19 +1622,47 @@ private fun ResolutionCandidate.prepareExpectedType(expectedType: UnwrappedType)
     return resolvedCall.knownParametersSubstitutor.safeSubstitute(resultType)
 }
 
-
+/**
+ * 错误描述符解析部分
+ *
+ * 当候选描述符是错误描述符时使用此解析部分。
+ * 错误描述符表示在早期阶段(如解析阶段)就已经发现了错误,
+ * 因此这里只需要初始化必要的字段为空值,而不执行实际的类型检查。
+ */
 internal object ErrorDescriptorResolutionPart : ResolutionPart() {
+    /**
+     * 处理错误描述符
+     *
+     * 验证候选描述符确实是错误描述符,然后将 resolvedCall 的各个字段
+     * 初始化为空值或默认值,避免后续处理时出现空指针异常。
+     *
+     * @param workIndex 工作索引(未使用)
+     */
     override fun ResolutionCandidate.process(workIndex: Int) {
+        // 断言候选描述符必须是错误描述符
         assert(ErrorUtils.isError(candidateDescriptor)) {
             "Should be error descriptor: $candidateDescriptor"
         }
+
+        // 设置类型参数映射为无显式参数
         resolvedCall.typeArgumentMappingByOriginal =
             TypeArgumentsToParametersMapper.TypeArgumentsMapping.NoExplicitArguments
+
+        // 清空参数映射
         resolvedCall.argumentMappingByOriginal = emptyMap()
+
+        // 设置空的类型变量替换器
         resolvedCall.freshVariablesSubstitutor = ComposableTypeSubstitutor.EMPTY
+
+        // 设置空的已知参数替换器
         resolvedCall.knownParametersSubstitutor = ComposableTypeSubstitutor.EMPTY
+
+        // 清空参数到候选参数的映射
         resolvedCall.argumentToCandidateParameter = emptyMap()
 
+        // 注释掉的代码:
+        // 在错误描述符的情况下,我们不再解析各个参数,
+        // 因为这样做没有意义且可能导致级联错误报告
 //        (cangjieCall.explicitReceiver as? SimpleCangJieCallArgument)?.let {
 //            resolveCangJieArgument(it, null, ReceiverInfo.notReceiver)
 //        }
@@ -1844,24 +1676,61 @@ internal object ErrorDescriptorResolutionPart : ResolutionPart() {
     }
 }
 
+/**
+ * 参数到候选参数描述符映射解析部分
+ *
+ * 此类负责建立调用参数与候选函数的值参数之间的映射关系。
+ * 这个映射用于后续的类型检查和参数匹配。
+ */
 internal object ArgumentsToCandidateParameterDescriptor : ResolutionPart() {
+    /**
+     * 处理参数映射
+     *
+     * 遍历已解析的参数映射,为每个实参建立到对应值参数的映射。
+     * 注意这里使用的是候选描述符的参数,而不是原始描述符的参数。
+     *
+     * @param workIndex 工作索引(未使用)
+     */
     override fun ResolutionCandidate.process(workIndex: Int) {
         val map = hashMapOf<CangJieCallArgument, ValueParameterDescriptor>()
+
+        // 遍历原始参数映射
         for ((originalValueParameter, resolvedCallArgument) in resolvedCall.argumentMappingByOriginal) {
+            // 获取候选描述符中对应索引的值参数
+            // 使用 getOrNull 是因为在某些错误情况下可能找不到对应参数
             val valueParameter =
                 candidateDescriptor.valueParameters.getOrNull(originalValueParameter.index) ?: continue
+
+            // 为这个参数的所有实参建立映射
             for (argument in resolvedCallArgument.arguments) {
                 map[argument] = valueParameter
             }
         }
+
+        // 如果可能的话,压缩 map 以节省内存
         resolvedCall.argumentToCandidateParameter = map.compactIfPossible()
     }
 }
 
+/**
+ * 检查外部参数的解析部分
+ *
+ * 外部参数是指在函数调用括号外部传递的参数,
+ * 例如 lambda 表达式或尾随闭包。
+ */
 internal object CheckExternalArgument : ResolutionPart() {
+    /**
+     * 处理外部参数
+     *
+     * 如果存在外部参数,则解析该参数并执行类型检查。
+     *
+     * @param workIndex 工作索引(未使用)
+     */
     override fun ResolutionCandidate.process(workIndex: Int) {
+        // 获取外部参数,如果不存在则直接返回
         val argument = cangjieCall.externalArgument ?: return
 
+        // 解析外部参数
         resolveCangJieArgument(
             argument,
             resolvedCall.argumentToCandidateParameter[argument],
@@ -1870,9 +1739,13 @@ internal object CheckExternalArgument : ResolutionPart() {
     }
 }
 
-
-
-// 提取的方法
+/**
+ * 获取描述符的种类
+ *
+ * 这是一个辅助扩展函数,用于确定声明描述符的类型。
+ *
+ * @return 描述符的种类(属性、变量、函数或未知)
+ */
 fun DeclarationDescriptor.getDescriptorKind(): DescriptorKind {
     return when (this) {
         is PropertyDescriptor -> DescriptorKind.PROPERTY
@@ -1882,46 +1755,90 @@ fun DeclarationDescriptor.getDescriptorKind(): DescriptorKind {
     }
 }
 
+/**
+ * 检查不兼容的类型变量上界解析部分
+ *
+ * 此类负责检查类型推导过程中,类型变量的多个上界是否相互兼容。
+ * 如果多个上界的交集为空(例如同时要求是 Int 和 String),
+ * 则报告推导出空交集的错误。
+ *
+ * ## 示例场景
+ * ```
+ * fun <T> foo(x: T, y: T) where T : Int, T : String { }
+ * // T 的上界交集为空,因为没有类型既是 Int 又是 String
+ * ```
+ */
 internal object CheckIncompatibleTypeVariableUpperBounds : ResolutionPart() {
-    /*
-     * Check if the candidate was already discriminated by `CompatibilityOfTypeVariableAsIntersectionTypePart` resolution part
-     * If it's true we shouldn't mark the candidate with warning, but should mark with error, to repeat the existing proper behaviour
+    /**
+     * 检查候选是否已被之前的解析部分判定为不兼容
+     *
+     * 如果候选已经被 `CompatibilityOfTypeVariableAsIntersectionTypePart` 解析部分
+     * 判定为不兼容,我们不应该再添加警告,而应该添加错误,以保持现有的正确行为。
+     *
+     * @param upperTypes 上界类型列表
+     * @return 如果之前已被判定为不兼容则返回 true
      */
     private fun ResolutionCandidate.wasPreviouslyDiscriminated(upperTypes: List<CangJieTypeMarker>): Boolean {
         @Suppress("UNCHECKED_CAST")
         return callComponents.statelessCallbacks.isOldIntersectionIsEmpty(upperTypes as List<CangJieType>)
     }
 
+    /**
+     * 处理类型变量上界兼容性检查
+     *
+     * 遍历所有未固定的类型变量,检查它们的上界约束是否形成空交集。
+     *
+     * @param workIndex 工作索引(未使用)
+     */
     override fun ResolutionCandidate.process(workIndex: Int) =
         with(getSystem().asConstraintSystemCompleterContext()) {
             val constraintSystem = getSystem()
+
+            // 遍历所有未固定的类型变量
             for (variableWithConstraints in constraintSystem.getBuilder()
                 .currentStorage().notFixedTypeVariables.values) {
+
+                // 提取需要检查交集是否为空的上界类型
                 val upperTypes = variableWithConstraints.constraints.extractUpperTypesToCheckIntersectionEmptiness()
 
                 when {
-                    // TODO: consider reporting errors on bounded type variables by incompatible types but with other lower constraints
+                    // TODO: 考虑对具有不兼容类型边界但有其他下界约束的类型变量报告错误
+
+                    // 情况1: 只有一个或没有上界,或者存在下界约束
+                    // 这种情况下不可能有空交集问题
                     upperTypes.size <= 1 || variableWithConstraints.constraints.any { it.kind.isLower() } ->
                         continue
 
+                    // 情况2: 之前已经被判定为不兼容
+                    // 标记候选但不报告警告(会报告错误)
                     wasPreviouslyDiscriminated(upperTypes) -> {
                         markCandidateForCompatibilityResolve(needToReportWarning = false)
                         continue
                     }
 
+                    // 情况3: 类型参数是显式指定的
+                    // 显式类型参数不需要检查,因为用户明确指定了类型
                     (variableWithConstraints.typeVariable as? TypeVariableFromCallableDescriptor)?.originalTypeParameter?.let { parameter ->
                         resolvedCall.typeArgumentMappingByOriginal.getTypeArgument(parameter)
                     } is SimpleTypeArgument -> continue
 
+                    // 情况4: 检测到空交集
                     else -> {
+                        // 获取空交集的详细信息
                         val emptyIntersectionTypeInfo =
                             constraintSystem.getEmptyIntersectionTypeKind(upperTypes) ?: continue
-//                    val isInferredEmptyIntersectionForbidden = callComponents.languageVersionSettings.supportsFeature(
-//                        LanguageFeature.ForbidInferringTypeVariablesIntoEmptyIntersection
-//                    )
+
+                        // 注释掉的代码: 语言版本特性检查
+                        // 在旧版本中这可能是警告,在新版本中是错误
+//                        val isInferredEmptyIntersectionForbidden = callComponents.languageVersionSettings.supportsFeature(
+//                            LanguageFeature.ForbidInferringTypeVariablesIntoEmptyIntersection
+//                        )
+
+                        // 使用错误工厂创建错误
                         val errorFactory = ::InferredEmptyIntersectionError
 //                        if (isInferredEmptyIntersectionForbidden) ::InferredEmptyIntersectionError else ::InferredEmptyIntersectionWarning
 
+                        // 添加推导出空交集的错误
                         addError(
                             errorFactory(
                                 upperTypes,
@@ -1936,14 +1853,30 @@ internal object CheckIncompatibleTypeVariableUpperBounds : ResolutionPart() {
         }
 }
 
+/**
+ * 检查可调用引用的解析部分
+ *
+ * 此类专门处理可调用引用(如 ::function 或 Class::method)的解析。
+ * 可调用引用有特殊的类型检查规则,需要添加额外的约束。
+ */
 internal object CheckCallableReference : ResolutionPart() {
+    /**
+     * 处理可调用引用
+     *
+     * 验证这确实是一个可调用引用候选,然后为其添加必要的约束。
+     *
+     * @param workIndex 工作索引(未使用)
+     */
     override fun ResolutionCandidate.process(workIndex: Int) {
+        // 验证这是一个可调用引用候选
         if (this !is CallableReferenceResolutionCandidate) {
             error("`CheckCallableReferences` resolution part is applicable only to callable reference calls")
         }
 
+        // 获取约束系统,如果已有矛盾则不继续处理
         val constraintSystem = getSystem().takeIf { !it.hasContradiction } ?: return
 
+        // 为可调用引用添加特定的约束
         addConstraints(constraintSystem.getBuilder(), resolvedCall.freshVariablesSubstitutor, cangjieCall)
     }
 }

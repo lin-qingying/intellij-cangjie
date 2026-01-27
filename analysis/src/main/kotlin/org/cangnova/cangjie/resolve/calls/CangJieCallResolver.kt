@@ -32,28 +32,31 @@ import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReference
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.context.CheckArgumentTypesMode
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
+import org.cangnova.cangjie.resolve.calls.inference.model.NewTypeVariable
+import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariableFixationPosition
+import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.model.CangJieCallKind.*
 import org.cangnova.cangjie.resolve.calls.tower.*
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
+import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.UnwrappedType
+import org.cangnova.cangjie.types.model.TypeVariableMarker
 
 /**
  * 仓颉调用解析器
  *
  * 负责解析函数调用、属性访问、可调用引用等各种调用表达式。
  *
- * ## 类型推断模式
+ * ## 类型推断
  *
- * 支持两种类型推断模式：
- * 1. **单轮推断（默认）**: 类似 Kotlin 的单轮约束求解
- * 2. **迭代推断（实验性）**: 编译器风格的多轮迭代推断
+ * 类型推断通过 [CangJieCallCompleter] 和 [CangJieConstraintSystemCompleter] 实现，
+ * 支持编译器风格的迭代式多轮推导和双向数据流：
  *
- * 迭代推断模式可以通过设置 `enableIterativeInference` 标志启用。
- * 迭代推断更适合处理复杂的类型推导场景，如：
- * - Lambda 参数的延迟推导
- * - Option 类型的自动装箱
- * - 显式类型参数与隐式推导的混合
+ * - **约束收集**: 分析参数和返回类型，收集类型约束
+ * - **迭代求解**: 使用 Join (LUB) 和 Meet (GLB) 计算，迭代固定类型变量
+ * - **贪婪固定**: 对于 final 类型等情况，立即固定类型变量
+ * - **延迟参数**: Lambda 等复杂参数可延迟分析
  *
  * @property towerResolver 塔式解析器，用于候选项收集
  * @property cangjieCallCompleter 调用完成器，用于类型推断和完成
@@ -66,42 +69,10 @@ class CangJieCallResolver(
     private val cangjieCallCompleter: CangJieCallCompleter,
     private val overloadingConflictResolver: OverloadingConflictResolver,
     private val callableReferenceArgumentResolver: CallableReferenceArgumentResolver,
-    private val callComponents: CangJieCallComponents
+    private val callComponents: CangJieCallComponents,
 ) {
-    /**
-     * 是否启用迭代类型推断
-     *
-     * 实验性功能：启用编译器风格的迭代多轮类型推断。
-     *
-     * TODO: 当迭代推断稳定后，将此标志移除并默认启用迭代推断。
-     * TODO: 可以通过语言版本设置或编译器标志来控制此行为。
-     */
-    private val enableIterativeInference: Boolean = false // TODO: 从配置读取
 
-    // TODO: 迭代推断引擎集成点
-    // 当 enableIterativeInference = true 时，应该：
-    // 1. 在 cangjieCallCompleter.runCompletion 之前或内部
-    // 2. 创建 IterativeTypeInferenceEngine 实例
-    // 3. 使用迭代引擎进行类型推断
-    // 4. 将推断结果应用到约束系统
-    //
-    // 示例代码:
-    // ```kotlin
-    // if (enableIterativeInference && shouldUseIterativeInference(candidates)) {
-    //     val engine = IterativeTypeInferenceEngine(
-    //         constraintSystemBuilder = ...,
-    //         completer = callComponents.constraintSystemCompleter
-    //     )
-    //     val result = engine.runIterativeInference(
-    //         typeVariables = extractTypeVariables(candidates),
-    //         arguments = buildArgumentStates(cangjieCall, candidates),
-    //         maxIterations = 10
-    //     )
-    //     if (result.isSuccess) {
-    //         applySolution(result.solution)
-    //     }
-    // }
-    // ```
+
     fun resolveCallableReferenceArgument(
         argument: CallableReferenceCangJieCallArgument,
         expectedType: UnwrappedType?,
@@ -222,9 +193,6 @@ class CangJieCallResolver(
         cangjieCall.checkCallInvariants()
 
         val processor = when (cangjieCall.callKind) {
-
-
-
             VARIABLE -> {
                 createVariableProcessor(
                     scopeTower,
@@ -377,11 +345,55 @@ class CangJieCallResolver(
             return cangjieCallCompleter.createAllCandidatesResult(candidates, expectedType, resolutionCallbacks)
         }
 
+
         return cangjieCallCompleter.runCompletion(
             candidateFactory,
             candidates.toMutableSet(),
             expectedType,
             resolutionCallbacks
         )
+    }
+
+    /**
+     * 将迭代推断的解应用到候选项的约束系统
+     *
+     * @param candidate 候选项
+     * @param solution 类型变量到具体类型的映射
+     */
+    private fun applyInferenceSolution(
+        candidate: ResolutionCandidate,
+        solution: Map<TypeVariableMarker, CangJieType>
+    ) {
+        val csBuilder = candidate.getSystem().getBuilder()
+
+        for ((typeVariable, resolvedType) in solution) {
+            // 获取类型变量对应的类型
+            val variableType = (typeVariable as? TypeVariableFromCallableDescriptor)
+                ?.freshTypeConstructor
+                ?.let { constructor ->
+                    csBuilder.currentStorage().notFixedTypeVariables[constructor]
+                        ?.typeVariable
+                        ?.let { (it as? NewTypeVariable)?.defaultType as? CangJieType }
+                }
+
+            if (variableType != null) {
+                // 添加相等约束来固定类型变量
+                csBuilder.addEqualityConstraint(
+                    variableType,
+                    resolvedType,
+                    TypeVariableFixationPosition(typeVariable)
+                )
+            }
+        }
+    }
+
+
+
+
+    companion object {
+        /**
+         * 最大迭代次数
+         */
+        const val MAX_ITERATIONS = 10
     }
 }

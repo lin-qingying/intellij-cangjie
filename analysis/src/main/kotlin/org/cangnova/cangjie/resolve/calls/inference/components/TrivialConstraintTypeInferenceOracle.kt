@@ -31,58 +31,114 @@ import org.cangnova.cangjie.types.model.SimpleTypeMarker
 import org.cangnova.cangjie.types.model.TypeSystemInferenceExtensionContext
 import org.cangnova.cangjie.types.model.TypeSystemInferenceExtensionContextDelegate
 
+/**
+ * 平凡约束类型推断预言器
+ *
+ * 该类用于识别和过滤类型推断过程中的"平凡"（trivial）约束，即那些不提供有用信息的约束。
+ * 主要目的是优化约束系统，避免无用的 Nothing 类型约束干扰类型推断结果。
+ *
+ * 核心思想：
+ * - `Nothing(?) <: T` 这样的约束通常是无用的，可以安全忽略
+ * - Nothing 类型虽然是最具体的子类型，但对用户没有实际价值
+ * - 过滤这些平凡约束可以保持约束系统的稳定性和可预测性
+ *
+ * @property context 类型系统推断扩展上下文，提供类型系统相关的操作
+ */
 class TrivialConstraintTypeInferenceOracle private constructor(context: TypeSystemInferenceExtensionContext) :
     TypeSystemInferenceExtensionContext by context {
 
-    // This constructor is used for injection only in old FE
+    /**
+     * 用于旧前端注入的构造函数
+     *
+     * @param context 类型系统推断扩展上下文委托
+     */
     constructor(context: TypeSystemInferenceExtensionContextDelegate) : this(context as TypeSystemInferenceExtensionContext)
 
-    // The idea is to add knowledge that constraint `Nothing(?) <: T` is quite useless and
-    // it's totally fine to go and resolveName postponed argument without fixation T to Nothing(?).
-    // In other words, constraint `Nothing(?) <: T` is *not* proper
+    /**
+     * 判断约束是否为不重要的约束
+     *
+     * 核心思想是识别形如 `Nothing(?) <: T` 的约束，这类约束实际上没有提供有用的信息。
+     * 在这种情况下，完全可以在不将 T 固定为 Nothing(?) 的情况下继续解析延迟参数。
+     * 换句话说，约束 `Nothing(?) <: T` 不是"合适的"（proper）约束。
+     *
+     * @param constraint 待检查的约束
+     * @return Boolean 如果是下界约束且类型为 Nothing 构造器则返回 true
+     */
     fun isNotInterestingConstraint(constraint: Constraint): Boolean {
         return constraint.kind == ConstraintKind.LOWER && constraint.type.typeConstructor().isNothingConstructor()
     }
 
-    // This function controls the choice between sub and super result type
-    // Even that Nothing(?) is the most specific type for subtype, it doesn't bring valuable information to the user,
-    // therefore it is discriminated in favor of supertype
+    /**
+     * 判断推断结果类型是否合适
+     *
+     * 此函数控制在子类型和超类型结果之间的选择。
+     * 尽管 Nothing(?) 是子类型中最具体的类型，但它不会给用户带来有价值的信息，
+     * 因此在选择时会优先考虑超类型而非 Nothing。
+     *
+     * @param resultType 待检查的结果类型
+     * @return Boolean 如果类型不是 Nothing 构造器或者是动态类型则返回 true
+     */
     fun isSuitableResultedType(
         resultType: CangJieTypeMarker
     ): Boolean {
         return !resultType.typeConstructor().isNothingConstructor() || resultType.isDynamic()
     }
 
+    /**
+     * 判断类型是否为 Nothing 或可空的 Nothing
+     *
+     * @receiver CangJieTypeMarker 待检查的类型
+     * @return Boolean 如果类型构造器是 Nothing 构造器则返回 true
+     */
     private fun CangJieTypeMarker.isNothingOrNullableNothing(): Boolean =
         typeConstructor().isNothingConstructor()
 
-
-    // It's possible to generate Nothing-like constraints inside incorporation mechanism:
-    // For instance, when two type variables are in subtyping relation `T <: K`, after incorporation
-    // there will be constraint `approximation(out K) <: K` => `Nothing <: K`, which is innocent
-    // but can change result of the constraint system.
-    // Therefore, here we avoid adding such trivial constraints to have stable constraint system
+    /**
+     * 判断生成的约束是否为平凡约束
+     *
+     * 在合并机制内部可能生成类似 Nothing 的约束：
+     * 例如，当两个类型变量存在子类型关系 `T <: K` 时，合并后会产生约束
+     * `approximation(out K) <: K` => `Nothing <: K`，这个约束虽然无害，
+     * 但可能会改变约束系统的结果。
+     * 因此，这里避免添加这类平凡约束以保持约束系统的稳定性。
+     *
+     * @param baseConstraint 基础约束
+     * @param otherConstraint 另一个约束
+     * @param generatedConstraintType 生成的约束类型
+     * @param isSubtype 是否为子类型关系
+     * @return Boolean 如果生成的约束是平凡的则返回 true
+     */
     fun isGeneratedConstraintTrivial(
         baseConstraint: Constraint,
         otherConstraint: Constraint,
         generatedConstraintType: CangJieTypeMarker,
         isSubtype: Boolean
     ): Boolean {
+        // 如果是子类型且生成的类型是 Nothing 或灵活的 Nothing，则为平凡约束
         if (isSubtype && (generatedConstraintType.isNothing() || generatedConstraintType.isFlexibleNothing())) return true
+        // 如果不是子类型且生成的类型是可选的 Any，则为平凡约束
         if (!isSubtype && generatedConstraintType.isOptionAny()) return true
 
-        // If types from constraints that will be used to generate new constraint already contains `Nothing(?)`,
-        // then we can't decide that resulting constraint will be useless
+        // 如果用于生成新约束的约束类型已经包含 `Nothing(?)`，
+        // 那么我们不能断定最终的约束是无用的
         if (baseConstraint.type.contains { it.isNothingOrNullableNothing() }) return false
         if (otherConstraint.type.contains { it.isNothingOrNullableNothing() }) return false
 
-        // It's important to preserve constraints with nullable Nothing: `Nothing? <: T` (see implicitNothingConstraintFromReturn.kt test)
+        // 重要：需要保留可空 Nothing 的约束：`Nothing? <: T`
+        // （参见 implicitNothingConstraintFromReturn.kt 测试）
         if (generatedConstraintType.containsOnlyNonNullableNothing()) return true
 
         return false
     }
 
-
+    /**
+     * 判断类型是否只包含非空的 Nothing
+     *
+     * 检查类型中是否包含 Nothing 或灵活的 Nothing，但排除可空的 Nothing（Nothing?）。
+     *
+     * @receiver CangJieTypeMarker 待检查的类型
+     * @return Boolean 如果只包含非空的 Nothing 则返回 true
+     */
     private fun CangJieTypeMarker.containsOnlyNonNullableNothing(): Boolean =
         contains {
             (it.isNothing() || it.isFlexibleNothing()) &&

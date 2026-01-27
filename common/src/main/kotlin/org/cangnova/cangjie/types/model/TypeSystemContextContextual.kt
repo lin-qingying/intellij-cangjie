@@ -41,6 +41,8 @@ private const val USELESS_CALL_MESSAGE = "This call does effectively nothing, pl
 
 context(c: TypeSystemContext)
 fun CangJieTypeMarker.asSimpleType(): SimpleTypeMarker? = with(c) { asSimpleType() }
+context(c: TypeSystemContext)
+fun SimpleTypeMarker.asCapturedTypeUnwrappingDnn(): CapturedTypeMarker? = with(c) { asCapturedTypeUnwrappingDnn() }
 
 @Deprecated(level = DeprecationLevel.ERROR, message = USELESS_CALL_MESSAGE)
 context(_: TypeSystemContext)
@@ -235,6 +237,8 @@ fun TypeConstructorMarker.isTupleTypeConstructor(): Boolean = with(c) { isTupleT
 
 context(c: TypeSystemContext)
 fun TypeConstructorMarker.isAnyConstructor(): Boolean = with(c) { isAnyConstructor() }
+context(c: TypeSystemContext)
+fun CangJieTypeMarker.isAny() = with(c) { isAny() }
 
 context(c: TypeSystemContext)
 fun TypeConstructorMarker.isNothingConstructor(): Boolean = with(c) { isNothingConstructor() }

@@ -112,7 +112,7 @@ class ClassicTypeSystemContextForCS(
      * @return 类型变量的新鲜类型构造器
      * @throws IllegalArgumentException 如果接收者不是 NewTypeVariable
      */
-    override fun TypeVariableMarker.freshTypeConstructor(): TypeConstructorMarker {
+    override fun TypeVariableMarker.freshTypeConstructor(): TypeVariableTypeConstructorMarker {
         require(this is NewTypeVariable, this::errorMessage)
         return this.freshTypeConstructor
     }
@@ -153,7 +153,7 @@ class ClassicTypeSystemContextForCS(
 
         @Suppress("UNCHECKED_CAST")
         val capturedTypeConstructor = CapturedTypeConstructorImpl(
-            constructorProjection as TypeArgument,
+            constructorProjection,
             constructorSupertypes as List<UnwrappedType>
         )
         return CapturedType(

@@ -832,7 +832,52 @@ class DiagnosticReporterByTrackingStrategy(
                 }
             }
 
+            is ArgumentConstraintPositionByIndex -> {
+                // 基于索引的参数约束位置，用于迭代类型推断
+                // 由于没有直接的 PSI 元素引用，通过调用点报告错误
+                if (reportAdditionalErrors) {
+                    report(
+                        TYPE_MISMATCH_IN_CONSTRAINT.on(
+                            psiCangJieCall.psiCall.callElement,
+                            error.upperCangJieType,
+                            error.lowerCangJieType,
+                            position
+                        )
+                    )
+                }
+            }
+            is LambdaReturnTypePosition -> {
+                // Lambda 返回类型约束位置，用于 Last Resort 机制
+                // 类似于 LambdaArgumentConstraintPosition 的处理
+                if (reportAdditionalErrors) {
+                    report(
+                        TYPE_MISMATCH_IN_CONSTRAINT.on(
+                            psiCangJieCall.psiCall.callElement,
+                            error.upperCangJieType,
+                            error.lowerCangJieType,
+                            position
+                        )
+                    )
+                }
+            }
+            is TypeVariableFixationPosition -> {
+                // 类型变量固定位置，用于迭代推断中的变量固定
+                // 类似于 FixVariableConstraintPosition 的处理
+                val morePreciseDiagnosticExists = allDiagnostics.any { other ->
+                    val otherError = other.constraintSystemError ?: return@any false
+                    otherError is ConstraintError && otherError.position.from !is TypeVariableFixationPosition
+                }
+                if (morePreciseDiagnosticExists) return
 
+                val expression = psiCangJieCall.psiCall.calleeExpression ?: return
+                trace.reportDiagnosticOnce(
+                    typeMismatchDiagnostic.on(
+                        expression,
+                        error.upperCangJieType,
+                        error.lowerCangJieType
+                    )
+                )
+            }
         }
     }
 

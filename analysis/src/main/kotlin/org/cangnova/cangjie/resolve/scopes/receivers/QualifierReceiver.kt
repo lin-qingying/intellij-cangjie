@@ -46,6 +46,9 @@ interface DetailedReceiver
  * QualifierReceiver 表示用作限定符的接收器，如包名、类名等。
  * 这种接收器仅用于解析过程，不是真正的运行时值。
  *
+ * 在仓颉语言中，类不能作为值使用，只能作为类型限定符。
+ * 因此 QualifierReceiver 不提供类值接收器(classValueReceiver)。
+ *
  * 例如在以下代码中：
  * ```
  * package.ClassName.staticMethod()
@@ -54,8 +57,6 @@ interface DetailedReceiver
  *
  * @property descriptor 限定符对应的声明描述符
  * @property staticScope 限定符的静态作用域，包含可以通过此限定符访问的成员
- * @property classValueReceiver 类值接收器（如果限定符是类）
- * @property classValueReceiverWithSmartCastInfo 带智能转换信息的类值接收器
  *
  * @see Qualifier
  * @see DetailedReceiver
@@ -66,17 +67,6 @@ interface QualifierReceiver : Receiver, DetailedReceiver {
 
     /** 限定符的静态作用域 */
     val staticScope: MemberScope
-
-    /** 类值接收器（如果适用），对于包限定符为 null */
-    val classValueReceiver: ReceiverValue?
-
-    /**
-     * 带智能转换信息的类值接收器
-     *
-     * 对于限定符，智能转换是不可能的，因此 isStable 总是 true，typesFromSmartCasts 总是空集。
-     */
-    val classValueReceiverWithSmartCastInfo: ReceiverValueWithSmartCastInfo?
-        get() = classValueReceiver?.let { ReceiverValueWithSmartCastInfo(it, emptySet(), true) }
 }
 
 

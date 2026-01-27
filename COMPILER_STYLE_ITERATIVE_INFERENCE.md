@@ -8,6 +8,234 @@
 
 ---
 
+## 编译器实现深度分析
+
+### 双层迭代架构
+
+编译器采用双层迭代架构：
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ 外层循环: PrepareTyArgsSynthesis (TypeArgumentInference.cpp)    │
+│   while (stat.newInfo) {                                        │
+│       1. 综合/检查参数（用 Quest 类型重新分析失败参数）           │
+│       2. 收集有效参数类型                                        │
+│       3. 调用内层推导                                            │
+│       4. 检查是否有新信息                                        │
+│       5. 准备 Quest 参数类型                                     │
+│       6. Last Resort: Lambda 体分析                              │
+│   }                                                             │
+├─────────────────────────────────────────────────────────────────┤
+│ 内层循环: FindSolution (LocalTypeArgumentSynthesis.cpp)         │
+│   do {                                                          │
+│       for (tyVar : tyVarsOfThisM) {                             │
+│           1. 计算 Join (LUB)                                    │
+│           2. 计算 Meet (GLB)                                    │
+│           3. 检查贪婪固定条件                                    │
+│           4. 固定类型变量                                        │
+│       }                                                         │
+│       thisM = ApplyTypeSubstForCS(thisSubst, thisM);            │
+│   } while (newInfo);                                            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 核心数据结构: TyArgSynState
+
+```cpp
+// TypeArgumentInference.cpp: 246-263
+struct TyArgSynState {
+    TyVars tyVarsToSolve;                    // 需要求解的类型变量
+    std::vector<Ptr<Ty>> argTys;             // 参数类型列表
+    std::vector<bool> failSet;               // 失败参数位图
+    std::vector<Ptr<Ty>> questParamTys;      // Quest 类型（用于重新分析）
+    size_t unsolvedCount;                    // 未求解变量数
+    bool newInfo = true;                     // 本轮是否有新信息
+    bool lastResortUnused = true;            // Last Resort 是否未使用
+    std::optional<TypeSubst> solution;       // 当前解
+};
+```
+
+**关键字段说明**：
+
+| 字段 | 作用 |
+|------|------|
+| `failSet` | 记录哪些参数分析失败，需要用 Quest 类型重新分析 |
+| `questParamTys` | 将未确定的类型变量替换为 Quest 类型后的参数类型 |
+| `lastResortUnused` | 控制 Last Resort 机制（Lambda 体推导）是否已触发 |
+| `newInfo` | 控制外层循环是否继续 |
+
+---
+
+## 关键机制详解
+
+### 1. Quest 类型机制 (UnsolvedAsQuest)
+
+**作用**：将包含未解决类型变量的类型转换为包含 Quest 占位符的类型，使参数可以被重新分析。
+
+```cpp
+// TypeArgumentInference.cpp: 217-244
+std::optional<Ptr<Ty>> UnsolvedAsQuest(TypeManager& tyMgr, const TyVars& tyVarsToSolve, Ty& ty) {
+    if (auto funcTy = DynamicCast<FuncTy>(&ty)) {
+        // Lambda 类型：参数必须具体，返回类型可以是 Quest
+        for (auto& it : funcTy->paramTys) {
+            if (!IsConcrete(tyVarsToSolve, *it)) {
+                return std::nullopt;  // Lambda 参数类型必须已确定
+            }
+        }
+        if (auto retType = UnsolvedAsQuest(tyMgr, tyVarsToSolve, *funcTy->retTy)) {
+            return tyMgr.GetFunctionTy(paramTys, *retType, ...);
+        }
+    } else {
+        // 普通类型：具体类型返回自身，否则返回 Quest
+        if (IsConcrete(tyVarsToSolve, ty)) {
+            return &ty;
+        } else {
+            return TypeManager::GetQuestTy();  // 转换为 Quest 占位符
+        }
+    }
+    return std::nullopt;
+}
+```
+
+**Quest 类型的作用**：
+- `?` 类型可以匹配任何类型
+- 允许在类型变量未完全确定时重新分析参数
+- 从参数表达式获取更多类型信息
+
+### 2. 参数顺序优化 (GetOrderedCheckingIndexes)
+
+**作用**：优化参数处理顺序，使类型信息流动更高效。
+
+```cpp
+// LocalTypeArgumentSynthesis.cpp: 32-60
+std::vector<size_t> GetOrderedCheckingIndexes(const std::vector<Ptr<Ty>>& tys) {
+    std::vector<size_t> ideals, options, others;
+
+    for (size_t i = 0; i < tys.size(); ++i) {
+        if (tys[i]->IsIdeal()) {
+            ideals.emplace_back(i);      // 理想类型最后
+        } else if (tys[i]->IsCoreOptionType()) {
+            options.emplace_back(i);     // Option 类型优先
+        } else {
+            others.emplace_back(i);      // 其他类型
+        }
+    }
+
+    // Option 按嵌套深度排序（深的优先）
+    std::stable_sort(options.begin(), options.end(), [&tys](auto l, auto r) {
+        return CountOptionNestedLevel(*tys[l]) > CountOptionNestedLevel(*tys[r]);
+    });
+
+    // 合并顺序：Option → 其他 → 理想类型
+    options.insert(options.end(), others.begin(), others.end());
+    options.insert(options.end(), ideals.begin(), ideals.end());
+    return options;
+}
+```
+
+**排序原因**：
+1. **Option 类型优先**：仓颉支持自动装箱，先处理 Option 可正确推导 `Equatable<Option<A>>`
+2. **嵌套深度深的优先**：`Option<Option<T>>` 比 `Option<T>` 先处理
+3. **理想类型最后**：理想类型可转换为多种具体类型，最后处理避免过度泛化
+
+### 3. 贪婪固定条件 (IsGreedySolution)
+
+**作用**：判断类型变量是否可以立即固定，无需等待更多信息。
+
+```cpp
+// LocalTypeArgumentSynthesis.cpp: 1222-1236
+bool IsGreedySolution(const TyVar& tv, const Ty& bound, bool isUpperbound) {
+    // 条件 1: 泛型类型参数（非占位符）
+    bool tyParam = bound.IsGeneric() && !bound.IsPlaceholder();
+
+    // 条件 2: 外层作用域的占位符
+    bool outerTyVar = bound.IsPlaceholder() && (ScopeDepth(bound) <= ScopeDepth(tv));
+
+    // 条件 3: Final 类型（不可继承）
+    bool finalType = (isUpperbound && !IsInheritableClass(bound)) ||
+        (!bound.IsGeneric() && !bound.IsClassLike() && !bound.IsAny());
+
+    // 条件 4: Any（作为下界）或 Nothing（作为上界）
+    bool anyOrNothing = (bound.IsAny() && !isUpperbound) ||
+                        (bound.IsNothing() && isUpperbound);
+
+    return tyParam || outerTyVar || finalType || anyOrNothing;
+}
+```
+
+**贪婪固定的好处**：
+- 尽早固定类型变量，为其他变量提供约束
+- 减少迭代次数
+- 对于 Final 类型（如 Int64），可以立即确定
+
+### 4. Last Resort 机制
+
+**作用**：当常规迭代无法继续时，尝试分析 Lambda 体以获取更多类型信息。
+
+```cpp
+// TypeArgumentInference.cpp: PrepareTyArgsSynthesis
+while (stat.newInfo) {
+    // ... 常规迭代 ...
+
+    // Last Resort: 当迭代无法继续但仍有未解决的变量
+    if (!stat.newInfo && stat.unsolvedCount > 0 && stat.lastResortUnused) {
+        stat.lastResortUnused = false;  // 标记已使用
+
+        // 尝试通过 Lambda 体推导
+        sol = PropagatePlaceholderAndSolve(tyMgr, tyVarsToSolve, ...);
+
+        if (sol) {
+            stat.solution = sol;
+            stat.newInfo = true;  // 重新进入循环
+        }
+    }
+}
+```
+
+### 5. 内层循环详解 (FindSolution)
+
+```cpp
+// LocalTypeArgumentSynthesis.cpp: 765-829
+std::optional<TypeSubst> LocalTypeArgumentSynthesis::FindSolution(
+    const TyVars& tyVarsOfThisM,
+    ConstraintMap& thisM,
+    bool allowPartial
+) {
+    TypeSubst thisSubst;
+    bool newInfo = false;
+
+    do {
+        newInfo = false;
+
+        for (auto tyVar : tyVarsOfThisM) {
+            // 1. 计算 Join (LUB - 最小上界)
+            Ptr<Ty> tyJ = JoinAndMeet(thisM[tyVar].lower, tyMgr)
+                .JoinAsVisibleTy();
+
+            // 2. 计算 Meet (GLB - 最大下界)
+            Ptr<Ty> tyM = MeetUpperBounds(thisM[tyVar].upper);
+
+            // 3. 检查并固定
+            if (IsValidSolution(*tyJ, thisM[tyVar], allowPartial)) {
+                thisSubst[tyVar] = tyJ;
+                newInfo = true;
+            } else if (IsValidSolution(*tyM, thisM[tyVar], allowPartial)) {
+                thisSubst[tyVar] = tyM;
+                newInfo = true;
+            }
+        }
+
+        // 4. 应用当前解，传播约束
+        thisM = ApplyTypeSubstForCS(thisSubst, thisM);
+
+    } while (newInfo);
+
+    return {thisSubst};
+}
+```
+
+---
+
 ## 架构对比
 
 ### 当前插件架构（Kotlin 风格）
@@ -37,10 +265,12 @@
 │ IterativeTypeInferenceEngine.run()                      │
 │     ↓                                                   │
 │ while (hasProgress && unsolvedCount > 0) {              │
-│     1. 按优化顺序综合参数（用部分解）                    │
+│     1. 按优化顺序综合参数（用部分解/Quest类型）          │
 │     2. 收集约束                                         │
-│     3. 求解（允许部分解）                               │
+│     3. 求解（允许部分解 + 贪婪固定）                    │
 │     4. 更新部分解                                       │
+│     5. 准备 Quest 参数类型（用于重新分析）               │
+│     6. Last Resort: Lambda 体分析                       │
 │ }                                                       │
 │     ↓                                                   │
 │ 信息可双向流动，支持参数重新分析                         │
@@ -52,9 +282,12 @@
 | 方面 | Kotlin 风格 | 编译器风格 |
 |------|------------|-----------|
 | 信息流向 | 单向（前向） | 双向（可回流） |
-| 参数分析 | 一次性 | 可重新分析 |
+| 参数分析 | 一次性 | 可重新分析（Quest 类型） |
 | 部分解 | 有限支持 | 完整支持 |
-| 迭代层级 | 完成阶段内 | 参数综合 + 求解 |
+| 迭代层级 | 完成阶段内 | 双层迭代（外层+内层） |
+| 失败处理 | 立即报错 | 标记失败，尝试重分析 |
+| 贪婪固定 | 无 | 支持（Final类型等） |
+| Last Resort | 无 | Lambda 体推导 |
 
 ---
 
@@ -89,11 +322,20 @@ class IterativeInferenceContext(
     /** 当前部分解：已固定的类型变量 -> 具体类型 */
     val partialSolution: MutableMap<TypeVariableMarker, CangJieType> = mutableMapOf()
 
+    /** 失败参数位图（对应编译器的 failSet） */
+    val failedArguments: MutableSet<Int> = mutableSetOf()
+
+    /** Quest 参数类型（对应编译器的 questParamTys） */
+    val questParameterTypes: MutableMap<Int, CangJieType> = mutableMapOf()
+
     /** 未求解变量数 */
     var unsolvedCount: Int = typeVariablesToSolve.size
 
     /** 本轮是否有新信息 */
     var hasNewInfo: Boolean = true
+
+    /** Last Resort 是否未使用（对应编译器的 lastResortUnused） */
+    var lastResortUnused: Boolean = true
 
     /** 迭代计数 */
     var iteration: Int = 0
@@ -121,6 +363,20 @@ class IterativeInferenceContext(
             unsolvedCount--
             hasNewInfo = true
         }
+    }
+
+    /**
+     * 标记参数分析失败
+     */
+    fun markArgumentFailed(index: Int) {
+        failedArguments.add(index)
+    }
+
+    /**
+     * 设置参数的 Quest 类型
+     */
+    fun setQuestParameterType(index: Int, questType: CangJieType) {
+        questParameterTypes[index] = questType
     }
 
     /**
@@ -155,6 +411,8 @@ class IterativeInferenceContext(
                 "iteration=$iteration, " +
                 "unsolved=$unsolvedCount/${typeVariablesToSolve.size}, " +
                 "hasNewInfo=$hasNewInfo, " +
+                "failed=${failedArguments.size}, " +
+                "lastResortUnused=$lastResortUnused, " +
                 "solution=$partialSolution)"
     }
 }
@@ -200,14 +458,115 @@ class ArgumentSynthesisState(
     fun reset() {
         synthesizedType = null
         analyzed = false
-        // 注意：failed 状态不重置，失败的参数不会重新尝试
+        // 注意：failed 状态不重置，失败的参数通过 Quest 类型重新分析
     }
 }
 ```
 
 ---
 
-### 第二步：参数顺序优化器
+### 第二步：Quest 类型生成器
+
+**新文件**: `analysis/src/main/kotlin/org/cangnova/cangjie/resolve/calls/inference/QuestTypeGenerator.kt`
+
+```kotlin
+package org.cangnova.cangjie.resolve.calls.inference
+
+import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.FunctionType
+import org.cangnova.cangjie.types.model.TypeVariableMarker
+
+/**
+ * Quest 类型生成器
+ *
+ * 对应编译器的 UnsolvedAsQuest 函数。
+ * 将包含未解决类型变量的类型转换为包含 Quest 占位符的类型。
+ */
+object QuestTypeGenerator {
+
+    /**
+     * 将类型中的未解决类型变量转换为 Quest 占位符
+     *
+     * @param type 原始类型
+     * @param unsolvedVariables 未解决的类型变量集合
+     * @param partialSolution 当前部分解
+     * @return Quest 类型，如果无法转换则返回 null
+     */
+    fun generateQuestType(
+        type: CangJieType,
+        unsolvedVariables: Set<TypeVariableMarker>,
+        partialSolution: Map<TypeVariableMarker, CangJieType>
+    ): CangJieType? {
+        return when {
+            type is FunctionType -> generateQuestFunctionType(type, unsolvedVariables, partialSolution)
+            isConcrete(type, unsolvedVariables, partialSolution) -> type
+            else -> QuestType  // 返回 Quest 占位符
+        }
+    }
+
+    /**
+     * 为函数类型生成 Quest 类型
+     *
+     * 关键：Lambda 的参数类型必须是具体的，只有返回类型可以是 Quest
+     */
+    private fun generateQuestFunctionType(
+        funcType: FunctionType,
+        unsolvedVariables: Set<TypeVariableMarker>,
+        partialSolution: Map<TypeVariableMarker, CangJieType>
+    ): CangJieType? {
+        // 检查所有参数类型是否具体
+        for (paramType in funcType.parameterTypes) {
+            if (!isConcrete(paramType, unsolvedVariables, partialSolution)) {
+                return null  // Lambda 参数类型必须已确定
+            }
+        }
+
+        // 返回类型可以转换为 Quest
+        val questReturnType = generateQuestType(
+            funcType.returnType,
+            unsolvedVariables,
+            partialSolution
+        ) ?: return null
+
+        return FunctionType(
+            parameterTypes = funcType.parameterTypes,
+            returnType = questReturnType,
+            isC = funcType.isC,
+            isClosure = funcType.isClosure
+        )
+    }
+
+    /**
+     * 检查类型是否具体（不包含未解决的类型变量）
+     */
+    private fun isConcrete(
+        type: CangJieType,
+        unsolvedVariables: Set<TypeVariableMarker>,
+        partialSolution: Map<TypeVariableMarker, CangJieType>
+    ): Boolean {
+        var concrete = true
+        type.forEachTypeVariable { tv ->
+            if (tv in unsolvedVariables && tv !in partialSolution) {
+                concrete = false
+            }
+        }
+        return concrete
+    }
+}
+
+/**
+ * Quest 类型单例
+ *
+ * 表示"任意类型"占位符，可以匹配任何类型
+ */
+object QuestType : CangJieType() {
+    override fun toString(): String = "?"
+}
+```
+
+---
+
+### 第三步：参数顺序优化器
 
 **新文件**: `analysis/src/main/kotlin/org/cangnova/cangjie/resolve/calls/inference/ArgumentOrderOptimizer.kt`
 
@@ -216,6 +575,8 @@ package org.cangnova.cangjie.resolve.calls.inference
 
 /**
  * 参数顺序优化器
+ *
+ * 对应编译器的 GetOrderedCheckingIndexes 函数。
  *
  * 按以下优先级排序参数，以优化类型推导效果：
  *
@@ -258,40 +619,70 @@ object ArgumentOrderOptimizer {
         // 合并顺序：Option → 普通非Lambda → Lambda → 理想类型
         return (sortedOptions + normalNonLambda + lambdas + ideals).map { it.index }
     }
+}
+```
+
+---
+
+### 第四步：贪婪固定判断器
+
+**新文件**: `analysis/src/main/kotlin/org/cangnova/cangjie/resolve/calls/inference/GreedyFixationChecker.kt`
+
+```kotlin
+package org.cangnova.cangjie.resolve.calls.inference
+
+import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.model.TypeVariableMarker
+
+/**
+ * 贪婪固定判断器
+ *
+ * 对应编译器的 IsGreedySolution 函数。
+ * 判断类型变量是否可以立即固定，无需等待更多信息。
+ */
+object GreedyFixationChecker {
 
     /**
-     * 获取可以用部分解分析的参数
+     * 检查是否可以贪婪固定
      *
-     * @param arguments 参数状态列表
-     * @param partialSolution 当前部分解
-     * @return 可以分析的参数索引列表
+     * @param typeVariable 类型变量
+     * @param bound 约束类型
+     * @param isUpperBound 是否为上界约束
+     * @return 是否可以贪婪固定
      */
-    fun getAnalyzableArguments(
-        arguments: List<ArgumentSynthesisState>,
-        partialSolution: Map<TypeVariableMarker, CangJieType>
-    ): List<Int> {
-        return arguments.indices.filter { index ->
-            val arg = arguments[index]
-            !arg.failed && !arg.analyzed && canAnalyzeWithPartialSolution(arg, partialSolution)
+    fun isGreedySolution(
+        typeVariable: TypeVariableMarker,
+        bound: CangJieType,
+        isUpperBound: Boolean
+    ): Boolean {
+        // 条件 1: 泛型类型参数（非占位符）
+        val isTypeParam = bound.isGeneric() && !bound.isPlaceholder()
+
+        // 条件 2: 外层作用域的占位符
+        val isOuterPlaceholder = bound.isPlaceholder() &&
+            (bound.scopeDepth() <= typeVariable.scopeDepth())
+
+        // 条件 3: Final 类型（不可继承）
+        val isFinalType = when {
+            isUpperBound -> !isInheritableClass(bound)
+            else -> !bound.isGeneric() && !bound.isClassLike() && !bound.isAny()
         }
+
+        // 条件 4: Any（作为下界）或 Nothing（作为上界）
+        val isAnyOrNothing = (bound.isAny() && !isUpperBound) ||
+            (bound.isNothing() && isUpperBound)
+
+        return isTypeParam || isOuterPlaceholder || isFinalType || isAnyOrNothing
     }
 
     /**
-     * 检查参数是否可以用部分解分析
+     * 检查类型是否可继承
      */
-    private fun canAnalyzeWithPartialSolution(
-        arg: ArgumentSynthesisState,
-        partialSolution: Map<TypeVariableMarker, CangJieType>
-    ): Boolean {
-        if (!arg.isLambda) {
-            // 非 Lambda 参数总是可以分析
-            return true
-        }
-
-        // Lambda 参数需要检查参数类型是否已确定
-        val functionType = arg.parameterType as? FunctionType ?: return false
-        return functionType.parameterTypes.all { paramType ->
-            !paramType.containsUnresolvedTypeVariables(partialSolution)
+    private fun isInheritableClass(type: CangJieType): Boolean {
+        val classifier = type.typeConstructor().getClassifier()
+        return when {
+            classifier is ClassDescriptor -> !classifier.isFinalClass && !classifier.isSealed
+            else -> false
         }
     }
 }
@@ -299,7 +690,7 @@ object ArgumentOrderOptimizer {
 
 ---
 
-### 第三步：迭代式推导引擎
+### 第五步：迭代式推导引擎
 
 **新文件**: `analysis/src/main/kotlin/org/cangnova/cangjie/resolve/calls/inference/IterativeTypeInferenceEngine.kt`
 
@@ -313,22 +704,32 @@ import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 /**
  * 迭代式类型推导引擎
  *
- * 实现编译器风格的迭代推导算法：
+ * 实现编译器风格的双层迭代推导算法。
  *
+ * 外层循环（对应 PrepareTyArgsSynthesis）：
  * ```
- * while (hasProgress && unsolvedCount > 0) {
- *     1. 用部分解综合参数
- *     2. 收集约束
- *     3. 求解（允许部分解）
- *     4. 更新部分解
+ * while (hasProgress) {
+ *     1. 综合/检查参数（用 Quest 类型重新分析失败参数）
+ *     2. 收集有效参数类型
+ *     3. 调用内层推导
+ *     4. 检查是否有新信息
+ *     5. 准备 Quest 参数类型
+ *     6. Last Resort: Lambda 体分析
  * }
  * ```
  *
- * 核心特性：
- * - 支持部分解（partial solution）
- * - 支持参数重新分析
- * - 支持信息双向流动
- * - 参数顺序优化
+ * 内层循环（对应 FindSolution）：
+ * ```
+ * do {
+ *     for (tyVar : variables) {
+ *         1. 计算 Join (LUB)
+ *         2. 计算 Meet (GLB)
+ *         3. 检查贪婪固定条件
+ *         4. 固定类型变量
+ *     }
+ *     传播约束
+ * } while (newInfo)
+ * ```
  */
 class IterativeTypeInferenceEngine(
     private val constraintSystemBuilder: ConstraintSystemBuilder,
@@ -346,17 +747,22 @@ class IterativeTypeInferenceEngine(
         // 获取优化后的参数顺序
         val argumentOrder = ArgumentOrderOptimizer.getOptimizedOrder(context.arguments)
 
-        // 主迭代循环
+        // 外层主迭代循环
         while (context.shouldContinue()) {
             context.startIteration()
 
-            val madeProgress = runSingleIteration(context, argumentOrder)
+            val madeProgress = runOuterIteration(context, argumentOrder)
 
             if (!madeProgress) {
-                // 尝试强制分析延迟的 Lambda
-                if (!tryForceAnalyzeLambdas(context)) {
-                    break
+                // 尝试 Last Resort: Lambda 体分析
+                if (context.lastResortUnused && context.unsolvedCount > 0) {
+                    context.lastResortUnused = false
+                    if (tryLastResortLambdaAnalysis(context)) {
+                        context.hasNewInfo = true
+                        continue
+                    }
                 }
+                break
             }
         }
 
@@ -364,38 +770,46 @@ class IterativeTypeInferenceEngine(
     }
 
     /**
-     * 单轮迭代
+     * 外层单轮迭代
      *
      * @return 本轮是否有进展
      */
-    private fun runSingleIteration(
+    private fun runOuterIteration(
         context: IterativeInferenceContext,
         argumentOrder: List<Int>
     ): Boolean {
         var madeProgress = false
 
-        // Phase 1: 用部分解综合参数
-        if (synthesizeArgumentsWithPartialSolution(context, argumentOrder)) {
+        // Phase 1: 综合参数（用 Quest 类型重新分析失败参数）
+        if (synthesizeArgumentsWithQuestTypes(context, argumentOrder)) {
             madeProgress = true
         }
 
         // Phase 2: 收集约束
         collectConstraints(context)
 
-        // Phase 3: 求解约束（允许部分解）
-        if (solveConstraintsWithPartialSolution(context)) {
+        // Phase 3: 内层求解循环
+        if (runInnerSolvingLoop(context)) {
             madeProgress = true
+        }
+
+        // Phase 4: 准备 Quest 参数类型
+        if (madeProgress) {
+            prepareQuestParameterTypes(context)
         }
 
         return madeProgress
     }
 
     /**
-     * Phase 1: 用部分解综合参数
+     * Phase 1: 用 Quest 类型综合参数
      *
-     * 关键改进：使用当前部分解替换期望类型后再分析参数
+     * 对应编译器的参数综合逻辑：
+     * - 首次分析：直接综合
+     * - 失败后：用 Quest 类型重新检查
+     * - Last Resort 后：强制综合
      */
-    private fun synthesizeArgumentsWithPartialSolution(
+    private fun synthesizeArgumentsWithQuestTypes(
         context: IterativeInferenceContext,
         argumentOrder: List<Int>
     ): Boolean {
@@ -405,38 +819,54 @@ class IterativeTypeInferenceEngine(
         for (argIndex in argumentOrder) {
             val argState = context.arguments[argIndex]
 
-            // 跳过已失败的参数
-            if (argState.failed) continue
-
-            // 用部分解替换期望的参数类型
-            val expectedType = substitutor.substitute(argState.parameterType)
-
-            // 检查是否可以分析
-            if (!canAnalyzeArgument(argState, expectedType, context)) {
-                continue
+            // 情况 1: 失败参数 + 有 Quest 类型 → 用 Quest 类型重新检查
+            if (argState.failed && context.questParameterTypes.containsKey(argIndex)) {
+                val questType = context.questParameterTypes[argIndex]!!
+                val result = argumentSynthesizer.checkWithCache(
+                    argState.argument,
+                    questType
+                )
+                if (result is SynthesisResult.Success) {
+                    argState.synthesizedType = result.type
+                    argState.analyzed = true
+                    context.hasNewInfo = true
+                    madeProgress = true
+                }
             }
+            // 情况 2: 未分析 → 首次综合
+            else if (argState.synthesizedType == null && !argState.failed) {
+                val expectedType = substitutor.substitute(argState.parameterType)
+                val result = synthesizeArgument(argState, expectedType, context)
 
-            // 综合参数
-            val result = argumentSynthesizer.synthesize(
-                argState.argument,
-                expectedType,
-                context.partialSolution
-            )
-
-            when (result) {
-                is SynthesisResult.Success -> {
-                    if (argState.synthesizedType != result.type) {
+                when (result) {
+                    is SynthesisResult.Success -> {
                         argState.synthesizedType = result.type
                         argState.analyzed = true
                         context.hasNewInfo = true
                         madeProgress = true
                     }
+                    is SynthesisResult.Failure -> {
+                        argState.failed = true
+                        context.markArgumentFailed(argIndex)
+                    }
+                    is SynthesisResult.Postponed -> {
+                        // 保持延迟状态
+                    }
                 }
-                is SynthesisResult.Failure -> {
-                    argState.failed = true
-                }
-                is SynthesisResult.Postponed -> {
-                    // 保持延迟状态，等待更多信息
+            }
+            // 情况 3: 失败 + Last Resort 已触发 → 强制综合
+            else if (argState.failed && !context.lastResortUnused) {
+                val result = argumentSynthesizer.synthesize(
+                    argState.argument,
+                    argState.parameterType,
+                    context.partialSolution
+                )
+                if (result is SynthesisResult.Success) {
+                    argState.synthesizedType = result.type
+                    argState.analyzed = true
+                    argState.failed = false
+                    context.hasNewInfo = true
+                    madeProgress = true
                 }
             }
         }
@@ -445,25 +875,32 @@ class IterativeTypeInferenceEngine(
     }
 
     /**
-     * 检查参数是否可以分析
+     * 综合单个参数
      */
-    private fun canAnalyzeArgument(
+    private fun synthesizeArgument(
         argState: ArgumentSynthesisState,
         expectedType: CangJieType,
         context: IterativeInferenceContext
-    ): Boolean {
-        // 已分析的参数在本轮跳过（但可能在下一轮重新分析）
-        if (argState.analyzed) return false
-
+    ): SynthesisResult {
         // Lambda 需要参数类型确定
         if (argState.isLambda) {
-            val functionType = expectedType as? FunctionType ?: return false
-            return functionType.parameterTypes.all { paramType ->
+            val functionType = expectedType as? FunctionType
+                ?: return SynthesisResult.failure("Expected function type for lambda")
+
+            // 检查 Lambda 参数类型是否都已确定
+            val allParamsDetermined = functionType.parameterTypes.all { paramType ->
                 isTypeFullyDetermined(paramType, context)
+            }
+
+            if (!allParamsDetermined) {
+                return SynthesisResult.postponed("Lambda parameter type not yet determined")
             }
         }
 
-        return true
+        return argumentSynthesizer.synthesizeWithCache(
+            argState.argument,
+            expectedType
+        )
     }
 
     /**
@@ -488,101 +925,121 @@ class IterativeTypeInferenceEngine(
     }
 
     /**
-     * Phase 3: 求解约束（允许部分解）
+     * Phase 3: 内层求解循环
      *
-     * 关键改进：即使结果包含未固定的类型变量，也尝试固定
+     * 对应编译器的 FindSolution
      */
-    private fun solveConstraintsWithPartialSolution(
-        context: IterativeInferenceContext
-    ): Boolean {
-        val storage = constraintSystemBuilder.currentStorage()
+    private fun runInnerSolvingLoop(context: IterativeInferenceContext): Boolean {
         var madeProgress = false
+        var innerNewInfo: Boolean
 
-        for ((_, variableWithConstraints) in storage.notFixedTypeVariables) {
-            val variable = variableWithConstraints.typeVariable
+        do {
+            innerNewInfo = false
+            val storage = constraintSystemBuilder.currentStorage()
 
-            // 跳过已在部分解中的变量
-            if (context.isFixed(variable)) continue
+            for ((_, variableWithConstraints) in storage.notFixedTypeVariables) {
+                val variable = variableWithConstraints.typeVariable
 
-            // 尝试求解
-            val resultType = tryFindResultType(variableWithConstraints, context)
+                // 跳过已在部分解中的变量
+                if (context.isFixed(variable)) continue
 
-            if (resultType != null) {
-                // 检查结果是否可用
-                if (isUsableResult(resultType, context)) {
+                // 1. 计算 Join (LUB)
+                val joinResult = computeJoin(variableWithConstraints, context)
+
+                // 2. 计算 Meet (GLB)
+                val meetResult = computeMeet(variableWithConstraints, context)
+
+                // 3. 检查贪婪固定条件并固定
+                val resultType = when {
+                    joinResult != null && isValidSolution(joinResult, variableWithConstraints, context) -> {
+                        // 检查是否可以贪婪固定
+                        if (shouldGreedyFix(variable, variableWithConstraints)) {
+                            joinResult
+                        } else if (isUsableResult(joinResult, context)) {
+                            joinResult
+                        } else null
+                    }
+                    meetResult != null && isValidSolution(meetResult, variableWithConstraints, context) -> {
+                        meetResult
+                    }
+                    else -> null
+                }
+
+                if (resultType != null) {
                     constraintSystemBuilder.fixVariable(variable, resultType)
                     context.recordFixation(variable, resultType)
+                    innerNewInfo = true
                     madeProgress = true
                 }
             }
-        }
+
+            // 传播约束
+            if (innerNewInfo) {
+                constraintSystemBuilder.propagateConstraints()
+            }
+
+        } while (innerNewInfo)
 
         return madeProgress
     }
 
     /**
-     * 尝试找到结果类型
+     * 检查是否应该贪婪固定
      */
-    private fun tryFindResultType(
-        variableWithConstraints: VariableWithConstraints,
-        context: IterativeInferenceContext
-    ): CangJieType? {
-        val constraints = variableWithConstraints.constraints
-        val substitutor = context.createPartialSubstitutor()
-
-        // 1. 检查 EQUALITY 约束
-        constraints.filter { it.kind == ConstraintKind.EQUALITY }.forEach { eq ->
-            val substitutedType = substitutor.substitute(eq.type as CangJieType)
-            if (isUsableResult(substitutedType, context)) {
-                return substitutedType
+    private fun shouldGreedyFix(
+        variable: TypeVariableMarker,
+        variableWithConstraints: VariableWithConstraints
+    ): Boolean {
+        // 检查所有约束
+        for (constraint in variableWithConstraints.constraints) {
+            val isUpperBound = constraint.kind == ConstraintKind.UPPER
+            if (GreedyFixationChecker.isGreedySolution(variable, constraint.type as CangJieType, isUpperBound)) {
+                return true
             }
         }
-
-        // 2. 从 LOWER 约束求 Join（LUB）
-        val lowerTypes = constraints
-            .filter { it.kind == ConstraintKind.LOWER }
-            .map { substitutor.substitute(it.type as CangJieType) }
-            .filter { isUsableResult(it, context) }
-
-        if (lowerTypes.isNotEmpty()) {
-            val joined = computeJoin(lowerTypes)
-            if (joined != null && isUsableResult(joined, context)) {
-                return joined
-            }
-        }
-
-        // 3. 从 UPPER 约束求 Meet（GLB）
-        val upperTypes = constraints
-            .filter { it.kind == ConstraintKind.UPPER }
-            .map { substitutor.substitute(it.type as CangJieType) }
-            .filter { isUsableResult(it, context) }
-
-        if (upperTypes.isNotEmpty()) {
-            val met = computeMeet(upperTypes)
-            if (met != null && isUsableResult(met, context)) {
-                return met
-            }
-        }
-
-        return null
+        return false
     }
 
     /**
-     * 尝试强制分析延迟的 Lambda
-     *
-     * 当常规迭代无法继续时，尝试分析 Lambda 以获取更多信息
+     * Phase 4: 准备 Quest 参数类型
      */
-    private fun tryForceAnalyzeLambdas(context: IterativeInferenceContext): Boolean {
+    private fun prepareQuestParameterTypes(context: IterativeInferenceContext) {
+        val unsolvedVariables = context.typeVariablesToSolve
+            .filter { !context.isFixed(it) }
+            .toSet()
+
+        for (argState in context.arguments) {
+            if (!argState.failed) continue
+
+            val questType = QuestTypeGenerator.generateQuestType(
+                argState.parameterType,
+                unsolvedVariables,
+                context.partialSolution
+            )
+
+            if (questType != null) {
+                context.setQuestParameterType(argState.index, questType)
+                context.hasNewInfo = true
+            }
+        }
+    }
+
+    /**
+     * Last Resort: Lambda 体分析
+     *
+     * 当常规迭代无法继续时，尝试分析 Lambda 体以获取更多信息
+     */
+    private fun tryLastResortLambdaAnalysis(context: IterativeInferenceContext): Boolean {
         val substitutor = context.createPartialSubstitutor()
         var madeProgress = false
 
         for (argState in context.arguments) {
-            if (!argState.isLambda || argState.failed || argState.analyzed) continue
+            if (!argState.isLambda || !argState.failed) continue
 
             val expectedType = substitutor.substitute(argState.parameterType)
             val functionType = expectedType as? FunctionType ?: continue
 
-            // 尝试分析 Lambda 体以推导返回类型
+            // 尝试通过 Lambda 体推导返回类型
             val result = argumentSynthesizer.synthesizeLambdaWithUnknownParams(
                 argState.argument,
                 functionType
@@ -591,12 +1048,87 @@ class IterativeTypeInferenceEngine(
             if (result is SynthesisResult.Success) {
                 argState.synthesizedType = result.type
                 argState.analyzed = true
-                context.hasNewInfo = true
+                argState.failed = false
                 madeProgress = true
+
+                // 添加返回类型约束
+                val inferredReturnType = (result.type as FunctionType).returnType
+                val expectedReturnType = functionType.returnType
+                constraintSystemBuilder.addSubtypeConstraint(
+                    inferredReturnType,
+                    expectedReturnType,
+                    LambdaReturnTypePosition(argState.index)
+                )
             }
         }
 
         return madeProgress
+    }
+
+    /**
+     * 计算类型的 Join（LUB - 最小上界）
+     */
+    private fun computeJoin(
+        variableWithConstraints: VariableWithConstraints,
+        context: IterativeInferenceContext
+    ): CangJieType? {
+        val substitutor = context.createPartialSubstitutor()
+        val lowerTypes = variableWithConstraints.constraints
+            .filter { it.kind == ConstraintKind.LOWER }
+            .map { substitutor.substitute(it.type as CangJieType) }
+            .filter { isUsableResult(it, context) }
+
+        if (lowerTypes.isEmpty()) return null
+        if (lowerTypes.size == 1) return lowerTypes[0]
+
+        return lowerTypes.reduce { acc, type ->
+            typeChecker.commonSuperType(acc, type) ?: return null
+        }
+    }
+
+    /**
+     * 计算类型的 Meet（GLB - 最大下界）
+     */
+    private fun computeMeet(
+        variableWithConstraints: VariableWithConstraints,
+        context: IterativeInferenceContext
+    ): CangJieType? {
+        val substitutor = context.createPartialSubstitutor()
+        val upperTypes = variableWithConstraints.constraints
+            .filter { it.kind == ConstraintKind.UPPER }
+            .map { substitutor.substitute(it.type as CangJieType) }
+            .filter { isUsableResult(it, context) }
+
+        if (upperTypes.isEmpty()) return null
+        if (upperTypes.size == 1) return upperTypes[0]
+
+        return upperTypes.reduce { acc, type ->
+            typeChecker.intersectTypes(acc, type) ?: return null
+        }
+    }
+
+    /**
+     * 检查解是否有效
+     */
+    private fun isValidSolution(
+        type: CangJieType,
+        variableWithConstraints: VariableWithConstraints,
+        context: IterativeInferenceContext
+    ): Boolean {
+        // 检查是否满足所有约束
+        val substitutor = context.createPartialSubstitutor()
+
+        for (constraint in variableWithConstraints.constraints) {
+            val constraintType = substitutor.substitute(constraint.type as CangJieType)
+            val satisfied = when (constraint.kind) {
+                ConstraintKind.LOWER -> typeChecker.isSubtype(constraintType, type)
+                ConstraintKind.UPPER -> typeChecker.isSubtype(type, constraintType)
+                ConstraintKind.EQUALITY -> typeChecker.isEqual(type, constraintType)
+            }
+            if (!satisfied) return false
+        }
+
+        return true
     }
 
     /**
@@ -619,10 +1151,6 @@ class IterativeTypeInferenceEngine(
 
     /**
      * 检查结果是否可用
-     *
-     * 可用条件：
-     * 1. 不包含类型变量，或
-     * 2. 所有类型变量都已在部分解或已固定变量中
      */
     private fun isUsableResult(type: CangJieType, context: IterativeInferenceContext): Boolean {
         var usable = true
@@ -634,28 +1162,6 @@ class IterativeTypeInferenceEngine(
             }
         }
         return usable
-    }
-
-    /**
-     * 计算类型的 Join（LUB - 最小上界）
-     */
-    private fun computeJoin(types: List<CangJieType>): CangJieType? {
-        if (types.isEmpty()) return null
-        if (types.size == 1) return types[0]
-        return types.reduce { acc, type ->
-            typeChecker.commonSuperType(acc, type) ?: return null
-        }
-    }
-
-    /**
-     * 计算类型的 Meet（GLB - 最大下界）
-     */
-    private fun computeMeet(types: List<CangJieType>): CangJieType? {
-        if (types.isEmpty()) return null
-        if (types.size == 1) return types[0]
-        return types.reduce { acc, type ->
-            typeChecker.intersectTypes(acc, type) ?: return null
-        }
     }
 
     /**
@@ -693,7 +1199,7 @@ data class InferenceResult(
 
 ---
 
-### 第四步：参数综合器
+### 第六步：参数综合器
 
 **新文件**: `analysis/src/main/kotlin/org/cangnova/cangjie/resolve/calls/inference/ArgumentSynthesizer.kt`
 
@@ -707,18 +1213,49 @@ import org.cangnova.cangjie.types.CangJieType
  * 参数综合器
  *
  * 负责分析参数表达式，推导其类型。
+ * 支持缓存机制以支持重新分析。
  */
 class ArgumentSynthesizer(
-    private val expressionTypingServices: ExpressionTypingServices
+    private val expressionTypingServices: ExpressionTypingServices,
+    private val cache: TypeCheckCache
 ) {
 
     /**
-     * 综合参数
+     * 综合参数（带缓存）
      *
-     * @param argument 参数
-     * @param expectedType 期望类型（已用部分解替换）
-     * @param partialSolution 当前部分解
-     * @return 综合结果
+     * 对应编译器的 SynthesizeWithCache
+     */
+    fun synthesizeWithCache(
+        argument: ResolvedCallArgument,
+        expectedType: CangJieType
+    ): SynthesisResult {
+        val cacheKey = CacheKey(argument, expectedType)
+        cache.get(cacheKey)?.let { return it }
+
+        val result = synthesize(argument, expectedType, emptyMap())
+        cache.put(cacheKey, result)
+        return result
+    }
+
+    /**
+     * 检查参数（带缓存）
+     *
+     * 对应编译器的 CheckWithCache
+     */
+    fun checkWithCache(
+        argument: ResolvedCallArgument,
+        expectedType: CangJieType
+    ): SynthesisResult {
+        val cacheKey = CacheKey(argument, expectedType)
+        cache.get(cacheKey)?.let { return it }
+
+        val result = check(argument, expectedType)
+        cache.put(cacheKey, result)
+        return result
+    }
+
+    /**
+     * 综合参数
      */
     fun synthesize(
         argument: ResolvedCallArgument,
@@ -729,6 +1266,23 @@ class ArgumentSynthesizer(
             argument.isLambda() -> synthesizeLambda(argument, expectedType, partialSolution)
             argument.isCallableReference() -> synthesizeCallableReference(argument, expectedType)
             else -> synthesizeRegularArgument(argument, expectedType)
+        }
+    }
+
+    /**
+     * 检查参数
+     */
+    private fun check(
+        argument: ResolvedCallArgument,
+        expectedType: CangJieType
+    ): SynthesisResult {
+        val expression = argument.getExpression()
+        val success = expressionTypingServices.checkExpression(expression, expectedType)
+
+        return if (success) {
+            SynthesisResult.success(expression.type ?: expectedType)
+        } else {
+            SynthesisResult.failure("Type check failed")
         }
     }
 
@@ -770,7 +1324,7 @@ class ArgumentSynthesizer(
     /**
      * 综合 Lambda（参数类型未完全确定时）
      *
-     * 用于 tryForceAnalyzeLambdas，尝试从 Lambda 体推导信息
+     * 用于 Last Resort，尝试从 Lambda 体推导信息
      */
     fun synthesizeLambdaWithUnknownParams(
         argument: ResolvedCallArgument,
@@ -779,14 +1333,12 @@ class ArgumentSynthesizer(
         val lambdaExpression = argument.getLambdaExpression()
 
         // 尝试分析 Lambda 体，即使参数类型未完全确定
-        // 这可以从 Lambda 体中获取返回类型信息
         val inferredReturnType = expressionTypingServices.inferLambdaReturnType(
             lambdaExpression,
-            functionType.parameterTypes // 可能包含类型变量
+            functionType.parameterTypes
         )
 
         return if (inferredReturnType != null) {
-            // 构建推导出的函数类型
             val inferredFunctionType = FunctionType(
                 parameterTypes = functionType.parameterTypes,
                 returnType = inferredReturnType
@@ -858,7 +1410,7 @@ sealed class SynthesisResult {
 
 ---
 
-### 第五步：修改 ResolutionParts
+### 第七步：修改 ResolutionParts
 
 **修改文件**: `analysis/src/main/kotlin/org/cangnova/cangjie/resolve/calls/components/ResolutionParts.kt`
 
@@ -1026,147 +1578,6 @@ object CreateFreshVariablesSubstitutor : ResolutionPart() {
 
 ---
 
-### 第六步：整合到调用解析器
-
-**修改文件**: `analysis/src/main/kotlin/org/cangnova/cangjie/resolve/calls/CangJieCallResolver.kt`
-
-```kotlin
-package org.cangnova.cangjie.resolve.calls
-
-import org.cangnova.cangjie.resolve.calls.components.CreateFreshVariablesSubstitutor
-import org.cangnova.cangjie.resolve.calls.inference.IterativeTypeInferenceEngine
-import org.cangnova.cangjie.resolve.calls.inference.InferenceResult
-import org.cangnova.cangjie.resolve.calls.model.CangJieCall
-import org.cangnova.cangjie.resolve.calls.model.ResolutionCandidate
-import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
-import org.cangnova.cangjie.types.CangJieType
-
-/**
- * 仓颉调用解析器
- *
- * 使用迭代式类型推导引擎解析函数调用。
- */
-class CangJieCallResolver(
-    private val iterativeInferenceEngine: IterativeTypeInferenceEngine,
-    private val diagnosticsReporter: DiagnosticsReporter
-) {
-
-    /**
-     * 解析调用
-     */
-    fun resolveCall(
-        call: CangJieCall,
-        candidates: Collection<ResolutionCandidate>,
-        expectedType: CangJieType?
-    ): OverloadResolutionResults {
-        val successfulCandidates = mutableListOf<ResolutionCandidate>()
-        val failedCandidates = mutableListOf<ResolutionCandidate>()
-
-        for (candidate in candidates) {
-            val result = resolveCandidate(candidate, expectedType)
-
-            if (result.success) {
-                applyFinalSolution(candidate, result)
-                successfulCandidates.add(candidate)
-            } else {
-                recordFailure(candidate, result)
-                failedCandidates.add(candidate)
-            }
-        }
-
-        return selectBestCandidate(successfulCandidates, failedCandidates)
-    }
-
-    /**
-     * 解析单个候选
-     */
-    private fun resolveCandidate(
-        candidate: ResolutionCandidate,
-        expectedType: CangJieType?
-    ): InferenceResult {
-        // 1. 创建 Fresh Variables 和推导上下文
-        CreateFreshVariablesSubstitutor.run { candidate.process(0) }
-
-        // 2. 获取推导上下文
-        val inferenceContext = candidate.resolvedCall.iterativeInferenceContext
-            ?: return InferenceResult(
-                success = true,
-                solution = emptyMap(),
-                unsolvedVariables = emptyList(),
-                iterations = 0,
-                hasContradiction = false
-            )
-
-        // 3. 添加返回类型约束
-        if (expectedType != null) {
-            val csBuilder = candidate.getSystem().getBuilder()
-            csBuilder.addSubtypeConstraint(
-                candidate.resolvedCall.resultType,
-                expectedType,
-                ExpectedTypeConstraintPosition
-            )
-        }
-
-        // 4. 运行迭代式推导
-        return iterativeInferenceEngine.run(inferenceContext)
-    }
-
-    /**
-     * 应用最终解
-     */
-    private fun applyFinalSolution(
-        candidate: ResolutionCandidate,
-        result: InferenceResult
-    ) {
-        val substitutor = TypeSubstitutor.create(
-            result.solution.mapKeys { (v, _) -> v.freshTypeConstructor() }
-        )
-
-        candidate.resolvedCall.finalSubstitutor = ComposableTypeSubstitutor.chain(
-            candidate.resolvedCall.typeParameterSubstitutor,
-            substitutor
-        )
-    }
-
-    /**
-     * 记录失败信息
-     */
-    private fun recordFailure(
-        candidate: ResolutionCandidate,
-        result: InferenceResult
-    ) {
-        if (result.hasContradiction) {
-            candidate.diagnosticsHolder.addDiagnostic(
-                TypeInferenceContradiction()
-            )
-        }
-
-        for (variable in result.unsolvedVariables) {
-            candidate.diagnosticsHolder.addDiagnostic(
-                CannotInferTypeParameter(variable)
-            )
-        }
-    }
-
-    /**
-     * 选择最佳候选
-     */
-    private fun selectBestCandidate(
-        successful: List<ResolutionCandidate>,
-        failed: List<ResolutionCandidate>
-    ): OverloadResolutionResults {
-        return when {
-            successful.size == 1 -> OverloadResolutionResults.success(successful[0])
-            successful.size > 1 -> OverloadResolutionResults.ambiguity(successful)
-            failed.isNotEmpty() -> OverloadResolutionResults.failure(failed)
-            else -> OverloadResolutionResults.empty()
-        }
-    }
-}
-```
-
----
-
 ## 完整流程示例
 
 ### 示例 1: 显式类型参数 `a<Int64>.a1()`
@@ -1186,7 +1597,7 @@ Step 3: createIterativeInferenceContext()
   typeVariablesToSolve = []
   unsolvedCount = 0
 
-Step 4: iterativeInferenceEngine.run()
+Step 4: IterativeTypeInferenceEngine.run()
   shouldContinue() = false (unsolvedCount = 0)
   → 直接返回成功
 
@@ -1207,81 +1618,99 @@ Step 2: getTypeParametersToInfer() → [T]
 Step 3: 创建 FreshVariable T'
 
 Step 4: 迭代推导
-  ┌─────────────────────────────────────────────────────┐
-  │ Iteration 1:                                        │
-  │   参数顺序: [0: Array, 1: Lambda]                   │
-  │                                                     │
-  │   Phase 1 (综合参数):                               │
-  │     参数 0: [1,2,3] → Array<Int64>                  │
-  │     参数 1: Lambda → 延迟 (T' 未确定)                │
-  │                                                     │
-  │   Phase 2 (收集约束):                               │
-  │     Array<Int64> <: Array<T'>                       │
-  │                                                     │
-  │   Phase 3 (求解):                                   │
-  │     T' 有下界 Int64                                 │
-  │     T' = Int64 ✓                                    │
-  │                                                     │
-  │   状态: partialSolution = {T': Int64}               │
-  │         hasNewInfo = true                           │
-  └─────────────────────────────────────────────────────┘
-  ┌─────────────────────────────────────────────────────┐
-  │ Iteration 2:                                        │
-  │   Phase 1 (综合参数):                               │
-  │     参数 0: 已完成                                  │
-  │     参数 1: Lambda                                  │
-  │       期望类型: (T') -> Bool = (Int64) -> Bool      │
-  │       x: Int64 ✓                                    │
-  │       x > 0: Bool ✓                                 │
-  │                                                     │
-  │   状态: unsolvedCount = 0                           │
-  └─────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Outer Iteration 1:                                          │
+  │   参数顺序: [0: Array, 1: Lambda]                           │
+  │                                                             │
+  │   Phase 1 (综合参数):                                       │
+  │     参数 0: [1,2,3] → Array<Int64> ✓                        │
+  │     参数 1: Lambda → 延迟 (T' 未确定)                        │
+  │                                                             │
+  │   Phase 2 (收集约束):                                       │
+  │     Array<Int64> <: Array<T'>                               │
+  │                                                             │
+  │   Phase 3 (内层求解循环):                                   │
+  │     ┌───────────────────────────────────────────────────┐   │
+  │     │ Inner do-while:                                   │   │
+  │     │   T' 有下界 Int64                                 │   │
+  │     │   IsGreedySolution(T', Int64, false) = true       │   │
+  │     │   (Int64 是 final 类型)                           │   │
+  │     │   T' = Int64 ✓                                    │   │
+  │     └───────────────────────────────────────────────────┘   │
+  │                                                             │
+  │   状态: partialSolution = {T': Int64}                       │
+  │         hasNewInfo = true                                   │
+  └─────────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Outer Iteration 2:                                          │
+  │   Phase 1 (综合参数):                                       │
+  │     参数 0: 已完成                                          │
+  │     参数 1: Lambda                                          │
+  │       期望类型: (T') -> Bool = (Int64) -> Bool              │
+  │       x: Int64 ✓                                            │
+  │       x > 0: Bool ✓                                         │
+  │                                                             │
+  │   状态: unsolvedCount = 0                                   │
+  └─────────────────────────────────────────────────────────────┘
   shouldContinue() = false
 
 输出: InferenceResult(success=true, solution={T': Int64}, iterations=2)
 ```
 
-### 示例 3: Option.None 推导 `firstOrElse(None, { 42 })`
+### 示例 3: Quest 类型重分析 `processOrDefault(None, { 42 })`
 
 ```
-输入: firstOrElse(None, { 42 })
-签名: func firstOrElse<T>(opt: Option<T>, f: () -> T): T
+输入: processOrDefault(None, { 42 })
+签名: func processOrDefault<T>(opt: Option<T>, default: () -> T): T
 
 Step 1: 创建 FreshVariable T'
 
 Step 2: 迭代推导
-  ┌─────────────────────────────────────────────────────┐
-  │ Iteration 1:                                        │
-  │   参数顺序: [0: Option, 1: Lambda]                  │
-  │                                                     │
-  │   Phase 1:                                          │
-  │     参数 0: None → Option<T'> (T' 未知，无约束)      │
-  │     参数 1: Lambda → 延迟                           │
-  │                                                     │
-  │   Phase 2: 无新约束                                 │
-  │   Phase 3: 无法求解                                 │
-  │                                                     │
-  │   hasNewInfo = false, 但有延迟 Lambda               │
-  │   → tryForceAnalyzeLambdas()                        │
-  └─────────────────────────────────────────────────────┘
-  ┌─────────────────────────────────────────────────────┐
-  │ Force Lambda Analysis:                              │
-  │   分析 Lambda { 42 }                                │
-  │   推导返回类型: 42 → Int64                          │
-  │   约束: Int64 <: T'                                 │
-  │                                                     │
-  │   hasNewInfo = true                                 │
-  └─────────────────────────────────────────────────────┘
-  ┌─────────────────────────────────────────────────────┐
-  │ Iteration 2:                                        │
-  │   Phase 3:                                          │
-  │     T' 有下界 Int64                                 │
-  │     T' = Int64 ✓                                    │
-  │                                                     │
-  │   状态: unsolvedCount = 0                           │
-  └─────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Outer Iteration 1:                                          │
+  │   参数顺序: [0: Option, 1: Lambda]                          │
+  │                                                             │
+  │   Phase 1:                                                  │
+  │     参数 0: None → Option<T'> (T' 未知)                     │
+  │       综合失败，标记 failSet[0] = true                      │
+  │     参数 1: Lambda → 延迟                                   │
+  │                                                             │
+  │   Phase 2: 无新约束                                         │
+  │   Phase 3: 无法求解                                         │
+  │                                                             │
+  │   Phase 4 (准备 Quest 类型):                                │
+  │     参数 0: Option<T'> → Option<?> (Quest 类型)             │
+  │     questParamTys[0] = Option<?>                            │
+  │                                                             │
+  │   hasNewInfo = true (有新 Quest 类型)                       │
+  └─────────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Outer Iteration 2:                                          │
+  │   Phase 1:                                                  │
+  │     参数 0: 用 Quest 类型重新检查                           │
+  │       CheckWithCache(None, Option<?>) → Option<?>           │
+  │     参数 1: Lambda 仍延迟                                   │
+  │                                                             │
+  │   无新信息，尝试 Last Resort                                │
+  └─────────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Last Resort Lambda Analysis:                                │
+  │   分析 Lambda { 42 }                                        │
+  │   推导返回类型: 42 → Int64                                  │
+  │   约束: Int64 <: T'                                         │
+  │                                                             │
+  │   hasNewInfo = true                                         │
+  └─────────────────────────────────────────────────────────────┘
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Outer Iteration 3:                                          │
+  │   Phase 3 (内层求解):                                       │
+  │     T' 有下界 Int64                                         │
+  │     T' = Int64 ✓                                            │
+  │                                                             │
+  │   状态: unsolvedCount = 0                                   │
+  └─────────────────────────────────────────────────────────────┘
 
-输出: InferenceResult(success=true, solution={T': Int64}, iterations=2)
+输出: InferenceResult(success=true, solution={T': Int64}, iterations=3)
 结果: None: Option<Int64>, 返回类型 T = Int64
 ```
 
@@ -1292,13 +1721,19 @@ Step 2: 迭代推导
 | 编译器 (C++) | 插件 (Kotlin) |
 |-------------|--------------|
 | `TyArgSynState` | `IterativeInferenceContext` |
-| `LocalTypeArgumentSynthesis` | `IterativeTypeInferenceEngine` |
-| `GetOrderedCheckingIndexes` | `ArgumentOrderOptimizer` |
-| `SynthOrCheckArgument` | `ArgumentSynthesizer` |
-| `FindSolution` | `tryFindResultType` |
-| `JoinAndMeet` | `computeJoin` / `computeMeet` |
-| `SubstPack.inst` | `explicitTypeArguments` |
-| `allowPartial` | `isUsableResult` |
+| `TyArgSynState.failSet` | `IterativeInferenceContext.failedArguments` |
+| `TyArgSynState.questParamTys` | `IterativeInferenceContext.questParameterTypes` |
+| `TyArgSynState.lastResortUnused` | `IterativeInferenceContext.lastResortUnused` |
+| `PrepareTyArgsSynthesis` (外层循环) | `IterativeTypeInferenceEngine.run()` |
+| `LocalTypeArgumentSynthesis.FindSolution` (内层循环) | `IterativeTypeInferenceEngine.runInnerSolvingLoop()` |
+| `GetOrderedCheckingIndexes` | `ArgumentOrderOptimizer.getOptimizedOrder()` |
+| `UnsolvedAsQuest` | `QuestTypeGenerator.generateQuestType()` |
+| `IsGreedySolution` | `GreedyFixationChecker.isGreedySolution()` |
+| `JoinAndMeet.JoinAsVisibleTy` | `computeJoin()` |
+| `MeetUpperBounds` | `computeMeet()` |
+| `SynthesizeWithCache` | `ArgumentSynthesizer.synthesizeWithCache()` |
+| `CheckWithCache` | `ArgumentSynthesizer.checkWithCache()` |
+| `PropagatePlaceholderAndSolve` | `tryLastResortLambdaAnalysis()` |
 
 ---
 
@@ -1314,6 +1749,8 @@ analysis/src/main/kotlin/org/cangnova/cangjie/resolve/calls/
     ├── IterativeTypeInferenceEngine.kt       # (新增) 迭代引擎
     ├── ArgumentOrderOptimizer.kt             # (新增) 参数顺序优化
     ├── ArgumentSynthesizer.kt                # (新增) 参数综合器
+    ├── QuestTypeGenerator.kt                 # (新增) Quest 类型生成
+    ├── GreedyFixationChecker.kt              # (新增) 贪婪固定判断
     ├── model/
     │   ├── ConstraintStorage.kt              # (现有)
     │   ├── InferenceResult.kt                # (新增) 推导结果
@@ -1329,42 +1766,49 @@ analysis/src/main/kotlin/org/cangnova/cangjie/resolve/calls/
 
 ### 核心组件
 
-- [ ] `IterativeInferenceContext` - 迭代状态管理
-- [ ] `IterativeTypeInferenceEngine` - 迭代推导引擎
-- [ ] `ArgumentOrderOptimizer` - 参数顺序优化
-- [ ] `ArgumentSynthesizer` - 参数综合器
+- [x] `IterativeInferenceContext` - 迭代状态管理（含 failSet、questParamTys、lastResortUnused）
+- [x] `IterativeTypeInferenceEngine` - 双层迭代推导引擎
+- [x] `ArgumentOrderOptimizer` - 参数顺序优化（Option优先）
+- [x] `ArgumentSynthesizer` - 参数综合器（含缓存）
+- [x] `QuestTypeGenerator` - Quest 类型生成（使用 TypeUtils.DONT_CARE 替代自定义 QuestType）
+- [x] `GreedyFixationChecker` - 贪婪固定条件判断
 
 ### 显式类型参数处理
 
-- [ ] `extractExplicitTypeArguments()` - 提取显式类型
-- [ ] `getTypeParametersToInfer()` - 排除已显式给出的参数
-- [ ] `createExplicitTypeSubstitutor()` - 创建显式类型替换器
+- [x] `extractExplicitTypeArguments()` - 提取显式类型（在 ResolutionParts.kt 中实现）
+- [x] `getTypeParametersToInfer()` - 排除已显式给出的参数
+- [x] `createExplicitTypeSubstitutor()` - 创建显式类型替换器
 
 ### 迭代推导
 
-- [ ] `synthesizeArgumentsWithPartialSolution()` - 用部分解综合参数
-- [ ] `collectConstraints()` - 收集约束
-- [ ] `solveConstraintsWithPartialSolution()` - 部分解求解
-- [ ] `tryForceAnalyzeLambdas()` - 强制分析 Lambda
+- [x] 外层循环: `synthesizeArgumentsWithQuestTypes()` - Quest 类型重分析
+- [x] 外层循环: `prepareQuestParameterTypes()` - 准备 Quest 类型
+- [x] 外层循环: `tryLastResortLambdaAnalysis()` - Last Resort Lambda 分析
+- [x] 内层循环: `runInnerSolvingLoop()` - 求解循环
+- [x] 内层循环: `computeJoin()` / `computeMeet()` - LUB/GLB 计算
+- [x] 内层循环: `shouldGreedyFix()` - 贪婪固定判断
 
 ### 整合
 
-- [ ] 修改 `ResolutionParts.kt`
-- [ ] 修改 `CangJieCallResolver.kt`
-- [ ] 添加诊断信息类型
+- [x] 修改 `ResolutionParts.kt` - 显式类型参数处理
+- [x] 修改 `CangJieCallResolver.kt` - 迭代推导引擎集成
+- [x] 添加诊断信息类型 - `ArgumentConstraintPositionByIndex`, `LambdaReturnTypePosition`
 
 ### 测试
 
 - [ ] 显式类型参数基本场景
 - [ ] Lambda 参数类型推导
-- [ ] Option.None 上下文推导
+- [ ] Option.None 上下文推导（Quest 类型重分析）
 - [ ] 链式泛型调用
 - [ ] 嵌套 Option 推导
+- [ ] 贪婪固定测试（Final 类型）
+- [ ] Last Resort Lambda 分析测试
 - [ ] 迭代限制测试
 - [ ] 错误场景测试
 
 ---
 
-**文档版本**: 1.0
+**文档版本**: 2.1
 **创建日期**: 2026-01-18
-**状态**: 设计完成，待实现
+**更新日期**: 2026-01-25
+**状态**: 实现完成，待测试验证

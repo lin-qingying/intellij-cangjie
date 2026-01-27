@@ -388,8 +388,9 @@ fun createCallableReferenceProcessor(factory: CallableReferencesCandidateFactory
                 else
                     unbound
 
-            val asValue = lhsResult.qualifier?.classValueReceiverWithSmartCastInfo ?: return staticOrUnbound
-            return PrioritizedCompositeScopeTowerProcessor(staticOrUnbound, factory.createCallableProcessor(asValue))
+            // 在仓颉语言中,类不能作为值使用,只能作为类型限定符
+            // 因此不存在 "类值接收者" 的情况
+            return staticOrUnbound
         }
 
 

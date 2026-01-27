@@ -89,7 +89,8 @@ interface ScopeTowerLevel {
      */
     fun getVariables(
         name: Name,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
+        extensionReceiver: ReceiverValueWithSmartCastInfo?,
+        isEnumConstructor: Boolean = false
     ): Collection<CandidateWithBoundDispatchReceiver>
 
 
@@ -105,7 +106,7 @@ interface ScopeTowerLevel {
      */
     fun getFunctions(
         name: Name,
-
+        isEnumConstructor: Boolean = false
     ): Collection<CandidateWithBoundDispatchReceiver>
 
     /**

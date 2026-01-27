@@ -157,7 +157,8 @@ internal open class ScopeBasedTowerLevel protected constructor(
      */
     override fun getVariables(
         name: Name,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
+        extensionReceiver: ReceiverValueWithSmartCastInfo?,
+        isEnumConstructor: Boolean
     ): Collection<CandidateWithBoundDispatchReceiver> {
         return resolutionScope.getContributedVariablesAndIntercept(
             name,
@@ -181,7 +182,8 @@ internal open class ScopeBasedTowerLevel protected constructor(
      * @return 包含候选描述符的集合
      */
     override fun getFunctions(
-        name: Name
+        name: Name,
+        isEnumConstructor: Boolean
     ): Collection<CandidateWithBoundDispatchReceiver> {
         val result: ArrayList<CandidateWithBoundDispatchReceiver> = ArrayList()
 

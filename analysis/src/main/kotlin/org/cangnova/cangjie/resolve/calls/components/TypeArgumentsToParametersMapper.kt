@@ -204,7 +204,9 @@ class TypeArgumentsToParametersMapper {
 
         // 5. 验证类型参数数量
         if (call.typeArguments.size != descriptor.typeParameters.size) {
-            // TODO: 处理枚举相关的类型参数数量不匹配情况
+            return TypeArgumentsToParametersMapper.TypeArgumentsMapping.TypeArgumentsMappingImpl(
+                listOf(WrongCountOfTypeArguments(descriptor, call.typeArguments.size)), emptyMap()
+            )
         } else {
             // 6. 创建顶层类型参数映射（如枚举的类型参数）
             val topTypeParameterToArgumentMap =

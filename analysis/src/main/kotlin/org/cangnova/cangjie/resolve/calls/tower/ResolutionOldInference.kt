@@ -216,15 +216,13 @@ class  ResolutionOldInference(
                         scopeTower,
                         name,
                         functionFactory,
-                        explicitReceiver,
-                        classValueReceiver = false
+                        explicitReceiver
                     ),
                     createVariableProcessor(
                         scopeTower,
                         name,
                         variableFactory,
-                        explicitReceiver,
-                        classValueReceiver = false
+                        explicitReceiver
                     )
                 )
             }

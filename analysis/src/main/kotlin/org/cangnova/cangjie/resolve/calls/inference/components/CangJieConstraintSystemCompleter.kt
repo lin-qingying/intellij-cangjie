@@ -26,14 +26,19 @@ package org.cangnova.cangjie.resolve.calls.inference.components
 
 import com.intellij.util.containers.addIfNotNull
 import org.cangnova.cangjie.resolve.calls.components.transformToResolvedLambda
+import org.cangnova.cangjie.resolve.calls.inference.GreedyFixationChecker
 import org.cangnova.cangjie.resolve.calls.inference.model.*
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.CommonSupertypes
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.TypeConstructor
+import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.UnwrappedType
+import org.cangnova.cangjie.types.checker.TypeIntersector
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.error.MultipleSupertypeTypeInferenceFailure
+import org.cangnova.cangjie.types.isError
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
 import org.cangnova.cangjie.types.model.TypeConstructorMarker
 import org.cangnova.cangjie.types.model.TypeVariableMarker
@@ -85,6 +90,21 @@ class CangJieConstraintSystemCompleter(
      * 执行约束系统完成过程。
      *
      * 该函数驱动整个约束系统完成过程，包括分析延迟参数、固定类型变量以及在必要时尝试使用构建器推断完成调用。
+     *
+     * ## 阶段流程（10 个阶段）
+     *
+     * ```
+     * 阶段 1: 分析具有固定参数类型的延迟参数
+     * 阶段 2: 收集延迟参数的参数类型并构建新的预期类型
+     * 阶段 3: 迭代式求解循环 - LUB/GLB 计算（主策略）
+     * 阶段 4: 固定延迟参数的参数类型变量
+     * 阶段 5: 创建具有新功能预期类型的原子
+     * 阶段 6: 分析下一个准备好的延迟参数
+     * 阶段 7: 使用适当的约束固定下一个准备好的类型变量（回退策略）
+     * 阶段 8: 尝试使用构建器推断完成调用
+     * 阶段 9: 报告"信息不足"错误
+     * 阶段 10: 强制分析剩余延迟参数
+     * ```
      *
      * @param completionMode 约束系统完成模式，决定完成过程应进行到什么程度。
      * @param topLevelAtoms 顶级解析原子，表示主要分析元素。
@@ -151,8 +171,17 @@ class CangJieConstraintSystemCompleter(
             if (wasBuiltNewExpectedTypeForSomeArgument)
                 continue
 
+            // 阶段 3: 迭代式求解循环（主策略）
+            // 使用 LUB/GLB 计算和贪婪固定策略批量固定类型变量
+            // 这是主要的类型固定策略，应该优先于其他固定方式
+//            if (completionMode == ConstraintSystemCompletionMode.FULL) {
+//                if (runIterativeSolvingPass(topLevelAtoms, diagnosticsHolder)) {
+//                    continue
+//                }
+//            }
+
             if (completionMode == ConstraintSystemCompletionMode.FULL) {
-                // 阶段 3: 固定所有延迟参数的参数类型变量
+                // 阶段 4: 固定延迟参数的参数类型变量
                 for (argument in postponedArguments) {
                     val variableWasFixed =
                         postponedArgumentsInputTypesResolver.fixNextReadyVariableForParameterTypeIfNeeded(
@@ -169,7 +198,7 @@ class CangJieConstraintSystemCompleter(
                         continue@completion
                 }
 
-                // 阶段 4: 如有必要，创建具有新功能预期类型的原子
+                // 阶段 5: 创建具有新功能预期类型的原子
                 for (argument in postponedArgumentsWithRevisableType) {
                     val argumentWasTransformed = transformToAtomWithNewFunctionalExpectedType(
                         this, argument, diagnosticsHolder
@@ -180,7 +209,7 @@ class CangJieConstraintSystemCompleter(
                 }
             }
 
-            // 阶段 5: 分析下一个准备好的延迟参数
+            // 阶段 6: 分析下一个准备好的延迟参数
             if (analyzeNextReadyPostponedArgument(
                     postponedArguments,
                     completionMode,
@@ -189,7 +218,7 @@ class CangJieConstraintSystemCompleter(
             )
                 continue
 
-            // 阶段 6: 使用适当的约束固定下一个准备好的类型变量
+            // 阶段 7: 使用适当的约束固定下一个准备好的类型变量（回退策略）
             if (
                 fixNextReadyVariable(
                     completionMode,
@@ -201,7 +230,7 @@ class CangJieConstraintSystemCompleter(
                 )
             ) continue
 
-            // 阶段 7: 尝试使用构建器推断完成调用，如果存在未推断的类型变量
+            // 阶段 8: 尝试使用构建器推断完成调用
             val areThereAppearedProperConstraintsForSomeVariable = tryToCompleteWithBuilderInference(
                 completionMode,
                 topLevelAtoms,
@@ -215,7 +244,7 @@ class CangJieConstraintSystemCompleter(
             if (areThereAppearedProperConstraintsForSomeVariable)
                 continue
 
-            // 阶段 8: 对未推断的类型变量报告“信息不足”
+            // 阶段 9: 报告"信息不足"错误
             reportNotEnoughTypeInformation(
                 completionMode,
                 topLevelAtoms,
@@ -225,7 +254,7 @@ class CangJieConstraintSystemCompleter(
                 diagnosticsHolder
             )
 
-            // 阶段 9: 强制分析剩余未分析的延迟参数并在必要时重新运行阶段
+            // 阶段 10: 强制分析剩余未分析的延迟参数并在必要时重新运行阶段
             if (completionMode == ConstraintSystemCompletionMode.FULL) {
                 if (analyzeRemainingNotAnalyzedPostponedArgument(postponedArguments, analyze))
                     continue
@@ -301,7 +330,7 @@ class CangJieConstraintSystemCompleter(
         diagnosticsHolder: CangJieDiagnosticsHolder
     ): Boolean = with(c) {
         val revisedExpectedType: UnwrappedType = argument.revisedExpectedType
-            ?.takeIf { it.isFunctionWithAny() } as UnwrappedType? ?: return false
+            ?.takeIf { it.isFunctionWithAny() } as? UnwrappedType? ?: return false
 
         when (argument) {
             is PostponedCallableReferenceAtom ->
@@ -571,6 +600,221 @@ class CangJieConstraintSystemCompleter(
 
         // 将结果转换为列表并返回
         return result.toList()
+    }
+
+    // ==================== 迭代式类型推导支持 ====================
+
+    /**
+     * 运行迭代式求解循环
+     *
+     * 实现编译器风格的双向数据流推导：
+     * - 外层由 runCompletion 的主循环驱动
+     * - 内层在此方法中迭代直到收敛
+     *
+     * 算法流程：
+     * ```
+     * do {
+     *     for (variable : notFixedVariables) {
+     *         1. 计算 Join (LUB) - 从下界约束
+     *         2. 计算 Meet (GLB) - 从上界约束
+     *         3. 检查贪婪固定条件
+     *         4. 固定类型变量
+     *     }
+     * } while (hasNewInfo)
+     * ```
+     *
+     * @param c 约束系统完成上下文
+     * @param topLevelAtoms 顶层解析原子
+     * @param diagnosticsHolder 诊断持有者
+     * @return 是否有进展（固定了至少一个变量）
+     */
+    private fun ConstraintSystemCompletionContext.runIterativeSolvingPass(
+        topLevelAtoms: List<ResolvedAtom>,
+        diagnosticsHolder: CangJieDiagnosticsHolder
+    ): Boolean {
+        var madeProgress = false
+        var innerNewInfo: Boolean
+
+        do {
+            innerNewInfo = false
+
+            // 使用 toList() 创建副本，避免在遍历时修改 map 导致 ConcurrentModificationException
+            for ((_, variableWithConstraints) in notFixedTypeVariables.toList()) {
+                val variable = variableWithConstraints.typeVariable
+
+                // 1. 计算 Join (LUB) - 从下界约束
+                val joinResult = computeJoin(variableWithConstraints)
+
+                // 2. 计算 Meet (GLB) - 从上界约束
+                val meetResult = computeMeet(variableWithConstraints)
+
+                // 3. 确定结果类型
+                val resultType: CangJieTypeMarker? = when {
+                    // 优先使用 Join (LUB)，检查贪婪固定条件
+                    joinResult != null && isValidSolution(joinResult, variableWithConstraints) -> {
+                        if (shouldGreedyFix(variable, variableWithConstraints)) {
+                            joinResult
+                        } else if (isUsableResult(joinResult)) {
+                            joinResult
+                        } else null
+                    }
+                    // 其次使用 Meet (GLB)
+                    meetResult != null && isValidSolution(meetResult, variableWithConstraints) -> {
+                        meetResult
+                    }
+                    else -> null
+                }
+
+                // 4. 固定类型变量
+                if (resultType != null) {
+                    val resolvedAtom = findResolvedAtomBy(variable, topLevelAtoms) ?: topLevelAtoms.firstOrNull()
+                    reportWarningIfFixedIntoDeclaredUpperBounds(diagnosticsHolder, variableWithConstraints, resultType)
+                    fixVariable(variable, resultType, FixVariableConstraintPositionImpl(variable, resolvedAtom))
+                    innerNewInfo = true
+                    madeProgress = true
+                }
+            }
+        } while (innerNewInfo)
+
+        return madeProgress
+    }
+
+    /**
+     * 检查约束是否来自声明的上界
+     *
+     * 声明的上界约束（如 `<T : Number>` 中的 Number）只应该用于验证推导结果，
+     * 而不应该被用于推导类型变量的具体值。
+     *
+     * @param constraint 要检查的约束
+     * @return 如果约束来自声明的上界，返回 true
+     */
+    private fun isFromDeclaredUpperBound(constraint: Constraint): Boolean {
+        val position = constraint.position.from
+        return position is DeclaredUpperBoundConstraintPosition<*>
+    }
+
+    /**
+     * 计算类型的 Join（LUB - 最小上界）
+     *
+     * 对于下界约束 (T >: L1, T >: L2, ...)，计算 LUB(L1, L2, ...) 作为 T 的候选解。
+     * LUB 是所有下界类型的最小公共超类型。
+     *
+     * 注意：只使用推导过程中产生的约束，不使用声明的上界约束。
+     *
+     * @param variableWithConstraints 带约束的类型变量
+     * @return 计算出的 LUB，如果无法计算则返回 null
+     */
+    private fun ConstraintSystemCompletionContext.computeJoin(
+        variableWithConstraints: VariableWithConstraints
+    ): CangJieType? {
+        val lowerTypes = variableWithConstraints.constraints
+            .asSequence()
+            .filter { it.kind == ConstraintKind.LOWER }
+            // 过滤掉来自声明上界的约束（这些约束只用于验证，不用于推导）
+            .filter { !isFromDeclaredUpperBound(it) }
+            .map { it.type }
+            .filterIsInstance<CangJieType>()
+            .filter { isUsableResult(it) }
+            .toList()
+
+        if (lowerTypes.isEmpty()) return null
+        if (lowerTypes.size == 1) return lowerTypes[0]
+
+        // 使用 CommonSupertypes 计算 LUB（最小公共超类型）
+        return try {
+            CommonSupertypes.commonSupertype(lowerTypes)
+        } catch (e: Exception) {
+            // LUB 计算失败（例如类型不兼容）
+            null
+        }
+    }
+
+    /**
+     * 计算类型的 Meet（GLB - 最大下界）
+     *
+     * 对于上界约束 (T <: U1, T <: U2, ...)，计算 GLB(U1, U2, ...) 作为 T 的候选解。
+     * GLB 是所有上界类型的最大公共子类型（即类型交集）。
+     *
+     * 注意：只使用推导过程中产生的约束，不使用声明的上界约束。
+     * 声明的上界约束（如类型参数的边界 `<T : Any>`）只用于验证，不用于推导类型变量的值。
+     *
+     * @param variableWithConstraints 带约束的类型变量
+     * @return 计算出的 GLB，如果无法计算则返回 null
+     */
+    private fun ConstraintSystemCompletionContext.computeMeet(
+        variableWithConstraints: VariableWithConstraints
+    ): CangJieType? {
+        val upperTypes = variableWithConstraints.constraints
+            .asSequence()
+            .filter { it.kind == ConstraintKind.UPPER }
+            // 过滤掉来自声明上界的约束（这些约束只用于验证，不用于推导）
+            .filter { !isFromDeclaredUpperBound(it) }
+            .map { it.type }
+            .filterIsInstance<CangJieType>()
+            .filter { isUsableResult(it) }
+            .toList()
+
+        if (upperTypes.isEmpty()) return null
+        if (upperTypes.size == 1) return upperTypes[0]
+
+        // 使用 TypeIntersector 计算 GLB（类型交集 / 最大公共子类型）
+        return TypeIntersector.intersectTypes(upperTypes)
+    }
+
+    /**
+     * 检查是否应该贪婪固定类型变量
+     *
+     * 贪婪固定条件（满足任一即可）：
+     * - 约束类型是 final 类型（不可继承）
+     * - 约束类型是类型参数
+     * - 约束类型是 Any（下界）或 Nothing（上界）
+     *
+     * @param variable 类型变量
+     * @param variableWithConstraints 带约束的类型变量
+     * @return 是否应该贪婪固定
+     */
+    private fun shouldGreedyFix(
+        variable: TypeVariableMarker,
+        variableWithConstraints: VariableWithConstraints
+    ): Boolean {
+        for (constraint in variableWithConstraints.constraints) {
+            val constraintType = constraint.type as? CangJieType ?: continue
+            val isUpperBound = constraint.kind == ConstraintKind.UPPER
+            if (GreedyFixationChecker.isGreedySolution(variable, constraintType, isUpperBound)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * 检查解是否有效（满足所有约束）
+     *
+     * @param type 候选解类型
+     * @param variableWithConstraints 带约束的类型变量
+     * @return 是否有效
+     */
+    private fun ConstraintSystemCompletionContext.isValidSolution(
+        type: CangJieType,
+        variableWithConstraints: VariableWithConstraints
+    ): Boolean {
+        // 基本有效性检查：非错误类型
+        if (type.isError) return false
+
+        // 检查是否不包含未固定的类型变量
+        return isUsableResult(type)
+    }
+
+    /**
+     * 检查类型是否可用作结果（不包含未解决的类型变量）
+     *
+     * @param type 要检查的类型
+     * @return 是否可用
+     */
+    private fun ConstraintSystemCompletionContext.isUsableResult(type: CangJieType): Boolean {
+        // 检查类型是否包含未固定的类型变量
+        val typeVariables = type.extractTypeVariables()
+        return typeVariables.all { it in fixedTypeVariables }
     }
 
     companion object {

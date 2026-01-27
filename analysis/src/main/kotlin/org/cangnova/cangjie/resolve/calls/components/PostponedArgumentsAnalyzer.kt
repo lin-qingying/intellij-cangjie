@@ -107,7 +107,7 @@ class PostponedArgumentsAnalyzer(
     fun PostponedArgumentsAnalyzerContext.createSubstituteFunctorForLambdaAnalysis(): SubstitutorAndStubsForLambdaAnalysis {
         val stubsForPostponedVariables = bindingStubsForPostponedVariables()
         val currentSubstitutor =
-            buildCurrentSubstitutor(stubsForPostponedVariables.mapKeys { it.key.freshTypeConstructor(this) })
+            buildCurrentSubstitutor(stubsForPostponedVariables.mapKeys { it.key.freshTypeConstructor( ) })
         return SubstitutorAndStubsForLambdaAnalysis(stubsForPostponedVariables) {
             currentSubstitutor.safeSubstitute(this, it) as UnwrappedType
         }

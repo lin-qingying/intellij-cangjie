@@ -26,6 +26,8 @@ package org.cangnova.cangjie.resolve.calls.inference
 
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintSystemImpl
+import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.contains
+import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isTypeVariable
 import org.cangnova.cangjie.types.model.*
 
 fun ConstraintStorage.buildNotFixedVariablesToNonSubtypableTypesSubstitutor(
@@ -43,8 +45,28 @@ fun TypeSystemInferenceExtensionContext.hasRecursiveTypeParametersWithGivenSelfT
     selfTypeConstructor.getParameters().any { it.hasRecursiveBounds(selfTypeConstructor) } ||
             selfTypeConstructor is CapturedTypeConstructorMarker && selfTypeConstructor.supertypes()
         .any { hasRecursiveTypeParametersWithGivenSelfType(it.typeConstructor()) }
+context(context: TypeSystemInferenceExtensionContext)
+private fun CangJieTypeMarker.extractAllContainingTypeVariablesNoCaptureTypeProcessing(result: MutableSet<TypeConstructorMarker>) {
+    contains { nestedType ->
+        nestedType.typeConstructor().unwrapStubTypeVariableConstructor().let { nestedTypeConstructor ->
+            if (nestedTypeConstructor.isTypeVariable()) {
+                result.add(nestedTypeConstructor)
+            }
+        }
+        false
+    }
+}
 
+context(c: TypeSystemInferenceExtensionContext)
+fun CangJieTypeMarker.extractAllContainingTypeVariables(): Set<TypeConstructorMarker> = buildSet {
+    extractAllContainingTypeVariablesNoCaptureTypeProcessing(this)
 
+    val typeProjections = extractProjectionsForAllCapturedTypes()
+
+    typeProjections.forEach { typeProjectionsType ->
+        typeProjectionsType.extractAllContainingTypeVariablesNoCaptureTypeProcessing(this)
+    }
+}
 fun TypeSystemInferenceExtensionContext.extractTypeForGivenRecursiveTypeParameter(
     type: CangJieTypeMarker,
     typeParameter: TypeParameterMarker
@@ -100,5 +122,35 @@ fun ConstraintSystemImpl.registerTypeVariableIfNotPresent(
     val builder = getBuilder()
     if (typeVariable.freshTypeConstructor(this) !in builder.currentStorage().allTypeVariables.keys) {
         builder.registerVariable(typeVariable)
+    }
+}
+
+context(c: TypeSystemInferenceExtensionContext)
+fun CapturedTypeMarker.typeConstructorProjection(): TypeArgumentMarker = with(c) { typeConstructorProjection() }
+
+context(c: TypeSystemInferenceExtensionContext)
+fun CangJieTypeMarker.extractProjectionsForAllCapturedTypes(): Set<CangJieTypeMarker> {
+    if (isFlexible()) {
+        val flexibleType = asFlexibleType()!!
+        return buildSet {
+            addAll(flexibleType.lowerBound().extractProjectionsForAllCapturedTypes())
+            addAll(flexibleType.upperBound().extractProjectionsForAllCapturedTypes())
+        }
+    }
+    val simpleBaseType = asSimpleType()?.asCapturedTypeUnwrappingDnn()
+
+    return buildSet {
+        val projectionType = if (simpleBaseType != null) {
+            val argumentType = simpleBaseType.typeConstructorProjection().getType() ?: return@buildSet
+            argumentType.also(::add)
+        } else {
+            this@extractProjectionsForAllCapturedTypes
+        }
+        val argumentsCount = projectionType.argumentsCount().takeIf { it != 0 } ?: return@buildSet
+
+        for (i in 0 until argumentsCount) {
+            val argumentType = projectionType.getArgument(i).getType() ?: continue
+            addAll(argumentType.extractProjectionsForAllCapturedTypes())
+        }
     }
 }

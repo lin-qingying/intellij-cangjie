@@ -157,7 +157,51 @@ class EnumResolutionTest : CangJieAnalysisTestBase() {
     }
 
     // ==================== 泛型枚举测试 ====================
+    /**
+     * 测试泛型枚举解析与推导
+     *
+     * 验证：
+     * 1. 类型参数正确解析
+     * 2. 构造函数使用类型参数
+     * 3. 泛型约束处理
+     */
+    fun `test generic enum type inference`() {
+        val file = createFile(
+            """
+            package test
 
+            enum Wrapper<T> {
+                Value(T) |
+                Empty
+            }
+func test():Unit{
+Wrapper.Empty<Int>
+}
+//            func wrapInt(x: Int64): Wrapper<Int64> {
+//                return Wrapper.Value(x)
+//            }
+//
+//            func wrapString(s: String): Wrapper<String> {
+//                return Wrapper.Value(s)
+//            }
+            """.trimIndent()
+        )
+
+        analyzeForTest(file) {
+            val enumDecl = file.declarations.filterIsInstance<CjEnum>().first()
+            val enumDescriptor = bindingContext[BindingContext.CLASS, enumDecl] as EnumDescriptor
+
+            // 验证类型参数
+            val typeParams = enumDescriptor.declaredTypeParameters
+            assertEquals(1, typeParams.size)
+            assertEquals("T", typeParams[0].name.asString())
+
+            // 验证构造函数使用正确的类型参数
+            val valueConstructor = enumDescriptor.constructors.first { it.name.asString() == "Value" }
+            val paramType = valueConstructor.valueParameters[0].type
+            assertTrue("参数类型应该是类型参数 T", paramType.toString().contains("T"))
+        }
+    }
     /**
      * 测试泛型枚举
      *
