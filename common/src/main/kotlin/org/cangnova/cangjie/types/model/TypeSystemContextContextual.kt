@@ -303,6 +303,10 @@ fun CangJieTypeMarker.hasFlexibleOption() = with(c) { hasFlexibleOption() }
 
 context(c: TypeSystemContext)
 fun CangJieTypeMarker.typeConstructor(): TypeConstructorMarker = with(c) { typeConstructor() }
+context(c: TypeSystemContext)
+fun TypeConstructorMarker.isDenotable(): Boolean = with(c) { isDenotable() }
+context(c: TypeSystemContext)
+fun CangJieTypeMarker.isFlexibleWithDifferentTypeConstructors(): Boolean = with(c) { isFlexibleWithDifferentTypeConstructors() }
 
 context(c: TypeSystemContext)
 fun CangJieTypeMarker.isOptionAny() = with(c) { isOptionAny() }

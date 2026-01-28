@@ -113,7 +113,10 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         require(this is TypeConstructor, this::errorMessage)
         return this is IntegerLiteralTypeConstructor
     }
-
+    override fun TypeConstructorMarker.isDenotable(): Boolean {
+        require(this is TypeConstructor, this::errorMessage)
+        return this.isDenotable
+    }
     /**
      * 检查类型构造器是否为函数类型构造器
      *
@@ -252,8 +255,17 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun SimpleTypeMarker.withOption(isOption: Boolean): SimpleTypeMarker {
         require(this is SimpleType, this::errorMessage)
-        // TODO: 需要使用 OptionTypeUtils 重新实现
-        return this
+
+        val currentIsOption = OptionTypeUtils.isOptionType(this)
+
+        return when {
+            // 已经是目标状态，直接返回
+            isOption == currentIsOption -> this
+            // 需要包装为 Option<T>（直接包一层）
+            isOption -> OptionTypeUtils.createOptionType(this, this.builtIns)
+            // 需要解包 Option<T> 得到最内层类型（解所有层）
+            else -> OptionTypeUtils.unwrapOptionType(this, levels = -1)?.asSimpleType() ?: this
+        }
     }
 
     override fun CangJieTypeMarker.isError(): Boolean {

@@ -464,54 +464,67 @@ object AbstractTypeChecker {
             }
         }
     }
+    @OptIn(ObsoleteTypeKind::class)
+    context(context: TypeSystemContext)
+    private fun CangJieTypeMarker.isCommonDenotableType(): Boolean =
+        typeConstructor().isDenotable() &&
+                !isDynamic()  &&
+                !isFlexibleWithDifferentTypeConstructors()
 
     fun equalTypes(state:  TypeCheckerState, a: CangJieTypeMarker, b: CangJieTypeMarker): Boolean =
         with(state.typeSystemContext) {
             if (a === b) return true
 
-            // 仓颉语言简化：直接检查类型相等性
-            // 移除 Kotlin 的 denotable type 优化，因为相关方法不存在于 TypeSystemContext
             val refinedA = state.prepareType(state.refineType(a))
             val refinedB = state.prepareType(state.refineType(b))
 
+            // 检查是否两个都是可表示的类型
+            // 只有当两个都是可表示类型时，才能使用优化的直接比较
+            val aIsDenotable = refinedA.isCommonDenotableType()
+            val bIsDenotable = refinedB.isCommonDenotableType()
+
+            // 如果有一个不是可表示类型，使用双向子类型检查
+            if (!aIsDenotable || !bIsDenotable) {
+//                val context = state.typeSystemContext
+//                if (context is TypeCheckerProviderContext) {
+//                    val stateWithoutBoxing = context.newTypeCheckerState(
+//                        errorTypesEqualToAnything = state.isErrorTypeEqualsToAnything,
+//                        stubTypesEqualToAnything = state.isStubTypeEqualsToAnything,
+//                        allowOptionBoxing = false
+//                    )
+//                    return isSubtypeOf(stateWithoutBoxing, a, b) && isSubtypeOf(stateWithoutBoxing, b, a)
+//                }
+                return isSubtypeOf(state, a, b) && isSubtypeOf(state, b, a)
+            }
+
+            // 两个都是可表示类型，可以直接比较
             // 快速检查：类型构造器必须相同
             if (!areEqualTypeConstructors(refinedA.typeConstructor(), refinedB.typeConstructor())) {
-                // 类型构造器不同，使用双向子类型检查
-                // 根据仓颉编译器实现，类型相等性检查时应禁止 Option 装箱
-                val context = state.typeSystemContext
-                if (context is TypeCheckerProviderContext) {
-                    val stateWithoutBoxing = context.newTypeCheckerState(
-                        errorTypesEqualToAnything = state.isErrorTypeEqualsToAnything,
-                        stubTypesEqualToAnything = state.isStubTypeEqualsToAnything,
-                        allowOptionBoxing = false
-                    )
-                    return isSubtypeOf(stateWithoutBoxing, a, b) && isSubtypeOf(stateWithoutBoxing, b, a)
-                }
-                // 降级：如果上下文不支持创建新状态，使用原始状态
-                return isSubtypeOf(state, a, b) && isSubtypeOf(state, b, a)
+                return false
             }
 
             val simpleA = refinedA.lowerBoundIfFlexible()
             val simpleB = refinedB.lowerBoundIfFlexible()
 
-            // 无参数类型：检查 Option 状态
+            // 无参数类型：只需检查 Option 状态
             if (simpleA.argumentsCount() == 0) {
                 return simpleA.isMarkedOption() == simpleB.isMarkedOption()
             }
 
-            // 有参数类型：使用完整的双向子类型检查
-            // 根据仓颉编译器实现，类型相等性检查时应禁止 Option 装箱
-            val context = state.typeSystemContext
-            if (context is TypeCheckerProviderContext) {
-                val stateWithoutBoxing = context.newTypeCheckerState(
-                    errorTypesEqualToAnything = state.isErrorTypeEqualsToAnything,
-                    stubTypesEqualToAnything = state.isStubTypeEqualsToAnything,
-                    allowOptionBoxing = false
-                )
-                return isSubtypeOf(stateWithoutBoxing, a, b) && isSubtypeOf(stateWithoutBoxing, b, a)
+            // 有参数类型：检查所有类型参数都相等，并检查 Option 状态
+            if (simpleA.argumentsCount() != simpleB.argumentsCount()) {
+                return false
             }
-            // 降级：如果上下文不支持创建新状态，使用原始状态
-            return isSubtypeOf(state, a, b) && isSubtypeOf(state, b, a)
+
+            for (i in 0 until simpleA.argumentsCount()) {
+                val argA = simpleA.getArgument(i).getType() ?: continue
+                val argB = simpleB.getArgument(i).getType() ?: continue
+                if (!equalTypes(state, argA, argB)) {
+                    return false
+                }
+            }
+
+            return simpleA.isMarkedOption() == simpleB.isMarkedOption()
         }
 
 

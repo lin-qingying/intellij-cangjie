@@ -102,10 +102,34 @@ interface TypeSystemTypeFactoryContext : TypeSystemBuiltInsContext {
 }
 
 /**
- * 类型检查器工厂上下文
- * 提供类型检查器的创建方法
+ * 类型检查器提供者上下文接口
+ *
+ * 该接口定义了创建类型检查器状态的工厂方法，用于在类型系统中
+ * 进行类型检查和类型比较操作。
  */
 interface TypeCheckerProviderContext {
+    /**
+     * 创建新的类型检查器状态
+     *
+     * 该方法用于创建一个新的类型检查器状态实例，可以配置不同的类型比较策略。
+     *
+     * @param errorTypesEqualToAnything 错误类型是否等于任何类型
+     *        - true: 错误类型(ErrorType)与任何类型比较时都视为相等
+     *               这在类型检查过程中可以减少级联错误的产生
+     *        - false: 错误类型按照正常规则进行比较
+     *
+     * @param stubTypesEqualToAnything 存根类型是否等于任何类型
+     *        - true: 存根类型(StubType)与任何类型比较时都视为相等
+     *               存根类型通常用于占位或延迟类型解析的场景
+     *        - false: 存根类型按照正常规则进行比较
+     *
+     * @param allowOptionBoxing 是否允许可选类型的装箱转换，默认值为 true
+     *        - true: 允许在类型检查时进行可选类型(Option)的自动装箱/拆箱
+     *               例如 T 和 T? 之间的转换
+     *        - false: 不允许自动装箱，严格区分可空和非可空类型
+     *
+     * @return TypeCheckerState 配置好的类型检查器状态实例
+     */
     fun newTypeCheckerState(
         errorTypesEqualToAnything: Boolean,
         stubTypesEqualToAnything: Boolean,
@@ -420,6 +444,9 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
 
     fun CangJieTypeMarker.typeConstructor(): TypeConstructorMarker =
         (asSimpleType() ?: lowerBoundIfFlexible()).typeConstructor()
+    fun  TypeConstructorMarker.isDenotable(): Boolean
+    fun CangJieTypeMarker.isFlexibleWithDifferentTypeConstructors(): Boolean =
+        lowerBoundIfFlexible().typeConstructor() != upperBoundIfFlexible().typeConstructor()
 
     fun CangJieTypeMarker.lowerBoundIfFlexible(): SimpleTypeMarker =
         this.asFlexibleType()?.lowerBound() ?: this.asSimpleType()!!

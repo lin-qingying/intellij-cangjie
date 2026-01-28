@@ -95,7 +95,7 @@ class EnumDescriptorImpl(
     }
 
     override val typeConstructor: TypeConstructor =
-        EnumTypeConstructorImpl(this, mutableListOf(), supertypes, storageManager)
+        EnumTypeConstructorImpl(this, declaredTypeParameters, supertypes, storageManager)
 
 
     /**

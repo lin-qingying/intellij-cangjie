@@ -40,6 +40,7 @@ class OverridingUtilTypeSystemContext(
     private val customSubtype: ((CangJieType, CangJieType) -> Boolean)? = null,
 ) : ClassicTypeSystemContext {
 
+
     override fun areEqualTypeConstructors(c1: TypeConstructorMarker, c2: TypeConstructorMarker): Boolean {
         require(c1 is TypeConstructor)
         require(c2 is TypeConstructor)
