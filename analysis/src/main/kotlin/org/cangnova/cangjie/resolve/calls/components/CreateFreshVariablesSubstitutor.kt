@@ -346,6 +346,18 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
             return classTypeParameters + candidateDescriptor.typeParameters
         }
 
+        // EnumSugar 情况：枚举构造器无显式接收者时（如 B、Some("hello")）
+        // 枚举构造器自身没有类型参数（typeParameters 为空），
+        // 但需要使用所属枚举的类型参数来创建类型变量，否则无法进行类型推断
+        val descriptor = candidateDescriptor
+        if (descriptor is EnumConstructorDescriptor) {
+            val enumDescriptor = descriptor.constructedClass
+            val enumTypeParameters = enumDescriptor.declaredTypeParameters
+            if (enumTypeParameters.isNotEmpty()) {
+                return enumTypeParameters + descriptor.typeParameters
+            }
+        }
+
         // 默认情况:只返回方法自身的类型参数
         // 同样使用 candidateDescriptor.typeParameters 以保持一致性
         return candidateDescriptor.typeParameters
@@ -371,13 +383,17 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         // 计算类类型参数的数量，用于后续区分类类型参数和方法类型参数
         val classTypeParametersCount = run {
             val explicitReceiver = resolvedCall.atom.explicitReceiver?.receiver
+            val descriptor = candidateDescriptor
             if (explicitReceiver is ClassifierQualifier) {
-                val containingDeclaration = candidateDescriptor.containingDeclaration
+                val containingDeclaration = descriptor.containingDeclaration
                 if (containingDeclaration is ClassAndEnumDescriptor) {
                     containingDeclaration.declaredTypeParameters.size
                 } else {
                     explicitReceiver.descriptor.declaredTypeParameters.size
                 }
+            } else if (descriptor is EnumConstructorDescriptor) {
+                // EnumSugar：无显式接收者但枚举有类型参数
+                descriptor.constructedClass.declaredTypeParameters.size
             } else {
                 0
             }

@@ -491,10 +491,15 @@ class WrongCountOfTypeArguments(
  * 当在已经给定枚举类型的情况下，枚举构造器后又出现类型参数时生成。
  * 枚举类型的类型参数应该在枚举类型上指定，而不是在枚举条目上。
  *
- * @property enumEntry 枚举条目类描述符
+ * 例如：
+ * - `A.B<Int>` - 错误，类型参数应该在 A 上指定
+ * - `A<Int>.B<Int>` - 错误，B 后不应有类型参数
+ * - `A.A1<String>("111")` - 错误，类型参数应该在 A 上指定
+ *
+ * @property enumEntry 枚举构造器描述符
  * @property enum 枚举类描述符
  */
-class TypeArgumentsAfterEnumEntry(val enumEntry: ClassDescriptor, val enum: ClassDescriptor) :
+class TypeArgumentsAfterEnumEntry(val enumEntry: DeclarationDescriptor, val enum: DeclarationDescriptor) :
     CangJieCallDiagnostic(CandidateApplicability.INAPPLICABLE) {
     override fun report(reporter: DiagnosticReporter) = reporter.onTypeArguments(this)
 }

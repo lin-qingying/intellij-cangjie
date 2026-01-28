@@ -323,7 +323,7 @@ object DiagnosticRendererRegistry {
      * 使用默认渲染器（TO_STRING），复杂情况需要显式配置
      */
     @Suppress("UNCHECKED_CAST")
-    private fun <E : PsiElement, A : Any> inferRenderer1(
+    private fun <E : PsiElement, A  > inferRenderer1(
         factory: DiagnosticFactory1<E, A>,
         bundle: MessageBundle
     ): DiagnosticRenderer<*> {
@@ -356,7 +356,7 @@ object DiagnosticRendererRegistry {
      * 使用默认渲染器（TO_STRING），复杂情况需要显式配置
      */
     @Suppress("UNCHECKED_CAST")
-    private fun <E : PsiElement, A : Any, B : Any, C : Any> inferRenderer3(
+    private fun <E : PsiElement, A  , B  , C  > inferRenderer3(
         factory: DiagnosticFactory3<E, A, B, C>,
         bundle: MessageBundle
     ): DiagnosticRenderer<*> {
@@ -374,7 +374,7 @@ object DiagnosticRendererRegistry {
      * 使用默认渲染器（TO_STRING），复杂情况需要显式配置
      */
     @Suppress("UNCHECKED_CAST")
-    private fun <E : PsiElement, A : Any, B : Any, C : Any, D : Any> inferRenderer4(
+    private fun <E : PsiElement, A , B   , C  , D  > inferRenderer4(
         factory: DiagnosticFactory4<E, A, B, C, D>,
         bundle: MessageBundle
     ): DiagnosticRenderer<*> {

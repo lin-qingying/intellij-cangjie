@@ -85,7 +85,7 @@ class DiagnosticRendererConfiguration(
     /**
      * 注册单参数诊断
      */
-    fun <E : PsiElement, A : Any> register(
+    fun <E : PsiElement, A> register(
         factory: DiagnosticFactory1<E, A>,
         configure: RendererBuilder1<E, A>.() -> Unit
     ) {
@@ -97,7 +97,7 @@ class DiagnosticRendererConfiguration(
     /**
      * 注册双参数诊断
      */
-    fun <E : PsiElement, A : Any, B : Any> register(
+    fun <E : PsiElement, A, B> register(
         factory: DiagnosticFactory2<E, A, B>,
         configure: RendererBuilder2<E, A, B>.() -> Unit
     ) {
@@ -109,7 +109,7 @@ class DiagnosticRendererConfiguration(
     /**
      * 注册三参数诊断
      */
-    fun <E : PsiElement, A : Any, B : Any, C : Any> register(
+    fun <E : PsiElement, A, B, C> register(
         factory: DiagnosticFactory3<E, A, B, C>,
         configure: RendererBuilder3<E, A, B, C>.() -> Unit
     ) {
@@ -121,7 +121,7 @@ class DiagnosticRendererConfiguration(
     /**
      * 注册四参数诊断
      */
-    fun <E : PsiElement, A : Any, B : Any, C : Any, D : Any> register(
+    fun <E : PsiElement, A, B, C, D> register(
         factory: DiagnosticFactory4<E, A, B, C, D>,
         configure: RendererBuilder4<E, A, B, C, D>.() -> Unit
     ) {
@@ -196,7 +196,7 @@ class RendererBuilder0<E : PsiElement>(
 /**
  * 单参数诊断渲染器构建器
  */
-class RendererBuilder1<E : PsiElement, A : Any>(
+class RendererBuilder1<E : PsiElement, A>(
     factory: DiagnosticFactory1<E, A>,
     defaultBundle: MessageBundle
 ) : RendererBuilder<DiagnosticWithParameters1<E, A>, DiagnosticFactory1<E, A>>(factory, defaultBundle) {
@@ -233,7 +233,7 @@ class RendererBuilder1<E : PsiElement, A : Any>(
 /**
  * 双参数诊断渲染器构建器
  */
-class RendererBuilder2<E : PsiElement, A : Any, B : Any>(
+class RendererBuilder2<E : PsiElement, A, B>(
     factory: DiagnosticFactory2<E, A, B>,
     defaultBundle: MessageBundle
 ) : RendererBuilder<DiagnosticWithParameters2<E, A, B>, DiagnosticFactory2<E, A, B>>(factory, defaultBundle) {
@@ -276,7 +276,7 @@ class RendererBuilder2<E : PsiElement, A : Any, B : Any>(
 /**
  * 三参数诊断渲染器构建器
  */
-class RendererBuilder3<E : PsiElement, A : Any, B : Any, C : Any>(
+class RendererBuilder3<E : PsiElement, A, B, C>(
     factory: DiagnosticFactory3<E, A, B, C>,
     defaultBundle: MessageBundle
 ) : RendererBuilder<DiagnosticWithParameters3<E, A, B, C>, DiagnosticFactory3<E, A, B, C>>(factory, defaultBundle) {
@@ -323,7 +323,7 @@ class RendererBuilder3<E : PsiElement, A : Any, B : Any, C : Any>(
 /**
  * 四参数诊断渲染器构建器
  */
-class RendererBuilder4<E : PsiElement, A : Any, B : Any, C : Any, D : Any>(
+class RendererBuilder4<E : PsiElement, A, B, C, D>(
     factory: DiagnosticFactory4<E, A, B, C, D>,
     defaultBundle: MessageBundle
 ) : RendererBuilder<DiagnosticWithParameters4<E, A, B, C, D>, DiagnosticFactory4<E, A, B, C, D>>(factory, defaultBundle) {

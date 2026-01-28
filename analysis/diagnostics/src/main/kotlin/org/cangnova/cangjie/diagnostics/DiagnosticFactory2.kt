@@ -98,7 +98,7 @@ class DiagnosticFactory2<E : PsiElement, A, B> private constructor(
          * @return 新的诊断工厂实例
          */
 
-        fun <T : PsiElement, A : Any, B : Any> create(
+        fun <T : PsiElement, A, B> create(
             severity: Severity,
             positioningStrategy: PositioningStrategy<T>
         ): DiagnosticFactory2<T, A, B> {

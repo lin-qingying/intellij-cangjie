@@ -27,7 +27,7 @@ package org.cangnova.cangjie.diagnostics.rendering
 import org.cangnova.cangjie.diagnostics.DiagnosticWithParameters1
 import org.cangnova.cangjie.diagnostics.DiagnosticWithParameters4
 
-class DiagnosticWithParametersMultiRenderer<A : Any>(
+class DiagnosticWithParametersMultiRenderer<A>(
     message: () -> String,
     private val renderer: MultiRenderer<A>
 ) : AbstractDiagnosticWithParametersRenderer<DiagnosticWithParameters1<*, A>>(message) {
@@ -37,7 +37,7 @@ class DiagnosticWithParametersMultiRenderer<A : Any>(
     }
 }
 
-class DiagnosticWithParameters4Renderer<A : Any, B : Any, C : Any, D : Any>(
+class DiagnosticWithParameters4Renderer<A, B, C, D>(
     message: () -> String,
     private val rendererForA: DiagnosticParameterRenderer<A>?,
     private val rendererForB: DiagnosticParameterRenderer<B>?,

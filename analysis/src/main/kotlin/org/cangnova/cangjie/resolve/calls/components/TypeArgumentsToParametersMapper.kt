@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.resolve.calls.components
 
 import org.cangnova.cangjie.descriptors.CallableDescriptor
-import org.cangnova.cangjie.descriptors.ClassDescriptor
+import org.cangnova.cangjie.descriptors.ClassAndEnumDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.EnumConstructorDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
@@ -166,7 +166,7 @@ class TypeArgumentsToParametersMapper {
      *
      * 3. **验证类型参数数量**：
      *    - 检查提供的类型实参数量是否与类型参数数量匹配
-     *    - 对于枚举构造器，共享的类型参数可以由顶层类型参数满足
+     *    - 数量不匹配时产生诊断信息
      *
      * 4. **创建映射**：
      *    - 将调用级类型实参与函数类型参数配对
@@ -197,39 +197,58 @@ class TypeArgumentsToParametersMapper {
         val typeDiagnostics = mutableListOf<CangJieCallDiagnostic>()
         var typeParameterToArgumentMap = emptyMap<TypeParameterDescriptor, TypeArgument>()
 
-        // 3. 获取上层声明（如枚举类）
-        val topDescriptor = descriptor.containingDeclaration as? ClassDescriptor
-
-        // 4. 检测共享类型参数（用于枚举等场景）
-        val sharedTypeParameters = getSharedTypeParametersByDeclarationDescriptor(topDescriptor, descriptor)
-
-        // 5. 验证类型参数数量
-        // 对于枚举构造器，检查类型参数是否可以由顶层类型参数满足
-        // 不依赖对象身份相等，直接检查枚举构造器和枚举的类型参数数量
-        val isEnumConstructorWithTopTypeArgs = descriptor is EnumConstructorDescriptor &&
-                topDescriptor != null &&
-                topDescriptor.declaredTypeParameters.size == descriptor.typeParameters.size &&
-                call.typeArguments.isEmpty() &&
-                call.topTypeArguments.isNotEmpty()
-
-        if (isEnumConstructorWithTopTypeArgs) {
-            // 枚举构造器的类型参数由枚举声明提供，使用顶层类型参数
-            val topDeclaredTypeParams = topDescriptor!!.declaredTypeParameters
-            if (topDeclaredTypeParams.size != call.topTypeArguments.size) {
+        // 3. 枚举构造器的特殊处理
+        // 编译器设计：枚举构造器没有自己的类型参数，类型参数从枚举限定符传递
+        // 例如：A<String>.A1("111") 中，类型参数 String 应该在 A 上，而不是 A1 上
+        if (descriptor is EnumConstructorDescriptor) {
+            // 3.1 如果类型参数出现在枚举构造器后面，并且有显式接收者，这是错误的
+            // 例如：A.B<Int>、A.A1<String>("111")、A<Int>.B<Int>
+            // 但是 EnumSugar 语法允许：None<Int>、Some<String>("hello")（无显式接收者）
+            if (call.typeArguments.isNotEmpty() && call.explicitReceiver != null) {
+                val enumDescriptor = descriptor.constructedClass
                 return TypeArgumentsMapping.TypeArgumentsMappingImpl(
-                    listOf(WrongCountOfTypeArguments(descriptor, call.topTypeArguments.size)), emptyMap()
+                    listOf(TypeArgumentsAfterEnumEntry(descriptor, enumDescriptor)), emptyMap()
                 )
             }
-            // 创建映射：枚举构造器的类型参数 -> 顶层类型参数
-            // 枚举构造器继承枚举的类型参数，使用 topTypeArguments 满足它们
-            typeParameterToArgumentMap =
-                descriptor.typeParameters.zip(call.topTypeArguments).associate { it }
-        } else if (call.typeArguments.size != descriptor.typeParameters.size) {
+
+            // 3.2 使用枚举的类型参数
+            val enumDescriptor = descriptor.constructedClass
+            val enumTypeParameters = enumDescriptor.declaredTypeParameters
+
+            // 3.3 确定类型参数来源：
+            // - EnumSugar（无显式接收者）：使用 typeArguments（如 None<Int>）
+            // - 完整写法（有显式接收者）：使用 topTypeArguments（如 Option<Int>.None）
+            val effectiveTypeArguments = if (call.explicitReceiver == null) {
+                call.typeArguments  // EnumSugar: None<Int>
+            } else {
+                call.topTypeArguments  // 完整写法: Option<Int>.None
+            }
+
+            // 3.4 验证类型参数数量
+            if (effectiveTypeArguments.isNotEmpty() && effectiveTypeArguments.size != enumTypeParameters.size) {
+                return TypeArgumentsMapping.TypeArgumentsMappingImpl(
+                    listOf(WrongCountOfTypeArguments(descriptor, effectiveTypeArguments.size)), emptyMap()
+                )
+            }
+
+            // 3.5 创建枚举类型参数映射
+            if (effectiveTypeArguments.isNotEmpty()) {
+                typeParameterToArgumentMap = enumTypeParameters.zip(effectiveTypeArguments).associate { it }
+            }
+
+            return TypeArgumentsMapping.TypeArgumentsMappingImpl(typeDiagnostics, typeParameterToArgumentMap)
+        }
+
+        // 4. 获取上层声明（如类或枚举）
+        val topDescriptor = descriptor.containingDeclaration as? ClassAndEnumDescriptor
+
+        // 5. 验证类型参数数量
+        if (call.typeArguments.size != descriptor.typeParameters.size) {
             return TypeArgumentsMapping.TypeArgumentsMappingImpl(
                 listOf(WrongCountOfTypeArguments(descriptor, call.typeArguments.size)), emptyMap()
             )
         } else {
-            // 6. 创建顶层类型参数映射（如枚举的类型参数）
+            // 6. 创建顶层类型参数映射（如类的类型参数）
             val topTypeParameterToArgumentMap =
                 topDescriptor?.declaredTypeParameters?.zip(call.topTypeArguments)?.associate { it } ?: emptyMap()
 
@@ -277,8 +296,8 @@ fun getSharedTypeParametersByDeclarationDescriptor(vararg descriptor: Declaratio
     // 收集所有声明的类型参数
     return descriptor.filterNotNull().flatMap {
         when (it) {
-            is ClassDescriptor -> it.declaredTypeParameters       // 类的类型参数
-            is CallableDescriptor -> it.typeParameters             // 函数的类型参数
+            is ClassAndEnumDescriptor -> it.declaredTypeParameters  // 类和枚举的类型参数
+            is CallableDescriptor -> it.typeParameters               // 函数的类型参数
             else -> emptyList()
         }
     }.groupBy { it }              // 按类型参数分组
@@ -294,7 +313,7 @@ fun getSharedTypeParametersByDeclarationDescriptor(vararg descriptor: Declaratio
  * 此方法返回所有类型参数而不仅仅是共享的。
  *
  * **类型参数来源**：
- * - **ClassDescriptor**：类或枚举声明的类型参数（如 `class Box<T>`）
+ * - **ClassAndEnumDescriptor**：类或枚举声明的类型参数（如 `class Box<T>`、`enum Option<T>`）
  * - **CallableDescriptor**：函数或属性的类型参数（如 `func foo<T>()`）
  *
  * **去重处理**：
@@ -307,8 +326,8 @@ fun getSharedTypeParametersByDeclarationDescriptor(vararg descriptor: Declaratio
 fun getAllTypeParameter(vararg descriptor: DeclarationDescriptor?): Set<TypeParameterDescriptor> {
     return descriptor.filterNotNull().flatMap {
         when (it) {
-            is ClassDescriptor -> it.declaredTypeParameters
-            is CallableDescriptor -> it.typeParameters
+            is ClassAndEnumDescriptor -> it.declaredTypeParameters  // 类和枚举的类型参数
+            is CallableDescriptor -> it.typeParameters               // 函数的类型参数
             else -> emptyList()
         }
     }.groupBy { it }  // 分组去重

@@ -74,7 +74,7 @@ abstract class AbstractDiagnosticWithParametersRenderer<in D : UnboundDiagnostic
     }
 }
 
-class DiagnosticWithParameters1Renderer<A : Any>(
+class DiagnosticWithParameters1Renderer<A>(
     message: () -> String,
     private val rendererForA: DiagnosticParameterRenderer<A>?
 ) : AbstractDiagnosticWithParametersRenderer<DiagnosticWithParameters1<*, A>>(message) {
@@ -85,7 +85,7 @@ class DiagnosticWithParameters1Renderer<A : Any>(
     }
 }
 
-class DiagnosticWithParameters2Renderer<A : Any, B : Any>(
+class DiagnosticWithParameters2Renderer<A, B>(
     message: () -> String,
     private val rendererForA: DiagnosticParameterRenderer<A>?,
     private val rendererForB: DiagnosticParameterRenderer<B>?
@@ -100,7 +100,7 @@ class DiagnosticWithParameters2Renderer<A : Any, B : Any>(
     }
 }
 
-class DiagnosticWithParameters3Renderer<A : Any, B : Any, C : Any>(
+class DiagnosticWithParameters3Renderer<A, B, C>(
     message: () -> String,
     private val rendererForA: DiagnosticParameterRenderer<A>?,
     private val rendererForB: DiagnosticParameterRenderer<B>?,

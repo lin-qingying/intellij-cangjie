@@ -164,7 +164,7 @@ class DiagnosticFactoryForDeprecation0<E : PsiElement>(
  * @param A 第一个参数类型
  * @param B 第二个参数类型
  */
-class DiagnosticFactoryForDeprecation2<E : PsiElement, A : Any, B : Any>(
+class DiagnosticFactoryForDeprecation2<E : PsiElement, A, B>(
     featureForError: LanguageFeature,
     warningFactory: DiagnosticFactory2<E, A, B>,
     errorFactory: DiagnosticFactory2<E, A, B>
@@ -176,7 +176,7 @@ class DiagnosticFactoryForDeprecation2<E : PsiElement, A : Any, B : Any>(
     companion object {
         
         @JvmOverloads
-        fun <E : PsiElement, A : Any, B : Any> create(
+        fun <E : PsiElement, A, B> create(
             featureForError: LanguageFeature,
             positioningStrategy: PositioningStrategy<E> = PositioningStrategies.DEFAULT
         ): DiagnosticFactoryForDeprecation2<E, A, B> {
@@ -208,7 +208,7 @@ class DiagnosticFactoryForDeprecation2<E : PsiElement, A : Any, B : Any>(
  * @param E PSI 元素类型
  * @param A 参数类型
  */
-class DiagnosticFactoryForDeprecation1<E : PsiElement, A : Any>(
+class DiagnosticFactoryForDeprecation1<E : PsiElement, A>(
     featureForError: LanguageFeature,
     warningFactory: DiagnosticFactory1<E, A>,
     errorFactory: DiagnosticFactory1<E, A>
@@ -220,7 +220,7 @@ class DiagnosticFactoryForDeprecation1<E : PsiElement, A : Any>(
     companion object {
         
         @JvmOverloads
-        fun <E : PsiElement, A : Any> create(
+        fun <E : PsiElement, A> create(
             featureForError: LanguageFeature,
             positioningStrategy: PositioningStrategy<E> = PositioningStrategies.DEFAULT
         ): DiagnosticFactoryForDeprecation1<E, A> {
@@ -253,7 +253,7 @@ class DiagnosticFactoryForDeprecation1<E : PsiElement, A : Any>(
  * @param B 第二个参数类型
  * @param C 第三个参数类型
  */
-class DiagnosticFactoryForDeprecation3<E : PsiElement, A : Any, B : Any, C : Any>(
+class DiagnosticFactoryForDeprecation3<E : PsiElement, A, B, C>(
     featureForError: LanguageFeature,
     warningFactory: DiagnosticFactory3<E, A, B, C>,
     errorFactory: DiagnosticFactory3<E, A, B, C>
@@ -265,7 +265,7 @@ class DiagnosticFactoryForDeprecation3<E : PsiElement, A : Any, B : Any, C : Any
     companion object {
         
         @JvmOverloads
-        fun <E : PsiElement, A : Any, B : Any, C : Any> create(
+        fun <E : PsiElement, A, B, C> create(
             featureForError: LanguageFeature,
             positioningStrategy: PositioningStrategy<E> = PositioningStrategies.DEFAULT
         ): DiagnosticFactoryForDeprecation3<E, A, B, C> {
@@ -301,7 +301,7 @@ class DiagnosticFactoryForDeprecation3<E : PsiElement, A : Any, B : Any, C : Any
  * @param C 第三个参数类型
  * @param D 第四个参数类型
  */
-class DiagnosticFactoryForDeprecation4<E : PsiElement, A : Any, B : Any, C : Any, D : Any>(
+class DiagnosticFactoryForDeprecation4<E : PsiElement, A, B, C, D>(
     featureForError: LanguageFeature,
     warningFactory: DiagnosticFactory4<E, A, B, C, D>,
     errorFactory: DiagnosticFactory4<E, A, B, C, D>
@@ -313,7 +313,7 @@ class DiagnosticFactoryForDeprecation4<E : PsiElement, A : Any, B : Any, C : Any
     companion object {
         
         @JvmOverloads
-        fun <E : PsiElement, A : Any, B : Any, C : Any, D : Any> create(
+        fun <E : PsiElement, A, B, C, D> create(
             featureForError: LanguageFeature,
             positioningStrategy: PositioningStrategy<E> = PositioningStrategies.DEFAULT
         ): DiagnosticFactoryForDeprecation4<E, A, B, C, D> {

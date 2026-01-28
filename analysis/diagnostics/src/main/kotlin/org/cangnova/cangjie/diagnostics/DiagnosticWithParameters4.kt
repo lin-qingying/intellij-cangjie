@@ -73,7 +73,7 @@ import java.util.*
  * @param factory 诊断工厂
  * @param severity 严重性级别
  */
-class DiagnosticWithParameters4<E : PsiElement, A : Any, B : Any, C : Any, D : Any>(
+class DiagnosticWithParameters4<E : PsiElement, A, B, C, D>(
     psiElement: E,
     override val a: A,
     override val b: B,

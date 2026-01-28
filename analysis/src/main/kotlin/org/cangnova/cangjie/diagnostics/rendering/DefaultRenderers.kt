@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.diagnostics.rendering
 
 import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
+import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.diagnostics.infos.errors.ABSTRACT_MEMBER_NOT_IMPLEMENTED
 import org.cangnova.cangjie.diagnostics.infos.errors.EXPRESSION_EXPECTED
@@ -206,6 +207,44 @@ internal class DefaultRenderers : DiagnosticRendererProvider {
                 message { CangJieDiagnosisBundle.rawMessage(it) }
                 renderers(Renderers.NAMED
                 )
+            }
+
+            // 枚举条目后的类型参数错误 - 使用简洁的名称渲染
+            // 示例：TYPE_ARGUMENTS_NOT_AFTER_ENUMENTRY("A1(T)", "A<T>")
+            // 显示为：当给定枚举类型 'A<T>' 时，类型参数不能出现在 'A1' 之后
+            register(TYPE_ARGUMENTS_NOT_AFTER_ENUMENTRY) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                renderers(
+                    // 渲染枚举构造器名称
+                    Renderers.NAMED,
+                    // 渲染枚举类型名称 - 使用简洁渲染
+                    renderer { descriptor: DeclarationDescriptor ->
+                        when (descriptor) {
+                            is ClassifierDescriptorWithTypeParameters ->
+                                Renderers.RENDER_CLASS_OR_OBJECT_NAME.render(descriptor, RenderingContext.of(descriptor))
+                            else -> descriptor.name.asString()
+                        }
+                    }
+                )
+            }
+
+            // 类型参数信息不足错误 - 显示类型变量名和声明
+            // 示例：NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER("T", enumDescriptor)
+            // 显示为：信息不足，无法推断来自 'A<T>' 的类型变量 T
+            // 注意：第二个参数 DeclarationDescriptor? 是可空的
+            register(NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                parameterExtractor { diagnostic ->
+                    val typeVariableName = diagnostic.a
+                    val descriptor = diagnostic.b
+                    val descriptorText = when (descriptor) {
+                        is ClassifierDescriptorWithTypeParameters ->
+                            Renderers.RENDER_CLASS_OR_OBJECT_NAME.render(descriptor, RenderingContext.of(descriptor))
+                        null -> "unknown"
+                        else -> descriptor.name.asString()
+                    }
+                    arrayOf(typeVariableName, descriptorText)
+                }
             }
         }
     }

@@ -69,7 +69,7 @@ import com.intellij.psi.PsiElement
  * @param severity 严重性级别
  * @param positioningStrategy 定位策略
  */
-class DiagnosticFactory3<E : PsiElement, A : Any, B : Any, C : Any> protected constructor(
+class DiagnosticFactory3<E : PsiElement, A, B, C> protected constructor(
     severity: Severity,
     positioningStrategy: PositioningStrategy<E>
 ) :
@@ -100,7 +100,7 @@ class DiagnosticFactory3<E : PsiElement, A : Any, B : Any, C : Any> protected co
          * @return 新的诊断工厂实例
          */
 
-        fun <T : PsiElement, A : Any, B : Any, C : Any> create(severity: Severity): DiagnosticFactory3<T, A, B, C> {
+        fun <T : PsiElement, A, B, C> create(severity: Severity): DiagnosticFactory3<T, A, B, C> {
             return create(severity, PositioningStrategies.DEFAULT)
         }
 
@@ -116,7 +116,7 @@ class DiagnosticFactory3<E : PsiElement, A : Any, B : Any, C : Any> protected co
          * @return 新的诊断工厂实例
          */
 
-        fun <T : PsiElement, A : Any, B : Any, C : Any> create(
+        fun <T : PsiElement, A, B, C> create(
             severity: Severity,
             positioningStrategy: PositioningStrategy<T>
         ): DiagnosticFactory3<T, A, B, C> {

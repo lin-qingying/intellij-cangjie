@@ -53,7 +53,7 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(
     }
 
 
-    fun <E : PsiElement, A : Any> put(
+    fun <E : PsiElement, A> put(
         factory: DiagnosticFactory1<E, A>,
         message: () -> String,
         rendererA: DiagnosticParameterRenderer<A>?
@@ -62,7 +62,7 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(
         map[factory] = DiagnosticWithParameters1Renderer(message, rendererA)
     }
 
-    fun <E : PsiElement, A : Any> put(
+    fun <E : PsiElement, A> put(
         factory: DiagnosticFactory1<E, A>,
         message: () -> String,
         rendererA: MultiRenderer<A>
@@ -72,7 +72,7 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(
             DiagnosticWithParametersMultiRenderer(message, rendererA)
     }
 
-    fun <E : PsiElement, A : Any, B : Any> put(
+    fun <E : PsiElement, A, B> put(
         factory: DiagnosticFactory2<E, A, B>,
         message: () -> String,
         rendererA: DiagnosticParameterRenderer<A>?,
@@ -89,7 +89,7 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(
             )
     }
 
-    fun <E : PsiElement, A : Any, B : Any, C : Any> put(
+    fun <E : PsiElement, A, B, C> put(
         factory: DiagnosticFactory3<E, A, B, C>,
         message: () -> String,
         rendererA: DiagnosticParameterRenderer<A>?,
@@ -105,7 +105,7 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(
         )
     }
 
-    fun <E : PsiElement, A : Any, B : Any, C : Any, D : Any> put(
+    fun <E : PsiElement, A, B, C, D> put(
         factory: DiagnosticFactory4<E, A, B, C, D>,
         message: () -> String,
         rendererA: DiagnosticParameterRenderer<A>?,
@@ -141,7 +141,7 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(
         )
     }
 
-    fun <E : PsiElement, A : Any> put(
+    fun <E : PsiElement, A> put(
         factory: DiagnosticFactoryForDeprecation1<E, A>,
         message: () -> String,
         rendererA: DiagnosticParameterRenderer<A>?
@@ -159,7 +159,7 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(
         )
     }
 
-    fun <E : PsiElement, A : Any> put(
+    fun <E : PsiElement, A> put(
         factory: DiagnosticFactoryForDeprecation1<E, A>,
         message: () -> String,
         rendererA: MultiRenderer<A>
@@ -177,7 +177,7 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(
         )
     }
 
-    fun <E : PsiElement, A : Any, B : Any> put(
+    fun <E : PsiElement, A, B> put(
         factory: DiagnosticFactoryForDeprecation2<E, A, B>,
         message: () -> String,
         rendererA: DiagnosticParameterRenderer<A>?,
@@ -200,7 +200,7 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(
         )
     }
 
-    fun <E : PsiElement, A : Any, B : Any, C : Any> put(
+    fun <E : PsiElement, A, B, C> put(
         factory: DiagnosticFactoryForDeprecation3<E, A, B, C>,
         message: () -> String,
         rendererA: DiagnosticParameterRenderer<A>?,
@@ -226,7 +226,7 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(
             )
     }
 
-    fun <E : PsiElement, A : Any, B : Any, C : Any, D : Any> put(
+    fun <E : PsiElement, A, B, C, D> put(
         factory: DiagnosticFactoryForDeprecation4<E, A, B, C, D>,
         message: () -> String,
         rendererA: DiagnosticParameterRenderer<A>?,

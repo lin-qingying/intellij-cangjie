@@ -466,7 +466,8 @@ abstract class AbstractEnumConstructorDescriptor(
         modality: Modality  = Modality.FINAL,
         visibility: DescriptorVisibility = DescriptorVisibilities.PUBLIC,
     ): AbstractEnumConstructorDescriptor {
-        this.typeParameters = typeParameters.toList()
+//        TODO 编译器的逻辑是：当调用枚举构造器时，类型参数从枚举限定符（如 A<String>）传递到构造器，而不是要求构造器单独提供类型参数。
+//        this.typeParameters = typeParameters.toList()
 
         this.unsubstitutedValueParameters = unsubstitutedValueParameters.toList()
 
