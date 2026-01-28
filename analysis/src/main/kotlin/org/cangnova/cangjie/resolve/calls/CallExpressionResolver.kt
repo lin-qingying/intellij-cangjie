@@ -430,7 +430,7 @@ class CallExpressionResolver(
             context, "trace to resolveName as variable", nameExpression
         )
         val variableResult = tryResolveAsVariable(
-            temporaryForVariable,  nameExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
+            temporaryForVariable, nameExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
         )
         if (variableResult != null) {
             return variableResult
@@ -443,7 +443,7 @@ class CallExpressionResolver(
             context, "trace to resolveName as function", nameExpression
         )
         val functionResult = tryResolveAsFunction(
-            temporaryForFunction,  nameExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
+            temporaryForFunction, nameExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
         )
         if (functionResult != null) {
             return functionResult

@@ -28,22 +28,64 @@ import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.renderer.DescriptorRenderer
 import org.cangnova.cangjie.types.CangJieType
 
+/**
+ * 智能类型渲染器
+ *
+ * 用于在诊断信息中智能渲染仓颉类型。该渲染器会根据渲染上下文自适应地调整
+ * 类型名称的显示策略，以便在错误信息中提供更清晰、更易理解的类型表示。
+ *
+ * @property baseRenderer 基础的描述符渲染器，用于执行实际的类型渲染操作
+ */
 class SmartTypeRenderer(private val baseRenderer: DescriptorRenderer) : DiagnosticParameterRenderer<CangJieType> {
+
+    /**
+     * 渲染仓颉类型
+     *
+     * 根据提供的渲染上下文，使用自适应的分类器命名策略来渲染类型。
+     * 这确保了在不同的诊断场景下，类型名称能够以最合适的方式显示。
+     *
+     * @param obj 要渲染的仓颉类型对象
+     * @param renderingContext 渲染上下文，包含自适应的分类器策略等信息
+     * @return 渲染后的类型字符串表示
+     */
     override fun render(obj: CangJieType, renderingContext: RenderingContext): String {
+        // 创建一个自适应的渲染器，使用上下文中的分类器命名策略
         val adaptiveRenderer = baseRenderer.withOptions {
             classifierNamePolicy = renderingContext.adaptiveClassifierPolicy
         }
+        // 使用自适应渲染器渲染类型
         return adaptiveRenderer.renderType(obj)
     }
 }
 
+/**
+ * 智能描述符渲染器
+ *
+ * 用于在诊断信息中智能渲染声明描述符（如函数、类、变量等）。该渲染器会根据
+ * 渲染上下文自适应地调整描述符的显示策略，以便在错误信息中提供更精确、
+ * 更有针对性的声明信息。
+ *
+ * @property baseRenderer 基础的描述符渲染器，用于执行实际的描述符渲染操作
+ */
 class SmartDescriptorRenderer(private val baseRenderer: DescriptorRenderer) :
     DiagnosticParameterRenderer<DeclarationDescriptor> {
+
+    /**
+     * 渲染声明描述符
+     *
+     * 根据提供的渲染上下文，使用自适应的分类器命名策略来渲染声明描述符。
+     * 这确保了在不同的诊断场景下，声明信息能够以最清晰的方式呈现给用户。
+     *
+     * @param obj 要渲染的声明描述符对象
+     * @param renderingContext 渲染上下文，包含自适应的分类器策略等信息
+     * @return 渲染后的声明描述符字符串表示
+     */
     override fun render(obj: DeclarationDescriptor, renderingContext: RenderingContext): String {
+        // 创建一个自适应的渲染器，使用上下文中的分类器命名策略
         val adaptiveRenderer = baseRenderer.withOptions {
             classifierNamePolicy = renderingContext.adaptiveClassifierPolicy
         }
+        // 使用自适应渲染器渲染描述符
         return adaptiveRenderer.render(obj)
     }
 }
-

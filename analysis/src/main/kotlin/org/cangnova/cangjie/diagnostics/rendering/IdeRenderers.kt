@@ -64,11 +64,23 @@ internal class IdeRenderers : DiagnosticRendererProvider {
     // =====================================================
 
     /**
+     * 转义 HTML 特殊字符
+     *
+     * 将 `<`, `>`, `&` 等字符转义为 HTML 实体，
+     * 防止类型参数（如 `<String>`）被解释为 HTML 标签。
+     */
+    private fun String.escapeHtml(): String =
+        this.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+
+    /**
      * 将描述符渲染为 HTML 代码块
      */
     private fun DeclarationDescriptor.renderAsCode(): String {
         val text = Renderers.FQ_NAMES_IN_TYPES.render(this, RenderingContext.of(this))
-        return "<code>$text</code>"
+        return "<code>${text.escapeHtml()}</code>"
     }
 
     /**
@@ -76,7 +88,7 @@ internal class IdeRenderers : DiagnosticRendererProvider {
      */
     private fun CangJieType.renderAsCode(): String {
         val text = Renderers.RENDER_TYPE.render(this, RenderingContext.of(this))
-        return "<code>$text</code>"
+        return "<code>${text.escapeHtml()}</code>"
     }
 
     /**
