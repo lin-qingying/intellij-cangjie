@@ -246,6 +246,12 @@ internal class DefaultRenderers : DiagnosticRendererProvider {
                     arrayOf(typeVariableName, descriptorText)
                 }
             }
+
+
+            register(TYPE_MISMATCH) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                renderers(Renderers.RENDER_TYPE, Renderers.RENDER_TYPE)
+            }
         }
     }
 }
