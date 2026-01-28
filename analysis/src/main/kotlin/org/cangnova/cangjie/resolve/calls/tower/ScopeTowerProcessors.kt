@@ -564,7 +564,7 @@ fun <C : Candidate> createEnumConstructorProcessor(
     // 查找作为函数的枚举构造器
     // 例如：Result.Success(42)
     val functionConstructorProcessor = createSimpleFunctionProcessor(
-        scopeTower, name, simpleContext, explicitReceiver
+        scopeTower, name, simpleContext, explicitReceiver,true
     )
 
     // 返回优先级组合处理器

@@ -366,7 +366,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         val csBuilder = getSystem().getBuilder()
 
         // 获取所有需要处理的类型参数(包括类和方法的)
-        val typeParameters = getTypeParameters()
+        val typeParameters = getTypeParameters().toSet().toList()
 
         // 计算类类型参数的数量，用于后续区分类类型参数和方法类型参数
         val classTypeParametersCount = run {

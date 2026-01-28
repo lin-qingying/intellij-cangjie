@@ -27,6 +27,7 @@ package org.cangnova.cangjie.resolve.calls.components
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
+import org.cangnova.cangjie.descriptors.EnumConstructorDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.types.CangJieType
@@ -165,7 +166,7 @@ class TypeArgumentsToParametersMapper {
      *
      * 3. **验证类型参数数量**：
      *    - 检查提供的类型实参数量是否与类型参数数量匹配
-     *    - 数量不匹配时产生诊断信息（TODO: 枚举相关处理）
+     *    - 对于枚举构造器，共享的类型参数可以由顶层类型参数满足
      *
      * 4. **创建映射**：
      *    - 将调用级类型实参与函数类型参数配对
@@ -200,11 +201,31 @@ class TypeArgumentsToParametersMapper {
         val topDescriptor = descriptor.containingDeclaration as? ClassDescriptor
 
         // 4. 检测共享类型参数（用于枚举等场景）
-        getSharedTypeParametersByDeclarationDescriptor(topDescriptor, descriptor)
+        val sharedTypeParameters = getSharedTypeParametersByDeclarationDescriptor(topDescriptor, descriptor)
 
         // 5. 验证类型参数数量
-        if (call.typeArguments.size != descriptor.typeParameters.size) {
-            return TypeArgumentsToParametersMapper.TypeArgumentsMapping.TypeArgumentsMappingImpl(
+        // 对于枚举构造器，检查类型参数是否可以由顶层类型参数满足
+        // 不依赖对象身份相等，直接检查枚举构造器和枚举的类型参数数量
+        val isEnumConstructorWithTopTypeArgs = descriptor is EnumConstructorDescriptor &&
+                topDescriptor != null &&
+                topDescriptor.declaredTypeParameters.size == descriptor.typeParameters.size &&
+                call.typeArguments.isEmpty() &&
+                call.topTypeArguments.isNotEmpty()
+
+        if (isEnumConstructorWithTopTypeArgs) {
+            // 枚举构造器的类型参数由枚举声明提供，使用顶层类型参数
+            val topDeclaredTypeParams = topDescriptor!!.declaredTypeParameters
+            if (topDeclaredTypeParams.size != call.topTypeArguments.size) {
+                return TypeArgumentsMapping.TypeArgumentsMappingImpl(
+                    listOf(WrongCountOfTypeArguments(descriptor, call.topTypeArguments.size)), emptyMap()
+                )
+            }
+            // 创建映射：枚举构造器的类型参数 -> 顶层类型参数
+            // 枚举构造器继承枚举的类型参数，使用 topTypeArguments 满足它们
+            typeParameterToArgumentMap =
+                descriptor.typeParameters.zip(call.topTypeArguments).associate { it }
+        } else if (call.typeArguments.size != descriptor.typeParameters.size) {
+            return TypeArgumentsMapping.TypeArgumentsMappingImpl(
                 listOf(WrongCountOfTypeArguments(descriptor, call.typeArguments.size)), emptyMap()
             )
         } else {

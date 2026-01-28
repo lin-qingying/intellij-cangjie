@@ -764,19 +764,12 @@ open class EnumConstructorDescriptorImpl(
     containingDeclaration: EnumDescriptor,
     original: EnumConstructorDescriptor?,
     annotations: Annotations,
-
-    source: SourceElement,
-
-
+    source: SourceElement
     ) : AbstractEnumConstructorDescriptor(
     name = name,
     containingDeclaration = containingDeclaration,
-
     source = source,
-
     ) {
-
-
     override fun createSubstitutedCopy(
         newOwner: DeclarationDescriptor,
         original: EnumConstructorDescriptor?,
