@@ -29,9 +29,7 @@ import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.resolve.calls.results.FlatSignature
 import org.cangnova.cangjie.resolve.calls.results.TypeSpecificityComparator
 import org.cangnova.cangjie.resolve.calls.results.TypeWithConversion
-import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.SimpleType
-import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
 import org.cangnova.cangjie.types.model.TypeParameterMarker
@@ -169,6 +167,11 @@ class SignatureComparator(
 
     /**
      * 将类型中的类型参数替换为对应的类型变量
+     *
+     * 使用 TypeSubstitutor 执行完整的类型替换，包括：
+     * - 简单类型参数：T -> TypeVar
+     * - 复杂类型参数：List<T> -> List<TypeVar>
+     * - 嵌套类型参数：Map<K, List<V>> -> Map<TypeVarK, List<TypeVarV>>
      */
     private fun substituteTypeParameters(
         type: CangJieTypeMarker,
@@ -177,22 +180,21 @@ class SignatureComparator(
         if (typeVariableMap.isEmpty()) return type
         if (type !is CangJieType) return type
 
-        // 检查类型是否是类型参数
-        if (type is SimpleType) {
-            val constructor = type.constructor
-            val typeParameter = constructor.declarationDescriptor as? TypeParameterDescriptor
-            if (typeParameter != null) {
-                val typeVar = typeVariableMap[typeParameter]
-                if (typeVar != null) {
-                    return typeVar.defaultType
+        // 构建 TypeConstructor -> UnwrappedType 的映射
+        val substitutionMap = buildMap<TypeConstructor, UnwrappedType> {
+            typeVariableMap.forEach { (typeParameter, typeVariable) ->
+                if (typeParameter is TypeParameterDescriptor) {
+                    put(typeParameter.typeConstructor, typeVariable.defaultType.unwrap())
                 }
             }
         }
 
-        // 对于复杂类型，需要递归替换类型参数
-        // 这里简化处理，直接返回原类型
-        // 完整实现需要使用 TypeSubstitutor
-        return type
+        // 如果没有需要替换的类型参数，直接返回原类型
+        if (substitutionMap.isEmpty()) return type
+
+        // 使用 TypeSubstitutor 执行完整的类型替换
+        val substitutor = TypeSubstitutors.create(substitutionMap)
+        return substitutor.substitute(type)
     }
 
     companion object {

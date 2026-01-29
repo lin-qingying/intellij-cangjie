@@ -27,6 +27,7 @@ package org.cangnova.cangjie.resolve.caches
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.context.ProjectContext
 import org.cangnova.cangjie.context.withModule
+import org.cangnova.cangjie.descriptors.ModuleCapability
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.ProjectDescriptor
 import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
@@ -39,6 +40,8 @@ import org.cangnova.cangjie.resolve.LanguageSettingsProvider
 import org.cangnova.cangjie.resolve.ResolverForModule
 import org.cangnova.cangjie.resolve.ResolverForModuleFactory
 import org.cangnova.cangjie.resolve.ResolverForProject
+import org.cangnova.cangjie.resolve.extend.ExtendManager
+import org.cangnova.cangjie.resolve.extend.ExtendManagerImpl
 import org.cangnova.cangjie.resolve.lazy.IdeaAbsentDescriptorHandler
 import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressManager
@@ -263,6 +266,20 @@ class IdeaResolverForProject(
      * 可以通过这个时间戳追踪解析器的生命周期和缓存失效情况。
      */
     private val created = Date().toString()
+
+    /**
+     * 获取额外的模块能力
+     *
+     * 重写此方法以注册 ExtendManager 能力到每个模块。
+     * ExtendManager 用于管理 extend 声明，支持为现有类型添加接口实现。
+     *
+     * @return 包含 ExtendManager 能力的映射
+     */
+    override fun getAdditionalCapabilities(): Map<ModuleCapability<*>, Any?> {
+        return mapOf(
+            ExtendManager.CAPABILITY to ExtendManagerImpl()
+        )
+    }
 
 
     /**

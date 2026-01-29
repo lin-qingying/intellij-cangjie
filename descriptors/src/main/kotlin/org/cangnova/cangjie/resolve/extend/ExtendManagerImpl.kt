@@ -27,37 +27,86 @@
  */
 package org.cangnova.cangjie.resolve.extend
 
-import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.*
 
+/**
+ * 扩展管理器实现
+ *
+ * 内存中的 ExtendManager 实现，维护模块内所有 extend 声明的映射关系。
+ *
+ * @param storageManager 存储管理器（可选，当前实现不使用）
+ */
 class ExtendManagerImpl(
-    private val storageManager: StorageManager,
-    private val module: ModuleDescriptor,
+    private val storageManager: StorageManager? = null,
 ) : ExtendManager {
 
+    /**
+     * 按类型构造器索引的扩展定义映射
+     *
+     * key: 被扩展类型的类型构造器
+     * value: 该类型的所有扩展定义集合
+     */
     private val defsByCtor = mutableMapOf<TypeConstructor, MutableSet<ExtendManager.ExtensionDef>>()
 
+    /**
+     * 按扩展 ID 索引的扩展定义映射
+     *
+     * 用于快速查找和替换已存在的扩展定义
+     */
+    private val defsById = mutableMapOf<String, ExtendManager.ExtensionDef>()
+
+    /**
+     * 缓存键
+     */
     private data class Key(
         val ctor: TypeConstructor,
         val argsKey: List<CangJieType>,
         val excludeId: String?,
     )
 
+    /**
+     * 超类型查询结果缓存
+     */
     private val cache = mutableMapOf<Key, Collection<CangJieType>>()
+
+    override fun register(def: ExtendManager.ExtensionDef) {
+        // 清除缓存，因为新的扩展可能影响查询结果
+        cache.clear()
+
+        // 如果已存在相同 ID 的扩展，先移除旧的
+        defsById[def.id]?.let { oldDef ->
+            defsByCtor[oldDef.extendedConstructor]?.remove(oldDef)
+        }
+
+        // 注册新的扩展定义
+        defsById[def.id] = def
+        defsByCtor.getOrPut(def.extendedConstructor) { linkedSetOf() }.add(def)
+    }
 
     override fun rebuild(defs: Collection<ExtendManager.ExtensionDef>) {
         defsByCtor.clear()
+        defsById.clear()
         cache.clear()
         defs.forEach { d ->
+            defsById[d.id] = d
             defsByCtor.getOrPut(d.extendedConstructor) { linkedSetOf() }.add(d)
         }
     }
 
     override fun invalidate() {
         defsByCtor.clear()
+        defsById.clear()
         cache.clear()
+    }
+
+    override fun getExtensionsForType(forConstructor: TypeConstructor): Collection<ExtendManager.ExtensionDef> {
+        return defsByCtor[forConstructor].orEmpty()
+    }
+
+    override fun getAllExtensions(): Collection<ExtendManager.ExtensionDef> {
+        return defsById.values
     }
 
     override fun getExtendSupertypes(

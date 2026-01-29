@@ -286,7 +286,11 @@ abstract class PlatformConfiguratorBase(
  * @see PlatformConfiguratorBase
  * @see PlatformDependentAnalyzerServices
  */
-object CangJiePlatformConfigurator : PlatformConfiguratorBase() {
+object CangJiePlatformConfigurator : PlatformConfiguratorBase(
+    additionalCallCheckers = listOf(
+        org.cangnova.cangjie.resolve.calls.checkers.ExtendMemberAccessibilityChecker()
+    )
+) {
 
     /**
      * 配置模块组件

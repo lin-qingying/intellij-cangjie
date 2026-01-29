@@ -50,6 +50,7 @@ import org.cangnova.cangjie.resolve.lazy.LazyEntity
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.scopes.StaticScopeForCangJieEnum
+import org.cangnova.cangjie.resolve.extend.ExtendManager
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
@@ -343,12 +344,23 @@ open class LazyClassDescriptor(
         val classOrObject = declarationProvider.ownerInfo!!.correspondingClass
             ?: return listOf(c.moduleDescriptor.builtIns.stdlibTypes.anyType)
 
-        val allSupertypes = c.descriptorResolver.resolveSupertypes(
+        // 获取类声明中的超类型
+        val declaredSupertypes = c.descriptorResolver.resolveSupertypes(
             scopeForClassHeaderResolution,
             this,
             classOrObject,
             c.trace
         )
+
+        // 获取通过 extend 声明添加的超类型
+        val extendManager = c.moduleDescriptor.getCapability(ExtendManager.CAPABILITY)
+        val extendSupertypes = extendManager?.getExtendSupertypes(
+            forConstructor = this.typeConstructor,
+            forTypeArgs = emptyList()
+        ) ?: emptyList()
+
+        // 合并所有超类型
+        val allSupertypes = declaredSupertypes + extendSupertypes
 
         return allSupertypes.filter(VALID_SUPERTYPE)
     }

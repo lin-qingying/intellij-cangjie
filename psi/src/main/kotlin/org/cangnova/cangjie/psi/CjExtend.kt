@@ -63,7 +63,7 @@ class CjExtend : CjTypeStatement {
             }
 
             is CjOptionType -> {
-                return "Option"
+                  "Option"
             }
 
             is CjBasicType -> {
@@ -104,29 +104,68 @@ class CjExtend : CjTypeStatement {
     override val nameAsName: Name
         get() = name?.let { Name.identifier(it) } ?: Name.ERROR_NAME
 
-    //    扩展id ，需要具有唯一性  ，通过被扩展名，父类，包名，行号
+    /**
+     * 生成扩展的唯一标识符
+     *
+     * 遵循编译器的 name mangling 策略，格式：
+     * ```
+     * packageName:ExtendedType<:Interface1&Interface2&...
+     * ```
+     *
+     * 关键点：
+     * 1. 使用包名前缀区分不同包中的同名扩展
+     * 2. 使用类型的规范化文本表示（而非简单名）
+     * 3. 接口列表按字典序排序，确保一致性
+     * 4. 不包含源码位置信息（textOffset、textRange、text），避免格式化导致 ID 变化
+     *
+     * 对应编译器实现: ASTMangler.cpp::MangleExtendDecl
+     *
+     * @return 扩展的唯一标识符
+     */
     fun getExtendId(): String {
-        val sb = StringBuilder()
+        val parts = mutableListOf<String>()
 
-        sb.append(name)
-        sb.append(getSupernames())
+        // 1. 包名前缀（用于区分不同包中的同名扩展）
+        val packageName = fqName?.asString() ?: ""
+        parts.add(packageName)
+        parts.add(":")
 
-        sb.append(fqName)
+        // 2. 被扩展类型的规范化表示
+        val extendedTypeName = receiverTypeReceiver?.text ?: "Unknown"
+        parts.add(extendedTypeName)
 
-        sb.append(textOffset)
-        sb.append(textRange)
-        sb.append(text)
+        // 3. 分隔符（对应编译器的 MANGLE_LT_COLON_PREFIX）
+        parts.add("<:")
 
-        return sb.toString()
+        // 4. 排序的接口列表（用 & 连接）
+        val interfaces = getSortedSupernames()
+        parts.add(interfaces)
+
+        // 注意：暂不包含泛型约束，因为当前 PSI 层不易获取完整的约束信息
+        // 如需支持，可在后续从 descriptor 层获取
+
+        return parts.joinToString("")
     }
 
-    private fun getSupernames(): String {
-        val list = findChildByType<CjSuperTypeList>(CjNodeTypes.SUPER_TYPE_LIST) ?: return "null"
+    /**
+     * 获取排序后的接口名称列表
+     *
+     * 对应编译器实现中的接口排序逻辑：
+     * ```cpp
+     * std::stable_sort(inherits.begin(), inherits.end());
+     * ```
+     *
+     * @return 排序后的接口名称，用 & 连接
+     */
+    private fun getSortedSupernames(): String {
+        val list = findChildByType<CjSuperTypeList>(CjNodeTypes.SUPER_TYPE_LIST)
+            ?: return ""
 
-        val names = list.getChildrenOfType<CjSuperTypeEntry>().map {
-            it.children[0].text
-        }
-        return names.joinToString()
+        val names = list.getChildrenOfType<CjSuperTypeEntry>()
+            .map { it.children[0].text }
+            .sorted()  // 按字典序排序，确保一致性
+
+        return names.joinToString("&")
     }
 
     private fun getReceiverTypeRefByTree(): CjTypeReference? {

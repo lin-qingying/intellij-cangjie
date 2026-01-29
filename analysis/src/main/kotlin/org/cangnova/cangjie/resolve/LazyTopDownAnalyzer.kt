@@ -31,6 +31,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.progress.util.BackgroundTaskUtil.executeOnPooledThread
 import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.diagnostics.infos.errors.CONSTRUCTOR_IN_INTERFACE
 import org.cangnova.cangjie.diagnostics.infos.errors.PACKAGE_ACCESS_VIOLATION
@@ -179,7 +180,11 @@ class LazyTopDownAnalyzer(
                 }
 
                 override fun visitExtend(extend: CjExtend) {
-//                    TODO("实现扩展")
+                    // 解析扩展声明
+                    val descriptor = lazyDeclarationResolver.resolveToDescriptor(extend)
+                    c.extends[extend] = descriptor as ExtendDescriptor
+                    // 递归注册扩展内部的声明（函数、属性等）
+                    registerDeclarations(extend.declarations)
                 }
 
                 override fun visitClass(cclass: CjClass) {

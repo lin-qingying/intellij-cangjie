@@ -471,8 +471,12 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
                 val existingStdlibModule = projectDescriptor.stdlibModule
                 // 检查是否已经在 contextByDescriptor 中注册
                 if (existingStdlibModule !in contextByDescriptor) {
-                    //                将module中的模块能力补全到existingStdlibModule
+                    // 将module中的模块能力补全到existingStdlibModule
                     module.capabilities.forEach {
+                        existingStdlibModule.addCapability(it.key, it.value)
+                    }
+                    // 同时添加额外的模块能力（如 ExtendManager）
+                    getAdditionalCapabilities().forEach {
                         existingStdlibModule.addCapability(it.key, it.value)
                     }
                     contextByDescriptor[existingStdlibModule] = module

@@ -328,6 +328,38 @@ val EXTEND_CANNOT_INTERFACE: DiagnosticFactory0<CjTypeReference> =
     DiagnosticFactory0.create(Severity.ERROR)
 
 /**
+ * 扩展成员需要导入接口
+ *
+ * 当使用扩展成员时，必须导入扩展实现的至少一个接口
+ */
+val EXTEND_MEMBER_REQUIRES_INTERFACE_IMPORT: DiagnosticFactory2<PsiElement, CallableMemberDescriptor, List<CangJieType>> =
+    DiagnosticFactory2.create(Severity.ERROR)
+
+/**
+ * 孤儿扩展规则违反
+ *
+ * 扩展声明必须满足孤儿规则：被扩展类型或至少一个实现的接口必须在当前模块定义
+ */
+val ORPHAN_EXTEND: DiagnosticFactory3<CjExtend, CangJieType, List<CangJieType>, ModuleDescriptor> =
+    DiagnosticFactory3.create(Severity.ERROR)
+
+/**
+ * 扩展冲突
+ *
+ * 同一模块中不能有多个扩展为相同类型实现相同接口
+ */
+val CONFLICTING_EXTENDS: DiagnosticFactory3<CjExtend, CangJieType, CangJieType, String> =
+    DiagnosticFactory3.create(Severity.ERROR)
+
+/**
+ * 扩展不可访问
+ *
+ * 扩展声明或其成员在当前上下文中不可访问
+ */
+val EXTEND_NOT_ACCESSIBLE: DiagnosticFactory2<PsiElement, String, DeclarationDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR)
+
+/**
  * 动态超类型
  */
 

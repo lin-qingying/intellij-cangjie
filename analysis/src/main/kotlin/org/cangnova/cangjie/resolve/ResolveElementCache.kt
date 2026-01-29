@@ -42,6 +42,7 @@ import org.cangnova.cangjie.context.SimpleGlobalContext
 import org.cangnova.cangjie.context.withModule
 import org.cangnova.cangjie.context.withProject
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.frontend.createContainerForBodyResolve
 import org.cangnova.cangjie.moduleinfo.ModuleInfo
@@ -1100,6 +1101,9 @@ class ResolveElementCache(
 
         // 存储宏声明与其对应的宏描述符之间的映射。
         override val macros: MutableMap<CjMacroDeclaration, MacroDescriptor> = hashMapOf()
+
+        // 存储扩展声明与其对应的扩展描述符之间的映射。
+        override val extends: MutableMap<CjExtend, ExtendDescriptor> = hashMapOf()
 
         // 本地表达式类型上下文，对于惰性解析始终返回null
         override val localContext: ExpressionTypingContext? = null

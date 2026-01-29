@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.resolve.binding
 
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.TopDownAnalysisMode
@@ -62,6 +63,7 @@ interface BodiesResolveContext {
 
     val macros: MutableMap<CjMacroDeclaration, MacroDescriptor>
     val typeAliases: MutableMap<CjTypeAlias, TypeAliasDescriptor>
+    val extends: MutableMap<CjExtend, ExtendDescriptor>
 
     //
 //    @get:Mutable

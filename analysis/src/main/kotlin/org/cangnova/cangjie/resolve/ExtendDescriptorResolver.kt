@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve
 
+import jakarta.inject.Inject
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
@@ -61,6 +62,8 @@ class ExtendDescriptorResolver(
     private val builtIns: CangJieBuiltIns,
     private val storageManager: StorageManager
 ) {
+    @set:Inject
+    lateinit var lazyClassContext: LazyClassContext
 
     /**
      * 从 PSI 创建扩展描述符
@@ -71,26 +74,23 @@ class ExtendDescriptorResolver(
      * 3. 创建 LazyExtendDescriptor 实例
      * 4. 将扩展注册到 BindingContext 中
      * 5. 将扩展注册到 ExtendManager 中（用于类型系统集成）
+     * 6. 执行扩展声明的约束检查（孤儿规则、扩展冲突等）
      *
      * @param cjExtend PSI 层的扩展声明
-     * @param context 延迟类上下文，提供解析所需的所有服务
      * @return 创建的扩展描述符
      */
-    fun getExtendDescriptor(
-        cjExtend: CjExtend,
-        context: LazyClassContext
-    ): ExtendDescriptor {
+    fun getExtendDescriptor(cjExtend: CjExtend): ExtendDescriptor {
         // 1. 检查是否已经解析过
         trace.bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, cjExtend)?.let {
             return it as ExtendDescriptor
         }
 
         // 2. 获取包含声明（通常是包描述符）
-        val containingDeclaration = getContainingDeclaration(cjExtend, context)
+        val containingDeclaration = getContainingDeclaration(cjExtend)
 
         // 3. 创建 LazyExtendDescriptor
         val descriptor = LazyExtendDescriptor(
-            c = context,
+            c = lazyClassContext,
             containingDeclaration = containingDeclaration,
             cjExtend = cjExtend
         )
@@ -99,7 +99,10 @@ class ExtendDescriptorResolver(
         trace.record(BindingContext.EXTEND, cjExtend, descriptor)
 
         // 5. 注册到 ExtendManager（用于类型系统集成）
-        registerExtendInManager(descriptor, context.moduleDescriptor)
+        registerExtendInManager(descriptor, lazyClassContext.moduleDescriptor)
+
+        // 6. 执行扩展声明的约束检查
+        performExtendChecks(cjExtend, descriptor)
 
         return descriptor
     }
@@ -109,12 +112,9 @@ class ExtendDescriptorResolver(
      *
      * 扩展通常定义在包级别，因此返回对应的包描述符。
      */
-    private fun getContainingDeclaration(
-        cjExtend: CjExtend,
-        context: LazyClassContext
-    ): DeclarationDescriptor {
+    private fun getContainingDeclaration(cjExtend: CjExtend): DeclarationDescriptor {
         val packageFqName = cjExtend.getContainingCjFile().packageFqName
-        return context.moduleDescriptor.getPackage(packageFqName)
+        return lazyClassContext.moduleDescriptor.getPackage(packageFqName)
     }
 
     /**
@@ -133,11 +133,64 @@ class ExtendDescriptorResolver(
             id = descriptor.extendId,
             extendedConstructor = descriptor.extendType.constructor,
             typeParameters = descriptor.declaredTypeParameters,
-            interfaces = descriptor.superTypes.toList()
+            interfaces = descriptor.superTypes.toList(),
+            memberScope = descriptor.unsubstitutedMemberScope,
+            descriptor = descriptor  // 保存 ExtendDescriptor 引用，便于后续查询
         )
 
-        // 注意：这里简化了注册逻辑，实际应该收集所有扩展后统一 rebuild
-        // 更完整的实现应该在模块解析完成时统一注册
-        extendManager.rebuild(listOf(extensionDef))
+        // 使用 register 方法增量注册扩展，避免覆盖已注册的其他扩展
+        extendManager.register(extensionDef)
+    }
+
+    /**
+     * 执行扩展声明的约束检查
+     *
+     * 包括：
+     * 1. 孤儿规则检查
+     * 2. 扩展冲突检查
+     *
+     * @param cjExtend PSI 扩展声明
+     * @param descriptor 扩展描述符
+     */
+    private fun performExtendChecks(
+        cjExtend: CjExtend,
+        descriptor: ExtendDescriptor
+    ) {
+        val extendChecker = ExtendChecker(trace)
+
+        // 1. 检查孤儿规则
+        extendChecker.checkOrphanRule(cjExtend, descriptor)
+
+        // 2. 检查扩展冲突
+        // 获取当前模块的所有扩展（从 ExtendManager）
+        val extendManager = descriptor.module.getCapability(ExtendManager.CAPABILITY)
+        if (extendManager != null) {
+            val allExtends = getAllExtendsInModule(descriptor.module)
+            extendChecker.checkExtendConflicts(cjExtend, descriptor, allExtends)
+        }
+    }
+
+    /**
+     * 获取模块中的所有扩展描述符
+     *
+     * 从 ExtendManager 获取该模块已注册的所有扩展定义，并提取其中的 ExtendDescriptor。
+     *
+     * 注意：此方法只能获取到当前已解析并注册的扩展。如果还有扩展未解析，则无法检测到与它们的冲突。
+     * 这是延迟解析的固有限制。
+     *
+     * @param module 模块描述符
+     * @return 模块中已解析的所有扩展描述符
+     */
+    private fun getAllExtendsInModule(module: ModuleDescriptor): List<ExtendDescriptor> {
+        val extendManager = module.getCapability(ExtendManager.CAPABILITY) ?: return emptyList()
+
+        // 从 ExtendManager 获取所有扩展定义
+        val allExtensionDefs = extendManager.getAllExtensions()
+
+        // 从 ExtensionDef 中提取 ExtendDescriptor
+        return allExtensionDefs.mapNotNull { extensionDef ->
+            // descriptor 字段存储的是 ExtendDescriptor，但声明为 Any 以避免模块循环依赖
+            extensionDef.descriptor as? ExtendDescriptor
+        }
     }
 }

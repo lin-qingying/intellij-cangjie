@@ -16,29 +16,16 @@
 
 package org.cangnova.cangjie.analysis
 
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.util.text.SemVer
 
 import org.cangnova.cangjie.CangJieTestBase
-import org.cangnova.cangjie.config.LanguageVersionSettingsImpl
-import org.cangnova.cangjie.diagnostics.Diagnostic
-import org.cangnova.cangjie.moduleinfo.IdeaModuleInfo
-import org.cangnova.cangjie.moduleinfo.ModuleOrigin
-import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjPsiFactory
-import org.cangnova.cangjie.resolve.AnalysisResult
 import org.cangnova.cangjie.resolve.CangJieResolverForModuleFactory.Companion.analyzeFiles
-import org.cangnova.cangjie.resolve.CompilerEnvironment
-import org.cangnova.cangjie.resolve.PlatformDependentAnalyzerServices
-import org.cangnova.cangjie.resolve.PlatformDependentAnalyzerServicesImpl
 import org.cangnova.cangjie.resolve.binding.BindingContext
-import org.cangnova.cangjie.resolve.caches.CangJieCacheService
-import org.cangnova.cangjie.resolve.caches.analyzeWithAllCompilerChecks
 import org.cangnova.cangjie.toolchain.CangJieSdkVersion
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.api.CjSdk
@@ -159,9 +146,9 @@ abstract class CangJieAnalysisTestBase : CangJieTestBase() {
      * @param file 要分析的文件
      * @param action 在分析上下文中执行的操作
      */
-    protected fun <R> analyzeForTest(file: CjFile, action: AnalysisContext.() -> R): R {
+    protected fun <R> analyzeForTest(vararg files: CjFile, action: AnalysisContext.() -> R): R {
         val analysisResult = analyzeFiles(
-            files = listOf(file),
+            files = files.toList(),
             moduleName = org.cangnova.cangjie.name.Name.special("<test>"),
             dependOnBuiltIns = true,
             languageVersionSettings = org.cangnova.cangjie.config.LanguageVersionSettingsImpl.DEFAULT,
@@ -174,7 +161,7 @@ abstract class CangJieAnalysisTestBase : CangJieTestBase() {
         val context = AnalysisContext(
             bindingContext = analysisResult.bindingContext,
             moduleDescriptor = analysisResult.moduleDescriptor,
-            file = file
+            files = files.toList()
         )
 
         return context.action()
@@ -221,12 +208,12 @@ abstract class CangJieAnalysisTestBase : CangJieTestBase() {
      *
      * @property bindingContext 绑定上下文，包含符号解析、类型推导等结果
      * @property moduleDescriptor 模块描述符，用于访问内置类型等
-     * @property file 正在分析的文件
+     * @property files 正在分析的文件
      */
     data class AnalysisContext(
         val bindingContext: BindingContext,
         val moduleDescriptor: org.cangnova.cangjie.descriptors.ModuleDescriptor,
-        val file: CjFile
+        val files: List<CjFile>
     ) {
         /**
          * 获取 resolutionFacade 的替代对象

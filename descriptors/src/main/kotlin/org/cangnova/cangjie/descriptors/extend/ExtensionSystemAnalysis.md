@@ -20,13 +20,29 @@
 - `name: String?` - 扩展名称（基于被扩展类型）
 
 **扩展标识生成**：
+
+遵循编译器的 name mangling 策略 (`ASTMangler.cpp::MangleExtendDecl`)，格式：
+```
+packageName:ExtendedType<:Interface1&Interface2&...
+```
+
+关键点：
+- 使用包名前缀区分不同包中的同名扩展
+- 使用类型的规范化文本表示（完整类型，包含泛型参数）
+- 接口列表按字典序排序，用 `&` 连接，确保一致性
+- **不包含**源码位置信息（textOffset、textRange、text），避免格式化导致 ID 变化
+
+实现：
 ```kotlin
 fun getExtendId(): String {
-    // 通过组合以下信息生成唯一ID：
-    // - 被扩展类型名称
-    // - 实现的接口列表
-    // - 包名（fqName）
-    // - 源码位置（textOffset, textRange, text）
+    // packageName:ExtendedType<:Interface1&Interface2&...
+    val parts = mutableListOf<String>()
+    parts.add(fqName?.asString() ?: "")
+    parts.add(":")
+    parts.add(receiverTypeReceiver?.text ?: "Unknown")
+    parts.add("<:")
+    parts.add(getSortedSupernames())  // 排序后的接口列表
+    return parts.joinToString("")
 }
 ```
 

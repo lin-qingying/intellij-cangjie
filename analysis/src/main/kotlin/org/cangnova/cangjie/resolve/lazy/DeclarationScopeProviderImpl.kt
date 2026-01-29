@@ -58,6 +58,13 @@ open class DeclarationScopeProviderImpl(
         }
 
         if (parentDeclaration is CjTypeStatement) {
+            // 特殊处理 CjExtend
+            if (parentDeclaration is CjExtend) {
+                // 扩展声明的成员解析作用域直接使用文件作用域
+                // 因为扩展不创建新的嵌套作用域
+                return fileScopeProvider.getFileResolutionScope(elementOfDeclaration.containingFile as CjFile)
+            }
+
             val parentClassDescriptor = lazyDeclarationResolver.getClassDescriptor(
                 parentDeclaration,
                 NoLookupLocation.MATCH_GET_DECLARATION_SCOPE

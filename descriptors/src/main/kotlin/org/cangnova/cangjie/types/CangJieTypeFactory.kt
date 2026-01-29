@@ -35,6 +35,8 @@ import org.cangnova.cangjie.resolve.constants.FloatLiteralTypeConstructor
 import org.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import org.cangnova.cangjie.resolve.getCangJieTypeRefiner
 import org.cangnova.cangjie.resolve.module
+import org.cangnova.cangjie.resolve.DescriptorUtils
+import org.cangnova.cangjie.resolve.scopes.ExtendAwareMemberScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.checker.TypeVariableConstructor
@@ -340,14 +342,27 @@ object CangJieTypeFactory {
 
         memberScope: MemberScope,
         refinedTypeFactory: RefinedTypeFactory
-    ): SimpleType =
-        SimpleTypeImpl(constructor, arguments,  memberScope, refinedTypeFactory)
+    ): SimpleType {
+        // 使用 ExtendAwareMemberScope 包装，以支持 extend 声明添加的成员
+        val extendAwareScope = constructor.declarationDescriptor?.let { descriptor ->
+            DescriptorUtils.getContainingModuleOrNull(descriptor)?.let { module ->
+                ExtendAwareMemberScope.createIfNeeded(
+                    memberScope,
+                    constructor,
+                    arguments.map { it.type },
+                    module
+                )
+            }
+        } ?: memberScope
+
+        return SimpleTypeImpl(constructor, arguments, extendAwareScope, refinedTypeFactory)
             .let {
                 if (attributes.isEmpty())
                     it
                 else
                     SimpleTypeWithAttributes(it, attributes)
             }
+    }
 
 
     fun simpleTypeWithNonTrivialMemberScope(
@@ -356,8 +371,20 @@ object CangJieTypeFactory {
         arguments: List<TypeArgument>,
 
         memberScope: MemberScope
-    ): SimpleType =
-        SimpleTypeImpl(constructor, arguments,   memberScope) { cangjieTypeRefiner ->
+    ): SimpleType {
+        // 使用 ExtendAwareMemberScope 包装，以支持 extend 声明添加的成员
+        val extendAwareScope = constructor.declarationDescriptor?.let { descriptor ->
+            DescriptorUtils.getContainingModuleOrNull(descriptor)?.let { module ->
+                ExtendAwareMemberScope.createIfNeeded(
+                    memberScope,
+                    constructor,
+                    arguments.map { it.type },
+                    module
+                )
+            }
+        } ?: memberScope
+
+        return SimpleTypeImpl(constructor, arguments, extendAwareScope) { cangjieTypeRefiner ->
             val expandedTypeOrRefinedConstructor =
                 refineConstructor(constructor, cangjieTypeRefiner, arguments) ?: return@SimpleTypeImpl null
             expandedTypeOrRefinedConstructor.expandedType?.let { return@SimpleTypeImpl it }
@@ -375,6 +402,7 @@ object CangJieTypeFactory {
             else
                 SimpleTypeWithAttributes(it, attributes)
         }
+    }
 
     @JvmStatic
 
@@ -383,8 +411,20 @@ object CangJieTypeFactory {
         constructor: EnumTypeConstructor,
         arguments: List<TypeArgument>,
         memberScope: MemberScope
-    ): SimpleType =
-        EnumType(constructor, arguments, memberScope) { cangjieTypeRefiner ->
+    ): SimpleType {
+        // 使用 ExtendAwareMemberScope 包装，以支持 extend 声明添加的成员
+        val extendAwareScope = constructor.declarationDescriptor?.let { descriptor ->
+            DescriptorUtils.getContainingModuleOrNull(descriptor)?.let { module ->
+                ExtendAwareMemberScope.createIfNeeded(
+                    memberScope,
+                    constructor,
+                    arguments.map { it.type },
+                    module
+                )
+            }
+        } ?: memberScope
+
+        return EnumType(constructor, arguments, extendAwareScope) { cangjieTypeRefiner ->
             val expandedTypeOrRefinedConstructor =
                 refineConstructor(constructor, cangjieTypeRefiner, arguments) ?: return@EnumType null
             expandedTypeOrRefinedConstructor.expandedType?.let { return@EnumType it }
@@ -401,6 +441,7 @@ object CangJieTypeFactory {
             else
                 SimpleTypeWithAttributes(it, attributes)
         }
+    }
 }
 typealias RefinedTypeFactory = (CangJieTypeRefiner) -> SimpleType?
 

@@ -32,7 +32,9 @@ import org.cangnova.cangjie.diagnostics.infos.errors.CONFLICTING_OVERLOADS
 import org.cangnova.cangjie.diagnostics.infos.errors.CONFLICTING_STATIC
 import org.cangnova.cangjie.diagnostics.infos.warnings.CONFLICTING_INHERITED_MEMBERS_WARNING
 import org.cangnova.cangjie.diagnostics.reportOnDeclarationOrFail
+import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
+import org.cangnova.cangjie.incremental.record
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.psi.CjTypeStatement
@@ -70,13 +72,16 @@ class LazyExtendMemberScope(
     /**
      * 获取初始化器解析作用域
      *
-     * 扩展不支持初始化器，返回 TODO
+     * 扩展没有构造器和类级别的初始化器作用域，
+     * 但扩展内可以声明带初始值的属性/变量，因此复用声明解析作用域。
      */
-    override fun getScopeForInitializerResolution(declaration: CjDeclaration): LexicalScope {
-        // 扩展不支持初始化器，如果被调用则抛出异常
-        TODO("Extensions do not support initializers")
-    }
+    override fun getScopeForInitializerResolution(declaration: CjDeclaration): LexicalScope =
+        getScopeForMemberDeclarationResolution(declaration)
 
+    override fun recordLookup(name: Name, location: LookupLocation) {
+        c.lookupTracker.record(location, thisExtend, name)
+
+    }
     /**
      * 获取非声明的函数
      *
@@ -149,9 +154,8 @@ class LazyExtendMemberScope(
         }
     }
 
-    override fun getScopeForMemberDeclarationResolution(declaration: CjDeclaration): LexicalScope {
-        TODO("Not yet implemented")
-    }
+    override fun getScopeForMemberDeclarationResolution(declaration: CjDeclaration): LexicalScope =
+        c.declarationScopeProvider.getResolutionScopeForDeclaration(declaration)
 
     /**
      * 获取非声明的宏

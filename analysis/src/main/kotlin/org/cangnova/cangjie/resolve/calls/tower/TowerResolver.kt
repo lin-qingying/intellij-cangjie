@@ -30,10 +30,12 @@ import org.cangnova.cangjie.descriptors.FunctionDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorNameConventions
+import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.inference.model.LowerPriorityToPreserveCompatibility
 import org.cangnova.cangjie.resolve.calls.model.constraintSystemError
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
+import org.cangnova.cangjie.resolve.extend.ExtendManager
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitClassReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
@@ -541,7 +543,7 @@ class TowerResolver {
      */
     class SuccessfulResultCollector<C : Candidate> : ResultCollector<C>() {
         // 候选项组列表
-        private var candidateGroups = arrayListOf<Collection<C>>()
+        private val candidateGroups = arrayListOf<Collection<C>>()
 
         // 是否已找到成功的候选项
         private var isSuccessful = false
@@ -1150,6 +1152,9 @@ internal class MemberScopeTowerLevel(
             createCandidateDescriptor(it, dispatchReceiver)
         }
 
+        // 从 extend 声明中收集成员
+        collectExtendMembers(receiverValue.type, getMembers, result)
+
         // 处理不稳定的智能转换
         val unstableError = if (dispatchReceiver.isStable) null else UnstableSmartCastDiagnostic
         val unstableCandidates = if (unstableError != null) ArrayList<CandidateWithBoundDispatchReceiver>(0) else null
@@ -1163,6 +1168,8 @@ internal class MemberScopeTowerLevel(
                     unstableError, dispatchReceiverSmartCastType = possibleType
                 )
             }
+            // 也从智能转换类型的 extend 声明中收集成员
+            collectExtendMembers(possibleType, getMembers, unstableCandidates ?: result)
         }
 
         // 如果存在智能转换类型
@@ -1194,6 +1201,47 @@ internal class MemberScopeTowerLevel(
         }
 
         return result
+    }
+
+    /**
+     * 从 extend 声明中收集成员
+     *
+     * 查找针对指定类型的 extend 声明，并从这些声明的成员作用域中收集成员。
+     * 这使得通过 extend 声明添加到类型的方法和属性可以在成员解析中被发现。
+     *
+     * @param type 目标类型
+     * @param getMembers 获取成员的函数
+     * @param result 结果集合
+     */
+    private fun collectExtendMembers(
+        type: CangJieType,
+        getMembers: ResolutionScope.(CangJieType?) -> Collection<CallableDescriptor>,
+        result: MutableList<CandidateWithBoundDispatchReceiver>
+    ) {
+        // 获取类型构造器
+        val typeConstructor = type.constructor
+
+        // 从 scopeTower 的 lexicalScope 获取 ownerDescriptor，然后获取模块
+        val ownerDescriptor = scopeTower.lexicalScope.ownerDescriptor
+        val module = DescriptorUtils.getContainingModuleOrNull(ownerDescriptor) ?: return
+
+        // 从模块获取 ExtendManager
+        val extendManager = module.getCapability(ExtendManager.CAPABILITY) ?: return
+
+        // 获取针对该类型的所有 extend 定义
+        val extensionDefs = extendManager.getExtensionsForType(typeConstructor)
+        if (extensionDefs.isEmpty()) return
+
+        // 从每个 extend 声明的成员作用域收集成员
+        for (extensionDef in extensionDefs) {
+            // 获取 extend 声明的成员作用域
+            val memberScope = extensionDef.memberScope ?: continue
+
+            // 从成员作用域获取成员并创建候选项描述符
+            memberScope.getMembers(type).mapTo(result) {
+                createCandidateDescriptor(it, dispatchReceiver)
+            }
+        }
     }
 
     /**

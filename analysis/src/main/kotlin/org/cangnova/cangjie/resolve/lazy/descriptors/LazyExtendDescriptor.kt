@@ -31,7 +31,6 @@ import org.cangnova.cangjie.resolve.lazy.LazyClassContext
 import org.cangnova.cangjie.resolve.lazy.LazyEntity
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.source.toSourceElement
-import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.*
 
 /**
@@ -46,6 +45,8 @@ import org.cangnova.cangjie.types.*
  * }
  * ```
  *
+ * 扩展 ID 的生成由父类 [AbstractExtendDescriptor] 实现，遵循编译器的 name mangling 策略。
+ *
  * @param c 延迟类上下文，提供解析所需的各种服务
  * @param containingDeclaration 包含该扩展的声明描述符（通常是包描述符）
  * @param cjExtend 扩展的 PSI 元素
@@ -55,11 +56,6 @@ class LazyExtendDescriptor(
     override val containingDeclaration: DeclarationDescriptor,
     private val cjExtend: CjExtend
 ) : AbstractExtendDescriptor(c.storageManager), LazyEntity {
-
-    /**
-     * 扩展的唯一标识符
-     */
-    override val extendId: String = cjExtend.getExtendId()
 
     /**
      * 声明提供者，用于延迟解析扩展成员
@@ -142,7 +138,7 @@ class LazyExtendDescriptor(
      * 源码位置信息
      */
     override val source: SourceElement
-        get() =cjExtend.toSourceElement()
+        get() = cjExtend.toSourceElement()
 
     /**
      * 强制解析所有延迟计算的内容

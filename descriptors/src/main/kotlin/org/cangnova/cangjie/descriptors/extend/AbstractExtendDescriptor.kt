@@ -31,9 +31,21 @@ import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.storage.NotNullLazyValue
 import org.cangnova.cangjie.types.*
 
+/**
+ * 扩展描述符的抽象基类
+ *
+ * 提供扩展描述符的通用实现，包括：
+ * - 扩展 ID 的生成（遵循编译器的 name mangling 策略）
+ * - 成员作用域的类型替换
+ * - this 接收者参数的创建
+ *
+ * 扩展 ID 格式（对应编译器 ASTMangler.cpp::MangleExtendDecl）：
+ * ```
+ * packageName:MangledExtendedType<:MangledInterface1&MangledInterface2&...[@GMangledConstraints]
+ * ```
+ */
 abstract class AbstractExtendDescriptor(
-
-    private val storageManager: StorageManager,
+    protected val storageManager: StorageManager,
 ) : ExtendDescriptor {
 
     private val _thisAsReceiverParameter: NotNullLazyValue<ReceiverParameterDescriptor> =
@@ -43,6 +55,193 @@ abstract class AbstractExtendDescriptor(
 
     override val thisAsReceiverParameter: ReceiverParameterDescriptor
         get() = _thisAsReceiverParameter.invoke()
+
+    // ==================== Extend ID 生成 ====================
+
+    /**
+     * 扩展的唯一标识符（延迟计算）
+     *
+     * 遵循编译器的 name mangling 策略（ASTMangler.cpp::MangleExtendDecl），格式：
+     * ```
+     * packageName:MangledExtendedType<:MangledInterface1&MangledInterface2&...[@GMangledConstraints]
+     * ```
+     *
+     * 在 Descriptor 层实现（而非 PSI 层）的优势：
+     * 1. 使用规范化的类型表示（FQN + 类型参数）而非文本
+     * 2. 正确处理导入别名（Comparable vs Cmp）
+     * 3. 包含泛型约束的 mangled 形式
+     * 4. 排序确保一致性
+     */
+    private val _extendId: NotNullLazyValue<String> = storageManager.createLazyValue {
+        buildExtendId()
+    }
+
+    override val extendId: String
+        get() = _extendId.invoke()
+
+    /**
+     * 构建扩展的唯一标识符
+     *
+     * 对应编译器实现: ASTMangler.cpp::MangleExtendDecl
+     *
+     * 格式: `packageName:MangledExtendedType<:MangledInterface1&MangledInterface2&...[@GMangledConstraints]`
+     */
+    protected open fun buildExtendId(): String {
+        val parts = mutableListOf<String>()
+
+        // 1. 包名前缀
+        val packageFqName = (containingDeclaration as? PackageFragmentDescriptor)?.fqName?.asString() ?: ""
+        parts.add(packageFqName)
+        parts.add(":")
+
+        // 2. 被扩展类型的 mangled 形式
+        parts.add(mangleType(extendType))
+
+        // 3. 分隔符（对应编译器的 MANGLE_LT_COLON_PREFIX）
+        parts.add("<:")
+
+        // 4. 排序的接口列表（用 & 连接）
+        val mangledInterfaces = superTypes
+            .map { mangleType(it) }
+            .sorted()  // 按 mangled 字符串排序，确保一致性
+        parts.add(mangledInterfaces.joinToString("&"))
+
+        // 5. 泛型约束（如果有）
+        val constraintsMangled = mangleGenericConstraints()
+        if (constraintsMangled.isNotEmpty()) {
+            parts.add(constraintsMangled)
+        }
+
+        return parts.joinToString("")
+    }
+
+    /**
+     * Mangle 类型
+     *
+     * 将类型转换为规范化的字符串表示，格式：
+     * - 简单类型: `packageName.TypeName`
+     * - 泛型类型: `packageName.TypeName<Arg1,Arg2>`
+     * - 类型参数: `TypeParam[index]`
+     *
+     * 示例：
+     * - `std.collection.Array<Int>` → `std.collection.Array<std.builtin.Int>`
+     * - `std.ops.Comparable<T>` → `std.ops.Comparable<TypeParam0>`
+     *
+     * @param type 要 mangle 的类型
+     * @return mangled 字符串
+     */
+    protected fun mangleType(type: CangJieType): String {
+        return when (type) {
+            is SimpleType -> {
+                val constructor = type.constructor
+                val declarationDescriptor = constructor.declarationDescriptor
+
+                when (declarationDescriptor) {
+                    // 类型参数：使用索引表示
+                    is TypeParameterDescriptor -> {
+                        val index = declaredTypeParameters.indexOf(declarationDescriptor)
+                        if (index >= 0) {
+                            "TypeParam$index"
+                        } else {
+                            // 外层类型参数，使用名称
+                            "TypeParam[${declarationDescriptor.name}]"
+                        }
+                    }
+
+                    // 类、接口、结构体等：使用 FQN
+                    is ClassDescriptor -> {
+                        val fqName = declarationDescriptor.fqNameUnsafe.asString()
+                        if (type.arguments.isEmpty()) {
+                            fqName
+                        } else {
+                            // 泛型类型：递归 mangle 类型参数
+                            val args = type.arguments.joinToString(",") { arg ->
+                                when (arg) {
+                                    is TypeArgumentImpl -> mangleType(arg.type)
+                                    else -> arg.toString()
+                                }
+                            }
+                            "$fqName<$args>"
+                        }
+                    }
+
+                    // 类型别名：解析后的实际类型
+                    is TypeAliasDescriptor -> {
+                        val expandedType = declarationDescriptor.expandedType
+                        mangleType(expandedType)
+                    }
+
+                    else -> {
+                        // 回退：使用完整字符串表示
+                        type.toString()
+                    }
+                }
+            }
+
+            // 其他类型（如 FlexibleType）：使用字符串表示
+            else -> type.toString()
+        }
+    }
+
+    /**
+     * Mangle 泛型约束
+     *
+     * 对应编译器实现: ASTMangler.cpp::MangleGenericConstraints
+     *
+     * 格式: `@G<TypeParam>:<Bound1>:<Bound2>...`
+     *
+     * 示例：
+     * ```
+     * where T <: Comparable<T> & Hashable
+     * →  @GTypeParam0:std.ops.Comparable<TypeParam0>:std.ops.Hashable
+     * ```
+     */
+    protected fun mangleGenericConstraints(): String {
+        if (declaredTypeParameters.isEmpty()) {
+            return ""
+        }
+
+        val builder = StringBuilder()
+
+        // 收集所有约束并排序
+        data class Constraint(
+            val param: TypeParameterDescriptor,
+            val bound: CangJieType,
+            val paramMangled: String,
+            val boundMangled: String
+        )
+
+        val constraints = declaredTypeParameters.flatMap { param ->
+            param.upperBounds.map { bound ->
+                Constraint(
+                    param = param,
+                    bound = bound,
+                    paramMangled = mangleType(param.defaultType),
+                    boundMangled = mangleType(bound)
+                )
+            }
+        }.sortedWith(compareBy({ it.paramMangled }, { it.boundMangled }))
+
+        // 按类型参数分组
+        val groupedByParam = constraints.groupBy { it.param }
+
+        for ((param, paramConstraints) in groupedByParam) {
+            builder.append("@G")  // MANGLE_GEXTEND_PREFIX
+            builder.append(mangleType(param.defaultType))
+
+            // 排序 upper bounds
+            val sortedBounds = paramConstraints
+                .map { it.boundMangled }
+                .sorted()
+
+            for (bound in sortedBounds) {
+                builder.append(":")
+                builder.append(bound)
+            }
+        }
+
+        return builder.toString()
+    }
 
     override fun <R, D> accept(
         visitor: DeclarationDescriptorVisitor<R, D>,
