@@ -26,6 +26,8 @@ import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjPsiFactory
 import org.cangnova.cangjie.resolve.CangJieResolverForModuleFactory.Companion.analyzeFiles
 import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.extend.ExtendManager
+import org.cangnova.cangjie.resolve.extend.ExtendManagerImpl
 import org.cangnova.cangjie.toolchain.CangJieSdkVersion
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.api.CjSdk
@@ -153,7 +155,9 @@ abstract class CangJieAnalysisTestBase : CangJieTestBase() {
             dependOnBuiltIns = true,
             languageVersionSettings = org.cangnova.cangjie.config.LanguageVersionSettingsImpl.DEFAULT,
             targetEnvironment = org.cangnova.cangjie.resolve.CompilerEnvironment,
-            capabilities = emptyMap(),
+            capabilities = mapOf(
+                ExtendManager.CAPABILITY to ExtendManagerImpl()
+            ),
             explicitProjectContext = null
         )
         analysisResult.throwIfError()

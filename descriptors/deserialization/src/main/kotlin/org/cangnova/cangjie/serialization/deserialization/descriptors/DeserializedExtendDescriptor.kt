@@ -245,4 +245,9 @@ class DeserializedExtendDescriptor(
 
     override val containingDeclaration = outerContext.containingDeclaration
 
+    override val declaredCallableMembers: Collection<CallableMemberDescriptor>
+        get() = unsubstitutedMemberScope.getContributedDescriptors()
+            .filterIsInstance<CallableMemberDescriptor>()
+            .filter { it.kind == CallableMemberDescriptor.Kind.DECLARATION }
+
 }

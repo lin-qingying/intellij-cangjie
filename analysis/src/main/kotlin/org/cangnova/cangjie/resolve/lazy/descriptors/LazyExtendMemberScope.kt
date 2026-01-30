@@ -44,7 +44,9 @@ import org.cangnova.cangjie.resolve.OverridingStrategy
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.lazy.LazyClassContext
 import org.cangnova.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
+import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
+import org.cangnova.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import org.cangnova.cangjie.types.checker.DefaultCangJieTypeChecker
 
 import org.cangnova.cangjie.utils.reportOnDeclarationAs
@@ -82,6 +84,62 @@ class LazyExtendMemberScope(
         c.lookupTracker.record(location, thisExtend, name)
 
     }
+
+    /**
+     * 所有描述符的延迟缓存（包括声明的和继承的 fake overrides）
+     */
+    private val allDescriptors = storageManager.createLazyValue {
+        doDescriptors(ALL_NAME_FILTER)
+    }
+
+    /**
+     * 获取贡献的描述符（包括声明的和从接口继承的 fake overrides）
+     */
+    override fun getContributedDescriptors(
+        kindFilter: DescriptorKindFilter,
+        nameFilter: (Name) -> Boolean
+    ): Collection<DeclarationDescriptor> {
+        return if (nameFilter == ALL_NAME_FILTER || allDescriptors.isComputed() || allDescriptors.isComputing()) {
+            allDescriptors()
+        } else {
+            storageManager.compute {
+                doDescriptors(nameFilter)
+            }
+        }
+    }
+
+    /**
+     * 计算所有描述符（声明的和继承的）
+     */
+    private fun doDescriptors(nameFilter: (Name) -> Boolean): List<DeclarationDescriptor> {
+        val result = computeDescriptorsFromDeclaredElements(
+            DescriptorKindFilter.ALL,
+            nameFilter,
+            NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS
+        )
+        computeExtraDescriptors(result, NoLookupLocation.FOR_ALREADY_TRACKED)
+        return result.toList()
+    }
+
+    /**
+     * 计算额外的描述符（从接口继承的 fake overrides）
+     */
+    private fun computeExtraDescriptors(
+        result: MutableCollection<DeclarationDescriptor>,
+        location: LookupLocation
+    ) {
+        for (supertype in thisExtend.superTypes) {
+            for (descriptor in supertype.memberScope.getContributedDescriptors()) {
+                if (descriptor is FunctionDescriptor) {
+                    result.addAll(getContributedFunctions(descriptor.name, location))
+                } else if (descriptor is PropertyDescriptor) {
+                    result.addAll(getContributedPropertys(descriptor.name, location))
+                }
+                // Nothing else is inherited
+            }
+        }
+    }
+
     /**
      * 获取非声明的函数
      *

@@ -89,8 +89,8 @@ abstract class AbstractExtendDescriptor(
     protected open fun buildExtendId(): String {
         val parts = mutableListOf<String>()
 
-        // 1. 包名前缀
-        val packageFqName = (containingDeclaration as? PackageFragmentDescriptor)?.fqName?.asString() ?: ""
+        // 1. 包名前缀（支持 PackageFragmentDescriptor 和 PackageViewDescriptor）
+        val packageFqName = (containingDeclaration as? PackageData)?.fqName?.asString() ?: ""
         parts.add(packageFqName)
         parts.add(":")
 
@@ -311,6 +311,8 @@ class ExtendDescriptorImpl(
         get() = TODO("Not yet implemented")
     override val modality: Modality
         get() = TODO("Not yet implemented")
+    override val declaredCallableMembers: Collection<CallableMemberDescriptor>
+        get() = emptyList()  // ExtendDescriptorImpl 主要用于测试，返回空列表
 
 
 

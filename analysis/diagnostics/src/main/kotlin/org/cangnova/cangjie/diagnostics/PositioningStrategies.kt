@@ -72,10 +72,12 @@ object PositioningStrategies {
                 element !is CjSecondaryConstructor &&
                 element !is CjFunction
             ) {
+                if(element is CjExtend) return true
                 if(element is CjPatternVariable) return true
                 if (element.nameIdentifier == null) {
                     return false
                 }
+
             }
             return super.isValid(element)
         }
@@ -592,6 +594,14 @@ object PositioningStrategies {
             val nameIdentifier = element.nameIdentifier
             if (nameIdentifier != null) {
                 if (element is CjTypeStatement) {
+                    // 对于 extend 声明，标记 "extend Type" 部分
+                    if (element is CjExtend) {
+                        val extendKeyword = element.node.findChildByType(CjTokens.EXTEND_KEYWORD)?.psi
+                        if (extendKeyword != null) {
+                            return markRange(extendKeyword, nameIdentifier)
+                        }
+                    }
+
                     val startElement =
                         element.modifierList?.getModifier(CjTokens.ENUM_KEYWORD)
                             ?: element.node.findChildByType(

@@ -29,6 +29,10 @@ import org.cangnova.cangjie.descriptors.extend.AbstractExtendDescriptor
 import org.cangnova.cangjie.psi.CjExtend
 import org.cangnova.cangjie.resolve.lazy.LazyClassContext
 import org.cangnova.cangjie.resolve.lazy.LazyEntity
+import org.cangnova.cangjie.resolve.scopes.LexicalScope
+import org.cangnova.cangjie.resolve.scopes.LexicalScopeImpl
+import org.cangnova.cangjie.resolve.scopes.LexicalScopeKind
+import org.cangnova.cangjie.resolve.scopes.LocalRedeclarationChecker
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.source.toSourceElement
 import org.cangnova.cangjie.types.*
@@ -55,7 +59,7 @@ class LazyExtendDescriptor(
     private val c: LazyClassContext,
     override val containingDeclaration: DeclarationDescriptor,
     private val cjExtend: CjExtend
-) : AbstractExtendDescriptor(c.storageManager), LazyEntity {
+) : AbstractExtendDescriptor(c.storageManager), LazyEntity, HasResolutionScopes {
 
     /**
      * 声明提供者，用于延迟解析扩展成员
@@ -133,6 +137,42 @@ class LazyExtendDescriptor(
 
     override val unsubstitutedMemberScope: MemberScope
         get() = _unsubstitutedMemberScope()
+
+    /**
+     * 声明的可调用成员（不含 fake overrides）
+     *
+     * 仅返回在扩展体内直接声明的函数和属性，
+     * 用于重写检查。
+     */
+    override val declaredCallableMembers: Collection<CallableMemberDescriptor>
+        get() = unsubstitutedMemberScope.getContributedDescriptors()
+            .filterIsInstance<CallableMemberDescriptor>()
+            .filter { it.kind == CallableMemberDescriptor.Kind.DECLARATION }
+
+    /**
+     * 类头解析作用域
+     *
+     * 用于解析扩展的类型参数约束。包含扩展声明的类型参数。
+     */
+    override val scopeForClassHeaderResolution: LexicalScope
+        get() = _scopeForClassHeaderResolution()
+
+    private val _scopeForClassHeaderResolution = c.storageManager.createLazyValue {
+        val outerScope = c.declarationScopeProvider.getResolutionScopeForDeclaration(
+            declarationProvider.ownerInfo!!.scopeAnchor
+        )
+
+        LexicalScopeImpl(
+            outerScope,
+            this,
+            false,
+            null,
+            LexicalScopeKind.CLASS_HEADER,
+            LocalRedeclarationChecker.DO_NOTHING
+        ) {
+            declaredTypeParameters.forEach { addClassifierDescriptor(it) }
+        }
+    }
 
     /**
      * 源码位置信息

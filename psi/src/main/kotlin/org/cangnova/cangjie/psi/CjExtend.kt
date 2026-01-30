@@ -27,7 +27,6 @@ import org.cangnova.cangjie.name.*
 
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.psiUtil.getChildrenOfType
-import org.cangnova.cangjie.psi.psiUtil.identifier
 import org.cangnova.cangjie.psi.stubs.CangJieExtendStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
@@ -75,7 +74,12 @@ class CjExtend : CjTypeStatement {
     }
 
     override fun getNameIdentifier(): PsiElement? {
-        return receiverTypeReceiver?.typeElement?.identifier
+        return when (val type = receiverTypeReceiver?.typeElement) {
+            is CjUserType -> type.referenceExpression?.identifier
+            is CjBasicType -> type  // 基本类型本身就是标识符
+            is CjOptionType -> type  // Option 类型本身
+            else -> null
+        }
     }
 
     // 被扩展类型

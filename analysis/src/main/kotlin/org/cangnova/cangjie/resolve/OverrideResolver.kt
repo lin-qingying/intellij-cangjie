@@ -33,6 +33,7 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.CallableMemberDescriptor.Kind.DELEGATION
 import org.cangnova.cangjie.descriptors.CallableMemberDescriptor.Kind.FAKE_OVERRIDE
 import org.cangnova.cangjie.descriptors.DescriptorVisibilityUtils.useSpecialRulesForPrivateSealedConstructors
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.diagnostics.DiagnosticFactory2
 import org.cangnova.cangjie.diagnostics.DiagnosticFactoryWithPsiElement
 import org.cangnova.cangjie.diagnostics.infos.errors.*
@@ -73,6 +74,11 @@ class OverrideResolver(
             index++
             checkOverridesInAClass(value, key)
         }
+
+        // 检查扩展中的重写
+        for ((extend, extendDescriptor) in c.extends) {
+            checkOverridesInAnExtend(extendDescriptor, extend)
+        }
     }
 
     /**
@@ -98,6 +104,53 @@ class OverrideResolver(
         )
         // 报告收集到的错误信息
         inheritedMemberErrors.doReportErrors()
+    }
+
+    /**
+     * 检查扩展中的方法重写问题。
+     *
+     * 此函数用于检测扩展中方法重写的问题，确保扩展正确地实现了接口成员。
+     *
+     * @param extendDescriptor 扩展的描述符
+     * @param extend 扩展的 PSI 元素
+     */
+    private fun checkOverridesInAnExtend(extendDescriptor: ExtendDescriptor, extend: CjExtend) {
+        // 检查扩展中声明的可调用成员的重写一致性
+        for (member in extendDescriptor.declaredCallableMembers) {
+            checkOverrideForMember(member)
+        }
+
+        // 收集继承成员的错误信息
+        val inheritedMemberErrors = CollectErrorInformationForExtendMembersStrategy(extend, extendDescriptor)
+
+        // 检查继承签名（抽象成员未实现等）
+        checkInheritedSignaturesForExtend(extendDescriptor, inheritedMemberErrors, cangjieTypeRefiner)
+
+        // 报告收集到的错误信息
+        inheritedMemberErrors.doReportErrors()
+    }
+
+    /**
+     * 检查扩展的继承签名
+     *
+     * 遍历扩展成员作用域中的所有成员，检查是否有抽象成员未被实现。
+     *
+     * @param extendDescriptor 扩展描述符
+     * @param reportStrategy 错误报告策略
+     * @param cangjieTypeRefiner 类型精化器
+     */
+    private fun checkInheritedSignaturesForExtend(
+        extendDescriptor: ExtendDescriptor,
+        reportStrategy: CheckInheritedSignaturesReportStrategy,
+        cangjieTypeRefiner: CangJieTypeRefiner
+    ) {
+        for (member in DescriptorUtils.getAllDescriptors(extendDescriptor.memberScope)) {
+            if (member is CallableMemberDescriptor) {
+                checkInheritedAndDelegatedSignatures(
+                    member, reportStrategy, null, cangjieTypeRefiner
+                )
+            }
+        }
     }
 
 
@@ -334,6 +387,98 @@ class OverrideResolver(
                 )
             } else if (multipleImplementations.isNotEmpty()) {
                 trace.report(MANY_IMPL_MEMBER_NOT_IMPLEMENTED.on(cclass, cclass, multipleImplementations.first()))
+            }
+        }
+    }
+
+    /**
+     * 扩展成员错误信息收集策略
+     *
+     * 与 CollectErrorInformationForInheritedMembersStrategy 类似，但专门用于扩展。
+     * 扩展不能是抽象的，所以必须实现所有接口成员。
+     */
+    private inner class CollectErrorInformationForExtendMembersStrategy(
+        val extend: CjExtend,
+        val extendDescriptor: ExtendDescriptor
+    ) : CheckInheritedSignaturesReportStrategy {
+
+        private val abstractNoImpl = linkedSetOf<CallableMemberDescriptor>()
+        private val multipleImplementations = linkedSetOf<CallableMemberDescriptor>()
+        private val conflictingInterfaceMembers = linkedSetOf<CallableMemberDescriptor>()
+        private val conflictingReturnTypes = linkedSetOf<CallableMemberDescriptor>()
+
+        private val onceErrorsReported = SmartHashSet<DiagnosticFactoryWithPsiElement<*, *>>()
+
+        override fun abstractMemberNotImplemented(descriptor: CallableMemberDescriptor) {
+            abstractNoImpl.add(descriptor)
+        }
+
+        override fun abstractBaseClassMemberNotImplemented(descriptor: CallableMemberDescriptor) {
+            // 扩展不继承自抽象类，所以此情况不适用
+        }
+
+        override fun multipleImplementationsMemberNotImplemented(descriptor: CallableMemberDescriptor) {
+            multipleImplementations.add(descriptor)
+        }
+
+        override fun conflictingInterfaceMemberNotImplemented(descriptor: CallableMemberDescriptor) {
+            conflictingInterfaceMembers.add(descriptor)
+        }
+
+        override fun typeMismatchOnInheritance(
+            descriptor1: CallableMemberDescriptor, descriptor2: CallableMemberDescriptor
+        ) {
+            conflictingReturnTypes.add(descriptor1)
+            conflictingReturnTypes.add(descriptor2)
+
+            if (descriptor1 is PropertyDescriptor && descriptor2 is PropertyDescriptor) {
+                if (descriptor1.isVar || descriptor2.isVar) {
+                    reportInheritanceConflictIfRequired(VAR_TYPE_MISMATCH_ON_INHERITANCE, descriptor1, descriptor2)
+                } else {
+                    reportInheritanceConflictIfRequired(PROPERTY_TYPE_MISMATCH_ON_INHERITANCE, descriptor1, descriptor2)
+                }
+            } else {
+                reportInheritanceConflictIfRequired(RETURN_TYPE_MISMATCH_ON_INHERITANCE, descriptor1, descriptor2)
+            }
+        }
+
+        override fun abstractInvisibleMember(descriptor: CallableMemberDescriptor) {
+            // 扩展实现的接口成员通常都是公开的，此检查可跳过
+        }
+
+        override fun abstractMemberWithMoreSpecificType(
+            abstractMember: CallableMemberDescriptor, concreteMember: CallableMemberDescriptor
+        ) {
+            typeMismatchOnInheritance(abstractMember, concreteMember)
+        }
+
+        private fun reportInheritanceConflictIfRequired(
+            diagnosticFactory: DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor>,
+            descriptor1: CallableMemberDescriptor,
+            descriptor2: CallableMemberDescriptor
+        ) {
+            if (!onceErrorsReported.contains(diagnosticFactory)) {
+                onceErrorsReported.add(diagnosticFactory)
+                trace.report(diagnosticFactory.on(extend, descriptor1, descriptor2))
+            }
+        }
+
+        fun doReportErrors() {
+            // 扩展不能是抽象的，必须实现所有抽象成员
+            if (abstractNoImpl.isNotEmpty()) {
+                trace.report(ABSTRACT_MEMBER_NOT_IMPLEMENTED.on(extend, extend, abstractNoImpl))
+            }
+
+            conflictingInterfaceMembers.removeAll(conflictingReturnTypes)
+            multipleImplementations.removeAll(conflictingReturnTypes)
+            if (conflictingInterfaceMembers.isNotEmpty()) {
+                trace.report(
+                    MANY_INTERFACES_MEMBER_NOT_IMPLEMENTED.on(
+                        extend, extend, conflictingInterfaceMembers.first()
+                    )
+                )
+            } else if (multipleImplementations.isNotEmpty()) {
+                trace.report(MANY_IMPL_MEMBER_NOT_IMPLEMENTED.on(extend, extend, multipleImplementations.first()))
             }
         }
     }
@@ -1012,16 +1157,26 @@ class OverrideResolver(
 
             if (overriddenDescriptors.isEmpty()) {
                 val containingDeclaration = declared.containingDeclaration
-                val declaringClass = containingDeclaration as? ClassDescriptor
-                    ?: error("Overrides may only be resolved in a class, but $declared comes from $containingDeclaration")
 
-                val invisibleOverriddenDescriptor = findInvisibleOverriddenDescriptor(
-                    declared, declaringClass, cangjieTypeRefiner, languageVersionSettings
-                )
-                if (invisibleOverriddenDescriptor != null) {
-                    reportError.cannotOverrideInvisibleMember(declared, invisibleOverriddenDescriptor)
-                } else {
-                    reportError.nothingToOverride(declared, overrideToken)
+                when (containingDeclaration) {
+                    is ClassAndEnumDescriptor -> {
+                        // 类成员：检查是否有不可见的被覆盖成员
+                        val invisibleOverriddenDescriptor = findInvisibleOverriddenDescriptor(
+                            declared, containingDeclaration, cangjieTypeRefiner, languageVersionSettings
+                        )
+                        if (invisibleOverriddenDescriptor != null) {
+                            reportError.cannotOverrideInvisibleMember(declared, invisibleOverriddenDescriptor)
+                        } else {
+                            reportError.nothingToOverride(declared, overrideToken)
+                        }
+                    }
+                    is ExtendDescriptor -> {
+                        // 扩展成员：接口成员通常是公开的，直接报告没有可覆盖的成员
+                        reportError.nothingToOverride(declared, overrideToken)
+                    }
+                    else -> {
+                        error("Overrides may only be resolved in a class or extend, but $declared comes from $containingDeclaration")
+                    }
                 }
             }
         }
@@ -1119,7 +1274,7 @@ class OverrideResolver(
 
         private fun findInvisibleOverriddenDescriptor(
             declared: CallableMemberDescriptor,
-            declaringClass: ClassDescriptor,
+            declaringClass: ClassAndEnumDescriptor,
             cangjieTypeRefiner: CangJieTypeRefiner,
             languageVersionSettings: LanguageVersionSettings
         ): CallableMemberDescriptor? {

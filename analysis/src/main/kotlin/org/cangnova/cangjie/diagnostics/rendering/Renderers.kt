@@ -202,6 +202,7 @@ object Renderers {
             is CjInterface -> "Interface$name"
             is CjStruct -> "Struct$name"
             is CjEnum -> "Enum$name"
+            is CjExtend -> "Extend $name"
             else -> "Class$name"
         }
     }
