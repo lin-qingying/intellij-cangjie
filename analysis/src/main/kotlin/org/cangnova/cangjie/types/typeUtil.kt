@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.types
 
+import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.annotations.FilteredAnnotations
@@ -90,6 +91,10 @@ private fun TypeArgument.fixTypeProjection(
     return type.replace(newArguments).asTypeArgument()
 }
 
+fun CangJieType.isPrimitiveType(): Boolean {
+    return CangJieBuiltIns.isPrimitiveType(this)
+}
+
 @JvmOverloads
 fun CangJieType.replace(
     newArguments: List<TypeArgument> = arguments,
@@ -108,6 +113,7 @@ fun CangJieType.replace(
             unwrapped.lowerBound.replace(newArguments, newAttributes),
             unwrapped.upperBound.replace(newArgumentsForUpperBound, newAttributes)
         )
+
         is SimpleType -> unwrapped.replace(newArguments, newAttributes)
     }
 }

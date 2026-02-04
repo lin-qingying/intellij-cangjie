@@ -160,6 +160,8 @@ object DescriptorToSourceUtilsIde {
                 // 2. 从反编译代码中查找声明（包括内置库和编译后的库文件）
                 { CjReferenceResolutionHelper.getInstance().findDecompiledDeclaration(project, effectiveReferenced, builtInsSearchScope) }
             )
-        }.filterNotNull() // 过滤掉查找失败（null）的结果
+        }
+            .filterNotNull() // 过滤掉查找失败（null）的结果
+            .filter { it.isValid && it.containingFile != null } // 过滤掉失效的 PSI 元素
     }
 }

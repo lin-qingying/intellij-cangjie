@@ -36,8 +36,10 @@ object DescriptorToSourceUtils {
 
     @JvmStatic
     fun getSourceFromDescriptor(descriptor: DeclarationDescriptor): PsiElement? {
-
-        return (descriptor as? DeclarationDescriptorWithSource)?.source?.getPsi()
+        val psi = (descriptor as? DeclarationDescriptorWithSource)?.source?.getPsi()
+        // 检查 PSI 元素是否仍然有效
+        // PSI 元素可能因为文件被修改/重新加载而失效（containingFile 变为 null）
+        return psi?.takeIf { it.isValid && it.containingFile != null }
     }
 
     // NOTE this is also used by CDoc

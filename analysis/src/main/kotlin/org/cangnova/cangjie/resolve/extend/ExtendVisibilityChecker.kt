@@ -39,6 +39,7 @@ import org.cangnova.cangjie.resolve.fqNameSafe
 import org.cangnova.cangjie.resolve.scopes.HierarchicalScope
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.isPrimitiveType
 
 /**
  * 扩展可见性检查器
@@ -301,6 +302,7 @@ object ExtendVisibilityChecker {
         expectedClassifier: ClassifierDescriptor,
         scope: LexicalScope
     ): Boolean {
+        if(expectedClassifier.defaultType.isPrimitiveType()) return true
         val expectedFqName = expectedClassifier.fqNameSafe
 
         var currentScope: HierarchicalScope? = scope
