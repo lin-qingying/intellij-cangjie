@@ -41,8 +41,6 @@ import org.cangnova.cangjie.psi.CjDeclarationStub
 import org.cangnova.cangjie.psi.CjImportDirective
 
 import org.cangnova.cangjie.psi.CjImportItem
-import org.cangnova.cangjie.psi.CjNamedDeclaration
-import org.cangnova.cangjie.psi.CjPackageDirective
 import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import org.cangnova.cangjie.resolve.DescriptorUtils.getContainingModule
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
@@ -64,7 +62,6 @@ import org.cangnova.cangjie.types.isError
 import org.cangnova.cangjie.utils.DFS
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-import kotlin.io.normalize
 
 /**
  * 描述符工具类

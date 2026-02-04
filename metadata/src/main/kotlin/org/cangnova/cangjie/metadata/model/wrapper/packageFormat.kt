@@ -505,7 +505,7 @@ class ExtendWrapper(
             )
         }
     }
-
+//TODO 这个id可能并非扩展id，需要进一步检查，可能是平台id
     val id = original.exportId!!
 
     override val annotations: List<AnnotationWrapper> = original.annotations.map { AnnotationWrapper(it, declTable, typeTable) }

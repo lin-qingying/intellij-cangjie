@@ -25,11 +25,30 @@
 
 package org.cangnova.cangjie.resolve.extend
 
+import com.intellij.openapi.util.Key
 import org.cangnova.cangjie.descriptors.ModuleCapability
+import org.cangnova.cangjie.descriptors.ProjectDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeConstructor
+
+/**
+ * 扩展发现器接口
+ *
+ * 用于在 ExtendManager 中按需发现和解析扩展声明。
+ * 当 ExtendManager 查询某个类型的扩展时，如果缓存为空，会调用发现器来查找并解析扩展。
+ */
+fun interface ExtensionDiscoverer {
+    /**
+     * 为指定的类型名称发现并解析扩展
+     *
+     * @param typeName 被扩展类型的短名称（如 "Int64"）
+     */
+    fun discoverExtensions(typeName: String)
+}
+private val EXTEND_MANAGER_KEY = Key.create<ExtendManager>("EXTEND_MANAGER")
+
 
 /**
  * 扩展管理器接口
@@ -112,8 +131,31 @@ interface ExtendManager {
      */
     fun getAllExtensions(): Collection<ExtensionDef>
 
-    companion object {
-        val CAPABILITY = ModuleCapability<ExtendManager>("ExtendManager")
-    }
+    /**
+     * 设置扩展发现器
+     *
+     * 发现器会在查询扩展时按需调用，用于延迟解析扩展声明。
+     * 这是为了解决缓存失效后扩展未被重新解析的问题。
+     *
+     * @param discoverer 扩展发现器
+     */
+    fun setDiscoverer(discoverer: ExtensionDiscoverer?)
+
+    /**
+     * 注册待解析的扩展 PSI 元素
+     *
+     * 该方法用于预注册扩展声明的 PSI 元素，而不立即解析。
+     * 当 [getExtensionsForType] 被调用时，如果有待解析的 PSI，会触发延迟解析。
+     *
+     * 这是延迟解析策略的一部分：
+     * - 预加载时只注册 PSI（快速，不消耗资源）
+     * - 使用时才触发完整解析（按需）
+     *
+     * @param typeName 被扩展类型的短名称（如 "Int64"）
+     * @param psi PSI 元素（实际类型为 CjExtend，使用 Any 避免模块依赖）
+     */
+    fun registerPendingPsi(typeName: String, psi: Any)
+
+
 }
 

@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 语言偏好
+
+- 始终使用中文回复用户
+- 代码注释可以使用中文或英文
+- Git commit 信息使用中文
+
 ## ⚠️ 严格禁止的操作
 
 **绝对禁止使用任何 Git 回滚命令:**

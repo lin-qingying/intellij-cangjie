@@ -45,8 +45,10 @@ import org.cangnova.cangjie.lexer.CjToken
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.DescriptorUtils.classCanHaveAbstractFakeOverride
+import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.util.isOrOverridesSynthesized
+import org.cangnova.cangjie.resolve.extend.ExtendVisibilityChecker
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.checker.DefaultCangJieTypeChecker
@@ -120,6 +122,9 @@ class OverrideResolver(
             checkOverrideForMember(member)
         }
 
+        // 检查 extend 成员之间的 shadow 冲突
+        checkExtendMemberShadowing(extendDescriptor, extend)
+
         // 收集继承成员的错误信息
         val inheritedMemberErrors = CollectErrorInformationForExtendMembersStrategy(extend, extendDescriptor)
 
@@ -128,6 +133,123 @@ class OverrideResolver(
 
         // 报告收集到的错误信息
         inheritedMemberErrors.doReportErrors()
+    }
+
+    /**
+     * 检查 extend 成员是否遮蔽了其他 extend 的成员
+     *
+     * 当同一个类型有多个 extend 声明，且它们定义了相同签名的成员时，
+     * 会产生 shadow 错误。这与编译器的 StructInheritanceChecker::CheckExtendMemberValid 实现一致。
+     *
+     * 只有当前 extend 可见的其他 extend 才会参与遮蔽检查，避免误报。
+     *
+     * @param extendDescriptor 当前扩展的描述符
+     * @param extend 扩展的 PSI 元素
+     */
+    private fun checkExtendMemberShadowing(extendDescriptor: ExtendDescriptor, extend: CjExtend) {
+        // 获取被扩展类型的类型构造器
+        val extendedTypeConstructor = extendDescriptor.extendType.constructor
+
+        // 获取 ExtendManager
+        val module = DescriptorUtils.getContainingModuleOrNull(extendDescriptor) ?: return
+        val extendManager = module.projectDescriptor.extendManager
+
+        // 获取针对该类型的所有 extend 定义
+        val allExtensions = extendManager.getExtensionsForType(extendedTypeConstructor)
+
+        // 获取当前 extend 所在文件的词法作用域
+        val currentScope = run {
+            val file = extend.containingCjFile
+            trace.get(BindingContext.LEXICAL_SCOPE, file)
+        } ?: return
+
+        // 收集其他 extend 的所有成员（排除当前 extend，且只收集可见的 extend）
+        val otherExtendMembers = mutableMapOf<String, MutableList<Pair<CallableMemberDescriptor, ExtendDescriptor>>>()
+
+        for (extensionDef in allExtensions) {
+            val otherExtend = extensionDef.descriptor as? ExtendDescriptor ?: continue
+
+            // 跳过当前 extend
+            if (otherExtend.extendId == extendDescriptor.extendId) continue
+
+            // 检查其他 extend 在当前作用域中是否可见
+            if (!ExtendVisibilityChecker.isExtendAccessible(otherExtend, currentScope)) {
+                continue
+            }
+
+            // 收集该 extend 的所有声明成员
+            for (member in otherExtend.declaredCallableMembers) {
+                val name = member.name.asString()
+                otherExtendMembers.getOrPut(name) { mutableListOf() }.add(member to otherExtend)
+            }
+        }
+
+        // 如果没有其他可见的 extend 成员，无需检查
+        if (otherExtendMembers.isEmpty()) return
+
+        // 检查当前 extend 的每个成员是否与其他 extend 的成员冲突
+        for (member in extendDescriptor.declaredCallableMembers) {
+            val name = member.name.asString()
+            val conflictingMembers = otherExtendMembers[name] ?: continue
+
+            // 检查是否有签名匹配的成员
+            for ((otherMember, otherExtend) in conflictingMembers) {
+                if (isSignatureConflicting(member, otherMember)) {
+                    // 找到冲突，报告 shadow 错误
+                    val declaration = DescriptorToSourceUtils.descriptorToDeclaration(member) as? CjDeclaration
+                    if (declaration != null) {
+                        // 获取被扩展类型的描述符
+                        val extendedTypeDescriptor = extendedTypeConstructor.declarationDescriptor
+                        if (extendedTypeDescriptor != null) {
+                            trace.report(
+                                EXTEND_MEMBER_CANNOT_SHADOW.on(
+                                    declaration,
+                                    name,
+                                    extendedTypeDescriptor
+                                )
+                            )
+                        }
+                    }
+                    // 每个成员只报告一次 shadow 错误
+                    break
+                }
+            }
+        }
+    }
+    /**
+     * 检查两个成员的签名是否冲突
+     *
+     * @param member1 第一个成员
+     * @param member2 第二个成员
+     * @return 如果签名冲突返回 true
+     */
+    private fun isSignatureConflicting(
+        member1: CallableMemberDescriptor,
+        member2: CallableMemberDescriptor
+    ): Boolean {
+        // 名称必须相同（调用前已检查）
+
+        // 检查类型：函数 vs 函数，属性 vs 属性
+        if (member1 is FunctionDescriptor && member2 is FunctionDescriptor) {
+            // 检查参数列表是否匹配
+            val params1 = member1.valueParameters
+            val params2 = member2.valueParameters
+            if (params1.size != params2.size) return false
+
+            // 检查每个参数的类型
+            for (i in params1.indices) {
+                val type1 = params1[i].type
+                val type2 = params2[i].type
+                // 使用简单的类型构造器比较
+                if (type1.constructor != type2.constructor) return false
+            }
+            return true
+        } else if (member1 is PropertyDescriptor && member2 is PropertyDescriptor) {
+            // 属性只需要名称相同就冲突
+            return true
+        }
+
+        return false
     }
 
     /**

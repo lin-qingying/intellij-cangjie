@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve
 
+import com.intellij.openapi.diagnostic.Logger
 import jakarta.inject.Inject
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.*
@@ -62,6 +63,10 @@ class ExtendDescriptorResolver(
     private val builtIns: CangJieBuiltIns,
     private val storageManager: StorageManager
 ) {
+    companion object {
+        private val LOG = Logger.getInstance(ExtendDescriptorResolver::class.java)
+    }
+
     @set:Inject
     lateinit var lazyClassContext: LazyClassContext
 
@@ -127,11 +132,27 @@ class ExtendDescriptorResolver(
         descriptor: ExtendDescriptor,
         module: ModuleDescriptor
     ) {
-        val extendManager = module.getCapability(ExtendManager.CAPABILITY) ?: return
+        val extendManager = module.projectDescriptor.extendManager
+
+        val extendedConstructor = descriptor.extendType.constructor
+
+        if (LOG.isDebugEnabled) {
+            LOG.debug(
+                "registerExtendInManager: extendId='${descriptor.extendId}', " +
+                        "extendType=${descriptor.extendType}, " +
+                        "constructor=${extendedConstructor::class.simpleName}@${
+                            System.identityHashCode(
+                                extendedConstructor
+                            )
+                        }, " +
+                        "declarationDescriptor=${extendedConstructor.declarationDescriptor?.name}, " +
+                        "hashCode=${extendedConstructor.hashCode()}"
+            )
+        }
 
         val extensionDef = ExtendManager.ExtensionDef(
             id = descriptor.extendId,
-            extendedConstructor = descriptor.extendType.constructor,
+            extendedConstructor = extendedConstructor,
             typeParameters = descriptor.declaredTypeParameters,
             interfaces = descriptor.superTypes.toList(),
             memberScope = descriptor.unsubstitutedMemberScope,
@@ -163,11 +184,11 @@ class ExtendDescriptorResolver(
 
         // 2. 检查扩展冲突
         // 获取当前模块的所有扩展（从 ExtendManager）
-        val extendManager = descriptor.module.getCapability(ExtendManager.CAPABILITY)
-        if (extendManager != null) {
-            val allExtends = getAllExtendsInModule(descriptor.module)
-            extendChecker.checkExtendConflicts(cjExtend, descriptor, allExtends)
-        }
+        val extendManager = descriptor.module.projectDescriptor.extendManager
+
+        val allExtends = getAllExtendsInModule(descriptor.module)
+        extendChecker.checkExtendConflicts(cjExtend, descriptor, allExtends)
+
     }
 
     /**
@@ -182,7 +203,7 @@ class ExtendDescriptorResolver(
      * @return 模块中已解析的所有扩展描述符
      */
     private fun getAllExtendsInModule(module: ModuleDescriptor): List<ExtendDescriptor> {
-        val extendManager = module.getCapability(ExtendManager.CAPABILITY) ?: return emptyList()
+        val extendManager = module.projectDescriptor.extendManager ?: return emptyList()
 
         // 从 ExtendManager 获取所有扩展定义
         val allExtensionDefs = extendManager.getAllExtensions()

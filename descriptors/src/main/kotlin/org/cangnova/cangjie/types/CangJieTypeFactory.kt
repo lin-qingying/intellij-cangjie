@@ -35,8 +35,6 @@ import org.cangnova.cangjie.resolve.constants.FloatLiteralTypeConstructor
 import org.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import org.cangnova.cangjie.resolve.getCangJieTypeRefiner
 import org.cangnova.cangjie.resolve.module
-import org.cangnova.cangjie.resolve.DescriptorUtils
-import org.cangnova.cangjie.resolve.scopes.ExtendAwareMemberScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.checker.TypeVariableConstructor
@@ -343,19 +341,9 @@ object CangJieTypeFactory {
         memberScope: MemberScope,
         refinedTypeFactory: RefinedTypeFactory
     ): SimpleType {
-        // 使用 ExtendAwareMemberScope 包装，以支持 extend 声明添加的成员
-        val extendAwareScope = constructor.declarationDescriptor?.let { descriptor ->
-            DescriptorUtils.getContainingModuleOrNull(descriptor)?.let { module ->
-                ExtendAwareMemberScope.createIfNeeded(
-                    memberScope,
-                    constructor,
-                    arguments.map { it.type },
-                    module
-                )
-            }
-        } ?: memberScope
-
-        return SimpleTypeImpl(constructor, arguments, extendAwareScope, refinedTypeFactory)
+        // extend 成员不再通过 memberScope 注入，而是在 TowerResolver.collectExtendMembers 中显式收集
+        // 这样可以正确应用可见性检查（需要 LexicalScope，而 descriptors 模块无法访问）
+        return SimpleTypeImpl(constructor, arguments, memberScope, refinedTypeFactory)
             .let {
                 if (attributes.isEmpty())
                     it
@@ -372,19 +360,9 @@ object CangJieTypeFactory {
 
         memberScope: MemberScope
     ): SimpleType {
-        // 使用 ExtendAwareMemberScope 包装，以支持 extend 声明添加的成员
-        val extendAwareScope = constructor.declarationDescriptor?.let { descriptor ->
-            DescriptorUtils.getContainingModuleOrNull(descriptor)?.let { module ->
-                ExtendAwareMemberScope.createIfNeeded(
-                    memberScope,
-                    constructor,
-                    arguments.map { it.type },
-                    module
-                )
-            }
-        } ?: memberScope
-
-        return SimpleTypeImpl(constructor, arguments, extendAwareScope) { cangjieTypeRefiner ->
+        // extend 成员不再通过 memberScope 注入，而是在 TowerResolver.collectExtendMembers 中显式收集
+        // 这样可以正确应用可见性检查（需要 LexicalScope，而 descriptors 模块无法访问）
+        return SimpleTypeImpl(constructor, arguments, memberScope) { cangjieTypeRefiner ->
             val expandedTypeOrRefinedConstructor =
                 refineConstructor(constructor, cangjieTypeRefiner, arguments) ?: return@SimpleTypeImpl null
             expandedTypeOrRefinedConstructor.expandedType?.let { return@SimpleTypeImpl it }
@@ -412,19 +390,9 @@ object CangJieTypeFactory {
         arguments: List<TypeArgument>,
         memberScope: MemberScope
     ): SimpleType {
-        // 使用 ExtendAwareMemberScope 包装，以支持 extend 声明添加的成员
-        val extendAwareScope = constructor.declarationDescriptor?.let { descriptor ->
-            DescriptorUtils.getContainingModuleOrNull(descriptor)?.let { module ->
-                ExtendAwareMemberScope.createIfNeeded(
-                    memberScope,
-                    constructor,
-                    arguments.map { it.type },
-                    module
-                )
-            }
-        } ?: memberScope
-
-        return EnumType(constructor, arguments, extendAwareScope) { cangjieTypeRefiner ->
+        // extend 成员不再通过 memberScope 注入，而是在 TowerResolver.collectExtendMembers 中显式收集
+        // 这样可以正确应用可见性检查（需要 LexicalScope，而 descriptors 模块无法访问）
+        return EnumType(constructor, arguments, memberScope) { cangjieTypeRefiner ->
             val expandedTypeOrRefinedConstructor =
                 refineConstructor(constructor, cangjieTypeRefiner, arguments) ?: return@EnumType null
             expandedTypeOrRefinedConstructor.expandedType?.let { return@EnumType it }

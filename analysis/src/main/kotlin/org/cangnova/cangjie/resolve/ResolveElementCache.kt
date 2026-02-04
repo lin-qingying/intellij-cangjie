@@ -66,6 +66,7 @@ import org.cangnova.cangjie.resolve.controlFlow.ControlFlowInformationProviderIm
 import org.cangnova.cangjie.resolve.lazy.*
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode.*
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyClassDescriptorBase
+import org.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendDescriptor
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 import org.cangnova.cangjie.utils.isUnitTestMode
@@ -914,23 +915,32 @@ class ResolveElementCache(
         // 创建一个委托跟踪，用于记录解析过程中的绑定信息
         val trace = createDelegatingTrace(cjElement, bindingTraceFilter)
         // 解析类型声明到描述符
-        val descriptor = resolveSession.resolveToDescriptor(typeStatement) as LazyClassDescriptorBase
+        val rawDescriptor = resolveSession.resolveToDescriptor(typeStatement)
 
-        // 激活超类型的解析
-        ForceResolveUtil.forceResolveAllContents(descriptor.typeConstructor.supertypes)
+        when (rawDescriptor) {
+            is LazyExtendDescriptor -> {
+                // 扩展声明：强制解析超类型
+                ForceResolveUtil.forceResolveAllContents(rawDescriptor.superTypes)
+            }
+            is LazyClassDescriptorBase -> {
+                // 类/接口/结构体声明：完整的超类型解析
+                ForceResolveUtil.forceResolveAllContents(rawDescriptor.typeConstructor.supertypes)
 
-        // 创建一个体解析器，用于解析类型声明的超类型条目列表
-        val bodyResolver = createBodyResolver(resolveSession, trace, file, StatementFilter.NONE)
-        // 解析超类型条目列表，确保所有超类型被正确解析
-        bodyResolver.resolveSuperTypeEntryList(
-            DataFlowInfo.EMPTY,
-            typeStatement,
-            descriptor,
-            descriptor.unsubstitutedPrimaryConstructor,
-            descriptor.scopeForConstructorHeaderResolution,
-            descriptor.scopeForMemberDeclarationResolution,
-            resolveSession.inferenceSession
-        )
+                val bodyResolver = createBodyResolver(resolveSession, trace, file, StatementFilter.NONE)
+                bodyResolver.resolveSuperTypeEntryList(
+                    DataFlowInfo.EMPTY,
+                    typeStatement,
+                    rawDescriptor,
+                    rawDescriptor.unsubstitutedPrimaryConstructor,
+                    rawDescriptor.scopeForConstructorHeaderResolution,
+                    rawDescriptor.scopeForMemberDeclarationResolution,
+                    resolveSession.inferenceSession
+                )
+            }
+            else -> {
+                error("Unexpected descriptor type for delegation specifier resolve: ${rawDescriptor::class.java}")
+            }
+        }
 
         // 返回委托后的绑定跟踪对象
         return trace

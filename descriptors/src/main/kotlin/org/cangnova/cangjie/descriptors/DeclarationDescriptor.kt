@@ -26,12 +26,13 @@ package org.cangnova.cangjie.descriptors
 
 import org.cangnova.cangjie.descriptors.annotations.Annotated
 
+
 /**
  * 声明描述符接口
  * 该接口是所有声明描述符的基接口，提供了声明的基本信息和访问方法
  */
 interface DeclarationDescriptor : Annotated,
-    Named,
+     Named,
     ValidateableDescriptor {
     /**
      * 获取原始声明描述符
@@ -46,8 +47,6 @@ interface DeclarationDescriptor : Annotated,
      * @return 包含当前声明的声明描述符，如果是顶层声明则返回null
      */
     val containingDeclaration: DeclarationDescriptor?
-
-
 
 
     /**

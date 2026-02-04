@@ -358,15 +358,54 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
     }
 
     /**
-     * 创建模块解析器（抽象方法）
+     * 创建模块解析器的核心实现（抽象方法）
      *
      * 子类必须实现此方法来创建具体的模块解析器。
+     * 此方法由 [createResolverForModule] 模板方法调用。
      *
      * @param descriptor 模块描述符
      * @param context 分析上下文
      * @return 为该模块创建的解析器
      */
-    abstract fun createResolverForModule(descriptor: ModuleDescriptor, context: M): ResolverForModule
+    protected abstract fun doCreateResolverForModule(descriptor: ModuleDescriptor, context: M): ResolverForModule
+
+    /**
+     * 创建模块解析器（模板方法）
+     *
+     * 这是一个模板方法，负责：
+     * 1. 调用 [doCreateResolverForModule] 创建解析器
+     * 2. 调用 [onResolverCreated] 钩子方法进行后处理
+     *
+     * 子类应该重写 [doCreateResolverForModule] 而不是此方法。
+     *
+     * @param descriptor 模块描述符
+     * @param context 分析上下文
+     * @return 为该模块创建的解析器
+     */
+    fun createResolverForModule(descriptor: ModuleDescriptor, context: M): ResolverForModule {
+        val resolver = doCreateResolverForModule(descriptor, context)
+        onResolverCreated(descriptor, context, resolver)
+        return resolver
+    }
+
+    /**
+     * 解析器创建后的钩子方法
+     *
+     * 在模块解析器创建完成后调用，用于执行额外的初始化操作。
+     * 子类可以重写此方法来：
+     * - 设置扩展发现器
+     * - 预加载扩展声明
+     * - 执行其他模块级初始化
+     *
+     * 默认实现为空。
+     *
+     * @param descriptor 模块描述符
+     * @param context 分析上下文
+     * @param resolver 刚创建的模块解析器
+     */
+    protected open fun onResolverCreated(descriptor: ModuleDescriptor, context: M, resolver: ResolverForModule) {
+        // 默认空实现，子类可以重写
+    }
 
     /**
      * 诊断未知上下文

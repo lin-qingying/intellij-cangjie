@@ -31,6 +31,8 @@ import org.cangnova.cangjie.builtins.StandardNames.STD_PACKAGE_NAME
 import org.cangnova.cangjie.builtins.StdlibTypes
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.resolve.extend.ExtendManager
+import org.cangnova.cangjie.resolve.extend.ExtendManagerImpl
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.storage.NotNullLazyValue
@@ -69,7 +71,9 @@ class ProjectDescriptorImpl(
 
     override val name: Name
         get() = projectName
-
+    override val extendManager: ExtendManager by lazy {
+        ExtendManagerImpl( )
+    }
     /**
      * 全局唯一的 BuiltIns 实例，基于 SDK 创建
      *

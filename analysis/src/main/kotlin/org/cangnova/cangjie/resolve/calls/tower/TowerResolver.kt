@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve.calls.tower
 
+import com.intellij.openapi.diagnostic.Logger
 import org.cangnova.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.FunctionDescriptor
@@ -35,13 +36,19 @@ import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandida
 import org.cangnova.cangjie.resolve.calls.inference.model.LowerPriorityToPreserveCompatibility
 import org.cangnova.cangjie.resolve.calls.model.constraintSystemError
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
+import org.cangnova.cangjie.resolve.constants.FloatLiteralTypeConstructor
+import org.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import org.cangnova.cangjie.resolve.extend.ExtendManager
+import org.cangnova.cangjie.resolve.extend.ExtendVisibilityChecker
+
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitClassReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.cangnova.cangjie.resolve.scopes.util.parentsWithSelf
 import org.cangnova.cangjie.resolve.selectMostSpecificInEachOverridableGroup
 import org.cangnova.cangjie.types.*
+
+private val LOG = Logger.getInstance("org.cangnova.cangjie.resolve.calls.tower.TowerResolver")
 
 /**
  * 候选项接口
@@ -1219,21 +1226,54 @@ internal class MemberScopeTowerLevel(
         result: MutableList<CandidateWithBoundDispatchReceiver>
     ) {
         // 获取类型构造器
-        val typeConstructor = type.constructor
+        // 对于字面量类型，需要使用其近似类型的构造器来查找扩展
+        val originalConstructor = type.constructor
+        val typeConstructor = when (originalConstructor) {
+            is IntegerLiteralTypeConstructor -> originalConstructor.getApproximatedType().constructor
+            is FloatLiteralTypeConstructor -> originalConstructor.getApproximatedType().constructor
+            else -> originalConstructor
+        }
+
+        if (LOG.isDebugEnabled) {
+            LOG.debug(
+                "collectExtendMembers: type=$type, " +
+                    "originalConstructor=${originalConstructor::class.simpleName}@${System.identityHashCode(originalConstructor)}, " +
+                    "typeConstructor=${typeConstructor::class.simpleName}@${System.identityHashCode(typeConstructor)}, " +
+                    "declarationDescriptor=${typeConstructor.declarationDescriptor?.name}, " +
+                    "hashCode=${typeConstructor.hashCode()}"
+            )
+        }
 
         // 从 scopeTower 的 lexicalScope 获取 ownerDescriptor，然后获取模块
         val ownerDescriptor = scopeTower.lexicalScope.ownerDescriptor
         val module = DescriptorUtils.getContainingModuleOrNull(ownerDescriptor) ?: return
 
         // 从模块获取 ExtendManager
-        val extendManager = module.getCapability(ExtendManager.CAPABILITY) ?: return
+        val extendManager = module.projectDescriptor.extendManager
 
         // 获取针对该类型的所有 extend 定义
         val extensionDefs = extendManager.getExtensionsForType(typeConstructor)
+
+        if (LOG.isDebugEnabled) {
+            LOG.debug("collectExtendMembers: found ${extensionDefs.size} extend(s) for type ${typeConstructor.declarationDescriptor?.name}")
+        }
+
         if (extensionDefs.isEmpty()) return
+
+        // 获取当前词法作用域，用于检查扩展可见性
+        val lexicalScope = scopeTower.lexicalScope
 
         // 从每个 extend 声明的成员作用域收集成员
         for (extensionDef in extensionDefs) {
+            // 检查扩展的可见性：如果扩展实现了接口且与被扩展类型不在同一个包，
+            // 则需要检查调用处是否导入了至少一个接口
+            if (!ExtendVisibilityChecker.isExtendAccessible(extensionDef, lexicalScope)) {
+                if (LOG.isDebugEnabled) {
+                    LOG.debug("collectExtendMembers: skipping extend '${extensionDef.id}' - interface not imported")
+                }
+                continue
+            }
+
             // 获取 extend 声明的成员作用域
             val memberScope = extensionDef.memberScope ?: continue
 

@@ -1744,6 +1744,6 @@ class ClassFileStubBuilder : BinaryFileStubBuilder.CompositeBinaryFileStubBuilde
          * @see getStubVersion
          * @see getSubBuilderVersion
          */
-        const val STUB_VERSION: Int = 27
+        const val STUB_VERSION: Int = 28
     }
 }

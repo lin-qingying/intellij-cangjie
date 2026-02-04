@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.resolve.caches
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
+import org.cangnova.cangjie.container.get
 import org.cangnova.cangjie.context.ProjectContext
 import org.cangnova.cangjie.context.withModule
 import org.cangnova.cangjie.descriptors.ModuleCapability
@@ -40,16 +41,20 @@ import org.cangnova.cangjie.resolve.LanguageSettingsProvider
 import org.cangnova.cangjie.resolve.ResolverForModule
 import org.cangnova.cangjie.resolve.ResolverForModuleFactory
 import org.cangnova.cangjie.resolve.ResolverForProject
-import org.cangnova.cangjie.resolve.extend.ExtendManager
-import org.cangnova.cangjie.resolve.extend.ExtendManagerImpl
+import org.cangnova.cangjie.resolve.extend.ExtensionDiscoverer
 import org.cangnova.cangjie.resolve.lazy.IdeaAbsentDescriptorHandler
+import org.cangnova.cangjie.resolve.lazy.ResolveSession
+import org.cangnova.cangjie.stubindex.CangJieExtendByReceiverIndex
 import com.intellij.openapi.components.service
-import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.moduleinfo.IdeaModuleInfo
 import org.cangnova.cangjie.moduleinfo.ModuleInfo
+import org.cangnova.cangjie.moduleinfo.provider.ModuleInfoProvider
 import java.util.*
+
 
 /**
  * 模块内容封装
@@ -277,7 +282,7 @@ class IdeaResolverForProject(
      */
     override fun getAdditionalCapabilities(): Map<ModuleCapability<*>, Any?> {
         return mapOf(
-            ExtendManager.CAPABILITY to ExtendManagerImpl()
+
         )
     }
 
@@ -443,7 +448,7 @@ class IdeaResolverForProject(
      * @see CangJieResolverForModuleFactory
      * @see LanguageSettingsProvider
      */
-    override fun createResolverForModule(descriptor: ModuleDescriptor, context: IdeaModuleInfo): ResolverForModule {
+    override fun doCreateResolverForModule(descriptor: ModuleDescriptor, context: IdeaModuleInfo): ResolverForModule {
         // 1. 构建模块内容：包含分析上下文、合成文件和搜索作用域
         val moduleContent =
             ModuleContent(context, syntheticFilesByModule[context] ?: listOf(), context.contentScope)
@@ -465,7 +470,7 @@ class IdeaResolverForProject(
 
         // 5. 创建模块解析器
         // 这是核心步骤，创建包含所有解析服务的 ResolverForModule 实例
-        val resolverForModule = resolverForModuleFactory.createResolverForModule(
+        return resolverForModuleFactory.createResolverForModule(
             descriptor as ModuleDescriptorImpl,
             projectContext.withModule(descriptor),  // 创建包含当前模块的项目上下文
             moduleContent,
@@ -475,69 +480,164 @@ class IdeaResolverForProject(
             resolveOptimizingOptions = optimizingOptions,
             absentDescriptorHandlerClass = IdeaAbsentDescriptorHandler::class.java  // 处理缺失符号的错误处理器
         )
+    }
 
-        // 6. (可选) 触发解析器创建追踪
+    /**
+     * 解析器创建后的钩子方法
+     *
+     * 在模块解析器创建完成后执行 IDE 特定的初始化操作：
+     * 1. 设置扩展发现器 - 用于按需发现和解析扩展声明
+     * 2. 预加载所有扩展 - 注册待解析的 PSI 元素
+     * 3. 触发解析器创建追踪 - 用于性能分析和调试
+     *
+     * @param descriptor 模块描述符
+     * @param context 模块分析上下文
+     * @param resolver 刚创建的模块解析器
+     */
+    override fun onResolverCreated(descriptor: ModuleDescriptor, context: IdeaModuleInfo, resolver: ResolverForModule) {
+        // 1. 设置扩展发现器
+        // 当 ExtendManager 查询某个类型的扩展但缓存为空时，发现器会通过 Stub 索引查找并解析扩展声明
+        setupExtensionDiscoverer(descriptor, context, resolver)
+
+        // 2. 预加载所有扩展（模仿编译器的 BuildExtendMap 策略）
+        // 在返回解析器之前，确保所有扩展都已注册，解决"使用扩展时扩展未注册"的时序问题
+        preloadAllExtensions(descriptor, resolver)
+
+        // 3. (可选) 触发解析器创建追踪
         // 用于性能分析和调试，记录解析器创建事件
-        // ResolverForModuleComputationTrackerEx.getInstance(project)?.onCreateResolverForModule(descriptor, context)
+        ResolverForModuleComputationTrackerEx.getInstance(projectContext.project)?.onCreateResolverForModule(descriptor, context)
+    }
 
-        return resolverForModule
+    /**
+     * 预加载所有扩展（延迟解析策略）
+     *
+     * 该方法在创建模块解析器时被调用，预注册所有扩展的 PSI 元素到 ExtendManager。
+     * 实际解析会在首次查询该类型的扩展时触发（延迟解析）。
+     *
+     * ## 设计背景
+     *
+     * 与类和方法不同，扩展声明没有名称，无法通过名称按需解析。
+     * - 类/方法：通过名称从作用域查找，触发延迟解析
+     * - 扩展：必须预先知道哪些类型有扩展，否则类型检查时找不到
+     *
+     * ## 延迟解析策略
+     *
+     * 1. 预加载阶段：只注册 PSI 元素到 ExtendManager（快速，不消耗资源）
+     * 2. 查询阶段：当 getExtensionsForType 被调用时，触发实际解析
+     *
+     * 这样可以：
+     * - 避免在启动时解析所有扩展（可能很慢）
+     * - 确保在需要时能找到扩展（通过 pending PSI 列表）
+     *
+     * @param descriptor 模块描述符
+     * @param resolverForModule 模块解析器
+     */
+    private fun preloadAllExtensions(
+        descriptor: ModuleDescriptor,
+        resolverForModule: ResolverForModule
+    ) {
+        val project = projectContext.project
+        // 使用 allScope 而非 projectScope，确保能找到所有扩展（包括库中的）
+        val scope = GlobalSearchScope.allScope(project)
+        val extendManager = descriptor.projectDescriptor.extendManager
+
+        try {
+            // 获取所有被扩展的类型名称
+            val allTypeNames = CangJieExtendByReceiverIndex.getAllKeys(project)
+
+            if (LOG.isDebugEnabled) {
+                LOG.debug("preloadAllExtensions: found ${allTypeNames.size} distinct type names with extends")
+            }
+
+            var registeredCount = 0
+
+            // 遍历所有类型名称，注册待解析的 PSI
+            for (typeName in allTypeNames) {
+                val extends = CangJieExtendByReceiverIndex[typeName, project, scope]
+
+                for (cjExtend in extends) {
+                    // 只注册 PSI，不立即解析
+                    extendManager.registerPendingPsi(typeName, cjExtend)
+                    registeredCount++
+                }
+            }
+
+            if (LOG.isDebugEnabled) {
+                LOG.debug("preloadAllExtensions: registered $registeredCount pending PSI(s) for lazy resolution")
+            }
+        } catch (e: ProcessCanceledException) {
+            throw e
+        } catch (e: Exception) {
+            LOG.warn("preloadAllExtensions: unexpected error during preloading", e)
+        }
+    }
+
+    /**
+     * 设置扩展发现器
+     *
+     * 创建并配置 ExtensionDiscoverer，用于在 ExtendManager 缓存为空时按需发现和解析扩展声明。
+     * 这解决了缓存失效后扩展未被重新解析的问题。
+     *
+     * ## 工作原理
+     *
+     * 1. 从 stub 索引 (CangJieExtendByReceiverIndex) 获取按类型名称索引的扩展声明
+     * 2. 对于每个扩展声明，获取其所在文件的 moduleInfo，并使用对应的 ResolverForModule 解析
+     * 3. 通过 ExtendDescriptorResolver 解析这些扩展，自动注册到 ExtendManager
+     * 4. 后续查询可直接从 ExtendManager 获取已解析的扩展
+     *
+     * ## 跨模块/包解析
+     *
+     * 关键：每个 CjExtend PSI 必须使用其所在文件的 ResolverForModule 来解析，
+     * 而不是使用调用处的 ResolverForModule。这是因为 ResolveSession 与特定模块绑定，
+     * 使用错误的 ResolveSession 可能导致解析失败。
+     *
+     * @param descriptor 模块描述符
+     * @param context 模块分析上下文
+     * @param resolverForModule 模块解析器
+     */
+    private fun setupExtensionDiscoverer(
+        descriptor: ModuleDescriptor,
+        context: IdeaModuleInfo,
+        resolverForModule: ResolverForModule
+    ) {
+        val extendManager = descriptor.projectDescriptor.extendManager
+        val project = projectContext.project
+        // 使用 allScope 确保能够发现所有包（包括库）中的 extend 声明
+        val scope = GlobalSearchScope.allScope(project)
+        // 捕获 this 引用，用于在 discoverer 中获取正确的 ResolverForModule
+        val resolverForProject = this
+
+        // 创建发现器：当查询某个类型的扩展时，通过 stub 索引查找并解析相关扩展
+        val discoverer = ExtensionDiscoverer { typeName ->
+            // 通过 stub 索引获取所有扩展该类型的 extend 声明
+            val extends = CangJieExtendByReceiverIndex[typeName, project, scope]
+
+            // 解析每个扩展声明，这会自动将其注册到 ExtendManager
+            for (cjExtend in extends) {
+                try {
+                    // 获取 extend 声明所在文件的 moduleInfo
+                    val moduleInfoProvider = ModuleInfoProvider.getInstance(project)
+                    val fileModuleInfo = moduleInfoProvider.collect(cjExtend)
+                        .mapNotNull { it.getOrNull() }
+                        .firstOrNull() ?: continue
+
+                    // 使用 extend 声明所在文件的 ResolverForModule 来解析
+                    // 这确保使用正确的 ResolveSession，解决跨包/跨模块解析问题
+                    val fileResolver = resolverForProject.tryGetResolverForModule(fileModuleInfo) ?: continue
+
+                    val resolveSession = fileResolver.componentProvider.get<ResolveSession>()
+                    resolveSession.extendDescriptorResolver.getExtendDescriptor(cjExtend)
+                } catch (e: ProcessCanceledException) {
+                    // 取消操作应该向上传播
+                    throw e
+                } catch (e: Exception) {
+                    // 忽略单个扩展解析失败，继续处理其他扩展
+                }
+            }
+        }
+
+        extendManager.setDiscoverer(discoverer)
     }
 
 
 }
-
-/**
- * ## 文件总结
- *
- * 本文件定义了 IntelliJ IDEA 环境下仓颉语言的项目解析器核心实现。
- *
- * ### 关键类
- *
- * 1. **ModuleContent**
- *    - 封装模块内容（上下文、合成文件、作用域）
- *    - 提供给解析器使用的基础数据结构
- *
- * 2. **IdeaResolverForProject**
- *    - 项目级解析器的 IDE 实现
- *    - 管理所有模块的解析器实例
- *    - 支持解析器复用和性能优化
- *
- * ### 核心工作流程
- *
- * ```
- * 用户编辑代码
- *   ↓
- * CangJieCacheServiceImpl.getResolutionFacade()
- *   ↓
- * ProjectResolutionFacade.facadeForModules
- *   ↓
- * IdeaResolverForProject.resolverForModule()
- *   ↓
- * IdeaResolverForProject.createResolverForModule()
- *   ↓
- * CangJieResolverForModuleFactory.createResolverForModule()
- *   ↓
- * ResolverForModule (包含 PackageFragmentProvider、ComponentProvider 等)
- *   ↓
- * 代码分析、符号解析、类型检查等服务
- * ```
- *
- * ### 性能优化要点
- *
- * - **分层架构**: 库解析器 → 模块解析器 → 特殊场景解析器
- * - **解析器复用**: 通过 delegateResolver 避免重复解析依赖库
- * - **懒加载**: 模块描述符和解析结果按需创建
- * - **增量分析**: 只重新解析修改的文件
- * - **索引优化**: 利用 IDE 索引加速符号查找
- *
- * ### 相关文件
- *
- * - [CangJieCacheServiceImpl]: 解析器的缓存和生命周期管理
- * - [ProjectResolutionFacade]: 项目解析门面，提供高层 API
- * - [CangJieResolverForModuleFactory]: 模块解析器工厂
- * - [AbstractResolverForProject]: 抽象基类，提供通用解析逻辑
- *
- * @see CangJieCacheServiceImpl
- * @see ProjectResolutionFacade
- * @see AbstractResolverForProject
- */

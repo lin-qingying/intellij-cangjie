@@ -26,6 +26,7 @@ package org.cangnova.cangjie.diagnostics.rendering
 
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.diagnostics.infos.errors.*
+import org.cangnova.cangjie.diagnostics.rendering.Renderers.ELEMENT_TEXT
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.expressions.match.Pattern
@@ -486,6 +487,31 @@ internal class IdeRenderers : DiagnosticRendererProvider {
                     }
                 )
             }
+            register(UNRESOLVED_REFERENCE) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                renderers(
+                    ELEMENT_TEXT
+                )
+            }
+            // 扩展成员需要导入接口
+            register(EXTEND_MEMBER_REQUIRES_INTERFACE_IMPORT) {
+                message { IDECangJieDiagnosisBundle.rawMessage(it) }
+                renderers(
+                    renderer { member: CallableMemberDescriptor ->
+                        member.renderAsCode()
+                    },
+                    renderer { interfaces: List<CangJieType> ->
+                        @Suppress("UNCHECKED_CAST")
+                        buildString {
+                            append("<ul>")
+                            for (type in interfaces) {
+                                append("<li>${type.renderAsCode()}</li>")
+                            }
+                            append("</ul>")
+                        }
+                    }
+                )
+            }
 
             // var 被 let 重写
             register(VAR_OVERRIDDEN_BY_LET) {
@@ -496,6 +522,19 @@ internal class IdeRenderers : DiagnosticRendererProvider {
                     },
                     renderer { varProperty: PropertyDescriptor ->
                         varProperty.renderAsCode()
+                    }
+                )
+            }
+
+            // 扩展成员不能遮蔽其他扩展的成员
+            register(EXTEND_MEMBER_CANNOT_SHADOW) {
+                message { IDECangJieDiagnosisBundle.rawMessage(it) }
+                renderers(
+                    renderer { memberName: String ->
+                        "<code>${memberName.escapeHtml()}</code>"
+                    },
+                    renderer { extendedType: ClassifierDescriptor ->
+                        extendedType.renderAsCode()
                     }
                 )
             }

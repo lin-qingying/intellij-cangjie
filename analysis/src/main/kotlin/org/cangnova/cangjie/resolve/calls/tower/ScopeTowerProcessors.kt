@@ -375,7 +375,8 @@ fun <C : Candidate> createCallableReferenceProcessor(
  * @return 作用域塔处理器
  */
 fun <C : Candidate> createSimpleFunctionProcessor(
-    scopeTower: ImplicitScopeTower, name: Name,
+    scopeTower: ImplicitScopeTower,
+    name: Name,
     context: CandidateFactory<C>,
     explicitReceiver: DetailedReceiver?,
     isEnumConstructor: Boolean = false

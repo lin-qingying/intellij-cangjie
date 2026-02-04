@@ -330,7 +330,7 @@ class LazyEnumDescriptor(
         )
 
         // 获取通过 extend 声明添加的超类型
-        val extendManager = c.moduleDescriptor.getCapability(ExtendManager.CAPABILITY)
+        val extendManager = c.moduleDescriptor.projectDescriptor.extendManager
         val extendSupertypes = extendManager?.getExtendSupertypes(
             forConstructor = this.typeConstructor,
             forTypeArgs = emptyList()
