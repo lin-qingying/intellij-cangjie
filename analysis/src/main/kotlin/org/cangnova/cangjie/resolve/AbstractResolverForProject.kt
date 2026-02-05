@@ -101,6 +101,7 @@ import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.ProjectDescriptorImpl
 import org.cangnova.cangjie.moduleinfo.LibraryInfo
 import org.cangnova.cangjie.moduleinfo.ModuleInfo
+import org.cangnova.cangjie.moduleinfo.SourceForBinaryModuleInfo
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.caches.ModuleContent
@@ -462,16 +463,38 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
      * 尝试获取模块解析器
      *
      * 与 [resolverForModule] 类似，但如果上下文不正确则返回 null 而不是抛出异常。
+     * 当当前解析器无法处理上下文时，会尝试委托给 [delegateResolver]。
+     *
+     * ## 委托机制
+     *
+     * 这与 [doGetDescriptorForModule] 的行为保持一致：
+     * - 首先检查当前解析器是否能处理该上下文
+     * - 如果不能，则委托给 delegateResolver（通常是 facadeForLibraries 的解析器）
+     *
+     * 这对于库中的扩展声明解析至关重要：
+     * - facadeForModules 的解析器处理源码模块
+     * - facadeForLibraries 的解析器处理库模块
+     * - 当发现库中的扩展时，需要通过委托获取正确的解析器
      *
      * @param context 分析上下文
-     * @return 模块解析器，如果上下文不正确则返回 null
+     * @return 模块解析器，如果上下文不正确且委托解析器也无法处理则返回 null
      */
     override fun tryGetResolverForModule(context: M): ResolverForModule? {
         checkValid()
-        if (!isCorrectContext(context)) {
-            return null
+        // 如果是库源码模块（LibrarySourceInfo），重定向到对应的二进制模块（LibraryInfoImpl）
+        // 因为 allModules 和 contextToResolvableInfo 中存储的是二进制模块
+        val actualContext = if (context is SourceForBinaryModuleInfo) {
+            @Suppress("UNCHECKED_CAST")
+            (context.binariesModuleInfo as? M) ?: context
+        } else {
+            context
         }
-        return resolverForModuleDescriptor(doGetDescriptorForModule(context))
+        if (!isCorrectContext(actualContext)) {
+            // 当前解析器无法处理，尝试委托给 delegateResolver
+            // 这确保了分层解析架构中，库模块可以通过委托正确解析
+            return delegateResolver.tryGetResolverForModule(actualContext)
+        }
+        return resolverForModuleDescriptor(doGetDescriptorForModule(actualContext))
     }
 
 
@@ -479,12 +502,21 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
      * 检查上下文是否正确
      *
      * 判断上下文或其原始上下文是否在 [allModules] 中。
+     * 支持以下类型的上下文映射：
+     * - DerivedModuleInfo: 映射到 originalModuleInfo
+     * - SourceForBinaryModuleInfo: 映射到 binariesModuleInfo（库源码映射到对应的二进制模块）
      *
      * @param context 要检查的分析上下文
      * @return true 如果上下文有效
      */
-    private fun isCorrectContext(context: M): Boolean =
-        ((context as? DerivedModuleInfo)?.originalModuleInfo ?: context) in allModules
+    private fun isCorrectContext(context: M): Boolean {
+        val originalContext = when (context) {
+            is DerivedModuleInfo -> context.originalModuleInfo
+            is SourceForBinaryModuleInfo -> context.binariesModuleInfo
+            else -> context
+        }
+        return originalContext in allModules
+    }
 
     private fun recreateModuleDescriptor(module: M): ModuleData {
         val oldDescriptor = descriptorByModule[module]?.moduleDescriptor

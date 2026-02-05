@@ -43,6 +43,7 @@ import org.cangnova.cangjie.resolve.lazy.declarations.FileBasedDeclarationProvid
 import org.cangnova.cangjie.resolve.lazy.descriptors.ClassMemberDeclarationProvider
 import org.cangnova.cangjie.resolve.lazy.descriptors.PsiBasedClassMemberDeclarationProvider
 import org.cangnova.cangjie.storage.StorageManager
+import org.cangnova.cangjie.cjo.CjoPackageService
 import org.cangnova.cangjie.stubindex.CangJiePackageIndexUtils
 
 class PluginDeclarationProviderFactory(
@@ -61,11 +62,22 @@ class PluginDeclarationProviderFactory(
         fileBasedDeclarationProviderFactory.packageExists(fqName) || stubBasedPackageExists(fqName)
 
     private fun stubBasedPackageExists(name: FqName): Boolean {
-//return PerModulePackageCacheService.getInstance(project).packageExists(name, moduleInfo)
-
-        return (context as? IdeaModuleInfo)?.projectSourceModules()
+        // 首先尝试通过项目源码模块检查
+        val sourceModuleExists = (context as? IdeaModuleInfo)?.projectSourceModules()
             ?.any { PerModulePackageCacheService.getInstance(project).packageExists(name, it) }
             ?: false
+
+        if (sourceModuleExists) {
+            return true
+        }
+
+        // 对于库模块（非 ModuleSourceInfo），使用 CjoPackageService 检查包是否存在
+        // 这解决了库的 .cjo 文件不在 CangJiePartialPackageNamesIndex 中的问题
+        if (context !is ModuleSourceInfo) {
+            return CjoPackageService.getInstance(project).hasPackage(name)
+        }
+
+        return false
     }
 
     private fun diagnoseMissingPackageFragmentPartialPackageIndexCorruption(message: String): Nothing {

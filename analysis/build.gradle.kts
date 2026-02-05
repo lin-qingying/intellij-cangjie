@@ -67,6 +67,8 @@ dependencies {
 
     api(project(":analysis:decompiler-to-psi"))
 
+    implementation(project(":metadata:cjo"))
+
     // KSP 处理器用于生成诊断工厂初始化代码
     ksp(project(":ksp-processors:diagnostic"))
 }

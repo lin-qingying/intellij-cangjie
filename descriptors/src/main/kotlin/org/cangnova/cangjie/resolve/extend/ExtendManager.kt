@@ -47,7 +47,6 @@ fun interface ExtensionDiscoverer {
      */
     fun discoverExtensions(typeName: String)
 }
-private val EXTEND_MANAGER_KEY = Key.create<ExtendManager>("EXTEND_MANAGER")
 
 
 /**
