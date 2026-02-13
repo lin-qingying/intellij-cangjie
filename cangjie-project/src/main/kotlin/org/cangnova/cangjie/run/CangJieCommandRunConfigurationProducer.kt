@@ -29,6 +29,7 @@ import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.project.service.CjProjectsService
 import java.nio.file.Paths
 
 /**
@@ -36,7 +37,7 @@ import java.nio.file.Paths
  *
  * 根据项目上下文自动创建运行配置
  */
-class CangJieCommandRunConfigurationProducer : LazyRunConfigurationProducer<CangJieCommandRunConfiguration>() {
+internal class CangJieCommandRunConfigurationProducer : LazyRunConfigurationProducer<CangJieCommandRunConfiguration>() {
 
     /**
      * 获取配置工厂
@@ -55,7 +56,7 @@ class CangJieCommandRunConfigurationProducer : LazyRunConfigurationProducer<Cang
      * @param configuration 要配置的运行配置实例
      * @param context 配置上下文，包含项目信息
      * @param sourceElement 触发配置创建的源元素引用
-     * @return 始终返回 true，表示配置已成功设置
+     * @return 如果是有效的仓颉项目且配置成功则返回 true，否则返回 false
      */
     override fun setupConfigurationFromContext(
         configuration: CangJieCommandRunConfiguration,
@@ -63,6 +64,12 @@ class CangJieCommandRunConfigurationProducer : LazyRunConfigurationProducer<Cang
         sourceElement: Ref<PsiElement>
     ): Boolean {
         val project = context.project
+
+        // 检查是否是有效的仓颉项目
+        val projectsService = CjProjectsService.getInstance(project)
+        if (!projectsService.cjProject.isValid) {
+            return false
+        }
 
         // 设置配置名称为 "运行 项目名"
         configuration.name = "运行 ${project.name}"
@@ -90,6 +97,13 @@ class CangJieCommandRunConfigurationProducer : LazyRunConfigurationProducer<Cang
         context: ConfigurationContext
     ): Boolean {
         val project = context.project
+
+        // 检查是否是有效的仓颉项目
+        val projectsService = CjProjectsService.getInstance(project)
+        if (!projectsService.cjProject.isValid) {
+            return false
+        }
+
         return configuration.workingDirectory?.toString() == project.basePath
     }
 }
