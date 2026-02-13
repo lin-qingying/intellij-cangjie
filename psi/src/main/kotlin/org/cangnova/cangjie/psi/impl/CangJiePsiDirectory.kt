@@ -24,5 +24,3 @@
 
 package org.cangnova.cangjie.psi.impl
 
-class CangJiePsiDirectory {
-}
