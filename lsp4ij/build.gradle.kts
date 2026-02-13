@@ -33,6 +33,8 @@ dependencies {
     implementation(project(":telemetry"))
     implementation(project(":toolchain"))
     implementation(project(":cangjie-project"))
+    implementation(project(":analysis"))
+    implementation(project(":common"))
 }
 
 

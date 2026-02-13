@@ -236,6 +236,20 @@
                 serviceInterface="org.cangnova.cangjie.imports.ImportInsertHelper"
                 serviceImplementation="org.cangnova.cangjie.imports.ImportInsertHelperImpl"/>
 
+        <!-- 宏展开服务 -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.macro.service.MacroExpansionService"
+                serviceImplementation="org.cangnova.cangjie.macro.service.MacroExpansionServiceImpl"/>
+
+        <!-- 宏编译服务 -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.macro.service.MacroCompilationService"
+                serviceImplementation="org.cangnova.cangjie.macro.service.MacroCompilationServiceImpl"/>
+
+        <!-- 宏展开缓存服务 -->
+        <projectService
+                serviceImplementation="org.cangnova.cangjie.macro.cache.MacroExpansionCache"/>
+
         <lang.documentationProvider language="CangJie"
                                     implementationClass="org.cangnova.cangjie.quickDoc.CangJieDocumentationProvider"
                                     order="first"/>
