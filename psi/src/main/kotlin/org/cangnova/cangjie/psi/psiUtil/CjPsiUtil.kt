@@ -519,7 +519,8 @@ fun CjElement.findElementOfAdditionalResolve(): CjElement? {
                 it is CjTypeConstraint ||
                 it is CjPackageDirective ||
                 it is CjCodeFragment ||
-                it is CjTypeAlias
+                it is CjTypeAlias ||
+                it is CjMacroExpression
 
     } as CjElement?
 
@@ -528,11 +529,15 @@ fun CjElement.findElementOfAdditionalResolve(): CjElement? {
             if (this is CjAnnotation) {
                 return this
             }
+            if (this is CjMacroExpression) {
+                return this
+            }
 
             return null
         }
 
         is CjPackageDirective -> return this
+        is CjMacroExpression -> return elementOfAdditionalResolve
         is CjDeclaration -> {
             if (this is CjParameterBase && !CjPsiUtil.isLocal(this)) {
                 return null

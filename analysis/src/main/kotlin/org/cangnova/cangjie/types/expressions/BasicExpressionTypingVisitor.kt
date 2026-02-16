@@ -62,6 +62,7 @@ import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.CAST_TYPE_U
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.COMPILE_TIME_VALUE
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.INDEXED_LVALUE_GET
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.INDEXED_LVALUE_SET
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.MACRO
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.REFERENCE_TARGET
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.RESOLVED_CALL
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.SUPER_EXPRESSION_FROM_ANY_MIGRATION
@@ -94,6 +95,8 @@ import org.cangnova.cangjie.resolve.calls.util.CallMaker
 import org.cangnova.cangjie.resolve.calls.util.CallMaker.makeCall
 import org.cangnova.cangjie.resolve.constants.*
 import org.cangnova.cangjie.resolve.scopes.LexicalScopeKind
+import org.cangnova.cangjie.resolve.scopes.collectMacros
+import org.cangnova.cangjie.resolve.scopes.findClassifier
 import org.cangnova.cangjie.resolve.scopes.findFirstClassifierWithDeprecationStatus
 import org.cangnova.cangjie.resolve.scopes.getImplicitReceiversHierarchy
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver.Companion.create
@@ -103,7 +106,6 @@ import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.ErrorUtils.createErrorType
 import org.cangnova.cangjie.types.ErrorUtils.invalidType
 import org.cangnova.cangjie.types.ErrorUtils.isError
-import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
 import org.cangnova.cangjie.types.TypeUtils.noExpectedType
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
@@ -1036,17 +1038,17 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
      * 该方法会根据运算符类型分发到相应的处理逻辑。
      *
      * @param expression 二元表达式
-     * @param contextWithExpectedType 包含预期类型的表达式类型检查上下文
+     * @param data 包含预期类型的表达式类型检查上下文
      * @return 二元表达式的结果类型信息
      */
     override fun visitBinaryExpression(
         expression: CjBinaryExpression,
-        contextWithExpectedType: ExpressionTypingContext
+        data: ExpressionTypingContext
     ): CangJieTypeInfo {
         val context = if (ExpressionTypingUtils.isBinaryExpressionDependentOnExpectedType(expression))
-            contextWithExpectedType
+            data
         else
-            contextWithExpectedType.replaceContextDependency(ContextDependency.INDEPENDENT)
+            data.replaceContextDependency(ContextDependency.INDEPENDENT)
                 .replaceExpectedType(NO_EXPECTED_TYPE)
 
         val operationSign: CjSimpleNameExpression = expression.operationReference
@@ -1081,16 +1083,16 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         }
 
         val value = components.constantExpressionEvaluator.evaluateExpression(
-            expression, contextWithExpectedType.trace, contextWithExpectedType.expectedType
+            expression, data.trace, data.expectedType
         )
         if (value != null) {
             return components.dataFlowAnalyzer.createCompileTimeConstantTypeInfo(
                 value,
                 expression,
-                contextWithExpectedType
+                data
             )
         }
-        return components.dataFlowAnalyzer.checkType(result, expression, contextWithExpectedType)
+        return components.dataFlowAnalyzer.checkType(result, expression, data)
     }
 
     private fun visitAssignmentOperation(
@@ -1172,6 +1174,83 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         }
         val callExpressionResolver = components.callExpressionResolver
         return callExpressionResolver.getCallExpressionTypeInfo(expression, data)
+    }
+
+    /**
+     * 访问宏表达式
+     *
+     * 处理宏调用表达式，如 `@macroName(input)` 或 `@macroName[attr](input)`。
+     * 该方法会：
+     * 1. 在当前作用域中查找宏定义
+     * 2. 宏查找失败时，回退查找注解类（自定义注解场景）
+     * 3. 记录绑定到 BindingContext
+     * 4. 返回类型信息（宏返回类型或 Unit 类型）
+     *
+     * @param expression 宏表达式
+     * @param context 表达式类型检查上下文
+     * @return 宏调用的返回类型信息
+     */
+    override fun visitMacroExpression(
+        expression: CjMacroExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+        val macroName = expression.shortName
+
+        if (macroName == null) {
+            return noTypeInfo(context)
+        }
+
+        // 通过作用域链向上查找宏描述符
+        val scope = context.scope
+        val macroDescriptors = scope.collectMacros(
+            macroName,
+            NoLookupLocation.FROM_IDE
+        )
+
+        // 1. 优先查找宏定义（宏是常见情况）
+        if (macroDescriptors.isNotEmpty()) {
+            // 根据调用处实参数量选择匹配的宏重载
+            val callArgCount = listOfNotNull(expression.attr, expression.input).size
+            val macroDescriptor = macroDescriptors.find {
+                it.valueParameters.size == callArgCount
+            } ?: macroDescriptors.first()
+
+            // 记录宏绑定到 BindingContext
+            context.trace.record(MACRO, expression, macroDescriptor)
+
+            // 记录引用目标
+            expression.referenceExpression?.let { refExpr ->
+                context.trace.record(REFERENCE_TARGET, refExpr, macroDescriptor)
+            }
+
+            // 返回宏的返回类型
+            val returnType = macroDescriptor.returnType
+            return if (returnType != null) {
+                components.dataFlowAnalyzer.checkType(
+                    createTypeInfo(returnType, context.dataFlowInfo),
+                    expression,
+                    context
+                )
+            } else {
+                createTypeInfo(components.builtIns.unitType, context.dataFlowInfo)
+            }
+        }
+
+        // 2. 回退：沿作用域链向上查找注解类（自定义注解场景）
+        val classifier = scope.findClassifier(macroName, NoLookupLocation.FROM_IDE)
+        if (classifier != null) {
+            expression.referenceExpression?.let { refExpr ->
+                context.trace.record(REFERENCE_TARGET, refExpr, classifier)
+            }
+            return createTypeInfo(components.builtIns.unitType, context.dataFlowInfo)
+        }
+
+        // 3. 都找不到 → 报错
+        val referenceExpression = expression.referenceExpression
+        if (referenceExpression != null) {
+            context.trace.report(UNRESOLVED_REFERENCE.on(referenceExpression, referenceExpression))
+        }
+        return noTypeInfo(context)
     }
 
     private fun checkNull(

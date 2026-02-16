@@ -169,6 +169,19 @@
                      description="Enable new project model reloading"
                      restartRequired="true"/>
 
+        <registryKey key="cangjie.project.refresh.debounce.ms"
+                     description="Project refresh debounce delay in milliseconds"
+                     defaultValue="300"
+                     restartRequired="false"/>
+        <registryKey key="cangjie.project.discovery.initial.delay.ms"
+                     description="Initial delay in milliseconds before project discovery on startup"
+                     defaultValue="200"
+                     restartRequired="false"/>
+        <registryKey key="cangjie.project.refresh.startup.delay.ms"
+                     description="Delay in milliseconds before project refresh after IDE startup"
+                     defaultValue="500"
+                     restartRequired="false"/>
+
         <!-- 额外的库根目录提供者: 为 IDE 提供仓颉项目的可索引目录 -->
 <!--        <additionalLibraryRootsProvider-->
 <!--                implementation="org.cangnova.cangjie.project.roots.CangJieAdditionalLibraryRootsProvider"/>-->

@@ -38,8 +38,12 @@ import org.cangnova.cangjie.stubindex.CangJiePackageIndexUtils
 class DefaultCangJiePsiFacade(val project: Project) : CangJiePsiFacade() {
     private val psiManager = PsiManager.getInstance(project)
     private fun filteredFinders(): List<CangJiePsiElementFinderBase> {
-        return DumbService.getInstance(project)
-            .filterByDumbAwareness(CangJiePsiElementFinderBase.EP.getPoint(project).extensionList)
+        val extensionList = try {
+            CangJiePsiElementFinderBase.EP.getPoint(project).extensionList
+        } catch (_: IllegalArgumentException) {
+            return emptyList()
+        }
+        return DumbService.getInstance(project).filterByDumbAwareness(extensionList)
     }
 
     override fun processPackageDirectories(

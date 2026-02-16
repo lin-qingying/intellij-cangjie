@@ -24,6 +24,8 @@
 
 package org.cangnova.cangjie.macro.service
 
+import com.intellij.openapi.util.registry.Registry
+
 /**
  * 宏展开结果
  *
@@ -49,6 +51,16 @@ data class MacroExpansionResult(
      * 展开后的代码文本
      */
     val expandedText: String,
+
+    /**
+     * 宏名称（如 `@Derive`），从编译器输出的标记中解析
+     */
+    val macroName: String? = null,
+
+    /**
+     * 宏调用所在的源文件名（从编译器输出的标记中解析）
+     */
+    val sourceFileName: String? = null,
 
     /**
      * 展开后的 Token 列表
@@ -164,46 +176,57 @@ enum class ExpansionSource {
 
 /**
  * 宏展开选项
+ *
+ * 所有选项的默认值通过 IntelliJ Registry 键控制，用户可通过
+ * `Help → Find Action → Registry` 调整：
+ *
+ * | Registry Key | 说明 |
+ * |---|---|
+ * | `cangjie.macro.expansion.recursive` | 是否递归展开嵌套宏 |
+ * | `cangjie.macro.expansion.use.cache` | 是否使用缓存 |
+ * | `cangjie.macro.expansion.timeout.ms` | 超时时间（毫秒） |
+ * | `cangjie.macro.expansion.auto.compile` | 是否自动编译宏声明 |
+ * | `cangjie.macro.expansion.force.recompile` | 是否强制重新编译 |
  */
 data class MacroExpansionOptions(
     /**
      * 是否递归展开嵌套宏
      */
-    val recursive: Boolean = true,
+    val recursive: Boolean = Registry.`is`("cangjie.macro.expansion.recursive"),
 
     /**
      * 是否使用缓存
      */
-    val useCache: Boolean = true,
+    val useCache: Boolean = Registry.`is`("cangjie.macro.expansion.use.cache"),
 
     /**
      * 超时时间（毫秒），0 表示无超时
      */
-    val timeoutMs: Long = 10000L,
+    val timeoutMs: Long = Registry.intValue("cangjie.macro.expansion.timeout.ms").toLong(),
 
     /**
      * 是否在展开前自动编译宏声明
      *
      * 如果启用，在执行 `--debug-macro` 之前会先执行 `--compile-macro` 编译宏声明
      */
-    val autoCompileMacros: Boolean = true,
+    val autoCompileMacros: Boolean = Registry.`is`("cangjie.macro.expansion.auto.compile"),
 
     /**
      * 是否强制重新编译宏（忽略缓存）
      *
      * 仅在 autoCompileMacros 为 true 时有效
      */
-    val forceRecompile: Boolean = false
+    val forceRecompile: Boolean = Registry.`is`("cangjie.macro.expansion.force.recompile")
 ) {
     companion object {
         /**
-         * 默认选项（启用自动编译）
+         * 从 Registry 读取当前默认选项
          */
-        val DEFAULT = MacroExpansionOptions()
+        val DEFAULT get() = MacroExpansionOptions()
 
         /**
-         * 不自动编译的选项
+         * 从 Registry 读取默认选项，但禁用自动编译
          */
-        val NO_AUTO_COMPILE = MacroExpansionOptions(autoCompileMacros = false)
+        val NO_AUTO_COMPILE get() = MacroExpansionOptions(autoCompileMacros = false)
     }
 }

@@ -96,6 +96,11 @@ private class GlobalSyntheticPackageViewDescriptor(
     private val scope: GlobalSearchScope
 ) : PackageViewDescriptor {
 
+    /**
+     * 合成包视图不跟踪宏包状态
+     * 此描述符仅用于 CDoc 链接解析，不需要真实的宏包信息
+     */
+    override val isMacro: Boolean = false
 
     override val containingDeclaration: PackageViewDescriptor?
         get() = if (fqName.isOneSegmentFQN()) null else GlobalSyntheticPackageViewDescriptor(

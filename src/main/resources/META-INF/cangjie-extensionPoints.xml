@@ -59,6 +59,11 @@
                         interface="org.cangnova.cangjie.diagnostics.rendering.DiagnosticRendererProvider"
                         dynamic="true"/>
 
+        <!-- PSI 元素查找器 -->
+        <extensionPoint qualifiedName="cn.cangnova.cangjie.psi.elementFinder"
+                        interface="org.cangnova.cangjie.psi.CangJiePsiElementFinderBase"
+                        area="IDEA_PROJECT"
+                        dynamic="true"/>
 
     </extensionPoints>
 </idea-plugin>

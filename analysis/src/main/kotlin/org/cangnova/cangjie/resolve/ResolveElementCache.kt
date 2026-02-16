@@ -68,6 +68,8 @@ import org.cangnova.cangjie.resolve.lazy.BodyResolveMode.*
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyClassDescriptorBase
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendDescriptor
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
+import org.cangnova.cangjie.resolve.scopes.collectMacros
+import org.cangnova.cangjie.resolve.scopes.findClassifier
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 import org.cangnova.cangjie.utils.isUnitTestMode
 import org.jetbrains.annotations.TestOnly
@@ -249,7 +251,7 @@ class ResolveElementCache(
         )
 
     private fun findElementOfAdditionalResolve(element: CjElement, bodyResolveMode: BodyResolveMode): CjElement? {
-        if (element is CjAnnotation && bodyResolveMode == PARTIAL_NO_ADDITIONAL)
+        if ((element is CjAnnotation || element is CjMacroExpression) && bodyResolveMode == PARTIAL_NO_ADDITIONAL)
             return element
 
         return element.findElementOfAdditionalResolve()
@@ -491,6 +493,7 @@ class ResolveElementCache(
         )
 
         forceResolveAnnotationsInside(constructor)
+        forceResolveMacroExpressionsInside(constructor, trace)
 
         return trace
     }
@@ -622,6 +625,12 @@ class ResolveElementCache(
 
             is CjCodeFragment -> codeFragmentAdditionalResolve(resolveElement, bodyResolveMode)
 
+            is CjMacroExpression -> macroExpressionAdditionalResolve(
+                resolveSession,
+                resolveElement,
+                bodyResolveMode.bindingTraceFilter
+            )
+
             else -> {
                 if (resolveElement.findParentOfType<CjPackageDirective>(true) != null) {
                     packageRefAdditionalResolve(resolveSession, resolveElement, bodyResolveMode.bindingTraceFilter)
@@ -687,6 +696,7 @@ class ResolveElementCache(
 
 
         forceResolveAnnotationsInside(variable)
+        forceResolveMacroExpressionsInside(variable, trace)
 
         return trace
     }
@@ -715,6 +725,7 @@ class ResolveElementCache(
         // bodyResolver.resolveProperty(bodyResolveContext, property, descriptor)
 
         forceResolveAnnotationsInside(property)
+        forceResolveMacroExpressionsInside(property, trace)
 
         val lvs = resolveSession.languageVersionSettings
         for (accessor in property.accessors) {
@@ -816,6 +827,116 @@ class ResolveElementCache(
     }
 
     /**
+     * 宏表达式的额外解析
+     *
+     * 当宏表达式作为顶层可解析元素时（如顶层 @MacroName class Foo {}），
+     * 执行宏名称的解析：先查找宏定义，回退查找注解类。
+     */
+    private fun macroExpressionAdditionalResolve(
+        resolveSession: ResolveSession,
+        macroExpression: CjMacroExpression,
+        bindingTraceFilter: BindingTraceFilter
+    ): BindingTrace {
+        val trace = createDelegatingTrace(macroExpression, bindingTraceFilter)
+        val macroName = macroExpression.shortName
+
+        if (macroName != null) {
+            val file = macroExpression.getContainingCjFile()
+            val scope = resolveSession.fileScopeProvider.getFileResolutionScope(file)
+
+            // 1. 优先沿作用域链查找宏定义
+            val macroDescriptors = scope.collectMacros(
+                macroName,
+                org.cangnova.cangjie.incremental.components.NoLookupLocation.FROM_IDE
+            )
+            // 根据调用处实参数量选择匹配的宏重载
+            val callArgCount = listOfNotNull(macroExpression.attr, macroExpression.input).size
+            val macroDescriptor = macroDescriptors.find {
+                it.valueParameters.size == callArgCount
+            } ?: macroDescriptors.firstOrNull()
+
+            if (macroDescriptor != null) {
+                trace.record(BindingContext.MACRO, macroExpression, macroDescriptor)
+                macroExpression.referenceExpression?.let { refExpr ->
+                    trace.record(BindingContext.REFERENCE_TARGET, refExpr, macroDescriptor)
+                }
+                ForceResolveUtil.forceResolveAllContents(macroDescriptor)
+            } else {
+                // 2. 回退：沿作用域链查找注解类
+                val classifier = scope.findClassifier(
+                    macroName,
+                    org.cangnova.cangjie.incremental.components.NoLookupLocation.FROM_IDE
+                )
+                if (classifier != null) {
+                    macroExpression.referenceExpression?.let { refExpr ->
+                        trace.record(BindingContext.REFERENCE_TARGET, refExpr, classifier)
+                    }
+                }
+            }
+        }
+
+        return trace
+    }
+
+    /**
+     *
+     * 此函数的目的是确保在给定的代码元素内，所有宏表达式的解析都已完成并可用
+     * 它遍历元素的所有后代宏表达式并触发解析
+     *
+     * @param element 要解析宏表达式的代码元素
+     * @param trace 绑定跟踪对象，用于记录解析过程中的绑定信息
+     */
+    private fun forceResolveMacroExpressionsInside(element: CjElement, trace: BindingTrace? = null) {
+        // 定义一个对宏表达式执行强制解析的操作
+        val action: (CjMacroExpression) -> Unit = { macroExpr ->
+            // 尝试从解析会话的绑定上下文中获取宏描述符
+            var macroDescriptor = resolveSession.bindingContext[BindingContext.MACRO, macroExpr]
+
+            // 如果宏描述符尚未解析，尝试通过作用域查找并解析
+            if (macroDescriptor == null) {
+                val macroName = macroExpr.shortName
+                if (macroName != null) {
+                    // 获取宏表达式所在声明的作用域
+                    val parentDeclaration = macroExpr.getNonStrictParentOfType<CjDeclaration>()
+                    if (parentDeclaration != null) {
+                        val scope = resolveSession.declarationScopeProvider.getResolutionScopeForDeclaration(parentDeclaration)
+                        val macroDescriptors = scope.collectMacros(
+                            macroName,
+                            org.cangnova.cangjie.incremental.components.NoLookupLocation.FROM_IDE
+                        )
+                        // 根据调用处实参数量选择匹配的宏重载
+                        val callArgCount = listOfNotNull(macroExpr.attr, macroExpr.input).size
+                        macroDescriptor = macroDescriptors.find {
+                            it.valueParameters.size == callArgCount
+                        } ?: macroDescriptors.firstOrNull()
+
+                        // 如果找到了宏描述符，记录绑定
+                        if (macroDescriptor != null && trace != null) {
+                            trace.record(BindingContext.MACRO, macroExpr, macroDescriptor)
+                            // 同时记录引用目标
+                            macroExpr.referenceExpression?.let { refExpr ->
+                                trace.record(BindingContext.REFERENCE_TARGET, refExpr, macroDescriptor)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 如果找到了宏描述符，执行强制解析
+            macroDescriptor?.let {
+                ForceResolveUtil.forceResolveAllContents(it)
+            }
+        }
+
+        // 遍历元素的后代宏表达式，但不进入代码块（代码块中的宏表达式在表达式类型检查时解析）
+        element.forEachDescendantOfType<CjMacroExpression>(
+            canGoInside = { it !is CjBlockExpression },
+            action = action
+        )
+    }
+
+
+    /**
      * 创建一个用于解析函数体的解析器
      *
      * @param resolveSession 解析会话，包含解析过程中需要的上下文信息
@@ -891,6 +1012,8 @@ class ResolveElementCache(
 
         // 强制解析函数内部的注解。
         forceResolveAnnotationsInside(namedFunction)
+        // 强制解析函数内部的宏表达式。
+        forceResolveMacroExpressionsInside(namedFunction, trace)
 
         // 返回更新后的绑定追踪对象。
         return trace

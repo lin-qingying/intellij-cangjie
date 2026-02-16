@@ -314,6 +314,9 @@ class LazyExplicitImportScope(
         if (kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK)) {
             descriptors.addAll(getContributedFunctions(aliasName, NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS))
         }
+        if (kindFilter.acceptsKinds(DescriptorKindFilter.MACROS_MASK)) {
+            descriptors.addAll(getContributedMacros(aliasName, NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS))
+        }
         if (kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK)) {
             descriptors.addAll(getContributedVariables(aliasName, NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS))
         }

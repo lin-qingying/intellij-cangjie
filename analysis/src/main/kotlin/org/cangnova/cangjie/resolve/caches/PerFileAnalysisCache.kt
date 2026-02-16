@@ -533,6 +533,19 @@ object CangJieResolveDataProvider {
     fun findAnalyzableParent(element: CjElement): CjElement? {
         if (element is CjFile) return element
 
+        // 特殊处理：如果元素是宏表达式或在宏表达式内部
+        // 宏表达式不能独立分析，应该分析整个包含它的文件
+        if (element is CjMacroExpression) {
+            return element.containingFile as? CjFile
+        }
+
+        // 检查元素是否在宏表达式内部
+        element.parentsWithSelf.forEach { parent ->
+            if (parent is CjMacroExpression) {
+                return element.containingFile as? CjFile
+            }
+        }
+
         val topmostElement = element.findTopmostParentInFile {
             it is CjNamedFunction ||
                     it is CjProperty ||

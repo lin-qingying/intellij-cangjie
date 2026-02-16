@@ -28,6 +28,7 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.systemIndependentPath
 import kotlinx.coroutines.Dispatchers
@@ -39,33 +40,30 @@ import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.api.CjSdk
 import java.io.File
 import java.nio.charset.Charset
-import java.nio.file.Files
 import java.nio.file.Path
 
 /**
  * 编译器宏展开提供者
  *
  * 通过调用 `cjc-frontend --debug-macro` 命令来展开宏。
- * 支持在展开前自动编译宏声明（通过 `--compile-macro`）。
+ * 支持在展开前自动编译宏声明（通过 `cjc --compile-macro`）。
  *
  * ## 工作流程
  *
  * 1. 如果启用了自动编译（`autoCompileMacros = true`）：
- *    - 先执行 `cjc-frontend --compile-macro` 编译宏声明
- *    - 生成 `.cjo` 文件到 `target/release/<platform>/` 目录
+ *    - 先执行 `cjc -p <pkg_dir> --compile-macro -o <pkg_dir>` 编译宏声明
+ *    - 在宏包源码目录下生成动态库 `lib-macro_<name>.dll/.so/.dylib`
  *
  * 2. 执行 `cjc-frontend --debug-macro` 展开宏：
- *    - 使用编译后的 `.cjo` 文件解析 import
+ *    - 通过 `--import-path` 指向宏包目录，让编译器加载动态库
  *    - 生成 `<filename>.macro.cj` 文件
  *
  * ## 命令格式
  *
  * ```
- * cjc-frontend --compile-macro [options] <source-files>
- * cjc-frontend --debug-macro [options] <source-file>
+ * cjc -p <pkg_dir> --compile-macro -o <pkg_dir>    (编译宏包)
+ * cjc-frontend --debug-macro [options] <source-file> (展开宏)
  * ```
- *
- * **注意**: 这些选项属于 `GROUP(FRONTEND)`，只能通过 `cjc-frontend` 使用。
  */
 class CompilerMacroExpansionProvider(private val project: Project) : MacroExpansionProvider {
 
@@ -94,21 +92,24 @@ class CompilerMacroExpansionProvider(private val project: Project) : MacroExpans
         offset: Int,
         options: MacroExpansionOptions
     ): CjResult<MacroExpansionResult, MacroExpansionError> {
-        // 编译器 --debug-macro 是文件级别的操作，需要先展开所有宏然后筛选
+        // 编译器 --debug-macro 是文件级别的操作，生成整个文件的展开结果
         val allResults = expandAllMacrosInFile(project, file, options)
 
         return when (allResults) {
             is CjResult.Ok -> {
-                // 查找包含指定偏移量的宏
-                val matchingResult = allResults.ok.find { result ->
-                    offset >= result.startOffset && offset < result.endOffset
+                if (allResults.ok.isEmpty()) {
+                    return CjResult.Err(MacroExpansionError.MacroNotFound("offset=$offset"))
                 }
 
-                if (matchingResult != null) {
-                    CjResult.Ok(matchingResult)
-                } else {
-                    CjResult.Err(MacroExpansionError.MacroNotFound("offset=$offset"))
+                // 优先查找包含指定偏移量的结果
+                val matchingResult = allResults.ok.find { result ->
+                    result.startOffset != result.endOffset &&
+                        offset >= result.startOffset && offset < result.endOffset
                 }
+
+                // --debug-macro 生成的是整个文件的展开结果，没有单个宏的偏移量，
+                // 所以如果没有精确匹配，直接返回第一个结果
+                CjResult.Ok(matchingResult ?: allResults.ok.first())
             }
             is CjResult.Err -> allResults
         }
@@ -173,7 +174,10 @@ class CompilerMacroExpansionProvider(private val project: Project) : MacroExpans
     }
 
     /**
-     * 如果需要，编译宏声明
+     * 编译项目中的宏定义包
+     *
+     * 查找项目中包含 `macro package` 的源文件并编译，
+     * 而不是编译调用宏的文件本身。
      *
      * @return 编译结果
      */
@@ -181,31 +185,14 @@ class CompilerMacroExpansionProvider(private val project: Project) : MacroExpans
         file: VirtualFile,
         options: MacroExpansionOptions
     ): CjResult<MacroCompilationResult, MacroCompilationError> {
-        // 检查是否需要重新编译
-        val needsRecompile = options.forceRecompile || compilationProvider.needsRecompilation(file)
-
-        if (!needsRecompile) {
-            logger.debug("跳过宏编译：文件未修改或已有最新的编译结果")
-            return CjResult.Ok(
-                MacroCompilationResult(
-                    compiledFiles = listOf(file.path),
-                    outputFiles = emptyList(),
-                    outputDirectory = compilationProvider.getOutputDirectory(file) ?: Path.of(""),
-                    compilationTimeMs = 0,
-                    compilerOutput = "使用缓存"
-                )
-            )
-        }
-
-        logger.info("开始编译宏声明: ${file.path}")
-
         val compileOptions = MacroCompilationOptions(
             forceRecompile = options.forceRecompile,
-            timeoutMs = options.timeoutMs / 2,  // 使用一半的超时时间用于编译
+            timeoutMs = options.timeoutMs / 2,
             parallel = true
         )
 
-        return compilationProvider.compileMacros(file, compileOptions)
+        // 编译项目中所有的宏定义包（而非调用宏的文件）
+        return compilationProvider.compileAllMacrosInProject(compileOptions)
     }
 
     /**
@@ -220,18 +207,15 @@ class CompilerMacroExpansionProvider(private val project: Project) : MacroExpans
         val filePath = file.path
         val sourceFile = File(filePath)
 
-        // 创建临时输出目录
-        val tempDir = Files.createTempDirectory("cj-macro-expansion").toFile()
+        // .macrocall 文件由编译器生成在源文件旁边（file.cj -> file.cj.macrocall）
+        // 这是编译器的固定行为，无法通过参数改变
+        val macroCallFile = File("$filePath.macrocall")
 
         try {
             // 构建命令行
             val commandLine = GeneralCommandLine().apply {
                 exePath = compilerPath.systemIndependentPath
                 addParameter("--debug-macro")
-
-                // 指定输出目录
-                addParameter("--output-dir")
-                addParameter(tempDir.absolutePath)
 
                 // 添加项目相关的导入路径
                 addImportPaths(this, file, sdk)
@@ -254,52 +238,90 @@ class CompilerMacroExpansionProvider(private val project: Project) : MacroExpans
 
             val handler = CapturingProcessHandler(commandLine)
             val output = handler.runProcess(
-                (options.timeoutMs.takeIf { it > 0 } ?: 60000).toInt()
+                (options.timeoutMs.takeIf { it > 0 }
+                    ?: Registry.intValue("cangjie.macro.expansion.timeout.ms").toLong()).toInt()
             )
 
+            // 收集编译器错误信息（即使失败，.macrocall 文件可能已生成）
+            val compilerDiagnostics = mutableListOf<MacroDiagnostic>()
             if (output.exitCode != 0) {
                 val stderr = output.stderr
                 val errorMessage = when {
-                    // 检测 "can not find package" 错误并提供更有帮助的提示
                     stderr.contains("can not find package") -> {
                         val packageMatch = Regex("can not find package '([^']+)'").find(stderr)
                         val packageName = packageMatch?.groupValues?.getOrNull(1) ?: "未知"
                         "找不到包 '$packageName'。请确保：\n" +
                             "1. 已执行 'cjpm build' 构建项目（或启用自动编译选项）\n" +
-                            "2. 依赖包的 .cjo 文件存在于 target/release/<platform>/ 目录下\n" +
+                            "2. 依赖包的 .cjo 文件存在于构建输出目录下\n" +
                             "原始错误: $stderr"
                     }
                     else -> stderr
                 }
 
-                return@withContext CjResult.Err(
-                    MacroExpansionError.ProcessExecutionError(
-                        commandLine = commandLine.commandLineString,
-                        exitCode = output.exitCode,
-                        stderr = errorMessage
+                // 即使编译器返回错误，只要 .macrocall 文件已生成，仍视为展开成功
+                if (!macroCallFile.exists()) {
+                    return@withContext CjResult.Err(
+                        MacroExpansionError.ProcessExecutionError(
+                            commandLine = commandLine.commandLineString,
+                            exitCode = output.exitCode,
+                            stderr = errorMessage
+                        )
+                    )
+                }
+
+                // .macrocall 文件存在，将错误信息记录到诊断中
+                logger.warn("宏展开命令返回非零退出码 (${output.exitCode})，但 .macrocall 文件已生成: $stderr")
+                compilerDiagnostics.add(
+                    MacroDiagnostic(
+                        level = DiagnosticLevel.ERROR,
+                        message = errorMessage
                     )
                 )
             }
 
-            // 读取生成的宏展开文件
-            // 文件名格式为 <原文件名>.macro.cj
-            val macroOutputFile = findMacroOutputFile(tempDir, sourceFile.nameWithoutExtension)
-
-            if (macroOutputFile == null || !macroOutputFile.exists()) {
-                // 没有生成宏展开文件，可能文件中没有宏
+            // 读取编译器生成的 .macrocall 文件
+            // 编译器将展开结果写入 <source_file>.macrocall（在源文件旁边）
+            if (!macroCallFile.exists()) {
+                // 没有生成 .macrocall 文件，可能文件中没有宏
                 return@withContext CjResult.Ok(emptyList())
             }
 
-            val expandedCode = macroOutputFile.readText(Charsets.UTF_8)
-            val result = MacroExpansionResult(
-                filePath = filePath,
-                startOffset = 0,
-                endOffset = 0,
-                expandedText = expandedCode,
-                source = ExpansionSource.COMPILER
-            )
+            // 规范化换行符：IntelliJ DocumentImpl 不接受 \r\n
+            val expandedCode = macroCallFile.readText(Charsets.UTF_8).replace("\r\n", "\n").replace("\r", "\n")
 
-            CjResult.Ok(listOf(result))
+            // 解析编译器输出中的宏展开标记
+            val parsedBlocks = MacroCallFileParser.parse(expandedCode)
+
+            if (parsedBlocks.isEmpty()) {
+                // 无标记格式，回退到原始行为（向后兼容）
+                val result = MacroExpansionResult(
+                    filePath = filePath,
+                    startOffset = 0,
+                    endOffset = 0,
+                    expandedText = expandedCode,
+                    diagnostics = compilerDiagnostics,
+                    source = ExpansionSource.COMPILER
+                )
+                CjResult.Ok(listOf(result))
+            } else {
+                // 读取源文件内容用于计算偏移量
+                val sourceContent = sourceFile.readText(Charsets.UTF_8)
+
+                val results = parsedBlocks.map { block ->
+                    val (startOff, endOff) = calculateOffsets(sourceContent, block.line, block.column)
+                    MacroExpansionResult(
+                        filePath = filePath,
+                        startOffset = startOff,
+                        endOffset = endOff,
+                        expandedText = block.expandedText,
+                        macroName = block.macroName,
+                        sourceFileName = block.sourceFileName,
+                        diagnostics = compilerDiagnostics,
+                        source = ExpansionSource.COMPILER
+                    )
+                }
+                CjResult.Ok(results)
+            }
         } catch (e: Exception) {
             CjResult.Err(
                 MacroExpansionError.InternalError(
@@ -308,9 +330,39 @@ class CompilerMacroExpansionProvider(private val project: Project) : MacroExpans
                 )
             )
         } finally {
-            // 清理临时目录
-            tempDir.deleteRecursively()
+            // 清理编译器生成的 .macrocall 文件，避免污染源码目录
+            if (macroCallFile.exists()) {
+                macroCallFile.delete()
+            }
         }
+    }
+
+    /**
+     * 将行列号转换为字符偏移量
+     *
+     * @param content 源文件内容
+     * @param line 行号（1-based）
+     * @param column 列号（1-based）
+     * @return (startOffset, endOffset)，endOffset 指向该行末尾
+     */
+    private fun calculateOffsets(content: String, line: Int, column: Int): Pair<Int, Int> {
+        if (line <= 0) return Pair(0, 0)
+
+        val lines = content.lines()
+        if (line > lines.size) return Pair(content.length, content.length)
+
+        // 计算目标行的起始偏移量（累加前面所有行的长度 + 换行符）
+        var lineStartOffset = 0
+        for (i in 0 until line - 1) {
+            lineStartOffset += lines[i].length + 1 // +1 for '\n'
+        }
+
+        val targetLine = lines[line - 1]
+        val colOffset = (column - 1).coerceIn(0, targetLine.length)
+        val startOffset = lineStartOffset + colOffset
+        val endOffset = lineStartOffset + targetLine.length
+
+        return Pair(startOffset, endOffset)
     }
 
     /**
@@ -319,11 +371,12 @@ class CompilerMacroExpansionProvider(private val project: Project) : MacroExpans
      * 根据文件所在项目添加必要的 --import-path 参数
      *
      * ## 导入路径优先级
-     * 1. 目标平台构建输出目录 (`target/release/<targetPlatform>` 和 `target/debug/<targetPlatform>`)
-     * 2. 通用输出目录 (`target`, `build`, `out`, `.cjpm/target`)
-     * 3. 项目根目录
-     * 4. SDK 标准库路径
-     * 5. 环境变量中的路径 (CANGJIE_HOME, CANGJIE_PATH)
+     * 1. 编译后的宏包目录（包含 `lib-macro_*.dll/.so` 的目录）
+     * 2. 目标平台构建输出目录 (`<target-dir>/release/<targetPlatform>` 和 `<target-dir>/debug/<targetPlatform>`)
+     * 3. 通用输出目录 (`<target-dir>`, `build`, `out`, `.cjpm/<target-dir>`)
+     * 4. 项目根目录
+     * 5. SDK 标准库路径
+     * 6. 环境变量中的路径 (CANGJIE_HOME, CANGJIE_PATH)
      */
     private fun addImportPaths(commandLine: GeneralCommandLine, file: VirtualFile, sdk: CjSdk) {
         val addedPaths = mutableSetOf<String>()
@@ -336,6 +389,12 @@ class CompilerMacroExpansionProvider(private val project: Project) : MacroExpans
             }
         }
 
+        // 0. 添加编译后的宏包目录（最高优先级）
+        // 这些目录包含 lib-macro_*.dll/.so 动态库
+        for (macroDir in compilationProvider.compiledMacroPackageDirs) {
+            addPath(macroDir)
+        }
+
         // 1. 尝试获取文件所在的项目目录
         val sourceFile = File(file.path)
         val projectDir = findProjectRoot(sourceFile)
@@ -343,23 +402,25 @@ class CompilerMacroExpansionProvider(private val project: Project) : MacroExpans
         if (projectDir != null) {
             // 获取目标平台用于定位构建输出目录
             val targetPlatform = sdk.version?.targetPlatform
+            // 从 cjpm.toml 读取 target-dir 配置
+            val targetDir = resolveTargetDir(projectDir)
 
             // 1.1 添加目标平台特定的构建输出目录
             if (targetPlatform != null) {
                 // release 模式输出
-                val releaseDir = File(projectDir, "target/release/$targetPlatform")
+                val releaseDir = File(projectDir, "$targetDir/release/$targetPlatform")
                 if (releaseDir.exists() && releaseDir.isDirectory) {
                     addPath(releaseDir.absolutePath)
                 }
 
                 // debug 模式输出
-                val debugDir = File(projectDir, "target/debug/$targetPlatform")
+                val debugDir = File(projectDir, "$targetDir/debug/$targetPlatform")
                 if (debugDir.exists() && debugDir.isDirectory) {
                     addPath(debugDir.absolutePath)
                 }
 
                 // .cjpm 目录下的输出
-                val cjpmReleaseDir = File(projectDir, ".cjpm/target/release/$targetPlatform")
+                val cjpmReleaseDir = File(projectDir, ".cjpm/$targetDir/release/$targetPlatform")
                 if (cjpmReleaseDir.exists() && cjpmReleaseDir.isDirectory) {
                     addPath(cjpmReleaseDir.absolutePath)
                 }
@@ -367,10 +428,10 @@ class CompilerMacroExpansionProvider(private val project: Project) : MacroExpans
 
             // 1.2 添加通用输出目录
             val possibleOutputDirs = listOf(
-                File(projectDir, "target"),
+                File(projectDir, targetDir),
                 File(projectDir, "build"),
                 File(projectDir, "out"),
-                File(projectDir, ".cjpm/target"),
+                File(projectDir, ".cjpm/$targetDir"),
                 projectDir // 项目根目录本身
             )
 
@@ -413,6 +474,24 @@ class CompilerMacroExpansionProvider(private val project: Project) : MacroExpans
     }
 
     /**
+     * 从 cjpm.toml 解析构建输出目录名
+     *
+     * 读取 `cjpm.toml` 中 `[package]` 的 `target-dir` 配置，
+     * 默认返回 `"target"`，与 `CjpmBuildConfigurationImpl.outputDir` 逻辑一致。
+     */
+    private fun resolveTargetDir(projectDir: File): String {
+        val tomlFile = File(projectDir, "cjpm.toml")
+        if (!tomlFile.exists()) return "target"
+        return try {
+            val content = tomlFile.readText(Charsets.UTF_8)
+            val targetDirRegex = Regex("""target-dir\s*=\s*"([^"]+)"""")
+            targetDirRegex.find(content)?.groupValues?.getOrNull(1)?.takeIf { it.isNotEmpty() } ?: "target"
+        } catch (_: Exception) {
+            "target"
+        }
+    }
+
+    /**
      * 查找项目根目录
      *
      * 通过查找 cjpm.toml 或其他项目标识文件来定位项目根目录
@@ -444,22 +523,6 @@ class CompilerMacroExpansionProvider(private val project: Project) : MacroExpans
             current = current.parentFile
         }
         return null
-    }
-
-    /**
-     * 查找宏展开输出文件
-     */
-    private fun findMacroOutputFile(outputDir: File, baseName: String): File? {
-        // 尝试查找 .macro.cj 后缀的文件
-        val macroFile = File(outputDir, "$baseName.macro.cj")
-        if (macroFile.exists()) {
-            return macroFile
-        }
-
-        // 如果没有找到，尝试匹配其他可能的命名模式
-        return outputDir.listFiles()?.firstOrNull { file ->
-            file.name.contains(baseName) && file.extension == "cj"
-        }
     }
 
     /**

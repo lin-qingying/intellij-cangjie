@@ -49,6 +49,7 @@ import org.cangnova.cangjie.resolve.scopes.MemberScope
  */
 interface PackageViewDescriptor : PackageData ,DeclarationDescriptorWithVisibility,PackageAndModuleDescriptor{
 
+    val isMacro: Boolean
 
     override val containingDeclaration: PackageViewDescriptor?
 

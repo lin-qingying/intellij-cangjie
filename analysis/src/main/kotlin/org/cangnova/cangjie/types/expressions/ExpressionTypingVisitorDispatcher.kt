@@ -519,6 +519,10 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
         return basic.visitQualifiedExpression(expression, data)
     }
 
+    override fun visitMacroExpression(expression: CjMacroExpression, data: ExpressionTypingContext): CangJieTypeInfo? {
+        return basic.visitMacroExpression(expression, data)
+    }
+
     override fun visitCallExpression(expression: CjCallExpression, data: ExpressionTypingContext): CangJieTypeInfo {
         return basic.visitCallExpression(expression, data)
     }

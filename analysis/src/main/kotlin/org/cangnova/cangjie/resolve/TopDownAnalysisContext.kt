@@ -44,6 +44,7 @@ class TopDownAnalysisContext(
     override val files = LinkedHashSet<CjFile>()
     override val mainFunctions = LinkedHashMap<CjMainFunction, SimpleFunctionDescriptor>()
     override val macros = LinkedHashMap<CjMacroDeclaration, MacroDescriptor>()
+    val macroExpressions = mutableListOf<CjMacroExpression>()  // 顶层宏表达式列表
     override val functions = LinkedHashMap<CjNamedFunction, SimpleFunctionDescriptor>()
     override val variables: MutableMap<CjVariable<*>, List<VariableDescriptor>> = LinkedHashMap<CjVariable<*>, List<VariableDescriptor>>()
     override val properties = LinkedHashMap<CjProperty, PropertyDescriptor>()

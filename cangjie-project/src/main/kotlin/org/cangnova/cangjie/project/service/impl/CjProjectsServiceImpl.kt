@@ -205,7 +205,7 @@ internal class CjProjectsServiceImpl(
     /**
      * 刷新防抖动延迟（毫秒）
      */
-    private val refreshDebounceMs = 300L
+    private val refreshDebounceMs get() = Registry.intValue("cangjie.project.refresh.debounce.ms").toLong()
 
     /**
      * 当前仓颉项目的异步值持有者
@@ -647,8 +647,8 @@ internal class CjProjectsServiceImpl(
 
         // 延迟到后台执行项目发现，避免阻塞 IDE 启动
         cs.launch {
-            // 延迟 200ms，让 IDE 先完成启动流程
-            delay(200)
+            // 延迟让 IDE 先完成启动流程
+            delay(Registry.intValue("cangjie.project.discovery.initial.delay.ms").toLong())
 
             if (!intellijProject.isDisposed) {
                 log.info("Starting delayed project discovery")
@@ -709,8 +709,8 @@ internal class CjProjectsServiceImpl(
             val disableRefresh =
                 System.getProperty(CANGJIE_DISABLE_PROJECT_REFRESH_ON_CREATION, "false").toBooleanStrictOrNull()
             if (disableRefresh != true && loadedProject != null) {
-                // 延迟 500ms，比 noStateLoaded 更长，让 IDE 完全启动后再刷新
-                delay(500)
+                // 延迟让 IDE 完全启动后再刷新
+                delay(Registry.intValue("cangjie.project.refresh.startup.delay.ms").toLong())
 
                 // 在后台线程执行项目刷新，避免阻塞 EDT
                 if (!intellijProject.isDisposed && loadedProject.isValid) {

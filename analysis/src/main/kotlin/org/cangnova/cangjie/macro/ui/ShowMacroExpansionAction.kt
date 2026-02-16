@@ -123,9 +123,13 @@ ShowMacroExpansionAction : DumbAwareAction() {
     ) {
         val service = MacroExpansionService.getInstance(project)
 
+        // 在 EDT 上提取 PSI 数据，避免在后台线程访问 PSI
+        val file = macroExpression.containingFile?.virtualFile ?: return
+        val offset = macroExpression.textOffset
+
         // 在协程中执行展开操作
         CoroutineScope(Dispatchers.Default).launch {
-            val result = service.expandMacro(macroExpression)
+            val result = service.expandMacroAtOffset(file, offset)
 
             withContext(Dispatchers.Main) {
                 when (result) {

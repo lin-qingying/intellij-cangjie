@@ -56,7 +56,7 @@ class MacroExpansionPanel(
 
     init {
         // 创建编辑器显示展开后的代码
-        val document = EditorFactory.getInstance().createDocument(result.expandedText)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   val document = EditorFactory.getInstance().createDocument(result.expandedText)
         editor = EditorFactory.getInstance().createEditor(document, project) as EditorEx
 
         // 配置编辑器
@@ -120,7 +120,11 @@ class MacroExpansionPanel(
         val sourceLabel = JBLabel("来源: ${getSourceDisplayName(result.source)}")
         sourceLabel.border = JBUI.Borders.emptyRight(10)
 
-        val locationLabel = JBLabel("位置: ${result.startOffset} - ${result.endOffset}")
+        val locationLabel = if (result.macroName != null) {
+            JBLabel("宏: @${result.macroName}")
+        } else {
+            JBLabel("位置: ${result.startOffset} - ${result.endOffset}")
+        }
 
         val infoBox = JPanel(BorderLayout())
         infoBox.add(sourceLabel, BorderLayout.WEST)
@@ -204,7 +208,12 @@ class MacroExpansionListPanel(
      */
     private fun createItemPanel(index: Int, result: MacroExpansionResult): JPanel {
         val panel = JPanel(BorderLayout())
-        panel.border = BorderFactory.createTitledBorder("宏 #${index + 1} (${result.startOffset} - ${result.endOffset})")
+        val title = if (result.macroName != null) {
+            "@${result.macroName}"
+        } else {
+            "宏 #${index + 1} (${result.startOffset} - ${result.endOffset})"
+        }
+        panel.border = BorderFactory.createTitledBorder(title)
 
         // 创建编辑器
         val document = EditorFactory.getInstance().createDocument(result.expandedText)

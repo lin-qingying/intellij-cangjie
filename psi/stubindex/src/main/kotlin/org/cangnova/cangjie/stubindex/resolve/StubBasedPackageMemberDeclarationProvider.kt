@@ -79,6 +79,10 @@ class StubBasedPackageMemberDeclarationProvider(
             addFromIndex(CangJieTopLevelFunctionByPackageIndex)
         }
 
+        if (kindFilter.acceptsKinds(DescriptorKindFilter.MACROS_MASK)) {
+            addFromIndex(CangJieMacroDeclarationByPackageIndex)
+        }
+
         if (kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK)) {
             addFromIndex(CangJieTopLevelVariableByPackageIndex)
         }

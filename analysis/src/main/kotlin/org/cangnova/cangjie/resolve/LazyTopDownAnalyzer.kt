@@ -111,6 +111,7 @@ class LazyTopDownAnalyzer(
         val variables = mutableListOf<CjVariable<*>>()
         val functions = mutableListOf<CjNamedFunction>()
         val macroDeclarations = mutableListOf<CjMacroDeclaration>()
+        val macroExpressions = mutableListOf<CjMacroExpression>()
         val mainFunctions = mutableListOf<CjMainFunction>()
         val typeAliases = mutableListOf<CjTypeAlias>()
 
@@ -245,6 +246,15 @@ class LazyTopDownAnalyzer(
                 override fun visitCjFile(file: CjFile) {
                     filePreprocessor.preprocessFile(file)
                     registerDeclarations(file.declarations)
+
+                    // 特殊处理：遍历文件中的所有顶层宏表达式
+                    // 因为宏表达式是表达式而不是声明，不在 file.declarations 中
+                    file.children.forEach { child ->
+                        if (child is CjMacroExpression) {
+                            child.accept(visitor!!)
+                        }
+                    }
+
                     val packageDirective = file.packageDirective
                     assert(packageDirective != null) { "No package in a non-script file: $file" }
                     packageDirective?.accept(this)
@@ -258,6 +268,16 @@ class LazyTopDownAnalyzer(
 
                 override fun visitMacroDeclaration(function: CjMacroDeclaration) {
                     macroDeclarations.add(function)
+                }
+
+                override fun visitMacroExpression(expression: CjMacroExpression, data: Unit?) {
+                    macroExpressions.add(expression)
+                    // 注释掉：不需要遍历宏表达式内部的声明，因为只能在宏展开后分析
+                    // expression.children.forEach { child ->
+                    //     if (child is CjDeclaration) {
+                    //         child.accept(visitor!!)
+                    //     }
+                    // }
                 }
 
                 override fun visitMainFunction(mainFunction: CjMainFunction) {
@@ -280,6 +300,8 @@ class LazyTopDownAnalyzer(
         createFunctionDescriptors(c, functions)
         createMainFunctionDescriptors(c, mainFunctions)
         createMacroDescriptors(c, macroDeclarations)
+        // 将收集的宏表达式添加到上下文中，后续由 BodyResolver 处理
+        c.macroExpressions.addAll(macroExpressions)
         createPropertyDescriptors(c, topLevelFqNames, properties)
 
         createVariableDescriptors(c, topLevelFqNames, variables)

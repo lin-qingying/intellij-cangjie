@@ -33,7 +33,7 @@ import org.cangnova.cangjie.psi.CjUserType
 import org.cangnova.cangjie.psi.psiUtil.parents
 
 
-class CangJieReferenceContributor : CangJieReferenceProviderContributor {
+internal class CangJieReferenceContributor : CangJieReferenceProviderContributor {
     override fun registerReferenceProviders(registrar: CangJiePsiReferenceRegistrar) {
         with(registrar) {
             registerProvider(factory = ::CjSimpleNameReference)
@@ -41,6 +41,8 @@ class CangJieReferenceContributor : CangJieReferenceProviderContributor {
             registerProvider(factory = ::CjConstructorDelegationReference)
             registerProvider(factory = ::CjArrayAccessReference)
             registerProvider(factory = ::CangJieCDocReference)
+            registerProvider(factory = ::CjMacroExpressionReference)
+            registerProvider(factory = ::CjAnnotationReference)
 
 //            registerProvider(factory = ::CjPatternEnumReference)
 //

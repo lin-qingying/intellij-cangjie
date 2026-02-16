@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.macro.service
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.result.CjResult
 
@@ -114,22 +115,31 @@ interface MacroCompilationService {
 
 /**
  * 宏编译选项
+ *
+ * 默认值通过 IntelliJ Registry 键控制，用户可通过
+ * `Help → Find Action → Registry` 调整：
+ *
+ * | Registry Key | 说明 |
+ * |---|---|
+ * | `cangjie.macro.compilation.force.recompile` | 是否强制重新编译 |
+ * | `cangjie.macro.compilation.timeout.ms` | 编译超时时间（毫秒） |
+ * | `cangjie.macro.compilation.parallel` | 是否并行编译 |
  */
 data class MacroCompilationOptions(
     /**
      * 是否强制重新编译（忽略缓存）
      */
-    val forceRecompile: Boolean = false,
+    val forceRecompile: Boolean = Registry.`is`("cangjie.macro.compilation.force.recompile"),
 
     /**
      * 编译超时时间（毫秒），0 表示无超时
      */
-    val timeoutMs: Long = 30000L,
+    val timeoutMs: Long = Registry.intValue("cangjie.macro.compilation.timeout.ms").toLong(),
 
     /**
      * 是否并行编译
      */
-    val parallel: Boolean = true,
+    val parallel: Boolean = Registry.`is`("cangjie.macro.compilation.parallel"),
 
     /**
      * 自定义输出目录，null 表示使用默认目录
@@ -137,7 +147,7 @@ data class MacroCompilationOptions(
     val outputDir: java.nio.file.Path? = null
 ) {
     companion object {
-        val DEFAULT = MacroCompilationOptions()
+        val DEFAULT get() = MacroCompilationOptions()
     }
 }
 

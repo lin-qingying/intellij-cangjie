@@ -552,6 +552,24 @@ class LazyPackageViewDescriptorImpl(
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R =
         visitor.visitPackageViewDescriptor(this, data!!)
 
+    /**
+     * 惰性计算包是否为宏包
+     *
+     * 通过检查包片段中的文件的 `packageDirective.isMacroPackage` 属性来确定。
+     * 如果任何一个文件声明为宏包（使用 `macro package` 关键字），则此包被视为宏包。
+     */
+    override val isMacro: Boolean by storageManager.createLazyValue {
+        fragments.any { fragment ->
+            val declarationProvider = fragment.declarationProvider
+            if (declarationProvider is PackageMemberDeclarationProvider) {
+                declarationProvider.getPackageFiles().any { file ->
+                    file.packageDirective?.isMacroPackage == true
+                }
+            } else {
+                false
+            }
+        }
+    }
 
     val empty: Boolean by storageManager.createLazyValue {
         module.packageFragmentProvider.isEmpty(fqName)
