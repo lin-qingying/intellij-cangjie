@@ -62,19 +62,18 @@ internal class CjMacroExpansionLineMarkerProvider : LineMarkerProvider {
         val macroExpression = element.parent as? CjMacroExpression ?: return null
 
         // 确保 '@' 是宏表达式的第一个子节点
-        if (macroExpression.firstChild != element) return null
+//        if (macroExpression.firstChild != element) return null
 
         val shortName = macroExpression.shortName?.asString() ?: "macro"
-        val tooltipText = "展开宏 @$shortName"
 
         return LineMarkerInfo(
             element,
             element.textRange,
             CangJieBaseResourcesIcons.MacroCangJie,
-            { tooltipText },
+            { CangJieMacroBundle.message("macro.expansion.tooltip", shortName) },
             MacroExpansionNavigationHandler(),
             GutterIconRenderer.Alignment.LEFT,
-            { tooltipText }
+            CangJieMacroBundle.lazyMessage("macro.expansion.tooltip", shortName)
         )
     }
 
@@ -88,7 +87,7 @@ internal class CjMacroExpansionLineMarkerProvider : LineMarkerProvider {
             val service = MacroExpansionService.getInstance(project)
 
             if (!service.isAvailable()) {
-                showErrorPopup(project, e, "宏展开服务不可用")
+                showErrorPopup(project, e, CangJieMacroBundle.message("macro.expansion.service.unavailable"))
                 return
             }
 
@@ -116,7 +115,7 @@ internal class CjMacroExpansionLineMarkerProvider : LineMarkerProvider {
 
             val popup = JBPopupFactory.getInstance()
                 .createComponentPopupBuilder(panel, panel.getPreferredFocusableComponent())
-                .setTitle("宏展开结果")
+                .setTitle(CangJieMacroBundle.message("macro.expansion.popup.title"))
                 .setResizable(true)
                 .setMovable(true)
                 .setFocusable(true)

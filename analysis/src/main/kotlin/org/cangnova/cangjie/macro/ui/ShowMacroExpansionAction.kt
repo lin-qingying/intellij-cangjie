@@ -137,7 +137,7 @@ ShowMacroExpansionAction : DumbAwareAction() {
                         showExpansionPopup(project, editor, result.ok)
                     }
                     is CjResult.Err -> {
-                        showErrorPopup(project, editor, result.err.message ?: "宏展开失败")
+                        showErrorPopup(project, editor, result.err.message ?: CangJieMacroBundle.message("macro.expansion.failed"))
                     }
                 }
             }
@@ -162,13 +162,13 @@ ShowMacroExpansionAction : DumbAwareAction() {
                 when (result) {
                     is CjResult.Ok -> {
                         if (result.ok.isEmpty()) {
-                            showInfoPopup(project, editor, "文件中没有找到宏表达式")
+                            showInfoPopup(project, editor, CangJieMacroBundle.message("macro.expansion.no.macros.in.file"))
                         } else {
                             showAllExpansionsPopup(project, editor, result.ok)
                         }
                     }
                     is CjResult.Err -> {
-                        showErrorPopup(project, editor, result.err.message ?: "宏展开失败")
+                        showErrorPopup(project, editor, result.err.message ?: CangJieMacroBundle.message("macro.expansion.failed"))
                     }
                 }
             }
@@ -187,7 +187,7 @@ ShowMacroExpansionAction : DumbAwareAction() {
 
         val popup = JBPopupFactory.getInstance()
             .createComponentPopupBuilder(panel, panel.getPreferredFocusableComponent())
-            .setTitle("宏展开结果")
+            .setTitle(CangJieMacroBundle.message("macro.expansion.popup.title"))
             .setResizable(true)
             .setMovable(true)
             .setFocusable(true)
@@ -212,7 +212,7 @@ ShowMacroExpansionAction : DumbAwareAction() {
 
         val popup = JBPopupFactory.getInstance()
             .createComponentPopupBuilder(panel, panel.getPreferredFocusableComponent())
-            .setTitle("所有宏展开结果 (${results.size} 个)")
+            .setTitle(CangJieMacroBundle.message("macro.expansion.all.popup.title", results.size))
             .setResizable(true)
             .setMovable(true)
             .setFocusable(true)

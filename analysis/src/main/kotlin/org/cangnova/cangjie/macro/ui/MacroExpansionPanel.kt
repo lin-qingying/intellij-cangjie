@@ -117,13 +117,13 @@ class MacroExpansionPanel(
         val panel = JPanel(BorderLayout())
         panel.border = BorderFactory.createEmptyBorder(0, 0, 5, 0)
 
-        val sourceLabel = JBLabel("来源: ${getSourceDisplayName(result.source)}")
+        val sourceLabel = JBLabel(CangJieMacroBundle.message("macro.expansion.panel.source.label", getSourceDisplayName(result.source)))
         sourceLabel.border = JBUI.Borders.emptyRight(10)
 
         val locationLabel = if (result.macroName != null) {
-            JBLabel("宏: @${result.macroName}")
+            JBLabel(CangJieMacroBundle.message("macro.expansion.panel.macro.label", result.macroName))
         } else {
-            JBLabel("位置: ${result.startOffset} - ${result.endOffset}")
+            JBLabel(CangJieMacroBundle.message("macro.expansion.panel.location.label", result.startOffset, result.endOffset))
         }
 
         val infoBox = JPanel(BorderLayout())
@@ -134,7 +134,7 @@ class MacroExpansionPanel(
 
         // 如果有诊断信息，显示警告
         if (result.diagnostics.isNotEmpty()) {
-            val warningLabel = JBLabel("⚠ ${result.diagnostics.size} 个诊断信息")
+            val warningLabel = JBLabel(CangJieMacroBundle.message("macro.expansion.panel.diagnostics.warning", result.diagnostics.size))
             warningLabel.border = JBUI.Borders.emptyLeft(10)
             panel.add(warningLabel, BorderLayout.EAST)
         }
@@ -148,8 +148,8 @@ class MacroExpansionPanel(
     private fun getSourceDisplayName(source: ExpansionSource): String {
         return when (source) {
 
-            ExpansionSource.COMPILER -> "编译器"
-            ExpansionSource.CACHE -> "缓存"
+            ExpansionSource.COMPILER -> CangJieMacroBundle.message("macro.expansion.panel.source.compiler")
+            ExpansionSource.CACHE -> CangJieMacroBundle.message("macro.expansion.panel.source.cache")
         }
     }
 
@@ -211,7 +211,7 @@ class MacroExpansionListPanel(
         val title = if (result.macroName != null) {
             "@${result.macroName}"
         } else {
-            "宏 #${index + 1} (${result.startOffset} - ${result.endOffset})"
+            CangJieMacroBundle.message("macro.expansion.list.item.title", index + 1, result.startOffset, result.endOffset)
         }
         panel.border = BorderFactory.createTitledBorder(title)
 
