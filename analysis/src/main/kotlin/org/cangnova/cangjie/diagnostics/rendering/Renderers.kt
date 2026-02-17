@@ -35,6 +35,7 @@ import org.cangnova.cangjie.psi.psiUtil.identifier
 import org.cangnova.cangjie.renderer.ClassifierNamePolicy
 import org.cangnova.cangjie.renderer.DescriptorRenderer
 import org.cangnova.cangjie.resolve.DescriptorUtils
+import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 
 import org.cangnova.cangjie.types.CangJieType
 
@@ -279,11 +280,10 @@ object Renderers {
             }
     }
 
-//    
-//    val AMBIGUOUS_CALLS = renderer { calls: Collection<ResolvedCall<*>> ->
-//        val descriptors = calls.map { it.resultingDescriptor }
-//        renderAmbiguousDescriptors(descriptors)
-//    }
+    val AMBIGUOUS_CALLS = renderer { calls: Collection<ResolvedCall<*>> ->
+        val descriptors = calls.map { it.resultingDescriptor }
+        renderAmbiguousDescriptors(descriptors)
+    }
 
     
     val TO_STRING = renderer<Any> { element ->

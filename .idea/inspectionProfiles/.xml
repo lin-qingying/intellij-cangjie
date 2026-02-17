@@ -97,6 +97,7 @@
         <set>
           <option value="org.cangnova.cangjie.debugger.protobuf.memory.gutter.BreakpointGutterIconRenderer" />
           <option value="org.cangnova.cangjie.highlighter.RegisterQuickFixesLaterIntentionAction" />
+          <option value="org.cangnova.cangjie.macro.ui.CjMacroExpansionLineMarkerProvider" />
         </set>
       </option>
     </inspection_tool>

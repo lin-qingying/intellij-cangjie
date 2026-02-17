@@ -267,6 +267,24 @@ internal class DefaultRenderers : DiagnosticRendererProvider {
                 message { CangJieDiagnosisBundle.rawMessage(it) }
                 renderers(Renderers.RENDER_TYPE, Renderers.RENDER_TYPE)
             }
+
+            // 重载解析模糊 - 列出所有候选
+            register(OVERLOAD_RESOLUTION_AMBIGUITY) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                renderers(Renderers.AMBIGUOUS_CALLS)
+            }
+
+            // 无适用的候选 - 列出所有候选
+            register(NONE_APPLICABLE) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                renderers(Renderers.AMBIGUOUS_CALLS)
+            }
+
+            // 无法完成解析 - 列出所有候选
+            register(CANNOT_COMPLETE_RESOLVE) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                renderers(Renderers.AMBIGUOUS_CALLS)
+            }
         }
     }
 }

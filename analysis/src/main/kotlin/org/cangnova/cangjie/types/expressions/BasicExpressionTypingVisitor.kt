@@ -62,7 +62,6 @@ import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.CAST_TYPE_U
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.COMPILE_TIME_VALUE
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.INDEXED_LVALUE_GET
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.INDEXED_LVALUE_SET
-import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.MACRO
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.REFERENCE_TARGET
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.RESOLVED_CALL
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.SUPER_EXPRESSION_FROM_ANY_MIGRATION
@@ -95,8 +94,6 @@ import org.cangnova.cangjie.resolve.calls.util.CallMaker
 import org.cangnova.cangjie.resolve.calls.util.CallMaker.makeCall
 import org.cangnova.cangjie.resolve.constants.*
 import org.cangnova.cangjie.resolve.scopes.LexicalScopeKind
-import org.cangnova.cangjie.resolve.scopes.collectMacros
-import org.cangnova.cangjie.resolve.scopes.findClassifier
 import org.cangnova.cangjie.resolve.scopes.findFirstClassifierWithDeprecationStatus
 import org.cangnova.cangjie.resolve.scopes.getImplicitReceiversHierarchy
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver.Companion.create
@@ -1200,57 +1197,38 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             return noTypeInfo(context)
         }
 
-        // 通过作用域链向上查找宏描述符
-        val scope = context.scope
-        val macroDescriptors = scope.collectMacros(
-            macroName,
-            NoLookupLocation.FROM_IDE
+        val resolver = MacroExpressionResolver()
+        val result = resolver.resolve(
+            expression, macroName, context.scope,
+            context.scope.ownerDescriptor,
+            NoLookupLocation.FROM_IDE,
+            context.languageVersionSettings
         )
 
-        // 1. 优先查找宏定义（宏是常见情况）
-        if (macroDescriptors.isNotEmpty()) {
-            // 根据调用处实参数量选择匹配的宏重载
-            val callArgCount = listOfNotNull(expression.attr, expression.input).size
-            val macroDescriptor = macroDescriptors.find {
-                it.valueParameters.size == callArgCount
-            } ?: macroDescriptors.first()
+        resolver.recordResults(context.trace, expression, result)
+        resolver.reportDiagnostics(context.trace, expression, result)
 
-            // 记录宏绑定到 BindingContext
-            context.trace.record(MACRO, expression, macroDescriptor)
-
-            // 记录引用目标
-            expression.referenceExpression?.let { refExpr ->
-                context.trace.record(REFERENCE_TARGET, refExpr, macroDescriptor)
+        return when (result) {
+            is MacroExpressionResolver.MacroResolutionResult.MacroResult -> {
+                if (result.results.isSuccess) {
+                    val returnType = result.results.resultingDescriptor.returnType
+                    if (returnType != null) {
+                        components.dataFlowAnalyzer.checkType(
+                            createTypeInfo(returnType, context.dataFlowInfo),
+                            expression, context
+                        )
+                    } else {
+                        createTypeInfo(components.builtIns.unitType, context.dataFlowInfo)
+                    }
+                } else {
+                    noTypeInfo(context)
+                }
             }
-
-            // 返回宏的返回类型
-            val returnType = macroDescriptor.returnType
-            return if (returnType != null) {
-                components.dataFlowAnalyzer.checkType(
-                    createTypeInfo(returnType, context.dataFlowInfo),
-                    expression,
-                    context
-                )
-            } else {
+            is MacroExpressionResolver.MacroResolutionResult.ClassifierFallback -> {
                 createTypeInfo(components.builtIns.unitType, context.dataFlowInfo)
             }
+            is MacroExpressionResolver.MacroResolutionResult.NotFound -> noTypeInfo(context)
         }
-
-        // 2. 回退：沿作用域链向上查找注解类（自定义注解场景）
-        val classifier = scope.findClassifier(macroName, NoLookupLocation.FROM_IDE)
-        if (classifier != null) {
-            expression.referenceExpression?.let { refExpr ->
-                context.trace.record(REFERENCE_TARGET, refExpr, classifier)
-            }
-            return createTypeInfo(components.builtIns.unitType, context.dataFlowInfo)
-        }
-
-        // 3. 都找不到 → 报错
-        val referenceExpression = expression.referenceExpression
-        if (referenceExpression != null) {
-            context.trace.report(UNRESOLVED_REFERENCE.on(referenceExpression, referenceExpression))
-        }
-        return noTypeInfo(context)
     }
 
     private fun checkNull(

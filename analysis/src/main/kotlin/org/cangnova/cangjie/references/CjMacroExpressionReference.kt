@@ -44,13 +44,19 @@ class CjMacroExpressionReference(expression: CjMacroExpression) :
         get() = listOfNotNull(expression.shortName)
 
     override fun getTargetDescriptors(context: BindingContext): Collection<DeclarationDescriptor> {
-        // 1. 尝试从 MACRO slice 获取
+        // 1. 优先从完整解析结果获取
+        val resolvedResults = context[BindingContext.RESOLVED_MACRO_CALL, expression]
+        if (resolvedResults != null && resolvedResults.isSuccess) {
+            return listOf(resolvedResults.resultingDescriptor)
+        }
+
+        // 2. 回退到 MACRO slice
         val macroDescriptor = context[BindingContext.MACRO, expression]
         if (macroDescriptor != null) {
             return listOf(macroDescriptor)
         }
 
-        // 2. 从 REFERENCE_TARGET 获取（可能是宏或注解类）
+        // 3. 从 REFERENCE_TARGET 获取（注解类回退）
         val referenceExpression = expression.referenceExpression
         if (referenceExpression != null) {
             val target = context[BindingContext.REFERENCE_TARGET, referenceExpression]

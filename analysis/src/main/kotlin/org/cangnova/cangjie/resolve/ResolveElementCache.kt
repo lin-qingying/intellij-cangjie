@@ -68,8 +68,6 @@ import org.cangnova.cangjie.resolve.lazy.BodyResolveMode.*
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyClassDescriptorBase
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendDescriptor
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
-import org.cangnova.cangjie.resolve.scopes.collectMacros
-import org.cangnova.cangjie.resolve.scopes.findClassifier
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 import org.cangnova.cangjie.utils.isUnitTestMode
 import org.jetbrains.annotations.TestOnly
@@ -838,41 +836,26 @@ class ResolveElementCache(
         bindingTraceFilter: BindingTraceFilter
     ): BindingTrace {
         val trace = createDelegatingTrace(macroExpression, bindingTraceFilter)
-        val macroName = macroExpression.shortName
+        val macroName = macroExpression.shortName ?: return trace
 
-        if (macroName != null) {
-            val file = macroExpression.getContainingCjFile()
-            val scope = resolveSession.fileScopeProvider.getFileResolutionScope(file)
+        val file = macroExpression.getContainingCjFile()
+        val scope = resolveSession.fileScopeProvider.getFileResolutionScope(file)
 
-            // 1. 优先沿作用域链查找宏定义
-            val macroDescriptors = scope.collectMacros(
-                macroName,
-                org.cangnova.cangjie.incremental.components.NoLookupLocation.FROM_IDE
-            )
-            // 根据调用处实参数量选择匹配的宏重载
-            val callArgCount = listOfNotNull(macroExpression.attr, macroExpression.input).size
-            val macroDescriptor = macroDescriptors.find {
-                it.valueParameters.size == callArgCount
-            } ?: macroDescriptors.firstOrNull()
+        val resolver = MacroExpressionResolver()
+        val result = resolver.resolve(
+            macroExpression, macroName, scope,
+            scope.ownerDescriptor,
+            org.cangnova.cangjie.incremental.components.NoLookupLocation.FROM_IDE,
+            resolveSession.languageVersionSettings
+        )
 
-            if (macroDescriptor != null) {
-                trace.record(BindingContext.MACRO, macroExpression, macroDescriptor)
-                macroExpression.referenceExpression?.let { refExpr ->
-                    trace.record(BindingContext.REFERENCE_TARGET, refExpr, macroDescriptor)
-                }
-                ForceResolveUtil.forceResolveAllContents(macroDescriptor)
-            } else {
-                // 2. 回退：沿作用域链查找注解类
-                val classifier = scope.findClassifier(
-                    macroName,
-                    org.cangnova.cangjie.incremental.components.NoLookupLocation.FROM_IDE
-                )
-                if (classifier != null) {
-                    macroExpression.referenceExpression?.let { refExpr ->
-                        trace.record(BindingContext.REFERENCE_TARGET, refExpr, classifier)
-                    }
-                }
-            }
+        resolver.recordResults(trace, macroExpression, result)
+
+        // ForceResolve 宏描述符内容
+        if (result is MacroExpressionResolver.MacroResolutionResult.MacroResult &&
+            result.results.isSingleResult
+        ) {
+            ForceResolveUtil.forceResolveAllContents(result.results.resultingDescriptor)
         }
 
         return trace
@@ -887,36 +870,34 @@ class ResolveElementCache(
      * @param trace 绑定跟踪对象，用于记录解析过程中的绑定信息
      */
     private fun forceResolveMacroExpressionsInside(element: CjElement, trace: BindingTrace? = null) {
-        // 定义一个对宏表达式执行强制解析的操作
         val action: (CjMacroExpression) -> Unit = { macroExpr ->
             // 尝试从解析会话的绑定上下文中获取宏描述符
             var macroDescriptor = resolveSession.bindingContext[BindingContext.MACRO, macroExpr]
 
-            // 如果宏描述符尚未解析，尝试通过作用域查找并解析
+            // 如果宏描述符尚未解析，使用 MacroExpressionResolver 解析
             if (macroDescriptor == null) {
                 val macroName = macroExpr.shortName
                 if (macroName != null) {
-                    // 获取宏表达式所在声明的作用域
                     val parentDeclaration = macroExpr.getNonStrictParentOfType<CjDeclaration>()
                     if (parentDeclaration != null) {
                         val scope = resolveSession.declarationScopeProvider.getResolutionScopeForDeclaration(parentDeclaration)
-                        val macroDescriptors = scope.collectMacros(
-                            macroName,
-                            org.cangnova.cangjie.incremental.components.NoLookupLocation.FROM_IDE
-                        )
-                        // 根据调用处实参数量选择匹配的宏重载
-                        val callArgCount = listOfNotNull(macroExpr.attr, macroExpr.input).size
-                        macroDescriptor = macroDescriptors.find {
-                            it.valueParameters.size == callArgCount
-                        } ?: macroDescriptors.firstOrNull()
 
-                        // 如果找到了宏描述符，记录绑定
-                        if (macroDescriptor != null && trace != null) {
-                            trace.record(BindingContext.MACRO, macroExpr, macroDescriptor)
-                            // 同时记录引用目标
-                            macroExpr.referenceExpression?.let { refExpr ->
-                                trace.record(BindingContext.REFERENCE_TARGET, refExpr, macroDescriptor)
-                            }
+                        val resolver = MacroExpressionResolver()
+                        val result = resolver.resolve(
+                            macroExpr, macroName, scope,
+                            scope.ownerDescriptor,
+                            org.cangnova.cangjie.incremental.components.NoLookupLocation.FROM_IDE,
+                            resolveSession.languageVersionSettings
+                        )
+
+                        if (trace != null) {
+                            resolver.recordResults(trace, macroExpr, result)
+                        }
+
+                        if (result is MacroExpressionResolver.MacroResolutionResult.MacroResult &&
+                            result.results.isSingleResult
+                        ) {
+                            macroDescriptor = result.results.resultingDescriptor
                         }
                     }
                 }
