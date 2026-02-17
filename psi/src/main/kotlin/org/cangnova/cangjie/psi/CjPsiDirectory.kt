@@ -137,7 +137,9 @@ class CjPsiDirectory(
             return null
         }
 
-        return manager.findDirectory(parentFile)
+        return com.intellij.util.SlowOperations.allowSlowOperations<PsiDirectory?, RuntimeException> {
+            manager.findDirectory(parentFile)
+        }
     }
 
     override fun getParent(): PsiDirectory? = parentDirectory
