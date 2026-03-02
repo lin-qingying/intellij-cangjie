@@ -47,6 +47,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation(project(":telemetry"))
     implementation(project(":toolchain"))
+    implementation(project(":macro"))
     implementation(project(":analysis:diagnostics"))
     implementation(libs.vavr)
     implementation(project(":psi"))

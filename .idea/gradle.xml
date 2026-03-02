@@ -28,6 +28,7 @@
             <option value="$PROJECT_DIR$/ksp-processors" />
             <option value="$PROJECT_DIR$/ksp-processors/diagnostic" />
             <option value="$PROJECT_DIR$/lsp4ij" />
+            <option value="$PROJECT_DIR$/macro" />
             <option value="$PROJECT_DIR$/messages" />
             <option value="$PROJECT_DIR$/metadata" />
             <option value="$PROJECT_DIR$/metadata/cjo" />

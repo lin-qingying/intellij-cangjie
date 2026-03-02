@@ -57,10 +57,10 @@ fun collectErrorCandidatesForVariable(
 enum class WrongResolutionToClassifier(val message: (Name) -> String) {
     TYPE_PARAMETER_AS_VALUE({ "Type parameter $it cannot be used as value" }),
     TYPE_PARAMETER_AS_FUNCTION({ "Type parameter $it cannot be called as function" }),
-    INTERFACE_AS_VALUE({ "Interface $it does not have companion object" }),
+    INTERFACE_AS_VALUE({ "Interface $it cannot be used as a value expression" }),
     INTERFACE_AS_FUNCTION({ "Interface $it does not have constructors" }),
     EXPECT_CLASS_AS_FUNCTION({ "Expected class $it does not have default constructor" }),
-    CLASS_AS_VALUE({ "Class $it does not have companion object" }),
+    CLASS_AS_VALUE({ "Class $it cannot be used as a value expression" }),
     INNER_CLASS_CONSTRUCTOR_NO_RECEIVER({ "Constructor of inner class $it can be called only with receiver of containing class" }),
     OBJECT_AS_FUNCTION({ "Function 'invoke()' is not found in object $it" })
 }

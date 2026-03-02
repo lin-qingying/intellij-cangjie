@@ -122,6 +122,8 @@
 <!--                qualifiedName="org.cangnova.cangjie.completionInformationProvider"-->
 <!--                interface="org.cangnova.cangjie.completion.CompletionInformationProvider"-->
 <!--                dynamic="true"/>-->
+
+
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -240,67 +242,6 @@
                 serviceInterface="org.cangnova.cangjie.imports.ImportInsertHelper"
                 serviceImplementation="org.cangnova.cangjie.imports.ImportInsertHelperImpl"/>
 
-        <!-- 宏展开服务 -->
-        <projectService
-                serviceInterface="org.cangnova.cangjie.macro.service.MacroExpansionService"
-                serviceImplementation="org.cangnova.cangjie.macro.service.MacroExpansionServiceImpl"/>
-
-        <!-- 宏编译服务 -->
-        <projectService
-                serviceInterface="org.cangnova.cangjie.macro.service.MacroCompilationService"
-                serviceImplementation="org.cangnova.cangjie.macro.service.MacroCompilationServiceImpl"/>
-
-        <!-- 宏展开缓存服务 -->
-        <projectService
-                serviceImplementation="org.cangnova.cangjie.macro.cache.MacroExpansionCache"/>
-
-        <!-- 宏展开选项 Registry Keys -->
-        <registryKey key="cangjie.macro.expansion.recursive"
-                     description="Enable recursive expansion of nested macros"
-                     defaultValue="true"
-                     restartRequired="false"/>
-        <registryKey key="cangjie.macro.expansion.use.cache"
-                     description="Enable caching of macro expansion results"
-                     defaultValue="true"
-                     restartRequired="false"/>
-        <registryKey key="cangjie.macro.expansion.timeout.ms"
-                     description="Timeout in milliseconds for macro expansion (0 = no timeout)"
-                     defaultValue="10000"
-                     restartRequired="false"/>
-        <registryKey key="cangjie.macro.expansion.auto.compile"
-                     description="Automatically compile macro declarations before expansion via --compile-macro"
-                     defaultValue="true"
-                     restartRequired="false"/>
-        <registryKey key="cangjie.macro.expansion.force.recompile"
-                     description="Force recompile macros ignoring cache (only effective when auto-compile is enabled)"
-                     defaultValue="false"
-                     restartRequired="false"/>
-
-        <!-- 宏编译选项 Registry Keys -->
-        <registryKey key="cangjie.macro.compilation.force.recompile"
-                     description="Force recompile macro declarations ignoring cache"
-                     defaultValue="false"
-                     restartRequired="false"/>
-        <registryKey key="cangjie.macro.compilation.timeout.ms"
-                     description="Timeout in milliseconds for macro compilation (0 = no timeout)"
-                     defaultValue="30000"
-                     restartRequired="false"/>
-        <registryKey key="cangjie.macro.compilation.parallel"
-                     description="Enable parallel compilation of macro packages"
-                     defaultValue="true"
-                     restartRequired="false"/>
-
-        <!-- 宏展开行标 Registry Key -->
-        <registryKey key="cangjie.macro.expansion.line.marker.enabled"
-                     description="Show gutter icon for macro expressions to preview expansion"
-                     defaultValue="true"
-                     restartRequired="false"/>
-
-        <!-- 宏展开行标提供者 -->
-        <codeInsight.lineMarkerProvider
-                language="CangJie"
-                implementationClass="org.cangnova.cangjie.macro.ui.CjMacroExpansionLineMarkerProvider"/>
-
         <lang.documentationProvider language="CangJie"
                                     implementationClass="org.cangnova.cangjie.quickDoc.CangJieDocumentationProvider"
                                     order="first"/>
@@ -350,6 +291,11 @@
                         serviceImplementation="org.cangnova.cangjie.refactoring.introduce.CangJieIntroduceVariableServiceDefault"
         />
 
+        <!-- 宏展开分析开关 Registry Key -->
+        <registryKey key="cangjie.macro.expansion.analysis.enabled"
+                     description="Enable macro expansion analysis integration (injects macro-generated declarations into IDE completion, navigation, and type checking)"
+                     defaultValue="false"
+                     restartRequired="false"/>
 
     </extensions>
 
@@ -364,12 +310,20 @@
         <!-- IDE 诊断渲染器（HTML 富文本格式） -->
         <diagnosticRendererProvider
                 implementation="org.cangnova.cangjie.diagnostics.rendering.IdeRenderers"/>
+
+        <!-- 宏展开合成解析扩展 -->
+        <syntheticResolveExtension
+                implementation="org.cangnova.cangjie.macro.analysis.MacroExpansionSyntheticResolveExtension"/>
     </extensions>
 
-    <!-- 宏自动编译监听器：项目同步完成后自动编译宏包 -->
+    <!-- 宏展开分析管线监听器 -->
     <projectListeners>
-        <listener class="org.cangnova.cangjie.macro.autocompile.MacroAutoCompilationListener"
+        <!-- 宏展开分析管线：项目同步完成后触发缓存预热 -->
+        <listener class="org.cangnova.cangjie.macro.analysis.MacroExpansionProjectSyncListener"
                   topic="org.cangnova.cangjie.project.event.CjProjectListener"/>
+        <!-- 宏展开分析管线：文件变更后延迟触发宏重新展开 -->
+        <listener class="org.cangnova.cangjie.macro.analysis.MacroExpansionFileListener"
+                  topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
     </projectListeners>
 
 </idea-plugin>

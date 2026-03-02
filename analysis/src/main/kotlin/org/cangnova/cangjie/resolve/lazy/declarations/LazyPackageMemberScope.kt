@@ -135,11 +135,25 @@ class LazyPackageMemberScope(
         resolveSession.fileScopeProvider.getFileResolutionScope(declaration.getContainingCjFile())
 
     override fun getNonDeclaredFunctions(name: Name, result: MutableSet<SimpleFunctionDescriptor>) {
-
+        val syntheticFunctions = mutableSetOf<SimpleFunctionDescriptor>()
+        resolveSession.syntheticResolveExtension.generateSyntheticFunctions(
+            thisDescriptor, name, declarationProvider, syntheticFunctions
+        )
+        result.addAll(syntheticFunctions)
     }
 
     override fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassAndEnumDescriptor>) {
+        val syntheticClasses = mutableSetOf<ClassDescriptor>()
+        resolveSession.syntheticResolveExtension.generateSyntheticTopLevelClasses(
+            thisDescriptor, name, c, declarationProvider, syntheticClasses
+        )
+        result.addAll(syntheticClasses)
 
+        val syntheticEnums = mutableSetOf<EnumDescriptor>()
+        resolveSession.syntheticResolveExtension.generateSyntheticEnums(
+            thisDescriptor, name, c, declarationProvider, syntheticEnums
+        )
+        result.addAll(syntheticEnums)
     }
 
     override fun recordLookup(name: Name, location: LookupLocation) {
@@ -150,12 +164,57 @@ class LazyPackageMemberScope(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
-        return computeDescriptorsFromDeclaredElements(
+        val declared = computeDescriptorsFromDeclaredElements(
             kindFilter,
             nameFilter,
             NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS
         )
 
+        return appendSyntheticPackageDescriptors(declared, kindFilter, nameFilter)
+    }
+
+    /**
+     * 将宏合成的包级符号追加到已声明的描述符列表中，
+     * 使代码补全全量列表也能包含宏生成的顶层声明。
+     */
+    private fun appendSyntheticPackageDescriptors(
+        declared: Collection<DeclarationDescriptor>,
+        kindFilter: DescriptorKindFilter,
+        nameFilter: (Name) -> Boolean
+    ): Collection<DeclarationDescriptor> {
+        val syntheticNames = resolveSession.syntheticResolveExtension.getSyntheticPackageNames(thisDescriptor, declarationProvider)
+        if (syntheticNames.isEmpty()) return declared
+
+        val result = declared.toMutableList()
+
+        if (kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK)) {
+            for (name in syntheticNames.functionNames) {
+                if (!nameFilter(name)) continue
+                val funcs = mutableSetOf<SimpleFunctionDescriptor>()
+                getNonDeclaredFunctions(name, funcs)
+                result.addAll(funcs)
+            }
+        }
+
+        if (kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK)) {
+            for (name in syntheticNames.variableNames) {
+                if (!nameFilter(name)) continue
+                val vars = mutableSetOf<VariableDescriptor>()
+                getNonDeclaredVariables(name, vars)
+                result.addAll(vars)
+            }
+        }
+
+        if (kindFilter.acceptsKinds(DescriptorKindFilter.CLASSIFIERS_MASK)) {
+            for (name in syntheticNames.classifierNames) {
+                if (!nameFilter(name)) continue
+                val classifiers = mutableSetOf<ClassAndEnumDescriptor>()
+                getNonDeclaredClasses(name, classifiers)
+                result.addAll(classifiers)
+            }
+        }
+
+        return result
     }
 
     override fun getNonDeclaredMacros(name: Name, result: MutableSet<MacroDescriptor>) {
@@ -171,7 +230,11 @@ class LazyPackageMemberScope(
     }
 
     override fun getNonDeclaredVariables(name: Name, result: MutableSet<VariableDescriptor>) {
-
+        val syntheticVariables = mutableSetOf<VariableDescriptor>()
+        resolveSession.syntheticResolveExtension.generateSyntheticVariables(
+            thisDescriptor, name, declarationProvider, syntheticVariables
+        )
+        result.addAll(syntheticVariables)
     }
 
     override fun getContributedPackageView(name: Name, location: LookupLocation): PackageViewDescriptor? {

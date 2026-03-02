@@ -490,8 +490,7 @@ project(":plugin") {
 // ============================================================
 
 /**
- * 该模块相当于 core，包含核心功能
- * 注意：不应被其他模块引用
+ * 该模块相当于整合模块，最终面对ide，如果引用该模块，则必须是一个独立的插件模块，而不是单纯的gradle模块
  */
 project(":") {
     dependencies {
@@ -514,6 +513,7 @@ project(":") {
         implementation(project(":messages"))
         implementation(project(":notifications"))
         implementation(project(":analysis"))
+        implementation(project(":macro"))
 
         api(project(":analysis:decompiler-to-psi"))
 

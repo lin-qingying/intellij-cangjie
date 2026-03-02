@@ -78,8 +78,9 @@ open class LazyClassDescriptor(
     containingDeclaration: DeclarationDescriptor,
     name: Name,
     classLikeInfo: CjClassLikeInfo,
-    isExternal: Boolean
-) : LazyClassDescriptorBase(c, containingDeclaration, name, classLikeInfo, isExternal), LazyEntity {
+    isExternal: Boolean,
+    sourceOverride: SourceElement? = null
+) : LazyClassDescriptorBase(c, containingDeclaration, name, classLikeInfo, isExternal, sourceOverride), LazyEntity {
 
     private var typeStatement: CjTypeStatement? = classLikeInfo.correspondingClass
     private val declarationProvider: ClassMemberDeclarationProvider =

@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.toolchain.api
 
+import com.intellij.openapi.util.SystemInfo
 import org.cangnova.cangjie.toolchain.CangJieSdkVersion
 import org.cangnova.cangjie.toolchain.env.CangJieEnv
 import java.nio.file.Path
@@ -131,6 +132,39 @@ data class CjSdk(
             else -> "unknown"
         }
     }
+
+    /**
+     * 获取平台特定的可执行文件路径
+     *
+     * 在 Windows 上自动添加 `.exe` 后缀。
+     * 若未指定 [paths]，则在 [binPath] 下查找；否则从 [homePath] 开始依次拼接路径段。
+     *
+     * @param name 不带后缀的可执行文件名（如 `"cjc"`、`"cjc-frontend"`）
+     * @param paths 可选路径段，从 [homePath] 开始拼接；为空时使用 [binPath]
+     * @return 可执行文件的完整路径
+     */
+    fun getExecutable(name: String, vararg paths: String): Path {
+        val execName = if (SystemInfo.isWindows) "$name.exe" else name
+        return if (paths.isEmpty()) {
+            binPath.resolve(execName)
+        } else {
+            paths.fold(homePath) { acc, p -> acc.resolve(p) }.resolve(execName)
+        }
+    }
+
+    /**
+     * 宏动态库文件扩展名（平台相关）
+     *
+     * - Windows: `dll`
+     * - macOS: `dylib`
+     * - Linux: `so`
+     */
+    val macroLibExtension: String
+        get() = when {
+            SystemInfo.isWindows -> "dll"
+            SystemInfo.isMac -> "dylib"
+            else -> "so"
+        }
 
     override fun toString(): String = "$name ($version) at $homePath"
 

@@ -245,6 +245,9 @@ open class LazyClassMemberScope(
             fromSupertypes.addAll(supertype.memberScope.getContributedFunctions(name, location))
         }
 
+        c.syntheticResolveExtension.generateSyntheticMethods(
+            thisDescriptor, name, trace.bindingContext, fromSupertypes, result
+        )
 
         generateFakeOverrides(name, fromSupertypes, result, SimpleFunctionDescriptor::class.java)
     }
@@ -363,8 +366,9 @@ open class LazyClassMemberScope(
 
     override fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassAndEnumDescriptor>) {
 //        generateSyntheticCompanionObject(name, result)
-//        c.syntheticResolveExtension.generateSyntheticClasses(thisDescriptor, name, c, declarationProvider, result)
-
+        val syntheticClasses = mutableSetOf<ClassDescriptor>()
+        c.syntheticResolveExtension.generateSyntheticNestedClasses(thisDescriptor, name, c, declarationProvider, syntheticClasses)
+        result.addAll(syntheticClasses)
     }
 
 
