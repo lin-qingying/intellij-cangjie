@@ -1064,7 +1064,7 @@ class PSICallResolver(
             is ResolutionOldInference.ResolutionKind.Function -> CangJieCallKind.FUNCTION
             is ResolutionOldInference.ResolutionKind.Variable -> CangJieCallKind.VARIABLE
             is ResolutionOldInference.ResolutionKind.Invoke -> CangJieCallKind.INVOKE
-//            is ResolutionOldInference.ResolutionKind.Enum -> CangJieCallKind.ENUM
+
             is ResolutionOldInference.ResolutionKind.EnumConstructor -> CangJieCallKind.ENUM_CONSTRUCTOR
 
             is ResolutionOldInference.ResolutionKind.CaseEnum -> CangJieCallKind.CASE_ENUM
@@ -1098,11 +1098,9 @@ class PSICallResolver(
 
         val isBinaryRemOperator = isBinaryRemOperator(context.call)
         val refinedName = refineNameForRemOperator(isBinaryRemOperator, name)
-//
+
         val cangjieCallKind = resolutionKind.toCangJieCallKind()
-//        if (cangjieCallKind == CangJieCallKind.FUNCTION && context.call is CallMaker.CallImpl) {
-//            cangjieCallKind = CangJieCallKind.CALLABLE_REFERENCE
-//        }
+
         val cangjieCall = toCangJieCall(
             context,
             cangjieCallKind,
@@ -1113,7 +1111,7 @@ class PSICallResolver(
         )
         val scopeTower = ASTScopeTower(context)
         val resolutionCallbacks = createResolutionCallbacks(context)
-//
+
         val expectedType = calculateExpectedType(context)
         val result = cangjieCallResolver.resolveAndCompleteCall(
             scopeTower, resolutionCallbacks, cangjieCall, expectedType, context.collectAllCandidates

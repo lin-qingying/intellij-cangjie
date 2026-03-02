@@ -26,13 +26,10 @@ package org.cangnova.cangjie.psi.stubs
 
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.stubs.*
-import com.intellij.util.io.StringRef
 import org.cangnova.cangjie.lexer.CjKeywordToken
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.FqName
-import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
-import java.io.IOException
 
 enum class ConstantValueKind {
 
@@ -124,10 +121,13 @@ interface CangJieTypeAliasStub : CangJieClassifierStub, CangJieStubWithFqName<Cj
 enum class PatternKind {
     /** 通配符模式: `_` */
     WILDCARD,
+
     /** 绑定模式: `identifier` */
     BINDING,
+
     /** 元组模式: `(a, b)` */
     TUPLE,
+
     /** 枚举模式: `Some(x)` */
     ENUM;
 
@@ -148,12 +148,16 @@ enum class PatternKind {
 interface CangJieVariableStub : StubElement<CjPatternVariable> {
     /** 获取模式类型 */
     fun getPatternKind(): PatternKind
+
     /** 是否为 var 声明（可变） */
     fun isVar(): Boolean
+
     /** 是否为顶层变量 */
     fun isTopLevel(): Boolean
+
     /** 是否有初始化器 */
     fun hasInitializer(): Boolean
+
     /** 是否有类型声明 */
     fun hasReturnTypeRef(): Boolean
 }
@@ -176,7 +180,7 @@ interface CangJiePatternStub<T : CjCasePatternElement> : StubElement<T>
  */
 interface CangJieBindingPatternStub : CangJiePatternStub<CjBindingPattern>, NamedStub<CjBindingPattern> {
     /** 获取完全限定名（仅顶层变量的绑定有效） */
-    val fqName : FqName?
+    val fqName: FqName?
 
 }
 
@@ -296,7 +300,7 @@ interface CangJieStructStub : CangJieTypeStatementStub<CjStruct>
 
 interface CangJieInterfaceStub : CangJieTypeStatementStub<CjInterface>
 
-interface CangJieEnumStub : CangJieTypeStatementStub<CjEnum>{
+interface CangJieEnumStub : CangJieTypeStatementStub<CjEnum> {
     /**
      * 是否非穷尽枚举
      */
@@ -342,7 +346,10 @@ interface CangJieScriptStub : CangJieStubWithFqName<CjScript> {
 }
 
 interface CangJieExtendStub : CangJieTypeStatementStub<CjExtend> {
+    val extendId: String;
 
+    //被扩展类型名称
+    val receiverTypeName: String?;
 }
 
 
@@ -418,7 +425,6 @@ interface CangJieImportDirectiveStub : StubElement<CjImportDirective> {
         val aliasName: String?
     )
 }
-
 
 
 interface CangJieTypeProjectionStub : StubElement<CjTypeProjection> {

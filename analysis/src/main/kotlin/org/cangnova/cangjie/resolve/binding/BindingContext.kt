@@ -47,6 +47,7 @@ import org.cangnova.cangjie.resolve.caches.PrimitiveNumericComparisonInfo
 import org.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext
 import org.cangnova.cangjie.resolve.calls.model.PartialCallContainer
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
+import org.cangnova.cangjie.resolve.calls.results.OverloadResolutionResults
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValue
 import org.cangnova.cangjie.resolve.calls.smartcasts.ExplicitSmartCasts
@@ -393,6 +394,9 @@ interface BindingContext {
 
 
         val MACRO: WritableSlice<PsiElement, MacroDescriptor> = Slices.createSimpleSlice()
+
+        val RESOLVED_MACRO_CALL: WritableSlice<CjMacroExpression, OverloadResolutionResults<MacroDescriptor>> =
+            Slices.createSimpleSlice()
 
 
         val CONSTRUCTOR: WritableSlice<PsiElement, ConstructorDescriptor> = Slices.createSimpleSlice()

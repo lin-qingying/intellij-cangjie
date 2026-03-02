@@ -36,6 +36,7 @@ import org.cangnova.cangjie.descriptors.PropertyDescriptor
 import org.cangnova.cangjie.descriptors.TypeAliasDescriptor
 import org.cangnova.cangjie.descriptors.VariableDescriptor
 import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
+import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import java.lang.reflect.Modifier
 
 /**
@@ -63,6 +64,7 @@ class DescriptorKindFilter(
         val PACKAGES_MASK: Int = nextMask()                   // 包掩码
         val MODULES_MASK: Int = nextMask()                    // 模块掩码
         val FUNCTIONS_MASK: Int = nextMask()                  // 函数掩码
+        val MACROS_MASK: Int = nextMask()                      // 宏掩码
         val VARIABLES_MASK: Int = nextMask()                  // 变量掩码
         val PROPERTYS_MASK: Int = nextMask()                  // 属性掩码
         val EXTENDS_MASK: Int = nextMask()                    // 扩展掩码
@@ -102,6 +104,8 @@ class DescriptorKindFilter(
 
         @JvmField
         val FUNCTIONS: DescriptorKindFilter = DescriptorKindFilter(FUNCTIONS_MASK)  // 函数过滤器
+        @JvmField
+        val MACROS: DescriptorKindFilter = DescriptorKindFilter(MACROS_MASK)  // 函数过滤器
 
         @JvmField
         val VARIABLES: DescriptorKindFilter = DescriptorKindFilter(VARIABLES_MASK)  // 变量过滤器
@@ -181,6 +185,7 @@ class DescriptorKindFilter(
             is TypeAliasDescriptor -> TYPE_ALIASES_MASK
             is PackageFragmentDescriptor, is PackageViewDescriptor -> PACKAGES_MASK
             is ModuleDescriptor -> MODULES_MASK
+            is MacroDescriptor -> MACROS_MASK
             is FunctionDescriptor -> FUNCTIONS_MASK
             is PropertyDescriptor -> PROPERTYS_MASK
             is VariableDescriptor -> VARIABLES_MASK

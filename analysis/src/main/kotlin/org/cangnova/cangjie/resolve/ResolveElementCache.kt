@@ -42,6 +42,7 @@ import org.cangnova.cangjie.context.SimpleGlobalContext
 import org.cangnova.cangjie.context.withModule
 import org.cangnova.cangjie.context.withProject
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.frontend.createContainerForBodyResolve
 import org.cangnova.cangjie.moduleinfo.ModuleInfo
@@ -65,6 +66,7 @@ import org.cangnova.cangjie.resolve.controlFlow.ControlFlowInformationProviderIm
 import org.cangnova.cangjie.resolve.lazy.*
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode.*
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyClassDescriptorBase
+import org.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendDescriptor
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 import org.cangnova.cangjie.utils.isUnitTestMode
@@ -247,7 +249,7 @@ class ResolveElementCache(
         )
 
     private fun findElementOfAdditionalResolve(element: CjElement, bodyResolveMode: BodyResolveMode): CjElement? {
-        if (element is CjAnnotation && bodyResolveMode == PARTIAL_NO_ADDITIONAL)
+        if ((element is CjAnnotation || element is CjMacroExpression) && bodyResolveMode == PARTIAL_NO_ADDITIONAL)
             return element
 
         return element.findElementOfAdditionalResolve()
@@ -489,6 +491,7 @@ class ResolveElementCache(
         )
 
         forceResolveAnnotationsInside(constructor)
+        forceResolveMacroExpressionsInside(constructor, trace)
 
         return trace
     }
@@ -620,6 +623,12 @@ class ResolveElementCache(
 
             is CjCodeFragment -> codeFragmentAdditionalResolve(resolveElement, bodyResolveMode)
 
+            is CjMacroExpression -> macroExpressionAdditionalResolve(
+                resolveSession,
+                resolveElement,
+                bodyResolveMode.bindingTraceFilter
+            )
+
             else -> {
                 if (resolveElement.findParentOfType<CjPackageDirective>(true) != null) {
                     packageRefAdditionalResolve(resolveSession, resolveElement, bodyResolveMode.bindingTraceFilter)
@@ -685,6 +694,7 @@ class ResolveElementCache(
 
 
         forceResolveAnnotationsInside(variable)
+        forceResolveMacroExpressionsInside(variable, trace)
 
         return trace
     }
@@ -713,6 +723,7 @@ class ResolveElementCache(
         // bodyResolver.resolveProperty(bodyResolveContext, property, descriptor)
 
         forceResolveAnnotationsInside(property)
+        forceResolveMacroExpressionsInside(property, trace)
 
         val lvs = resolveSession.languageVersionSettings
         for (accessor in property.accessors) {
@@ -814,6 +825,99 @@ class ResolveElementCache(
     }
 
     /**
+     * 宏表达式的额外解析
+     *
+     * 当宏表达式作为顶层可解析元素时（如顶层 @MacroName class Foo {}），
+     * 执行宏名称的解析：先查找宏定义，回退查找注解类。
+     */
+    private fun macroExpressionAdditionalResolve(
+        resolveSession: ResolveSession,
+        macroExpression: CjMacroExpression,
+        bindingTraceFilter: BindingTraceFilter
+    ): BindingTrace {
+        val trace = createDelegatingTrace(macroExpression, bindingTraceFilter)
+        val macroName = macroExpression.shortName ?: return trace
+
+        val file = macroExpression.getContainingCjFile()
+        val scope = resolveSession.fileScopeProvider.getFileResolutionScope(file)
+
+        val resolver = MacroExpressionResolver()
+        val result = resolver.resolve(
+            macroExpression, macroName, scope,
+            scope.ownerDescriptor,
+            org.cangnova.cangjie.incremental.components.NoLookupLocation.FROM_IDE,
+            resolveSession.languageVersionSettings
+        )
+
+        resolver.recordResults(trace, macroExpression, result)
+
+        // ForceResolve 宏描述符内容
+        if (result is MacroExpressionResolver.MacroResolutionResult.MacroResult &&
+            result.results.isSingleResult
+        ) {
+            ForceResolveUtil.forceResolveAllContents(result.results.resultingDescriptor)
+        }
+
+        return trace
+    }
+
+    /**
+     *
+     * 此函数的目的是确保在给定的代码元素内，所有宏表达式的解析都已完成并可用
+     * 它遍历元素的所有后代宏表达式并触发解析
+     *
+     * @param element 要解析宏表达式的代码元素
+     * @param trace 绑定跟踪对象，用于记录解析过程中的绑定信息
+     */
+    private fun forceResolveMacroExpressionsInside(element: CjElement, trace: BindingTrace? = null) {
+        val action: (CjMacroExpression) -> Unit = { macroExpr ->
+            // 尝试从解析会话的绑定上下文中获取宏描述符
+            var macroDescriptor = resolveSession.bindingContext[BindingContext.MACRO, macroExpr]
+
+            // 如果宏描述符尚未解析，使用 MacroExpressionResolver 解析
+            if (macroDescriptor == null) {
+                val macroName = macroExpr.shortName
+                if (macroName != null) {
+                    val parentDeclaration = macroExpr.getNonStrictParentOfType<CjDeclaration>()
+                    if (parentDeclaration != null) {
+                        val scope = resolveSession.declarationScopeProvider.getResolutionScopeForDeclaration(parentDeclaration)
+
+                        val resolver = MacroExpressionResolver()
+                        val result = resolver.resolve(
+                            macroExpr, macroName, scope,
+                            scope.ownerDescriptor,
+                            org.cangnova.cangjie.incremental.components.NoLookupLocation.FROM_IDE,
+                            resolveSession.languageVersionSettings
+                        )
+
+                        if (trace != null) {
+                            resolver.recordResults(trace, macroExpr, result)
+                        }
+
+                        if (result is MacroExpressionResolver.MacroResolutionResult.MacroResult &&
+                            result.results.isSingleResult
+                        ) {
+                            macroDescriptor = result.results.resultingDescriptor
+                        }
+                    }
+                }
+            }
+
+            // 如果找到了宏描述符，执行强制解析
+            macroDescriptor?.let {
+                ForceResolveUtil.forceResolveAllContents(it)
+            }
+        }
+
+        // 遍历元素的后代宏表达式，但不进入代码块（代码块中的宏表达式在表达式类型检查时解析）
+        element.forEachDescendantOfType<CjMacroExpression>(
+            canGoInside = { it !is CjBlockExpression },
+            action = action
+        )
+    }
+
+
+    /**
      * 创建一个用于解析函数体的解析器
      *
      * @param resolveSession 解析会话，包含解析过程中需要的上下文信息
@@ -889,6 +993,8 @@ class ResolveElementCache(
 
         // 强制解析函数内部的注解。
         forceResolveAnnotationsInside(namedFunction)
+        // 强制解析函数内部的宏表达式。
+        forceResolveMacroExpressionsInside(namedFunction, trace)
 
         // 返回更新后的绑定追踪对象。
         return trace
@@ -913,23 +1019,32 @@ class ResolveElementCache(
         // 创建一个委托跟踪，用于记录解析过程中的绑定信息
         val trace = createDelegatingTrace(cjElement, bindingTraceFilter)
         // 解析类型声明到描述符
-        val descriptor = resolveSession.resolveToDescriptor(typeStatement) as LazyClassDescriptorBase
+        val rawDescriptor = resolveSession.resolveToDescriptor(typeStatement)
 
-        // 激活超类型的解析
-        ForceResolveUtil.forceResolveAllContents(descriptor.typeConstructor.supertypes)
+        when (rawDescriptor) {
+            is LazyExtendDescriptor -> {
+                // 扩展声明：强制解析超类型
+                ForceResolveUtil.forceResolveAllContents(rawDescriptor.superTypes)
+            }
+            is LazyClassDescriptorBase -> {
+                // 类/接口/结构体声明：完整的超类型解析
+                ForceResolveUtil.forceResolveAllContents(rawDescriptor.typeConstructor.supertypes)
 
-        // 创建一个体解析器，用于解析类型声明的超类型条目列表
-        val bodyResolver = createBodyResolver(resolveSession, trace, file, StatementFilter.NONE)
-        // 解析超类型条目列表，确保所有超类型被正确解析
-        bodyResolver.resolveSuperTypeEntryList(
-            DataFlowInfo.EMPTY,
-            typeStatement,
-            descriptor,
-            descriptor.unsubstitutedPrimaryConstructor,
-            descriptor.scopeForConstructorHeaderResolution,
-            descriptor.scopeForMemberDeclarationResolution,
-            resolveSession.inferenceSession
-        )
+                val bodyResolver = createBodyResolver(resolveSession, trace, file, StatementFilter.NONE)
+                bodyResolver.resolveSuperTypeEntryList(
+                    DataFlowInfo.EMPTY,
+                    typeStatement,
+                    rawDescriptor,
+                    rawDescriptor.unsubstitutedPrimaryConstructor,
+                    rawDescriptor.scopeForConstructorHeaderResolution,
+                    rawDescriptor.scopeForMemberDeclarationResolution,
+                    resolveSession.inferenceSession
+                )
+            }
+            else -> {
+                error("Unexpected descriptor type for delegation specifier resolve: ${rawDescriptor::class.java}")
+            }
+        }
 
         // 返回委托后的绑定跟踪对象
         return trace
@@ -1100,6 +1215,9 @@ class ResolveElementCache(
 
         // 存储宏声明与其对应的宏描述符之间的映射。
         override val macros: MutableMap<CjMacroDeclaration, MacroDescriptor> = hashMapOf()
+
+        // 存储扩展声明与其对应的扩展描述符之间的映射。
+        override val extends: MutableMap<CjExtend, ExtendDescriptor> = hashMapOf()
 
         // 本地表达式类型上下文，对于惰性解析始终返回null
         override val localContext: ExpressionTypingContext? = null

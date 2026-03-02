@@ -122,6 +122,8 @@
 <!--                qualifiedName="org.cangnova.cangjie.completionInformationProvider"-->
 <!--                interface="org.cangnova.cangjie.completion.CompletionInformationProvider"-->
 <!--                dynamic="true"/>-->
+
+
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -151,6 +153,10 @@
         <registryKey key="cangjie.caches.fine.grained.entity.validation"
                      description="Enable validation checks for fine-grained entity caches"
                      defaultValue="false"/>
+        <registryKey key="cangjie.cache.package.full.drop.threshold"
+                     description="Number of pending changes before fully dropping package cache"
+                     defaultValue="1000"
+                     restartRequired="false"/>
         <registryKey key="cangjie.caches.fine.grained.throttling.timeout.ms"
                      description="Throttling timeout in milliseconds for fine-grained cache invalidation"
                      defaultValue="0"/>
@@ -285,6 +291,11 @@
                         serviceImplementation="org.cangnova.cangjie.refactoring.introduce.CangJieIntroduceVariableServiceDefault"
         />
 
+        <!-- 宏展开分析开关 Registry Key -->
+        <registryKey key="cangjie.macro.expansion.analysis.enabled"
+                     description="Enable macro expansion analysis integration (injects macro-generated declarations into IDE completion, navigation, and type checking)"
+                     defaultValue="false"
+                     restartRequired="false"/>
 
     </extensions>
 
@@ -299,6 +310,20 @@
         <!-- IDE 诊断渲染器（HTML 富文本格式） -->
         <diagnosticRendererProvider
                 implementation="org.cangnova.cangjie.diagnostics.rendering.IdeRenderers"/>
+
+        <!-- 宏展开合成解析扩展 -->
+        <syntheticResolveExtension
+                implementation="org.cangnova.cangjie.macro.analysis.MacroExpansionSyntheticResolveExtension"/>
     </extensions>
+
+    <!-- 宏展开分析管线监听器 -->
+    <projectListeners>
+        <!-- 宏展开分析管线：项目同步完成后触发缓存预热 -->
+        <listener class="org.cangnova.cangjie.macro.analysis.MacroExpansionProjectSyncListener"
+                  topic="org.cangnova.cangjie.project.event.CjProjectListener"/>
+        <!-- 宏展开分析管线：文件变更后延迟触发宏重新展开 -->
+        <listener class="org.cangnova.cangjie.macro.analysis.MacroExpansionFileListener"
+                  topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+    </projectListeners>
 
 </idea-plugin>

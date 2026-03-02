@@ -32,7 +32,9 @@ import org.cangnova.cangjie.diagnostics.infos.errors.CONFLICTING_OVERLOADS
 import org.cangnova.cangjie.diagnostics.infos.errors.CONFLICTING_STATIC
 import org.cangnova.cangjie.diagnostics.infos.warnings.CONFLICTING_INHERITED_MEMBERS_WARNING
 import org.cangnova.cangjie.diagnostics.reportOnDeclarationOrFail
+import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
+import org.cangnova.cangjie.incremental.record
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.psi.CjTypeStatement
@@ -42,7 +44,9 @@ import org.cangnova.cangjie.resolve.OverridingStrategy
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.lazy.LazyClassContext
 import org.cangnova.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
+import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
+import org.cangnova.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import org.cangnova.cangjie.types.checker.DefaultCangJieTypeChecker
 
 import org.cangnova.cangjie.utils.reportOnDeclarationAs
@@ -70,11 +74,70 @@ class LazyExtendMemberScope(
     /**
      * 获取初始化器解析作用域
      *
-     * 扩展不支持初始化器，返回 TODO
+     * 扩展没有构造器和类级别的初始化器作用域，
+     * 但扩展内可以声明带初始值的属性/变量，因此复用声明解析作用域。
      */
-    override fun getScopeForInitializerResolution(declaration: CjDeclaration): LexicalScope {
-        // 扩展不支持初始化器，如果被调用则抛出异常
-        TODO("Extensions do not support initializers")
+    override fun getScopeForInitializerResolution(declaration: CjDeclaration): LexicalScope =
+        getScopeForMemberDeclarationResolution(declaration)
+
+    override fun recordLookup(name: Name, location: LookupLocation) {
+        c.lookupTracker.record(location, thisExtend, name)
+
+    }
+
+    /**
+     * 所有描述符的延迟缓存（包括声明的和继承的 fake overrides）
+     */
+    private val allDescriptors = storageManager.createLazyValue {
+        doDescriptors(ALL_NAME_FILTER)
+    }
+
+    /**
+     * 获取贡献的描述符（包括声明的和从接口继承的 fake overrides）
+     */
+    override fun getContributedDescriptors(
+        kindFilter: DescriptorKindFilter,
+        nameFilter: (Name) -> Boolean
+    ): Collection<DeclarationDescriptor> {
+        return if (nameFilter == ALL_NAME_FILTER || allDescriptors.isComputed() || allDescriptors.isComputing()) {
+            allDescriptors()
+        } else {
+            storageManager.compute {
+                doDescriptors(nameFilter)
+            }
+        }
+    }
+
+    /**
+     * 计算所有描述符（声明的和继承的）
+     */
+    private fun doDescriptors(nameFilter: (Name) -> Boolean): List<DeclarationDescriptor> {
+        val result = computeDescriptorsFromDeclaredElements(
+            DescriptorKindFilter.ALL,
+            nameFilter,
+            NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS
+        )
+        computeExtraDescriptors(result, NoLookupLocation.FOR_ALREADY_TRACKED)
+        return result.toList()
+    }
+
+    /**
+     * 计算额外的描述符（从接口继承的 fake overrides）
+     */
+    private fun computeExtraDescriptors(
+        result: MutableCollection<DeclarationDescriptor>,
+        location: LookupLocation
+    ) {
+        for (supertype in thisExtend.superTypes) {
+            for (descriptor in supertype.memberScope.getContributedDescriptors()) {
+                if (descriptor is FunctionDescriptor) {
+                    result.addAll(getContributedFunctions(descriptor.name, location))
+                } else if (descriptor is PropertyDescriptor) {
+                    result.addAll(getContributedPropertys(descriptor.name, location))
+                }
+                // Nothing else is inherited
+            }
+        }
     }
 
     /**
@@ -149,9 +212,8 @@ class LazyExtendMemberScope(
         }
     }
 
-    override fun getScopeForMemberDeclarationResolution(declaration: CjDeclaration): LexicalScope {
-        TODO("Not yet implemented")
-    }
+    override fun getScopeForMemberDeclarationResolution(declaration: CjDeclaration): LexicalScope =
+        c.declarationScopeProvider.getResolutionScopeForDeclaration(declaration)
 
     /**
      * 获取非声明的宏

@@ -38,6 +38,16 @@
             <add-to-group group-id="NewGroup"   anchor="before" relative-to-action="NewFile" />
         </action>
 
+        <!-- 显示宏展开结果的动作 -->
+        <action id="CangJie.ShowMacroExpansion"
+                class="org.cangnova.cangjie.macro.ui.ShowMacroExpansionAction"
+                text="Show Macro Expansion"
+                description="显示宏展开后的代码">
+            <keyboard-shortcut first-keystroke="control alt M" keymap="$default"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+
         <!-- CJPM 相关动作 -->
 
         <!-- 附加 CJPM 项目的动作

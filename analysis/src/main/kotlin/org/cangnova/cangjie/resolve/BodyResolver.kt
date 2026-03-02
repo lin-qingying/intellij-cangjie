@@ -538,6 +538,7 @@ class BodyResolver(
         resolveMainFunctionBodies(c)
         resolveFunctionBodies(c)
         resolveMacroBodies(c)
+        resolveMacroExpressions(c)
     }
 
     private fun resolveMainFunctionBodies(c: BodiesResolveContext) {
@@ -893,6 +894,37 @@ class BodyResolver(
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * 解析顶层宏表达式
+     *
+     * 通过 ExpressionTypingServices 来触发宏表达式的类型推断，
+     * 这会自动调用 visitMacroExpression 完成引用解析和类型检查。
+     */
+    private fun resolveMacroExpressions(c: BodiesResolveContext) {
+        if (c !is TopDownAnalysisContext) return
+
+        for (macroExpression in c.macroExpressions) {
+            val file = macroExpression.getContainingCjFile()
+
+            // 获取文件的顶层作用域
+            // 使用包指令作为声明来获取文件的顶层作用域
+            val packageDirective = file.packageDirective
+            requireNotNull(packageDirective) { "Package directive should exist for $file" }
+            val scope = c.getDeclaringScope(packageDirective)
+
+            // 使用 expressionTypingServices.getType 触发表达式类型推断
+            // 这会调用 BasicExpressionTypingVisitor.visitMacroExpression
+            expressionTypingServices.getType(
+                scope,
+                macroExpression,
+                NO_EXPECTED_TYPE,
+                c.outerDataFlowInfo,
+                InferenceSession.default,
+                trace
+            )
         }
     }
 

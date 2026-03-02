@@ -103,7 +103,6 @@ import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.ErrorUtils.createErrorType
 import org.cangnova.cangjie.types.ErrorUtils.invalidType
 import org.cangnova.cangjie.types.ErrorUtils.isError
-import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
 import org.cangnova.cangjie.types.TypeUtils.noExpectedType
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
@@ -1036,17 +1035,17 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
      * 该方法会根据运算符类型分发到相应的处理逻辑。
      *
      * @param expression 二元表达式
-     * @param contextWithExpectedType 包含预期类型的表达式类型检查上下文
+     * @param data 包含预期类型的表达式类型检查上下文
      * @return 二元表达式的结果类型信息
      */
     override fun visitBinaryExpression(
         expression: CjBinaryExpression,
-        contextWithExpectedType: ExpressionTypingContext
+        data: ExpressionTypingContext
     ): CangJieTypeInfo {
         val context = if (ExpressionTypingUtils.isBinaryExpressionDependentOnExpectedType(expression))
-            contextWithExpectedType
+            data
         else
-            contextWithExpectedType.replaceContextDependency(ContextDependency.INDEPENDENT)
+            data.replaceContextDependency(ContextDependency.INDEPENDENT)
                 .replaceExpectedType(NO_EXPECTED_TYPE)
 
         val operationSign: CjSimpleNameExpression = expression.operationReference
@@ -1081,16 +1080,16 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         }
 
         val value = components.constantExpressionEvaluator.evaluateExpression(
-            expression, contextWithExpectedType.trace, contextWithExpectedType.expectedType
+            expression, data.trace, data.expectedType
         )
         if (value != null) {
             return components.dataFlowAnalyzer.createCompileTimeConstantTypeInfo(
                 value,
                 expression,
-                contextWithExpectedType
+                data
             )
         }
-        return components.dataFlowAnalyzer.checkType(result, expression, contextWithExpectedType)
+        return components.dataFlowAnalyzer.checkType(result, expression, data)
     }
 
     private fun visitAssignmentOperation(
@@ -1172,6 +1171,64 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         }
         val callExpressionResolver = components.callExpressionResolver
         return callExpressionResolver.getCallExpressionTypeInfo(expression, data)
+    }
+
+    /**
+     * 访问宏表达式
+     *
+     * 处理宏调用表达式，如 `@macroName(input)` 或 `@macroName[attr](input)`。
+     * 该方法会：
+     * 1. 在当前作用域中查找宏定义
+     * 2. 宏查找失败时，回退查找注解类（自定义注解场景）
+     * 3. 记录绑定到 BindingContext
+     * 4. 返回类型信息（宏返回类型或 Unit 类型）
+     *
+     * @param expression 宏表达式
+     * @param context 表达式类型检查上下文
+     * @return 宏调用的返回类型信息
+     */
+    override fun visitMacroExpression(
+        expression: CjMacroExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+        val macroName = expression.shortName
+
+        if (macroName == null) {
+            return noTypeInfo(context)
+        }
+
+        val resolver = MacroExpressionResolver()
+        val result = resolver.resolve(
+            expression, macroName, context.scope,
+            context.scope.ownerDescriptor,
+            NoLookupLocation.FROM_IDE,
+            context.languageVersionSettings
+        )
+
+        resolver.recordResults(context.trace, expression, result)
+        resolver.reportDiagnostics(context.trace, expression, result)
+
+        return when (result) {
+            is MacroExpressionResolver.MacroResolutionResult.MacroResult -> {
+                if (result.results.isSuccess) {
+                    val returnType = result.results.resultingDescriptor.returnType
+                    if (returnType != null) {
+                        components.dataFlowAnalyzer.checkType(
+                            createTypeInfo(returnType, context.dataFlowInfo),
+                            expression, context
+                        )
+                    } else {
+                        createTypeInfo(components.builtIns.unitType, context.dataFlowInfo)
+                    }
+                } else {
+                    noTypeInfo(context)
+                }
+            }
+            is MacroExpressionResolver.MacroResolutionResult.ClassifierFallback -> {
+                createTypeInfo(components.builtIns.unitType, context.dataFlowInfo)
+            }
+            is MacroExpressionResolver.MacroResolutionResult.NotFound -> noTypeInfo(context)
+        }
     }
 
     private fun checkNull(

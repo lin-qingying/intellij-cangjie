@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.renderer
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
-import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotated
 import org.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor

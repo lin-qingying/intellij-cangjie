@@ -43,12 +43,17 @@ open class CangJieExtendStubImpl(
 
     private val superNames: Array<StringRef>,
 
-) : CangJieStubBaseImpl<CjExtend>(parent, type), CangJieExtendStub {
+    override val receiverTypeName: String?,
+
+    ) : CangJieStubBaseImpl<CjExtend>(parent, type), CangJieExtendStub {
 
     override fun getFqName(): FqName? {
         val stringRef = StringRef.toString(qualifiedName) ?: return null
         return FqName(stringRef)
     }
+
+    override val extendId: String
+        get() = StringRef.toString(name)
 
     override fun getName(): String? = StringRef.toString(name)
 

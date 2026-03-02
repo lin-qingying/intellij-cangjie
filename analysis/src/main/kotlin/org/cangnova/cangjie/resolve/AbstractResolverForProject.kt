@@ -101,6 +101,7 @@ import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.ProjectDescriptorImpl
 import org.cangnova.cangjie.moduleinfo.LibraryInfo
 import org.cangnova.cangjie.moduleinfo.ModuleInfo
+import org.cangnova.cangjie.moduleinfo.SourceForBinaryModuleInfo
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.caches.ModuleContent
@@ -358,15 +359,54 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
     }
 
     /**
-     * 创建模块解析器（抽象方法）
+     * 创建模块解析器的核心实现（抽象方法）
      *
      * 子类必须实现此方法来创建具体的模块解析器。
+     * 此方法由 [createResolverForModule] 模板方法调用。
      *
      * @param descriptor 模块描述符
      * @param context 分析上下文
      * @return 为该模块创建的解析器
      */
-    abstract fun createResolverForModule(descriptor: ModuleDescriptor, context: M): ResolverForModule
+    protected abstract fun doCreateResolverForModule(descriptor: ModuleDescriptor, context: M): ResolverForModule
+
+    /**
+     * 创建模块解析器（模板方法）
+     *
+     * 这是一个模板方法，负责：
+     * 1. 调用 [doCreateResolverForModule] 创建解析器
+     * 2. 调用 [onResolverCreated] 钩子方法进行后处理
+     *
+     * 子类应该重写 [doCreateResolverForModule] 而不是此方法。
+     *
+     * @param descriptor 模块描述符
+     * @param context 分析上下文
+     * @return 为该模块创建的解析器
+     */
+    fun createResolverForModule(descriptor: ModuleDescriptor, context: M): ResolverForModule {
+        val resolver = doCreateResolverForModule(descriptor, context)
+        onResolverCreated(descriptor, context, resolver)
+        return resolver
+    }
+
+    /**
+     * 解析器创建后的钩子方法
+     *
+     * 在模块解析器创建完成后调用，用于执行额外的初始化操作。
+     * 子类可以重写此方法来：
+     * - 设置扩展发现器
+     * - 预加载扩展声明
+     * - 执行其他模块级初始化
+     *
+     * 默认实现为空。
+     *
+     * @param descriptor 模块描述符
+     * @param context 分析上下文
+     * @param resolver 刚创建的模块解析器
+     */
+    protected open fun onResolverCreated(descriptor: ModuleDescriptor, context: M, resolver: ResolverForModule) {
+        // 默认空实现，子类可以重写
+    }
 
     /**
      * 诊断未知上下文
@@ -423,16 +463,38 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
      * 尝试获取模块解析器
      *
      * 与 [resolverForModule] 类似，但如果上下文不正确则返回 null 而不是抛出异常。
+     * 当当前解析器无法处理上下文时，会尝试委托给 [delegateResolver]。
+     *
+     * ## 委托机制
+     *
+     * 这与 [doGetDescriptorForModule] 的行为保持一致：
+     * - 首先检查当前解析器是否能处理该上下文
+     * - 如果不能，则委托给 delegateResolver（通常是 facadeForLibraries 的解析器）
+     *
+     * 这对于库中的扩展声明解析至关重要：
+     * - facadeForModules 的解析器处理源码模块
+     * - facadeForLibraries 的解析器处理库模块
+     * - 当发现库中的扩展时，需要通过委托获取正确的解析器
      *
      * @param context 分析上下文
-     * @return 模块解析器，如果上下文不正确则返回 null
+     * @return 模块解析器，如果上下文不正确且委托解析器也无法处理则返回 null
      */
     override fun tryGetResolverForModule(context: M): ResolverForModule? {
         checkValid()
-        if (!isCorrectContext(context)) {
-            return null
+        // 如果是库源码模块（LibrarySourceInfo），重定向到对应的二进制模块（LibraryInfoImpl）
+        // 因为 allModules 和 contextToResolvableInfo 中存储的是二进制模块
+        val actualContext = if (context is SourceForBinaryModuleInfo) {
+            @Suppress("UNCHECKED_CAST")
+            (context.binariesModuleInfo as? M) ?: context
+        } else {
+            context
         }
-        return resolverForModuleDescriptor(doGetDescriptorForModule(context))
+        if (!isCorrectContext(actualContext)) {
+            // 当前解析器无法处理，尝试委托给 delegateResolver
+            // 这确保了分层解析架构中，库模块可以通过委托正确解析
+            return delegateResolver.tryGetResolverForModule(actualContext)
+        }
+        return resolverForModuleDescriptor(doGetDescriptorForModule(actualContext))
     }
 
 
@@ -440,12 +502,21 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
      * 检查上下文是否正确
      *
      * 判断上下文或其原始上下文是否在 [allModules] 中。
+     * 支持以下类型的上下文映射：
+     * - DerivedModuleInfo: 映射到 originalModuleInfo
+     * - SourceForBinaryModuleInfo: 映射到 binariesModuleInfo（库源码映射到对应的二进制模块）
      *
      * @param context 要检查的分析上下文
      * @return true 如果上下文有效
      */
-    private fun isCorrectContext(context: M): Boolean =
-        ((context as? DerivedModuleInfo)?.originalModuleInfo ?: context) in allModules
+    private fun isCorrectContext(context: M): Boolean {
+        val originalContext = when (context) {
+            is DerivedModuleInfo -> context.originalModuleInfo
+            is SourceForBinaryModuleInfo -> context.binariesModuleInfo
+            else -> context
+        }
+        return originalContext in allModules
+    }
 
     private fun recreateModuleDescriptor(module: M): ModuleData {
         val oldDescriptor = descriptorByModule[module]?.moduleDescriptor
@@ -471,8 +542,12 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
                 val existingStdlibModule = projectDescriptor.stdlibModule
                 // 检查是否已经在 contextByDescriptor 中注册
                 if (existingStdlibModule !in contextByDescriptor) {
-                    //                将module中的模块能力补全到existingStdlibModule
+                    // 将module中的模块能力补全到existingStdlibModule
                     module.capabilities.forEach {
+                        existingStdlibModule.addCapability(it.key, it.value)
+                    }
+                    // 同时添加额外的模块能力（如 ExtendManager）
+                    getAdditionalCapabilities().forEach {
                         existingStdlibModule.addCapability(it.key, it.value)
                     }
                     contextByDescriptor[existingStdlibModule] = module

@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":"))
     implementation(project(":messages"))
     implementation(project(":cangjie-project"))
+    implementation(project(":common"))
 
 
 

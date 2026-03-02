@@ -26,6 +26,25 @@ package org.cangnova.cangjie.descriptors
 import org.cangnova.cangjie.ReadOnly
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
+
+/**
+ * 具有解析作用域的描述符基础接口
+ *
+ * 提供类型参数解析所需的作用域。此接口被类描述符、枚举描述符和扩展描述符共同实现，
+ * 使得 [LazyTypeParameterDescriptor] 可以统一处理这些容器类型。
+ *
+ * @see DescriptorWithResolutionScopes
+ * @see ExtendDescriptorWithResolutionScopes
+ */
+interface HasResolutionScopes : DeclarationDescriptorWithTypeParameters {
+    /**
+     * 获取用于类头（类型声明头部）解析的词法作用域，包括类名、类型参数、修饰符等。
+     *
+     * @return 用于类头解析的词法作用域
+     */
+    val scopeForClassHeaderResolution: LexicalScope
+}
+
 interface ClassDescriptorWithResolutionScopes : DescriptorWithResolutionScopes,ClassDescriptor
 interface EnumDescriptorWithResolutionScopes : DescriptorWithResolutionScopes, EnumDescriptor
 
@@ -34,7 +53,7 @@ interface EnumDescriptorWithResolutionScopes : DescriptorWithResolutionScopes, E
  * 该接口定义了如何获取类成员声明解析作用域、已声明的可调用成员、初始化块解析作用域、
  * 类头解析作用域和构造函数头解析作用域的方法。
  */
-interface  DescriptorWithResolutionScopes : ClassAndEnumDescriptor {
+interface  DescriptorWithResolutionScopes : ClassAndEnumDescriptor, HasResolutionScopes {
     /**
      * 获取用于成员声明解析的词法作用域。
      *
@@ -51,13 +70,6 @@ interface  DescriptorWithResolutionScopes : ClassAndEnumDescriptor {
      * @return 用于初始化块解析的词法作用域。
      */
     val scopeForInitializerResolution: LexicalScope
-
-    /**
-     * 获取用于类头解析的词法作用域，类头包括类名、修饰符等。
-     *
-     * @return 用于类头解析的词法作用域。
-     */
-    val scopeForClassHeaderResolution: LexicalScope
 
     /**
      * 获取用于构造函数头解析的词法作用域，构造函数头包括构造函数的参数、修饰符等。

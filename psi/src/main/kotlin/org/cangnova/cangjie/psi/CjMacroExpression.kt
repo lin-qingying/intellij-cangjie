@@ -30,7 +30,7 @@ import org.cangnova.cangjie.psi.stubs.CangJieMacroExpressionStub
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 
-class CjMacroExpression : CjElementImplStub<CangJieMacroExpressionStub>, CjCallElement {
+class CjMacroExpression : CjElementImplStub<CangJieMacroExpressionStub>, CjExpression, CjCallElement {
 
     constructor(node: ASTNode) : super(node)
 

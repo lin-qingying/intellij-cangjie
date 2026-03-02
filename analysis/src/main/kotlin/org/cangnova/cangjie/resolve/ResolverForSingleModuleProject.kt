@@ -129,7 +129,7 @@ class ResolverForSingleModuleProject<M : ModuleInfo>(
     }
 
 
-    override fun createResolverForModule(descriptor: ModuleDescriptor, context: M): ResolverForModule =
+    override fun doCreateResolverForModule(descriptor: ModuleDescriptor, context: M): ResolverForModule =
         resolverForModuleFactory.createResolverForModule(
             descriptor as ModuleDescriptorImpl,
             projectContext.withModule(descriptor),

@@ -40,7 +40,7 @@ import java.nio.file.Paths
  *
  * 当右键点击仓颉文件时，自动创建运行配置
  */
-class CangJieProgramRunConfigurationProducer : LazyRunConfigurationProducer<CangJieProgramRunConfiguration>() {
+internal class CangJieProgramRunConfigurationProducer : LazyRunConfigurationProducer<CangJieProgramRunConfiguration>() {
 
     /**
      * 获取配置工厂

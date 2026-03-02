@@ -56,12 +56,14 @@ class CjExtendElementType(debugName: String) : CjStubElementType<CangJieExtendSt
         dataStream.writeName(fqName?.asString())
 
         StubUtils.serializeClassId(dataStream, stub.getClassId())
-
+        // 序列化被扩展类型名称
+        dataStream.writeName(stub.receiverTypeName)
         val superNames = stub.getSuperNames()
         dataStream.writeVarInt(superNames.size)
         for (name in superNames) {
             dataStream.writeName(name)
         }
+
     }
 
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?): CangJieExtendStub {
@@ -69,14 +71,15 @@ class CjExtendElementType(debugName: String) : CjStubElementType<CangJieExtendSt
         val qualifiedName = dataStream.readName()
 
         val classId = StubUtils.deserializeClassId(dataStream)
-
-//        val isLocal = dataStream.readBoolean()
-
+        // 反序列化被扩展类型名称
+        val receiverTypeName = dataStream.readName()
         val superCount = dataStream.readVarInt()
         val superNames = StringRef.createArray(superCount)
         for (i in 0 until superCount) {
             superNames[i] = dataStream.readName()
         }
+
+
 
         return CangJieExtendStubImpl(
             CjStubElementTypes.EXTEND,
@@ -85,17 +88,13 @@ class CjExtendElementType(debugName: String) : CjStubElementType<CangJieExtendSt
             classId,
             name,
             superNames,
-
+            receiverTypeName = StringRef.toString(receiverTypeName) ?: ""
         )
     }
 
     override fun createStub(psi: CjExtend, parentStub: StubElement<out PsiElement>?): CangJieExtendStub {
-//        val cache = CangJieCacheService.getInstance(psi.project)
-//        val module = cache.getResolutionFacadeByModuleInfo(psi.getContainingCjFile().moduleInfo).moduleDescriptor
-// val file = psi.getContainingCjFile()
-//        file.analyze(
-//
-//        )
+        // 获取被扩展类型的名称
+        val receiverTypeName = psi.nameAsName.asString()
 
         val fqName = psi.fqName
 
@@ -108,7 +107,7 @@ class CjExtendElementType(debugName: String) : CjStubElementType<CangJieExtendSt
             classId,
             StringRef.fromString(psi.name),
             Utils.wrapStrings(superNames),
-
+            receiverTypeName = receiverTypeName
         )
     }
 

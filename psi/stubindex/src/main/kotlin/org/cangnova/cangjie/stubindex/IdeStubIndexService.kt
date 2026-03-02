@@ -30,10 +30,6 @@ import org.cangnova.cangjie.psi.CangJiePsiHeuristics
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjTypeReference
 import org.cangnova.cangjie.psi.CjTypeStatement
-import org.cangnova.cangjie.psi.CjCasePatternElement
-import org.cangnova.cangjie.psi.CjBindingPattern
-import org.cangnova.cangjie.psi.CjTuplePattern
-import org.cangnova.cangjie.psi.CjEnumPattern
 import org.cangnova.cangjie.psi.stubs.*
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import org.cangnova.cangjie.psi.stubs.elements.StubIndexService
@@ -231,6 +227,12 @@ internal class IdeStubIndexService : StubIndexService() {
 
         if (fqName != null) {
             sink.occurrence(CangJieExtendNameIndex.indexKey, fqName.asString())
+        }
+
+        // 按被扩展类型的短名称索引，用于方法解析时快速查找扩展
+        val receiverName = stub.receiverTypeName
+        if (receiverName != null) {
+            sink.occurrence(CangJieExtendByReceiverIndex.indexKey, receiverName)
         }
 
         indexSuperNames(stub, sink)

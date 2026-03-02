@@ -531,6 +531,13 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
             put("singleConditionCompileOption", mutableMapOf<String, Map<String, String>>())
             put("conditionCompilePaths", getConditionCompilePaths(currentProject))
 
+            // 宏展开配置
+            put("enableMacroInLSP", true)
+            put("macroExpansionOptions", mapOf(
+                "enabled" to true,
+                "parallelExpansion" to true
+            ))
+
             // DevEco IDE专用配置（如果需要）
             put("cjdCachePathOption", getCjdCachePath(currentProject))
         }

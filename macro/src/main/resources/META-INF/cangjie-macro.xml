@@ -1,0 +1,126 @@
+<!--
+  ~ Copyright 2026 LinQingYing. and contributors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  ~ The use of this source code is governed by the Apache License 2.0,
+  ~ which allows users to freely use, modify, and distribute the code,
+  ~ provided they adhere to the terms of the license.
+  ~
+  ~ The software is provided "as-is", and the authors are not responsible for
+  ~ any damages or issues arising from its use.
+  ~
+  -->
+
+<idea-plugin>
+    <extensionPoints>
+        <!-- 宏展开提供者工厂扩展点：注册多少个就有多少个可用引擎，cjc-frontend 为默认回退 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.macroExpansionProviderFactory"
+                        interface="org.cangnova.cangjie.macro.service.MacroExpansionProviderFactory"
+                        dynamic="true"/>
+    </extensionPoints>
+
+    <extensions defaultExtensionNs="com.intellij">
+
+        <!-- 宏展开设置页面（顶层 Configurable） -->
+        <projectConfigurable instance="org.cangnova.cangjie.macro.configurable.CangJieMacroConfigurable"
+                             parentId="language.cangjie"
+                             groupId="language.cangjie"
+                             id="language.cangjie.macro"
+                             bundle="messages.CangJieMacroBundle" key="macro.configurable.title"/>
+
+        <!-- 宏展开服务 -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.macro.service.MacroExpansionService"
+                serviceImplementation="org.cangnova.cangjie.macro.service.MacroExpansionServiceImpl"/>
+
+        <!-- 宏编译服务 -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.macro.service.MacroCompilationService"
+                serviceImplementation="org.cangnova.cangjie.macro.service.MacroCompilationServiceImpl"/>
+
+        <!-- 宏展开缓存服务 -->
+        <projectService
+                serviceImplementation="org.cangnova.cangjie.macro.cache.MacroExpansionCache"/>
+
+        <!-- 宏展开引擎持久化设置（保存用户选择的引擎 ID） -->
+        <projectService
+                serviceImplementation="org.cangnova.cangjie.macro.service.MacroExpansionSettings"/>
+
+        <!-- 宏展开选项 Registry Keys -->
+        <registryKey key="cangjie.macro.expansion.recursive"
+                     description="Enable recursive expansion of nested macros"
+                     defaultValue="true"
+                     restartRequired="false"/>
+        <registryKey key="cangjie.macro.expansion.use.cache"
+                     description="Enable caching of macro expansion results"
+                     defaultValue="true"
+                     restartRequired="false"/>
+        <registryKey key="cangjie.macro.expansion.timeout.ms"
+                     description="Timeout in milliseconds for macro expansion (0 = no timeout)"
+                     defaultValue="10000"
+                     restartRequired="false"/>
+        <registryKey key="cangjie.macro.expansion.auto.compile"
+                     description="Automatically compile macro declarations before expansion via --compile-macro"
+                     defaultValue="true"
+                     restartRequired="false"/>
+        <registryKey key="cangjie.macro.expansion.force.recompile"
+                     description="Force recompile macros ignoring cache (only effective when auto-compile is enabled)"
+                     defaultValue="false"
+                     restartRequired="false"/>
+
+        <!-- 宏编译选项 Registry Keys -->
+        <registryKey key="cangjie.macro.compilation.force.recompile"
+                     description="Force recompile macro declarations ignoring cache"
+                     defaultValue="false"
+                     restartRequired="false"/>
+        <registryKey key="cangjie.macro.compilation.timeout.ms"
+                     description="Timeout in milliseconds for macro compilation (0 = no timeout)"
+                     defaultValue="30000"
+                     restartRequired="false"/>
+        <registryKey key="cangjie.macro.compilation.parallel"
+                     description="Enable parallel compilation of macro packages"
+                     defaultValue="true"
+                     restartRequired="false"/>
+
+        <!-- 宏展开行标 Registry Key -->
+        <registryKey key="cangjie.macro.expansion.line.marker.enabled"
+                     description="Show gutter icon for macro expressions to preview expansion"
+                     defaultValue="true"
+                     restartRequired="false"/>
+
+        <!-- 宏展开行标提供者 -->
+        <codeInsight.lineMarkerProvider
+                language="CangJie"
+                implementationClass="org.cangnova.cangjie.macro.ui.CjMacroExpansionLineMarkerProvider"/>
+
+    </extensions>
+
+    <!-- 宏展开提供者工厂注册 -->
+    <extensions defaultExtensionNs="org.cangnova.cangjie">
+        <!-- cjc-frontend（默认引擎，isDefault=true，最终回退方案） -->
+        <macroExpansionProviderFactory
+                implementation="org.cangnova.cangjie.macro.compiler.CompilerMacroExpansionProviderFactory"/>
+
+        <!-- LSPMacroServer（高性能常驻进程引擎） -->
+        <macroExpansionProviderFactory
+                implementation="org.cangnova.cangjie.macro.server.LspMacroServerProviderFactory"/>
+    </extensions>
+
+    <!-- 宏自动编译监听器：项目同步完成后自动编译宏包 -->
+    <projectListeners>
+        <listener class="org.cangnova.cangjie.macro.autocompile.MacroAutoCompilationListener"
+                  topic="org.cangnova.cangjie.project.event.CjProjectListener"/>
+    </projectListeners>
+
+</idea-plugin>

@@ -26,12 +26,14 @@ package org.cangnova.cangjie.descriptors
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.UserDataHolder
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.DefaultBuiltIns
 import org.cangnova.cangjie.builtins.StdlibTypes
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.storage.LockBasedStorageManager
-import org.cangnova.cangjie.types.error.ErrorClassDescriptor
+import org.cangnova.cangjie.resolve.extend.ExtendManager
+import org.cangnova.cangjie.resolve.extend.ExtendManagerImpl
 import org.cangnova.cangjie.types.error.ErrorModuleDescriptor
 
 
@@ -91,7 +93,15 @@ interface ProjectDescriptor : DeclarationDescriptor {
      * 仅包含编译器内置类型（Int8, Bool, Unit 等）
      */
     val builtIns: CangJieBuiltIns
-
+    /**
+     * 扩展管理器
+     *
+     * 管理项目中所有的扩展声明，提供：
+     * - 扩展声明的注册和查询
+     * - 根据被扩展类型查找扩展
+     * - 扩展 ID 到描述符的映射
+     */
+    val extendManager: ExtendManager
     /**
      * 标准库类型访问器
      *
@@ -148,6 +158,9 @@ interface ProjectDescriptor : DeclarationDescriptor {
                 get() = Name.ERROR_NAME
             override val builtIns: CangJieBuiltIns
                 get() = DefaultBuiltIns
+            override val extendManager: ExtendManager by lazy {
+                ExtendManagerImpl( )
+            }
             override val stdlibModule: ModuleDescriptor get() = ErrorModuleDescriptor
 
             override val stdlibTypes: StdlibTypes
@@ -187,6 +200,8 @@ interface ProjectDescriptor : DeclarationDescriptor {
             override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {
 
             }
+
+
 
         }
     }

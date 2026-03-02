@@ -47,6 +47,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation(project(":telemetry"))
     implementation(project(":toolchain"))
+    implementation(project(":macro"))
     implementation(project(":analysis:diagnostics"))
     implementation(libs.vavr)
     implementation(project(":psi"))
@@ -66,6 +67,10 @@ dependencies {
     implementation(project(":psi:stubindex"))
 
     api(project(":analysis:decompiler-to-psi"))
+
+    implementation(project(":metadata:cjo"))
+
+    compileOnly(project(":cangjie-project"))
 
     // KSP 处理器用于生成诊断工厂初始化代码
     ksp(project(":ksp-processors:diagnostic"))

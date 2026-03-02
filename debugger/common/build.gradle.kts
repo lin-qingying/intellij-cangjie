@@ -26,4 +26,6 @@ dependencies {
     implementation(project(":"))
     implementation(project(":toolchain"))
     implementation(project(":messages"))
+    implementation(project(":common"))
+
 }

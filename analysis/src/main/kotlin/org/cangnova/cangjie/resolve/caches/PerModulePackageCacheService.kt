@@ -132,7 +132,7 @@ class CangJiePackageStatementPsiTreeChangePreprocessor(private val project: Proj
 
 class PerModulePackageCacheService(private val project: Project) : Disposable {
     companion object {
-        const val FULL_DROP_THRESHOLD = 1000
+        val FULL_DROP_THRESHOLD get() = Registry.intValue("cangjie.cache.package.full.drop.threshold")
         private val LOG = Logger.getInstance(this::class.java)
 
         fun getInstance(project: Project): PerModulePackageCacheService = project.service()

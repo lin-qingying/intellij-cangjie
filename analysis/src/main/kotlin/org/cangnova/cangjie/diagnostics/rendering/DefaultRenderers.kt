@@ -41,6 +41,7 @@ import org.cangnova.cangjie.diagnostics.infos.errors.UNINITIALIZED_VARIABLE
 import org.cangnova.cangjie.diagnostics.infos.errors.UNRESOLVED_REFERENCE
 import org.cangnova.cangjie.diagnostics.rendering.Renderers.ELEMENT_TEXT
 import org.cangnova.cangjie.types.expressions.match.Pattern
+import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.isError
 
 /**
@@ -248,9 +249,41 @@ internal class DefaultRenderers : DiagnosticRendererProvider {
             }
 
 
+            // 扩展成员需要导入接口
+            register(EXTEND_MEMBER_REQUIRES_INTERFACE_IMPORT) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                renderers(
+                    Renderers.FQ_NAMES_IN_TYPES,  // 渲染成员描述符 {0}
+                    renderer { interfaces: List<CangJieType> ->
+                        // 渲染接口类型列表
+                        interfaces.joinToString(", ") { type ->
+                            Renderers.RENDER_TYPE.render(type, RenderingContext.of(type))
+                        }
+                    }
+                )
+            }
+
             register(TYPE_MISMATCH) {
                 message { CangJieDiagnosisBundle.rawMessage(it) }
                 renderers(Renderers.RENDER_TYPE, Renderers.RENDER_TYPE)
+            }
+
+            // 重载解析模糊 - 列出所有候选
+            register(OVERLOAD_RESOLUTION_AMBIGUITY) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                renderers(Renderers.AMBIGUOUS_CALLS)
+            }
+
+            // 无适用的候选 - 列出所有候选
+            register(NONE_APPLICABLE) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                renderers(Renderers.AMBIGUOUS_CALLS)
+            }
+
+            // 无法完成解析 - 列出所有候选
+            register(CANNOT_COMPLETE_RESOLVE) {
+                message { CangJieDiagnosisBundle.rawMessage(it) }
+                renderers(Renderers.AMBIGUOUS_CALLS)
             }
         }
     }

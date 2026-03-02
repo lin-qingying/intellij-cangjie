@@ -43,6 +43,7 @@ import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.scopes.StaticMemberScope
 import org.cangnova.cangjie.resolve.source.toSourceElement
+import org.cangnova.cangjie.resolve.extend.ExtendManager
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.EnumTypeConstructorImpl
@@ -71,12 +72,13 @@ class LazyEnumDescriptor(
     override val containingDeclaration: DeclarationDescriptor,
     name: Name,
     private val classLikeInfo: CjClassLikeInfo,
+    private val sourceOverride: SourceElement? = null
 
     ) : AbstractEnumDescriptor(c.storageManager, name), EnumDescriptorWithResolutionScopes, LazyEntity {
 
     private val enumPsi: CjEnum = classLikeInfo.correspondingClass as CjEnum
 
-    override val source: SourceElement = enumPsi.toSourceElement()
+    override val source: SourceElement = sourceOverride ?: enumPsi.toSourceElement()
 
     private val declarationProvider: ClassMemberDeclarationProvider =
         c.declarationProviderFactory.getClassMemberDeclarationProvider(classLikeInfo)
@@ -320,12 +322,23 @@ class LazyEnumDescriptor(
         val classOrObject = declarationProvider.ownerInfo!!.correspondingClass
             ?: return listOf(c.moduleDescriptor.builtIns.stdlibTypes.anyType)
 
-        val allSupertypes = c.descriptorResolver.resolveSupertypes(
+        // 获取枚举声明中的超类型
+        val declaredSupertypes = c.descriptorResolver.resolveSupertypes(
             scopeForClassHeaderResolution,
             this,
             classOrObject,
             c.trace
         )
+
+        // 获取通过 extend 声明添加的超类型
+        val extendManager = c.moduleDescriptor.projectDescriptor.extendManager
+        val extendSupertypes = extendManager?.getExtendSupertypes(
+            forConstructor = this.typeConstructor,
+            forTypeArgs = emptyList()
+        ) ?: emptyList()
+
+        // 合并所有超类型
+        val allSupertypes = declaredSupertypes + extendSupertypes
 
         return allSupertypes.filter(VALID_SUPERTYPE)
     }

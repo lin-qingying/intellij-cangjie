@@ -107,4 +107,8 @@
          包含 CJO 包元数据服务等 -->
     <xi:include href="/META-INF/cangjie-metadata.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
+
+
+    <xi:include href="/META-INF/cangjie-macro.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
 </idea-plugin>

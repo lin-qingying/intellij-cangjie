@@ -69,9 +69,11 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
     open fun visitProperty(property: CjProperty) {
         super.visitProperty(property, Unit)
     }
+
     open fun visitPatternVariable(variable: CjPatternVariable) {
         super.visitPatternVariable(variable, Unit)
     }
+
     open fun visitVariable(variable: CjVariable<*>) {
         super.visitVariable(variable, Unit)
     }
@@ -159,7 +161,6 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
     }
 
 
-
     open fun visitImportList(importList: CjImportList) {
         super.visitImportList(importList, Unit)
     }
@@ -211,7 +212,6 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
     open fun visitSuperTypeEntry(specifier: CjSuperTypeEntry) {
         super.visitSuperTypeEntry(specifier, Unit)
     }
-
 
 
     open fun visitConstructorDelegationCall(call: CjConstructorDelegationCall) {
@@ -457,7 +457,7 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
     }
 
     override fun visitPatternVariable(variable: CjPatternVariable, data: Unit?) {
-       visitPatternVariable(variable)
+        visitPatternVariable(variable)
     }
 
     override fun visitFieldVariable(field: CjFieldVariable, data: Unit?): Unit {
@@ -479,6 +479,14 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
 
     }
 
+    override fun visitMacroExpression(expression: CjMacroExpression, data: Unit?) {
+        visitMacroExpression(expression)
+    }
+
+    open fun visitMacroExpression(expression: CjMacroExpression) {
+        super.visitMacroExpression(expression, Unit)
+    }
+
     override fun visitMacroDeclaration(macroDeclaration: CjMacroDeclaration, data: Unit?): Unit {
         visitMacroDeclaration(macroDeclaration)
 
@@ -498,7 +506,6 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
         visitCjFile(file)
 
     }
-
 
 
     override fun visitImportDirective(importDirective: CjImportDirective, data: Unit?): Unit {
@@ -766,7 +773,6 @@ open class CjVisitorUnit : CjVisitor<Unit, Unit?>() {
         visitParenthesizedExpression(expression)
 
     }
-
 
 
     override fun visitTypeConstraintList(list: CjTypeConstraintList, data: Unit?): Unit {

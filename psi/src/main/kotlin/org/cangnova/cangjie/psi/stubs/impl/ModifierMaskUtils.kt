@@ -134,7 +134,12 @@ object ModifierMaskUtils {
     @JvmStatic
     fun maskHasModifier(mask: Long, modifierToken: CjKeywordToken): Boolean {
         val index = MODIFIER_KEYWORDS_ARRAY.indexOf(modifierToken)
-        assert(index >= 0) { "All CjModifierKeywordTokens should be present in MODIFIER_KEYWORDS_ARRAY" }
+        if (index < 0) {
+            // unsafe、const、foreign 等关键字因兼具块语法角色（如 unsafe { }）而未提升为
+            // CjModifierKeywordToken，不在 MODIFIER_KEYWORDS_ARRAY 中。
+            // computeMask 不会编码这些 token，所以掩码中不可能包含它们，返回 false。
+            return false
+        }
         return (mask and (1L shl index)) != 0L
     }
 

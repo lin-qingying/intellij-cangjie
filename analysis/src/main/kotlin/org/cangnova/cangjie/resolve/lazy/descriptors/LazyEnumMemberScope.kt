@@ -83,9 +83,7 @@ class LazyEnumMemberScope(
 //        return thisDescriptor
         return null
     }
-    override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
-        return super.getContributedFunctions(name, location)
-    }
+
     override fun getNonDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>) {
         // 从超类型（接口）获取成员
         val fromSupertypes = ArrayList<PropertyDescriptor>()

@@ -30,7 +30,7 @@ package org.cangnova.cangjie.descriptors
  * 继承自 DeclarationDescriptorWithSource，表示这些描述符位于某个作用域内（如类中的方法、属性等）
  * 与根声明（如包、顶层函数、顶层属性）相对
  */
-interface DeclarationDescriptorNonRoot : DeclarationDescriptorWithSource {
+interface DeclarationDescriptorNonRoot : DeclarationDescriptorWithSource ,DeclarationDescriptor{
 
     /**
      * 获取包含此声明的父级声明描述符

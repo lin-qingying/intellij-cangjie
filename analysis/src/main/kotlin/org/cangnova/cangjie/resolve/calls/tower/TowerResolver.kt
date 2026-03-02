@@ -24,22 +24,31 @@
 
 package org.cangnova.cangjie.resolve.calls.tower
 
+import com.intellij.openapi.diagnostic.Logger
 import org.cangnova.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.FunctionDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorNameConventions
+import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.inference.model.LowerPriorityToPreserveCompatibility
 import org.cangnova.cangjie.resolve.calls.model.constraintSystemError
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
+import org.cangnova.cangjie.resolve.constants.FloatLiteralTypeConstructor
+import org.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
+import org.cangnova.cangjie.resolve.extend.ExtendManager
+import org.cangnova.cangjie.resolve.extend.ExtendVisibilityChecker
+
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitClassReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.cangnova.cangjie.resolve.scopes.util.parentsWithSelf
 import org.cangnova.cangjie.resolve.selectMostSpecificInEachOverridableGroup
 import org.cangnova.cangjie.types.*
+
+private val LOG = Logger.getInstance("org.cangnova.cangjie.resolve.calls.tower.TowerResolver")
 
 /**
  * 候选项接口
@@ -541,7 +550,7 @@ class TowerResolver {
      */
     class SuccessfulResultCollector<C : Candidate> : ResultCollector<C>() {
         // 候选项组列表
-        private var candidateGroups = arrayListOf<Collection<C>>()
+        private val candidateGroups = arrayListOf<Collection<C>>()
 
         // 是否已找到成功的候选项
         private var isSuccessful = false
@@ -1150,6 +1159,9 @@ internal class MemberScopeTowerLevel(
             createCandidateDescriptor(it, dispatchReceiver)
         }
 
+        // 从 extend 声明中收集成员
+        collectExtendMembers(receiverValue.type, getMembers, result)
+
         // 处理不稳定的智能转换
         val unstableError = if (dispatchReceiver.isStable) null else UnstableSmartCastDiagnostic
         val unstableCandidates = if (unstableError != null) ArrayList<CandidateWithBoundDispatchReceiver>(0) else null
@@ -1163,6 +1175,8 @@ internal class MemberScopeTowerLevel(
                     unstableError, dispatchReceiverSmartCastType = possibleType
                 )
             }
+            // 也从智能转换类型的 extend 声明中收集成员
+            collectExtendMembers(possibleType, getMembers, unstableCandidates ?: result)
         }
 
         // 如果存在智能转换类型
@@ -1194,6 +1208,80 @@ internal class MemberScopeTowerLevel(
         }
 
         return result
+    }
+
+    /**
+     * 从 extend 声明中收集成员
+     *
+     * 查找针对指定类型的 extend 声明，并从这些声明的成员作用域中收集成员。
+     * 这使得通过 extend 声明添加到类型的方法和属性可以在成员解析中被发现。
+     *
+     * @param type 目标类型
+     * @param getMembers 获取成员的函数
+     * @param result 结果集合
+     */
+    private fun collectExtendMembers(
+        type: CangJieType,
+        getMembers: ResolutionScope.(CangJieType?) -> Collection<CallableDescriptor>,
+        result: MutableList<CandidateWithBoundDispatchReceiver>
+    ) {
+        // 获取类型构造器
+        // 对于字面量类型，需要使用其近似类型的构造器来查找扩展
+        val originalConstructor = type.constructor
+        val typeConstructor = when (originalConstructor) {
+            is IntegerLiteralTypeConstructor -> originalConstructor.getApproximatedType().constructor
+            is FloatLiteralTypeConstructor -> originalConstructor.getApproximatedType().constructor
+            else -> originalConstructor
+        }
+
+        if (LOG.isDebugEnabled) {
+            LOG.debug(
+                "collectExtendMembers: type=$type, " +
+                    "originalConstructor=${originalConstructor::class.simpleName}@${System.identityHashCode(originalConstructor)}, " +
+                    "typeConstructor=${typeConstructor::class.simpleName}@${System.identityHashCode(typeConstructor)}, " +
+                    "declarationDescriptor=${typeConstructor.declarationDescriptor?.name}, " +
+                    "hashCode=${typeConstructor.hashCode()}"
+            )
+        }
+
+        // 从 scopeTower 的 lexicalScope 获取 ownerDescriptor，然后获取模块
+        val ownerDescriptor = scopeTower.lexicalScope.ownerDescriptor
+        val module = DescriptorUtils.getContainingModuleOrNull(ownerDescriptor) ?: return
+
+        // 从模块获取 ExtendManager
+        val extendManager = module.projectDescriptor.extendManager
+
+        // 获取针对该类型的所有 extend 定义
+        val extensionDefs = extendManager.getExtensionsForType(typeConstructor)
+
+        if (LOG.isDebugEnabled) {
+            LOG.debug("collectExtendMembers: found ${extensionDefs.size} extend(s) for type ${typeConstructor.declarationDescriptor?.name}")
+        }
+
+        if (extensionDefs.isEmpty()) return
+
+        // 获取当前词法作用域，用于检查扩展可见性
+        val lexicalScope = scopeTower.lexicalScope
+
+        // 从每个 extend 声明的成员作用域收集成员
+        for (extensionDef in extensionDefs) {
+            // 检查扩展的可见性：如果扩展实现了接口且与被扩展类型不在同一个包，
+            // 则需要检查调用处是否导入了至少一个接口
+            if (!ExtendVisibilityChecker.isExtendAccessible(extensionDef, lexicalScope)) {
+                if (LOG.isDebugEnabled) {
+                    LOG.debug("collectExtendMembers: skipping extend '${extensionDef.id}' - interface not imported")
+                }
+                continue
+            }
+
+            // 获取 extend 声明的成员作用域
+            val memberScope = extensionDef.memberScope ?: continue
+
+            // 从成员作用域获取成员并创建候选项描述符
+            memberScope.getMembers(type).mapTo(result) {
+                createCandidateDescriptor(it, dispatchReceiver)
+            }
+        }
     }
 
     /**

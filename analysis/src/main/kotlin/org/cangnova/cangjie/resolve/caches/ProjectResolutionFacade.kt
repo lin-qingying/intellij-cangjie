@@ -416,6 +416,13 @@ class ProjectResolutionFacade(
         // 获取项目描述符
         val projectDescriptor = CjProjectDescriptorService.getInstance(project).projectDescriptor
 
+        // 当解析器重建时，需要使 ExtendManager 缓存失效
+        // 这样可以确保被删除/注释掉的扩展声明不会继续生效
+        // 只在 invalidateOnOOCB 为 true 时清理（表示这是处理源代码的门面，而非库门面）
+        if (invalidateOnOOCB) {
+            projectDescriptor.extendManager.invalidate()
+        }
+
         // 初始化代理解析器，如果没有重用的数据，则使用空解析器
         val delegateResolverForProject: ResolverForProject<IdeaModuleInfo> =
             reuseDataFrom?.cachedResolverForProject ?: EmptyResolverForProject()

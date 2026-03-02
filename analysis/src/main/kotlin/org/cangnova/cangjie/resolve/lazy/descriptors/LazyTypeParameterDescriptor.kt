@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.resolve.lazy.descriptors
 
 import org.cangnova.cangjie.descriptors.DeclarationDescriptorWithTypeParameters
-import org.cangnova.cangjie.descriptors.DescriptorWithResolutionScopes
+import org.cangnova.cangjie.descriptors.HasResolutionScopes
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.extend.ClassAndExtendDescriptor
@@ -116,8 +116,8 @@ class LazyTypeParameterDescriptor(
     }
 
 
-    override val containingDeclaration: DescriptorWithResolutionScopes
-        get() = super.containingDeclaration as DescriptorWithResolutionScopes
+    override val containingDeclaration: HasResolutionScopes
+        get() = super.containingDeclaration as HasResolutionScopes
 
     override fun reportSupertypeLoopError(type: CangJieType) {
         for (typeReference in getAllUpperBounds()) {

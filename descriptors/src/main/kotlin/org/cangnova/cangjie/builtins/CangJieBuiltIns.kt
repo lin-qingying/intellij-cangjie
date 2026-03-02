@@ -59,7 +59,6 @@ import org.cangnova.cangjie.resolve.resolveClassByFqName
 import org.cangnova.cangjie.storage.LockBasedStorageManager
 import org.cangnova.cangjie.storage.NotNullLazyValue
 import org.cangnova.cangjie.storage.StorageManager
-import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.functions.FunctionTypeKind

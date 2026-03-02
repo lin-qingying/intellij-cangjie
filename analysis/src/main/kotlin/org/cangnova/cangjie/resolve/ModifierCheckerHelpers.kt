@@ -96,9 +96,14 @@ val possibleTargetMap = mapOf(
 
         CangJieTarget.INTERFACE_MEMBER_FUNCTION,
         CangJieTarget.INTERFACE_MEMBER_PROPERTY,
+//        TODO 为了测试，暂时允许 override 用在 extend 上，后续需要移除
+        CangJieTarget.EXTEND_MEMBER_FUNCTION,
 
         ),
     OVERRIDE_KEYWORD to EnumSet.of(
+//        TODO 为了测试，暂时允许 override 用在 extend 上，后续需要移除
+        CangJieTarget.EXTEND_MEMBER_FUNCTION,
+
         CangJieTarget.STRUCT_MEMBER_FUNCTION,
         CangJieTarget.STRUCT_MEMBER_PROPERTY,
 

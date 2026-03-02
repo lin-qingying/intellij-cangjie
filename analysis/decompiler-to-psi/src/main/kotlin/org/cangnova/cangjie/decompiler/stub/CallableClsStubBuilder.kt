@@ -30,7 +30,9 @@ import com.intellij.util.io.StringRef
 import org.cangnova.cangjie.decompiler.COMPILED_DEFAULT_INITIALIZER
 import org.cangnova.cangjie.psi.stubs.PatternKind
 import org.cangnova.cangjie.descriptors.Modality
+import org.cangnova.cangjie.descriptors.extend.NameDemangler
 import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.metadata.model.util.toName
 import org.cangnova.cangjie.metadata.model.wrapper.*
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
@@ -983,8 +985,19 @@ class ExtendClsStubBuilder(
     private val extendWrapper: ExtendWrapper
 ) {
     fun build() {
-        val extendName = Name.identifier(extendWrapper.id)
-        val fqName = extendWrapper.packageFqName.child(extendName)
+
+        // 从被扩展类型中提取真实的类型名称，用于 Stub 索引
+
+
+        // 例如：extend Int64 <: Comparable 应该提取 "Int64" 而不是编码的 exportId
+
+
+        // 这确保 CangJieExtendByReceiverIndex 使用正确的类型名称作为索引键
+
+
+        val receiverTypeName = TypeClsStubBuilder.extractTypeName(extendWrapper.type, outerContext)
+        val extendId = extendWrapper.id.toName()
+        val fqName = extendWrapper.packageFqName.child(extendId)
 
         val superTypeRefs = extendWrapper.superTypes
             .mapNotNull { TypeClsStubBuilder.extractTypeName(it, outerContext) }
@@ -996,8 +1009,9 @@ class ExtendClsStubBuilder(
             parentStub,
             fqName.ref(),
             null,
-            extendName.ref(),
-            superTypeRefs
+            extendId.ref(),
+            superTypeRefs,
+            receiverTypeName?.asString() ?: extendId.asString()
         )
 
         // 先创建注解 Stub（注解在修饰符列表之前）

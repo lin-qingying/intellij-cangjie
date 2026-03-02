@@ -38,6 +38,7 @@ import org.cangnova.cangjie.resolve.FunctionDescriptorResolver
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.storage.LockBasedLazyResolveStorageManager
 import jakarta.inject.Inject
+import org.cangnova.cangjie.resolve.ExtendDescriptorResolver
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 
@@ -52,24 +53,16 @@ open class LazyDeclarationResolver(
 
     private val bindingContext: BindingContext
         get() = trace.bindingContext
-    protected lateinit var scopeProvider: DeclarationScopeProvider
-    private lateinit var functionDescriptorResolver: FunctionDescriptorResolver
-    private lateinit var extendDescriptorResolver: org.cangnova.cangjie.resolve.ExtendDescriptorResolver
 
-    @Inject
-    fun setDeclarationScopeProvider(scopeProvider: DeclarationScopeProviderImpl) {
-        this.scopeProvider = scopeProvider
-    }
+    @set:Inject
+    lateinit var scopeProvider: DeclarationScopeProvider
 
-    @Inject
-    fun setFunctionDescriptorResolver(functionDescriptorResolver: FunctionDescriptorResolver) {
-        this.functionDescriptorResolver = functionDescriptorResolver
-    }
+    @set:Inject
+    lateinit var functionDescriptorResolver: FunctionDescriptorResolver
 
-    @Inject
-    fun setExtendDescriptorResolver(extendDescriptorResolver: org.cangnova.cangjie.resolve.ExtendDescriptorResolver) {
-        this.extendDescriptorResolver = extendDescriptorResolver
-    }
+    @set:Inject
+    lateinit var extendDescriptorResolver: ExtendDescriptorResolver
+
 
     init {
         val lockBasedLazyResolveStorageManager = LockBasedLazyResolveStorageManager(globalContext.storageManager)
@@ -136,8 +129,23 @@ open class LazyDeclarationResolver(
     open fun getEnumDescriptorIfAny(enum: CjEnum, location: LookupLocation): EnumDescriptor? =
         findClassDescriptorIfAny(enum, location) as? EnumDescriptor
 
+    /**
+     * 获取扩展描述符
+     *
+     * @param cjExtend 扩展声明
+     * @param location 查找位置
+     * @return 扩展描述符
+     */
+    open fun getExtendDescriptor(
+        cjExtend: CjExtend,
+        location: LookupLocation
+    ): org.cangnova.cangjie.descriptors.extend.ExtendDescriptor {
+        // 先检查缓存
+        bindingContext.get(BindingContext.EXTEND, cjExtend)?.let { return it }
 
-
+        // 使用 extendDescriptorResolver 创建扩展描述符
+        return extendDescriptorResolver.getExtendDescriptor(cjExtend)
+    }
 
 
     fun resolveToVariableByPattern(variable: CjVariable<*>): List<VariableDescriptor> {
@@ -149,7 +157,8 @@ open class LazyDeclarationResolver(
         val location = lookupLocationFor(variable, isTopLevel)
         val scopeForDeclaration = getMemberScopeDeclaredIn(variable, location)
         val result = when (variable) {
-            is CjPatternVariable -> (variable.pattern?.getAllPatternDeclarations() ?: listOf()).mapNotNull { it.nameAsName }.flatMap {
+            is CjPatternVariable -> (variable.pattern?.getAllPatternDeclarations()
+                ?: listOf()).mapNotNull { it.nameAsName }.flatMap {
                 scopeForDeclaration.getContributedVariables(it, location)
             }
 
@@ -165,7 +174,7 @@ open class LazyDeclarationResolver(
         if (isTopLevel && track) CangJieLookupLocation(declaration)
         else NoLookupLocation.MATCH_RESOLVE_DECLARATION
 
-       fun resolveToDescriptor(declaration: CjDeclaration, track: Boolean): DeclarationDescriptor? {
+    fun resolveToDescriptor(declaration: CjDeclaration, track: Boolean): DeclarationDescriptor? {
         return declaration.accept(object : CjVisitor<DeclarationDescriptor?, Nothing?>() {
             fun lookupLocationFor(declaration: CjDeclaration, isTopLevel: Boolean): LookupLocation =
                 lookupLocationFor(declaration, isTopLevel, track)
@@ -290,15 +299,11 @@ open class LazyDeclarationResolver(
             }
 
             override fun visitExtend(extend: CjExtend, data: Nothing?): DeclarationDescriptor {
-                // 扩展不是分类器，需要从 scope 中查找并解析
-                val location = lookupLocationFor(extend, true)
-                val scope = getMemberScopeDeclaredIn(extend, location)
+                // 先检查是否已解析
+                bindingContext.get(BindingContext.EXTEND, extend)?.let { return it }
 
-                // 尝试从作用域获取扩展（触发解析）
-                // 注意：扩展没有名称查找，我们直接检查 bindingContext
-                val descriptor = bindingContext.get(BindingContext.EXTEND, extend)
-
-                return descriptor ?: error("Extend descriptor not found for: ${extend.text}")
+                // 使用 extendDescriptorResolver 创建扩展描述符
+                return extendDescriptorResolver.getExtendDescriptor(extend)
             }
 
             override fun visitEndSecondaryConstructor(
@@ -457,6 +462,8 @@ open class LazyDeclarationResolver(
         } else {
             // 根据父声明的类型返回相应的成员范围
             return when (parentDeclaration) {
+                // 注意：CjExtend 必须在 CjTypeStatement 之前检查，因为 CjExtend 继承自 CjTypeStatement
+                is CjExtend -> getExtendDescriptor(parentDeclaration, location).unsubstitutedMemberScope
                 is CjTypeStatement -> getClassDescriptor(parentDeclaration, location).unsubstitutedMemberScope
 
                 else -> throw IllegalStateException(

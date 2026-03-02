@@ -54,7 +54,16 @@ interface ClassAndExtendDescriptor:DeclarationDescriptor
  * - ExtendDescriptor: 不是类型但可继承
  * - 这就是为什么需要分离ClassifierDescriptor和Inheritable的原因
  */
-interface ExtendDescriptor :DeclarationDescriptorWithTypeParameters, InheritableDescriptor, HasScopeDescriptor ,ClassAndExtendDescriptor{
+interface ExtendDescriptor : DeclarationDescriptorWithTypeParameters, InheritableDescriptor, HasScopeDescriptor, ClassAndExtendDescriptor {
+
+    /**
+     * 声明的可调用成员（不含 fake overrides）
+     *
+     * 仅包含在扩展体内直接声明的函数和属性，
+     * 不包含从接口继承的 fake override 成员。
+     * 用于重写检查和验证。
+     */
+    val declaredCallableMembers: Collection<CallableMemberDescriptor>
 
 
     /**
@@ -68,8 +77,15 @@ interface ExtendDescriptor :DeclarationDescriptorWithTypeParameters, Inheritable
      */
     val thisAsReceiverParameter: ReceiverParameterDescriptor
 
+    /**
+     * 扩展的名称
+     *
+     * 注意：不能直接使用 extendId，因为 extendId 的计算需要访问类型参数的上界，
+     * 而上界解析会触发超类型循环检查，循环检查需要获取 fqName，fqName 需要 name，
+     * 这会导致循环依赖。因此使用特殊名称，通过 extendId 属性获取唯一标识。
+     */
     override val name: Name
-        get() = Name.identifier(extendId)
+        get() = Name.special("<extend>")
 
     /**
      * 扩展的类型列表

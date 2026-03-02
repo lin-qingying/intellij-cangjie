@@ -48,7 +48,9 @@ import com.intellij.platform.backend.navigation.NavigationRequest
 import com.intellij.psi.*
 import com.intellij.psi.impl.CheckUtil
 import com.intellij.psi.impl.PsiElementBase
+import com.intellij.psi.impl.PsiManagerImpl
 import com.intellij.psi.impl.file.PsiBinaryFileImpl
+import com.intellij.psi.impl.file.PsiDirectoryImpl
 import com.intellij.psi.impl.file.UpdateAddedFileProcessor
 import com.intellij.psi.impl.source.PsiFileImpl
 import com.intellij.psi.search.PsiElementProcessor
@@ -100,7 +102,7 @@ import java.io.IOException
 class CjPsiDirectory(
     private val manager: PsiManager,
     private val virtualFile: VirtualFile
-) : PsiElementBase(), PsiDirectory, Queryable {
+) : PsiDirectoryImpl(manager as PsiManagerImpl,virtualFile), PsiDirectory, Queryable {
 
     companion object {
         private val LOG = Logger.getInstance(CjPsiDirectory::class.java)
@@ -135,7 +137,9 @@ class CjPsiDirectory(
             return null
         }
 
-        return manager.findDirectory(parentFile)
+        return com.intellij.util.SlowOperations.allowSlowOperations<PsiDirectory?, RuntimeException> {
+            manager.findDirectory(parentFile)
+        }
     }
 
     override fun getParent(): PsiDirectory? = parentDirectory
@@ -326,7 +330,7 @@ class CjPsiDirectory(
     /**
      * 在禁用更新添加文件的情况下执行操作
      */
-    fun <T : Throwable> executeWithUpdatingAddedFilesDisabled(runnable: ThrowableRunnable<T>) {
+    override fun <T : Throwable> executeWithUpdatingAddedFilesDisabled(runnable: ThrowableRunnable<T>) {
         try {
             putUserData(UPDATE_ADDED_FILE_KEY, false)
             runnable.run()
@@ -516,7 +520,6 @@ class CjPsiDirectory(
 
     override fun textMatches(element: PsiElement): Boolean = false
 
-    override fun isWritable(): Boolean = virtualFile.isWritable
 
     override fun isPhysical(): Boolean {
         return virtualFile.fileSystem !is NonPhysicalFileSystem &&

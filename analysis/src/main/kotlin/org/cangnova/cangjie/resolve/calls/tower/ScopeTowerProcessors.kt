@@ -52,9 +52,16 @@ internal abstract class AbstractSimpleScopeTowerProcessor<C : Candidate>(
      */
     fun createCandidates(
         collector: Collection<CandidateWithBoundDispatchReceiver>,
-        kind: ExplicitReceiverKind
+        kind: ExplicitReceiverKind,
+        receiver: ReceiverValueWithSmartCastInfo?
+
     ): Collection<C> {
-        return collector.map { candidate ->
+        return collector.mapNotNull { candidate ->
+            // 如果提供了接收者，但候选者不需要分发接收者（例如顶层函数），则跳过
+            // 这避免了 obj.topLevelFunc() 这种情况错误地解析到顶层函数
+            if (receiver != null && candidate.dispatchReceiver == null) {
+                return@mapNotNull null
+            }
             candidateFactory.createCandidate(candidate, kind)
         }
     }
@@ -111,14 +118,16 @@ internal class ExplicitReceiverScopeTowerProcessor<C : Candidate>(
             // 例如: a.foo() 中在 A 类的成员作用域中查找 foo 函数
             TowerData.Empty -> createCandidates(
                 MemberScopeTowerLevel(scopeTower, explicitReceiver).collectCandidates(null),
-                ExplicitReceiverKind.DISPATCH_RECEIVER
+                ExplicitReceiverKind.DISPATCH_RECEIVER,
+                null
             )
 
             // 塔数据为作用域层级时,将显式接收者作为扩展接收者在该层级中查找
             // 例如: a.bar() 其中 bar 是定义在外部作用域的扩展函数: fun A.bar()
             is TowerData.TowerLevel -> createCandidates(
                 data.level.collectCandidates(explicitReceiver),
-                ExplicitReceiverKind.DISPATCH_RECEIVER
+                ExplicitReceiverKind.DISPATCH_RECEIVER,
+                explicitReceiver
             )
 
             // 其他情况不处理
@@ -186,7 +195,8 @@ private class QualifierScopeTowerProcessor<C : Candidate>(
         // 在限定符对应的作用域中查找成员
         return createCandidates(
             QualifierScopeTowerLevel(scopeTower, qualifier).collectCandidates(null),
-            ExplicitReceiverKind.NO_EXPLICIT_RECEIVER
+            ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
+            null
         )
     }
 
@@ -239,14 +249,14 @@ private class NoExplicitReceiverScopeTowerProcessor<C : Candidate>(
         // 查找不需要接收者的成员(例如局部变量、顶层函数)
         is TowerData.TowerLevel -> createCandidates(
             data.level.collectCandidates(null),
-            ExplicitReceiverKind.NO_EXPLICIT_RECEIVER
+            ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,null
         )
 
         // 既有作用域层级又有隐式接收者
         // 查找可以使用隐式接收者的成员(例如扩展函数)
         is TowerData.BothTowerLevelAndImplicitReceiver -> createCandidates(
             data.level.collectCandidates(data.implicitReceiver),
-            ExplicitReceiverKind.NO_EXPLICIT_RECEIVER
+            ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,    data.implicitReceiver
         )
 
         // 其他情况不处理
@@ -365,7 +375,8 @@ fun <C : Candidate> createCallableReferenceProcessor(
  * @return 作用域塔处理器
  */
 fun <C : Candidate> createSimpleFunctionProcessor(
-    scopeTower: ImplicitScopeTower, name: Name,
+    scopeTower: ImplicitScopeTower,
+    name: Name,
     context: CandidateFactory<C>,
     explicitReceiver: DetailedReceiver?,
     isEnumConstructor: Boolean = false
@@ -487,7 +498,8 @@ private class EnumConstructorFinderProcessor<C : Candidate>(
         }
 
         // 使用基类的 createCandidates 方法转换为最终候选者
-        return createCandidates(candidatesWithReceiver, ExplicitReceiverKind.NO_EXPLICIT_RECEIVER)
+        return createCandidates(candidatesWithReceiver, ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
+            null)
     }
 
     override fun recordLookups(skippedData: Collection<TowerData>, name: Name) {

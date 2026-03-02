@@ -33,6 +33,7 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.CallableMemberDescriptor.Kind.DELEGATION
 import org.cangnova.cangjie.descriptors.CallableMemberDescriptor.Kind.FAKE_OVERRIDE
 import org.cangnova.cangjie.descriptors.DescriptorVisibilityUtils.useSpecialRulesForPrivateSealedConstructors
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.diagnostics.DiagnosticFactory2
 import org.cangnova.cangjie.diagnostics.DiagnosticFactoryWithPsiElement
 import org.cangnova.cangjie.diagnostics.infos.errors.*
@@ -44,8 +45,10 @@ import org.cangnova.cangjie.lexer.CjToken
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.DescriptorUtils.classCanHaveAbstractFakeOverride
+import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.util.isOrOverridesSynthesized
+import org.cangnova.cangjie.resolve.extend.ExtendVisibilityChecker
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.checker.DefaultCangJieTypeChecker
@@ -73,6 +76,11 @@ class OverrideResolver(
             index++
             checkOverridesInAClass(value, key)
         }
+
+        // 检查扩展中的重写
+        for ((extend, extendDescriptor) in c.extends) {
+            checkOverridesInAnExtend(extendDescriptor, extend)
+        }
     }
 
     /**
@@ -98,6 +106,173 @@ class OverrideResolver(
         )
         // 报告收集到的错误信息
         inheritedMemberErrors.doReportErrors()
+    }
+
+    /**
+     * 检查扩展中的方法重写问题。
+     *
+     * 此函数用于检测扩展中方法重写的问题，确保扩展正确地实现了接口成员。
+     *
+     * @param extendDescriptor 扩展的描述符
+     * @param extend 扩展的 PSI 元素
+     */
+    private fun checkOverridesInAnExtend(extendDescriptor: ExtendDescriptor, extend: CjExtend) {
+        // 检查扩展中声明的可调用成员的重写一致性
+        for (member in extendDescriptor.declaredCallableMembers) {
+            checkOverrideForMember(member)
+        }
+
+        // 检查 extend 成员之间的 shadow 冲突
+        checkExtendMemberShadowing(extendDescriptor, extend)
+
+        // 收集继承成员的错误信息
+        val inheritedMemberErrors = CollectErrorInformationForExtendMembersStrategy(extend, extendDescriptor)
+
+        // 检查继承签名（抽象成员未实现等）
+        checkInheritedSignaturesForExtend(extendDescriptor, inheritedMemberErrors, cangjieTypeRefiner)
+
+        // 报告收集到的错误信息
+        inheritedMemberErrors.doReportErrors()
+    }
+
+    /**
+     * 检查 extend 成员是否遮蔽了其他 extend 的成员
+     *
+     * 当同一个类型有多个 extend 声明，且它们定义了相同签名的成员时，
+     * 会产生 shadow 错误。这与编译器的 StructInheritanceChecker::CheckExtendMemberValid 实现一致。
+     *
+     * 只有当前 extend 可见的其他 extend 才会参与遮蔽检查，避免误报。
+     *
+     * @param extendDescriptor 当前扩展的描述符
+     * @param extend 扩展的 PSI 元素
+     */
+    private fun checkExtendMemberShadowing(extendDescriptor: ExtendDescriptor, extend: CjExtend) {
+        // 获取被扩展类型的类型构造器
+        val extendedTypeConstructor = extendDescriptor.extendType.constructor
+
+        // 获取 ExtendManager
+        val module = DescriptorUtils.getContainingModuleOrNull(extendDescriptor) ?: return
+        val extendManager = module.projectDescriptor.extendManager
+
+        // 获取针对该类型的所有 extend 定义
+        val allExtensions = extendManager.getExtensionsForType(extendedTypeConstructor)
+
+        // 获取当前 extend 所在文件的词法作用域
+        val currentScope = run {
+            val file = extend.containingCjFile
+            trace.get(BindingContext.LEXICAL_SCOPE, file)
+        } ?: return
+
+        // 收集其他 extend 的所有成员（排除当前 extend，且只收集可见的 extend）
+        val otherExtendMembers = mutableMapOf<String, MutableList<Pair<CallableMemberDescriptor, ExtendDescriptor>>>()
+
+        for (extensionDef in allExtensions) {
+            val otherExtend = extensionDef.descriptor as? ExtendDescriptor ?: continue
+
+            // 跳过当前 extend
+            if (otherExtend.extendId == extendDescriptor.extendId) continue
+
+            // 检查其他 extend 在当前作用域中是否可见
+            if (!ExtendVisibilityChecker.isExtendAccessible(otherExtend, currentScope)) {
+                continue
+            }
+
+            // 收集该 extend 的所有声明成员
+            for (member in otherExtend.declaredCallableMembers) {
+                val name = member.name.asString()
+                otherExtendMembers.getOrPut(name) { mutableListOf() }.add(member to otherExtend)
+            }
+        }
+
+        // 如果没有其他可见的 extend 成员，无需检查
+        if (otherExtendMembers.isEmpty()) return
+
+        // 检查当前 extend 的每个成员是否与其他 extend 的成员冲突
+        for (member in extendDescriptor.declaredCallableMembers) {
+            val name = member.name.asString()
+            val conflictingMembers = otherExtendMembers[name] ?: continue
+
+            // 检查是否有签名匹配的成员
+            for ((otherMember, otherExtend) in conflictingMembers) {
+                if (isSignatureConflicting(member, otherMember)) {
+                    // 找到冲突，报告 shadow 错误
+                    val declaration = DescriptorToSourceUtils.descriptorToDeclaration(member) as? CjDeclaration
+                    if (declaration != null) {
+                        // 获取被扩展类型的描述符
+                        val extendedTypeDescriptor = extendedTypeConstructor.declarationDescriptor
+                        if (extendedTypeDescriptor != null) {
+                            trace.report(
+                                EXTEND_MEMBER_CANNOT_SHADOW.on(
+                                    declaration,
+                                    name,
+                                    extendedTypeDescriptor
+                                )
+                            )
+                        }
+                    }
+                    // 每个成员只报告一次 shadow 错误
+                    break
+                }
+            }
+        }
+    }
+    /**
+     * 检查两个成员的签名是否冲突
+     *
+     * @param member1 第一个成员
+     * @param member2 第二个成员
+     * @return 如果签名冲突返回 true
+     */
+    private fun isSignatureConflicting(
+        member1: CallableMemberDescriptor,
+        member2: CallableMemberDescriptor
+    ): Boolean {
+        // 名称必须相同（调用前已检查）
+
+        // 检查类型：函数 vs 函数，属性 vs 属性
+        if (member1 is FunctionDescriptor && member2 is FunctionDescriptor) {
+            // 检查参数列表是否匹配
+            val params1 = member1.valueParameters
+            val params2 = member2.valueParameters
+            if (params1.size != params2.size) return false
+
+            // 检查每个参数的类型
+            for (i in params1.indices) {
+                val type1 = params1[i].type
+                val type2 = params2[i].type
+                // 使用简单的类型构造器比较
+                if (type1.constructor != type2.constructor) return false
+            }
+            return true
+        } else if (member1 is PropertyDescriptor && member2 is PropertyDescriptor) {
+            // 属性只需要名称相同就冲突
+            return true
+        }
+
+        return false
+    }
+
+    /**
+     * 检查扩展的继承签名
+     *
+     * 遍历扩展成员作用域中的所有成员，检查是否有抽象成员未被实现。
+     *
+     * @param extendDescriptor 扩展描述符
+     * @param reportStrategy 错误报告策略
+     * @param cangjieTypeRefiner 类型精化器
+     */
+    private fun checkInheritedSignaturesForExtend(
+        extendDescriptor: ExtendDescriptor,
+        reportStrategy: CheckInheritedSignaturesReportStrategy,
+        cangjieTypeRefiner: CangJieTypeRefiner
+    ) {
+        for (member in DescriptorUtils.getAllDescriptors(extendDescriptor.memberScope)) {
+            if (member is CallableMemberDescriptor) {
+                checkInheritedAndDelegatedSignatures(
+                    member, reportStrategy, null, cangjieTypeRefiner
+                )
+            }
+        }
     }
 
 
@@ -334,6 +509,98 @@ class OverrideResolver(
                 )
             } else if (multipleImplementations.isNotEmpty()) {
                 trace.report(MANY_IMPL_MEMBER_NOT_IMPLEMENTED.on(cclass, cclass, multipleImplementations.first()))
+            }
+        }
+    }
+
+    /**
+     * 扩展成员错误信息收集策略
+     *
+     * 与 CollectErrorInformationForInheritedMembersStrategy 类似，但专门用于扩展。
+     * 扩展不能是抽象的，所以必须实现所有接口成员。
+     */
+    private inner class CollectErrorInformationForExtendMembersStrategy(
+        val extend: CjExtend,
+        val extendDescriptor: ExtendDescriptor
+    ) : CheckInheritedSignaturesReportStrategy {
+
+        private val abstractNoImpl = linkedSetOf<CallableMemberDescriptor>()
+        private val multipleImplementations = linkedSetOf<CallableMemberDescriptor>()
+        private val conflictingInterfaceMembers = linkedSetOf<CallableMemberDescriptor>()
+        private val conflictingReturnTypes = linkedSetOf<CallableMemberDescriptor>()
+
+        private val onceErrorsReported = SmartHashSet<DiagnosticFactoryWithPsiElement<*, *>>()
+
+        override fun abstractMemberNotImplemented(descriptor: CallableMemberDescriptor) {
+            abstractNoImpl.add(descriptor)
+        }
+
+        override fun abstractBaseClassMemberNotImplemented(descriptor: CallableMemberDescriptor) {
+            // 扩展不继承自抽象类，所以此情况不适用
+        }
+
+        override fun multipleImplementationsMemberNotImplemented(descriptor: CallableMemberDescriptor) {
+            multipleImplementations.add(descriptor)
+        }
+
+        override fun conflictingInterfaceMemberNotImplemented(descriptor: CallableMemberDescriptor) {
+            conflictingInterfaceMembers.add(descriptor)
+        }
+
+        override fun typeMismatchOnInheritance(
+            descriptor1: CallableMemberDescriptor, descriptor2: CallableMemberDescriptor
+        ) {
+            conflictingReturnTypes.add(descriptor1)
+            conflictingReturnTypes.add(descriptor2)
+
+            if (descriptor1 is PropertyDescriptor && descriptor2 is PropertyDescriptor) {
+                if (descriptor1.isVar || descriptor2.isVar) {
+                    reportInheritanceConflictIfRequired(VAR_TYPE_MISMATCH_ON_INHERITANCE, descriptor1, descriptor2)
+                } else {
+                    reportInheritanceConflictIfRequired(PROPERTY_TYPE_MISMATCH_ON_INHERITANCE, descriptor1, descriptor2)
+                }
+            } else {
+                reportInheritanceConflictIfRequired(RETURN_TYPE_MISMATCH_ON_INHERITANCE, descriptor1, descriptor2)
+            }
+        }
+
+        override fun abstractInvisibleMember(descriptor: CallableMemberDescriptor) {
+            // 扩展实现的接口成员通常都是公开的，此检查可跳过
+        }
+
+        override fun abstractMemberWithMoreSpecificType(
+            abstractMember: CallableMemberDescriptor, concreteMember: CallableMemberDescriptor
+        ) {
+            typeMismatchOnInheritance(abstractMember, concreteMember)
+        }
+
+        private fun reportInheritanceConflictIfRequired(
+            diagnosticFactory: DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor>,
+            descriptor1: CallableMemberDescriptor,
+            descriptor2: CallableMemberDescriptor
+        ) {
+            if (!onceErrorsReported.contains(diagnosticFactory)) {
+                onceErrorsReported.add(diagnosticFactory)
+                trace.report(diagnosticFactory.on(extend, descriptor1, descriptor2))
+            }
+        }
+
+        fun doReportErrors() {
+            // 扩展不能是抽象的，必须实现所有抽象成员
+            if (abstractNoImpl.isNotEmpty()) {
+                trace.report(ABSTRACT_MEMBER_NOT_IMPLEMENTED.on(extend, extend, abstractNoImpl))
+            }
+
+            conflictingInterfaceMembers.removeAll(conflictingReturnTypes)
+            multipleImplementations.removeAll(conflictingReturnTypes)
+            if (conflictingInterfaceMembers.isNotEmpty()) {
+                trace.report(
+                    MANY_INTERFACES_MEMBER_NOT_IMPLEMENTED.on(
+                        extend, extend, conflictingInterfaceMembers.first()
+                    )
+                )
+            } else if (multipleImplementations.isNotEmpty()) {
+                trace.report(MANY_IMPL_MEMBER_NOT_IMPLEMENTED.on(extend, extend, multipleImplementations.first()))
             }
         }
     }
@@ -1012,16 +1279,26 @@ class OverrideResolver(
 
             if (overriddenDescriptors.isEmpty()) {
                 val containingDeclaration = declared.containingDeclaration
-                val declaringClass = containingDeclaration as? ClassDescriptor
-                    ?: error("Overrides may only be resolved in a class, but $declared comes from $containingDeclaration")
 
-                val invisibleOverriddenDescriptor = findInvisibleOverriddenDescriptor(
-                    declared, declaringClass, cangjieTypeRefiner, languageVersionSettings
-                )
-                if (invisibleOverriddenDescriptor != null) {
-                    reportError.cannotOverrideInvisibleMember(declared, invisibleOverriddenDescriptor)
-                } else {
-                    reportError.nothingToOverride(declared, overrideToken)
+                when (containingDeclaration) {
+                    is ClassAndEnumDescriptor -> {
+                        // 类成员：检查是否有不可见的被覆盖成员
+                        val invisibleOverriddenDescriptor = findInvisibleOverriddenDescriptor(
+                            declared, containingDeclaration, cangjieTypeRefiner, languageVersionSettings
+                        )
+                        if (invisibleOverriddenDescriptor != null) {
+                            reportError.cannotOverrideInvisibleMember(declared, invisibleOverriddenDescriptor)
+                        } else {
+                            reportError.nothingToOverride(declared, overrideToken)
+                        }
+                    }
+                    is ExtendDescriptor -> {
+                        // 扩展成员：接口成员通常是公开的，直接报告没有可覆盖的成员
+                        reportError.nothingToOverride(declared, overrideToken)
+                    }
+                    else -> {
+                        error("Overrides may only be resolved in a class or extend, but $declared comes from $containingDeclaration")
+                    }
                 }
             }
         }
@@ -1119,7 +1396,7 @@ class OverrideResolver(
 
         private fun findInvisibleOverriddenDescriptor(
             declared: CallableMemberDescriptor,
-            declaringClass: ClassDescriptor,
+            declaringClass: ClassAndEnumDescriptor,
             cangjieTypeRefiner: CangJieTypeRefiner,
             languageVersionSettings: LanguageVersionSettings
         ): CallableMemberDescriptor? {

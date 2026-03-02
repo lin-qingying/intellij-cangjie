@@ -340,14 +340,17 @@ object CangJieTypeFactory {
 
         memberScope: MemberScope,
         refinedTypeFactory: RefinedTypeFactory
-    ): SimpleType =
-        SimpleTypeImpl(constructor, arguments,  memberScope, refinedTypeFactory)
+    ): SimpleType {
+        // extend 成员不再通过 memberScope 注入，而是在 TowerResolver.collectExtendMembers 中显式收集
+        // 这样可以正确应用可见性检查（需要 LexicalScope，而 descriptors 模块无法访问）
+        return SimpleTypeImpl(constructor, arguments, memberScope, refinedTypeFactory)
             .let {
                 if (attributes.isEmpty())
                     it
                 else
                     SimpleTypeWithAttributes(it, attributes)
             }
+    }
 
 
     fun simpleTypeWithNonTrivialMemberScope(
@@ -356,8 +359,10 @@ object CangJieTypeFactory {
         arguments: List<TypeArgument>,
 
         memberScope: MemberScope
-    ): SimpleType =
-        SimpleTypeImpl(constructor, arguments,   memberScope) { cangjieTypeRefiner ->
+    ): SimpleType {
+        // extend 成员不再通过 memberScope 注入，而是在 TowerResolver.collectExtendMembers 中显式收集
+        // 这样可以正确应用可见性检查（需要 LexicalScope，而 descriptors 模块无法访问）
+        return SimpleTypeImpl(constructor, arguments, memberScope) { cangjieTypeRefiner ->
             val expandedTypeOrRefinedConstructor =
                 refineConstructor(constructor, cangjieTypeRefiner, arguments) ?: return@SimpleTypeImpl null
             expandedTypeOrRefinedConstructor.expandedType?.let { return@SimpleTypeImpl it }
@@ -375,6 +380,7 @@ object CangJieTypeFactory {
             else
                 SimpleTypeWithAttributes(it, attributes)
         }
+    }
 
     @JvmStatic
 
@@ -383,8 +389,10 @@ object CangJieTypeFactory {
         constructor: EnumTypeConstructor,
         arguments: List<TypeArgument>,
         memberScope: MemberScope
-    ): SimpleType =
-        EnumType(constructor, arguments, memberScope) { cangjieTypeRefiner ->
+    ): SimpleType {
+        // extend 成员不再通过 memberScope 注入，而是在 TowerResolver.collectExtendMembers 中显式收集
+        // 这样可以正确应用可见性检查（需要 LexicalScope，而 descriptors 模块无法访问）
+        return EnumType(constructor, arguments, memberScope) { cangjieTypeRefiner ->
             val expandedTypeOrRefinedConstructor =
                 refineConstructor(constructor, cangjieTypeRefiner, arguments) ?: return@EnumType null
             expandedTypeOrRefinedConstructor.expandedType?.let { return@EnumType it }
@@ -401,6 +409,7 @@ object CangJieTypeFactory {
             else
                 SimpleTypeWithAttributes(it, attributes)
         }
+    }
 }
 typealias RefinedTypeFactory = (CangJieTypeRefiner) -> SimpleType?
 

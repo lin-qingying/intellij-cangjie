@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.resolve
 
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.binding.BodiesResolveContext
@@ -43,6 +44,7 @@ class TopDownAnalysisContext(
     override val files = LinkedHashSet<CjFile>()
     override val mainFunctions = LinkedHashMap<CjMainFunction, SimpleFunctionDescriptor>()
     override val macros = LinkedHashMap<CjMacroDeclaration, MacroDescriptor>()
+    val macroExpressions = mutableListOf<CjMacroExpression>()  // 顶层宏表达式列表
     override val functions = LinkedHashMap<CjNamedFunction, SimpleFunctionDescriptor>()
     override val variables: MutableMap<CjVariable<*>, List<VariableDescriptor>> = LinkedHashMap<CjVariable<*>, List<VariableDescriptor>>()
     override val properties = LinkedHashMap<CjProperty, PropertyDescriptor>()
@@ -53,6 +55,7 @@ class TopDownAnalysisContext(
     override val primaryConstructors = LinkedHashMap<CjPrimaryConstructor, ClassConstructorDescriptor>()
     override val endSecondaryConstructors = LinkedHashMap<CjEndSecondaryConstructor, ClassConstructorDescriptor>()
     override val enumConstructors = LinkedHashMap<CjEnumConstructor, EnumConstructorDescriptor>()
+    override val extends = LinkedHashMap<CjExtend, ExtendDescriptor>()
 
 
     fun addFile(file: CjFile) {

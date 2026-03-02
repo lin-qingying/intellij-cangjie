@@ -420,7 +420,7 @@ import org.cangnova.cangjie.renderer.DescriptorRenderer
 abstract class DeclarationDescriptorImpl(
     annotations: Annotations,
     override val name: Name
-) : AnnotatedImpl(annotations), DeclarationDescriptor {
+) : AnnotatedImpl(annotations),  DeclarationDescriptor {
     override val original: DeclarationDescriptor
         get() = this
 

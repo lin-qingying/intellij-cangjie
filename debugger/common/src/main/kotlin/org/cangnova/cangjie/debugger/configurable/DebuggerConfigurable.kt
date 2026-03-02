@@ -62,7 +62,7 @@ class CangJieDebuggerEngineServices : PersistentStateComponent<CangJieDebuggerEn
 
 }
 
-class DebuggerConfigurable(override val project: Project) : CjConfigurableBase(
+internal class DebuggerConfigurable(override val project: Project) : CjConfigurableBase(
     project, DebuggerBundle.message("debugger.configurable.title")
 ) {
     val settings get() = CangJieDebuggerEngineServices.getInstance(project)

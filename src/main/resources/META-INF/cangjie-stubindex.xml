@@ -70,6 +70,7 @@
         <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTypeAliasShortNameIndex"/>
         <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTypeAliasByExpansionShortNameIndex"/>
         <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieExtendNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieExtendByReceiverIndex"/>
 
 
         <fileBasedIndex implementation="org.cangnova.cangjie.stubindex.CangJiePackageSourcesMemberNamesIndex"/>

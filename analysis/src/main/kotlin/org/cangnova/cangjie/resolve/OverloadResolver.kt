@@ -243,23 +243,23 @@ class OverloadResolver(
         // 收集模块中具有相同名称的函数、类和类型别名，并根据重载过滤器进行处理
         collectModulePackageMembersWithSameName(
             packageMembersByName,
-            (c.functions.values as Collection<DeclarationDescriptor>) + c.declaredClasses.values + c.typeAliases.values,
+            (c.functions.values as Collection<DeclarationDescriptor>) + c.declaredClasses.values + c.typeAliases.values + c.macros.values,
             overloadFilter
         ) { scope, name ->
-            // 根据名称获取作用域中的函数和分类器（类或类型别名）
+            // 根据名称获取作用域中的函数、宏和分类器（类或类型别名）
             val functions = scope.getContributedFunctions(name, NoLookupLocation.MATCH_CHECK_DECLARATION_CONFLICTS)
+            val macros = scope.getContributedMacros(name, NoLookupLocation.MATCH_CHECK_DECLARATION_CONFLICTS)
             val classifier = scope.getContributedClassifier(name, NoLookupLocation.MATCH_CHECK_DECLARATION_CONFLICTS)
             // 根据分类器的类型，决定返回的声明列表
             when (classifier) {
                 is ClassDescriptor ->
-
-                        functions + classifier.constructors
+                    functions + macros + classifier.constructors
 
                 is TypeAliasDescriptor ->
-                    functions + classifier.constructors
+                    functions + macros + classifier.constructors
 
                 else ->
-                    functions
+                    functions + macros
             }
         }
 
