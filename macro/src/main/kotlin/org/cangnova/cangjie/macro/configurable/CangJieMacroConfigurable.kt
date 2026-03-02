@@ -48,7 +48,7 @@ internal class CangJieMacroConfigurable(override val project: Project) : CjConfi
     /** 表示"自动选择默认引擎"的虚拟条目 ID */
     private val AUTO_ID = ""
 
-    /** 引擎列表条目：engineId（null 表示自动）+ 显示名称 */
+    /** 引擎列表条目：engineId + 显示名称 */
     private data class EngineItem(val engineId: String, val displayName: String)
 
     override fun createPanel(): DialogPanel {
@@ -63,7 +63,6 @@ internal class CangJieMacroConfigurable(override val project: Project) : CjConfi
                         SimpleListCellRenderer.create("") { it.displayName }
                     ).bindItem(
                         getter = {
-                            // 查找当前持久化的引擎，找不到则显示"自动"
                             items.firstOrNull { it.engineId == settings.preferredEngineId }
                                 ?: items.first()
                         },
@@ -82,14 +81,8 @@ internal class CangJieMacroConfigurable(override val project: Project) : CjConfi
     private fun buildEngineItems(): List<EngineItem> = buildList {
         // "自动"选项始终排第一
         add(EngineItem(AUTO_ID, CangJieMacroBundle.message("macro.configurable.engine.auto")))
-
         MacroExpansionProviderFactory.EP_NAME.extensionList.forEach { factory ->
-            val suffix = if (factory.isDefault) {
-                " (${CangJieMacroBundle.message("macro.configurable.engine.default")})"
-            } else {
-                ""
-            }
-            add(EngineItem(factory.engineId, factory.engineId + suffix))
+            add(EngineItem(factory.engineId, factory.engineId))
         }
     }
 }

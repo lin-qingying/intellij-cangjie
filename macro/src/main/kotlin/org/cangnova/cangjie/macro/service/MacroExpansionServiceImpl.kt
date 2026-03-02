@@ -193,8 +193,12 @@ internal class MacroExpansionServiceImpl(private val project: Project) : MacroEx
     /**
      * 执行展开操作，主引擎失败时自动回退到其他可用引擎
      *
-     * 回退条件：主引擎返回 [MacroExpansionError.CompilerUnavailable]、
-     * [MacroExpansionError.InternalError] 或 [MacroExpansionError.Timeout]。
+     * 回退条件：
+     * - 用户**未**显式选择引擎（使用默认引擎）
+     * - 主引擎返回 [MacroExpansionError.CompilerUnavailable]、
+     *   [MacroExpansionError.InternalError] 或 [MacroExpansionError.Timeout]
+     *
+     * 当用户显式选择了引擎时，不进行自动回退，直接返回该引擎的结果。
      */
     private suspend fun <T> executeWithFallback(
         action: suspend (MacroExpansionProvider) -> CjResult<T, MacroExpansionError>,
@@ -206,7 +210,9 @@ internal class MacroExpansionServiceImpl(private val project: Project) : MacroEx
 
         val primaryResult = action(primary)
 
-        if (primaryResult is CjResult.Err && shouldFallback(primaryResult.err)) {
+        // 用户显式选择了引擎时，尊重用户选择，不自动切换到其他引擎
+        val hasExplicitPreference = MacroExpansionSettings.getInstance(project).preferredEngineId.isNotBlank()
+        if (!hasExplicitPreference && primaryResult is CjResult.Err && shouldFallback(primaryResult.err)) {
             // 依次尝试其他可用引擎（排除已失败的主引擎）
             val fallbackProvider = factories
                 .filter { it.engineId != primary.engine.id }
