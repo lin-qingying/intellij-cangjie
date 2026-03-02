@@ -100,9 +100,13 @@ class CompilerMacroCompilationProvider(private val project: Project) {
      *
      * 扫描项目中所有包含 `macro package` 声明的源文件，
      * 确定各宏包的源码目录，然后逐个编译。
+     *
+     * @param contextFile 触发宏展开的源文件，传入后将优先通过语义定位器精确查找相关宏包；
+     *                    null 表示全项目范围扫描
      */
     suspend fun compileAllMacrosInProject(
-        options: MacroCompilationOptions
+        options: MacroCompilationOptions,
+        contextFile: VirtualFile? = null
     ): CjResult<MacroCompilationResult, MacroCompilationError> {
         val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk()
             ?: return CjResult.Err(MacroCompilationError.SdkNotConfigured())
@@ -119,7 +123,7 @@ class CompilerMacroCompilationProvider(private val project: Project) {
         val projectDir = cjProject.rootDir
 
         // 查找宏包目录（每个宏包的源码目录）
-        val macroPackageDirs = findMacroPackageDirectories(projectDir)
+        val macroPackageDirs = findMacroPackageDirectories(projectDir, contextFile)
         if (macroPackageDirs.isEmpty()) {
             return CjResult.Err(MacroCompilationError.NoMacrosFound(projectDir.path))
         }
@@ -335,14 +339,20 @@ class CompilerMacroCompilationProvider(private val project: Project) {
     /**
      * 查找宏包目录
      *
-     * 扫描项目中包含 `macro package` 声明的 `.cj` 文件，
-     * 返回这些文件所在的目录路径（去重）。
+     * 优先使用 [MacroDeclarationLocator] 扩展点（按优先级降序尝试），
+     * 若所有实现均返回 null，则回退到内置文本正则扫描逻辑。
      *
      * 每个目录对应一个宏包，作为 `cjc -p <dir>` 的参数。
      */
-    private fun findMacroPackageDirectories(projectDir: VirtualFile): List<String> {
-        val macroFiles = findMacroPackageFiles(projectDir)
-        return macroFiles
+    private fun findMacroPackageDirectories(projectDir: VirtualFile, contextFile: VirtualFile? = null): List<String> {
+        MacroDeclarationLocator.EP_NAME.extensionList
+            .sortedByDescending { it.priority }
+            .forEach { locator ->
+                val dirs = locator.findMacroPackageDirs(project, contextFile)
+                if (dirs != null) return dirs
+            }
+        // 兜底：内置文本正则扫描
+        return findMacroPackageFiles(projectDir)
             .mapNotNull { it.parent?.path }
             .distinct()
     }

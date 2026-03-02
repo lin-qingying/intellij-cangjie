@@ -28,6 +28,11 @@
         <extensionPoint qualifiedName="org.cangnova.cangjie.macroExpansionProviderFactory"
                         interface="org.cangnova.cangjie.macro.service.MacroExpansionProviderFactory"
                         dynamic="true"/>
+
+        <!-- 宏包声明定位器扩展点：查找项目中包含 macro package 声明的源码目录 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.macroDeclarationLocator"
+                        interface="org.cangnova.cangjie.macro.compiler.MacroDeclarationLocator"
+                        dynamic="true"/>
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -115,6 +120,10 @@
         <!-- LSPMacroServer（高性能常驻进程引擎） -->
         <macroExpansionProviderFactory
                 implementation="org.cangnova.cangjie.macro.server.LspMacroServerProviderFactory"/>
+
+        <!-- 全量宏包声明定位器（不依赖语义分析，编译项目所有宏） -->
+        <macroDeclarationLocator
+                implementation="org.cangnova.cangjie.macro.compiler.FullProjectMacroDeclarationLocator"/>
     </extensions>
 
     <!-- 宏自动编译监听器：项目同步完成后自动编译宏包 -->

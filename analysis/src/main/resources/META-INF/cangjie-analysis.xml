@@ -316,6 +316,12 @@
                 implementation="org.cangnova.cangjie.macro.analysis.MacroExpansionSyntheticResolveExtension"/>
     </extensions>
 
+    <extensions defaultExtensionNs="org.cangnova.cangjie">
+        <!-- 基于语义分析的宏包声明定位器（全量，优先级高于内置文本扫描） -->
+        <macroDeclarationLocator
+                implementation="org.cangnova.cangjie.macro.analysis.SemanticMacroDeclarationLocator"/>
+    </extensions>
+
     <!-- 宏展开分析管线监听器 -->
     <projectListeners>
         <!-- 宏展开分析管线：项目同步完成后触发缓存预热 -->

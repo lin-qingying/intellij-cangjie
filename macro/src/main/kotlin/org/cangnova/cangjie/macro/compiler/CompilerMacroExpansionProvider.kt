@@ -26,6 +26,7 @@ package org.cangnova.cangjie.macro.compiler
 
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
@@ -201,7 +202,8 @@ class CompilerMacroExpansionProvider(private val project: Project) :
         )
 
         // 编译项目中所有的宏定义包（而非调用宏的文件）
-        return compilationProvider.compileAllMacrosInProject(compileOptions)
+        // 传入 file 作为 contextFile，优先由语义定位器精确查找该文件使用的宏包
+        return compilationProvider.compileAllMacrosInProject(compileOptions, contextFile = file)
     }
 
     /**
@@ -406,7 +408,9 @@ class CompilerMacroExpansionProvider(private val project: Project) :
 
         // 1. 通过 cangjie-project 服务查找文件所属模块
         val projectsService = CjProjectsService.getInstance(project)
-        val cjModule = projectsService.findModuleForFile(file)
+        val cjModule = runReadAction {
+            projectsService.findModuleForFile(file)
+        }
         val cjProject = projectsService.cjProject
         val moduleRootVf = cjModule?.rootDir ?: cjProject.rootDir.takeIf { cjProject.isValid }
 
