@@ -26,6 +26,7 @@ package org.cangnova.cangjie.psi
 
 import org.cangnova.cangjie.parsing.CangJieExpressionParsing
 import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 
 class CjMacroInput(node: ASTNode) : CjExpressionImpl(node) {
@@ -34,11 +35,13 @@ class CjMacroInput(node: ASTNode) : CjExpressionImpl(node) {
         get() {
             return PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java).firstOrNull()
         }
-    val tokens: List<CjElement> get() = findChildrenByType(CangJieExpressionParsing.QUOTE_TOKENS)
+    val tokens: List<PsiElement>
+        get() = findChildByType<CjQuoteTokens>(CjNodeTypes.QUOTE_TOKENS)?.tokens ?: emptyList()
 }
+
 class CjQuoteParameters(node: ASTNode) : CjExpressionImpl(node)
 class CjMacroAttr(node: ASTNode) : CjExpressionImpl(node)
 class CjQuoteTokens(node: ASTNode) : CjExpressionImpl(node) {
 
-    val tokens: List<CjElement> get() = findChildrenByType(CangJieExpressionParsing.QUOTE_TOKENS)
+    val tokens: List<PsiElement> get() = findChildrenByType(CangJieExpressionParsing.QUOTE_TOKENS)
 }

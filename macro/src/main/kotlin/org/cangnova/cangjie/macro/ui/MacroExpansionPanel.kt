@@ -57,7 +57,7 @@ class MacroExpansionPanel(
 
     init {
         // 创建编辑器显示展开后的代码
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   val document = EditorFactory.getInstance().createDocument(result.expandedText)
+        val document = EditorFactory.getInstance().createDocument(result.expandedText)
         editor = EditorFactory.getInstance().createEditor(document, project) as EditorEx
 
         // 配置编辑器
@@ -118,13 +118,24 @@ class MacroExpansionPanel(
         val panel = JPanel(BorderLayout())
         panel.border = BorderFactory.createEmptyBorder(0, 0, 5, 0)
 
-        val sourceLabel = JBLabel(CangJieMacroBundle.message("macro.expansion.panel.source.label", getSourceDisplayName(result.source)))
+        val sourceLabel = JBLabel(
+            CangJieMacroBundle.message(
+                "macro.expansion.panel.source.label",
+                getSourceDisplayName(result.source)
+            )
+        )
         sourceLabel.border = JBUI.Borders.emptyRight(10)
 
         val locationLabel = if (result.macroName != null) {
             JBLabel(CangJieMacroBundle.message("macro.expansion.panel.macro.label", result.macroName))
         } else {
-            JBLabel(CangJieMacroBundle.message("macro.expansion.panel.location.label", result.startOffset, result.endOffset))
+            JBLabel(
+                CangJieMacroBundle.message(
+                    "macro.expansion.panel.location.label",
+                    result.startOffset,
+                    result.endOffset
+                )
+            )
         }
 
         val infoBox = JPanel(BorderLayout())
@@ -135,7 +146,12 @@ class MacroExpansionPanel(
 
         // 如果有诊断信息，显示警告
         if (result.diagnostics.isNotEmpty()) {
-            val warningLabel = JBLabel(CangJieMacroBundle.message("macro.expansion.panel.diagnostics.warning", result.diagnostics.size))
+            val warningLabel = JBLabel(
+                CangJieMacroBundle.message(
+                    "macro.expansion.panel.diagnostics.warning",
+                    result.diagnostics.size
+                )
+            )
             warningLabel.border = JBUI.Borders.emptyLeft(10)
             panel.add(warningLabel, BorderLayout.EAST)
         }
@@ -150,6 +166,7 @@ class MacroExpansionPanel(
         return when (source) {
             is MacroExpansionSource.Engine ->
                 CangJieMacroBundle.message("macro.expansion.panel.source.compiler", source.engine.displayName)
+
             is MacroExpansionSource.Cache -> {
                 val engineHint = source.originalEngine?.displayName?.let { " ($it)" } ?: ""
                 CangJieMacroBundle.message("macro.expansion.panel.source.cache") + engineHint
@@ -215,7 +232,12 @@ class MacroExpansionListPanel(
         val title = if (result.macroName != null) {
             "@${result.macroName}"
         } else {
-            CangJieMacroBundle.message("macro.expansion.list.item.title", index + 1, result.startOffset, result.endOffset)
+            CangJieMacroBundle.message(
+                "macro.expansion.list.item.title",
+                index + 1,
+                result.startOffset,
+                result.endOffset
+            )
         }
         panel.border = BorderFactory.createTitledBorder(title)
 

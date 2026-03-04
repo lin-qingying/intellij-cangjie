@@ -32,7 +32,12 @@ dependencies {
     implementation(project(":psi"))
     implementation(project(":common"))
 // https://mvnrepository.com/artifact/org.jetbrains.pty4j/pty4j
-    api("org.jetbrains.pty4j:pty4j:0.13.11")
+    api("org.jetbrains.pty4j:pty4j:0.13.11") {
+        // JNA 由 IDE 平台提供（通过 JnaLoader 正确初始化）。
+        // 若随插件打包，插件 classloader（child-first）会加载自己的 JNA 副本，
+        // 绕过 IDE 的初始化，导致 Windows 上 UnsatisfiedLinkError
+        exclude(group = "net.java.dev.jna")
+    }
     implementation(project(":telemetry"))
     implementation(project(":toolchain"))
     implementation(project(":messages"))

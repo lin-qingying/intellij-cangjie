@@ -27,11 +27,13 @@ import java.nio.ByteOrder
  *
  * 实现 LSPMacroServer 通信的 length-prefixed 帧协议：
  * ```
- * [ 4字节 uint32_le：payload 长度 ][ N字节 FlatBuffers payload ]
+ * [ 8字节 size_t (uint64_le)：payload 长度 ][ N字节 payload ]
  * ```
  *
- * 管道缓冲区限制为 4096 字节，写入时自动分片；
- * 读取时按帧长度完整接收。
+ * C++ 端 `ReadMsgFromClient` / `SendMsgToClient` 均使用
+ * `sizeof(size_t) = 8` 字节读写长度前缀（64 位系统），此处与之对齐。
+ *
+ * 管道缓冲区限制为 4096 字节，写入时自动分片；读取时按帧长度完整接收。
  */
 class PipeTransport(
     private val inputStream: InputStream,
@@ -40,6 +42,9 @@ class PipeTransport(
     companion object {
         /** 管道每次写入的分片大小（受 OS 管道缓冲区限制） */
         private const val CHUNK_SIZE = 4096
+
+        /** C++ sizeof(size_t) on 64-bit = 8 */
+        private const val SIZE_PREFIX_BYTES = 8
     }
 
     /**
@@ -49,10 +54,11 @@ class PipeTransport(
      * @throws java.io.IOException 管道写入失败
      */
     fun send(payload: ByteArray) {
-        // 写 4 字节小端长度前缀
-        val lenBuf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
-        lenBuf.putInt(payload.size)
+        // 写 8 字节小端长度前缀（与 C++ sizeof(size_t) 对齐）
+        val lenBuf = ByteBuffer.allocate(SIZE_PREFIX_BYTES).order(ByteOrder.LITTLE_ENDIAN)
+        lenBuf.putLong(payload.size.toLong())
         outputStream.write(lenBuf.array())
+
 
         // 分片写入（管道缓冲区有限）
         var offset = 0
@@ -72,10 +78,10 @@ class PipeTransport(
      * @throws java.io.IOException 读取失败
      */
     fun receive(): ByteArray {
-        // 读 4 字节长度前缀
-        val lenBuf = ByteArray(4)
+        // 读 8 字节长度前缀（C++ sizeof(size_t) = 8 on 64-bit）
+        val lenBuf = ByteArray(SIZE_PREFIX_BYTES)
         readFully(lenBuf)
-        val len = ByteBuffer.wrap(lenBuf).order(ByteOrder.LITTLE_ENDIAN).int
+        val len = ByteBuffer.wrap(lenBuf).order(ByteOrder.LITTLE_ENDIAN).getLong().toInt()
 
         // 读取 payload
         val payload = ByteArray(len)

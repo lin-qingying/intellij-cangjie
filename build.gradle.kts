@@ -125,10 +125,11 @@ fun getIdeJvmArgs(): List<String> = listOf(
     "-ea",
     "-esa",
 
-    // ===== JNA 配置 (修复 IDEA 2025.3 问题) =====
+    // ===== JNA 配置 =====
     "-Djna.nosys=false",              // 允许使用系统库
     "-Djna.nounpack=false",           // 允许解包本地库
-    "-Djna.boot.library.path=",       // 清空，使用默认路径
+    // 注意：不要设置 jna.boot.library.path 为空字符串，
+    // 空字符串会阻止 JNA 在默认路径中查找原生库，导致 UnsatisfiedLinkError
     "-Djna.debug_load=false",         // 生产环境关闭调试
     "-Djna.debug_load.jna=false",     // 生产环境关闭 JNA 库调试
     // "-Djna.tmpdir=${System.getProperty("java.io.tmpdir")}/jna", // 可选：自定义临时目录
