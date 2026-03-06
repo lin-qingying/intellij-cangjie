@@ -100,7 +100,8 @@ import java.util.*
 data class ModuleContent<out M : ModuleInfo>(
     val context: M,
     val syntheticFiles: Collection<CjFile>,
-    val moduleContentScope: GlobalSearchScope
+    val moduleContentScope: GlobalSearchScope,
+    val macroExcludedFiles: Collection<CjFile> = emptyList()
 )
 
 
@@ -250,6 +251,7 @@ class IdeaResolverForProject(
     projectDescriptor: ProjectDescriptor,
     modules: Collection<IdeaModuleInfo>,
     private val syntheticFilesByModule: Map<IdeaModuleInfo, Collection<CjFile>>,
+    private val macroExcludedFilesByModule: Map<IdeaModuleInfo, Collection<CjFile>> = emptyMap(),
     delegateResolver: ResolverForProject<IdeaModuleInfo>,
     fallbackModificationTracker: ModificationTracker? = null,
 
@@ -338,7 +340,12 @@ class IdeaResolverForProject(
      * @return 模块内容，包含上下文、合成文件和作用域
      */
     override fun modulesContent(module: IdeaModuleInfo): ModuleContent<IdeaModuleInfo> =
-        ModuleContent(module, syntheticFilesByModule[module] ?: emptyList(), module.contentScope)
+        ModuleContent(
+            module,
+            syntheticFilesByModule[module] ?: emptyList(),
+            module.contentScope,
+            macroExcludedFilesByModule[module] ?: emptyList()
+        )
 
     /**
      * 创建模块解析器
@@ -451,7 +458,12 @@ class IdeaResolverForProject(
     override fun doCreateResolverForModule(descriptor: ModuleDescriptor, context: IdeaModuleInfo): ResolverForModule {
         // 1. 构建模块内容：包含分析上下文、合成文件和搜索作用域
         val moduleContent =
-            ModuleContent(context, syntheticFilesByModule[context] ?: listOf(), context.contentScope)
+            ModuleContent(
+                context,
+                syntheticFilesByModule[context] ?: listOf(),
+                context.contentScope,
+                macroExcludedFilesByModule[context] ?: emptyList()
+            )
 
         val project = projectContext.project
 

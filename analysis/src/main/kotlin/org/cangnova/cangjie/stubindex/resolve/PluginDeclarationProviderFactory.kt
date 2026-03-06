@@ -24,11 +24,13 @@
 
 package org.cangnova.cangjie.stubindex.resolve
 
+import org.cangnova.cangjie.macro.expanded.MacroExpandedFileManager
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.CjFile
 import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.descriptors.PackageMemberDeclarationProvider
 import org.cangnova.cangjie.descriptors.data.CjClassLikeInfo
@@ -51,15 +53,45 @@ class PluginDeclarationProviderFactory(
     private val indexedFilesScope: GlobalSearchScope,
     private val storageManager: StorageManager,
     private val nonIndexedFiles: Collection<CjFile>,
-    private val context: ModuleInfo
+    private val context: ModuleInfo,
+    private val macroExcludedFiles: Collection<CjFile> = emptyList()
 
 ) : AbstractDeclarationProviderFactory(storageManager) {
 
     private val fileBasedDeclarationProviderFactory =
         FileBasedDeclarationProviderFactory(storageManager, nonIndexedFiles)
 
+    /**
+     * 宏展开文件的 FileBasedDeclarationProviderFactory
+     *
+     * macroExcludedFiles（展开文件）通过此工厂提供声明，
+     * 同时对应的源文件通过 [MacroStubBasedPackageMemberDeclarationProvider] 从 Stub 索引中排除，
+     * 防止 REDECLARATION。
+     */
+    private val macroFileBasedDeclarationProviderFactory =
+        if (macroExcludedFiles.isNotEmpty())
+            FileBasedDeclarationProviderFactory(storageManager, macroExcludedFiles)
+        else null
+
+    /**
+     * 宏展开文件对应的源文件 VirtualFile 集合
+     *
+     * 通过 MacroExpandedFileManager.findOriginalFile() 反查，
+     * 用于从 Stub 索引中排除这些源文件（因为展开文件已包含其全部声明）。
+     */
+    private val macroExcludedSourceVirtualFiles: Set<VirtualFile> by lazy {
+        if (macroExcludedFiles.isEmpty()) return@lazy emptySet()
+        val manager = MacroExpandedFileManager.getInstance(project)
+        macroExcludedFiles.mapNotNull { expandedFile ->
+            val expandedVf = expandedFile.virtualFile ?: return@mapNotNull null
+            manager.findOriginalFile(expandedVf)
+        }.toSet()
+    }
+
     override fun packageExists(fqName: FqName) =
-        fileBasedDeclarationProviderFactory.packageExists(fqName) || stubBasedPackageExists(fqName)
+        fileBasedDeclarationProviderFactory.packageExists(fqName)
+                || macroFileBasedDeclarationProviderFactory?.packageExists(fqName) == true
+                || stubBasedPackageExists(fqName)
 
     private fun stubBasedPackageExists(name: FqName): Boolean {
         // 首先尝试通过项目源码模块检查
@@ -91,18 +123,26 @@ class PluginDeclarationProviderFactory(
     }
 
     private fun getStubBasedPackageMemberDeclarationProvider(name: FqName): PackageMemberDeclarationProvider {
-
+        // 当存在宏展开文件时，使用 MacroStubBasedPackageMemberDeclarationProvider
+        // 从 Stub 索引中排除对应的源文件，防止与展开文件的声明重复
+        if (macroExcludedSourceVirtualFiles.isNotEmpty()) {
+            return MacroStubBasedPackageMemberDeclarationProvider(
+                name, project, indexedFilesScope, macroExcludedSourceVirtualFiles
+            )
+        }
         return StubBasedPackageMemberDeclarationProvider(name, project, indexedFilesScope)
     }
 
     public override fun createPackageMemberDeclarationProvider(name: FqName): PackageMemberDeclarationProvider? {
         val fileBasedProvider = fileBasedDeclarationProviderFactory.getPackageMemberDeclarationProvider(name)
+        val macroFileBasedProvider = macroFileBasedDeclarationProviderFactory?.getPackageMemberDeclarationProvider(name)
         val stubBasedProvider = getStubBasedPackageMemberDeclarationProvider(name)
-        return when {
-            fileBasedProvider == null && stubBasedProvider == null -> null
-            fileBasedProvider == null -> stubBasedProvider
-            stubBasedProvider == null -> fileBasedProvider
-            else -> CombinedPackageMemberDeclarationProvider(listOf(stubBasedProvider, fileBasedProvider))
+
+        val providers = listOfNotNull(stubBasedProvider, fileBasedProvider, macroFileBasedProvider)
+        return when (providers.size) {
+            0 -> null
+            1 -> providers.single()
+            else -> CombinedPackageMemberDeclarationProvider(providers)
         }
     }
 

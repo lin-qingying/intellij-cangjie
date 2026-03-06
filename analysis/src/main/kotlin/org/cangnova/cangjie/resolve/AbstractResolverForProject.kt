@@ -83,7 +83,7 @@ package org.cangnova.cangjie.resolve
  * 确保在多线程环境下的安全性。
  *
  * @see ResolverForProject
- * @see AnalysisContext
+ * @see ModuleInfo
  * @see ModuleDescriptor
  * @see ResolverForModule
  */
@@ -125,7 +125,7 @@ import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
  *
  * ## 类型参数
  *
- * @param M 分析上下文的类型，必须继承自 [AnalysisContext]
+ * @param M 分析上下文的类型，必须继承自 [ModuleInfo]
  *
  * ## 构造参数
  *
@@ -196,7 +196,7 @@ import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
  * - 如果解析器已被释放，会抛出 [InvalidResolverException]
  *
  * @see ResolverForProject
- * @see AnalysisContext
+ * @see ModuleInfo
  * @see ModuleDescriptor
  * @see ResolverForModule
  * @see Disposable

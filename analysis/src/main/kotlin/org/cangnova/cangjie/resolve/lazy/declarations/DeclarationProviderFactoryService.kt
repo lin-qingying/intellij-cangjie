@@ -42,7 +42,8 @@ class CliDeclarationProviderFactoryService(private val sourceFiles: Collection<C
         storageManager: StorageManager,
         syntheticFiles: Collection<CjFile>,
         filesScope: GlobalSearchScope,
-        context: ModuleInfo
+        context: ModuleInfo,
+        macroExcludedFiles: Collection<CjFile>
     ): DeclarationProviderFactory {
         val allFiles = ArrayList<CjFile>()
         sourceFiles.filterTo(allFiles) {
@@ -60,18 +61,20 @@ abstract class DeclarationProviderFactoryService {
         storageManager: StorageManager,
         syntheticFiles: Collection<CjFile>,
         filesScope: GlobalSearchScope,
-        context: ModuleInfo
+        context: ModuleInfo,
+        macroExcludedFiles: Collection<CjFile> = emptyList()
 
     ): DeclarationProviderFactory
 
     companion object {
-        
+
         fun createDeclarationProviderFactory(
             project: Project,
             storageManager: StorageManager,
             syntheticFiles: Collection<CjFile>,
             moduleContentScope: GlobalSearchScope,
-            context: ModuleInfo
+            context: ModuleInfo,
+            macroExcludedFiles: Collection<CjFile> = emptyList()
 
         ): DeclarationProviderFactory {
             return project.getService(DeclarationProviderFactoryService::class.java)!!
@@ -80,7 +83,8 @@ abstract class DeclarationProviderFactoryService {
                     storageManager,
                     syntheticFiles,
                     filteringScope(syntheticFiles, moduleContentScope),
-                    context
+                    context,
+                    macroExcludedFiles
                 )
         }
 

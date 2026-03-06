@@ -28,6 +28,7 @@ import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import kotlinx.coroutines.runBlocking
 import org.cangnova.cangjie.lang.CangJieFileType
+import org.cangnova.cangjie.macro.pipeline.MacroPipelineCoordinator
 import org.cangnova.cangjie.macro.service.MacroExpansionOptions
 import org.cangnova.cangjie.macro.service.MacroExpansionService
 import org.cangnova.cangjie.result.CjResult
@@ -93,6 +94,15 @@ class MacroExpansionBackgroundTask(
             true
         ) {
             override fun run(indicator: ProgressIndicator) {
+                // 展开前检查宏动态库是否就绪
+                val libsReady = runBlocking {
+                    MacroPipelineCoordinator.getInstance(project).ensureMacroLibsReady()
+                }
+                if (!libsReady) {
+                    LOG.warn("宏动态库不可用，跳过展开")
+                    return
+                }
+
                 val targetFiles = files ?: collectCangJieFiles()
                 if (targetFiles.isEmpty()) return
 

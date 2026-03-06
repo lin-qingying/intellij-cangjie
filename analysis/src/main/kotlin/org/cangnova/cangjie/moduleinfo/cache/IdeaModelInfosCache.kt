@@ -38,6 +38,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
+import com.intellij.platform.workspace.jps.entities.SourceRootEntity
 import com.intellij.platform.workspace.storage.VersionedStorageChange
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
@@ -94,7 +95,7 @@ interface IdeaModelInfosCache {
  *
  * @param project 当前项目
  */
-class FineGrainedIdeaModelInfosCache(private val project: Project) : IdeaModelInfosCache, Disposable {
+internal class FineGrainedIdeaModelInfosCache(private val project: Project) : IdeaModelInfosCache, Disposable {
     /**
      * 协程作用域，用于订阅工作空间模型变化
      */
@@ -242,7 +243,8 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : IdeaModelIn
             if (initializerRef != null) return // 缓存尚未初始化，忽略变化
 
             val moduleChanges = event.getChanges(ModuleEntity::class.java)
-            if (moduleChanges.isEmpty()) return
+            val sourceRootChanges = event.getChanges(SourceRootEntity::class.java)
+            if (moduleChanges.isEmpty() && sourceRootChanges.isEmpty()) return
 
             // 清空缓存（不需要 write action）
             invalidate()

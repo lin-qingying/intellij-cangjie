@@ -29,7 +29,10 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootModificationTracker
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiManager
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.cangnova.cangjie.cache.trackers.CangJieCodeBlockModificationListener
@@ -54,7 +57,6 @@ import org.cangnova.cangjie.resolve.ResolverForModule
 import org.cangnova.cangjie.resolve.ResolverForProject
 import org.cangnova.cangjie.storage.CancellableSimpleLock
 import org.cangnova.cangjie.storage.guarded
-import org.cangnova.cangjie.utils.firstIsInstanceOrNull
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 
@@ -349,6 +351,7 @@ class ProjectResolutionFacade(
     dependencies: List<Any>,
     private val invalidateOnOOCB: Boolean,
     val syntheticFiles: Collection<CjFile> = listOf(),
+    val macroExcludedSourceFiles: Collection<CjFile> = emptySet(),
     val allModules: Collection<IdeaModuleInfo>? = null  // null 意味着从 AnalysisContextProvider 获取
 ) {
 
@@ -436,9 +439,10 @@ class ProjectResolutionFacade(
             }
 
         val syntheticFilesByModule = syntheticFiles.groupBy { it.moduleInfo }
+        val macroExcludedFilesByModule = macroExcludedSourceFiles.groupBy { it.moduleInfo }
         val syntheticFilesModules = syntheticFilesByModule.keys
         allModuleInfos.addAll(syntheticFilesModules)
-
+        allModuleInfos.addAll(macroExcludedFilesByModule.keys)
 
 
         // 根据模块过滤条件过滤解析的模块
@@ -452,9 +456,40 @@ class ProjectResolutionFacade(
             projectDescriptor,
             resolvedModulesWithDependencies,
             syntheticFilesByModule,
+            macroExcludedFilesByModule,
             delegateResolverForProject,
             CangJieModificationTrackerService.getInstance(project).outOfBlockModificationTracker
 
+        )
+    }
+
+    /**
+     * 创建包含宏展开文件的子门面
+     *
+     * 用于宏展开分析：将展开文件作为 macroExcludedSourceFiles 注入子门面。
+     * 展开文件已包含源文件的全部声明 + 宏生成的声明，
+     * 通过 MacroStubBasedPackageMemberDeclarationProvider 排除源文件在 Stub 索引中的重复声明。
+     *
+     * 子门面复用父门面的解析器数据（通过 reuseDataFrom）。
+     *
+     * @param macroExpandedFiles 宏展开文件集合
+     * @return 包含展开文件的新 ProjectResolutionFacade
+     */
+    internal fun createChildWithMacroExpandedFiles(
+        macroExpandedFiles: Collection<CjFile>
+    ): ProjectResolutionFacade {
+        return ProjectResolutionFacade(
+            "$debugString-macroExpanded",
+            "$resolverDebugName (macroExpanded)",
+            project,
+            globalContext.contextWithCompositeExceptionTracker(project, "macroExpanded"),
+            reuseDataFrom = this,
+            moduleFilter = { true },
+            dependencies = listOf(
+                ProjectRootModificationTracker.getInstance(project)
+            ),
+            invalidateOnOOCB = true,
+            macroExcludedSourceFiles = macroExpandedFiles
         )
     }
 
@@ -470,14 +505,11 @@ class ProjectResolutionFacade(
             val results = object : SLRUCache<CjFile, PerFileAnalysisCache>(2, 3) {
                 private val lock = ReentrantLock()
 
-                override fun createValue(file: CjFile): PerFileAnalysisCache {
-                    val fileContext = file.moduleInfo
-                    val componentProvider = if (fileContext != null) {
-                        resolverForProject.resolverForModule(fileContext).componentProvider
-                    } else {
-                        throw IllegalStateException("No AnalysisContext for file: ${file.name}")
-                    }
-                    return PerFileAnalysisCache(file, componentProvider)
+                override fun createValue(key: CjFile): PerFileAnalysisCache {
+                    val fileContext = key.moduleInfo
+                    val componentProvider = resolverForProject.resolverForModule(fileContext).componentProvider
+
+                    return PerFileAnalysisCache(key, componentProvider)
                 }
 
                 override fun getIfCached(key: CjFile): PerFileAnalysisCache? {
@@ -595,7 +627,7 @@ class ProjectResolutionFacade(
         val containingFile = element.containingFile
         val elementModuleInfos = ModuleInfoProvider.getInstance(element.project).collect(
             element,
-            config =  ModuleInfoProvider.Configuration.Default,
+            config = ModuleInfoProvider.Configuration.Default,
         )
 
         for (result in elementModuleInfos) {

@@ -68,6 +68,10 @@ internal class MacroCompilationServiceImpl(private val project: Project) : Macro
         return compilationProvider.isAvailable()
     }
 
+    override fun hasCompiledMacroLibs(): Boolean {
+        return compilationProvider.hasCompiledMacroLibs()
+    }
+
     override fun getOutputDirectory(file: VirtualFile): Path? {
         return compilationProvider.getOutputDirectory(file)
     }

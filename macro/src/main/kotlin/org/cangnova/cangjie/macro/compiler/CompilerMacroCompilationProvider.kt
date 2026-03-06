@@ -436,11 +436,46 @@ class CompilerMacroCompilationProvider(private val project: Project) {
     }
 
     /**
+     * 检查是否存在已编译的宏动态库
+     *
+     * 检查项目所有输出目录中是否存在 `lib-macro_*` 文件。
+     */
+    fun hasCompiledMacroLibs(): Boolean {
+        val cjProject = CjProjectsService.getInstance(project).cjProject
+        val allModules = buildList {
+            cjProject.module?.let { add(it) }
+            cjProject.workspace?.modules?.let { addAll(it) }
+        }
+        val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk() ?: return false
+        val targetPlatform = sdk.version?.targetPlatform
+
+        val outputDirs = allModules
+            .flatMap { it.sourceSets }
+            .flatMap { it.outputDirectory }
+
+        val dirsToCheck = if (outputDirs.isNotEmpty()) {
+            outputDirs.map { baseDir ->
+                if (targetPlatform != null) File(baseDir.path, "release/$targetPlatform")
+                else File(baseDir.path)
+            }
+        } else if (cjProject.isValid) {
+            listOf(
+                if (targetPlatform != null) File(cjProject.rootDir.path, "target/release/$targetPlatform")
+                else File(cjProject.rootDir.path, "target")
+            )
+        } else {
+            return false
+        }
+
+        return dirsToCheck.any { findMacroLibsInDir(it).isNotEmpty() }
+    }
+
+    /**
      * 查找目录中的宏动态库文件
      *
      * 查找匹配 `lib-macro_*` 模式的动态库文件（.dll/.so/.dylib）
      */
-    private fun findMacroLibsInDir(dir: File): List<File> {
+    internal fun findMacroLibsInDir(dir: File): List<File> {
         if (!dir.exists() || !dir.isDirectory) {
             return emptyList()
         }

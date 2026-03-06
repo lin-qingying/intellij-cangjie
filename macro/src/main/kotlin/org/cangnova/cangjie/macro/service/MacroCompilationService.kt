@@ -86,6 +86,15 @@ interface MacroCompilationService {
     fun needsRecompilation(file: VirtualFile): Boolean
 
     /**
+     * 检查是否存在已编译的宏动态库
+     *
+     * 检查编译输出目录中是否存在 `lib-macro_*` 文件。
+     *
+     * @return 是否存在已编译的宏动态库
+     */
+    fun hasCompiledMacroLibs(): Boolean
+
+    /**
      * 检查服务是否可用
      *
      * @return 编译器是否可用

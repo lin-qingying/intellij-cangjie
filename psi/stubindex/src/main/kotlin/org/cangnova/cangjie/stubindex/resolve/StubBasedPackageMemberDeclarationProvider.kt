@@ -32,6 +32,8 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IntellijInternalApi
 import com.intellij.openapi.util.registry.Registry
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.search.DelegatingGlobalSearchScope
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.CommonProcessors
 import com.intellij.util.indexing.FileBasedIndex
@@ -52,7 +54,41 @@ import org.cangnova.cangjie.utils.isApplicationInternalMode
 
 private val isShortNameFilteringEnabled: Boolean by lazy { Registry.`is`("cangjie.indices.short.names.filtering.enabled") }
 
-class StubBasedPackageMemberDeclarationProvider(
+
+/**
+ * 宏展开专用的源文件过滤 Scope
+ *
+ * 在分析展开文件时，展开文件已包含源文件的所有声明。
+ * 此 Scope 从 Stub 索引查询中排除源文件，防止 REDECLARATION。
+ */
+class MacroSourceFileFilteringScope(
+    baseScope: GlobalSearchScope,
+    private val excludedSourceFiles: Set<VirtualFile>
+) : DelegatingGlobalSearchScope(baseScope) {
+    override fun contains(file: VirtualFile): Boolean =
+        super.contains(file) && file !in excludedSourceFiles
+
+    override fun toString(): String = "MacroSourceFileFilteringScope($myBaseScope, excluded=${excludedSourceFiles.size})"
+}
+
+/**
+ * 宏展开专用的 Stub 声明提供者
+ *
+ * 继承 [StubBasedPackageMemberDeclarationProvider]，使用 [MacroSourceFileFilteringScope]
+ * 排除源文件的声明。展开文件已通过 syntheticFile 机制提供完整声明（原始 + 宏生成），
+ * 因此 Stub 索引中的源文件声明是重复的，需要排除。
+ */
+class MacroStubBasedPackageMemberDeclarationProvider(
+    fqName: FqName,
+    project: Project,
+    baseScope: GlobalSearchScope,
+    excludedSourceFiles: Set<VirtualFile>
+) : StubBasedPackageMemberDeclarationProvider(
+    fqName, project, MacroSourceFileFilteringScope(baseScope, excludedSourceFiles)
+)
+
+
+open class StubBasedPackageMemberDeclarationProvider(
     private val fqName: FqName,
     private val project: Project,
     private val searchScope: GlobalSearchScope

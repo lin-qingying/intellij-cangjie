@@ -19,8 +19,10 @@ package org.cangnova.cangjie.macro.analysis
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.registry.Registry
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import org.cangnova.cangjie.diagnostics.Diagnostic
 import org.cangnova.cangjie.macro.expanded.MacroExpandedFileManager
@@ -28,8 +30,10 @@ import org.cangnova.cangjie.macro.expanded.MacroExpansionOffsetMapping
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.resolve.AnalysisResult
 import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.caches.ProjectResolutionFacade
 import org.cangnova.cangjie.resolve.caches.analyzeWithAllCompilerChecks
 import org.cangnova.cangjie.types.CangJieType
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 宏展开分析桥
@@ -55,6 +59,54 @@ import org.cangnova.cangjie.types.CangJieType
 class MacroExpandedAnalysisBridge(private val project: Project) {
 
     private val log = Logger.getInstance(MacroExpandedAnalysisBridge::class.java)
+
+    /**
+     * 展开文件分析用的子 facade 缓存
+     *
+     * 缓存以源文件路径为 key。子 facade 包含对应的展开文件作为 syntheticFile，
+     * 使展开文件中宏生成的新声明对 ResolveSession 可见。
+     *
+     * facade 内部通过 CachedValue 和依赖追踪（ProjectRootModificationTracker 等）
+     * 自动处理分析结果的缓存失效，无需外部管理。
+     */
+    private val expandedFacades = ConcurrentHashMap<String, ProjectResolutionFacade>()
+
+    /**
+     * 获取或创建展开文件的分析 facade
+     *
+     * @param projectFacade 源文件所用的 ProjectResolutionFacade（父 facade）
+     * @param expandedFile 展开文件的 CjFile PSI
+     * @param sourceFilePath 源文件路径（用作缓存 key）
+     * @return 包含展开文件作为 syntheticFile 的子 facade
+     */
+    fun getOrCreateExpandedFacade(
+        projectFacade: ProjectResolutionFacade,
+        expandedFile: CjFile,
+        sourceFilePath: String
+    ): ProjectResolutionFacade {
+        return expandedFacades.computeIfAbsent(sourceFilePath) {
+            projectFacade.createChildWithMacroExpandedFiles(listOf(expandedFile))
+        }
+    }
+
+    /**
+     * 获取已缓存的展开文件 facade（不创建新的）
+     *
+     * @param sourceFilePath 源文件路径
+     * @return 已缓存的子 facade，未缓存时返回 null
+     */
+    fun getExpandedFacade(sourceFilePath: String): ProjectResolutionFacade? {
+        return expandedFacades[sourceFilePath]
+    }
+
+    /**
+     * 清除展开 facade 缓存
+     *
+     * 在展开文件重新生成后调用，确保下次分析使用新的展开内容。
+     */
+    fun invalidateExpandedFacades() {
+        expandedFacades.clear()
+    }
 
     /**
      * 映射后的诊断信息
@@ -253,29 +305,30 @@ class MacroExpandedAnalysisBridge(private val project: Project) {
      * 将展开文件的 BindingContext 合并进源文件的 AnalysisResult，
      * 使所有下游消费者（高亮、补全、悬停等）自动获得宏展开后的分析信息。
      *
+     * 注意：展开文件的分析必须由调用方使用与源文件相同的 ProjectResolutionFacade 执行，
+     * 以确保 Resolver 包含正确的模块信息（ModuleProductionSourceInfo）。
+     *
      * @param sourceFile 源文件
      * @param sourceResult 源文件的原始分析结果
+     * @param expandedAnalysisResult 展开文件的分析结果（由调用方通过源文件的 projectFacade 分析得到）
      * @return 合并后的 AnalysisResult，无法合并时返回原始结果
      */
-    fun mergeAnalysisResults(sourceFile: CjFile, sourceResult: AnalysisResult): AnalysisResult {
+    fun mergeAnalysisResults(
+        sourceFile: CjFile,
+        sourceResult: AnalysisResult,
+        expandedAnalysisResult: AnalysisResult
+    ): AnalysisResult {
         if (sourceResult.isError()) return sourceResult
+        if (sourceResult.bindingContext is MacroMergedBindingContext) return sourceResult
+        if (expandedAnalysisResult.isError()) return sourceResult
 
         val expandedFile = getExpandedPsiFile(sourceFile) ?: return sourceResult
         val mapping = getOffsetMapping(sourceFile) ?: return sourceResult
         if (mapping.lineMappings.isEmpty()) return sourceResult
 
-        val expandedResult = try {
-            expandedFile.analyzeWithAllCompilerChecks()
-        } catch (e: Exception) {
-            log.debug("宏展开文件分析合并失败: ${expandedFile.virtualFile?.path}", e)
-            return sourceResult
-        }
-
-        if (expandedResult.isError()) return sourceResult
-
         val mergedBindingContext = MacroMergedBindingContext(
             sourceContext = sourceResult.bindingContext,
-            expandedContext = expandedResult.bindingContext,
+            expandedContext = expandedAnalysisResult.bindingContext,
             expandedFile = expandedFile,
             sourceFile = sourceFile,
             mapping = mapping
@@ -285,6 +338,38 @@ class MacroExpandedAnalysisBridge(private val project: Project) {
             mergedBindingContext,
             sourceResult.moduleDescriptor,
             sourceResult.shouldGenerateCode
+        )
+    }
+
+    /**
+     * 合并源文件和展开文件的 BindingContext
+     *
+     * 供 ResolutionFacade.analyze() 使用。与 mergeAnalysisResults 对应，
+     * 但直接操作 BindingContext 而非 AnalysisResult。
+     *
+     * @param sourceFile 源文件
+     * @param sourceContext 源文件的原始 BindingContext
+     * @param expandedAnalysisResult 展开文件的分析结果（由调用方通过源文件的 projectFacade 分析得到）
+     * @return 合并后的 BindingContext，无法合并时返回原始结果
+     */
+    fun mergeBindingContext(
+        sourceFile: CjFile,
+        sourceContext: BindingContext,
+        expandedAnalysisResult: AnalysisResult
+    ): BindingContext {
+        if (sourceContext is MacroMergedBindingContext) return sourceContext
+        if (expandedAnalysisResult.isError()) return sourceContext
+
+        val expandedFile = getExpandedPsiFile(sourceFile) ?: return sourceContext
+        val mapping = getOffsetMapping(sourceFile) ?: return sourceContext
+        if (mapping.lineMappings.isEmpty()) return sourceContext
+
+        return MacroMergedBindingContext(
+            sourceContext = sourceContext,
+            expandedContext = expandedAnalysisResult.bindingContext,
+            expandedFile = expandedFile,
+            sourceFile = sourceFile,
+            mapping = mapping
         )
     }
 

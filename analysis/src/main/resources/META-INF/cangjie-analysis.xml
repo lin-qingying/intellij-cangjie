@@ -335,9 +335,6 @@
 
     <!-- 宏展开分析管线监听器 -->
     <projectListeners>
-        <!-- 宏展开分析管线：项目同步完成后触发缓存预热 -->
-        <listener class="org.cangnova.cangjie.macro.analysis.MacroExpansionProjectSyncListener"
-                  topic="org.cangnova.cangjie.project.event.CjProjectListener"/>
         <!-- 宏展开分析管线：文件变更后延迟触发宏重新展开 -->
         <listener class="org.cangnova.cangjie.macro.analysis.MacroExpansionFileListener"
                   topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>

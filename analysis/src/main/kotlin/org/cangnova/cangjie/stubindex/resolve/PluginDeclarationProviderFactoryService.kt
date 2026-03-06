@@ -40,16 +40,17 @@ class PluginDeclarationProviderFactoryService : DeclarationProviderFactoryServic
         storageManager: StorageManager,
         syntheticFiles: Collection<CjFile>,
         filesScope: GlobalSearchScope,
-        context: ModuleInfo
+        context: ModuleInfo,
+        macroExcludedFiles: Collection<CjFile>
     ): DeclarationProviderFactory {
-
 
         return PluginDeclarationProviderFactory(
             project,
             CangJieSourceFilterScope.projectSourcesAndLibraryClasses(filesScope, project),
             storageManager,
             syntheticFiles,
-            context
+            context,
+            macroExcludedFiles
         )
     }
 }

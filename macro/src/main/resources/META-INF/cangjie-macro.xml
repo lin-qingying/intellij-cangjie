@@ -54,6 +54,11 @@
                 serviceInterface="org.cangnova.cangjie.macro.service.MacroCompilationService"
                 serviceImplementation="org.cangnova.cangjie.macro.service.MacroCompilationServiceImpl"/>
 
+        <!-- 宏编译/展开管线协调器 -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.macro.pipeline.MacroPipelineCoordinator"
+                serviceImplementation="org.cangnova.cangjie.macro.pipeline.MacroPipelineCoordinatorImpl"/>
+
         <!-- 宏展开缓存服务 -->
         <projectService
                 serviceImplementation="org.cangnova.cangjie.macro.cache.MacroExpansionCache"/>
@@ -134,9 +139,9 @@
                 implementation="org.cangnova.cangjie.macro.compiler.FullProjectMacroDeclarationLocator"/>
     </extensions>
 
-    <!-- 宏自动编译监听器：项目同步完成后自动编译宏包 -->
+    <!-- 宏管线项目同步监听器：项目同步完成后通过协调器触发全量管线（编译 → 展开） -->
     <projectListeners>
-        <listener class="org.cangnova.cangjie.macro.autocompile.MacroAutoCompilationListener"
+        <listener class="org.cangnova.cangjie.macro.pipeline.MacroPipelineProjectSyncListener"
                   topic="org.cangnova.cangjie.project.event.CjProjectListener"/>
     </projectListeners>
 
