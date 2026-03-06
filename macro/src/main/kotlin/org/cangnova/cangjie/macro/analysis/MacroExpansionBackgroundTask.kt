@@ -36,7 +36,8 @@ import org.cangnova.cangjie.result.CjResult
  * 宏展开后台任务
  *
  * 遍历项目中的所有 `.cj` 文件，调用 [MacroExpansionService.expandAllMacrosInFile]
- * 展开宏并将结果存入 [MacroExpandedPsiCache]，用于预热缓存。
+ * 展开宏。展开结果由 [org.cangnova.cangjie.macro.expanded.MacroExpandedFileManager] 自动
+ * 处理为磁盘文件，供 IntelliJ PSI 基础设施索引。
  *
  * 仅在 `cangjie.macro.expansion.analysis.enabled` 启用时执行。
  */
@@ -96,7 +97,8 @@ class MacroExpansionBackgroundTask(
                 if (targetFiles.isEmpty()) return
 
                 val expansionService = MacroExpansionService.getInstance(project)
-                val psiCache = MacroExpandedPsiCache.getInstance(project)
+                // 展开结果由 CompilerMacroExpansionProvider 自动调用 MacroExpandedFileManager
+                // 处理为磁盘文件，此处无需手动处理 PSI 缓存
 
                 val total = targetFiles.size
                 var processed = 0
@@ -119,8 +121,6 @@ class MacroExpansionBackgroundTask(
                             is CjResult.Ok -> {
                                 val results = result.ok
                                 if (results.isNotEmpty()) {
-                                    // 预热 PSI 缓存
-                                    psiCache.getOrCreateAllPsi(results, file)
                                     expanded += results.size
                                 }
                             }

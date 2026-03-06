@@ -71,8 +71,12 @@ open class CangJieStubBaseImpl<T : CjElementImplStub<*>>(parent: StubElement<*>?
             val value = property.invoke(this)
             val name = getPropertyName(property)
             "$name=$value"
+        } catch (e: java.lang.reflect.InvocationTargetException) {
+            // 打印真正的根因，而不是包装异常
+            LOGGER.error("Failed to invoke ${property.name}: ${e.cause}", e.cause)
+            null
         } catch (e: Exception) {
-            LOGGER.error(e)
+            LOGGER.error("Reflection error on ${property.name}", e)
             null
         }
     }

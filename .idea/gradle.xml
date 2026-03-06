@@ -22,6 +22,7 @@
             <option value="$PROJECT_DIR$/debugger/protobuf" />
             <option value="$PROJECT_DIR$/descriptors" />
             <option value="$PROJECT_DIR$/descriptors/deserialization" />
+            <option value="$PROJECT_DIR$/flatbuffers-gen" />
             <option value="$PROJECT_DIR$/formatter" />
             <option value="$PROJECT_DIR$/highlighter" />
             <option value="$PROJECT_DIR$/icon" />
@@ -32,6 +33,7 @@
             <option value="$PROJECT_DIR$/messages" />
             <option value="$PROJECT_DIR$/metadata" />
             <option value="$PROJECT_DIR$/metadata/cjo" />
+            <option value="$PROJECT_DIR$/namedpipe" />
             <option value="$PROJECT_DIR$/notifications" />
             <option value="$PROJECT_DIR$/plugin" />
             <option value="$PROJECT_DIR$/psi" />

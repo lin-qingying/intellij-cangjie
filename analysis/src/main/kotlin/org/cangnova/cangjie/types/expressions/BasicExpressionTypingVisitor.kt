@@ -1210,6 +1210,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 
         return when (result) {
             is MacroExpressionResolver.MacroResolutionResult.MacroResult -> {
+                return          noTypeInfo(context)
                 if (result.results.isSuccess) {
                     val returnType = result.results.resultingDescriptor.returnType
                     if (returnType != null) {

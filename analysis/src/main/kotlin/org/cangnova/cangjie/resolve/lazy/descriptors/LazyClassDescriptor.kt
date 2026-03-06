@@ -79,8 +79,7 @@ open class LazyClassDescriptor(
     name: Name,
     classLikeInfo: CjClassLikeInfo,
     isExternal: Boolean,
-    sourceOverride: SourceElement? = null
-) : LazyClassDescriptorBase(c, containingDeclaration, name, classLikeInfo, isExternal, sourceOverride), LazyEntity {
+) : LazyClassDescriptorBase(c, containingDeclaration, name, classLikeInfo, isExternal), LazyEntity {
 
     private var typeStatement: CjTypeStatement? = classLikeInfo.correspondingClass
     private val declarationProvider: ClassMemberDeclarationProvider =
@@ -355,10 +354,10 @@ open class LazyClassDescriptor(
 
         // 获取通过 extend 声明添加的超类型
         val extendManager = c.moduleDescriptor.projectDescriptor.extendManager
-        val extendSupertypes = extendManager?.getExtendSupertypes(
+        val extendSupertypes = extendManager.getExtendSupertypes(
             forConstructor = this.typeConstructor,
             forTypeArgs = emptyList()
-        ) ?: emptyList()
+        )
 
         // 合并所有超类型
         val allSupertypes = declaredSupertypes + extendSupertypes

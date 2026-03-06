@@ -28,6 +28,7 @@ import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.Multimap
 import org.cangnova.cangjie.descriptors.PackageMemberDeclarationProvider
 import org.cangnova.cangjie.descriptors.data.CjClassLikeInfo
+import org.cangnova.cangjie.macro.file.CjMacroCallFile
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.resolve.lazy.descriptors.ClassMemberDeclarationProvider
@@ -68,6 +69,8 @@ class FileBasedDeclarationProviderFactory(
             val index: Index =
                 Index()
             for (file in files) {
+
+
                 val packageFqName: FqName = file.packageFqName
                 addMeAndParentPackages(
                     index,

@@ -72,13 +72,13 @@ class LazyEnumDescriptor(
     override val containingDeclaration: DeclarationDescriptor,
     name: Name,
     private val classLikeInfo: CjClassLikeInfo,
-    private val sourceOverride: SourceElement? = null
+
 
     ) : AbstractEnumDescriptor(c.storageManager, name), EnumDescriptorWithResolutionScopes, LazyEntity {
 
     private val enumPsi: CjEnum = classLikeInfo.correspondingClass as CjEnum
 
-    override val source: SourceElement = sourceOverride ?: enumPsi.toSourceElement()
+    override val source: SourceElement =   enumPsi.toSourceElement()
 
     private val declarationProvider: ClassMemberDeclarationProvider =
         c.declarationProviderFactory.getClassMemberDeclarationProvider(classLikeInfo)

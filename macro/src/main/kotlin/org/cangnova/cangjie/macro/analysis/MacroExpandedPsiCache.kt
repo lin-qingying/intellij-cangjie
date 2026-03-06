@@ -42,7 +42,14 @@ import java.util.concurrent.ConcurrentHashMap
  * - 缓存 key = `(filePath, startOffset)`
  * - 文件修改或删除时自动失效
  * - 跟随 [org.cangnova.cangjie.macro.cache.MacroExpansionCache] 的 TTL 策略
+ *
+ * @deprecated 已废弃，随时可删除。
+ * 新架构使用基于磁盘的展开文件（由 [org.cangnova.cangjie.macro.expanded.MacroExpandedFileManager] 管理），
+ * 展开后的 .cj 文件由 IntelliJ PSI 基础设施自动解析和索引，无需手动维护内存 PSI 缓存。
+ * @see org.cangnova.cangjie.macro.expanded.MacroExpandedFileManager
+ * @see org.cangnova.cangjie.macro.expanded.MacroExpandedFileProcessor
  */
+@Deprecated("已废弃：新架构使用 MacroExpandedFileManager 基于磁盘的展开文件，无需内存 PSI 缓存")
 @Service(Service.Level.PROJECT)
 class MacroExpandedPsiCache(private val project: Project) : Disposable {
 

@@ -269,7 +269,9 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
     private fun getFacadeToAnalyzeFile(file: CjFile, settings: PlatformAnalysisSettings): ResolutionFacade {
         val moduleInfo = file.moduleInfo
 
-        val specialFile = filterNotInProjectSource(file, moduleInfo)
+        // .macrocall 文件不属于任何项目模块，强制走 specialFiles 路径
+        // 避免 NotUnderContentRootModuleInfo 进入全局 modules resolver 导致崩溃
+        val specialFile =   filterNotInProjectSource(file, moduleInfo)
 
         if (specialFile != null) {
             val specialFiles = setOf(specialFile)
@@ -411,8 +413,8 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
     private fun getFacadeToAnalyzeFiles(files: Collection<CjFile>/*, settings: PlatformAnalysisSettings*/): ResolutionFacade {
         val moduleInfo = files.first().moduleInfo
 
+        // .macrocall 文件强制作为 specialFiles 处理
         val specialFiles = files.filterNotInProjectSource(moduleInfo)
-
 
         if (specialFiles.isNotEmpty()) {
             val projectFacade = getFacadeForSpecialFiles(specialFiles, DefaultPlatformAnalysisSettings)

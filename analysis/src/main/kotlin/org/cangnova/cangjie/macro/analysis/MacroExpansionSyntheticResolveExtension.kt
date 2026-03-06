@@ -47,7 +47,13 @@ private typealias PkgDeclProvider = org.cangnova.cangjie.descriptors.PackageMemb
  *    处理类上的注解宏，如 `@Derive(Eq)` 生成 `equals()` 方法。
  *
  * 通过 Registry key `cangjie.macro.expansion.analysis.enabled` 控制开关（默认关闭）。
+ *
+ * @deprecated 已废弃，随时可删除。
+ * 新架构使用基于磁盘的展开文件，展开后的 .cj 文件作为源码根注册到 IntelliJ，
+ * 声明通过 Stub 索引自动发现，无需通过 SyntheticResolveExtension 手动注入。
+ * @see org.cangnova.cangjie.macro.expanded.MacroExpandedFileManager
  */
+@Deprecated("已废弃：新架构使用 MacroExpandedFileManager 基于磁盘的展开文件，Stub 索引自动处理声明注入")
 internal class MacroExpansionSyntheticResolveExtension : SyntheticResolveExtension {
 
     private val log = Logger.getInstance(MacroExpansionSyntheticResolveExtension::class.java)
@@ -106,7 +112,7 @@ internal class MacroExpansionSyntheticResolveExtension : SyntheticResolveExtensi
             ?.classes?.get(name) ?: return
         for (macroTypeInfo in classInfos) {
             try {
-                result.add(LazyClassDescriptor(ctx, thisDescriptor, name, macroTypeInfo.typeInfo, false, macroTypeInfo.sourceElement))
+                result.add(LazyClassDescriptor(ctx, thisDescriptor, name, macroTypeInfo.typeInfo, false))
             } catch (e: Exception) {
                 log.debug("创建宏展开 LazyClassDescriptor 失败: $name", e)
             }
@@ -123,7 +129,7 @@ internal class MacroExpansionSyntheticResolveExtension : SyntheticResolveExtensi
             ?.enums?.get(name) ?: return
         for (macroTypeInfo in enumInfos) {
             try {
-                result.add(LazyEnumDescriptor(ctx, thisDescriptor, name, macroTypeInfo.typeInfo, macroTypeInfo.sourceElement))
+                result.add(LazyEnumDescriptor(ctx, thisDescriptor, name, macroTypeInfo.typeInfo))
             } catch (e: Exception) {
                 log.debug("创建宏展开 LazyEnumDescriptor 失败: $name", e)
             }

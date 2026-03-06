@@ -35,11 +35,3 @@ dependencies {
     testImplementation("net.java.dev.jna:jna-platform:5.14.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
 }
-
-tasks.test {
-    useJUnitPlatform()
-    testLogging {
-        events("passed", "skipped", "failed")
-    }
-}
-

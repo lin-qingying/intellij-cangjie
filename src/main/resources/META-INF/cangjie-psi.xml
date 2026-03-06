@@ -35,6 +35,9 @@
         <lang.parserDefinition language="CangJie"
                                implementationClass="org.cangnova.cangjie.parsing.CangJieParserDefinition"/>
 
+        <lang.parserDefinition language="CangJieMacroCall"
+                               implementationClass="org.cangnova.cangjie.parsing.CangJieMacroCallParserDefinition"/>
+
         <!-- 1. 编辑器基础功能配置 -->
         <!-- 编辑器智能键配置 -->
         <editorSmartKeysConfigurable instance="org.cangnova.cangjie.ide.editor.CangJieEditorOptionsConfigurable"/>

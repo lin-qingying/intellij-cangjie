@@ -40,7 +40,11 @@ class CjMacroInput(node: ASTNode) : CjExpressionImpl(node) {
 }
 
 class CjQuoteParameters(node: ASTNode) : CjExpressionImpl(node)
-class CjMacroAttr(node: ASTNode) : CjExpressionImpl(node)
+class CjMacroAttr(node: ASTNode) : CjExpressionImpl(node){
+    val tokens: List<PsiElement>
+        get() = findChildByType<CjQuoteTokens>(CjNodeTypes.QUOTE_TOKENS)?.tokens ?: emptyList()
+
+}
 class CjQuoteTokens(node: ASTNode) : CjExpressionImpl(node) {
 
     val tokens: List<PsiElement> get() = findChildrenByType(CangJieExpressionParsing.QUOTE_TOKENS)

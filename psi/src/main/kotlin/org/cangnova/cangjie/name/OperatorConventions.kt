@@ -34,19 +34,19 @@ import kotlin.collections.get
 
 object OperatorConventions {
 
-    val DOUBLE: Name = Name.identifier("toDouble")
+//    val DOUBLE: Name = Name.identifier("toDouble")
+//
+//    val FLOAT: Name = Name.identifier("toFloat")
 
-    val FLOAT: Name = Name.identifier("toFloat")
+//    val LONG: Name = Name.identifier("toLong")
 
-    val LONG: Name = Name.identifier("toLong")
-
-    val INT: Name = Name.identifier("toInt")
-
-    val CHAR: Name = Name.identifier("toChar")
-
-    val SHORT: Name = Name.identifier("toShort")
-
-    val BYTE: Name = Name.identifier("toByte")
+//    val INT: Name = Name.identifier("toInt")
+//
+//    val CHAR: Name = Name.identifier("toChar")
+//
+//    val SHORT: Name = Name.identifier("toShort")
+//
+//    val BYTE: Name = Name.identifier("toByte")
 
     fun getOperationSymbolForName(name: Name): CjToken? {
         if (!isConventionName(name)) return null
@@ -64,7 +64,7 @@ object OperatorConventions {
         ImmutableSet.of<Name>(
 //           OperatorConventions.DOUBLE,
 //           OperatorConventions.FLOAT,
-            LONG,
+//            LONG,
 //           OperatorConventions.INT,
 //           OperatorConventions.SHORT,
 //           OperatorConventions.BYTE,

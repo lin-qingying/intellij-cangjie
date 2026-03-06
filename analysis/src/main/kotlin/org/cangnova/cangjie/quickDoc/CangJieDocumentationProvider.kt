@@ -51,6 +51,7 @@ import org.cangnova.cangjie.lexer.cdoc.insert
 import org.cangnova.cangjie.lexer.cdoc.psi.CDoc
 import org.cangnova.cangjie.lexer.cdoc.psi.impl.CDocSection
 import org.cangnova.cangjie.psi.CjBindingPattern
+import org.cangnova.cangjie.psi.CjMacroExpression
 import org.cangnova.cangjie.navigation.SourceNavigationHelper
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.*
@@ -914,6 +915,22 @@ internal class CangJieDocumentationProvider : AbstractDocumentationProvider(), E
         private fun getTextImpl(element: PsiElement, originalElement: PsiElement?, quickNavigation: Boolean): String? {
             (element as? CjElement)?.navigationElement.takeIf { it != element }?.let {
                 return getTextImpl(it, originalElement, quickNavigation)
+            }
+
+            // 宏展开的成员：通过原始引用获取描述符，渲染展开后的声明文档
+            if (element is CjMacroExpression && originalElement != null) {
+                val refExpr = originalElement.getNonStrictParentOfType<CjReferenceExpression>()
+                if (refExpr != null) {
+                    val resolutionFacade = refExpr.getResolutionFacade()
+                    val context = refExpr.safeAnalyzeNonSourceRootCode(resolutionFacade, BodyResolveMode.PARTIAL)
+                    val targetDescriptor = context[BindingContext.REFERENCE_TARGET, refExpr]
+                    if (targetDescriptor != null) {
+                        return buildString {
+                            insert(buildCangJie(context, targetDescriptor, quickNavigation, refExpr, resolutionFacade)) {}
+                        }
+                    }
+                }
+                return null
             }
 
             if (element is CjVArrayType) {

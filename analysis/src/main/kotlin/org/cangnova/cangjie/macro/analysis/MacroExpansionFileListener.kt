@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.cangnova.cangjie.macro.expanded.MacroExpandedFileManager
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.ConcurrentHashMap
@@ -81,8 +82,8 @@ class MacroExpansionFileListener(
         // 取消之前的任务
         pendingTasks.remove(filePath)?.cancel(false)
 
-        // 立即失效描述符缓存（PSI 缓存已通过 MacroExpandedPsiCache 内置的 VFS 监听器自动失效）
-        MacroExpandedDescriptorProvider.getInstance(project).invalidateForFile(filePath)
+        // 立即失效展开文件缓存
+        MacroExpandedFileManager.getInstance(project).invalidate(filePath)
 
         // 调度新任务
         val future = scheduler.schedule({

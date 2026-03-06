@@ -30,8 +30,6 @@ import org.cangnova.cangjie.lang.declarations.CjDeclarationsFile
 import org.cangnova.cangjie.lexer.CangJieLexer
 import org.cangnova.cangjie.lexer.CjToken
 import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.macro.file.CangJieMacroCallFileType
-import org.cangnova.cangjie.macro.file.CjMacroCallFile
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjNodeType
 import org.cangnova.cangjie.psi.CjNodeTypes
@@ -100,7 +98,6 @@ internal class CangJieParserDefinition : ParserDefinition {
 
         return when (viewProvider.fileType) {
             is CangJieDeclarationsFileType -> CjDeclarationsFile(viewProvider)
-            is CangJieMacroCallFileType -> CjMacroCallFile(viewProvider)
             is CangJieFileType -> CjFile(viewProvider, false)
             else -> PsiPlainTextFileImpl(viewProvider)
         }

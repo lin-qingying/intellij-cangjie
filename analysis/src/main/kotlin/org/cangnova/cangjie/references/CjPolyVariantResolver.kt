@@ -21,7 +21,6 @@
  * any damages or issues arising from its use.
  *
  */
-
 package org.cangnova.cangjie.references
 
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor

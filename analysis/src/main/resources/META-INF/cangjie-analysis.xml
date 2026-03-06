@@ -311,9 +311,12 @@
         <diagnosticRendererProvider
                 implementation="org.cangnova.cangjie.diagnostics.rendering.IdeRenderers"/>
 
-        <!-- 宏展开合成解析扩展 -->
+        <!-- 宏展开合成解析扩展（已废弃：新架构使用基于磁盘的展开文件，Stub 索引自动处理声明注入）-->
+        <!-- 随时可删除此注册和对应的实现类 MacroExpansionSyntheticResolveExtension -->
+        <!--
         <syntheticResolveExtension
                 implementation="org.cangnova.cangjie.macro.analysis.MacroExpansionSyntheticResolveExtension"/>
+        -->
     </extensions>
 
     <extensions defaultExtensionNs="org.cangnova.cangjie">

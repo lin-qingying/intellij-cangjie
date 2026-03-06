@@ -37,6 +37,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.cangnova.cangjie.macro.engine.MacroExpansionEngine
+import org.cangnova.cangjie.macro.expanded.MacroExpandedFileManager
 import org.cangnova.cangjie.macro.service.*
 import org.cangnova.cangjie.project.service.CjProjectsService
 import org.cangnova.cangjie.result.CjResult
@@ -44,6 +45,7 @@ import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.api.CjSdk
 import java.io.File
 import java.nio.charset.Charset
+import java.nio.file.Files
 import java.nio.file.Path
 
 /**
@@ -218,15 +220,28 @@ class CompilerMacroExpansionProvider(private val project: Project) :
         val filePath = file.path
         val sourceFile = File(filePath)
 
-        // .macrocall 文件由编译器生成在源文件旁边（file.cj -> file.cj.macrocall）
-        // 这是编译器的固定行为，无法通过参数改变
-        val macroCallFile = File("$filePath.macrocall")
+        // 确定输出目录：优先使用构建输出目录，回退到源文件所在目录
+        val outputDir = resolveOutputDirectory(file) ?: sourceFile.parentFile
+        Files.createDirectories(outputDir.toPath())
+
+        // .macrocall 文件路径：
+        // 若 --output-dir 生效，编译器应在 outputDir 下生成 <filename>.macrocall
+        // 若 --output-dir 不生效（编译器忽略），回退到源文件旁边的 <filepath>.macrocall
+        val macroCallFileInOutputDir = File(outputDir, "${sourceFile.name}.macrocall")
+        val macroCallFileInSourceDir = File("$filePath.macrocall")
 
         try {
             // 构建命令行
             val commandLine = GeneralCommandLine().apply {
                 exePath = compilerPath.systemIndependentPath
                 addParameter("--debug-macro")
+
+                // 指定输出目录，控制编译器生成的中间文件和 .macrocall 文件的保存位置
+                addParameter("--output-dir")
+                addParameter(outputDir.absolutePath)
+
+                // 设置工作目录为输出目录，避免编译器在 IDE 安装目录下生成中间文件
+                workDirectory = outputDir
 
                 // 添加项目相关的导入路径
                 addImportPaths(this, file, sdk)
@@ -255,6 +270,14 @@ class CompilerMacroExpansionProvider(private val project: Project) :
 
             // 收集编译器错误信息（即使失败，.macrocall 文件可能已生成）
             val compilerDiagnostics = mutableListOf<MacroDiagnostic>()
+
+            // 查找 .macrocall 文件：优先 outputDir（--output-dir 生效时），回退到源文件旁边
+            val macroCallFile = when {
+                macroCallFileInOutputDir.exists() -> macroCallFileInOutputDir
+                macroCallFileInSourceDir.exists() -> macroCallFileInSourceDir
+                else -> null
+            }
+
             if (output.exitCode != 0) {
                 val stderr = output.stderr
                 val errorMessage = when {
@@ -268,7 +291,7 @@ class CompilerMacroExpansionProvider(private val project: Project) :
                 }
 
                 // 即使编译器返回错误，只要 .macrocall 文件已生成，仍视为展开成功
-                if (!macroCallFile.exists()) {
+                if (macroCallFile == null) {
                     return@withContext CjResult.Err(
                         MacroExpansionError.ProcessExecutionError(
                             commandLine = commandLine.commandLineString,
@@ -289,8 +312,7 @@ class CompilerMacroExpansionProvider(private val project: Project) :
             }
 
             // 读取编译器生成的 .macrocall 文件
-            // 编译器将展开结果写入 <source_file>.macrocall（在源文件旁边）
-            if (!macroCallFile.exists()) {
+            if (macroCallFile == null) {
                 // 没有生成 .macrocall 文件，可能文件中没有宏
                 return@withContext CjResult.Ok(emptyList())
             }
@@ -298,7 +320,11 @@ class CompilerMacroExpansionProvider(private val project: Project) :
             // 规范化换行符：IntelliJ DocumentImpl 不接受 \r\n
             val expandedCode = macroCallFile.readText(Charsets.UTF_8).replace("\r\n", "\n").replace("\r", "\n")
 
-            // 解析编译器输出中的宏展开标记
+            // 处理展开文件：生成干净的 .cj 文件和偏移映射
+            // .macrocall 文件保留在源码目录（不删除），供后续增量分析使用
+            processExpandedFile(file, expandedCode)
+
+            // 解析编译器输出中的宏展开标记（兼容旧 API）
             val parsedBlocks = MacroCallFileParser.parse(expandedCode)
 
             if (parsedBlocks.isEmpty()) {
@@ -339,10 +365,35 @@ class CompilerMacroExpansionProvider(private val project: Project) :
                 )
             )
         } finally {
-            // 清理编译器生成的 .macrocall 文件，避免污染源码目录
-            if (macroCallFile.exists()) {
-                macroCallFile.delete()
+            // 处理完成后删除 .macrocall 文件，避免 IntelliJ 将其作为源码分析
+            // 清理两个可能的位置（--output-dir 生效时在 outputDir，不生效时在源文件旁边）
+            if (macroCallFileInOutputDir.exists()) {
+                macroCallFileInOutputDir.delete()
             }
+            if (macroCallFileInSourceDir.exists()) {
+                macroCallFileInSourceDir.delete()
+            }
+        }
+    }
+
+    /**
+     * 处理编译器输出的展开文件
+     *
+     * 调用 [MacroExpandedFileManager] 将 `.macrocall` 内容处理为干净的展开 `.cj` 文件，
+     * 并构建偏移映射。这使得 IntelliJ 可以对展开后的代码进行完整的语义分析。
+     *
+     * @param sourceFile 原始源文件
+     * @param macroCallContent `.macrocall` 文件的完整内容（已规范化换行符）
+     */
+    private fun processExpandedFile(sourceFile: VirtualFile, macroCallContent: String) {
+        try {
+            val manager = MacroExpandedFileManager.getInstance(project)
+            val expandedVf = manager.processAndWrite(sourceFile, macroCallContent)
+            if (expandedVf != null) {
+                logger.debug("宏展开文件已生成: ${expandedVf.path}")
+            }
+        } catch (e: Exception) {
+            logger.warn("处理宏展开文件失败: ${sourceFile.path}", e)
         }
     }
 
@@ -476,5 +527,21 @@ class CompilerMacroExpansionProvider(private val project: Project) :
      */
     private fun getCompilerPath(sdk: CjSdk): Path {
         return sdk.getExecutable("cjc-frontend")
+    }
+
+    /**
+     * 确定宏展开的输出目录
+     *
+     * 复用 [MacroExpandedFileManager.getExpandedDirectory] 的目录解析逻辑，
+     * 确保 `--output-dir` 指向构建输出目录而非源码目录。
+     *
+     * @return 输出目录，如果无法确定则返回 null（调用方回退到源文件所在目录）
+     */
+    private fun resolveOutputDirectory(file: VirtualFile): File? {
+        return try {
+            MacroExpandedFileManager.getInstance(project).getExpandedDirectory()
+        } catch (_: Exception) {
+            null
+        }
     }
 }

@@ -27,33 +27,65 @@ package org.cangnova.cangjie.serialization.deserialization.descriptors
 import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.name.ClassId
 
+/**
+ * 反序列化容器来源接口，继承自 [SourceElement]。
+ * 用于描述从类文件加载的反序列化容器的元信息，包括版本兼容性、预发布可见性及 ABI 稳定性等。
+ */
 interface DeserializedContainerSource : SourceElement {
-    // Non-null if this container is loaded from a class with an incompatible binary version
+
+    /**
+     * 若该容器是从二进制版本不兼容的类文件中加载的，则此字段非空，包含具体的不兼容版本错误信息。
+     * 若版本兼容，则为 null。
+     */
     val incompatibility: IncompatibleVersionErrorData<*>?
 
-    // True iff this is container is "invisible" because it's loaded from a pre-release class and this compiler is a release
+    /**
+     * 若为 true，表示该容器因从预发布版本的类文件加载、而当前编译器为正式发布版本，
+     * 导致该容器处于"不可见"状态。
+     */
     val isPreReleaseInvisible: Boolean
 
-    // True iff this container was compiled by the new IR backend, this compiler is not using the IR backend right now,
-    // and no additional flags to override this behavior were specified.
+    /**
+     * 描述该容器的 ABI 稳定性状态。
+     * 当容器由新 IR 后端编译、而当前编译器未使用 IR 后端，且未指定任何覆盖标志时，
+     * 该字段将反映相应的不稳定状态。
+     */
     val abiStability: DeserializedContainerAbiStability
 
-    // This string should only be used in error messages
+    /**
+     * 该容器的可读描述字符串，仅用于在错误信息中展示，不应用于逻辑判断。
+     */
     val presentableString: String
 }
 
+/**
+ * 反序列化容器的 ABI 稳定性枚举。
+ * 用于标识容器是否与当前编译器的 ABI 兼容。
+ */
 enum class DeserializedContainerAbiStability {
-    // Either the container is stable, or this compiler is configured to ignore ABI stability of dependencies.
+
+    /**
+     * 容器是稳定的，或当前编译器已配置为忽略依赖项的 ABI 稳定性检查。
+     */
     STABLE,
 
-    // The container is unstable because either:
-    // 1) it is compiled with JVM IR prior to 1.4.30, or
-    // 2) it is compiled with JVM IR >= 1.4.30 with the `-Xabi-stability=unstable` compiler option,
-    // 3) it is compiled with FIR prior to 2.0.0,
-    // and this compiler is _not_ configured to ignore that.
+    /**
+     * 容器不稳定
+     */
     UNSTABLE,
 }
 
+/**
+ * 版本不兼容错误数据类，封装了导致版本不兼容的相关版本信息。
+ *
+ * @param T 版本类型参数（协变，只读）
+ * @property actualVersion   类文件中实际记录的版本号
+ * @property compilerVersion 当前编译器的版本号
+ * @property languageVersion 语言版本号
+ * @property expectedVersion 编译器期望的版本号
+ * @property filePath        发生版本不兼容的类文件路径
+ * @property classId         发生版本不兼容的类的标识符
+ */
 data class IncompatibleVersionErrorData<out T>(
     val actualVersion: T,
     val compilerVersion: T,

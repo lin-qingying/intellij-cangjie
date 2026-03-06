@@ -19,6 +19,7 @@ package org.cangnova.cangjie.macro.analysis
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
+import org.cangnova.cangjie.macro.expanded.MacroExpandedFileManager
 import org.cangnova.cangjie.project.event.CjProjectEvent
 import org.cangnova.cangjie.project.event.CjProjectListener
 
@@ -44,9 +45,8 @@ class MacroExpansionProjectSyncListener(
 
         LOG.info("项目同步完成，开始宏展开缓存预热: ${event.project.name}")
 
-        // 清除旧缓存
-        MacroExpandedPsiCache.getInstance(project).clearAll()
-        MacroExpandedDescriptorProvider.getInstance(project).clearAll()
+        // 清除旧的展开文件和缓存
+        MacroExpandedFileManager.getInstance(project).clearAll()
 
         // 触发全项目宏展开
         MacroExpansionBackgroundTask.runForProject(project)

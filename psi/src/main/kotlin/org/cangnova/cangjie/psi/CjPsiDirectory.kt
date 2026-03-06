@@ -137,9 +137,10 @@ class CjPsiDirectory(
             return null
         }
 
-        return com.intellij.util.SlowOperations.allowSlowOperations<PsiDirectory?, RuntimeException> {
-            manager.findDirectory(parentFile)
-        }
+        // 直接构造以避免通过 FileManagerImpl.findDirectoryImpl() 触发工作区文件索引检查
+        // 在 IntelliJ 252+ 中，即使在 allowSlowOperations 内部，WorkspaceFileIndexDataImpl.ensureIsUpToDate
+        // 也会在 EDT 上记录错误。直接构造可绕过该检查，对于目录树遍历等场景是正确的。
+        return CjPsiDirectory(manager, parentFile)
     }
 
     override fun getParent(): PsiDirectory? = parentDirectory

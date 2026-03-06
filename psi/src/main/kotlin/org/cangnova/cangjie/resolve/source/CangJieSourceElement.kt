@@ -26,10 +26,22 @@ package org.cangnova.cangjie.resolve.source
 
 import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.psi.CjElement
+import org.cangnova.cangjie.psi.CjMacroExpression
 import org.cangnova.cangjie.psi.CjPureElement
 
 class CangJieSourceElement(override val psi: CjElement) : PsiSourceElement
 
 
-fun CjPureElement?.toSourceElement(): SourceElement =
-    if (this == null) SourceElement.NO_SOURCE else CangJieSourceElement(getPsiOrParent())
+fun CjPureElement?.toSourceElement(): SourceElement {
+    if (this == null) return SourceElement.NO_SOURCE
+    val psi = getPsiOrParent()
+    // 如果 PSI 来自宏展开的虚拟文件（已通过 MACRO_EXPRESSION_KEY 标记），
+    // 自动创建 MacroExpandedSourceElement，使所有宏展开节点（类、构造函数、方法、属性等）
+    // 都能正确导航回原始宏调用处
+    val macroExpr = psi.containingFile?.getUserData(MacroExpandedSourceElement.MACRO_EXPRESSION_KEY)
+    return if (macroExpr != null) {
+        MacroExpandedSourceElement(macroExpr, psi)
+    } else {
+        CangJieSourceElement(psi)
+    }
+}

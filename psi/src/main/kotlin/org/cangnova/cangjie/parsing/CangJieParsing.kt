@@ -381,7 +381,193 @@ class CangJieParsing private constructor(
         parseBlock(false)
     }
 
+    /**
+     * 解析包名
+     *
+     * Grammar:
+     * ```
+     * packageName
+     *   : simpleName ("." simpleName)*
+     *   ;
+     * ```
+     */
 
+//    context(parseContext: ParsingContext)
+//    private fun parsePackageName() {
+//        var qualifiedExpression = mark()
+//        var simpleName = true
+//
+//        while (true) {
+//            if (builder.newlineBeforeCurrentToken()) {
+//                errorWithRecovery(
+//                    "Package name must be a '.'-separated identifier list placed on a single line",
+//                    PACKAGE_NAME_RECOVERY_SET
+//                )
+//                break
+//            }
+//
+//            if (at(DOT)) {
+//                advance() // DOT
+//                qualifiedExpression.error(CangJieParsingBundle.message("parsing.error.package.name.separator"))
+//                qualifiedExpression = mark()
+//                continue
+//            }
+//
+//            val nsName = mark()
+//            val simpleNameFound = expect(
+//                IDENTIFIER, "Package name must be a '.'-separated identifier list", PACKAGE_NAME_RECOVERY_SET
+//            )
+//            if (simpleNameFound) {
+//                nsName.done(REFERENCE_EXPRESSION)
+//            } else {
+//                nsName.drop()
+//            }
+//
+//            if (!simpleName) {
+//                val precedingMarker = qualifiedExpression.precede()
+//                qualifiedExpression.done(DOT_QUALIFIED_EXPRESSION)
+//                qualifiedExpression = precedingMarker
+//            }
+//
+//            if (at(DOT)) {
+//                advance() // DOT
+//
+//                if (simpleName && !simpleNameFound) {
+//                    qualifiedExpression.drop()
+//                    qualifiedExpression = mark()
+//                } else {
+//                    simpleName = false
+//                }
+//            } else {
+//                break
+//            }
+//        }
+//
+//        qualifiedExpression.drop()
+//    }
+
+
+    context(parseContext: ParsingContext)
+    private fun parsePackageName() {
+        // 先解析第一个标识符
+        if (builder.newlineBeforeCurrentToken()) {
+            errorWithRecovery(
+                "Package name must be a '.'-separated identifier list placed on a single line",
+                PACKAGE_NAME_RECOVERY_SET
+            )
+            return
+        }
+
+        // 第一个片段
+        val firstName = mark()
+        val firstFound = expect(
+            IDENTIFIER,
+            "Package name must be a '.'-separated identifier list",
+            PACKAGE_NAME_RECOVERY_SET
+        )
+        if (firstFound) {
+            firstName.done(REFERENCE_EXPRESSION)
+        } else {
+            firstName.drop()
+            return
+        }
+
+        // 没有后续 DOT，就是单段包名，直接结束
+        if (!at(DOT)) return
+
+        // 有多段，构建左递归 DOT_QUALIFIED_EXPRESSION 树
+        // 初始：wrap 第一个 REFERENCE_EXPRESSION
+        var lhs = firstName.precede()
+        // 此时 lhs 包裹着已 done 的 firstName
+
+        while (at(DOT)) {
+            advance() // DOT
+
+            if (builder.newlineBeforeCurrentToken()) {
+                lhs.done(DOT_QUALIFIED_EXPRESSION)
+                errorWithRecovery(
+                    "Package name must be a '.'-separated identifier list placed on a single line",
+                    PACKAGE_NAME_RECOVERY_SET
+                )
+                return
+            }
+
+            val nextName = mark()
+            val nextFound = expect(
+                IDENTIFIER,
+                "Package name must be a '.'-separated identifier list",
+                PACKAGE_NAME_RECOVERY_SET
+            )
+            if (nextFound) {
+                nextName.done(REFERENCE_EXPRESSION)
+            } else {
+                nextName.drop()
+                lhs.done(DOT_QUALIFIED_EXPRESSION)
+                return
+            }
+
+            // 把 lhs 收进新的 DOT_QUALIFIED_EXPRESSION，再向外扩展
+            val newLhs = lhs.precede()
+            lhs.done(DOT_QUALIFIED_EXPRESSION)
+            lhs = newLhs
+        }
+
+        // 最外层多套了一层，drop 掉
+        lhs.drop()
+    }
+
+    context(parseContext: ParsingContext)
+    private fun parsePreamble() {
+        // 解析包声明
+        parsePackageDirective()
+        // 解析导入列表
+        parseImportDirectives()
+    }
+
+    context(parseContext: ParsingContext)
+    private fun parsePackageDirective() {
+        // 先探测是否有包声明，决定走哪条路径
+        val hasAccessModifier = atSet(PACKAGE_ACCESS_MODIFIER_SET)
+                && (lookahead(1) == MACRO_KEYWORD || lookahead(1) == PACKAGE_KEYWORD)
+        val hasMacroKeyword = at(MACRO_KEYWORD)
+        val hasPackageKeyword = when {
+            hasAccessModifier && lookahead(1) == MACRO_KEYWORD -> lookahead(2) == PACKAGE_KEYWORD
+            hasAccessModifier -> lookahead(1) == PACKAGE_KEYWORD
+            hasMacroKeyword -> lookahead(1) == PACKAGE_KEYWORD
+            else -> at(PACKAGE_KEYWORD)
+        }
+
+        if (!hasAccessModifier && !hasMacroKeyword && !hasPackageKeyword) {
+            // 没有包声明，直接插入空的 PACKAGE_DIRECTIVE 占位
+            val packageDirective = mark()
+            packageDirective.done(PACKAGE_DIRECTIVE)
+            packageDirective.setCustomEdgeTokenBinders(BindFirstShebangWithWhitespaceOnly, null)
+            return
+        }
+
+        // 有包声明，正常解析
+        val packageDirective = mark()
+
+        if (atSet(PACKAGE_ACCESS_MODIFIER_SET)
+            && (lookahead(1) == MACRO_KEYWORD || lookahead(1) == PACKAGE_KEYWORD)
+        ) {
+            advance() // 访问修饰符
+        }
+
+        if (at(MACRO_KEYWORD)) {
+            advance() // MACRO_KEYWORD
+        }
+
+        if (at(PACKAGE_KEYWORD)) {
+            advance() // PACKAGE_KEYWORD
+            parsePackageName()
+            consumeIf(SEMICOLON)
+        } else {
+            error(CangJieParsingBundle.message("parsing.error.expecting.keyword", "package"))
+        }
+
+        packageDirective.done(PACKAGE_DIRECTIVE)
+    }
     /**
      * 解析文件前导部分
      *
@@ -392,71 +578,71 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext)
-    private fun parsePreamble() {
-        val firstEntry = mark()
-
-        /*
-         * TODO fileAnnotationList Ko
-         * 文档注释 : fileAnnotations*
-         */
-
-        /**
-         * 解析包声明
-         *
-         * Grammar:
-         * ```
-         * packageDirective
-         *   : modifier* "package" qualifiedName (";")?
-         *   ;
-         * ```
-         */
-        var packageDirective = mark()
-
-        // 是否有修饰符
-        var isPackageAccessModifier = false
-        if (atSet(PACKAGE_ACCESS_MODIFIER_SET) && (lookahead(1) == MACRO_KEYWORD || lookahead(1) == PACKAGE_KEYWORD)) {
-            advance() // 修饰符
-            isPackageAccessModifier = true
-        }
-
-        if (at(MACRO_KEYWORD)) {
-            advance() // MARCO_KEYWORD 宏声明
-            isPackageAccessModifier = true
-        }
-
-        if (at(PACKAGE_KEYWORD)) {
-            if (at(PACKAGE_KEYWORD)) {
-                advance() // PACKAGE_KEYWORD
-            } else if (isPackageAccessModifier) {
-                error(CangJieParsingBundle.message("parsing.error.expecting.keyword", "package"))
-            }
-
-
-            parsePackageName()
-
-            firstEntry.drop()
-
-            consumeIf(SEMICOLON)
-
-            packageDirective.done(PACKAGE_DIRECTIVE)
-        } else {
-            // 忽略 package 指令时不应报错，将位置回滚
-            firstEntry.rollbackTo()
-
-            // TODO 解析文件注解列表
-            // parseFileAnnotationList(FILE_ANNOTATIONS_WHEN_PACKAGE_OMITTED)
-            packageDirective = mark()
-            packageDirective.done(PACKAGE_DIRECTIVE)
-            packageDirective.setCustomEdgeTokenBinders(
-                BindFirstShebangWithWhitespaceOnly, null
-            )
-
-            // TODO 仓颉包中必须有包名，但单文件可无
-        }
-
-        parseImportDirectives()
-    }
+//    context(parseContext: ParsingContext)
+//    private fun parsePreamble() {
+//        val firstEntry = mark()
+//
+//        /*
+//         * TODO fileAnnotationList Ko
+//         * 文档注释 : fileAnnotations*
+//         */
+//
+//        /**
+//         * 解析包声明
+//         *
+//         * Grammar:
+//         * ```
+//         * packageDirective
+//         *   : modifier* "package" qualifiedName (";")?
+//         *   ;
+//         * ```
+//         */
+//        var packageDirective = mark()
+//
+//        // 是否有修饰符
+//        var isPackageAccessModifier = false
+//        if (atSet(PACKAGE_ACCESS_MODIFIER_SET) && (lookahead(1) == MACRO_KEYWORD || lookahead(1) == PACKAGE_KEYWORD)) {
+//            advance() // 修饰符
+//            isPackageAccessModifier = true
+//        }
+//
+//        if (at(MACRO_KEYWORD)) {
+//            advance() // MARCO_KEYWORD 宏声明
+//            isPackageAccessModifier = true
+//        }
+//
+//        if (at(PACKAGE_KEYWORD)) {
+//            if (at(PACKAGE_KEYWORD)) {
+//                advance() // PACKAGE_KEYWORD
+//            } else if (isPackageAccessModifier) {
+//                error(CangJieParsingBundle.message("parsing.error.expecting.keyword", "package"))
+//            }
+//
+//
+//            parsePackageName()
+//
+//            firstEntry.drop()
+//
+//            consumeIf(SEMICOLON)
+//
+//            packageDirective.done(PACKAGE_DIRECTIVE)
+//        } else {
+//            // 忽略 package 指令时不应报错，将位置回滚
+//            firstEntry.rollbackTo()
+//
+//            // TODO 解析文件注解列表
+//            // parseFileAnnotationList(FILE_ANNOTATIONS_WHEN_PACKAGE_OMITTED)
+//            packageDirective = mark()
+//            packageDirective.done(PACKAGE_DIRECTIVE)
+//            packageDirective.setCustomEdgeTokenBinders(
+//                BindFirstShebangWithWhitespaceOnly, null
+//            )
+//
+//            // TODO 仓颉包中必须有包名，但单文件可无
+//        }
+//
+//        parseImportDirectives()
+//    }
 
 
     /**
@@ -915,71 +1101,6 @@ class CangJieParsing private constructor(
         return true
     }
 
-
-    /**
-     * 解析包名
-     *
-     * Grammar:
-     * ```
-     * packageName
-     *   : simpleName ("." simpleName)*
-     *   ;
-     * ```
-     */
-
-    context(parseContext: ParsingContext)
-    private fun parsePackageName() {
-        var qualifiedExpression = mark()
-        var simpleName = true
-
-        while (true) {
-            if (builder.newlineBeforeCurrentToken()) {
-                errorWithRecovery(
-                    "Package name must be a '.'-separated identifier list placed on a single line",
-                    PACKAGE_NAME_RECOVERY_SET
-                )
-                break
-            }
-
-            if (at(DOT)) {
-                advance() // DOT
-                qualifiedExpression.error(CangJieParsingBundle.message("parsing.error.package.name.separator"))
-                qualifiedExpression = mark()
-                continue
-            }
-
-            val nsName = mark()
-            val simpleNameFound = expect(
-                IDENTIFIER, "Package name must be a '.'-separated identifier list", PACKAGE_NAME_RECOVERY_SET
-            )
-            if (simpleNameFound) {
-                nsName.done(REFERENCE_EXPRESSION)
-            } else {
-                nsName.drop()
-            }
-
-            if (!simpleName) {
-                val precedingMarker = qualifiedExpression.precede()
-                qualifiedExpression.done(DOT_QUALIFIED_EXPRESSION)
-                qualifiedExpression = precedingMarker
-            }
-
-            if (at(DOT)) {
-                advance() // DOT
-
-                if (simpleName && !simpleNameFound) {
-                    qualifiedExpression.drop()
-                    qualifiedExpression = mark()
-                } else {
-                    simpleName = false
-                }
-            } else {
-                break
-            }
-        }
-
-        qualifiedExpression.drop()
-    }
 
     /**
      * 解析脚本文件
@@ -2012,6 +2133,7 @@ class CangJieParsing private constructor(
             )
         }
 
+
         expressionParsing.parseStatements()
 
         checkForUnexpectedSymbols()
@@ -2046,10 +2168,11 @@ class CangJieParsing private constructor(
             nameParsingMode: NameParsingMode,
             scope: DeclarationParsingMode
         ): IElementType? {
+            val type = doParse(parser, detector, nameParsingMode, scope)
             if (!isValidInScope(scope)) {
                 return null
             }
-            return doParse(parser, detector, nameParsingMode, scope)
+            return type
         }
 
         context(parseContext: ParsingContext)
@@ -2115,6 +2238,8 @@ class CangJieParsing private constructor(
         ): IElementType? {
             return parser.parseClass(detector)
         }
+
+
     }
 
     private class MacroParser : DeclarationParser {
@@ -2231,12 +2356,17 @@ class CangJieParsing private constructor(
     ): IElementType? {
         val tokenId = getTokenId() ?: return null
         val parser = declarationParsers[tokenId] ?: return null
-
+//        先处理
+        val type = parser.parse(this, detector, nameParsingMode, declarationParsingMode)
+//        TODO 先处理还是先返回INVALID_DECLARATION？
         if (!parser.isValidInScope(declarationParsingMode)) {
+
             return INVALID_DECLARATION
         }
 
-        return parser.parse(this, detector, nameParsingMode, declarationParsingMode)
+
+        return type
+
     }
 
 
@@ -4518,23 +4648,6 @@ class CangJieParsing private constructor(
         return isTypeArgumentList
     }
 
-
-    /**
-     * 解析类型引用内容处理器（占位方法）
-     *
-     * 这是一个占位方法，当前未实现。
-     *
-     * @param extraRecoverySet 额外的恢复伤口token集合
-     * @return 空的标记
-     */
-    context(parseContext: ParsingContext)
-    private fun parseTypeRefContents(extraRecoverySet: TokenSet): PsiBuilder.Marker {
-        val typeRefMarker = mark()
-
-        // 这里可以继续完善类型引用的解析逻辑，目前是空实现
-
-        return typeRefMarker
-    }
 
     /**
      * 解析 This 类型

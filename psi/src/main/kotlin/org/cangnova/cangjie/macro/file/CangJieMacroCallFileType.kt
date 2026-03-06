@@ -25,12 +25,14 @@
 package org.cangnova.cangjie.macro.file
 
 import org.cangnova.cangjie.icon.CangJieIcons
-import org.cangnova.cangjie.lang.CangJieFileType
+import org.cangnova.cangjie.lang.CangJieMacroCallLanguage
 import org.cangnova.cangjie.psi.CjFile
 import com.intellij.openapi.fileTypes.ExtensionFileNameMatcher
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.fileTypes.FileTypeConsumer
 import com.intellij.openapi.fileTypes.FileTypeFactory
+import com.intellij.openapi.fileTypes.LanguageFileType
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.FileViewProvider
 import javax.swing.Icon
@@ -49,9 +51,29 @@ class CjMacroCallFile(
     override fun getFileType(): FileType {
         return CangJieMacroCallFileType
     }
+
+    companion object {
+        /**
+         * 检查 `.macrocall` 文件是否对用户可见
+         *
+         * 由 Registry Key `cangjie.macro.expansion.file.visible` 控制，
+         * 默认为 `false`（不可见）。不可见时：
+         * - 从项目视图中隐藏
+         * - 从声明分析作用域中排除（避免 REDECLARATION 冲突）
+         */
+        @JvmStatic
+        fun isUserVisible(): Boolean = Registry.`is`("cangjie.macro.expansion.file.visible", false)
+
+        /**
+         * 判断给定的 VirtualFile 是否为 `.macrocall` 文件
+         */
+        @JvmStatic
+        fun isMacroCallFile(file: VirtualFile): Boolean = file.name.endsWith(".cj.macrocall")
+    }
 }
 
-object CangJieMacroCallFileType : CangJieFileType() {
+object CangJieMacroCallFileType : LanguageFileType(CangJieMacroCallLanguage) {
+
     val EXTENSION: String = "cj.macrocall"
 
     override fun getDisplayName(): String {

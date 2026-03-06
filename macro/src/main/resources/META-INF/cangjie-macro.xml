@@ -98,6 +98,12 @@
                      defaultValue="true"
                      restartRequired="false"/>
 
+        <!-- 宏展开文件对用户可见性 -->
+        <registryKey key="cangjie.macro.expansion.file.visible"
+                     description="Make .macrocall files visible to users in the IDE (project view, editor tabs, etc.)"
+                     defaultValue="false"
+                     restartRequired="false"/>
+
         <!-- 宏展开行标 Registry Key -->
         <registryKey key="cangjie.macro.expansion.line.marker.enabled"
                      description="Show gutter icon for macro expressions to preview expansion"
@@ -117,9 +123,11 @@
         <macroExpansionProviderFactory
                 implementation="org.cangnova.cangjie.macro.compiler.CompilerMacroExpansionProviderFactory"/>
 
-        <!-- LSPMacroServer（高性能常驻进程引擎） -->
+        <!-- LSPMacroServer（已禁用：不生成 .macrocall 磁盘文件，与新的基于磁盘展开文件的分析架构不兼容） -->
+        <!--
         <macroExpansionProviderFactory
                 implementation="org.cangnova.cangjie.macro.server.LspMacroServerProviderFactory"/>
+        -->
 
         <!-- 全量宏包声明定位器（不依赖语义分析，编译项目所有宏） -->
         <macroDeclarationLocator

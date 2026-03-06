@@ -86,82 +86,83 @@ fun String.toValidDirectoryName(): String {
     return this.replace(".", "-").removeSuffix(".*")
 }
 
-/**
- * 获取 IDE 运行时的 JVM 参数配置
- */
-fun getIdeJvmArgs(): List<String> = listOf(
-    // 内存配置
-    "-Xms512m",
-    "-Xmx4096m",
-    "-XX:ReservedCodeCacheSize=512m",
-    "-XX:MaxMetaspaceSize=512m",
+fun getIdeJvmArgs(): List<String> {
+    val dumpDir = File(rootDir, "dumpTmp").also { it.mkdirs() }
 
-    // G1 垃圾收集器
-    "-XX:+UseG1GC",
-    "-XX:G1HeapRegionSize=16m",
-    "-XX:G1ReservePercent=20",
-    "-XX:InitiatingHeapOccupancyPercent=35",
-    "-XX:SoftRefLRUPolicyMSPerMB=50",
+    return listOf(
+        // 内存配置
+        "-Xms512m",
+        "-Xmx4096m",
+        "-XX:ReservedCodeCacheSize=512m",
+        "-XX:MaxMetaspaceSize=512m",
 
-    // 远程调试
-    "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005",
+        // G1 垃圾收集器
+        "-XX:+UseG1GC",
+        "-XX:G1HeapRegionSize=16m",
+        "-XX:G1ReservePercent=20",
+        "-XX:InitiatingHeapOccupancyPercent=35",
+        "-XX:SoftRefLRUPolicyMSPerMB=50",
 
-    // 禁用优化（解决"非原生帧"问题）
-    "-Xint",
-    "-XX:TieredStopAtLevel=1",
-    "-XX:-Inline",
-    "-XX:MaxInlineLevel=0",
-    "-XX:InlineSmallCode=0",
-    "-XX:CompileThreshold=100000",
+        // 远程调试
+//        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005",
 
-    // 完整堆栈跟踪
-    "-XX:-OmitStackTraceInFastThrow",
+        // 禁用优化（解决"非原生帧"问题）- 会导致内存堆积，非必要不开启
+//        "-Xint",
+//        "-XX:TieredStopAtLevel=1",
+//        "-XX:-Inline",
+//        "-XX:MaxInlineLevel=0",
+//        "-XX:InlineSmallCode=0",
+//        "-XX:CompileThreshold=100000",
 
-    // 调试信息保留
-    "-XX:+UnlockDiagnosticVMOptions",
-    "-XX:+DebugNonSafepoints",
+        // 完整堆栈跟踪
+        "-XX:-OmitStackTraceInFastThrow",
 
-    // 断言
-    "-ea",
-    "-esa",
+        // 调试信息保留
+        "-XX:+UnlockDiagnosticVMOptions",
+        "-XX:+DebugNonSafepoints",
 
-    // ===== JNA 配置 =====
-    "-Djna.nosys=false",              // 允许使用系统库
-    "-Djna.nounpack=false",           // 允许解包本地库
-    // 注意：不要设置 jna.boot.library.path 为空字符串，
-    // 空字符串会阻止 JNA 在默认路径中查找原生库，导致 UnsatisfiedLinkError
-    "-Djna.debug_load=false",         // 生产环境关闭调试
-    "-Djna.debug_load.jna=false",     // 生产环境关闭 JNA 库调试
-    // "-Djna.tmpdir=${System.getProperty("java.io.tmpdir")}/jna", // 可选：自定义临时目录
+        "-XX:+HeapDumpOnOutOfMemoryError",
+        "-XX:HeapDumpPath=${dumpDir.absolutePath}",
 
-    // Kotlin 协程调试
-    "-Dkotlinx.coroutines.debug=on",
-    "-Dkotlinx.coroutines.stacktrace.recovery=true",
-    "-Dkotlinx.coroutines.scheduler.core.pool.size=4",
+        // 断言
+//        "-ea",
+//        "-esa",
 
-    // Kotlin 配置
-    "-Dkotlin.reflect.full.enabled=true",
-    "-Dkotlin.compiler.incremental=false",
+        // ===== JNA 配置 =====
+        "-Djna.nosys=false",
+        "-Djna.nounpack=false",
+        "-Djna.debug_load=false",
+        "-Djna.debug_load.jna=false",
 
-    // IntelliJ IDEA 调试模式
-    "-Didea.is.internal=true",
-    "-Didea.debug.mode=true",
-    "-Didea.ProcessCanceledException=disabled",
-    "-Didea.fatal.error.notification=disabled",
+        // Kotlin 协程调试 - 会产生大量 CaptureStorage 对象，按需开启
+//        "-Dkotlinx.coroutines.debug=on",
+//        "-Dkotlinx.coroutines.stacktrace.recovery=true",
+        "-Dkotlinx.coroutines.scheduler.core.pool.size=4",
 
-    // 日志和诊断
-    "-Didea.log.debug.categories=#org.cangnova.cangjie",
-    "-Didea.log.startup.performance=true",
+        // Kotlin 配置
+        "-Dkotlin.reflect.full.enabled=true",
+        "-Dkotlin.compiler.incremental=false",
 
-    // IDE 性能参数
-    "-Didea.auto.reload.plugins=false",
-    "-Dide.show.tips.on.startup.default.value=false",
+        // IntelliJ IDEA 调试模式
+        "-Didea.is.internal=true",
+        "-Didea.debug.mode=true",
+        "-Didea.ProcessCanceledException=disabled",
+        "-Didea.fatal.error.notification=disabled",
 
-    // 其他辅助参数
-    "-Dfile.encoding=UTF-8",
-    "-Djdk.attach.allowAttachSelf=true",
-    "-Dsun.io.useCanonCaches=false"
-)
+        // 日志和诊断
+//        "-Didea.log.debug.categories=#org.cangnova.cangjie",
+        "-Didea.log.startup.performance=true",
+
+        // IDE 性能参数
+        "-Didea.auto.reload.plugins=false",
+        "-Dide.show.tips.on.startup.default.value=false",
+
+        // 其他辅助参数
+        "-Dfile.encoding=UTF-8",
+        "-Djdk.attach.allowAttachSelf=true",
+        "-Dsun.io.useCanonCaches=false"
+    )
+}
 
 
 plugins {

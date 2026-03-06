@@ -60,8 +60,9 @@ internal object MacroCallFileParser {
 
     private const val END_MARKER = "/* ===== End of the Emit ===== */"
 
-    // 匹配行号前缀：/* 4.1 */ （行号.列号）
-    private val LINE_PREFIX_REGEX = Regex("""^/\* \d+\.\d+ \*/""")
+    // 匹配行号前缀：/* 4.1 */ （行号.列号），允许前面有缩进空白
+    // 表达式宏（如 let a = @macro(...)）展开后带有缩进，前缀不在行首
+    private val LINE_PREFIX_REGEX = Regex("""^\s*/\* \d+\.\d+ \*/""")
 
     /**
      * 解析 `.macrocall` 文件内容，提取所有宏展开块

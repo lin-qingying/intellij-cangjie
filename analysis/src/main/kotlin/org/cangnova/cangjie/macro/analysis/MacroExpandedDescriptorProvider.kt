@@ -34,6 +34,7 @@ import org.cangnova.cangjie.macro.cache.MacroExpansionCache
 import org.cangnova.cangjie.macro.service.MacroExpansionResult
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.resolve.source.MacroExpandedSourceElement
 import org.cangnova.cangjie.resolve.source.getPsi
 import java.util.concurrent.ConcurrentHashMap
 
@@ -51,7 +52,13 @@ import java.util.concurrent.ConcurrentHashMap
  * class/struct/interface/enum 不再创建描述符存根，而是保存 PSI 信息，
  * 由 [MacroExpansionSyntheticResolveExtension] 通过 [LazyClassContext] 创建
  * [LazyClassDescriptor]/[LazyEnumDescriptor]，走正常的分析管线。
+ *
+ * @deprecated 已废弃，随时可删除。
+ * 新架构使用基于磁盘的展开文件，展开后的 .cj 文件由 IntelliJ Stub 索引自动处理声明查找，
+ * 无需手动从 PSI 提取描述符。
+ * @see org.cangnova.cangjie.macro.expanded.MacroExpandedFileManager
  */
+@Deprecated("已废弃：新架构使用 MacroExpandedFileManager 基于磁盘的展开文件，Stub 索引自动处理声明查找")
 @Service(Service.Level.PROJECT)
 class MacroExpandedDescriptorProvider(private val project: Project) : Disposable {
 
@@ -66,14 +73,15 @@ class MacroExpandedDescriptorProvider(private val project: Project) : Disposable
     private val classCacheTimestamps = ConcurrentHashMap<String, Long>()
 
     /**
-     * 宏展开产生的类型 PSI 信息及其对应的宏调用源元素
+     * 宏展开产生的类型 PSI 信息
      *
      * @param typeInfo 类/枚举的 PSI 信息（交由 LazyClassDescriptor/LazyEnumDescriptor 正常解析）
-     * @param sourceElement 指向原始宏调用的源元素（用于 Ctrl+Click 导航）
+     *
+     * 源元素通过虚拟文件的 MACRO_EXPRESSION_KEY UserData 标记自动关联，
+     * toSourceElement() 会自动创建 MacroExpandedSourceElement。
      */
     data class MacroTypeInfo(
-        val typeInfo: CjTypeStatementInfo<*>,
-        val sourceElement: SourceElement
+        val typeInfo: CjTypeStatementInfo<*>
     )
 
     /**
@@ -82,8 +90,8 @@ class MacroExpandedDescriptorProvider(private val project: Project) : Disposable
      * - functions：函数描述符
      * - variables：顶层变量描述符（let/var，包级别）
      * - properties：属性描述符（prop，类成员级别）
-     * - classes：CjClass/CjStruct/CjInterface 的 PSI 信息及宏调用源元素（交由 LazyClassDescriptor 通过正常管线解析）
-     * - enums：CjEnum 的 PSI 信息及宏调用源元素（交由 LazyEnumDescriptor 通过正常管线解析）
+     * - classes：CjClass/CjStruct/CjInterface 的 PSI 信息（交由 LazyClassDescriptor 通过正常管线解析）
+     * - enums：CjEnum 的 PSI 信息（交由 LazyEnumDescriptor 通过正常管线解析）
      * - CjExtend 不生成新命名类型，已跳过
      */
     data class FileDescriptors(
@@ -251,6 +259,12 @@ class MacroExpandedDescriptorProvider(private val project: Project) : Disposable
         classes: MutableMap<Name, MutableList<MacroTypeInfo>>,
         enums: MutableMap<Name, MutableList<MacroTypeInfo>>
     ) {
+        // 标记虚拟文件关联的宏表达式，使 toSourceElement() 自动创建 MacroExpandedSourceElement
+        val macroExpr = findOriginalMacroExpression(result)
+        if (macroExpr != null) {
+            psiFile.putUserData(MacroExpandedSourceElement.MACRO_EXPRESSION_KEY, macroExpr)
+        }
+
         val sourceElement = buildSourceElement(result)
 
         for (declaration in psiFile.declarations) {
@@ -274,19 +288,19 @@ class MacroExpandedDescriptorProvider(private val project: Project) : Disposable
                         ?.let { variables.getOrPut(name) { mutableListOf() }.add(it) }
                 }
 
-                // class / struct / interface → MacroTypeInfo（通过正常管线解析，同时保存宏调用源元素）
+                // class / struct / interface → MacroTypeInfo（通过正常管线解析，源元素由 toSourceElement() 自动关联）
                 is CjClass, is CjStruct, is CjInterface -> {
                     val typeStatement = declaration as CjTypeStatement
                     val name = typeStatement.nameAsName ?: continue
                     val classInfo = CjClassInfoUtil.createTypeStatementInfo(typeStatement)
-                    classes.getOrPut(name) { mutableListOf() }.add(MacroTypeInfo(classInfo, sourceElement))
+                    classes.getOrPut(name) { mutableListOf() }.add(MacroTypeInfo(classInfo))
                 }
 
-                // enum → MacroTypeInfo（通过正常管线解析，同时保存宏调用源元素）
+                // enum → MacroTypeInfo（通过正常管线解析，源元素由 toSourceElement() 自动关联）
                 is CjEnum -> {
                     val name = declaration.nameAsName ?: continue
                     val enumInfo = CjClassInfoUtil.createTypeStatementInfo(declaration)
-                    enums.getOrPut(name) { mutableListOf() }.add(MacroTypeInfo(enumInfo, sourceElement))
+                    enums.getOrPut(name) { mutableListOf() }.add(MacroTypeInfo(enumInfo))
                 }
 
                 // extend → 跳过（extend 不创建新命名类型，仅为现有类型扩展成员）

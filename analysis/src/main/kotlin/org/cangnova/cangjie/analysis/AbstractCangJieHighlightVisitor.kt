@@ -46,6 +46,7 @@ import org.cangnova.cangjie.diagnostics.rendering.RenderingContext
 import org.cangnova.cangjie.diagnostics.rendering.parameters
 import org.cangnova.cangjie.highlighter.ElementAnnotator
 import org.cangnova.cangjie.highlighter.suspender.CangJieHighlightingSuspender
+import org.cangnova.cangjie.macro.file.CjMacroCallFile
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.caches.analyzeWithAllCompilerChecks
@@ -57,7 +58,7 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
     @Volatile
     private var attempt = 0
 
-    override fun suitableForFile(file: PsiFile) = file is CjFile
+    override fun suitableForFile(file: PsiFile) =    file is CjFile
     override fun visit(element: PsiElement) {
         afterAnalysisVisitor?.forEach(element::accept)
     }
@@ -76,6 +77,7 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
         }
 
         val file = psiFile as? CjFile ?: return false
+        if (file is CjMacroCallFile) return false
         val highlightingLevelManager = HighlightingLevelManager.getInstance(file.project)
         if (highlightingLevelManager.runEssentialHighlightingOnly(file)) {
             return true

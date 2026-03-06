@@ -57,3 +57,8 @@ psi/src/gen
 /cangjie_docs/
 /原始实现/
 /.claude/
+/dumpTmp/
+
+# 宏展开生成的文件
+.cangjie/
+*.macrocall

@@ -31,6 +31,9 @@
         <postStartupActivity implementation="org.cangnova.cangjie.CangJieStartupActivity"/>
 
         <!-- 2. 项目相关配置 -->
+        <!-- .cj.macrocall 文件可见性控制 -->
+        <treeStructureProvider implementation="org.cangnova.cangjie.ide.project.CjMacroCallFileTreeStructureProvider"/>
+
         <!-- 新项目向导 -->
         <newProjectWizard.languageGenerator
                 implementation="org.cangnova.cangjie.ide.project.tools.projectWizard.CangJieGeneratorNewProjectWizard"/>

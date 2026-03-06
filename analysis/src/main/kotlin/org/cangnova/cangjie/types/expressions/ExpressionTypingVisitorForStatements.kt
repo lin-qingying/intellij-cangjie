@@ -283,7 +283,9 @@ class ExpressionTypingVisitorForStatements(
     override fun visitIfExpression(expression: CjIfExpression, context: ExpressionTypingContext): CangJieTypeInfo {
         return controlStructures.visitIfExpression(expression, context)
     }
-
+    override fun visitMacroExpression(expression: CjMacroExpression, data: ExpressionTypingContext): CangJieTypeInfo? {
+        return basic.visitMacroExpression(expression, data)
+    }
     /**
      * 访问 Cangjie 元素（默认处理）
      *

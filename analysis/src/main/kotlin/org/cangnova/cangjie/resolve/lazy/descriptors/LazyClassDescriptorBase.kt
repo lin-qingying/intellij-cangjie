@@ -41,9 +41,9 @@ abstract class LazyClassDescriptorBase
     name: Name,
     open val classLikeInfo: CjClassLikeInfo,
     isExternal: Boolean,
-    sourceOverride: SourceElement? = null
+
 ) : ClassDescriptorBase(
-    c.storageManager, containingDec, name, sourceOverride ?: classLikeInfo.correspondingClass.toSourceElement(),
+    c.storageManager, containingDec, name,   classLikeInfo.correspondingClass.toSourceElement(),
 ), ClassDescriptorWithResolutionScopes, ClassAndExtendDescriptor
 
 

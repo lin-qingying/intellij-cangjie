@@ -283,6 +283,9 @@ class CompilerMacroCompilationProvider(private val project: Project) {
                     addParameter("-o")
                     addParameter(outputDir.absolutePath)
 
+                    // 设置工作目录为输出目录，避免编译器在 IDE 安装目录下生成中间文件
+                    workDirectory = outputDir
+
                     charset = Charset.forName("UTF-8")
                     environment.putAll(sdk.getEnvironment())
                 }

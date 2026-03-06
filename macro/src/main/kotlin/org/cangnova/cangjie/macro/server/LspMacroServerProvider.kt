@@ -420,8 +420,8 @@ class LspMacroServerProvider(private val project: Project) :
 //        } ?: emptyList()
 
         val hasAttrs = macroExpr.attr != null
-        val attrTokens = macroExpr.attr?.node?.let { node ->
-            collectLeafTokenInfos(node, document)
+        val attrTokens = macroExpr.attr?.tokens?.let { tokens ->
+            collectLeafTokenInfosFromTokens(tokens, document)
         } ?: emptyList()
 
         val range = macroExpr.textRange
