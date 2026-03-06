@@ -109,11 +109,14 @@ object MacroExpandedFileProcessor {
         }
 
         val regions = mutableListOf<MacroExpansionOffsetMapping.ExpansionRegion>()
+        val lineMappings = mutableListOf<MacroExpansionOffsetMapping.LineMapping>()
         val cleanLines = mutableListOf<String>()
 
         // 逐行处理，使用状态机跟踪当前是否在展开区域内
         val lines = macroCallContent.lines()
         var i = 0
+        // 原始文件的当前行号追踪（1-based）
+        var originalLineCounter = 0
         // 当前展开区域的上下文
         var currentMacroName: String? = null
         var currentOriginalLine = 0
@@ -156,14 +159,25 @@ object MacroExpandedFileProcessor {
                         //   let a = 1
                         // 所以 prefix 行先不加入 cleanLines，等展开第一行来合并
                         cleanLines.add(cleanPrefix) // 先添加，后面合并时替换最后一行
+                        // 行映射：这行同时包含非宏前缀和宏展开开始
+                        originalLineCounter++
                     } else {
                         // 开始标记在行首：整行就是标记，跳过
+                        // 不增加 originalLineCounter，因为标记行不对应原始行
                         inExpansion = true
                         expansionStartLine = cleanLines.size + 1
                     }
                 } else {
                     // 普通行（非展开区域），直接输出
+                    originalLineCounter++
                     cleanLines.add(line)
+                    lineMappings.add(
+                        MacroExpansionOffsetMapping.LineMapping(
+                            originalLine = originalLineCounter,
+                            expandedLine = cleanLines.size,
+                            isMacroExpansion = false
+                        )
+                    )
                 }
             } else {
                 // 在展开区域内
@@ -198,12 +212,28 @@ object MacroExpandedFileProcessor {
                             cleanLines[cleanLines.size - 1] = lastLine + strippedLine
                             // 更新展开起始行为合并后的行
                             expansionStartLine = cleanLines.size
+                            // 合并行的行映射：映射到宏调用原始行
+                            lineMappings.add(
+                                MacroExpansionOffsetMapping.LineMapping(
+                                    originalLine = currentOriginalLine,
+                                    expandedLine = cleanLines.size,
+                                    isMacroExpansion = true
+                                )
+                            )
                             i++
                             continue
                         }
                     }
 
                     cleanLines.add(strippedLine)
+                    // 宏展开区域内的行映射到宏调用所在的原始行
+                    lineMappings.add(
+                        MacroExpansionOffsetMapping.LineMapping(
+                            originalLine = currentOriginalLine,
+                            expandedLine = cleanLines.size,
+                            isMacroExpansion = true
+                        )
+                    )
                 }
             }
             i++
@@ -230,7 +260,8 @@ object MacroExpandedFileProcessor {
         val offsetMapping = MacroExpansionOffsetMapping(
             sourceFilePath = sourceFilePath,
             expandedFilePath = expandedFilePath,
-            expansionRegions = regions
+            expansionRegions = regions,
+            lineMappings = lineMappings
         )
 
         return ProcessResult(cleanContent, offsetMapping)

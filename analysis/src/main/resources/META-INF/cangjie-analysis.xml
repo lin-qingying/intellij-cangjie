@@ -166,6 +166,10 @@
         <registryKey key="cangjie.resolveName.force.full.resolveName.on.highlighting"
                      description="Force full resolve on highlighting for better accuracy"
                      defaultValue="true"/>
+        <registryKey key="cangjie.resolveName.cache.uses.perfile.cache"
+                     description="Use per-file cache for resolve name caching instead of global cache"
+                     defaultValue="true"
+                     restartRequired="false"/>
         <applicationService
                 serviceInterface="org.cangnova.cangjie.decompiler.psi.CangJieBuiltInDecompilationInterceptor"
                 serviceImplementation="org.cangnova.cangjie.decompiler.psi.IdeCangJieBuiltInDecompilationInterceptor"
@@ -302,6 +306,10 @@
     <!-- 诊断渲染器提供者注册 -->
     <extensions defaultExtensionNs="org.cangnova.cangjie">
         <classFileDecompiler implementation="org.cangnova.cangjie.decompiler.psi.CangJieBuiltInDecompiler"/>
+
+        <!-- 宏展开文件模块信息提供者（使展开文件继承原始源文件的模块信息） -->
+        <moduleInfoProviderExtension
+                implementation="org.cangnova.cangjie.moduleinfo.provider.MacroExpandedModuleInfoProviderExtension"/>
 
         <!-- 默认诊断渲染器（纯文本格式） -->
         <diagnosticRendererProvider

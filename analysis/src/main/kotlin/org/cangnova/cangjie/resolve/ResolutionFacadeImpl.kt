@@ -43,7 +43,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.FrontendInternals
+import org.cangnova.cangjie.macro.analysis.MacroExpandedAnalysisBridge
 import org.cangnova.cangjie.moduleinfo.IdeaModuleInfo
+import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.resolve.binding.BindingContext
 
 class ModuleResolutionFacadeImpl(
@@ -76,10 +78,10 @@ class ModuleResolutionFacadeImpl(
         callback: DiagnosticSink.DiagnosticsCallback?
     ): AnalysisResult {
         ResolveInDispatchThreadManager.assertNoResolveInDispatchThread()
-        return runWithCancellationCheck {
+        val result = runWithCancellationCheck {
             projectFacade.getAnalysisResultsForElement(element, callback)
         }
-
+        return mergeWithExpandedAnalysis(element, result)
     }
 
     override fun analyzeWithAllCompilerChecks(
@@ -88,10 +90,28 @@ class ModuleResolutionFacadeImpl(
     ): AnalysisResult {
         ResolveInDispatchThreadManager.assertNoResolveInDispatchThread()
 
-        return runWithCancellationCheck {
+        val result = runWithCancellationCheck {
             projectFacade.getAnalysisResultsForElements(elements, callback)
         }
+        val firstElement = elements.firstOrNull() ?: return result
+        return mergeWithExpandedAnalysis(firstElement, result)
+    }
 
+    /**
+     * 将展开文件的分析结果合并到源文件的分析结果中
+     *
+     * 如果源文件有对应的宏展开文件且宏展开分析功能启用，
+     * 则分析展开文件并创建 MacroMergedBindingContext，
+     * 使得所有下游消费者（高亮、补全、悬停等）自动获得宏展开后的类型和诊断信息。
+     */
+    private fun mergeWithExpandedAnalysis(element: CjElement, sourceResult: AnalysisResult): AnalysisResult {
+        if (sourceResult.isError()) return sourceResult
+
+        val bridge = MacroExpandedAnalysisBridge.getInstance(project)
+        if (!bridge.isEnabled()) return sourceResult
+
+        val sourceFile = element.containingFile as? CjFile ?: return sourceResult
+        return bridge.mergeAnalysisResults(sourceFile, sourceResult)
     }
 
     override fun resolveToDescriptor(

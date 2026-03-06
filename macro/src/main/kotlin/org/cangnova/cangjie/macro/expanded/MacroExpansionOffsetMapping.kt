@@ -44,7 +44,9 @@ data class MacroExpansionOffsetMapping(
     @SerializedName("expandedFilePath")
     val expandedFilePath: String,
     @SerializedName("regions")
-    val expansionRegions: List<ExpansionRegion>
+    val expansionRegions: List<ExpansionRegion>,
+    @SerializedName("lineMappings")
+    val lineMappings: List<LineMapping> = emptyList()
 ) {
 
     /**
@@ -70,6 +72,24 @@ data class MacroExpansionOffsetMapping(
     )
 
     /**
+     * 行映射条目
+     *
+     * 记录展开文件与原始源文件之间的逐行映射关系。
+     *
+     * @param originalLine 源文件行号（1-based）
+     * @param expandedLine 展开文件行号（1-based）
+     * @param isMacroExpansion 是否属于宏展开区域
+     */
+    data class LineMapping(
+        @SerializedName("originalLine")
+        val originalLine: Int,
+        @SerializedName("expandedLine")
+        val expandedLine: Int,
+        @SerializedName("isMacroExpansion")
+        val isMacroExpansion: Boolean
+    )
+
+    /**
      * 检查展开文件中的某行是否在宏展开区域内
      *
      * @param expandedLine 展开文件中的行号（1-based）
@@ -89,6 +109,107 @@ data class MacroExpansionOffsetMapping(
      */
     fun findRegionsByOriginalLine(originalLine: Int): List<ExpansionRegion> {
         return expansionRegions.filter { it.originalLine == originalLine }
+    }
+
+    /**
+     * 展开文件行号 → 源文件行号
+     *
+     * @param expandedLine 展开文件中的行号（1-based）
+     * @return 对应的源文件行号，无映射时返回 null
+     */
+    fun expandedLineToOriginalLine(expandedLine: Int): Int? {
+        return lineMappings.find { it.expandedLine == expandedLine }?.originalLine
+    }
+
+    /**
+     * 源文件行号 → 展开文件行号
+     *
+     * 对于非宏区域，返回对应的展开行号。
+     * 对于宏调用行，返回展开区域的起始行号。
+     *
+     * @param originalLine 源文件中的行号（1-based）
+     * @return 对应的展开文件行号，无映射时返回 null
+     */
+    fun originalLineToExpandedLine(originalLine: Int): Int? {
+        return lineMappings.find { it.originalLine == originalLine }?.expandedLine
+    }
+
+    /**
+     * 展开文件文本偏移 → 源文件文本偏移
+     *
+     * 基于行映射和列保持不变的假设，将展开文件中的字符偏移映射到源文件中。
+     * 对于宏展开区域内的偏移，映射到宏调用所在行的起始位置。
+     *
+     * @param expandedOffset 展开文件中的字符偏移（0-based）
+     * @param expandedFileText 展开文件的完整文本
+     * @param originalFileText 源文件的完整文本
+     * @return 映射后的源文件偏移，无法映射时返回 null
+     */
+    fun mapExpandedOffsetToOriginal(
+        expandedOffset: Int,
+        expandedFileText: String,
+        originalFileText: String
+    ): Int? {
+        if (lineMappings.isEmpty()) return null
+
+        // 计算展开文件中的行号和列号
+        val expandedLine = expandedFileText.lineNumberAtOffset(expandedOffset)
+        val expandedLineStart = expandedFileText.lineStartOffset(expandedLine)
+        val expandedCol = expandedOffset - expandedLineStart
+
+        // 查找对应的源文件行号
+        val originalLine = expandedLineToOriginalLine(expandedLine) ?: return null
+        val originalLineStart = originalFileText.lineStartOffset(originalLine)
+
+        // 检查是否在宏展开区域内
+        val region = findExpansionRegion(expandedLine)
+        return if (region != null) {
+            // 宏展开区域：映射到宏调用的起始列（originalCol）
+            val macroCallCol = region.originalCol - 1  // 1-based → 0-based
+            (originalLineStart + macroCallCol).coerceAtMost(originalFileText.length)
+        } else {
+            // 非宏区域：列保持不变
+            (originalLineStart + expandedCol).coerceAtMost(originalFileText.length)
+        }
+    }
+
+    /**
+     * 展开文件文本范围 → 源文件文本范围
+     *
+     * 将展开文件中的文本范围映射到源文件中。
+     *
+     * @param expandedStartOffset 展开文件中的起始偏移（0-based）
+     * @param expandedEndOffset 展开文件中的结束偏移（0-based）
+     * @param expandedFileText 展开文件的完整文本
+     * @param originalFileText 源文件的完整文本
+     * @return 映射后的源文件 Pair(startOffset, endOffset)，无法映射时返回 null
+     */
+    fun mapExpandedRangeToOriginal(
+        expandedStartOffset: Int,
+        expandedEndOffset: Int,
+        expandedFileText: String,
+        originalFileText: String
+    ): Pair<Int, Int>? {
+        val expandedStartLine = expandedFileText.lineNumberAtOffset(expandedStartOffset)
+        val region = findExpansionRegion(expandedStartLine)
+
+        if (region != null) {
+            // 在宏展开区域内：整个范围映射到宏调用处
+            val originalLine = region.originalLine
+            val originalLineStart = originalFileText.lineStartOffset(originalLine)
+            val macroCallCol = region.originalCol - 1  // 1-based → 0-based
+            val macroStart = (originalLineStart + macroCallCol).coerceAtMost(originalFileText.length)
+            // 映射到宏调用行末尾
+            val originalLineEnd = originalFileText.lineEndOffset(originalLine)
+            return Pair(macroStart, originalLineEnd.coerceAtMost(originalFileText.length))
+        }
+
+        // 非宏区域：分别映射起止偏移
+        val mappedStart = mapExpandedOffsetToOriginal(expandedStartOffset, expandedFileText, originalFileText)
+            ?: return null
+        val mappedEnd = mapExpandedOffsetToOriginal(expandedEndOffset, expandedFileText, originalFileText)
+            ?: return null
+        return Pair(mappedStart, mappedEnd)
     }
 
     companion object {
@@ -157,4 +278,48 @@ data class MacroExpansionOffsetMapping(
             }
         }
     }
+}
+
+/**
+ * 计算文本偏移对应的行号（1-based）
+ */
+private fun String.lineNumberAtOffset(offset: Int): Int {
+    var line = 1
+    for (i in 0 until offset.coerceAtMost(length)) {
+        if (this[i] == '\n') line++
+    }
+    return line
+}
+
+/**
+ * 计算某行的起始偏移（0-based）
+ *
+ * @param line 行号（1-based）
+ */
+private fun String.lineStartOffset(line: Int): Int {
+    if (line <= 1) return 0
+    var currentLine = 1
+    for (i in indices) {
+        if (this[i] == '\n') {
+            currentLine++
+            if (currentLine == line) return i + 1
+        }
+    }
+    return length
+}
+
+/**
+ * 计算某行的结束偏移（0-based, exclusive of newline）
+ *
+ * @param line 行号（1-based）
+ */
+private fun String.lineEndOffset(line: Int): Int {
+    var currentLine = 1
+    for (i in indices) {
+        if (this[i] == '\n') {
+            if (currentLine == line) return i
+            currentLine++
+        }
+    }
+    return length
 }
