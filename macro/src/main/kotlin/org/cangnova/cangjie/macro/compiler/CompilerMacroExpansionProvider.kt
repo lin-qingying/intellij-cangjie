@@ -37,7 +37,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.cangnova.cangjie.macro.engine.MacroExpansionEngine
-import org.cangnova.cangjie.macro.expanded.MacroExpandedFileManager
 import org.cangnova.cangjie.macro.service.*
 import org.cangnova.cangjie.project.service.CjProjectsService
 import org.cangnova.cangjie.result.CjResult
@@ -220,8 +219,8 @@ class CompilerMacroExpansionProvider(private val project: Project) :
         val filePath = file.path
         val sourceFile = File(filePath)
 
-        // 确定输出目录：优先使用构建输出目录，回退到源文件所在目录
-        val outputDir = resolveOutputDirectory(file) ?: sourceFile.parentFile
+        // 确定输出目录：使用源文件所在目录
+        val outputDir = sourceFile.parentFile
         Files.createDirectories(outputDir.toPath())
 
         // .macrocall 文件路径：
@@ -320,10 +319,6 @@ class CompilerMacroExpansionProvider(private val project: Project) :
             // 规范化换行符：IntelliJ DocumentImpl 不接受 \r\n
             val expandedCode = macroCallFile.readText(Charsets.UTF_8).replace("\r\n", "\n").replace("\r", "\n")
 
-            // 处理展开文件：生成干净的 .cj 文件和偏移映射
-            // .macrocall 文件保留在源码目录（不删除），供后续增量分析使用
-            processExpandedFile(file, expandedCode)
-
             // 解析编译器输出中的宏展开标记（兼容旧 API）
             val parsedBlocks = MacroCallFileParser.parse(expandedCode)
 
@@ -373,27 +368,6 @@ class CompilerMacroExpansionProvider(private val project: Project) :
             if (macroCallFileInSourceDir.exists()) {
                 macroCallFileInSourceDir.delete()
             }
-        }
-    }
-
-    /**
-     * 处理编译器输出的展开文件
-     *
-     * 调用 [MacroExpandedFileManager] 将 `.macrocall` 内容处理为干净的展开 `.cj` 文件，
-     * 并构建偏移映射。这使得 IntelliJ 可以对展开后的代码进行完整的语义分析。
-     *
-     * @param sourceFile 原始源文件
-     * @param macroCallContent `.macrocall` 文件的完整内容（已规范化换行符）
-     */
-    private fun processExpandedFile(sourceFile: VirtualFile, macroCallContent: String) {
-        try {
-            val manager = MacroExpandedFileManager.getInstance(project)
-            val expandedVf = manager.processAndWrite(sourceFile, macroCallContent)
-            if (expandedVf != null) {
-                logger.debug("宏展开文件已生成: ${expandedVf.path}")
-            }
-        } catch (e: Exception) {
-            logger.warn("处理宏展开文件失败: ${sourceFile.path}", e)
         }
     }
 
@@ -529,19 +503,4 @@ class CompilerMacroExpansionProvider(private val project: Project) :
         return sdk.getExecutable("cjc-frontend")
     }
 
-    /**
-     * 确定宏展开的输出目录
-     *
-     * 复用 [MacroExpandedFileManager.getExpandedDirectory] 的目录解析逻辑，
-     * 确保 `--output-dir` 指向构建输出目录而非源码目录。
-     *
-     * @return 输出目录，如果无法确定则返回 null（调用方回退到源文件所在目录）
-     */
-    private fun resolveOutputDirectory(file: VirtualFile): File? {
-        return try {
-            MacroExpandedFileManager.getInstance(project).getExpandedDirectory()
-        } catch (_: Exception) {
-            null
-        }
-    }
 }

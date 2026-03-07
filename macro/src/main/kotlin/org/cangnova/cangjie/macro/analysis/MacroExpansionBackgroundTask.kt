@@ -28,7 +28,7 @@ import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import kotlinx.coroutines.runBlocking
 import org.cangnova.cangjie.lang.CangJieFileType
-import org.cangnova.cangjie.macro.pipeline.MacroPipelineCoordinator
+import org.cangnova.cangjie.macro.psi.MacroPsiExpansionService
 import org.cangnova.cangjie.macro.service.MacroExpansionOptions
 import org.cangnova.cangjie.macro.service.MacroExpansionService
 import org.cangnova.cangjie.result.CjResult
@@ -37,8 +37,7 @@ import org.cangnova.cangjie.result.CjResult
  * 宏展开后台任务
  *
  * 遍历项目中的所有 `.cj` 文件，调用 [MacroExpansionService.expandAllMacrosInFile]
- * 展开宏。展开结果由 [org.cangnova.cangjie.macro.expanded.MacroExpandedFileManager] 自动
- * 处理为磁盘文件，供 IntelliJ PSI 基础设施索引。
+ * 预热宏编译（确保动态库就绪）。
  *
  * 仅在 `cangjie.macro.expansion.analysis.enabled` 启用时执行。
  */
@@ -55,13 +54,6 @@ class MacroExpansionBackgroundTask(
          */
         fun runForProject(project: Project) {
             if (!isAnalysisEnabled()) return
-
-            val expansionService = MacroExpansionService.getInstance(project)
-            if (!expansionService.isAvailable()) {
-                LOG.info("宏展开服务不可用，跳过后台预热")
-                return
-            }
-
             MacroExpansionBackgroundTask(project).run()
         }
 
@@ -71,10 +63,6 @@ class MacroExpansionBackgroundTask(
         fun runForFiles(project: Project, files: Collection<VirtualFile>) {
             if (!isAnalysisEnabled()) return
             if (files.isEmpty()) return
-
-            val expansionService = MacroExpansionService.getInstance(project)
-            if (!expansionService.isAvailable()) return
-
             MacroExpansionBackgroundTask(project, files).run()
         }
 
@@ -94,21 +82,10 @@ class MacroExpansionBackgroundTask(
             true
         ) {
             override fun run(indicator: ProgressIndicator) {
-                // 展开前检查宏动态库是否就绪
-                val libsReady = runBlocking {
-                    MacroPipelineCoordinator.getInstance(project).ensureMacroLibsReady()
-                }
-                if (!libsReady) {
-                    LOG.warn("宏动态库不可用，跳过展开")
-                    return
-                }
-
                 val targetFiles = files ?: collectCangJieFiles()
                 if (targetFiles.isEmpty()) return
 
                 val expansionService = MacroExpansionService.getInstance(project)
-                // 展开结果由 CompilerMacroExpansionProvider 自动调用 MacroExpandedFileManager
-                // 处理为磁盘文件，此处无需手动处理 PSI 缓存
 
                 val total = targetFiles.size
                 var processed = 0
@@ -131,6 +108,9 @@ class MacroExpansionBackgroundTask(
                             is CjResult.Ok -> {
                                 val results = result.ok
                                 if (results.isNotEmpty()) {
+                                    // 预填充 MacroPsiExpansionService 缓存
+                                    MacroPsiExpansionService.getInstance(project)
+                                        .cacheExpansionResults(file.path, results)
                                     expanded += results.size
                                 }
                             }

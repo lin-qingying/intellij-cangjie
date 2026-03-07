@@ -49,6 +49,8 @@ import org.cangnova.cangjie.utils.exceptions.requireWithAttachment
 import java.io.IOException
 import kotlin.contracts.contract
 
+private val LOG = Logger.getInstance("org.cangnova.cangjie.decompiler.stub.file.CangJieMetadataStubBuilder")
+
 /**
  * 仓颉元数据 Stub 构建器抽象基类
  *
@@ -593,6 +595,11 @@ private inline fun <T> VirtualFile.readSafely(action: () -> T): T? = try {
     // Such files are valid (isValid() returns true), but an attempt to read their contents results in a FileNotFoundException.
     // Note that although calling "refresh()" instead of catching an exception would seem more correct here,
     // it's not always allowed and also is likely to degrade performance
+    null
+} catch (e: Exception) {
+    // FlatBuffers parsing may throw IndexOutOfBoundsException, BufferUnderflowException, etc.
+    // when the .cjo file is corrupted or in an unexpected format
+    LOG.warn("Failed to read file: $name", e)
     null
 }
 

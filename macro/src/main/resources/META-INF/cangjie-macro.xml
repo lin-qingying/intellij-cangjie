@@ -63,6 +63,10 @@
         <projectService
                 serviceImplementation="org.cangnova.cangjie.macro.cache.MacroExpansionCache"/>
 
+        <!-- 宏 PSI 展开服务（内存 PSI 替换） -->
+        <projectService
+                serviceImplementation="org.cangnova.cangjie.macro.psi.MacroPsiExpansionService"/>
+
         <!-- 宏展开引擎持久化设置（保存用户选择的引擎 ID） -->
         <projectService
                 serviceImplementation="org.cangnova.cangjie.macro.service.MacroExpansionSettings"/>
@@ -128,11 +132,9 @@
         <macroExpansionProviderFactory
                 implementation="org.cangnova.cangjie.macro.compiler.CompilerMacroExpansionProviderFactory"/>
 
-        <!-- LSPMacroServer（已禁用：不生成 .macrocall 磁盘文件，与新的基于磁盘展开文件的分析架构不兼容） -->
-        <!--
+        <!-- LSPMacroServer（内存展开引擎，不写磁盘文件） -->
         <macroExpansionProviderFactory
                 implementation="org.cangnova.cangjie.macro.server.LspMacroServerProviderFactory"/>
-        -->
 
         <!-- 全量宏包声明定位器（不依赖语义分析，编译项目所有宏） -->
         <macroDeclarationLocator

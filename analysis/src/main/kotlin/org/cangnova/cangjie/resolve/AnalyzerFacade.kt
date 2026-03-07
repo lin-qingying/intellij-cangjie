@@ -873,13 +873,12 @@ class CangJieResolverForModuleFactory : ResolverForModuleFactory() {
     ): ResolverForModule {
 
         val project = moduleContext.project
-        val (context, syntheticFiles, moduleContentScope, macroExcludedFiles) = moduleContent
+        val (context, syntheticFiles, moduleContentScope) = moduleContent
 
         val declarationProviderFactory = DeclarationProviderFactoryService.createDeclarationProviderFactory(
             project, moduleContext.storageManager, syntheticFiles,
             moduleContentScope,
-            context,
-            macroExcludedFiles
+            context
         )
         val trace = CodeAnalyzerInitializer.getInstance(project).createTrace()
 

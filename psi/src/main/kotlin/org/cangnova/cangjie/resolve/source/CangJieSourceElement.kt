@@ -38,7 +38,9 @@ fun CjPureElement?.toSourceElement(): SourceElement {
     // 如果 PSI 来自宏展开的虚拟文件（已通过 MACRO_EXPRESSION_KEY 标记），
     // 自动创建 MacroExpandedSourceElement，使所有宏展开节点（类、构造函数、方法、属性等）
     // 都能正确导航回原始宏调用处
-    val macroExpr = psi.containingFile?.getUserData(MacroExpandedSourceElement.MACRO_EXPRESSION_KEY)
+    // 优先检查元素级（支持多宏文件中每个元素指向不同的宏调用），回退到文件级
+    val macroExpr = psi.getUserData(MacroExpandedSourceElement.MACRO_EXPRESSION_KEY)
+        ?: psi.containingFile?.getUserData(MacroExpandedSourceElement.MACRO_EXPRESSION_KEY)
     return if (macroExpr != null) {
         MacroExpandedSourceElement(macroExpr, psi)
     } else {

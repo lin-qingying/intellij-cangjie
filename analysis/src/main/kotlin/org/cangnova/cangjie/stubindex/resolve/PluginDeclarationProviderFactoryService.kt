@@ -41,7 +41,6 @@ class PluginDeclarationProviderFactoryService : DeclarationProviderFactoryServic
         syntheticFiles: Collection<CjFile>,
         filesScope: GlobalSearchScope,
         context: ModuleInfo,
-        macroExcludedFiles: Collection<CjFile>
     ): DeclarationProviderFactory {
 
         return PluginDeclarationProviderFactory(
@@ -50,7 +49,6 @@ class PluginDeclarationProviderFactoryService : DeclarationProviderFactoryServic
             storageManager,
             syntheticFiles,
             context,
-            macroExcludedFiles
         )
     }
 }

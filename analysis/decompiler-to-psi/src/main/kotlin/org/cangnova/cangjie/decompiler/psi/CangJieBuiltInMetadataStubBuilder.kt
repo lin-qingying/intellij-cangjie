@@ -617,7 +617,13 @@ class BuiltInDefinitionFile(
             val stream = ByteArrayInputStream(contents)
 
             // 从 Flatbuffers 格式解析包数据
-            val `package` = stream.toFbPackage().packageWrapper
+            val `package` = try {
+                stream.toFbPackage().packageWrapper
+            } catch (e: Exception) {
+                // .cjo 文件可能已损坏或格式不兼容，FlatBuffers 解析时可能抛出
+                // IndexOutOfBoundsException、BufferUnderflowException 等
+                return null
+            }
             val version = `package`.cjoVersion
 
             // 版本兼容性检查（当前未启用）

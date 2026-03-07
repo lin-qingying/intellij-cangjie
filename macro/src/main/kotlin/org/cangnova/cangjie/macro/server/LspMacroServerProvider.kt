@@ -28,11 +28,11 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
-import org.cangnova.cangjie.macro.compiler.CompilerMacroCompilationProvider
 import org.cangnova.cangjie.macro.engine.MacroExpansionEngine
 import org.cangnova.cangjie.macro.messages.CangJieMacroBundle
 import org.cangnova.cangjie.macro.server.protocol.MacroMsgCodec
 import org.cangnova.cangjie.macro.service.*
+import org.cangnova.cangjie.project.service.CjProjectsService
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjMacroExpression
 import org.cangnova.cangjie.lexer.CjToken
@@ -69,8 +69,6 @@ class LspMacroServerProvider(private val project: Project) :
     MacroExpansionProvider, MacroExpansionEngine by LspMacroServerEngine {
 
     private val logger = Logger.getInstance(LspMacroServerProvider::class.java)
-
-    private val compilationProvider = CompilerMacroCompilationProvider(project)
 
     // 懒初始化：首次展开时启动
     @Volatile
@@ -140,8 +138,8 @@ class LspMacroServerProvider(private val project: Project) :
                     )
 
                 // Step 3: 加载宏动态库（必须成功才能进行展开）
-                val macroLibPaths = compilationProvider.compiledMacroPackageDirs
-                    .flatMap { dir -> findMacroLibs(dir, sdk) }
+                // 直接扫描项目输出目录查找已编译的宏库，与 cjc 引擎保持一致
+                val macroLibPaths = findMacroLibsFromProjectOutput(sdk)
                 if (macroLibPaths.isEmpty()) {
                     return@withContext CjResult.Err(
                         MacroExpansionError.CompilerUnavailable(CangJieMacroBundle.message("macro.error.no.macro.libs"))
@@ -261,12 +259,14 @@ class LspMacroServerProvider(private val project: Project) :
     }
 
     private suspend fun compileMacros(options: MacroExpansionOptions, file: VirtualFile? = null) {
+        val compilationService = MacroCompilationService.getInstance(project)
+        if (!compilationService.isAvailable()) return
         val compileOptions = MacroCompilationOptions(
             forceRecompile = options.forceRecompile,
             timeoutMs = options.timeoutMs / 2,
             parallel = true,
         )
-        compilationProvider.compileAllMacrosInProject(compileOptions, contextFile = file)
+        compilationService.compileAllMacrosInProject(compileOptions)
     }
 
     /**
@@ -355,8 +355,7 @@ class LspMacroServerProvider(private val project: Project) :
         val cjFile = psiManager.findFile(file) as? CjFile ?: return emptyList()
         val document = PsiDocumentManager.getInstance(project).getDocument(cjFile)
 
-        val macroLibs = compilationProvider.compiledMacroPackageDirs
-            .flatMap { dir -> findMacroLibs(dir, sdk) }
+        val macroLibs = findMacroLibsFromProjectOutput(sdk)
 
         return PsiTreeUtil.findChildrenOfType(cjFile, CjMacroExpression::class.java)
             .mapNotNull { macroExpr -> buildExtractedCall(macroExpr, document, macroLibs) }
@@ -553,6 +552,48 @@ class LspMacroServerProvider(private val project: Project) :
         val line = document.getLineNumber(safeOffset)
         val col = safeOffset - document.getLineStartOffset(line)
         return Pair(line + 1, col + 1)
+    }
+
+    /**
+     * 从项目输出目录扫描宏动态库
+     *
+     * 与 cjc 引擎保持一致，不依赖 compiledMacroPackageDirs 实例状态，
+     * 直接扫描项目的构建输出目录查找 `lib-macro_*` 文件。
+     */
+    private fun findMacroLibsFromProjectOutput(sdk: CjSdk): List<String> {
+        val projectsService = CjProjectsService.getInstance(project)
+        val cjProject = projectsService.cjProject
+        val allModules = buildList {
+            cjProject.module?.let { add(it) }
+            cjProject.workspace?.modules?.let { addAll(it) }
+        }
+        val targetPlatform = sdk.version?.targetPlatform
+
+        val outputDirs = allModules
+            .flatMap { it.sourceSets }
+            .flatMap { it.outputDirectory }
+
+        val dirsToCheck = if (outputDirs.isNotEmpty()) {
+            outputDirs.flatMap { baseDir ->
+                buildList {
+                    if (targetPlatform != null) {
+                        add(File(baseDir.path, "release/$targetPlatform"))
+                    }
+                    add(File(baseDir.path))
+                }
+            }
+        } else if (cjProject.isValid) {
+            buildList {
+                if (targetPlatform != null) {
+                    add(File(cjProject.rootDir.path, "target/release/$targetPlatform"))
+                }
+                add(File(cjProject.rootDir.path, "target"))
+            }
+        } else {
+            emptyList()
+        }
+
+        return dirsToCheck.flatMap { dir -> findMacroLibs(dir.absolutePath, sdk) }
     }
 
     private fun findMacroLibs(dir: String, sdk: CjSdk): List<String> {

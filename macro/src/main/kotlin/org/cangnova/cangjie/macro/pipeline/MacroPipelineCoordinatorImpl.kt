@@ -26,7 +26,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.cangnova.cangjie.macro.analysis.MacroExpansionBackgroundTask
 import org.cangnova.cangjie.macro.compiler.MacroDeclarationLocator
-import org.cangnova.cangjie.macro.expanded.MacroExpandedFileManager
+import org.cangnova.cangjie.macro.psi.MacroPsiExpansionService
 import org.cangnova.cangjie.macro.service.MacroCompilationOptions
 import org.cangnova.cangjie.macro.service.MacroCompilationService
 import org.cangnova.cangjie.macro.service.MacroExpansionService
@@ -74,21 +74,20 @@ internal class MacroPipelineCoordinatorImpl(
             // 等待索引完成，避免 Stub 访问时出现 Outdated stub 异常
             DumbService.getInstance(project).waitForSmartMode()
 
+            // 编译阶段（cjc 编译宏动态库，LspMacroServer 不依赖此步骤）
             val compilationService = MacroCompilationService.getInstance(project)
-            if (!compilationService.isAvailable()) {
-                LOG.info("宏编译服务不可用，跳过全量管线")
-                return@launch
+            if (compilationService.isAvailable()) {
+                val compiled = executeCompilation(forceRecompile = false)
+                if (!compiled) {
+                    LOG.warn("宏编译失败，LspMacroServer 引擎仍可继续展开")
+                }
+            } else {
+                LOG.info("宏编译服务不可用，跳过编译阶段")
             }
 
-            // 编译阶段
-            val compiled = executeCompilation(forceRecompile = false)
-            if (!compiled) {
-                LOG.warn("宏编译失败，跳过展开阶段")
-            }
-
-            // 清除缓存并触发全项目展开
-            MacroExpandedFileManager.getInstance(project).clearAll()
+            // 清除缓存并触发全项目展开（不论编译是否成功，LspMacroServer 可独立工作）
             MacroExpansionService.getInstance(project).clearCache()
+            MacroPsiExpansionService.getInstance(project).clearCache()
 
             MacroExpansionBackgroundTask.runForProject(project)
             LOG.info("全量管线完成")
@@ -104,34 +103,28 @@ internal class MacroPipelineCoordinatorImpl(
             // 等待索引完成，避免 Stub 访问时出现 Outdated stub 异常
             DumbService.getInstance(project).waitForSmartMode()
 
-            val compilationService = MacroCompilationService.getInstance(project)
-            if (!compilationService.isAvailable()) {
-                LOG.info("宏编译服务不可用，跳过增量管线")
-                return@launch
-            }
-
             // 区分宏源文件和普通文件
             val macroPackageDirs = getMacroPackageDirs()
             val (macroSourceFiles, normalFiles) = partitionMacroSourceFiles(changedFiles, macroPackageDirs)
 
             if (macroSourceFiles.isNotEmpty()) {
-                // 宏源文件变更：重编译 → 全项目展开
+                // 宏源文件变更：尝试重编译（cjc），然后全项目展开
                 LOG.info("检测到 ${macroSourceFiles.size} 个宏源文件变更，触发重编译")
-                val compiled = executeCompilation(forceRecompile = true)
-                if (!compiled) {
-                    LOG.warn("宏重编译失败")
+                val compilationService = MacroCompilationService.getInstance(project)
+                if (compilationService.isAvailable()) {
+                    val compiled = executeCompilation(forceRecompile = true)
+                    if (!compiled) {
+                        LOG.warn("宏重编译失败，LspMacroServer 引擎仍可继续展开")
+                    }
+                } else {
+                    LOG.info("宏编译服务不可用，跳过编译阶段")
                 }
-                // 宏源文件变更影响面广，需要全项目展开
-                MacroExpandedFileManager.getInstance(project).clearAll()
+                // 宏源文件变更影响面广，需要全项目展开（不论编译是否成功，LspMacroServer 可独立工作）
                 MacroExpansionService.getInstance(project).clearCache()
+                MacroPsiExpansionService.getInstance(project).clearCache()
                 MacroExpansionBackgroundTask.runForProject(project)
             } else if (normalFiles.isNotEmpty()) {
-                // 普通文件变更：检查产物 → 仅展开变更文件
-                val libsReady = ensureMacroLibsReady()
-                if (!libsReady) {
-                    LOG.warn("宏动态库不可用，跳过文件展开")
-                    return@launch
-                }
+                // 普通文件变更：直接展开变更文件（LspMacroServer 不依赖预编译产物）
                 MacroExpansionBackgroundTask.runForFiles(project, normalFiles)
             }
 

@@ -298,7 +298,7 @@
         <!-- 宏展开分析开关 Registry Key -->
         <registryKey key="cangjie.macro.expansion.analysis.enabled"
                      description="Enable macro expansion analysis integration (injects macro-generated declarations into IDE completion, navigation, and type checking)"
-                     defaultValue="false"
+                     defaultValue="true"
                      restartRequired="false"/>
 
     </extensions>
@@ -306,10 +306,6 @@
     <!-- 诊断渲染器提供者注册 -->
     <extensions defaultExtensionNs="org.cangnova.cangjie">
         <classFileDecompiler implementation="org.cangnova.cangjie.decompiler.psi.CangJieBuiltInDecompiler"/>
-
-        <!-- 宏展开文件模块信息提供者（使展开文件继承原始源文件的模块信息） -->
-        <moduleInfoProviderExtension
-                implementation="org.cangnova.cangjie.moduleinfo.provider.MacroExpandedModuleInfoProviderExtension"/>
 
         <!-- 默认诊断渲染器（纯文本格式） -->
         <diagnosticRendererProvider
@@ -319,12 +315,9 @@
         <diagnosticRendererProvider
                 implementation="org.cangnova.cangjie.diagnostics.rendering.IdeRenderers"/>
 
-        <!-- 宏展开合成解析扩展（已废弃：新架构使用基于磁盘的展开文件，Stub 索引自动处理声明注入）-->
-        <!-- 随时可删除此注册和对应的实现类 MacroExpansionSyntheticResolveExtension -->
-        <!--
+        <!-- 宏展开合成解析扩展（将宏生成的声明注入解析管线） -->
         <syntheticResolveExtension
-                implementation="org.cangnova.cangjie.macro.analysis.MacroExpansionSyntheticResolveExtension"/>
-        -->
+                implementation="org.cangnova.cangjie.macro.analysis.MacroSyntheticResolveExtension"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.cangnova.cangjie">
@@ -332,12 +325,5 @@
         <macroDeclarationLocator
                 implementation="org.cangnova.cangjie.macro.analysis.SemanticMacroDeclarationLocator"/>
     </extensions>
-
-    <!-- 宏展开分析管线监听器 -->
-    <projectListeners>
-        <!-- 宏展开分析管线：文件变更后延迟触发宏重新展开 -->
-        <listener class="org.cangnova.cangjie.macro.analysis.MacroExpansionFileListener"
-                  topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
-    </projectListeners>
 
 </idea-plugin>

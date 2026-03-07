@@ -351,7 +351,6 @@ class ProjectResolutionFacade(
     dependencies: List<Any>,
     private val invalidateOnOOCB: Boolean,
     val syntheticFiles: Collection<CjFile> = listOf(),
-    val macroExcludedSourceFiles: Collection<CjFile> = emptySet(),
     val allModules: Collection<IdeaModuleInfo>? = null  // null 意味着从 AnalysisContextProvider 获取
 ) {
 
@@ -439,11 +438,8 @@ class ProjectResolutionFacade(
             }
 
         val syntheticFilesByModule = syntheticFiles.groupBy { it.moduleInfo }
-        val macroExcludedFilesByModule = macroExcludedSourceFiles.groupBy { it.moduleInfo }
         val syntheticFilesModules = syntheticFilesByModule.keys
         allModuleInfos.addAll(syntheticFilesModules)
-        allModuleInfos.addAll(macroExcludedFilesByModule.keys)
-
 
         // 根据模块过滤条件过滤解析的模块
         val resolvedModules = allModuleInfos.filter(moduleFilter)
@@ -456,42 +452,11 @@ class ProjectResolutionFacade(
             projectDescriptor,
             resolvedModulesWithDependencies,
             syntheticFilesByModule,
-            macroExcludedFilesByModule,
             delegateResolverForProject,
             CangJieModificationTrackerService.getInstance(project).outOfBlockModificationTracker
-
         )
     }
 
-    /**
-     * 创建包含宏展开文件的子门面
-     *
-     * 用于宏展开分析：将展开文件作为 macroExcludedSourceFiles 注入子门面。
-     * 展开文件已包含源文件的全部声明 + 宏生成的声明，
-     * 通过 MacroStubBasedPackageMemberDeclarationProvider 排除源文件在 Stub 索引中的重复声明。
-     *
-     * 子门面复用父门面的解析器数据（通过 reuseDataFrom）。
-     *
-     * @param macroExpandedFiles 宏展开文件集合
-     * @return 包含展开文件的新 ProjectResolutionFacade
-     */
-    internal fun createChildWithMacroExpandedFiles(
-        macroExpandedFiles: Collection<CjFile>
-    ): ProjectResolutionFacade {
-        return ProjectResolutionFacade(
-            "$debugString-macroExpanded",
-            "$resolverDebugName (macroExpanded)",
-            project,
-            globalContext.contextWithCompositeExceptionTracker(project, "macroExpanded"),
-            reuseDataFrom = this,
-            moduleFilter = { true },
-            dependencies = listOf(
-                ProjectRootModificationTracker.getInstance(project)
-            ),
-            invalidateOnOOCB = true,
-            macroExcludedSourceFiles = macroExpandedFiles
-        )
-    }
 
 
     internal fun getResolverForProject(): ResolverForProject<IdeaModuleInfo> = cachedResolverForProject

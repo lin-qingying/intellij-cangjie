@@ -101,7 +101,6 @@ data class ModuleContent<out M : ModuleInfo>(
     val context: M,
     val syntheticFiles: Collection<CjFile>,
     val moduleContentScope: GlobalSearchScope,
-    val macroExcludedFiles: Collection<CjFile> = emptyList()
 )
 
 
@@ -251,7 +250,6 @@ class IdeaResolverForProject(
     projectDescriptor: ProjectDescriptor,
     modules: Collection<IdeaModuleInfo>,
     private val syntheticFilesByModule: Map<IdeaModuleInfo, Collection<CjFile>>,
-    private val macroExcludedFilesByModule: Map<IdeaModuleInfo, Collection<CjFile>> = emptyMap(),
     delegateResolver: ResolverForProject<IdeaModuleInfo>,
     fallbackModificationTracker: ModificationTracker? = null,
 
@@ -343,8 +341,7 @@ class IdeaResolverForProject(
         ModuleContent(
             module,
             syntheticFilesByModule[module] ?: emptyList(),
-            module.contentScope,
-            macroExcludedFilesByModule[module] ?: emptyList()
+            module.contentScope
         )
 
     /**
@@ -461,8 +458,7 @@ class IdeaResolverForProject(
             ModuleContent(
                 context,
                 syntheticFilesByModule[context] ?: listOf(),
-                context.contentScope,
-                macroExcludedFilesByModule[context] ?: emptyList()
+                context.contentScope
             )
 
         val project = projectContext.project

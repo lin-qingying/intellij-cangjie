@@ -74,6 +74,7 @@ import org.cangnova.cangjie.resolve.caches.safeAnalyzeNonSourceRootCode
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
 import org.cangnova.cangjie.resolve.deprecation.deprecatedByAnnotationReplaceWithExpression
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
+import org.cangnova.cangjie.resolve.source.MacroExpandedSourceElement
 import org.cangnova.cangjie.resolve.source.getPsi
 import org.cangnova.cangjie.utils.safeAs
 import org.jetbrains.annotations.Nls
@@ -917,21 +918,28 @@ internal class CangJieDocumentationProvider : AbstractDocumentationProvider(), E
                 return getTextImpl(it, originalElement, quickNavigation)
             }
 
-            // 宏展开的成员：通过原始引用获取描述符，渲染展开后的声明文档
-            if (element is CjMacroExpression && originalElement != null) {
-                val refExpr = originalElement.getNonStrictParentOfType<CjReferenceExpression>()
-                if (refExpr != null) {
-                    val resolutionFacade = refExpr.getResolutionFacade()
-                    val context = refExpr.safeAnalyzeNonSourceRootCode(resolutionFacade, BodyResolveMode.PARTIAL)
-                    val targetDescriptor = context[BindingContext.REFERENCE_TARGET, refExpr]
-                    if (targetDescriptor != null) {
-                        return buildString {
-                            insert(buildCangJie(context, targetDescriptor, quickNavigation, refExpr, resolutionFacade)) {}
+            // 宏展开的成员：导航目标是宏表达式，文档显示展开后的声明
+            if (element is CjMacroExpression) {
+                // 优先尝试从原始引用的描述符获取展开后声明的文档
+                if (originalElement != null) {
+                    val refExpr = originalElement.getNonStrictParentOfType<CjReferenceExpression>()
+                    if (refExpr != null) {
+                        val resolutionFacade = refExpr.getResolutionFacade()
+                        val context = refExpr.safeAnalyzeNonSourceRootCode(resolutionFacade, BodyResolveMode.PARTIAL)
+                        val targetDescriptor = context[BindingContext.REFERENCE_TARGET, refExpr]
+                        if (targetDescriptor != null) {
+                            // 如果描述符来自 MacroExpandedSourceElement，尝试渲染 expandedElement 的声明
+                            val source = (targetDescriptor as? DeclarationDescriptorWithSource)?.source
+                            val expandedElement = (source as? MacroExpandedSourceElement)?.expandedElement
+                            if (expandedElement is CjDeclaration) {
+                                return renderCangJieDeclaration(expandedElement, quickNavigation)
+                            }
+                            return buildString {
+                                insert(buildCangJie(context, targetDescriptor, quickNavigation, refExpr, resolutionFacade)) {}
+                            }
                         }
                     }
                 }
-
-
                 return null
             }
 

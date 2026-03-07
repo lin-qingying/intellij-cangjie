@@ -100,8 +100,6 @@ class ResolverForSingleModuleProject<M : ModuleInfo>(
     private val searchScope: GlobalSearchScope,
     private val languageVersionSettings: LanguageVersionSettings = LanguageVersionSettingsImpl.Companion.DEFAULT,
     private val syntheticFiles: Collection<CjFile> = emptyList(),
-    private  val macroExcludedSourceFiles: Collection<CjFile> = emptySet(),
-
     private val sdkDependency: M? = null,
     knownDependencyModuleDescriptors: Map<M, ModuleDescriptor> = emptyMap()
 ) : AbstractResolverForProject<M>(
@@ -126,7 +124,7 @@ class ResolverForSingleModuleProject<M : ModuleInfo>(
 
     private val builtIns: CangJieBuiltIns get() = projectDescriptor.builtIns
     override fun modulesContent(module: M): ModuleContent<M> = when (module) {
-        this.module -> ModuleContent(module, syntheticFiles, searchScope,macroExcludedSourceFiles)
+        this.module -> ModuleContent(module, syntheticFiles, searchScope)
         else -> ModuleContent(module, emptyList(), searchScope)
     }
 
