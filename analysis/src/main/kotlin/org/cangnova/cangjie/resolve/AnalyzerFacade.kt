@@ -1060,6 +1060,7 @@ class CangJieResolverForModuleFactory : ResolverForModuleFactory() {
                 searchScope = GlobalSearchScope.allScope(project),
                 languageVersionSettings = languageVersionSettings,
                 syntheticFiles = files,
+
                 knownDependencyModuleDescriptors = emptyMap()
             )
 

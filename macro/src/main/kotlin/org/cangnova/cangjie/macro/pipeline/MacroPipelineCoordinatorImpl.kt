@@ -18,6 +18,7 @@ package org.cangnova.cangjie.macro.pipeline
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.coroutines.*
@@ -70,6 +71,9 @@ internal class MacroPipelineCoordinatorImpl(
         fullPipelineJob = scope.launch {
             LOG.info("全量管线启动: 编译 → 展开")
 
+            // 等待索引完成，避免 Stub 访问时出现 Outdated stub 异常
+            DumbService.getInstance(project).waitForSmartMode()
+
             val compilationService = MacroCompilationService.getInstance(project)
             if (!compilationService.isAvailable()) {
                 LOG.info("宏编译服务不可用，跳过全量管线")
@@ -96,6 +100,9 @@ internal class MacroPipelineCoordinatorImpl(
 
         scope.launch {
             LOG.info("增量管线启动: ${changedFiles.size} 个文件变更")
+
+            // 等待索引完成，避免 Stub 访问时出现 Outdated stub 异常
+            DumbService.getInstance(project).waitForSmartMode()
 
             val compilationService = MacroCompilationService.getInstance(project)
             if (!compilationService.isAvailable()) {
