@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ data class PlatformAnalysisSettingsImpl(
  * - 使用 SLRU（Segmented LRU）缓存提高多平台/多 SDK 场景下的性能
  * - 使用 CachedValuesManager 自动跟踪依赖，在项目根结构变化时失效缓存
  */
-class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
+internal class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
     /**
      * 为代码元素获取 ResolutionFacade
      *
@@ -269,8 +269,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
     private fun getFacadeToAnalyzeFile(file: CjFile, settings: PlatformAnalysisSettings): ResolutionFacade {
         val moduleInfo = file.moduleInfo
 
-        // .macrocall 文件不属于任何项目模块，强制走 specialFiles 路径
-        // 避免 NotUnderContentRootModuleInfo 进入全局 modules resolver 导致崩溃
+
         val specialFile =   filterNotInProjectSource(file, moduleInfo)
 
         if (specialFile != null) {
@@ -413,7 +412,6 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
     private fun getFacadeToAnalyzeFiles(files: Collection<CjFile>/*, settings: PlatformAnalysisSettings*/): ResolutionFacade {
         val moduleInfo = files.first().moduleInfo
 
-        // .macrocall 文件强制作为 specialFiles 处理
         val specialFiles = files.filterNotInProjectSource(moduleInfo)
 
         if (specialFiles.isNotEmpty()) {
