@@ -20,16 +20,18 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.cangnova.cangjie.macro.analysis.MacroExpansionBackgroundTask
 import org.cangnova.cangjie.macro.compiler.MacroDeclarationLocator
+import org.cangnova.cangjie.macro.messages.CangJieMacroBundle
 import org.cangnova.cangjie.macro.psi.MacroPsiExpansionService
-import org.cangnova.cangjie.macro.service.MacroCompilationOptions
-import org.cangnova.cangjie.macro.service.MacroCompilationService
-import org.cangnova.cangjie.macro.service.MacroExpansionService
+import org.cangnova.cangjie.macro.service.*
 import org.cangnova.cangjie.result.CjResult
 
 /**
@@ -37,6 +39,13 @@ import org.cangnova.cangjie.result.CjResult
  *
  * 通过 [compilationMutex] 保证同一时刻只有一个编译任务执行，
  * 通过 [compilationGate] 让展开任务等待当前编译完成。
+ *
+ * 由两个 Registry Key 分别控制：
+ * - `cangjie.macro.expansion.auto.compile`：是否自动编译宏包
+ * - `cangjie.macro.expansion.analysis.enabled`：是否自动展开宏并注入分析结果
+ *
+ * 展开依赖编译：如果启用了展开但未启用编译，展开仍会执行（LspMacroServer 可独立工作），
+ * 但 cjc 引擎需要的动态库可能缺失。
  */
 @Service(Service.Level.PROJECT)
 internal class MacroPipelineCoordinatorImpl(
@@ -45,6 +54,12 @@ internal class MacroPipelineCoordinatorImpl(
 
     companion object {
         private val LOG = Logger.getInstance(MacroPipelineCoordinatorImpl::class.java)
+
+        /** 是否自动编译宏包 */
+        private const val KEY_AUTO_COMPILE = "cangjie.macro.expansion.auto.compile"
+
+        /** 是否自动展开宏并注入分析结果 */
+        private const val KEY_EXPANSION_ANALYSIS = "cangjie.macro.expansion.analysis.enabled"
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -65,31 +80,39 @@ internal class MacroPipelineCoordinatorImpl(
     private var macroPackageDirsCache: Set<String>? = null
 
     override fun scheduleFullPipeline() {
+        val autoCompile = isAutoCompileEnabled()
+        val expansionAnalysis = isExpansionAnalysisEnabled()
+        if (!autoCompile && !expansionAnalysis) return
+
         // 取消旧的全量管线
         fullPipelineJob?.cancel()
 
         fullPipelineJob = scope.launch {
-            LOG.info("全量管线启动: 编译 → 展开")
+            LOG.info("全量管线启动: 编译=${autoCompile}, 展开=${expansionAnalysis}")
 
             // 等待索引完成，避免 Stub 访问时出现 Outdated stub 异常
             DumbService.getInstance(project).waitForSmartMode()
 
-            // 编译阶段（cjc 编译宏动态库，LspMacroServer 不依赖此步骤）
-            val compilationService = MacroCompilationService.getInstance(project)
-            if (compilationService.isAvailable()) {
-                val compiled = executeCompilation(forceRecompile = false)
-                if (!compiled) {
-                    LOG.warn("宏编译失败，LspMacroServer 引擎仍可继续展开")
+            // 编译阶段
+            if (autoCompile) {
+                val compilationService = MacroCompilationService.getInstance(project)
+                if (compilationService.isAvailable()) {
+                    val compiled = executeCompilation(forceRecompile = false)
+                    if (!compiled) {
+                        LOG.warn("宏编译失败，LspMacroServer 引擎仍可继续展开")
+                    }
+                } else {
+                    LOG.info("宏编译服务不可用，跳过编译阶段")
                 }
-            } else {
-                LOG.info("宏编译服务不可用，跳过编译阶段")
             }
 
-            // 清除缓存并触发全项目展开（不论编译是否成功，LspMacroServer 可独立工作）
-            MacroExpansionService.getInstance(project).clearCache()
-            MacroPsiExpansionService.getInstance(project).clearCache()
+            // 展开阶段
+            if (expansionAnalysis) {
+                MacroExpansionService.getInstance(project).clearCache()
+                MacroPsiExpansionService.getInstance(project).clearCache()
+                MacroExpansionBackgroundTask.runForProject(project)
+            }
 
-            MacroExpansionBackgroundTask.runForProject(project)
             LOG.info("全量管线完成")
         }
     }
@@ -97,8 +120,12 @@ internal class MacroPipelineCoordinatorImpl(
     override fun scheduleIncrementalPipeline(changedFiles: Collection<VirtualFile>) {
         if (changedFiles.isEmpty()) return
 
+        val autoCompile = isAutoCompileEnabled()
+        val expansionAnalysis = isExpansionAnalysisEnabled()
+        if (!autoCompile && !expansionAnalysis) return
+
         scope.launch {
-            LOG.info("增量管线启动: ${changedFiles.size} 个文件变更")
+            LOG.info("增量管线启动: ${changedFiles.size} 个文件变更, 编译=${autoCompile}, 展开=${expansionAnalysis}")
 
             // 等待索引完成，避免 Stub 访问时出现 Outdated stub 异常
             DumbService.getInstance(project).waitForSmartMode()
@@ -108,23 +135,31 @@ internal class MacroPipelineCoordinatorImpl(
             val (macroSourceFiles, normalFiles) = partitionMacroSourceFiles(changedFiles, macroPackageDirs)
 
             if (macroSourceFiles.isNotEmpty()) {
-                // 宏源文件变更：尝试重编译（cjc），然后全项目展开
-                LOG.info("检测到 ${macroSourceFiles.size} 个宏源文件变更，触发重编译")
-                val compilationService = MacroCompilationService.getInstance(project)
-                if (compilationService.isAvailable()) {
-                    val compiled = executeCompilation(forceRecompile = true)
-                    if (!compiled) {
-                        LOG.warn("宏重编译失败，LspMacroServer 引擎仍可继续展开")
+                // 宏源文件变更：尝试重编译 → 全项目展开
+                LOG.info("检测到 ${macroSourceFiles.size} 个宏源文件变更")
+
+                if (autoCompile) {
+                    val compilationService = MacroCompilationService.getInstance(project)
+                    if (compilationService.isAvailable()) {
+                        val compiled = executeCompilation(forceRecompile = true)
+                        if (!compiled) {
+                            LOG.warn("宏重编译失败，LspMacroServer 引擎仍可继续展开")
+                        }
+                    } else {
+                        LOG.info("宏编译服务不可用，跳过编译阶段")
                     }
-                } else {
-                    LOG.info("宏编译服务不可用，跳过编译阶段")
                 }
-                // 宏源文件变更影响面广，需要全项目展开（不论编译是否成功，LspMacroServer 可独立工作）
-                MacroExpansionService.getInstance(project).clearCache()
-                MacroPsiExpansionService.getInstance(project).clearCache()
-                MacroExpansionBackgroundTask.runForProject(project)
-            } else if (normalFiles.isNotEmpty()) {
-                // 普通文件变更：直接展开变更文件（LspMacroServer 不依赖预编译产物）
+
+                if (expansionAnalysis) {
+                    MacroExpansionService.getInstance(project).clearCache()
+                    MacroPsiExpansionService.getInstance(project).clearCache()
+                    MacroExpansionBackgroundTask.runForProject(project)
+                }
+            } else if (normalFiles.isNotEmpty() && expansionAnalysis) {
+                // 普通文件变更：确保宏动态库就绪后展开变更文件
+                if (autoCompile) {
+                    ensureMacroLibsReady()
+                }
                 MacroExpansionBackgroundTask.runForFiles(project, normalFiles)
             }
 
@@ -179,6 +214,7 @@ internal class MacroPipelineCoordinatorImpl(
                     }
                     is CjResult.Err -> {
                         LOG.warn("宏编译失败: ${result.err.message}")
+                        notifyCompilationFailed(result.err)
                         false
                     }
                 }
@@ -187,6 +223,7 @@ internal class MacroPipelineCoordinatorImpl(
                 success
             } catch (e: Exception) {
                 LOG.warn("宏编译过程中发生异常", e)
+                notifyCompilationFailed(e)
                 gate.complete(false)
                 false
             } finally {
@@ -235,5 +272,54 @@ internal class MacroPipelineCoordinatorImpl(
         }
 
         return Pair(macroFiles, normalFiles)
+    }
+
+    private fun isAutoCompileEnabled(): Boolean {
+        return try {
+            Registry.`is`(KEY_AUTO_COMPILE, true)
+        } catch (e: Exception) {
+            true
+        }
+    }
+
+    private fun isExpansionAnalysisEnabled(): Boolean {
+        return try {
+            Registry.`is`(KEY_EXPANSION_ANALYSIS, false)
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    /**
+     * 编译失败时向用户发送友好通知
+     */
+    private fun notifyCompilationFailed(error: Throwable) {
+        val content = when (error) {
+            is MacroCompilationError.SdkNotConfigured ->
+                CangJieMacroBundle.message("macro.notification.compilation.failed.sdk")
+            is MacroCompilationError.CompilerUnavailable ->
+                CangJieMacroBundle.message("macro.notification.compilation.failed.compiler", error.reason)
+            is MacroCompilationError.CompilationFailed ->
+                CangJieMacroBundle.message("macro.notification.compilation.failed.compile.error", error.exitCode, error.stderr)
+            is MacroCompilationError.Timeout ->
+                CangJieMacroBundle.message("macro.notification.compilation.failed.timeout", error.timeoutMs)
+            is MacroCompilationError.NoMacrosFound ->
+                CangJieMacroBundle.message("macro.notification.compilation.failed.no.macros", error.filePath)
+            is MacroCompilationError.InternalError ->
+                CangJieMacroBundle.message("macro.notification.compilation.failed.internal", error.details)
+            else ->
+                CangJieMacroBundle.message("macro.notification.compilation.failed.unknown", error.message ?: "")
+        }
+
+        val title = CangJieMacroBundle.message("macro.notification.compilation.failed.title")
+
+        try {
+            NotificationGroupManager.getInstance()
+                .getNotificationGroup("CangJie Macro")
+                .createNotification(title, content, NotificationType.WARNING)
+                .notify(project)
+        } catch (e: Exception) {
+            LOG.warn("无法发送宏编译失败通知", e)
+        }
     }
 }

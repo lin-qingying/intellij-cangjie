@@ -212,15 +212,11 @@ object CjPsiUtil {
     }
 
     fun unquoteIdentifierOrFieldReference(quoted: String): String {
-        if (quoted.indexOf('`') < 0) {
-            return quoted
+        val effective = if (quoted.startsWith("$")) quoted.substring(1) else quoted
+        if (effective.indexOf('`') < 0) {
+            return effective
         }
-
-        return if (quoted.startsWith("$")) {
-            "$" + unquoteIdentifier(quoted.substring(1))
-        } else {
-            unquoteIdentifier(quoted)
-        }
+        return unquoteIdentifier(effective)
     }
 
     fun getClassIfParameterIsProperty(cjParameter: CjParameter): CjTypeStatement? {

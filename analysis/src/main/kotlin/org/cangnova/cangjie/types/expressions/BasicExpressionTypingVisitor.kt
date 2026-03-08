@@ -43,6 +43,7 @@ import org.cangnova.cangjie.diagnostics.InvalidBinaryData
 import org.cangnova.cangjie.diagnostics.infos.errors.*
 import org.cangnova.cangjie.diagnostics.infos.warnings.TYPE_ARGUMENTS_REDUNDANT_IN_SUPER_QUALIFIER
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
+import org.cangnova.cangjie.macro.psi.MacroPsiExpansionService
 import org.cangnova.cangjie.lexer.CjKeywordToken
 import org.cangnova.cangjie.lexer.CjSingleValueToken
 import org.cangnova.cangjie.lexer.CjToken
@@ -98,6 +99,7 @@ import org.cangnova.cangjie.resolve.scopes.findFirstClassifierWithDeprecationSta
 import org.cangnova.cangjie.resolve.scopes.getImplicitReceiversHierarchy
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver.Companion.create
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
+import org.cangnova.cangjie.resolve.source.MacroExpandedSourceElement
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ComposableTypeSubstitutor
 import org.cangnova.cangjie.types.ErrorUtils.createErrorType
@@ -122,6 +124,8 @@ import org.cangnova.cangjie.types.isError
 import org.cangnova.cangjie.types.isOptionType
 import org.cangnova.cangjie.types.makeNonOption
 import org.cangnova.cangjie.types.makeOption
+import org.cangnova.cangjie.psi.CjDeclaration
+import org.cangnova.cangjie.resolve.binding.BindingContext
 import java.util.*
 
 /**
@@ -1181,7 +1185,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
      * 1. 在当前作用域中查找宏定义
      * 2. 宏查找失败时，回退查找注解类（自定义注解场景）
      * 3. 记录绑定到 BindingContext
-     * 4. 返回类型信息（宏返回类型或 Unit 类型）
+     * 4. 获取宏展开内容，将其交给管线分析（表达式级推断类型，声明级返回 Unit）
      *
      * @param expression 宏表达式
      * @param context 表达式类型检查上下文
@@ -1210,26 +1214,123 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 
         return when (result) {
             is MacroExpressionResolver.MacroResolutionResult.MacroResult -> {
-                return          noTypeInfo(context)
-                if (result.results.isSuccess) {
-                    val returnType = result.results.resultingDescriptor.returnType
-                    if (returnType != null) {
-                        components.dataFlowAnalyzer.checkType(
-                            createTypeInfo(returnType, context.dataFlowInfo),
-                            expression, context
-                        )
-                    } else {
-                        createTypeInfo(components.builtIns.unitType, context.dataFlowInfo)
-                    }
-                } else {
-                    noTypeInfo(context)
-                }
+                // 获取宏展开内容并交给管线分析
+                val expandedTypeInfo = analyzeExpandedMacroContent(expression, context)
+                if (expandedTypeInfo != null) return expandedTypeInfo
+
+                 noTypeInfo(context)
             }
             is MacroExpressionResolver.MacroResolutionResult.ClassifierFallback -> {
                 createTypeInfo(components.builtIns.unitType, context.dataFlowInfo)
             }
             is MacroExpressionResolver.MacroResolutionResult.NotFound -> noTypeInfo(context)
         }
+    }
+
+    /**
+     * 分析宏展开内容
+     *
+     * 从 [MacroPsiExpansionService] 缓存中获取展开结果，
+     * 使用完整解析管线将展开文本解析为 PSI 并分析：
+     * - 收集解析错误并绑定到宏表达式
+     * - 如果在表达式上下文（需要返回值），展开内容必须是单一表达式，否则报错
+     * - 如果在语句上下文（不需要返回值），多个表达式/声明均不报错
+     *
+     * @return 展开内容的类型信息，如果展开不可用则返回 null
+     */
+    private fun analyzeExpandedMacroContent(
+        macroExpr: CjMacroExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo? {
+        val expansionService = MacroPsiExpansionService.getInstance(macroExpr.project)
+        val expansionResult = expansionService.getExpansionResult(macroExpr) ?: return null
+        if (expansionResult.expandedText.isBlank()) return null
+
+        // 根据宏表达式位置解析展开文本，收集解析错误和有效元素
+        val (parseErrors, elements) = expansionService.getExpansionErrorsAndElements(macroExpr, expansionResult.expandedText)
+        for (error in parseErrors) {
+            context.trace.report(MESSAGE_ERROR.on(macroExpr, "宏展开解析错误: ${error.errorDescription}"))
+        }
+
+        // 提取展开内容中的有效节点
+        if (elements.isEmpty()) return null
+
+        // 为展开元素附加宏来源信息
+        for (node in elements) {
+            node.putUserData(MacroExpandedSourceElement.MACRO_EXPRESSION_KEY, macroExpr)
+        }
+
+        // 判断是否在需要返回值的表达式上下文中
+        val needsReturnValue = isExpressionContext(macroExpr)
+
+        if (needsReturnValue) {
+            // 需要返回值：展开内容必须是单一表达式
+            val singleExpr = elements.singleOrNull() as? CjExpression
+            if (singleExpr != null) {
+                return facade.getTypeInfo(singleExpr, context)
+            }
+            // 不是单一表达式，报 Cangjie(53) 等价错误
+            context.trace.report(
+                MESSAGE_ERROR.on(macroExpr, "expected one expr, but found exprs or other node")
+            )
+            return noTypeInfo(context)
+        } else {
+            // 不需要返回值：对所有展开元素进行类型分析（收集诊断信息）
+            for (node in elements) {
+                if (node is CjExpression) {
+                    // isStatement=true 使声明通过 ExpressionTypingVisitorForStatements.visitDeclaration 处理
+                    facade.getTypeInfo(node, context, node is CjDeclaration)
+                }
+                // 将展开声明的描述符绑定到宏表达式，使其可通过源文件的 BindingContext 查找
+                if (node is CjDeclaration) {
+                    val descriptor = context.trace.bindingContext.get(
+                        BindingContext.DECLARATION_TO_DESCRIPTOR, node
+                    )
+                    if (descriptor != null) {
+                        recordDescriptorForElement(context.trace, macroExpr, descriptor)
+                    }
+                }
+            }
+            return createTypeInfo(components.builtIns.unitType, context.dataFlowInfo)
+        }
+    }
+
+    /**
+     * 将声明描述符记录到指定 PSI 元素上
+     */
+    private fun recordDescriptorForElement(
+        trace: BindingTrace,
+        element: PsiElement,
+        descriptor: DeclarationDescriptor
+    ) {
+        when (descriptor) {
+            is SimpleFunctionDescriptor ->
+                trace.record(BindingContext.FUNCTION, element, descriptor)
+            is ClassAndEnumDescriptor ->
+                trace.record(BindingContext.CLASS, element, descriptor)
+            is VariableDescriptor ->
+                trace.record(BindingContext.VARIABLE, element, descriptor)
+            is TypeAliasDescriptor ->
+                trace.record(BindingContext.TYPE_ALIAS, element, descriptor)
+        }
+    }
+
+    /**
+     * 判断宏表达式是否在需要返回值的表达式上下文中
+     *
+     * 以下位置不需要返回值（语句上下文）：
+     * - 文件顶层（`parent is CjFile`）
+     * - 块表达式中（`parent is CjBlockExpression`，函数体/if-else/循环体）
+     * - 类体中（`parent is CjAbstractClassBody`，类/接口/枚举体）
+     *
+     * 其他位置（变量初始化、函数参数、return 等）需要返回值。
+     */
+    private fun isExpressionContext(macroExpr: CjMacroExpression): Boolean {
+        val parent = macroExpr.parent ?: return false
+        if (parent is CjFile) return false
+        if (parent is CjBlockExpression) return false
+        if (parent is CjAbstractClassBody) return false
+        return true
     }
 
     private fun checkNull(

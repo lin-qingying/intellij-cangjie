@@ -2850,6 +2850,13 @@ open class CangJieExpressionParsing(
         do {
             if (at(DOLLAR) && lookahead(1) == LPAR) {
                 parseQuoteInterpolate()
+            } else if (at(FIELD_IDENTIFIER)) {
+                // $identifier 简单插值：FIELD_IDENTIFIER 是词法层将 $+标识符 合并的单一 token
+                val mark = mark()
+                val ref = mark()
+                advance() // consume FIELD_IDENTIFIER (e.g. $a1)
+                ref.done(REFERENCE_EXPRESSION)
+                mark.done(QUOTE_INTERPOLATE)
             } else if (at(AT) && lookahead(1) == IDENTIFIER) {
                 parseMacroExpressionByQuoteParameters()
             } else if (atSet(QUOTE_TOKENS)) {

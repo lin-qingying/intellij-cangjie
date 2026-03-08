@@ -20,26 +20,28 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
-import org.cangnova.cangjie.psi.CjFile
-import org.cangnova.cangjie.psi.CjMacroExpression
+import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.macro.service.MacroExpansionResult
+import org.cangnova.cangjie.resolve.source.MacroExpandedSourceElement
 import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 宏 PSI 展开服务
  *
  * 项目级服务，负责：
- * - 管理展开结果缓存和展开后的 PSI 文件副本缓存
- * - 协调宏展开和 PSI 替换
- * - 提供 [getExpandedFile] 接口供 SyntheticResolveExtension 使用
+ * - 管理展开结果缓存
+ * - 提供逐宏展开结果查询（[getExpansionResult]）
+ * - 提供文件级宏展开声明提取（[getExpandedDeclarations]）供 SyntheticResolveExtension 使用
  *
  * 缓存策略：
  * - 展开结果缓存（[expansionResultsCache]）：由后台任务预填充，解析阶段直接命中
- * - PSI 副本缓存：使用 [CachedValuesManager]，依赖 [PsiModificationTracker] 自动失效
+ * - 声明缓存：使用 [CachedValuesManager]，依赖 [PsiModificationTracker] 自动失效
  */
 @Service(Service.Level.PROJECT)
 class MacroPsiExpansionService(private val project: Project) {
@@ -54,30 +56,62 @@ class MacroPsiExpansionService(private val project: Project) {
     }
 
     /**
+     * 单个宏展开产生的声明信息
+     *
+     * @param declarations 展开文本解析出的声明列表
+     * @param macroExpression 原始宏表达式 PSI 节点
+     * @param macroName 宏名称
+     * @param sourceInfo 宏来源信息（用于标记展开元素）
+     */
+    data class ExpandedDeclarationInfo(
+        val declarations: List<CjDeclaration>,
+        val macroExpression: CjMacroExpression,
+        val macroName: String,
+        val sourceInfo: MacroSourceInfo
+    )
+
+    /**
      * 展开结果缓存：filePath → 展开结果列表
      *
-     * 由 [MacroExpansionBackgroundTask] 在后台预填充，
-     * [expandFileInternal] 优先从此缓存获取结果，
-     * 避免在解析阶段依赖宏展开引擎实时可用。
+     * 由 [MacroExpansionBackgroundTask][org.cangnova.cangjie.macro.analysis.MacroExpansionBackgroundTask] 在后台预填充，
+     * 解析阶段直接从此缓存获取结果，避免阻塞等待宏展开引擎。
      */
     private val expansionResultsCache = ConcurrentHashMap<String, List<MacroExpansionResult>>()
 
     /**
-     * 获取源文件的宏展开 PSI 副本
+     * 获取单个宏表达式的展开结果
      *
-     * 如果文件中包含宏调用且展开成功，返回替换了宏调用的 PSI 副本。
+     * 从缓存中查找与给定宏表达式匹配的展开结果。
+     * 通过偏移量范围匹配，回退使用宏名称匹配。
+     *
+     * @param macroExpr 宏表达式 PSI 节点
+     * @return 匹配的展开结果，如果缓存未命中则返回 null
+     */
+    fun getExpansionResult(macroExpr: CjMacroExpression): MacroExpansionResult? {
+        if (!isEnabled()) return null
+        val file = macroExpr.containingFile?.virtualFile ?: return null
+        val results = expansionResultsCache[file.path] ?: return null
+        return matchResultToExpression(macroExpr, results)
+    }
+
+    /**
+     * 获取源文件中所有宏展开产生的声明
+     *
+     * 遍历文件中的每个宏表达式，获取其展开文本，
+     * 将展开文本解析为临时文件提取声明，
+     * 并对提取的声明附加 [MacroSourceInfo] 和 [MacroExpandedSourceElement.MACRO_EXPRESSION_KEY]。
+     *
      * 结果通过 [CachedValuesManager] 缓存，源文件修改后自动失效。
      *
      * @param sourceFile 原始源文件
-     * @return 展开后的 PSI 副本，如果文件中没有宏或展开失败则返回 null
+     * @return 展开声明信息列表，如果文件中没有宏或展开失败则返回空列表
      */
-    fun getExpandedFile(sourceFile: CjFile): CjFile? {
-        if (!isEnabled()) return null
+    fun getExpandedDeclarations(sourceFile: CjFile): List<ExpandedDeclarationInfo> {
+        if (!isEnabled()) return emptyList()
 
         return CachedValuesManager.getCachedValue(sourceFile) {
-            val expandedFile = expandFileInternal(sourceFile)
             CachedValueProvider.Result.create(
-                expandedFile,
+                collectExpandedDeclarations(sourceFile),
                 PsiModificationTracker.getInstance(project)
             )
         }
@@ -114,62 +148,187 @@ class MacroPsiExpansionService(private val project: Project) {
     }
 
     /**
-     * 执行文件的宏展开和 PSI 替换
+     * 收集源文件中所有宏展开产生的声明
      *
-     * 仅从本地展开结果缓存获取结果（由后台任务预填充），
-     * 解析阶段不做阻塞的展开调用，避免死锁。
+     * 对文件中每个宏表达式：
+     * 1. 从缓存获取展开结果
+     * 2. 用 [CjPsiFactory] 将展开文本解析为临时 CjFile
+     * 3. 提取临时文件中的声明
+     * 4. 对声明附加来源信息（MacroSourceInfo + MACRO_EXPRESSION_KEY）
      */
-    private fun expandFileInternal(sourceFile: CjFile): CjFile? {
-        // 快速检查：文件中是否有宏调用
+    private fun collectExpandedDeclarations(sourceFile: CjFile): List<ExpandedDeclarationInfo> {
         val macroExprs = PsiTreeUtil.findChildrenOfType(sourceFile, CjMacroExpression::class.java)
-        if (macroExprs.isEmpty()) return null
+        if (macroExprs.isEmpty()) return emptyList()
 
-        val virtualFile = sourceFile.virtualFile ?: return null
+        val virtualFile = sourceFile.virtualFile ?: return emptyList()
+        val results = expansionResultsCache[virtualFile.path] ?: return emptyList()
+        if (results.isEmpty()) return emptyList()
 
-        // 仅使用本地缓存，不做阻塞展开
-        val results = expansionResultsCache[virtualFile.path] ?: return null
-        if (results.isEmpty()) return null
+        val factory = CjPsiFactory(project)
+        val infos = mutableListOf<ExpandedDeclarationInfo>()
 
-        // 构建替换列表：将展开结果匹配到 PSI 宏表达式
-        val replacements = matchResultsToExpressions(macroExprs, results)
-        if (replacements.isEmpty()) return null
+        for (macroExpr in macroExprs) {
+            // 只处理文件顶层的宏表达式，块级宏由 visitMacroExpression 处理
+            if (macroExpr.parent !is CjFile) continue
 
-        // 执行 PSI 替换
-        return MacroPsiReplacer.replaceInCopy(sourceFile, replacements)
+            val result = matchResultToExpression(macroExpr, results) ?: continue
+            if (result.expandedText.isBlank()) continue
+
+            // 将展开文本解析为临时文件以提取声明
+            val tempFile = try {
+                factory.createFile("_macro_${result.macroName}.cj", result.expandedText) as? CjFile
+            } catch (e: Exception) {
+                LOG.debug("解析宏展开文本失败: ${result.macroName}", e)
+                null
+            } ?: continue
+
+            val declarations = tempFile.declarations.toList()
+            if (declarations.isEmpty()) continue
+
+            val macroName = result.macroName ?: macroExpr.shortName?.asString() ?: "unknown"
+            val sourceInfo = MacroSourceInfo(
+                originalFilePath = virtualFile.path,
+                originalTextRange = macroExpr.textRange,
+                macroName = macroName
+            )
+
+            // 对所有声明附加来源信息
+            for (decl in declarations) {
+                attachSourceInfo(decl, sourceInfo, macroExpr)
+            }
+
+            infos.add(ExpandedDeclarationInfo(declarations, macroExpr, macroName, sourceInfo))
+        }
+
+        return infos
     }
 
     /**
-     * 将展开结果匹配到 PSI 宏表达式
+     * 将 [MacroSourceInfo] 和 [MacroExpandedSourceElement.MACRO_EXPRESSION_KEY] 附加到 PSI 元素及其所有子节点
      */
-    private fun matchResultsToExpressions(
-        macroExprs: Collection<CjMacroExpression>,
-        results: List<MacroExpansionResult>
-    ): List<MacroPsiReplacer.MacroReplacement> {
-        val replacements = mutableListOf<MacroPsiReplacer.MacroReplacement>()
-
-        for (macroExpr in macroExprs) {
-            val exprOffset = macroExpr.textOffset
-
-            // 查找匹配的展开结果（通过偏移量范围重叠匹配）
-            val matchingResult = results.find { result ->
-                result.startOffset != result.endOffset &&
-                    exprOffset >= result.startOffset && exprOffset < result.endOffset
-            } ?: results.find { result ->
-                // 回退：使用宏名称匹配
-                result.macroName != null && result.macroName == macroExpr.shortName?.asString()
-            }
-
-            if (matchingResult != null && matchingResult.expandedText.isNotBlank()) {
-                replacements.add(
-                    MacroPsiReplacer.MacroReplacement(
-                        macroExpression = macroExpr,
-                        expandedText = matchingResult.expandedText,
-                        macroName = matchingResult.macroName ?: macroExpr.shortName?.asString() ?: "unknown"
-                    )
-                )
-            }
+    private fun attachSourceInfo(element: PsiElement, sourceInfo: MacroSourceInfo, macroExpr: CjMacroExpression) {
+        element.putUserData(MacroSourceInfo.KEY, sourceInfo)
+        element.putUserData(MacroExpandedSourceElement.MACRO_EXPRESSION_KEY, macroExpr)
+        var child = element.firstChild
+        while (child != null) {
+            attachSourceInfo(child, sourceInfo, macroExpr)
+            child = child.nextSibling
         }
+    }
 
-        return replacements
+    /**
+     * 将展开结果匹配到特定宏表达式
+     *
+     * 优先通过偏移量范围匹配，回退使用宏名称匹配。
+     */
+    private fun matchResultToExpression(
+        macroExpr: CjMacroExpression,
+        results: List<MacroExpansionResult>
+    ): MacroExpansionResult? {
+        val exprOffset = macroExpr.textOffset
+
+        // 优先：通过偏移量范围匹配
+        return results.find { result ->
+            result.startOffset != result.endOffset &&
+                    exprOffset >= result.startOffset && exprOffset < result.endOffset
+        } ?: results.find { result ->
+            // 回退：使用宏名称匹配
+            result.macroName != null && result.macroName == macroExpr.shortName?.asString()
+        }
+    }
+
+    /**
+     * 根据宏表达式所在位置和类型解析展开文本，提取解析错误和有效元素
+     *
+     * 位置判断：
+     * - 文件顶层（`parent is CjFile`）：使用 [CjPsiFactory.createFile] 解析为顶层声明
+     * - 类体内（`parent is CjAbstractClassBody`）：包装为虚拟类解析为成员声明
+     * - 调用参数（`parent is CjValueArgument`）：使用 [CjPsiFactory.createExpression] 解析为表达式
+     *
+     * 其他情况均使用 [CjPsiFactory.createBlockCodeFragment] 解析为语句，
+     * 传入 [macroExpr] 作为上下文以解析当前作用域中的符号
+     *
+     * @param macroExpr 宏表达式 PSI 节点（决定解析上下文）
+     * @param expandedText 展开后的文本
+     * @return (解析错误列表, 有效元素列表)
+     */
+    fun getExpansionErrorsAndElements(
+        macroExpr: CjMacroExpression,
+        expandedText: String
+    ): Pair<List<PsiErrorElement>, List<CjElement>> {
+        val factory = CjPsiFactory(macroExpr.project)
+        val parent = macroExpr.parent
+
+        if (parent is CjFile) {
+            // 文件顶层宏：使用 createFile 解析为顶层声明
+            val file = try {
+                factory.createFile("_macro_expanded.cj", expandedText) as? CjFile
+            } catch (e: Exception) {
+                LOG.debug("解析宏展开文本为文件失败", e)
+                return Pair(emptyList(), emptyList())
+            } ?: return Pair(emptyList(), emptyList())
+
+            val errors = PsiTreeUtil.findChildrenOfType(file, PsiErrorElement::class.java).toList()
+            val elements = file.children.filterIsInstance<CjElement>()
+            return Pair(errors, elements)
+        } else if (parent is CjAbstractClassBody) {
+            // 类体内宏：包装为虚拟类以正确解析成员声明（方法、属性等）
+            val wrappedText = "class _MacroExpanded_ {\n$expandedText\n}"
+            val file = try {
+                factory.createFile("_macro_expanded.cj", wrappedText) as? CjFile
+            } catch (e: Exception) {
+                LOG.debug("解析宏展开文本为类成员失败", e)
+                return Pair(emptyList(), emptyList())
+            } ?: return Pair(emptyList(), emptyList())
+
+            val dummyClass = file.declarations.firstOrNull() as? CjClass
+            val classBody = dummyClass?.body
+            if (classBody == null) {
+                val errors = PsiTreeUtil.findChildrenOfType(file, PsiErrorElement::class.java).toList()
+                return Pair(errors, emptyList())
+            }
+
+            val errors = PsiTreeUtil.findChildrenOfType(classBody, PsiErrorElement::class.java).toList()
+            val elements = classBody.declarations.filterIsInstance<CjElement>()
+            return Pair(errors, elements)
+        } else if (parent is CjValueArgument) {
+            // 调用参数上下文：宏展开结果是一个表达式，使用 createExpression 解析
+            val expr = try {
+                factory.createBlockCodeFragment("call(${expandedText})",null).getContentElement()
+            } catch (e: Exception) {
+                LOG.debug("解析宏展开文本为表达式失败", e)
+                null
+            }
+
+            if (expr != null) {
+                val errors = PsiTreeUtil.findChildrenOfType(expr, PsiErrorElement::class.java).toList()
+                return Pair(errors, listOf(expr))
+            }
+
+            // 表达式解析失败，回退到代码块解析
+            val block = try {
+                factory.createBlockCodeFragment(expandedText, macroExpr).getContentElement()
+            } catch (e: Exception) {
+                LOG.debug("解析宏展开文本为代码块失败（回退）", e)
+                return Pair(emptyList(), emptyList())
+            }
+
+            val errors = PsiTreeUtil.findChildrenOfType(block, PsiErrorElement::class.java).toList()
+            val elements = block.statements.filterIsInstance<CjElement>()
+            return Pair(errors, elements)
+        } else {
+            // 块级上下文：使用 createBlockCodeFragment 解析为语句/表达式
+            // 传入 macroExpr 作为上下文，使代码片段可以解析当前作用域中的符号
+            val block = try {
+                factory.createBlockCodeFragment(expandedText, macroExpr).getContentElement()
+            } catch (e: Exception) {
+                LOG.debug("解析宏展开文本为代码块失败", e)
+                return Pair(emptyList(), emptyList())
+            }
+
+            val errors = PsiTreeUtil.findChildrenOfType(block, PsiErrorElement::class.java).toList()
+            val elements = block.statements.filterIsInstance<CjElement>()
+            return Pair(errors, elements)
+        }
     }
 }

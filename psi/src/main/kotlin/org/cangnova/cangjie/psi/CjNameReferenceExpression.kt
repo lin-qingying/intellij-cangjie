@@ -94,7 +94,7 @@ class CjNameReferenceExpression :
         get() = identifier?.text?.equals("_") == true
 
     companion object {
-        private val NAME_REFERENCE_EXPRESSIONS = TokenSet.create(IDENTIFIER, THIS_KEYWORD, SUPER_KEYWORD, VARRAY_KEYWORD)
+        private val NAME_REFERENCE_EXPRESSIONS = TokenSet.create(IDENTIFIER, FIELD_IDENTIFIER, THIS_KEYWORD, SUPER_KEYWORD, VARRAY_KEYWORD)
     }
 
     override val callableReference: CjNameReferenceExpression
@@ -156,7 +156,7 @@ class CjNameBasicReferenceExpression :
         get() = identifier?.text?.equals("_") == true
 
     companion object {
-        private val NAME_REFERENCE_EXPRESSIONS = TokenSet.create(IDENTIFIER, THIS_KEYWORD, SUPER_KEYWORD, VARRAY_KEYWORD)
+        private val NAME_REFERENCE_EXPRESSIONS = TokenSet.create(IDENTIFIER, FIELD_IDENTIFIER, THIS_KEYWORD, SUPER_KEYWORD, VARRAY_KEYWORD)
     }
 
     override val callableReference: CjNameBasicReferenceExpression

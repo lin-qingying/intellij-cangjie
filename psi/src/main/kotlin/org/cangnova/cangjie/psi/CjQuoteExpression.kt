@@ -25,10 +25,11 @@
 package org.cangnova.cangjie.psi
 
 import com.intellij.lang.ASTNode
+import com.intellij.psi.util.PsiTreeUtil
 
 class CjQuoteExpression(node: ASTNode) : CjExpressionImpl(node) {
 
-    val quoteInterpolates: List<CjQuoteInterpolate> get() = findChildrenByClass(CjQuoteInterpolate::class.java).toList()
+    val quoteInterpolates: List<CjQuoteInterpolate> get() = PsiTreeUtil.findChildrenOfType(this, CjQuoteInterpolate::class.java).toList()
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitQuoteExpression(this, data)
     }

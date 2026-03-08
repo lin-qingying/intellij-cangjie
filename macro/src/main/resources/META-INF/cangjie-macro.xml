@@ -107,6 +107,12 @@
                      defaultValue="true"
                      restartRequired="false"/>
 
+        <!-- 宏展开分析开关：启用后文件变更时自动触发宏展开并注入分析结果 -->
+        <registryKey key="cangjie.macro.expansion.analysis.enabled"
+                     description="Enable macro expansion analysis: auto-expand macros on file change and inject results into resolution pipeline"
+                     defaultValue="false"
+                     restartRequired="false"/>
+
         <!-- 宏展开文件对用户可见性 -->
         <registryKey key="cangjie.macro.expansion.file.visible"
                      description="Make .macrocall files visible to users in the IDE (project view, editor tabs, etc.)"
@@ -123,6 +129,12 @@
         <codeInsight.lineMarkerProvider
                 language="CangJie"
                 implementationClass="org.cangnova.cangjie.macro.ui.CjMacroExpansionLineMarkerProvider"/>
+
+        <!-- 宏管线通知组 -->
+        <notificationGroup id="CangJie Macro"
+                           displayType="BALLOON"
+                           bundle="messages.CangJieMacroBundle"
+                           key="macro.notification.group.title"/>
 
     </extensions>
 
@@ -142,9 +154,12 @@
     </extensions>
 
     <!-- 宏管线项目同步监听器：项目同步完成后通过协调器触发全量管线（编译 → 展开） -->
+    <!-- 宏管线文件变更监听器：.cj 文件变更后通过协调器触发增量管线（按需编译 → 展开变更文件） -->
     <projectListeners>
         <listener class="org.cangnova.cangjie.macro.pipeline.MacroPipelineProjectSyncListener"
                   topic="org.cangnova.cangjie.project.event.CjProjectListener"/>
+        <listener class="org.cangnova.cangjie.macro.pipeline.MacroFileChangeListener"
+                  topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
     </projectListeners>
 
 </idea-plugin>
