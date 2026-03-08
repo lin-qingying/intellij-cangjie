@@ -137,7 +137,7 @@ class LazyPackageMemberScope(
     override fun getNonDeclaredFunctions(name: Name, result: MutableSet<SimpleFunctionDescriptor>) {
         val syntheticFunctions = mutableSetOf<SimpleFunctionDescriptor>()
         resolveSession.syntheticResolveExtension.generateSyntheticFunctions(
-            thisDescriptor, name, declarationProvider, syntheticFunctions
+            thisDescriptor, name, c, declarationProvider, syntheticFunctions
         )
         result.addAll(syntheticFunctions)
     }
@@ -232,7 +232,7 @@ class LazyPackageMemberScope(
     override fun getNonDeclaredVariables(name: Name, result: MutableSet<VariableDescriptor>) {
         val syntheticVariables = mutableSetOf<VariableDescriptor>()
         resolveSession.syntheticResolveExtension.generateSyntheticVariables(
-            thisDescriptor, name, declarationProvider, syntheticVariables
+            thisDescriptor, name, c, declarationProvider, syntheticVariables
         )
         result.addAll(syntheticVariables)
     }

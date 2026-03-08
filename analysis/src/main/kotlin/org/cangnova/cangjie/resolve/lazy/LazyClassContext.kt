@@ -62,5 +62,6 @@ interface LazyClassContext {
 
     val enumDescriptorResolver: EnumDescriptorResolver
     val declarationScopeProvider: DeclarationScopeProvider
+    val fileScopeProvider: FileScopeProvider
     val cangjieTypeCheckerOfOwnerModule: CangJieTypeChecker
 }

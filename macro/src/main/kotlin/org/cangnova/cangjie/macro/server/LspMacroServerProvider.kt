@@ -12,6 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
  */
 
 package org.cangnova.cangjie.macro.server
@@ -410,13 +418,16 @@ class LspMacroServerProvider(private val project: Project) :
         if (methodName.isBlank()) return null
 
         val libPath = resolveLibPath(packageName, macroLibs)
-// 方式二：通过 tokens 列表直接构建
-        val argTokens = macroExpr.input?.tokens?.let { tokens ->
-            collectLeafTokenInfosFromTokens(tokens, document)
+val argTokens = macroExpr.input?.let { input ->
+            val tokens = input.tokens
+            if (tokens.isNotEmpty()) {
+                collectLeafTokenInfosFromTokens(tokens, document)
+            } else {
+                input.declarations?.node?.let { node ->
+                    collectLeafTokenInfos(node, document)
+                } ?: emptyList()
+            }
         } ?: emptyList()
-//        val argTokens = macroExpr.input?.node?.let { node ->
-//            collectLeafTokenInfos(node, document)
-//        } ?: emptyList()
 
         val hasAttrs = macroExpr.attr != null
         val attrTokens = macroExpr.attr?.tokens?.let { tokens ->

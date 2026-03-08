@@ -45,9 +45,7 @@ import org.cangnova.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
-import org.cangnova.cangjie.storage.NotNullLazyValue
 import org.cangnova.cangjie.storage.getValue
-import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.checker.DefaultCangJieTypeChecker
 import org.cangnova.cangjie.utils.reportOnDeclarationAs
@@ -99,6 +97,7 @@ class LazyEnumMemberScope(
         c.syntheticResolveExtension.generateSyntheticProperties(
             thisEnum,
             name,
+            c,
             trace.bindingContext,
             fromSupertypes,
             result
@@ -192,6 +191,10 @@ class LazyEnumMemberScope(
             fromSupertypes.addAll(supertype.memberScope.getContributedFunctions(name, location))
         }
 
+        c.syntheticResolveExtension.generateSyntheticMethods(
+            thisEnum, name, c, trace.bindingContext, fromSupertypes, result
+        )
+
         generateFakeOverrides(name, fromSupertypes, result, SimpleFunctionDescriptor::class.java)
     }
 
@@ -280,7 +283,9 @@ class LazyEnumMemberScope(
     }
 
     override fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassAndEnumDescriptor>) {
-        // 枚举可以有嵌套类型
+        val syntheticClasses = mutableSetOf<ClassDescriptor>()
+        c.syntheticResolveExtension.generateSyntheticNestedClasses(thisEnum, name, c, declarationProvider, syntheticClasses)
+        result.addAll(syntheticClasses)
     }
 
     override fun toString() = "lazy scope for enum ${thisEnum.name}"

@@ -124,6 +124,7 @@ open class LazyClassMemberScope(
         c.syntheticResolveExtension.generateSyntheticProperties(
             thisDescriptor,
             name,
+            c,
             trace.bindingContext,
             fromSupertypes,
             result
@@ -246,7 +247,7 @@ open class LazyClassMemberScope(
         }
 
         c.syntheticResolveExtension.generateSyntheticMethods(
-            thisDescriptor, name, trace.bindingContext, fromSupertypes, result
+            thisDescriptor, name, c, trace.bindingContext, fromSupertypes, result
         )
 
         generateFakeOverrides(name, fromSupertypes, result, SimpleFunctionDescriptor::class.java)

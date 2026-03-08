@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -181,6 +181,8 @@ internal class FineGrainedIdeaModelInfosCache(private val project: Project) : Id
     abstract inner class AbstractCache<Key : Any, Value : Any>(initializer: (AbstractCache<Key, Value>) -> Unit) :
         SynchronizedFineGrainedEntityCache<Key, Value>(project) {
 
+        // 保存初始化函数的持久引用，invalidate() 后可重新填充缓存
+        private val persistentInitializer: (AbstractCache<Key, Value>) -> Unit = initializer
         @Volatile
         private var initializerRef: ((AbstractCache<Key, Value>) -> Unit)? = initializer
         private val initializerLock = Any()
@@ -272,7 +274,18 @@ internal class FineGrainedIdeaModelInfosCache(private val project: Project) : Id
          */
         fun fetchValues(): Collection<Value> {
             initializeCache()
-            return values()
+            val result = values()
+            if (result.isEmpty()) {
+                // invalidate() 清空了缓存且 initializerRef 已被消费，用持久引用重新填充
+                synchronized(initializerLock) {
+                    val recheck = values()
+                    if (recheck.isEmpty()) {
+                        persistentInitializer(this)
+                    }
+                    return values()
+                }
+            }
+            return result
         }
     }
 

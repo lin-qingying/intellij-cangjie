@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,6 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
  */
 
 package org.cangnova.cangjie.resolve.extensions
@@ -76,14 +84,15 @@ interface SyntheticResolveExtension {
 
     /** 向该类注入合成嵌套类描述符。 */
     fun generateSyntheticNestedClasses(
-        thisDescriptor: ClassDescriptor, name: Name,
+        thisDescriptor: ClassAndEnumDescriptor, name: Name,
         ctx: LazyClassContext, declarationProvider: ClassMemberDeclarationProvider,
         result: MutableSet<ClassDescriptor>
     ) {}
 
     /** 向该类注入合成成员函数描述符。 */
     fun generateSyntheticMethods(
-        thisDescriptor: ClassDescriptor, name: Name,
+        thisDescriptor: ClassAndEnumDescriptor, name: Name,
+        ctx: LazyClassContext,
         bindingContext: BindingContext,
         fromSupertypes: List<SimpleFunctionDescriptor>,
         result: MutableCollection<SimpleFunctionDescriptor>
@@ -92,6 +101,7 @@ interface SyntheticResolveExtension {
     /** 向该类注入合成属性描述符。 */
     fun generateSyntheticProperties(
         thisDescriptor: ClassAndEnumDescriptor, name: Name,
+        ctx: LazyClassContext,
         bindingContext: BindingContext,
         fromSupertypes: List<PropertyDescriptor>,
         result: MutableSet<PropertyDescriptor>
@@ -138,6 +148,7 @@ interface SyntheticResolveExtension {
     /** 向该包注入合成顶层函数描述符。 */
     fun generateSyntheticFunctions(
         thisDescriptor: PackageFragmentDescriptor, name: Name,
+        ctx: LazyClassContext,
         declarationProvider: PackageMemberDeclarationProvider,
         result: MutableSet<SimpleFunctionDescriptor>
     ) {}
@@ -145,6 +156,7 @@ interface SyntheticResolveExtension {
     /** 向该包注入合成顶层变量描述符（let/var）。 */
     fun generateSyntheticVariables(
         thisDescriptor: PackageFragmentDescriptor, name: Name,
+        ctx: LazyClassContext,
         declarationProvider: PackageMemberDeclarationProvider,
         result: MutableSet<VariableDescriptor>
     ) {}

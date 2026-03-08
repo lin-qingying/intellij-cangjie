@@ -32,6 +32,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
+import com.intellij.psi.search.GlobalSearchScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,10 +40,12 @@ import kotlinx.coroutines.withContext
 import org.cangnova.cangjie.icon.CangJieBaseResourcesIcons
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.macro.messages.CangJieMacroBundle
+import org.cangnova.cangjie.macro.psi.MacroPsiExpansionService
 import org.cangnova.cangjie.macro.service.MacroExpansionResult
 import org.cangnova.cangjie.macro.service.MacroExpansionService
 import org.cangnova.cangjie.psi.CjMacroExpression
 import org.cangnova.cangjie.result.CjResult
+import org.cangnova.cangjie.stubindex.CangJieMacroDeclarationShortNameIndex
 import java.awt.event.MouseEvent
 
 /**
@@ -51,7 +54,24 @@ import java.awt.event.MouseEvent
  * 在编辑器左侧 gutter 区域为宏表达式显示图标，点击可查看宏展开结果。
  */
 internal class CjMacroExpansionLineMarkerProvider : LineMarkerProvider {
-
+    /**
+     * 判断 CjMacroExpression 是否是宏调用（而非普通注解）
+     *
+     * 判断依据（满足任一即为宏）：
+     * 1. 宏展开服务已返回展开结果
+     * 2. 名字在 Stub 索引中匹配到 CjMacroDeclaration
+     */
+    private fun isRealMacro(macroExpr: CjMacroExpression): Boolean {
+        val project = macroExpr.project ?: return false
+        val expansionService = MacroPsiExpansionService.getInstance(project)
+        if (expansionService.isEnabled() && expansionService.getExpansionResult(macroExpr) != null) {
+            return true
+        }
+        // 通过 Stub 索引查找名字是否对应宏声明
+        val shortName = macroExpr.shortName?.asString() ?: return false
+        val scope = GlobalSearchScope.allScope(project)
+        return CangJieMacroDeclarationShortNameIndex[shortName, project, scope].isNotEmpty()
+    }
     override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
         if (!Registry.`is`("cangjie.macro.expansion.line.marker.enabled", true)) {
             return null
@@ -61,7 +81,7 @@ internal class CjMacroExpansionLineMarkerProvider : LineMarkerProvider {
         if (element.node?.elementType != CjTokens.AT) return null
 
         val macroExpression = element.parent as? CjMacroExpression ?: return null
-
+if(!isRealMacro(macroExpression)) return null
         // 确保 '@' 是宏表达式的第一个子节点
 //        if (macroExpression.firstChild != element) return null
 

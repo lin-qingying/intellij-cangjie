@@ -140,7 +140,7 @@ class ResolveSession @Deprecated("Only calls from injectors expected") construct
 
 
     @set:Inject
-    lateinit var fileScopeProvider: FileScopeProvider
+    override lateinit var fileScopeProvider: FileScopeProvider
 
 
     @set:Inject
