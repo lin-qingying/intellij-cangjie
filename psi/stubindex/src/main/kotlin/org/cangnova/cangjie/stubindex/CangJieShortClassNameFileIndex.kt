@@ -28,7 +28,6 @@ import com.intellij.util.indexing.*
 import com.intellij.util.indexing.impl.CollectionDataExternalizer
 import com.intellij.util.io.EnumeratorStringDescriptor
 import org.cangnova.cangjie.lang.CangJieFileType
-import org.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType
 import org.cangnova.cangjie.psi.CjEnumConstructor
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjTreeVisitorUnit
@@ -52,8 +51,6 @@ class CangJieShortClassNameFileIndex : FileBasedIndexExtension<String, Collectio
     override fun getInputFilter(): DefaultFileTypeSpecificInputFilter =
         DefaultFileTypeSpecificInputFilter(
             CangJieFileType.INSTANCE,
-            CangJieDeclarationsFileType,
-
             )
 
     override fun getVersion() = 4

@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.ide.navigation
 
-import org.cangnova.cangjie.lang.declarations.CjDeclarationsFile
 import org.cangnova.cangjie.psi.*
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
@@ -55,7 +54,6 @@ object SourceNavigationHelper {
             NavigationKind.CLASS_FILES_TO_SOURCES -> if (!from.getContainingCjFile().isCompiled) return from
             NavigationKind.SOURCES_TO_CLASS_FILES -> {
                 val file = from.containingFile
-                if (file is CjDeclarationsFile /*&& file.isCompiled*/) return from
 //                if (!RootKindFilter.librarySources.matches(from)) return from
                 if (CjPsiUtil.isLocal(from)) return from
             }

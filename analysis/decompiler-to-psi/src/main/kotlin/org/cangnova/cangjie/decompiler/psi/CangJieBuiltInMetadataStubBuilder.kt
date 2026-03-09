@@ -28,7 +28,7 @@ import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.decompiler.stub.file.CangJieMetadataStubBuilder
 import org.cangnova.cangjie.lang.CangJieFileType
-import org.cangnova.cangjie.lang.declarations.CangJieBuiltInFileType
+import org.cangnova.cangjie.lang.declarations.CangJieBinaryObjectFileType
 import org.cangnova.cangjie.metadata.builtins.BuiltInsBinaryVersion
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.metadata.model.fb.parser.toFbPackage
@@ -669,7 +669,7 @@ class BuiltInDefinitionFile(
  * ClassFileStubBuilder (IDE 框架层)
  *   ↓
  * getSubBuilder(fileContent) → 查找匹配的 Stub 构建器
- *   ├─ 检查文件类型 == CangJieBuiltInFileType?
+ *   ├─ 检查文件类型 == CangJieBinaryObjectFileType?
  *   └─ Yes → 返回 CangJieBuiltInMetadataStubBuilder (本对象)
  *   ↓
  * CangJieBuiltInMetadataStubBuilder.buildFileStub(fileContent)
@@ -745,7 +745,7 @@ class BuiltInDefinitionFile(
  *
  * 通过 `supportedFileType` 属性告诉 IDE 该构建器处理哪种文件：
  * ```kotlin
- * override val supportedFileType: FileType get() = CangJieBuiltInFileType
+ * override val supportedFileType: FileType get() = CangJieBinaryObjectFileType
  * ```
  *
  * **影响**:
@@ -819,7 +819,7 @@ class BuiltInDefinitionFile(
  *   ├─ 调用 getSubBuilder(fileContent)
  *   ├─ 遍历所有注册的 Full 反编译器
  *   ├─ CangJieBuiltInMetadataStubBuilder.stubBuilder.isSupported(file)
- *   │   └─ file.fileType == CangJieBuiltInFileType → true ✓
+ *   │   └─ file.fileType == CangJieBinaryObjectFileType → true ✓
  *   └─ 返回 CangJieBuiltInMetadataStubBuilder
  *   ↓
  * 5. CangJieBuiltInMetadataStubBuilder.buildFileStub(fileContent)
@@ -874,7 +874,7 @@ class BuiltInDefinitionFile(
  * | 特性 | 内置库 (.cjb) | 普通库 (.cjo) |
  * |------|--------------|--------------|
  * | **构建器** | CangJieBuiltInMetadataStubBuilder | CangJieNormalMetadataStubBuilder |
- * | **文件类型** | CangJieBuiltInFileType | CangJieCompiledFileType |
+ * | **文件类型** | CangJieBinaryObjectFileType | CangJieCompiledFileType |
  * | **版本管理** | BuiltInsBinaryVersion | NormalBinaryVersion |
  * | **序列化器** | BuiltInSerializerFlatbuffers | NormalSerializerFlatbuffers |
  * | **类过滤** | ✅ 支持（跳过已有源文件） | ❌ 不支持（反编译所有类） |
@@ -992,7 +992,7 @@ class BuiltInDefinitionFile(
  * ### supportedFileType 实现
  *
  * ```kotlin
- * override val supportedFileType: FileType get() = CangJieBuiltInFileType
+ * override val supportedFileType: FileType get() = CangJieBinaryObjectFileType
  * ```
  *
  * **作用**:
@@ -1234,7 +1234,7 @@ class BuiltInDefinitionFile(
  *   ├─ 遍历所有注册的 Full 反编译器
  *   ├─ CangJieMetadataDecompiler.accepts(file)?
  *   │   └─ stubBuilder.isSupported(file)?
- *   │       └─ file.fileType == CangJieBuiltInFileType?
+ *   │       └─ file.fileType == CangJieBinaryObjectFileType?
  *   │           └─ Yes → 返回 CangJieBuiltInMetadataStubBuilder
  *   └─ 调用 stubBuilder.buildFileStub()
  * ```
@@ -1318,14 +1318,14 @@ class BuiltInDefinitionFile(
  * @see CangJieMetadataStubBuilder
  * @see BuiltInDefinitionFile
  * @see CangJieBuiltInDecompilationInterceptor
- * @see CangJieBuiltInFileType
+ * @see CangJieBinaryObjectFileType
  * @see BuiltInsBinaryVersion
  * @see stubVersionForStubBuilderAndDecompiler
  */
 object CangJieBuiltInMetadataStubBuilder : CangJieMetadataStubBuilder(
 ) {
     override val stubVersion: Int get() = stubVersionForStubBuilderAndDecompiler
-    override val supportedFileType: FileType get() = CangJieBuiltInFileType
+    override val supportedFileType: FileType get() = CangJieBinaryObjectFileType
     override val expectedBinaryVersion: BinaryVersion get() = BuiltInsBinaryVersion.INSTANCE
     override fun readFile(
         virtualFile: VirtualFile,

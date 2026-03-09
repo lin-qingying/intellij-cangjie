@@ -143,7 +143,7 @@ private val LOG = Logger.getInstance("org.cangnova.cangjie.decompiler.stub.file.
  * 2. 验证文件类型
  *    isSupported(ArrayList.cjo)
  *      ├─ 检查文件扩展名 == "cjo"
- *      └─ 或检查文件类型 == CangJieBuiltInFileType
+ *      └─ 或检查文件类型 == CangJieBinaryObjectFileType
  *   ↓
  * 3. 读取元数据
  *    readFile(virtualFile, content)
@@ -494,7 +494,7 @@ private val LOG = Logger.getInstance("org.cangnova.cangjie.decompiler.stub.file.
  * ```kotlin
  * // CangJieBuiltInMetadataStubBuilder 实现
  * object CangJieBuiltInMetadataStubBuilder : CangJieMetadataStubBuilder() {
- *     override val supportedFileType = CangJieBuiltInFileType
+ *     override val supportedFileType = CangJieBinaryObjectFileType
  *     override val expectedBinaryVersion = BinaryVersion(1, 0, 0)
  *
  *     override fun readFile(virtualFile: VirtualFile, content: ByteArray?): FileWithMetadata? {

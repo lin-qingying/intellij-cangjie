@@ -26,7 +26,6 @@ package org.cangnova.cangjie.parsing
 
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.lang.CangJieLanguage
-import org.cangnova.cangjie.lang.declarations.CjDeclarationsFile
 import org.cangnova.cangjie.lexer.CangJieLexer
 import org.cangnova.cangjie.lexer.CjToken
 import org.cangnova.cangjie.lexer.CjTokens
@@ -52,7 +51,6 @@ import com.intellij.psi.impl.source.PsiPlainTextFileImpl
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
-import org.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType
 
 internal class CangJieParserDefinition : ParserDefinition {
     override fun createLexer(project: Project?): Lexer = CangJieLexer()
@@ -97,7 +95,6 @@ internal class CangJieParserDefinition : ParserDefinition {
 
 
         return when (viewProvider.fileType) {
-            is CangJieDeclarationsFileType -> CjDeclarationsFile(viewProvider)
             is CangJieFileType -> CjFile(viewProvider, false)
             else -> PsiPlainTextFileImpl(viewProvider)
         }

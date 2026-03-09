@@ -27,7 +27,6 @@ package org.cangnova.cangjie.navigation
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import org.cangnova.cangjie.decompiler.psi.file.CjDecompiledFile
-import org.cangnova.cangjie.lang.declarations.CjDeclarationsFile
 import org.cangnova.cangjie.projectStructure.RootKindFilter
 import org.cangnova.cangjie.projectStructure.matches
 import org.cangnova.cangjie.psi.*
@@ -248,9 +247,6 @@ object SourceNavigationHelper {
 
                 // 如果已经是反编译文件，直接返回
                 if (file is CjDecompiledFile && file.isCompiled) return from
-
-                // 如果已经是声明文件，直接返回
-                if (file is CjDeclarationsFile /*&& file.isCompiled*/) return from
 
                 // 只处理库源码文件
                 if (!RootKindFilter.librarySources.matches(from)) return from

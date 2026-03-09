@@ -26,12 +26,12 @@
     <!-- 扩展点定义 -->
     <extensionPoints>
         <!-- Turbo 补全建议生成器执行器提供者扩展点 -->
-<!--        <extensionPoint qualifiedName="org.cangnova.cangjie.turboComplete.suggestionGeneratorExecutorProvider"-->
-<!--                        interface="org.cangnova.cangjie.completion.turboComplete.SuggestionGeneratorExecutorProvider"-->
-<!--                        dynamic="true"/>-->
-<!--        <extensionPoint qualifiedName="org.cangnova.cangjie.completion.turboComplete.smartPipelineRunner"-->
-<!--                                                                interface="org.cangnova.cangjie.completion.turboComplete.SmartPipelineRunner"-->
-<!--                                                                dynamic="true"/>-->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.turboComplete.suggestionGeneratorExecutorProvider"
+                        interface="org.cangnova.cangjie.completion.turboComplete.SuggestionGeneratorExecutorProvider"
+                        dynamic="true"/>
+        <extensionPoint qualifiedName="org.cangnova.cangjie.completion.turboComplete.smartPipelineRunner"
+                                                                interface="org.cangnova.cangjie.completion.turboComplete.SmartPipelineRunner"
+                                                                dynamic="true"/>
         <!-- 模块信息提供者扩展 -->
         <extensionPoint
                 qualifiedName="org.cangnova.cangjie.moduleInfoProviderExtension"
@@ -118,10 +118,10 @@
                         interface="org.cangnova.cangjie.resolve.CangJieResolveScopeEnlarger"
                         dynamic="true"/>
 
-<!--        <extensionPoint-->
-<!--                qualifiedName="org.cangnova.cangjie.completionInformationProvider"-->
-<!--                interface="org.cangnova.cangjie.completion.CompletionInformationProvider"-->
-<!--                dynamic="true"/>-->
+        <extensionPoint
+                qualifiedName="org.cangnova.cangjie.completionInformationProvider"
+                interface="org.cangnova.cangjie.completion.CompletionInformationProvider"
+                dynamic="true"/>
 
 
     </extensionPoints>
@@ -254,19 +254,19 @@
                               implementationClass="org.cangnova.cangjie.decompiler.psi.compiled.impl.ClassFileStubBuilder"/>
         <filetype.decompiler filetype="cjo"
                              implementationClass="org.cangnova.cangjie.decompiler.psi.compiled.ClassFileDecompiler"/>
-<!--        <applicationService-->
-<!--                serviceInterface="org.cangnova.cangjie.completion.CompletionDummyIdentifierProviderService"-->
-<!--                serviceImplementation="org.cangnova.cangjie.completion.CangJieCompletionDummyIdentifierProviderService"/>-->
+        <applicationService
+                serviceInterface="org.cangnova.cangjie.completion.CompletionDummyIdentifierProviderService"
+                serviceImplementation="org.cangnova.cangjie.completion.CangJieCompletionDummyIdentifierProviderService"/>
 
         <!--代码补全-->
-<!--        <completion.contributor-->
-<!--                language="CangJie"-->
-<!--                id="CangJieCompletionContributor"-->
-<!--                order="first, after liveTemplates"-->
-<!--                implementationClass="org.cangnova.cangjie.completion.CangJieCompletionContributor"/>-->
-<!--        <completion.contributor-->
-<!--                language="CangJie"-->
-<!--                implementationClass="org.cangnova.cangjie.completion.CDocCompletionContributor"/>-->
+        <completion.contributor
+                language="CangJie"
+                id="CangJieCompletionContributor"
+                order="first, after liveTemplates"
+                implementationClass="org.cangnova.cangjie.completion.CangJieCompletionContributor"/>
+        <completion.contributor
+                language="CangJie"
+                implementationClass="org.cangnova.cangjie.completion.CDocCompletionContributor"/>
         <registryKey
                 key="cangjie.disable.auto.completion.inside.expression"
                 description="Disables auto-completion inside expressions"

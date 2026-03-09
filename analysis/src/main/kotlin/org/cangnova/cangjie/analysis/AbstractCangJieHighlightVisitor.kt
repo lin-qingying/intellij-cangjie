@@ -32,7 +32,6 @@ import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
@@ -77,6 +76,7 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
         }
 
         val file = psiFile as? CjFile ?: return false
+//        val file2 = MacroExpandReplaceTest.replace(file)
         if (file is CjMacroCallFile) return false
         val highlightingLevelManager = HighlightingLevelManager.getInstance(file.project)
         if (highlightingLevelManager.runEssentialHighlightingOnly(file)) {

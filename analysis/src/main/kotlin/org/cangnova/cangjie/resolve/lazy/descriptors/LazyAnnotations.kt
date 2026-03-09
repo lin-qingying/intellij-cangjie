@@ -38,9 +38,12 @@ import org.cangnova.cangjie.storage.getValue
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.descriptors.annotations.FilteredByPredicateAnnotations
 import org.cangnova.cangjie.diagnostics.infos.errors.RECURSIVE_TYPEALIAS_EXPANSION
+import org.cangnova.cangjie.resolve.AnnotationResolverImpl
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.resolve.lazy.ForceResolveUtil
 import org.cangnova.cangjie.resolve.lazy.LazyEntity
+import org.cangnova.cangjie.resolve.source.toSourceElement
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.replaceAnnotations
 
@@ -101,6 +104,7 @@ class LazyAnnotationDescriptor(
 
         override fun toString(): String = "${name.asString()} declared in LazyAnnotations.cj"
     }
+    override val source = annotationEntry.toSourceElement()
 
     private val scope = (c.scope.ownerDescriptor as? PackageFragmentDescriptor)?.let {
         LexicalScope.Base(c.scope, FileDescriptorForVisibilityChecks(source, it))
@@ -123,12 +127,12 @@ class LazyAnnotationDescriptor(
             ErrorUtils.createErrorType(ErrorTypeKind.RECURSIVE_ANNOTATION_TYPE)
         }
     )
+
     override val allValueArguments: Map<Name, ConstantValue<*>>
-        get() = TODO("Not yet implemented")
-    override val source: SourceElement
-        get() = TODO("Not yet implemented")
+        get() = emptyMap()
 
     override fun forceResolveAllContents() {
-        TODO("Not yet implemented")
+        ForceResolveUtil.forceResolveAllContents(type)
+        allValueArguments
     }
 }

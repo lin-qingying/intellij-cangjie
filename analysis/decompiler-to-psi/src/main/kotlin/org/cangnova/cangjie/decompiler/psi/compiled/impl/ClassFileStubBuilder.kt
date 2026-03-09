@@ -255,7 +255,7 @@
  * <stubElementTypeHolder class="..." externalIdPrefix="..."/>
  * <stubIndex implementation="..."/>
  * <fileType.stubBuilder
- *     filetype="org.cangnova.cangjie.lang.CangJieBuiltInFileType"
+ *     filetype="org.cangnova.cangjie.lang.CangJieBinaryObjectFileType"
  *     implementationClass="...ClassFileStubBuilder"/>
  * ```
  *

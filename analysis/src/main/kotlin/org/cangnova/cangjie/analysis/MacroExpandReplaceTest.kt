@@ -22,30 +22,10 @@
  *
  */
 
-package org.cangnova.cangjie.lang.declarations
+package org.cangnova.cangjie.analysis
 
-import org.cangnova.cangjie.icon.CangJieIcons
-import org.cangnova.cangjie.lang.CangJieFileType
-import com.intellij.openapi.fileTypes.FileType
-import com.intellij.openapi.vfs.VirtualFile
-
-import javax.swing.Icon
-
-
-object CangJieBinaryObjectFileType : FileType {
-    override fun getName() = "cjo"
-
-    override fun getDescription(): String = ""
-
-    override fun getDefaultExtension() = "cjo"
-
-    override fun getIcon(): Icon? = null
-
-    override fun isBinary() = true
-
-    override fun isReadOnly() = true
-
-    override fun getCharset(file: VirtualFile, content: ByteArray): String? = null
-
-    private const val DEFAULT_DESCRIPTION = "CangJie binary object declarations"
-}
+import com.intellij.psi.util.PsiTreeUtil
+import org.cangnova.cangjie.macro.psi.MacroPsiExpansionService
+import org.cangnova.cangjie.psi.CjFile
+import org.cangnova.cangjie.psi.CjMacroExpression
+import org.cangnova.cangjie.psi.CjPsiFactory

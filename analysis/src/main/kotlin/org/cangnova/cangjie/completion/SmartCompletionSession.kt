@@ -27,7 +27,6 @@ package org.cangnova.cangjie.completion
 import org.cangnova.cangjie.indices.ExpectedInfo
 import org.cangnova.cangjie.completion.smart.SmartCompletion
 import org.cangnova.cangjie.indices.fuzzyType
-import org.cangnova.cangjie.resolve.sam.SamConstructorDescriptorKindExclude
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
@@ -77,9 +76,8 @@ class SmartCompletionSession(
      * 如果预期类型是函数类型,还会包含类(用于构造器引用)
      */
     override val descriptorKindFilter: DescriptorKindFilter by lazy {
-        // 排除 SAM 构造器(因为它们需要遍历 Java 类,会很慢)
-        val filter = DescriptorKindFilter.VALUES exclude SamConstructorDescriptorKindExclude
-
+         
+        val filter = DescriptorKindFilter.VALUES
         // 检查是否预期函数类型(用于构造器引用,如 ::MyClass)
         val referenceToConstructorIsApplicable = smartCompletion?.expectedInfos.orEmpty().any {
             it.fuzzyType?.type?.isFunctionType == true

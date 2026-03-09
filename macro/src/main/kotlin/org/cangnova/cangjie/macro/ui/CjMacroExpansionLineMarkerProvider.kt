@@ -72,6 +72,7 @@ internal class CjMacroExpansionLineMarkerProvider : LineMarkerProvider {
         val scope = GlobalSearchScope.allScope(project)
         return CangJieMacroDeclarationShortNameIndex[shortName, project, scope].isNotEmpty()
     }
+
     override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
         if (!Registry.`is`("cangjie.macro.expansion.line.marker.enabled", true)) {
             return null
@@ -81,7 +82,7 @@ internal class CjMacroExpansionLineMarkerProvider : LineMarkerProvider {
         if (element.node?.elementType != CjTokens.AT) return null
 
         val macroExpression = element.parent as? CjMacroExpression ?: return null
-if(!isRealMacro(macroExpression)) return null
+        if (!isRealMacro(macroExpression)) return null
         // 确保 '@' 是宏表达式的第一个子节点
 //        if (macroExpression.firstChild != element) return null
 

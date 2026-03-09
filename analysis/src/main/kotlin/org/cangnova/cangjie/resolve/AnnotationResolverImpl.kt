@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve
 
+import jakarta.inject.Inject
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
 import org.cangnova.cangjie.descriptors.annotations.Annotations
@@ -43,8 +44,8 @@ class AnnotationResolverImpl(
     private val constantExpressionEvaluator: ConstantExpressionEvaluator,
     private val storageManager: StorageManager
 ) : AnnotationResolver() {
-
-    private lateinit var typeResolver: TypeResolver
+    @set:Inject
+      lateinit var typeResolver: TypeResolver
 
     override fun resolveAnnotationEntries(
         scope: LexicalScope,

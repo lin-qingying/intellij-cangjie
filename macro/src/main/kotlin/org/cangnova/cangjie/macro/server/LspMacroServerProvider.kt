@@ -45,6 +45,7 @@ import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjMacroExpression
 import org.cangnova.cangjie.lexer.CjToken
 import org.cangnova.cangjie.psi.CjElement
+import org.cangnova.cangjie.psi.CjPsiFactory
 import org.cangnova.cangjie.result.CjResult
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.api.CjSdk
@@ -77,6 +78,11 @@ class LspMacroServerProvider(private val project: Project) :
     MacroExpansionProvider, MacroExpansionEngine by LspMacroServerEngine {
 
     private val logger = Logger.getInstance(LspMacroServerProvider::class.java)
+
+    companion object {
+        /** 嵌套宏最大展开深度，防止无限递归 */
+        private const val MAX_NESTING_DEPTH = 5
+    }
 
     // 懒初始化：首次展开时启动
     @Volatile
@@ -156,7 +162,7 @@ class LspMacroServerProvider(private val project: Project) :
                 lspClient.loadLibs(macroLibPaths)
 
                 // Step 4: 使用 MultiMacroCalls 协议展开文件中的所有宏
-                val result = expandViaMultiMacroCalls(project, file, sdk, lspClient)
+                val result = expandViaMultiMacroCalls(project, file, sdk, lspClient, options)
 
                 // Step 5: 重置服务端状态（清空宏声明/调用/诊断），与编译器 SendExitStgTask 行为一致
                 lspClient.resetStage()
@@ -290,6 +296,7 @@ class LspMacroServerProvider(private val project: Project) :
         file: VirtualFile,
         sdk: CjSdk,
         lspClient: LspMacroServerClient,
+        options: MacroExpansionOptions,
     ): CjResult<List<MacroExpansionResult>, MacroExpansionError> {
         // Step 1: PSI 提取（ReadAction 中执行）
         val extractedCalls = try {
@@ -339,7 +346,86 @@ class LspMacroServerProvider(private val project: Project) :
             }
         }
 
-        return CjResult.Ok(results)
+        // Step 4: 递归展开嵌套宏（如果启用）
+        if (!options.recursive) return CjResult.Ok(results)
+
+        val macroLibs = findMacroLibsFromProjectOutput(sdk)
+        val resolvedResults = results.map { result ->
+            val fullyExpanded = resolveNestedMacros(
+                result.expandedText, lspClient, macroLibs,
+                parentNames = listOfNotNull(result.macroName),
+                depth = 1
+            )
+            if (fullyExpanded != result.expandedText) {
+                result.copy(expandedText = fullyExpanded)
+            } else {
+                result
+            }
+        }
+
+        return CjResult.Ok(resolvedResults)
+    }
+
+    /**
+     * 递归展开文本中的嵌套宏调用
+     *
+     * 将展开文本解析为临时 PSI，提取其中的宏调用表达式，
+     * 逐条展开并递归处理每条展开结果，最终组装完全展开的文本。
+     *
+     * @param text 待处理的展开文本
+     * @param lspClient LSPMacroServer 客户端
+     * @param macroLibs 宏动态库路径列表
+     * @param parentNames 父级宏名称链（传递给 C++ 侧用于上下文断言）
+     * @param depth 当前嵌套深度
+     * @return 完全展开后的文本
+     */
+    private fun resolveNestedMacros(
+        text: String,
+        lspClient: LspMacroServerClient,
+        macroLibs: List<String>,
+        parentNames: List<String>,
+        depth: Int,
+    ): String {
+        if (depth > MAX_NESTING_DEPTH || text.isBlank()) return text
+
+        val innerCalls = try {
+            ReadAction.compute<List<ExtractedMacroCall>, Exception> {
+                extractMacroCallsFromText(text, macroLibs)
+            }
+        } catch (e: Exception) {
+            logger.debug("解析嵌套宏失败 (depth=$depth): ${e.message}")
+            return text
+        }
+
+        if (innerCalls.isEmpty()) return text
+
+        val callInfos = innerCalls.map { it.callInfo.copy(parentNames = parentNames) }
+        val innerResults = try {
+            lspClient.expandMacros(callInfos)
+        } catch (e: Exception) {
+            logger.debug("嵌套宏展开通信失败 (depth=$depth): ${e.message}")
+            return text
+        }
+
+        val successPairs = innerCalls.zip(innerResults)
+            .filter { (_, result) -> result.isSuccess }
+        if (successPairs.isEmpty()) return text
+
+        // 从后往前替换，避免偏移漂移
+        val sb = StringBuilder(text)
+        successPairs
+            .sortedByDescending { (call, _) -> call.startOffset }
+            .forEach { (call, result) ->
+                // 递归展开此内部宏的展开结果
+                val innerExpanded = resolveNestedMacros(
+                    result.toExpandedText(), lspClient, macroLibs,
+                    parentNames = parentNames + call.callInfo.idName,
+                    depth = depth + 1
+                )
+                sb.replace(call.startOffset, call.endOffset, innerExpanded)
+            }
+
+        return sb.toString()
     }
 
     /** PSI 提取结果：宏调用信息 + 在源文件中的字节偏移量（用于 MacroExpansionResult） */
@@ -367,6 +453,23 @@ class LspMacroServerProvider(private val project: Project) :
 
         return PsiTreeUtil.findChildrenOfType(cjFile, CjMacroExpression::class.java)
             .mapNotNull { macroExpr -> buildExtractedCall(macroExpr, document, macroLibs) }
+    }
+
+    /**
+     * 从文本中提取宏调用表达式
+     *
+     * 将文本解析为临时 [CjFile]，查找其中的 [CjMacroExpression] 节点。
+     * 必须在 ReadAction 中调用。
+     */
+    private fun extractMacroCallsFromText(
+        text: String,
+        macroLibs: List<String>,
+    ): List<ExtractedMacroCall> {
+        val factory = CjPsiFactory(project)
+        val tempFile = factory.createFile("_nested_macro.cj", text) as? CjFile ?: return emptyList()
+
+        return PsiTreeUtil.findChildrenOfType(tempFile, CjMacroExpression::class.java)
+            .mapNotNull { macroExpr -> buildExtractedCall(macroExpr, null, macroLibs) }
     }
 
     /**
@@ -398,6 +501,7 @@ class LspMacroServerProvider(private val project: Project) :
         }
         return result
     }
+
     /**
      * 将 CjMacroExpression 转换为 ExtractedMacroCall
      *
@@ -418,7 +522,7 @@ class LspMacroServerProvider(private val project: Project) :
         if (methodName.isBlank()) return null
 
         val libPath = resolveLibPath(packageName, macroLibs)
-val argTokens = macroExpr.input?.let { input ->
+        val argTokens = macroExpr.input?.let { input ->
             val tokens = input.tokens
             if (tokens.isNotEmpty()) {
                 collectLeafTokenInfosFromTokens(tokens, document)

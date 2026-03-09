@@ -1149,6 +1149,24 @@ class CangJieParsing private constructor(
 
     }
 
+    fun parseOnlyAnnotationFile() {
+
+        with(ParsingContext.ANNOTATION_ONLY) {
+            val fileMarker = mark()
+
+            // 处理开头 package
+            parsePreamble()
+
+            // 处理声明式语句
+            while (!eof()) {
+                parseTopLevelDeclaration()
+            }
+
+            checkUnclosedBlockComment()
+            fileMarker.done(CJ_FILE)
+        }
+
+    }
 
     /**
      * 检查未关闭的块注释
@@ -2436,24 +2454,6 @@ class CangJieParsing private constructor(
 
         parseByType()
 
-        if (isDeclarationsFile) {
-            if (at(LBRACE)) {
-                val body = mark()
-
-                val tokenSet = TokenSet.orSet(
-                    KEYWORDS, TokenSet.create(OPEN_KEYWORD, ABSTRACT_KEYWORD, SEALED_KEYWORD)
-                )
-                while (!atSet(tokenSet) && !eof()) {
-                    advance()
-                }
-                error(
-                    CangJieParsingBundle.message(
-                        "parsing.error.not.allowed.context", "Property body", "declarations file"
-                    )
-                )
-            }
-            return PROPERTY
-        }
 
         if (at(LBRACE)) {
             parsePropertyBody(detector)
@@ -3283,21 +3283,7 @@ class CangJieParsing private constructor(
             )
         }
 
-        if (isDeclarationsFile) {
-            if (at(LBRACE)) {
-                val body = mark()
-                while (!atSet(KEYWORDALL) && !eof()) {
-                    advance()
-                }
-                // parseFunctionBody()
-                body.error(
-                    CangJieParsingBundle.message(
-                        "parsing.error.not.allowed.context", "Method bodies", "declaration files"
-                    )
-                )
-            }
-            return
-        }
+
 
         parseInitFunctionBody()
     }
@@ -3495,21 +3481,7 @@ class CangJieParsing private constructor(
 
         parseTypeConstraintsGuarded(typeParameterListOccurred)
 
-        // 函数体
-        if (isDeclarationsFile) {
-            if (at(LBRACE)) {
-                val body = mark()
-                while (!atSet(KEYWORDALL) && !eof()) {
-                    advance()
-                }
-                body.error(
-                    CangJieParsingBundle.message(
-                        "parsing.error.not.allowed.context", "Method bodies", "declaration files"
-                    )
-                )
-            }
-            return type
-        }
+
 
         if (at(LBRACE)) {
             parseFunctionBody()
@@ -3751,20 +3723,7 @@ class CangJieParsing private constructor(
 
         parseTypeConstraintsGuarded(typeParameterListOccurred)
 
-        if (isDeclarationsFile) {
-            if (at(LBRACE)) {
-                val body = mark()
-                while (!atSet(KEYWORDALL) && !eof()) {
-                    advance()
-                }
-                body.error(
-                    CangJieParsingBundle.message(
-                        "parsing.error.not.allowed.context", "Method bodies", "declaration files"
-                    )
-                )
-            }
-            return MACRO
-        }
+
 
         // 函数体
         if (at(LBRACE)) {
@@ -3786,20 +3745,7 @@ class CangJieParsing private constructor(
             error.error(CangJieParsingBundle.message("parsing.error.expecting.symbol", "{"))
         }
 
-        if (isDeclarationsFile) {
-            if (at(LBRACE)) {
-                val body = mark()
-                while (!atSet(KEYWORDALL) && !eof()) {
-                    advance()
-                }
-                body.error(
-                    CangJieParsingBundle.message(
-                        "parsing.error.not.allowed.context", "Method bodies", "declaration files"
-                    )
-                )
-            }
-            return
-        }
+
 
         if (at(LBRACE)) {
             parseInitFunctionBlock()

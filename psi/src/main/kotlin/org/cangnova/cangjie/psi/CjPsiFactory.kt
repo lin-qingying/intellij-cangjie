@@ -35,6 +35,7 @@ import com.intellij.util.LocalTimeCounter
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.lexer.CjKeywordToken
 import org.cangnova.cangjie.lexer.CjModifierKeywordToken
+import org.cangnova.cangjie.macro.file.CangJieMacroCallFileType
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
 import org.jetbrains.annotations.NonNls
@@ -108,6 +109,10 @@ class CjPsiFactory private constructor(
     private val context: PsiElement?,
     private val eventSystemEnabled: Boolean,
 ) {
+
+
+    var isOnlyAnnotation = false
+
     /**
      * 构造器：创建默认的 PSI 工厂
      *
@@ -571,7 +576,7 @@ class CjPsiFactory private constructor(
     private fun doCreateFile(@NonNls fileName: String, @NonNls text: String): CjFile {
         return PsiFileFactory.getInstance(project).createFileFromText(
             fileName,
-            CangJieFileType.INSTANCE,
+            if(isOnlyAnnotation ) CangJieMacroCallFileType else CangJieFileType.INSTANCE,
             text,
             LocalTimeCounter.currentTime(),
             eventSystemEnabled,

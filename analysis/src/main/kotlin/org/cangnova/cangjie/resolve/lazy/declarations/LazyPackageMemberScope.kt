@@ -147,6 +147,7 @@ class LazyPackageMemberScope(
         resolveSession.syntheticResolveExtension.generateSyntheticTopLevelClasses(
             thisDescriptor, name, c, declarationProvider, syntheticClasses
         )
+
         result.addAll(syntheticClasses)
 
         val syntheticEnums = mutableSetOf<EnumDescriptor>()
@@ -182,6 +183,7 @@ class LazyPackageMemberScope(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
+
         val syntheticNames = resolveSession.syntheticResolveExtension.getSyntheticPackageNames(thisDescriptor, declarationProvider)
         if (syntheticNames.isEmpty()) return declared
 

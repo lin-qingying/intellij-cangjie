@@ -30,12 +30,4 @@ import org.cangnova.cangjie.descriptors.SimpleFunctionDescriptor
 import org.cangnova.cangjie.descriptors.synthetic.FunctionInterfaceConstructorDescriptor
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindExclude
 
-interface SamConstructorDescriptor : SimpleFunctionDescriptor, FunctionInterfaceConstructorDescriptor {
-    fun getSingleAbstractMethod(): CallableMemberDescriptor
-}
 
-object SamConstructorDescriptorKindExclude : DescriptorKindExclude() {
-    override fun excludes(descriptor: DeclarationDescriptor) = descriptor is SamConstructorDescriptor
-
-    override val fullyExcludedDescriptorKinds: Int get() = 0
-}

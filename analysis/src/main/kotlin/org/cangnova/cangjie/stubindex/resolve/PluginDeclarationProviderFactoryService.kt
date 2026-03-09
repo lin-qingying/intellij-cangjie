@@ -34,7 +34,7 @@ import org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactory
 import org.cangnova.cangjie.storage.StorageManager
 
 
-class PluginDeclarationProviderFactoryService : DeclarationProviderFactoryService() {
+internal class PluginDeclarationProviderFactoryService : DeclarationProviderFactoryService() {
     override fun create(
         project: Project,
         storageManager: StorageManager,

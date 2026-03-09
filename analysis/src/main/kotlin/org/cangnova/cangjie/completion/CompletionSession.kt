@@ -138,7 +138,8 @@ abstract class CompletionSession(
     protected val position = this.parameters.position
 
     // 当前文件
-    protected val file = position.containingFile as CjFile
+    protected val file =   position.containingFile as CjFile
+//    protected val file =   parameters.originalFile as CjFile
 
     // 解析门面(提供类型推导、作用域分析等功能)
     protected val resolutionFacade = file.getResolutionFacade()
@@ -414,7 +415,7 @@ abstract class CompletionSession(
      */
     protected fun processTopLevelCallables(processor: (DeclarationDescriptor) -> Unit) {
         indicesHelper(true).processTopLevelCallables({ prefixMatcher.prefixMatches(it) }) {
-            processWithShadowedFilter(it, processor)
+                processWithShadowedFilter(it, processor)
         }
     }
 
@@ -592,24 +593,24 @@ abstract class CompletionSession(
      * 用于补全项的统计排序
      */
     private fun calcContextForStatisticsInfo(): String? {
-        TODO()
-//        if (expectedInfos.isEmpty()) return null
-//
-//        var context = expectedInfos
-//            .mapNotNull { it.fuzzyType?.type?.constructor?.declarationDescriptor?.importableFqName }
-//            .distinct()
-//            .singleOrNull()
-//            ?.let { "expectedType=$it" }
-//
-//        if (context == null) {
-//            context = expectedInfos
-//                .mapNotNull { it.expectedName }
-//                .distinct()
-//                .singleOrNull()
-//                ?.let { "expectedName=$it" }
-//        }
-//
-//        return context
+
+        if (expectedInfos.isEmpty()) return null
+
+        var context = expectedInfos
+            .mapNotNull { it.fuzzyType?.type?.constructor?.declarationDescriptor?.importableFqName }
+            .distinct()
+            .singleOrNull()
+            ?.let { "expectedType=$it" }
+
+        if (context == null) {
+            context = expectedInfos
+                .mapNotNull { it.expectedName }
+                .distinct()
+                .singleOrNull()
+                ?.let { "expectedName=$it" }
+        }
+
+        return context
     }
 
     /**
@@ -663,7 +664,7 @@ abstract class CompletionSession(
      * - 统计信息等
      */
     protected open fun createSorter(): CompletionSorter {
-        var sorter = CompletionSorter.defaultSorter(parameters, prefixMatcher)!!
+        var sorter = CompletionSorter.defaultSorter(parameters, prefixMatcher)
 
         // 在 "lift.shorter" 之后添加真实前缀匹配权重器
         // (默认排序器中的 RealPrefixMatchingWeigher 位置不佳,在 "stats" 之后)

@@ -266,7 +266,7 @@
  *
  * - **ClsCangJieBinaryClassCache**: 提供缓存的头信息
  * - **VirtualFile**: 文件系统抽象层
- * - **CangJieBuiltInFileType**: 文件类型定义
+ * - **CangJieBinaryObjectFileType**: 文件类型定义
  *
  * ## 已知限制
  *
@@ -293,8 +293,7 @@ package org.cangnova.cangjie.decompiler.stub.file
 
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.indexing.FileContent
-import org.cangnova.cangjie.lang.declarations.CangJieBuiltInFileType
+import org.cangnova.cangjie.lang.declarations.CangJieBinaryObjectFileType
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.FqName
@@ -2295,7 +2294,7 @@ class DirectoryBasedClassFinder(
  *
  * @see ClsClassFinder
  * @see CangJieClassHeader
- * @see CangJieBuiltInFileType
+ * @see CangJieBinaryObjectFileType
  */
 class ClsCangJieBinaryClassCache private constructor() {
 
@@ -2311,9 +2310,9 @@ class ClsCangJieBinaryClassCache private constructor() {
      *
      * 使用两个条件（任一满足即可）：
      * ```kotlin
-     * file.extension == CangJieBuiltInFileType.defaultExtension  // 扩展名匹配
+     * file.extension == CangJieBinaryObjectFileType.defaultExtension  // 扩展名匹配
      *     ||
-     * file.fileType == CangJieBuiltInFileType  // 文件类型匹配
+     * file.fileType == CangJieBinaryObjectFileType  // 文件类型匹配
      * ```
      *
      * ### 为什么需要两个条件？
@@ -2322,7 +2321,7 @@ class ClsCangJieBinaryClassCache private constructor() {
      *    - **快速**: O(1) 字符串比较
      *    - **覆盖**: 大多数文件通过扩展名识别
      *
-     * 2. **文件类型检查** (`file.fileType == CangJieBuiltInFileType`):
+     * 2. **文件类型检查** (`file.fileType == CangJieBinaryObjectFileType`):
      *    - **准确**: 基于 IDE 的文件类型系统
      *    - **兜底**: 处理扩展名不标准的文件
      *    - **支持**: .cjb 等其他编译文件类型
@@ -2336,7 +2335,7 @@ class ClsCangJieBinaryClassCache private constructor() {
      *    ├─ Yes → 返回 true
      *    └─ No → 继续
      *   ↓
-     * 2. 检查 file.fileType == CangJieBuiltInFileType?
+     * 2. 检查 file.fileType == CangJieBinaryObjectFileType?
      *    ├─ Yes → 返回 true
      *    └─ No → 返回 false
      * ```
@@ -2345,8 +2344,8 @@ class ClsCangJieBinaryClassCache private constructor() {
      *
      * | 扩展名 | 文件类型 | 说明 |
      * |-------|---------|------|
-     * | .cjo | CangJieBuiltInFileType | 普通编译文件 |
-     * | .cjb | CangJieBuiltInFileType | 内置库文件 |
+     * | .cjo | CangJieBinaryObjectFileType | 普通编译文件 |
+     * | .cjb | CangJieBinaryObjectFileType | 内置库文件 |
      *
      * ## 使用场景
      *
@@ -2403,13 +2402,13 @@ class ClsCangJieBinaryClassCache private constructor() {
      * @param fileContent 文件内容（当前未使用，保留参数）
      * @return 如果是仓颉编译文件返回 true，否则返回 false
      *
-     * @see CangJieBuiltInFileType
+     * @see CangJieBinaryObjectFileType
      * @see VirtualFile.extension
      * @see VirtualFile.fileType
      */
     fun isCangJieCompiledFile(file: VirtualFile, fileContent: ByteArray? = null): Boolean {
-        return file.extension == CangJieBuiltInFileType.defaultExtension ||
-                file.fileType == CangJieBuiltInFileType
+        return file.extension == CangJieBinaryObjectFileType.defaultExtension ||
+                file.fileType == CangJieBinaryObjectFileType
     }
 
     /**

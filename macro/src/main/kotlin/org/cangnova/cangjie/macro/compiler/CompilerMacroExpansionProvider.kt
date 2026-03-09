@@ -118,9 +118,45 @@ class CompilerMacroExpansionProvider(private val project: Project) :
                         offset >= result.startOffset && offset < result.endOffset
                 }
 
-                // --debug-macro 生成的是整个文件的展开结果，没有单个宏的偏移量，
-                // 所以如果没有精确匹配，直接返回第一个结果
-                CjResult.Ok(matchingResult ?: allResults.ok.first())
+                if (matchingResult != null) {
+                    return CjResult.Ok(matchingResult)
+                }
+
+                // 如果没有精确匹配，检查是否点击了注解（非宏）
+                // 注解没有展开结果，应该返回明确的错误而不是错误的宏结果
+                // 这里先尝试查找名称最接近的结果
+                val sourceContent = runReadAction {
+                    file.inputStream?.bufferedReader()?.use { it.readText() }
+                }
+                if (sourceContent != null) {
+                    // 获取点击位置附近的标识符名称
+                    val clickArea = try {
+                        sourceContent.substring(
+                            offset.coerceIn(0, sourceContent.length),
+                            (offset + 20).coerceAtMost(sourceContent.length)
+                        )
+                    } catch (e: Exception) {
+                        ""
+                    }
+
+                    // 查找名称最接近的结果
+                    val nameBasedResult = allResults.ok.find { result ->
+                        result.macroName != null && clickArea.contains(result.macroName!!)
+                    }
+
+                    if (nameBasedResult != null) {
+                        // 名称匹配但位置不匹配，可能是注解
+                        // 返回错误而不是错误的宏展开结果
+                        return CjResult.Err(MacroExpansionError.MacroNotFound(
+                            "在位置 $offset 处可能是注解而非宏，宏 '${nameBasedResult.macroName}' 的展开结果在偏移量 ${nameBasedResult.startOffset}"
+                        ))
+                    }
+                }
+
+                // 如果仍然没有匹配，返回明确的错误
+                return CjResult.Err(MacroExpansionError.MacroNotFound(
+                    "在位置 $offset 处未找到宏展开结果（已尝试 ${allResults.ok.size} 个展开结果）"
+                ))
             }
             is CjResult.Err -> allResults
         }

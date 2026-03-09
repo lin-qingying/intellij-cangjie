@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.parsing
 
-import org.cangnova.cangjie.lang.declarations.CjDeclarationsFile
 import org.cangnova.cangjie.macro.file.CjMacroCallFile
 import org.cangnova.cangjie.parsing.CangJieParsing.Companion.createForTopLevel
 import com.intellij.lang.ASTNode
@@ -114,14 +113,9 @@ class CangJieParser(project: Project) : PsiParser {
 
             val extension = FileUtilRt.getExtension(psiFile.name)
 
-            if (psiFile is CjDeclarationsFile) {
-                cjParsing.isDeclarationsFile = (true)
-                cjParsing.parseFile()
-            } else if (psiFile is CjMacroCallFile) {
-                cjParsing.isDeclarationsFile = (false)
-                cjParsing.parseFile()
+           if (psiFile is CjMacroCallFile) {
+                cjParsing.parseOnlyAnnotationFile()
             } else {
-                cjParsing.isDeclarationsFile = (false)
                 cjParsing.parseFile()
             }
 //

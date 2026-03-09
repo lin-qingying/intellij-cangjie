@@ -52,7 +52,7 @@
 
 
         <fileType name="cjo" fieldName="INSTANCE" extensions="cjo"
-                  implementationClass="org.cangnova.cangjie.lang.declarations.CangJieBuiltInFileType"/>
+                  implementationClass="org.cangnova.cangjie.lang.declarations.CangJieBinaryObjectFileType"/>
 
 
         <fileType.fileViewProviderFactory filetype="cjo" implementationClass="org.cangnova.cangjie.decompiler.psi.ClassFileViewProviderFactory"/>

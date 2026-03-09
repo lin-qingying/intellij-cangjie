@@ -46,7 +46,6 @@ abstract class AbstractCangJieParsing(
 
     ) {
 
-    var isDeclarationsFile: Boolean = false
 
     /**
      * 统一的解析上下文

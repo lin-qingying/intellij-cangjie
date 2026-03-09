@@ -47,6 +47,7 @@ interface LazyClassContext {
     val delegationFilter: DelegationFilter
     val typeResolver: TypeResolver
     val overloadResolver: OverloadResolver
+    val annotationResolver: AnnotationResolver
 
     //    val additionalClassPartsProvider: AdditionalClassPartsProvider
     val syntheticResolveExtension: SyntheticResolveExtension

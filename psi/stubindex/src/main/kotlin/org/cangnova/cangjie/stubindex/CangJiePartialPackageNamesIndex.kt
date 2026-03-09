@@ -34,8 +34,6 @@ import com.intellij.util.indexing.*
 import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.IOUtil
 import org.cangnova.cangjie.lang.CangJieFileType
-import org.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType
-import org.cangnova.cangjie.lang.declarations.CjDeclarationsFile
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.parentOrNull
@@ -88,31 +86,20 @@ internal class CangJiePartialPackageNamesIndex : FileBasedIndexExtension<FqName,
 
     override fun getInputFilter(): DefaultFileTypeSpecificInputFilter =
         DefaultFileTypeSpecificInputFilter(
-//            JavaClassFileType.INSTANCE,
             CangJieFileType.INSTANCE,
-            CangJieDeclarationsFileType
 
-//            CangJieJavaScriptMetaFileType,
 
-//            KlibMetaFileType,
         )
 
     override fun getVersion() = 3
 
     override fun traceKeyHashToVirtualFileMapping(): Boolean = true
-    private fun FileContent.getBuiltInFilePackage(): FqName? {
-        assert(this.fileType == CangJieDeclarationsFileType)
-        val virtualFile =
-            FileTypeIndex.getFiles(fileType, GlobalSearchScope.projectScope(project)).firstOrNull()
-        val psiFIle = virtualFile?.let { PsiManager.getInstance(project).findFile(it) }
-        return psiFIle.safeAs<CjDeclarationsFile>()?.packageFqName
-    }
+
 
     private fun FileContent.toPackageFqName(): FqName? =
         when (this.fileType) {
             CangJieFileType.INSTANCE -> this.psiFile.safeAs<CjFile>()?.packageFqName
 
-            CangJieDeclarationsFileType ->/* this.getBuiltInFilePackage()*/this.psiFile.safeAs<CjDeclarationsFile>()?.packageFqName
 
             else -> null
         }

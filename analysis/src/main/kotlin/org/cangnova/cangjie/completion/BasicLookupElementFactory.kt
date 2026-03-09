@@ -36,42 +36,90 @@ import com.intellij.codeInsight.lookup.*
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.icon.CangJieDescriptorIconProvider
 import org.cangnova.cangjie.resolve.deprecation.unwrapIfFakeOverride
+import org.cangnova.cangjie.resolve.source.MacroExpandedSourceElement
 import org.cangnova.cangjie.utils.isExtension
 import javax.swing.Icon
 
+/**
+ * 基础 LookupElement 工厂
+ *
+ * 作用：
+ * 将编译器 Descriptor 转换为 IntelliJ Completion 使用的 LookupElement。
+ *
+ * 在 IntelliJ 自动补全系统中：
+ *
+ * Descriptor (语义符号)
+ *        ↓
+ * LookupElement (IDE补全项)
+ *
+ * 该类负责：
+ * - 根据 Descriptor 类型构造补全项
+ * - 渲染补全展示文本
+ * - 设置补全插入行为 (InsertHandler)
+ * - 设置图标
+ * - 设置尾部文本（参数、类型、包名等）
+ */
 class BasicLookupElementFactory(
     private val project: Project,
     val insertHandlerProvider: InsertHandlerProvider
 ) {
+
     companion object {
-        // we skip parameter names in functional types in most of the cases for shortness
+
+        /**
+         * 简短类型渲染器
+         *
+         * 用于补全列表中显示函数参数和返回类型
+         *
+         * 特点：
+         * - 使用短名称
+         * - 启用增强类型
+         * - 不显示函数类型参数名（减少噪音）
+         */
         val SHORT_NAMES_RENDERER = DescriptorRenderer.SHORT_NAMES_IN_TYPES.withOptions {
             enhancedTypes = true
             parameterNamesInFunctionalTypes = false
         }
 
+        /**
+         * 获取 Descriptor 对应的图标
+         *
+         * IntelliJ 的图标由 DescriptorIconProvider 提供
+         *
+         * 参数：
+         * lookupObject : Lookup对象
+         * descriptor   : 符号描述符
+         * flags        : 图标标志位
+         */
         private fun getIcon(
             lookupObject: DescriptorBasedDeclarationLookupObject,
             descriptor: DeclarationDescriptor,
             flags: Int
         ): Icon? {
-            // CangJieDescriptorIconProvider does not use declaration if it is CjElement,
+
+            // ReceiverParameterDescriptor 没有实际 PSI 声明
             val declaration = when (descriptor) {
                 is ReceiverParameterDescriptor -> null
-                else -> {
-                    lookupObject.psiElement
-                }
+                else -> lookupObject.psiElement
             }
+
             return CangJieDescriptorIconProvider.getIcon(descriptor, declaration, flags)
         }
     }
 
+    /**
+     * 创建补全项（主入口）
+     *
+     * unwrapIfFakeOverride：
+     * 解决 Kotlin/仓颉中的 fake override 问题
+     */
     fun createLookupElement(
         descriptor: DeclarationDescriptor,
         qualifyNestedClasses: Boolean = false,
         includeClassTypeArguments: Boolean = true,
         parametersAndTypeGrayed: Boolean = false
     ): LookupElement {
+
         return createLookupElementUnwrappedDescriptor(
             descriptor.unwrapIfFakeOverride(),
             qualifyNestedClasses,
@@ -80,12 +128,24 @@ class BasicLookupElementFactory(
         )
     }
 
-
+    /**
+     * 为包创建补全项
+     *
+     * 示例：
+     *   std.io
+     *   std.math
+     */
     fun createLookupElementForPackage(name: FqName): LookupElement {
-        var element = LookupElementBuilder.create(PackageLookupObject(name), name.shortName().asString())
 
+        var element = LookupElementBuilder.create(
+            PackageLookupObject(name),
+            name.shortName().asString()
+        )
+
+        // 插入处理器
         element = element.withInsertHandler(BaseDeclarationInsertHandler())
 
+        // 显示完整包名
         if (!name.parent().isRoot) {
             element = element.appendTailText(" (${name.asString()})", true)
         }
@@ -93,6 +153,11 @@ class BasicLookupElementFactory(
         return element.withIconFromLookupObject()
     }
 
+    /**
+     * 创建 Descriptor 对应的 LookupElement
+     *
+     * 根据 Descriptor 类型生成不同的补全展示。
+     */
     private fun createLookupElementUnwrappedDescriptor(
         descriptor: DeclarationDescriptor,
         qualifyNestedClasses: Boolean,
@@ -100,19 +165,36 @@ class BasicLookupElementFactory(
         parametersAndTypeGrayed: Boolean
     ): LookupElement {
 
+        // 包补全
         if (descriptor is PackageViewDescriptor) {
             return createLookupElementForPackage(descriptor.fqName)
         }
+
         if (descriptor is PackageFragmentDescriptor) {
             return createLookupElementForPackage(descriptor.fqName)
         }
 
         val lookupObject: DescriptorBasedDeclarationLookupObject
+
+        /**
+         * 补全项名称
+         */
         val name: String = when (descriptor) {
+
+            /**
+             * 构造函数补全
+             *
+             * 构造函数显示类名，而不是 <init>
+             */
             is ConstructorDescriptor -> {
-                // for constructor use name and icon of containing class
+
                 val classifierDescriptor = descriptor.containingDeclaration
+
                 lookupObject = object : DeclarationLookupObjectImpl(descriptor) {
+
+                    /**
+                     * 获取 PSI 元素
+                     */
                     override val psiElement by lazy {
                         DescriptorToSourceUtilsIde.getAnyDeclaration(
                             project,
@@ -120,14 +202,26 @@ class BasicLookupElementFactory(
                         )
                     }
 
-                    override fun getIcon(flags: Int): Icon? = getIcon(this, classifierDescriptor, flags)
+                    /**
+                     * 使用类图标
+                     */
+                    override fun getIcon(flags: Int): Icon? =
+                        getIcon(this, classifierDescriptor, flags)
                 }
+
                 classifierDescriptor.name.asString()
             }
 
-
+            /**
+             * 普通符号
+             */
             else -> {
+
                 lookupObject = object : DeclarationLookupObjectImpl(descriptor) {
+
+                    /**
+                     * 优先获取源码 PSI
+                     */
                     override val psiElement by lazy {
                         DescriptorToSourceUtils.getSourceFromDescriptor(descriptor)
                             ?: DescriptorToSourceUtilsIde.getAnyDeclaration(
@@ -136,28 +230,53 @@ class BasicLookupElementFactory(
                             )
                     }
 
-                    override fun getIcon(flags: Int): Icon? = getIcon(this, descriptor, flags)
+                    override fun getIcon(flags: Int): Icon? =
+                        getIcon(this, descriptor, flags)
                 }
+
                 descriptor.name.asString()
             }
         }
 
+        /**
+         * 创建 LookupElement
+         */
         var element = LookupElementBuilder.create(lookupObject, name)
 
+        /**
+         * 设置插入处理器
+         *
+         * 插入处理器决定：
+         * - 插入函数时是否加 ()
+         * - 是否生成 lambda
+         */
         val insertHandler = insertHandlerProvider.insertHandler(descriptor)
         element = element.withInsertHandler(insertHandler)
 
+        /**
+         * 根据 Descriptor 类型渲染不同补全展示
+         */
         when (descriptor) {
+
+            /**
+             * 函数补全
+             */
             is FunctionDescriptor -> {
+
                 val returnType = descriptor.returnType
+
+                // 显示返回类型
                 element = element.withTypeText(
-                    if (returnType != null) SHORT_NAMES_RENDERER.renderType(returnType) else "",
+                    if (returnType != null)
+                        SHORT_NAMES_RENDERER.renderType(returnType)
+                    else "",
                     parametersAndTypeGrayed
                 )
 
+                /**
+                 * 是否插入 lambda
+                 */
                 val insertsLambda = when (insertHandler) {
-//                    is CangJieFunctionInsertHandler.Normal -> insertHandler.lambdaInfo != null
-//                    is CangJieFunctionCompositeDeclarativeInsertHandler -> insertHandler.isLambda
                     else -> false
                 }
 
@@ -165,145 +284,220 @@ class BasicLookupElementFactory(
                     element = element.appendTailText(" {...} ", parametersAndTypeGrayed)
                 }
 
+                /**
+                 * 显示参数列表
+                 */
                 element = element.appendTailText(
                     SHORT_NAMES_RENDERER.renderFunctionParameters(descriptor),
                     parametersAndTypeGrayed || insertsLambda
                 )
             }
 
+            /**
+             * 变量补全
+             */
             is VariableDescriptor -> {
-                element =
-                    element.withTypeText(SHORT_NAMES_RENDERER.renderType(descriptor.type), parametersAndTypeGrayed)
+
+                element = element.withTypeText(
+                    SHORT_NAMES_RENDERER.renderType(descriptor.type),
+                    parametersAndTypeGrayed
+                )
             }
 
+            /**
+             * 类 / 接口 / 类型别名
+             */
             is ClassifierDescriptorWithTypeParameters -> {
+
                 val typeParams = descriptor.declaredTypeParameters
+
+                /**
+                 * 显示泛型参数
+                 */
                 if (includeClassTypeArguments && typeParams.isNotEmpty()) {
                     element =
-                        element.appendTailText(typeParams.joinToString(", ", "<", ">") { it.name.asString() }, true)
+                        element.appendTailText(
+                            typeParams.joinToString(", ", "<", ">") {
+                                it.name.asString()
+                            },
+                            true
+                        )
                 }
 
                 var container = descriptor.containingDeclaration
 
+                /**
+                 * 处理嵌套类
+                 */
                 if (descriptor.isArtificialImportAliasedDescriptor) {
-                    container =
-                        descriptor.original // we show original descriptor instead of container for import aliased descriptors
+
+                    container = descriptor.original
+
                 } else if (qualifyNestedClasses) {
-                    element = element.withPresentableText(SHORT_NAMES_RENDERER.renderClassifierName(descriptor))
+
+                    element =
+                        element.withPresentableText(
+                            SHORT_NAMES_RENDERER.renderClassifierName(descriptor)
+                        )
 
                     while (container is ClassDescriptor) {
+
                         val containerName = container.name
+
                         if (!containerName.isSpecial) {
-                            element = element.withLookupString(containerName.asString())
+                            element =
+                                element.withLookupString(containerName.asString())
                         }
+
                         container = container.containingDeclaration
                     }
                 }
 
+                /**
+                 * 显示所属包或类
+                 */
                 if (container is PackageFragmentDescriptor || container is ClassifierDescriptor) {
-                    element = element.appendTailText(" (" + DescriptorUtils.getFqName(container) + ")", true)
+                    element =
+                        element.appendTailText(
+                            " (" + DescriptorUtils.getFqName(container) + ")",
+                            true
+                        )
+
+
                 }
 
+                /**
+                 * 类型别名
+                 */
                 if (descriptor is TypeAliasDescriptor) {
-                    // here we render with DescriptorRenderer.SHORT_NAMES_IN_TYPES to include parameter names in functional types
+
                     element = element.withTypeText(
-                        DescriptorRenderer.SHORT_NAMES_IN_TYPES.renderType(descriptor.underlyingType),
+                        DescriptorRenderer.SHORT_NAMES_IN_TYPES.renderType(
+                            descriptor.underlyingType
+                        ),
                         false
                     )
                 }
+
+
             }
 
+            /**
+             * 默认渲染
+             */
             else -> {
-                element = element.withTypeText(SHORT_NAMES_RENDERER.render(descriptor), parametersAndTypeGrayed)
+                element =
+                    element.withTypeText(
+                        SHORT_NAMES_RENDERER.render(descriptor),
+                        parametersAndTypeGrayed
+                    )
             }
         }
 
-        var isMarkedAsDsl = false
-//        if (descriptor is CallableDescriptor) {
-//            appendContainerAndReceiverInformation(descriptor) { element = element.appendTailText(it, true) }
-//
-//            val dslTextAttributes = DslCangJieHighlightingVisitorExtension.dslCustomTextStyle(descriptor)?.let {
-//                EditorColorsManager.getInstance().globalScheme.getAttributes(it.attributesKey)
-//            }
-//            if (dslTextAttributes != null) {
-//                isMarkedAsDsl = true
-//                element = element.withBoldness(dslTextAttributes.fontType == Font.BOLD)
-//                dslTextAttributes.foregroundColor?.let { element = element.withItemTextForeground(it) }
-//            }
-//        }
-
-//        if (descriptor is PropertyDescriptor) {
-//            val getterName = JvmAbi.getterName(name)
-//            if (getterName != name) {
-//                element = element.withLookupString(getterName)
-//            }
-//            if (descriptor.isVar) {
-//                element = element.withLookupString(JvmAbi.setterName(name))
-//            }
-//        }
-
+        /**
+         * Deprecated 标记
+         */
         if (lookupObject.isDeprecated) {
             element = element.withStrikeoutness(true)
         }
 
-//        if ((insertHandler as? CangJieFunctionInsertHandler.Normal)?.lambdaInfo != null) {
-//            element.acceptOpeningBrace = true
-//        }
+
+
+
+        if(descriptor is DeclarationDescriptorWithSource && descriptor.source is MacroExpandedSourceElement){
+            element = element.appendTailText(" from macro", true)
+        }
+
 
         val result = element.withIconFromLookupObject()
-//        result.isDslMember = isMarkedAsDsl
+
         return result
     }
 
-    fun appendContainerAndReceiverInformation(descriptor: CallableDescriptor, appendTailText: (String) -> Unit) {
-        val information = CompletionInformationProvider.EP_NAME.extensions.firstNotNullOfOrNull {
-            it.getContainerAndReceiverInformation(descriptor)
-        }
+    /**
+     * 添加容器信息
+     *
+     * 示例：
+     *   map() (std.collections)
+     */
+    fun appendContainerAndReceiverInformation(
+        descriptor: CallableDescriptor,
+        appendTailText: (String) -> Unit
+    ) {
+
+        val information =
+            CompletionInformationProvider.EP_NAME.extensions.firstNotNullOfOrNull {
+                it.getContainerAndReceiverInformation(descriptor)
+            }
 
         if (information != null) {
             appendTailText(information)
             return
         }
 
-
         val containerPresentation = containerPresentation(descriptor)
+
         if (containerPresentation != null) {
             appendTailText(" ")
             appendTailText(containerPresentation)
         }
     }
 
+    /**
+     * 构建容器显示文本
+     */
     private fun containerPresentation(descriptor: DeclarationDescriptor): String? {
+
         when {
+
             descriptor.isArtificialImportAliasedDescriptor -> {
                 return "(${DescriptorUtils.getFqName(descriptor.original)})"
             }
 
             descriptor.isExtension -> {
-                val containerPresentation = when (val container = descriptor.containingDeclaration) {
-                    is ClassDescriptor -> DescriptorUtils.getFqNameFromTopLevelClass(container).toString()
-                    is PackageFragmentDescriptor -> container.fqName.toString()
-                    else -> return null
-                }
-                return CangJieCompletionBundle.message("presentation.tail.in.0", containerPresentation)
+
+                val containerPresentation =
+                    when (val container = descriptor.containingDeclaration) {
+
+                        is ClassDescriptor ->
+                            DescriptorUtils.getFqNameFromTopLevelClass(container).toString()
+
+                        is PackageFragmentDescriptor ->
+                            container.fqName.toString()
+
+                        else -> return null
+                    }
+
+                return CangJieCompletionBundle.message(
+                    "presentation.tail.in.0",
+                    containerPresentation
+                )
             }
 
             else -> {
-                val container = descriptor.containingDeclaration as? PackageFragmentDescriptor
-                // we show container only for global functions and properties
-                    ?: return null
-                //TODO: it would be probably better to show it also for static declarations which are not from the current class (imported)
+
+                val container =
+                    descriptor.containingDeclaration as? PackageFragmentDescriptor
+                        ?: return null
+
                 return "(${container.fqName})"
             }
         }
     }
 
-    // add icon in renderElement only to pass presentation.isReal()
+    /**
+     * 在 render 阶段添加 icon
+     *
+     * IntelliJ 的 LookupElement 只有在 renderElement 时才能确定最终图标
+     */
     private fun LookupElement.withIconFromLookupObject(): LookupElement =
         object : LookupElementDecorator<LookupElement>(this) {
+
             override fun renderElement(presentation: LookupElementPresentation) {
                 super.renderElement(presentation)
-                presentation.icon = DefaultLookupItemRenderer.getRawIcon(this@withIconFromLookupObject)
+
+                presentation.icon =
+                    DefaultLookupItemRenderer.getRawIcon(this@withIconFromLookupObject)
             }
         }
 }

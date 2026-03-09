@@ -150,8 +150,11 @@ internal class MacroSyntheticResolveExtension : SyntheticResolveExtension {
             // 2. 注解声明 → 正常注入作用域
             for (macroExpr in getFileLevelMacroExpressions(sourceFile)) {
                 if (expansionService.isEnabled() && expansionService.getExpansionResult(macroExpr) != null) continue
-                val inputDecl = macroExpr.input?.declarations ?: continue
+                var inputDecl = macroExpr.input?.declarations ?: continue
+                inputDecl = expansionService.convertAnnotationToDeclaration(macroExpr) ?: continue
+
                 if (inputDecl !is CjTypeStatement || inputDecl is CjEnum) continue
+
                 val declName = inputDecl.nameAsName ?: continue
                 if (declName != name) continue
                 try {

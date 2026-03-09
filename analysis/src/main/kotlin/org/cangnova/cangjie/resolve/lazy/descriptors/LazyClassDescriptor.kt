@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve.lazy.descriptors
 
+import com.intellij.configurationStore.NonPersistentStore.storageManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNameIdentifierOwner
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
@@ -130,9 +131,24 @@ open class LazyClassDescriptor(
         isLocal -> DescriptorVisibilities.LOCAL
         else -> resolveVisibilityFromModifiers(classLikeInfo.modifierList, DescriptorVisibilities.INTERNAL)
     }
+    private var _annotations: Annotations? = null
+
+    init {
+        _annotations = LazyAnnotations(
+            object : LazyAnnotationsContext(
+                c.annotationResolver,
+                c.storageManager,
+                c.trace
+            ) {
+                override val scope: LexicalScope
+                    get() = this@LazyClassDescriptor.getOuterScope()
+
+            }, typeStatement?.annotationEntries ?: emptyList()
+        )
+    }
 
     override val annotations: Annotations
-        get() = Annotations.EMPTY
+        get() = _annotations ?: Annotations.EMPTY
     private val resolutionScopesSupport = ClassResolutionScopesSupport(
         this,
         c.storageManager,
@@ -153,7 +169,6 @@ open class LazyClassDescriptor(
     }
     override val declaredTypeParameters: List<TypeParameterDescriptor>
         get() = _declaredTypeParameters.invoke()
-
 
 
     private val freedomForSealedInterfacesSupported = true
@@ -237,7 +252,7 @@ open class LazyClassDescriptor(
         ) {
             init {
                 initialize(
-                    null,  emptyList(), emptyList(),
+                    null, emptyList(), emptyList(),
                     null, Modality.FINAL, DescriptorVisibilities.PRIVATE
                 )
             }
@@ -320,7 +335,6 @@ open class LazyClassDescriptor(
         get() = _typeConstructor
 
 
-
     override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope =
         scopesHolderForClass.getScope(cangjieTypeRefiner)
 
@@ -333,7 +347,6 @@ open class LazyClassDescriptor(
         get() = resolutionScopesSupport.scopeForClassHeaderResolution()
 
     override fun toString(): String = typeStatement?.toString() ?: super.toString()
-
 
 
     protected fun computeSupertypes(): Collection<CangJieType> {
@@ -384,8 +397,9 @@ open class LazyClassDescriptor(
         override val shouldReportCyclicScopeWithCompanionWarning: Boolean = false
 
         override fun reportScopesLoopError(type: CangJieType) {
-            val reportOn = type.constructor.declarationDescriptor?.let { DescriptorToSourceUtils.getSourceFromDescriptor(it) }
-                ?.let { if (it is CjClass) it.nameIdentifier else it }
+            val reportOn =
+                type.constructor.declarationDescriptor?.let { DescriptorToSourceUtils.getSourceFromDescriptor(it) }
+                    ?.let { if (it is CjClass) it.nameIdentifier else it }
 
             reportOn?.let { c.trace.report(CYCLIC_SCOPES_WITH_COMPANION.on(it)) }
         }
@@ -433,7 +447,8 @@ open class LazyClassDescriptor(
 
     }
 }
-  val VALID_SUPERTYPE: (CangJieType) -> Boolean = { type ->
+
+val VALID_SUPERTYPE: (CangJieType) -> Boolean = { type ->
     require(!type.isError) { "Error types must be filtered out in DescriptorResolver" }
     TypeUtils.getClassDescriptor(type) != null
 }

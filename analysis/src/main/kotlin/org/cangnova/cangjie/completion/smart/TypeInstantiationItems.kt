@@ -37,7 +37,6 @@ import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.psi.CjTypeStatement
 import org.cangnova.cangjie.references.util.DescriptorToSourceUtilsIde
 import org.cangnova.cangjie.resolve.*
-import org.cangnova.cangjie.resolve.sam.SamConstructorDescriptor
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.types.*
 
@@ -106,11 +105,9 @@ class TypeInstantiationItems(
             else -> null
         }
 
-        addSamConstructorItem(items, classifier, classDescriptor, tail)
         items.addIfNotNull(createTypeInstantiationItem(fuzzyType, classDescriptor, tail))
 
         indicesHelper.resolveTypeAliasesUsingIndex(fuzzyType.type, classifier.name.asString()).forEach {
-            addSamConstructorItem(items, it, classDescriptor, tail)
             val typeAliasFuzzyType = it.defaultType.toFuzzyType(fuzzyType.freeParameters)
             items.addIfNotNull(createTypeInstantiationItem(typeAliasFuzzyType, classDescriptor, tail))
         }
@@ -332,33 +329,6 @@ class TypeInstantiationItems(
         return FuzzyType(this, freeParameters).freeParameters.isNotEmpty()
     }
 
-    private fun addSamConstructorItem(
-        collection: MutableCollection<LookupElement>,
-        classifier: ClassifierDescriptorWithTypeParameters,
-        classDescriptor: ClassDescriptor?,
-        tail: Tail?
-    ) {
-        if (classDescriptor?.kind == ClassKind.INTERFACE) {
-            val samConstructor = run {
-                val scope = when (val container = classifier.containingDeclaration) {
-                    is PackageFragmentDescriptor -> container.getMemberScope()
-                    is ClassDescriptor -> container.unsubstitutedMemberScope
-                    else -> return
-                }
-                scope.collectSyntheticStaticMembersAndConstructors(
-                    resolutionFacade,
-                    FUNCTIONS_OR_CLASSIFIERS_MASK
-                ) { classifier.name == it }
-                    .filterIsInstance<SamConstructorDescriptor>()
-                    .singleOrNull() ?: return
-            }
-            lookupElementFactory
-                .createStandardLookupElementsForDescriptor(samConstructor, useReceiverTypes = false)
-                .mapTo(collection) {
-                    it.assignSmartCompletionPriority(SmartCompletionItemPriority.INSTANTIATION).addTail(tail)
-                }
-        }
-    }
 
     private inner class InheritanceSearcher(
         private val psiClass: CjTypeStatement,

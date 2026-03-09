@@ -22,6 +22,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
@@ -29,6 +30,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.macro.service.MacroExpansionResult
 import org.cangnova.cangjie.resolve.source.MacroExpandedSourceElement
+import org.cangnova.cangjie.stubindex.CangJieMacroDeclarationShortNameIndex
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -54,7 +56,17 @@ class MacroPsiExpansionService(private val project: Project) {
             return project.getService(MacroPsiExpansionService::class.java)
         }
     }
-
+      fun isRealMacro(macroExpr: CjMacroExpression): Boolean {
+        val project = macroExpr.project ?: return false
+        val expansionService = MacroPsiExpansionService.getInstance(project)
+        if (expansionService.isEnabled() && expansionService.getExpansionResult(macroExpr) != null) {
+            return true
+        }
+        // 通过 Stub 索引查找名字是否对应宏声明
+        val shortName = macroExpr.shortName?.asString() ?: return false
+        val scope = GlobalSearchScope.allScope(project)
+        return CangJieMacroDeclarationShortNameIndex[shortName, project, scope].isNotEmpty()
+    }
     /**
      * 单个宏展开产生的声明信息
      *
@@ -69,6 +81,10 @@ class MacroPsiExpansionService(private val project: Project) {
         val macroName: String,
         val sourceInfo: MacroSourceInfo
     )
+
+
+
+
 
     /**
      * 展开结果缓存：filePath → 展开结果列表
@@ -160,7 +176,7 @@ class MacroPsiExpansionService(private val project: Project) {
         val macroExprs = PsiTreeUtil.findChildrenOfType(sourceFile, CjMacroExpression::class.java)
         if (macroExprs.isEmpty()) return emptyList()
 
-        val virtualFile = sourceFile.virtualFile ?: return emptyList()
+        val virtualFile = sourceFile.originalFile.virtualFile ?: return emptyList()
         val results = expansionResultsCache[virtualFile.path] ?: return emptyList()
         if (results.isEmpty()) return emptyList()
 
@@ -220,21 +236,44 @@ class MacroPsiExpansionService(private val project: Project) {
      * 将展开结果匹配到特定宏表达式
      *
      * 优先通过偏移量范围匹配，回退使用宏名称匹配。
+     *
+     * 注意：对于注解（非宏），由于没有展开结果，此方法会返回 null。
+     * 这是预期行为，因为注解不会被展开。
      */
     private fun matchResultToExpression(
         macroExpr: CjMacroExpression,
         results: List<MacroExpansionResult>
     ): MacroExpansionResult? {
         val exprOffset = macroExpr.textOffset
+        val exprName = macroExpr.shortName?.asString()
 
-        // 优先：通过偏移量范围匹配
-        return results.find { result ->
+        // 优先：通过偏移量范围精确匹配
+        val offsetMatch = results.find { result ->
             result.startOffset != result.endOffset &&
                     exprOffset >= result.startOffset && exprOffset < result.endOffset
-        } ?: results.find { result ->
-            // 回退：使用宏名称匹配
-            result.macroName != null && result.macroName == macroExpr.shortName?.asString()
         }
+        if (offsetMatch != null) {
+            return offsetMatch
+        }
+
+        // 回退：使用宏名称匹配
+        // 注意：这里需要谨慎处理，因为注解和宏可能有相同的名称
+        // 只有当名称完全匹配时才返回结果
+        if (exprName != null) {
+            val nameMatch = results.find { result ->
+                result.macroName == exprName
+            }
+            if (nameMatch != null) {
+                // 进一步验证：确保名称匹配的结果的偏移量在合理范围内
+                // （不应该匹配到距离太远的结果）
+                val distance = kotlin.math.abs(nameMatch.startOffset - exprOffset)
+                if (distance < 100) { // 100 字符以内的容差
+                    return nameMatch
+                }
+            }
+        }
+
+        return null
     }
 
     /**
@@ -329,6 +368,90 @@ class MacroPsiExpansionService(private val project: Project) {
             val errors = PsiTreeUtil.findChildrenOfType(block, PsiErrorElement::class.java).toList()
             val elements = block.statements.filterIsInstance<CjElement>()
             return Pair(errors, elements)
+        }
+    }
+
+    /**
+     * 将注解（非宏）转换为其声明形式
+     *
+     * 当 CjMacroExpression 不是真正的宏（没有展开结果）时，
+     * 将其 input 声明转换为带注解的声明形式。
+     * 例如：@Annotation class A {} -> 将 @Annotation 转换为其声明形式
+     *
+     * 支持：
+     * - 顶层类 (CjTypeStatement: CjStruct, CjInterface, CjEnum)
+     * - 顶层/成员函数 (CjNamedFunction)
+     * - 顶层/成员属性 (CjProperty)
+     * - 字段变量 (CjFieldVariable)
+     * - 模式变量 (CjPatternVariable)
+     *
+     * @param macroExpr 宏表达式（实际上是注解）
+     * @return 转换后的声明元素，如果失败返回 null
+     */
+    fun convertAnnotationToDeclaration(
+        macroExpr: CjMacroExpression
+    ): CjDeclaration? {
+        val inputDecl = macroExpr.input?.declarations ?: return null
+        val shortName = macroExpr.shortName?.asString() ?: return null
+        val attrText = macroExpr.attr?.text ?: ""
+
+        val annotationsText = "@$shortName$attrText"
+        val declarationsText = inputDecl.text
+
+        val combinedText = """
+            $annotationsText
+            $declarationsText
+        """.trimIndent()
+
+        return try {
+            val factory = CjPsiFactory(macroExpr.project).apply {
+                isOnlyAnnotation = true
+            }
+
+            when (inputDecl) {
+                is CjTypeStatement -> {
+                    factory.createClass(combinedText)
+                }
+                is CjNamedFunction -> {
+                    try {
+                        factory.createFunction(combinedText)
+                    } catch (e: Exception) {
+                        val file = factory.createFile(combinedText)
+                        file.declarations.firstOrNull()
+                    }
+                }
+                is CjProperty -> {
+                    try {
+                        factory.createProperty(combinedText)
+                    } catch (e: Exception) {
+                        val file = factory.createFile(combinedText)
+                        file.declarations.firstOrNull()
+                    }
+                }
+                is CjFieldVariable -> {
+                    try {
+                        factory.createFieldVariable(combinedText)
+                    } catch (e: Exception) {
+                        val file = factory.createFile(combinedText)
+                        file.declarations.firstOrNull()
+                    }
+                }
+                is CjPatternVariable -> {
+                    try {
+                        factory.createPatternVariable(combinedText)
+                    } catch (e: Exception) {
+                        val file = factory.createFile(combinedText)
+                        file.declarations.firstOrNull()
+                    }
+                }
+                else -> {
+                    val file = factory.createFile(combinedText)
+                    file.declarations.firstOrNull()
+                }
+            }
+        } catch (e: Exception) {
+            LOG.debug("转换注解为声明失败: $shortName", e)
+            null
         }
     }
 }

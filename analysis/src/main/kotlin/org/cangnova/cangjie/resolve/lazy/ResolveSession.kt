@@ -172,7 +172,7 @@ class ResolveSession @Deprecated("Only calls from injectors expected") construct
 
 
     @set:Inject
-    lateinit var annotationResolver: AnnotationResolver
+    override lateinit var annotationResolver: AnnotationResolver
 
 
     @set:Inject
