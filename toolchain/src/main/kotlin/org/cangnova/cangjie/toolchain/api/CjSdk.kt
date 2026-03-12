@@ -86,15 +86,14 @@ data class CjSdk(
     val stdlibPath: Path
         get() {
             val modulesDir = homePath.resolve("modules")
-            val platform = detectPlatform()
-            val platformDir = modulesDir.resolve(platform)
+            val baseplatform = "${detectOS()}_${detectArch()}"
 
-            // 如果平台特定目录存在，返回它；否则回退到 modules 目录
-            return if (platformDir.exists()) {
-                platformDir
-            } else {
-                modulesDir
-            }
+            // 按优先级依次尝试各后缀
+            val candidates = listOf("_llvm", "_cjnative")
+                .map { suffix -> modulesDir.resolve("$baseplatform$suffix") }
+                .filter { it.exists() }
+
+            return candidates.firstOrNull() ?: modulesDir
         }
 
     /**
