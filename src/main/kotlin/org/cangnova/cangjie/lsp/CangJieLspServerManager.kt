@@ -28,6 +28,7 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
+import java.io.File
 import com.intellij.util.io.systemIndependentPath
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import java.nio.file.Files
@@ -138,6 +139,74 @@ class CangJieLspServerManager(private val project: Project) {
             addParameter("src")
             addParameter("--enable-log=true")
             addParameter("--log-path=${logPath.toAbsolutePath()}")
+        }
+    }
+
+    /**
+     * 获取 IDE 运行时的 java 可执行文件路径（通常为 JBR）
+     */
+    fun getJavaExecutableFromIde(): String {
+        val javaHome = System.getProperty("java.home")
+        val javaBin = if (SystemInfo.isWindows) "java.exe" else "java"
+        return File(javaHome, "bin${File.separator}$javaBin").absolutePath
+    }
+
+    /**
+     * 获取项目 SDK 中的 java 可执行文件路径（如果项目配置了 SDK）
+     */
+    fun getJavaExecutableFromProjectSdk(): String? {
+        val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk() ?: return null
+        val javaBin = if (SystemInfo.isWindows) "java.exe" else "java"
+        return Paths.get(sdk.homePath.systemIndependentPath, "bin", javaBin).toString()
+    }
+
+    /**
+     * 基于安装目录中的 jar 包直接启动 LSP
+     * 使用 IDE 运行时的 java 启动
+     * 设置 UTF-8 编码，classpath 和主类
+     */
+    fun getCommandLineForJar(): GeneralCommandLine {
+        val logPath = ensureLogDirectory()
+
+        // 使用 IDE 运行时的 java
+        val javaExe = getJavaExecutableFromIde()
+
+        // 固定的安装目录 lib 路径
+        val libDir = "D:\\code\\intellij\\cangjie\\lsp\\build\\install\\lsp\\lib\\*"
+
+        // 获取项目 SDK 以添加环境变量
+        val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk()
+
+        return GeneralCommandLine().apply {
+            withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
+            withCharset(Charsets.UTF_8)
+
+            exePath = javaExe
+
+            // 设置系统属性
+            addParameter("-Dfile.encoding=UTF-8")
+            addParameter("-Dstdout.encoding=UTF-8")
+            addParameter("-Dstderr.encoding=UTF-8")
+
+            // 设置 classpath
+            addParameter("-cp")
+            addParameter(libDir)
+
+            // 主类
+            addParameter("org.cangnova.cangjie.lsp.CangjieLspServerLauncherKt")
+
+            // 程序参数
+            addParameter("--enable-log=true")
+            addParameter("--log-path=${logPath.toAbsolutePath()}")
+
+            // 工作目录
+            setWorkDirectory(this@CangJieLspServerManager.getWorkingDirectory())
+
+            // 设置 JAVA_HOME 环境变量为 IDE 运行时
+            withEnvironment("JAVA_HOME", System.getProperty("java.home"))
+
+            // 添加项目 SDK 的环境变量
+            sdk?.let { withEnvironment(it.getEnvironment()) }
         }
     }
 }

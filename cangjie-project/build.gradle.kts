@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@
  * - SourceRootEntity: 253+ 使用 SourceRootEntityBuilder, 242-252 使用直接构造
  */
 val platformVersion = providers.gradleProperty("platformVersion").getOrElse("242")
-
 sourceSets {
     main {
         kotlin {
@@ -46,14 +45,13 @@ sourceSets {
 }
 
 dependencies {
-    implementation(project(":util"))
     implementation(project(":messages"))
     implementation(project(":notifications"))
-    implementation(project(":psi"))
     implementation(project(":icon"))
-    implementation(project(":common"))
     implementation(project(":toolchain"))
+    implementation(project(":util"))
+    implementation(project(":common"))
 
-
+    implementation(libs.cangjieCommonForIde)
+    implementation(libs.cangjiePsiForIde)
 }
-

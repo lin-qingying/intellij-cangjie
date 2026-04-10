@@ -1,6 +1,6 @@
 
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,18 +23,18 @@
  *
  */
 
-
 dependencies {
     intellijPlatform {
 //        该依赖仅作用于模块编译
-        plugins("com.redhat.devtools.lsp4ij:0.19.0")
+        plugins("com.redhat.devtools.lsp4ij:0.19.2")
     }
     implementation(project(":"))
     implementation(project(":telemetry"))
     implementation(project(":toolchain"))
     implementation(project(":cangjie-project"))
-    implementation(project(":analysis"))
-    implementation(project(":common"))
+    implementation(libs.cangjieCommonForIde)
+    implementation(libs.cangjieAnalysisApiForIde)
+    implementation(libs.cangjieAnalysisApiCfirForIde)
 }
 
 
@@ -43,7 +43,7 @@ project(":plugin") {
     dependencies {
         implementation(project(":lsp4ij"))
         intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.19.0")
+            plugins("com.redhat.devtools.lsp4ij:0.19.2")
         }
     }
 }

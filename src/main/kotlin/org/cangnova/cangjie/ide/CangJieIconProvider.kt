@@ -56,7 +56,6 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.ui.RowIcon
 import com.intellij.util.PlatformIcons
-import org.cangnova.cangjie.decompiler.psi.file.CjDecompiledFile
 
 import javax.swing.Icon
 

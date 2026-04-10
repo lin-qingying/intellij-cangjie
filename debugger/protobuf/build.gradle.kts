@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ plugins {
 dependencies {
 
     implementation(project(":"))
-    implementation(project(":psi"))
-    implementation(project(":common"))
+    implementation(libs.cangjieCommonForIde)
+    implementation(libs.cangjiePsiForIde)
 // https://mvnrepository.com/artifact/org.jetbrains.pty4j/pty4j
     api("org.jetbrains.pty4j:pty4j:0.13.11") {
         // JNA 由 IDE 平台提供（通过 JnaLoader 正确初始化）。
@@ -41,7 +41,6 @@ dependencies {
     implementation(project(":telemetry"))
     implementation(project(":toolchain"))
     implementation(project(":messages"))
-    implementation(project(":util"))
 
     implementation(project(":cangjie-project"))
 

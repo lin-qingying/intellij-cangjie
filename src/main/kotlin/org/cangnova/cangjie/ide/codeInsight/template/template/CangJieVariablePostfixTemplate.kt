@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.ide.codeInsight.template.template
 
-import org.cangnova.cangjie.refactoring.introduce.CangJieIntroduceVariableHandler
 import org.cangnova.cangjie.lang.CangJieLanguage
 import org.cangnova.cangjie.psi.CjExpression
 import com.intellij.codeInsight.template.postfix.templates.PostfixTemplateProvider
@@ -49,15 +48,16 @@ internal abstract class AbstractCangJieVariablePostfixTemplate(
     kind, provider
 ) {
     override fun expandForChooseExpression(expression: PsiElement, editor: Editor) {
-        val isVar = kind == "var"
-        val provider = LanguageRefactoringSupport.INSTANCE.forLanguage(CangJieLanguage)
-        val introduceVariableHandler =
-            provider.introduceVariableHandler as? CangJieIntroduceVariableHandler ?: return
-
-
-        introduceVariableHandler.selectTargetContainerAndPerformIntroduce(
-            expression.project, editor, expression as? CjExpression, isVar,
-        )
+        TODO()
+//        val isVar = kind == "var"
+//        val provider = LanguageRefactoringSupport.INSTANCE.forLanguage(CangJieLanguage)
+//        val introduceVariableHandler =
+//            provider.introduceVariableHandler as? CangJieIntroduceVariableHandler ?: return
+//
+//
+//        introduceVariableHandler.selectTargetContainerAndPerformIntroduce(
+//            expression.project, editor, expression as? CjExpression, isVar,
+//        )
 
     }
 }

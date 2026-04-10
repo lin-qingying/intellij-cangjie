@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,13 +46,13 @@ object IndentRules {
     fun getIndentRules(): Array<NodeIndentStrategy> = arrayOf(
         // 不对块中的右大括号和左大括号进行缩进
         strategy("No indent for braces in blocks")
-            .within(BLOCK, INIT_BLOCK, CLASS_BODY, FUNCTION_LITERAL, ENUM_BODY)
+            .within(BLOCK, CLASS_BODY, FUNCTION_LITERAL, ENUM_BODY)
             .forType(RBRACE, LBRACE)
             .set(Indent.getNoneIndent()),
 
         // 对块内容进行正常缩进
         strategy("Indent for block content")
-            .within(BLOCK, INIT_BLOCK, CLASS_BODY, FUNCTION_LITERAL, PROPERTY_BODY, ENUM_BODY)
+            .within(BLOCK, CLASS_BODY, FUNCTION_LITERAL, PROPERTY_BODY, ENUM_BODY)
             .notForType(RBRACE, LBRACE, BLOCK, ENUM_CONSTRUCTOR)
             .set(Indent.getNormalIndent()),
 
@@ -160,11 +160,10 @@ object IndentRules {
 
                 PRIMARY_CONSTRUCTOR,
                 SECONDARY_CONSTRUCTOR,
-                END_SECONDARY_CONSTRUCTOR
+                FINALIZER
             )
             .notForType(
                 BLOCK,
-                INIT_BLOCK,
                 FUNC_KEYWORD,
                 CONST_KEYWORD,
                 LET_KEYWORD,

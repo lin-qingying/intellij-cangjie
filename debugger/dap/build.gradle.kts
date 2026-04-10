@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,11 @@ dependencies {
 
     // IntelliJ Platform modules
     implementation(project(":"))
-    implementation(project(":psi"))
-    implementation(project(":common"))
-    implementation(project(":util"))
     implementation(project(":toolchain"))
     implementation(project(":cangjie-project"))
     implementation(project(":messages"))
+    implementation(libs.cangjieCommonForIde)
+    implementation(libs.cangjiePsiForIde)
 
     implementation(project(":debugger:common"))
 
@@ -46,4 +45,3 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
 }
-

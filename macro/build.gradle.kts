@@ -28,12 +28,11 @@ dependencies {
     implementation(project(":toolchain"))
     implementation(project(":common"))
     implementation(project(":messages"))
-    implementation(project(":psi"))
     implementation(project(":icon"))
     implementation(project(":namedpipe"))
-    implementation(project(":flatbuffers-gen"))
+    implementation(libs.cangjiePsiForIde)
+    implementation(libs.cangjieCommonForIde)
     implementation(libs.flatbuffers.java)
-    implementation(project(":psi:stubindex"))
 
     compileOnly(project(":cangjie-project"))
 }

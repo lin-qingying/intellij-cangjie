@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.highlighter
 
-import org.cangnova.cangjie.highlighter.visitor.AbstractHighlightingVisitor
+
 import org.cangnova.cangjie.lang.CangJieLanguage
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.*

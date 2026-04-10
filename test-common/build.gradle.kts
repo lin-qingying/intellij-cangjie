@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,9 @@ dependencies {
     testFixturesImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.1.0")
     testFixturesImplementation(kotlin("test"))
     testFixturesImplementation(kotlin("test-junit"))
+    // 宿主统一测试入口：上游测试基础设施与 analysis 测试框架都从这里暴露给各模块。
+    testFixturesImplementation(libs.cangjieFrontendTestInfrastructure)
+    testFixturesImplementation(libs.cangjieFrontendAnalysisTestFramework)
     testFixturesImplementation(project(":"))
 
 

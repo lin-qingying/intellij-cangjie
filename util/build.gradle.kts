@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,10 @@ dependencies {
     intellijPlatform{
         bundledPlugin("com.intellij.modules.json")
     }
+    implementation(libs.cangjieCommonForIde)
     // 使用 vavr 替代已废弃的 javaslang
     implementation(libs.vavr)
+
 
     testImplementation(kotlin("test"))
 }

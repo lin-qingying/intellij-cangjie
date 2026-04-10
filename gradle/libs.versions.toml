@@ -40,6 +40,7 @@ toml4j = "0.7.3"
 jakarta-inject = "2.0.1"
 reflections = "0.10.2"
 mockk = "1.13.8"
+cangjie = "1.0.0"
 
 # 代码生成工具
 kotlinpoet = "1.16.0"
@@ -85,6 +86,18 @@ jansi = { module = "org.fusesource.jansi:jansi", version.ref = "jansi" }
 toml4j = { module = "io.hotmoka:toml4j", version.ref = "toml4j" }
 jakarta-inject-api = { module = "jakarta.inject:jakarta.inject-api", version.ref = "jakarta-inject" }
 reflections = { module = "org.reflections:reflections", version.ref = "reflections" }
+
+# CangJie 上游 for-ide 系列依赖
+cangjieCommonForIde = { module = "org.cangnova.cangjie:cangjie-frontend-common-for-ide", version.ref = "cangjie" }
+cangjiePsiForIde = { module = "org.cangnova.cangjie:cangjie-frontend-psi-for-ide", version.ref = "cangjie" }
+cangjieCfirForIde = { module = "org.cangnova.cangjie:cangjie-frontend-cfir-for-ide", version.ref = "cangjie" }
+cangjieAnalysisApiForIde = { module = "org.cangnova.cangjie:cangjie-frontend-analysis-api-for-ide", version.ref = "cangjie" }
+cangjieAnalysisApiCfirForIde = { module = "org.cangnova.cangjie:cangjie-frontend-analysis-api-cfir-for-ide", version.ref = "cangjie" }
+cangjieAnalysisApiStandaloneForIde = { module = "org.cangnova.cangjie:cangjie-frontend-analysis-api-standalone-for-ide", version.ref = "cangjie" }
+
+# CangJie 上游测试依赖
+cangjieFrontendAnalysisTestFramework = { module = "org.cangnova.cangjie:cangjie-frontend-analysis-test-framework", version.ref = "cangjie" }
+cangjieFrontendTestInfrastructure = { module = "org.cangnova.cangjie:cangjie-frontend-test-infrastructure", version.ref = "cangjie" }
 
 # 测试工具
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }

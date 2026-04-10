@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.highlighter
 
-import org.cangnova.cangjie.highlighter.visitor.AbstractHighlightingVisitor
 import org.cangnova.cangjie.psi.CjFile
 import com.intellij.codeHighlighting.*
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder

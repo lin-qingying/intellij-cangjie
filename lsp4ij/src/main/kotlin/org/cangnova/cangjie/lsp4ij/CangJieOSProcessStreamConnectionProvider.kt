@@ -32,7 +32,7 @@ import java.io.*
 class CangJieOSProcessStreamConnectionProvider(
     val project: Project
 ) : OSProcessStreamConnectionProvider(
-    CangJieLspServerManager.getInstance(project).getCommandLine()
+    CangJieLspServerManager.getInstance(project).getCommandLineForJar()
 ) {
     private val modifiedInputStream = PipedInputStream()
     private val pipedOutputStream = PipedOutputStream(modifiedInputStream)

@@ -55,9 +55,14 @@ class CangJieLSPDiagnosticFeature : LSPDiagnosticFeature() {
         fixes: List<IntentionAction?>,
         holder: AnnotationHolder
     ) {
-        logger.info("Creating annotation for diagnostic: ${diagnostic.message} at ${diagnostic.range}")
-        logger.info("  Severity: ${diagnostic.severity}, Code: ${diagnostic.code}, Source: ${diagnostic.source}")
-        logger.info("  File: ${holder.currentAnnotationSession.file.virtualFile.url}")
+
+        super.createAnnotation(diagnostic, document, fixes, holder)
+        return
+//TODO diagnostic.code会报错，先不执行下面的逻辑
+       logger.info("Creating annotation for diagnostic: ${diagnostic.message} at ${diagnostic.range}")
+       logger.info("  Severity: ${diagnostic.severity}, Code: ${diagnostic.code}, Source: ${diagnostic.source}")
+       logger.info("  File: ${holder.currentAnnotationSession.file.virtualFile.url}")
+
 
         // 收集错误码和错误信息用于遥测
         try {

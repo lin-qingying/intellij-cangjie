@@ -26,7 +26,6 @@ package org.cangnova.cangjie.ide.intentions
 
 import org.cangnova.cangjie.NotPropertiesService
 import org.cangnova.cangjie.psi.CjCallExpression
-import org.cangnova.cangjie.psi.CjCallableReferenceExpression
 import org.cangnova.cangjie.psi.CjExpression
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -45,13 +44,3 @@ private val commonGetterLikePrefixes: Set<Regex> = setOf(
     "^getAnd[A-Z]".toRegex(),
     "^getIf[A-Z]".toRegex(),
 )
-
-private inline fun <T> CjExpression.callOrReferenceOrNull(
-    call: (CjCallExpression) -> T,
-    reference: (CjCallableReferenceExpression) -> T
-): T? =
-    when (this) {
-        is CjCallExpression -> call(this)
-        is CjCallableReferenceExpression -> reference(this)
-        else -> null
-    }
