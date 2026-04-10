@@ -86,8 +86,8 @@ dependencies {
     testFixturesImplementation(kotlin("test"))
     testFixturesImplementation(kotlin("test-junit"))
     // 宿主统一测试入口：上游测试基础设施与 analysis 测试框架都从这里暴露给各模块。
-    testFixturesImplementation(libs.cangjieFrontendTestInfrastructure)
-    testFixturesImplementation(libs.cangjieFrontendAnalysisTestFramework)
+//    testFixturesImplementation(libs.cangjieFrontendTestInfrastructure)
+//    testFixturesImplementation(libs.cangjieFrontendAnalysisTestFramework)
     testFixturesImplementation(project(":"))
 
 

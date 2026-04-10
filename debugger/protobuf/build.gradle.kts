@@ -27,6 +27,7 @@ plugins {
     id("com.google.protobuf") version "0.9.4"
 }
 dependencies {
+    implementation(project(":common"))
 
     implementation(project(":"))
     implementation(libs.cangjieCommonForIde)

@@ -23,6 +23,7 @@
  */
 
 dependencies {
+    implementation(project(":common"))
 
     // IntelliJ Platform modules
     implementation(project(":"))
