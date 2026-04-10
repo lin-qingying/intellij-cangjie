@@ -31,12 +31,13 @@ import com.intellij.notification.NotificationType
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
+import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.notifications.showBalloonWithoutProject
 import org.cangnova.cangjie.messages.CangJieBundle
 import org.cangnova.cangjie.psi.psiUtil.ancestorOrSelf
 import org.cangnova.cangjie.psi.psiUtil.elementType
 import org.cangnova.cangjie.psi.psiUtil.isAncestorOf
-import org.cangnova.cangjie.utils.getElementOfType
+
 import org.toml.lang.psi.*
 
 fun tomlPluginIsAbiCompatible(): Boolean = computeOnce
@@ -99,3 +100,7 @@ class StringValueInsertionHandler(private val keyValue: TomlKeyValue) : InsertHa
         }
     }
 }
+
+
+inline fun <reified T : PsiElement> InsertionContext.getElementOfType(strict: Boolean = false): T? =
+    PsiTreeUtil.findElementOfClassAtOffset(file, tailOffset - 1, T::class.java, strict)
