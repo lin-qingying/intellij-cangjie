@@ -21,7 +21,10 @@
  * any damages or issues arising from its use.
  *
  */
-
+plugins {
+    id("org.jetbrains.intellij.platform.module")
+    kotlin("jvm")
+}
 /*
  * 版本特定源码目录配置
  *

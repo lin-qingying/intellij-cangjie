@@ -24,10 +24,14 @@
 
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
-
 plugins {
+
+        id("cangjie-module")
+
+
     `java-test-fixtures`
 }
+
 sourceSets {
     main {
         none()
@@ -72,11 +76,7 @@ val SourceSet.projectDefault: Project.() -> Unit
     }
 
 dependencies {
-    intellijPlatform {
-        testFramework(TestFrameworkType.Platform)
 
-
-    }
     testFixturesImplementation("junit:junit:4.13.2")
 // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:5.12.0")

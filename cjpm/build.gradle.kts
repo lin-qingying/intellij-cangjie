@@ -21,16 +21,19 @@
  * any damages or issues arising from its use.
  *
  */
+plugins {
+    id("cangjie-module")
+}
+
 val tomlPlugin = "org.toml.lang"
 
 val jsonPlugin = "com.intellij.modules.json"
 
+
+
 dependencies {
 
-    intellijPlatform {
-        bundledPlugins(tomlPlugin,jsonPlugin)
 
-    }
 
     // 依赖核心模块
     implementation(project(":cangjie-project"))
@@ -52,10 +55,4 @@ dependencies {
     implementation(libs.bundles.jackson)
 
     testImplementation(kotlin("test"))
-}
-project(":plugin") {
-    dependencies {
-        implementation(project(":cjpm"))
-
-    }
 }

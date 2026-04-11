@@ -22,12 +22,13 @@
  *
  */
 
+plugins {
+    id("cangjie-module")
+}
 
 
 dependencies {
-    intellijPlatform{
-        bundledPlugin("com.intellij.modules.json")
-    }
+
     implementation(libs.cangjieCommonForIde)
     // 使用 vavr 替代已废弃的 javaslang
     implementation(libs.vavr)

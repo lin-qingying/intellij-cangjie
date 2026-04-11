@@ -23,6 +23,10 @@
  *
  */
 
+plugins {
+    id("cangjie-module")
+
+}
 dependencies {
     intellijPlatform {
 //        该依赖仅作用于模块编译
@@ -35,15 +39,4 @@ dependencies {
     implementation(libs.cangjieCommonForIde)
     implementation(libs.cangjieAnalysisApiForIde)
     implementation(libs.cangjieAnalysisApiCfirForIde)
-}
-
-
-//将lsp4ij模块依赖注入plugin模块
-project(":plugin") {
-    dependencies {
-        implementation(project(":lsp4ij"))
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.19.2")
-        }
-    }
 }

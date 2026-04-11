@@ -69,7 +69,7 @@ val resolvedGitHubPackagesToken = requireGitHubPackagesCredential(
 )
 
 dependencyResolutionManagement {
-    repositoriesMode = RepositoriesMode.PREFER_PROJECT
+    repositoriesMode = RepositoriesMode.PREFER_SETTINGS
 
     repositories {
         mavenCentral()
@@ -96,8 +96,9 @@ dependencyResolutionManagement {
         }
     }
 }
+include("core")
 
-include("plugin")
+
 include("lsp4ij")
 include("telemetry")
 
@@ -122,3 +123,4 @@ include("formatter")
 
 include("macro")
 include("namedpipe")
+

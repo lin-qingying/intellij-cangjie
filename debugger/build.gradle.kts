@@ -1,3 +1,6 @@
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+
 /*
  * Copyright 2026 LinQingYing. and contributors.
  *
@@ -22,7 +25,12 @@
  *
  */
 
+plugins {
+    id("org.jetbrains.intellij.platform.module")
+    kotlin("jvm")
+}
 dependencies {
+
     implementation(project(":toolchain"))
     implementation(project(":"))
     implementation(project(":messages"))
@@ -35,11 +43,4 @@ dependencies {
     implementation(project(":debugger:protobuf"))
     implementation(project(":debugger:dap"))
 
-}
-
-project(":plugin") {
-    dependencies {
-        implementation(project(":debugger"))
-
-    }
 }

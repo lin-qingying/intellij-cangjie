@@ -1,4 +1,7 @@
-
+plugins {
+    id("org.jetbrains.intellij.platform.module")
+    kotlin("jvm")
+}
 dependencies {
     // ── JNA ──────────────────────────────────────────────────────────────────
     // jna-platform 已内置 Kernel32/W32FileIO 等 Windows API 高层封装，

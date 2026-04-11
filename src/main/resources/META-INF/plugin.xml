@@ -56,11 +56,11 @@
     <content>
 
 
-        <module name="org.cangnova.cangjie.debugger"/>
 
-        <module name="org.cangnova.cangjie.lsp4ij"/>
-        <module name="org.cangnova.cangjie.cjpm"/>
+        <module name="org.cangnova.cangjie.lsp4ij" loading="required"/>
+        <module name="org.cangnova.cangjie.cjpm" loading="required"/>
 
+        <module name="intellij-cangjie.debugger" loading="required"/>
 
     </content>
 </idea-plugin>

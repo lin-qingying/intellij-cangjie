@@ -22,7 +22,10 @@
  *
  */
 
-
+plugins {
+    id("org.jetbrains.intellij.platform.module")
+    kotlin("jvm")
+}
 dependencies {
     implementation(project(":messages"))
     implementation(project(":notifications"))

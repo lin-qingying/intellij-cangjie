@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,10 @@
  *
  */
 
-plugins {
-    id("org.jetbrains.intellij.platform.module")
-    kotlin("jvm")
+dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.PREFER_SETTINGS
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
 }

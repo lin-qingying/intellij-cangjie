@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2026 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,17 @@
  */
 
 plugins {
-    id("org.jetbrains.intellij.platform.module")
-    kotlin("jvm")
+    `kotlin-dsl`
+}
+
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
+}
+
+dependencies {
+    implementation("org.jetbrains.intellij.platform:intellij-platform-gradle-plugin:2.10.5")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.0")
+    implementation("org.jetbrains.kotlin:kotlin-serialization:2.2.0")
+    implementation("org.gradle.test-retry:org.gradle.test-retry.gradle.plugin:1.6.0")
 }

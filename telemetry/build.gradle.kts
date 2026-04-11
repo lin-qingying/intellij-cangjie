@@ -22,11 +22,7 @@
  *
  */
 
-
-
-project(":") {
-    dependencies {
-        implementation(project(":telemetry"))
-
-    }
+plugins {
+    id("org.jetbrains.intellij.platform.module")
+    kotlin("jvm")
 }

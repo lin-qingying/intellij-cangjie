@@ -21,12 +21,15 @@
  * any damages or issues arising from its use.
  *
  */
-
+plugins {
+    id("org.jetbrains.intellij.platform.module")
+    kotlin("jvm")
+}
 dependencies {
     implementation(project(":common"))
 
     // IntelliJ Platform modules
-    implementation(project(":"))
+    implementation(project(":core"))
     implementation(project(":toolchain"))
     implementation(project(":cangjie-project"))
     implementation(project(":messages"))

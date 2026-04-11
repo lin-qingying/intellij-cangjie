@@ -21,6 +21,7 @@
   ~ any damages or issues arising from its use.
   ~
   -->
+<!--该文件已弃用，请在org.cangnova.cangjie.debugger.xml中编写-->
 
 <idea-plugin>
 

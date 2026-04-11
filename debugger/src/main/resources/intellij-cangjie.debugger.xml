@@ -22,8 +22,8 @@
   ~
   -->
 
-<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" package="org.cangnova.cangjie.debugger">
-    <module value="org.cangnova.cangjie.debugger"/>
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude"  package="org.cangnova.cangjie.debugger">
+    <module value="intellij-cangjie.debugger"/>
 
 
     <xi:include href="/META-INF/protodebugger.xml" xpointer="xpointer(/idea-plugin/*)"/>

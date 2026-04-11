@@ -23,7 +23,8 @@
  */
 
 plugins {
-
+    id("org.jetbrains.intellij.platform.module")
+    kotlin("jvm")
     id("com.google.protobuf") version "0.9.4"
 }
 dependencies {

@@ -23,3 +23,7 @@
  */
 
 
+plugins {
+    id("org.jetbrains.intellij.platform.module")
+    kotlin("jvm")
+}
