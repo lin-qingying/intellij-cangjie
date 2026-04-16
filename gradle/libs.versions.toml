@@ -40,7 +40,7 @@ toml4j = "0.7.3"
 jakarta-inject = "2.0.1"
 reflections = "0.10.2"
 mockk = "1.13.8"
-cangjie = "1.0.2"
+cangjie = "1.1.0"
 
 # 代码生成工具
 kotlinpoet = "1.16.0"

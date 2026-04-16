@@ -1,0 +1,17 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup id="CangJie Plugin"
+                           displayType="BALLOON"
+                           bundle="messages.CangJieBundle"
+                           key="notification.group.cangjie.plugin"/>
+        <notificationGroup id="CangJie Build Log"
+                           bundle="messages.CangJieBundle"
+                           displayType="NONE"
+                           key="notification.group.cangjie.plugin"/>
+        <notificationGroup id="CangJie Build configuration error"
+                           toolWindowId="Build"
+                           displayType="TOOL_WINDOW"
+                           bundle="messages.CangJieCompilerBundle"
+                           key="notification.group.title.cannot.start.compiler"/>
+    </extensions>
+</idea-plugin>

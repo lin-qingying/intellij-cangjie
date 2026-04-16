@@ -1,0 +1,31 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <registryKey key="sdk.downloader.url"
+                     description="Custom URL to download the list of available SDKs"
+                     defaultValue=""/>
+        <registryKey key="sdk.downloader.reuse.installed"
+                     defaultValue="true"
+                     description="Allow to reuse locally installed with the SDK Downloader SDK instead of downloading it again"/>
+        <registryKey key="sdk.downloader.reuse.downloading"
+                     defaultValue="true"
+                     description="Allow to reuse currently downloading with the SDK Downloader SDK instead of downloading it again"/>
+        <registryKey key="org.cangnova.cangjie.cjpm.test.nocapture"
+                     defaultValue="false"
+                     restartRequired="false"
+                     description="Add `--nocapture` flag to the test command line and show test results in Run Tool Window instead of raw console"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="org.cangnova.cangjie">
+        <toolchainFlavor id="cangjie.cangjieHomeToolchainFlavor"
+                         implementation="org.cangnova.cangjie.toolchain.flavors.CangJieHomeToolchainFlavor"
+                         order="first"/>
+        <toolchainFlavor id="cangjie.winToolchainFlavor"
+                         implementation="org.cangnova.cangjie.toolchain.flavors.CjWinToolchainFlavor"/>
+        <toolchainFlavor id="cangjie.linuxToolchainFlavor"
+                         implementation="org.cangnova.cangjie.toolchain.flavors.CjLinuxToolchainFlavor"
+                         order="first"/>
+        <toolchainFlavor id="cangjie.wslToolchainFlavor"
+                         implementation="org.cangnova.cangjie.toolchain.wsl.CjWslToolchainFlavor"/>
+        <toolchainProvider implementation="org.cangnova.cangjie.toolchain.CjLocalToolchainProvider"/>
+    </extensions>
+</idea-plugin>

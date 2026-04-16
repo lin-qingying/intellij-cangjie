@@ -1,0 +1,28 @@
+<idea-plugin allow-bundled-update="true">
+    <id>cn.cangnova.cangjie</id>
+
+    <dependencies>
+        <plugin id="com.intellij.modules.platform"/>
+        <plugin id="com.intellij.modules.json"/>
+        <plugin id="org.toml.lang"/>
+        <plugin id="com.intellij.copyright"/>
+        <plugin id="com.redhat.devtools.lsp4ij"/>
+    </dependencies>
+
+    <content>
+        <module name="org.cangnova.cangjie.foundation" loading="required"/>
+        <module name="org.cangnova.cangjie.domain.toolchain" loading="required"/>
+        <module name="org.cangnova.cangjie.domain.projectModel" loading="required"/>
+        <module name="org.cangnova.cangjie.domain.packageManager" loading="required"/>
+        <module name="org.cangnova.cangjie.domain.telemetry" loading="required"/>
+        <module name="org.cangnova.cangjie.ide.ux" loading="required"/>
+        <module name="org.cangnova.cangjie.ide.base" loading="required"/>
+        <module name="org.cangnova.cangjie.ide.project" loading="required"/>
+        <module name="org.cangnova.cangjie.ide.run" loading="required"/>
+        <module name="org.cangnova.cangjie.ide.lsp" loading="required"/>
+        <module name="org.cangnova.cangjie.ide.debuggerApi" loading="required"/>
+        <module name="org.cangnova.cangjie.ide.debuggerDap" loading="required"/>
+        <module name="org.cangnova.cangjie.ide.debuggerProto" loading="required"/>
+        <module name="org.cangnova.cangjie.testSupport" loading="required"/>
+    </content>
+</idea-plugin>

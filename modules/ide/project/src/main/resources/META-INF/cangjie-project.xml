@@ -1,0 +1,109 @@
+<idea-plugin>
+    <extensionPoints>
+        <extensionPoint
+                name="projectProvider"
+                qualifiedName="org.cangnova.cangjie.project.projectProvider"
+                interface="org.cangnova.cangjie.project.extension.CjProjectProvider"
+                dynamic="true"/>
+        <extensionPoint
+                name="configParser"
+                qualifiedName="org.cangnova.cangjie.project.configParser"
+                interface="org.cangnova.cangjie.project.extension.CjProjectConfigParser"
+                dynamic="true"/>
+        <extensionPoint
+                name="commandProvider"
+                qualifiedName="org.cangnova.cangjie.commandProvider"
+                interface="org.cangnova.cangjie.project.ui.actions.CjCommandProvider"
+                dynamic="true"/>
+        <extensionPoint
+                name="moduleBuilderProvider"
+                qualifiedName="org.cangnova.cangjie.project.moduleBuilderProvider"
+                interface="org.cangnova.cangjie.project.extension.CjModuleBuilderProvider"
+                dynamic="true"/>
+        <extensionPoint
+                name="buildSystemId"
+                qualifiedName="org.cangnova.cangjie.project.buildSystemId"
+                interface="org.cangnova.cangjie.project.extension.ProjectBuildSystemId"
+                dynamic="true"/>
+        <extensionPoint
+                qualifiedName="org.cangnova.cangjie.sdkDownload"
+                interface="org.cangnova.cangjie.ide.project.structure.download.SdkDownloadEp"/>
+        <extensionPoint
+                qualifiedName="org.cangnova.cangjie.binaryExtension"
+                interface="org.cangnova.cangjie.ide.project.structure.CangJieBinaryExtension"
+                dynamic="true"/>
+    </extensionPoints>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <treeStructureProvider implementation="org.cangnova.cangjie.ide.project.CjMacroCallFileTreeStructureProvider"/>
+        <newProjectWizard.languageGenerator
+                implementation="org.cangnova.cangjie.ide.project.tools.projectWizard.CangJieGeneratorNewProjectWizard"/>
+        <directoryProjectGenerator
+                implementation="org.cangnova.cangjie.ide.project.tools.projectWizard.CjDirectoryProjectGenerator"/>
+        <projectConfigurable
+                instance="org.cangnova.cangjie.configurable.CangJieConfigurable"
+                groupId="language"
+                id="language.cangjie"
+                bundle="messages.CangJieBundle"
+                key="CangJie"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.project.service.CjProjectsService"
+                serviceImplementation="org.cangnova.cangjie.project.service.impl.CjProjectsServiceImpl"/>
+        <toolWindow
+                id="CangJie Projects"
+                factoryClass="org.cangnova.cangjie.project.ui.toolwindow.CjProjectToolWindowFactory"
+                anchor="right"
+                icon="AllIcons.Nodes.Module"/>
+        <editorNotificationProvider
+                implementation="org.cangnova.cangjie.notifications.MissingToolchainNotificationProvider"/>
+        <runAnything.executionProvider
+                order="after RunAnythingRunConfigurationProvider"
+                implementation="org.cangnova.cangjie.project.ui.actions.CjRunAnythingProviderImpl"/>
+        <registryKey key="org.cangnova.cangjie.project.new.auto.import"
+                     defaultValue="true"
+                     description="Enable new project model reloading"
+                     restartRequired="true"/>
+        <registryKey key="cangjie.project.refresh.debounce.ms"
+                     description="Project refresh debounce delay in milliseconds"
+                     defaultValue="300"
+                     restartRequired="false"/>
+        <registryKey key="cangjie.project.discovery.initial.delay.ms"
+                     description="Initial delay in milliseconds before project discovery on startup"
+                     defaultValue="200"
+                     restartRequired="false"/>
+        <registryKey key="cangjie.project.refresh.startup.delay.ms"
+                     description="Delay in milliseconds before project refresh after IDE startup"
+                     defaultValue="500"
+                     restartRequired="false"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="org.cangnova.cangjie">
+        <sdkDownload implementation="org.cangnova.cangjie.ide.project.structure.download.SdkDownloader"/>
+    </extensions>
+
+    <projectListeners>
+        <listener class="org.cangnova.cangjie.project.listener.CjProjectConfigurationListener"
+                  topic="org.cangnova.cangjie.project.event.CjProjectListener"/>
+    </projectListeners>
+
+    <actions>
+        <action id="CjProject.RefreshProject"
+                class="org.cangnova.cangjie.project.ui.actions.RefreshProjectAction"
+                text="Refresh Projects"
+                icon="AllIcons.Actions.Refresh"/>
+        <action id="CjProject.RunCommand"
+                class="org.cangnova.cangjie.project.ui.actions.RunCommandAction"
+                text="Run CJPM Command"
+                icon="AllIcons.Actions.Execute"/>
+
+        <group id="CangJie.CjProject">
+            <reference ref="CjProject.RefreshProject"/>
+            <separator/>
+            <reference ref="CjProject.RunCommand"/>
+            <separator/>
+            <reference ref="ExpandAll"/>
+            <reference ref="CollapseAll"/>
+            <separator/>
+        </group>
+    </actions>
+</idea-plugin>

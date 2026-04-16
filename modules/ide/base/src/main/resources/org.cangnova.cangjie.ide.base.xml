@@ -1,0 +1,21 @@
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include href="/META-INF/cangjie-product.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-jps.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-filetypes.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-language-shell.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-editor.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-ide-features.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-analysis-entry.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-formatter.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-actions.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-listeners.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-extensionPoints.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-toolwindow.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-notifications.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-toml.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-json.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-templates.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-icon.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-registry-key.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-copyright.xml" xpointer="xpointer(/idea-plugin/*)"/>
+</idea-plugin>

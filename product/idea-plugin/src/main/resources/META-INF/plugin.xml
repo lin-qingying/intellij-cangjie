@@ -1,0 +1,26 @@
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+    <id>cn.cangnova.cangjie</id>
+    <name>CangJie</name>
+    <vendor email="lin17624294976@outlook.com" url="https://github.com/lin-qingying">Lin_Qing_Ying</vendor>
+
+    <dependencies>
+        <plugin id="com.intellij.modules.platform"/>
+        <plugin id="com.intellij.modules.json"/>
+        <plugin id="org.toml.lang"/>
+        <plugin id="com.intellij.copyright"/>
+        <plugin id="com.redhat.devtools.lsp4ij"/>
+    </dependencies>
+
+    <xi:include href="/org.cangnova.cangjie.domain.toolchain.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/org.cangnova.cangjie.domain.projectModel.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/org.cangnova.cangjie.domain.packageManager.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/org.cangnova.cangjie.domain.telemetry.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/org.cangnova.cangjie.ide.ux.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/org.cangnova.cangjie.ide.base.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/org.cangnova.cangjie.ide.project.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/org.cangnova.cangjie.ide.run.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/org.cangnova.cangjie.ide.lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/org.cangnova.cangjie.ide.debuggerApi.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/org.cangnova.cangjie.ide.debuggerDap.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/org.cangnova.cangjie.ide.debuggerProto.xml" xpointer="xpointer(/idea-plugin/*)"/>
+</idea-plugin>

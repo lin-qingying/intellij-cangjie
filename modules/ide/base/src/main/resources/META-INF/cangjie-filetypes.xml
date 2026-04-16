@@ -1,0 +1,9 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType name="CangJie"
+                  language="CangJie"
+                  implementationClass="org.cangnova.cangjie.lang.CangJieFileType"
+                  extensions="cj"
+                  fieldName="INSTANCE"/>
+    </extensions>
+</idea-plugin>

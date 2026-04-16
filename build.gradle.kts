@@ -1,195 +1,175 @@
-import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
-import org.jetbrains.intellij.platform.gradle.TestFrameworkType
-import org.jetbrains.intellij.platform.gradle.models.ProductRelease
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.io.File
+import org.gradle.api.GradleException
 
-plugins {
-    idea
-    alias(libs.plugins.saliman.properties)
-    kotlin("jvm")
-    kotlin("plugin.serialization")
-    alias(libs.plugins.intellij.changelog)
-    id("org.gradle.test-retry")            // 不带版本，从 buildSrc classpath 解析
-    id("org.jetbrains.intellij.platform")
-    id("java-test-fixtures")
-}
-gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
-
-// ================= 基础配置 =================
-
-val basePluginArchiveName = "intellij-cangjie"
-
-val platformVersion = prop("platformVersion").toInt()
-val ideToRunType = prop("ideToRunType").ifEmpty { prop("baseIDE") }
-val ideRunVersion = prop("ideRunVersion")
-val ideVersion = prop("ideVersion")
-
-val pluginVersion = prop("pluginVersion")
-val sinceBuildP = prop("sinceBuild")
-val untilBuildP = prop("untilBuild")
-val versionSuffix = prop("versionSuffix")
-
-val cangjiePluginVersion = "$pluginVersion$versionSuffix"
-
-val tomlPlugin = "org.toml.lang"
-val jsonPlugin = "com.intellij.modules.json"
-val copyright = "com.intellij.copyright"
-
-val isCI = System.getenv("CI") != null
-
-// ================= 根项目插件配置 =================
-
-
-apply(plugin = "org.jetbrains.kotlin.jvm")
-apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
-version = cangjiePluginVersion
-
-intellijPlatform {
-    autoReload = true
-
-    pluginConfiguration {
-        name = "CangJie"
+group = "org.cangnova.cangjie"
+version = providers.gradleProperty("pluginVersion")
+    .zip(providers.gradleProperty("versionSuffix").orElse("")) { pluginVersion, versionSuffix ->
+        "$pluginVersion$versionSuffix"
     }
+    .get()
 
-    pluginVerification {
-        ides {
-            recommended()
-            select {
-                types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
-                channels = listOf(ProductRelease.Channel.RELEASE)
-                sinceBuild = sinceBuildP
-            }
-        }
-    }
+subprojects {
+    group = rootProject.group
+    version = rootProject.version
 }
 
-repositories {
-    maven {
-        name = "CangJieGitHubPackages"
-        url = uri("https://maven.pkg.github.com/lin-qingying/cangjie")
-        credentials {
-            username = findProperty("GITHUB_PACKAGES_USERNAME") as String?
-                ?: System.getenv("GITHUB_PACKAGES_USERNAME")
-            password = findProperty("GITHUB_PACKAGES_TOKEN") as String?
-                ?: System.getenv("GITHUB_PACKAGES_TOKEN")
-        }
-    }
-    mavenCentral()
-    maven("https://jitpack.io")
-}
+/**
+ * 架构守卫：
+ * 1) 阻止依赖回退到旧模块（core/common/...）
+ * 2) 守住新分层依赖方向（foundation -> domain -> ide -> product）
+ * 3) 阻止测试支撑模块进入产品发布内容
+ *
+ * 说明：当前仍处迁移期，少量跨层边会以白名单方式显式记录，
+ * 后续迁移完成后再逐步清理白名单，而不是用兜底逻辑掩盖问题。
+ */
+val architectureGuard = tasks.register("architectureGuard") {
+    group = "verification"
+    description = "验证 2.x 新骨架的模块分层、依赖边界与产品装配约束。"
 
-dependencies {
-    intellijPlatform {
-        create(IntelliJPlatformType.fromCode(ideToRunType), ideRunVersion)
-        testFramework(TestFrameworkType.Platform)
+    doLast {
+        val violations = mutableListOf<String>()
 
-        pluginComposedModule(project(":lsp4ij"))
-        pluginComposedModule(project(":cjpm"))
-        pluginComposedModule(project(":debugger"))
-        pluginComposedModule(project(":core"))  // 也改成 composed module
-
-        plugins("com.redhat.devtools.lsp4ij:0.19.2")
-        bundledPlugins(tomlPlugin, copyright, jsonPlugin)
-    }
-
-
-}
-
-kotlin {
-    jvmToolchain(21)
-}
-
-tasks.withType<KotlinCompile> {
-    compilerOptions {
-        freeCompilerArgs.add("-Xjvm-default=all")
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
-}
-
-tasks {
-    patchPluginXml {
-        sinceBuild.set(sinceBuildP)
-        untilBuild.set(untilBuildP)
-        pluginVersion.set(cangjiePluginVersion)
-        pluginDescription.set(provider { file("description.html").readText() })
-    }
-
-    buildPlugin {
-        archiveBaseName.set(basePluginArchiveName)
-    }
-
-    runIde {
-        jvmArgs(getIdeJvmArgs())
-    }
-
-    test {
-        systemProperty("java.awt.headless", "true")
-
-        if (isCI) {
-            retry {
-                maxRetries.set(3)
-                maxFailures.set(5)
-            }
-        }
-    }
-}
-
-
-// ================= 工具函数 =================
-
-fun getIdeJvmArgs(): List<String> {
-    val dumpDir = File(rootDir, "dumpTmp").also { it.mkdirs() }
-    return listOf(
-        "-Xms512m",
-        "-Xmx4096m",
-        "-XX:+UseG1GC",
-        "-XX:MaxMetaspaceSize=512m",
-        "-Didea.is.internal=true",
-        "-Didea.debug.mode=true",
-        "-Dfile.encoding=UTF-8",
-        "-XX:HeapDumpPath=${dumpDir.absolutePath}"
-    )
-}
-
-fun prop(name: String): String =
-    extra.properties[name] as? String
-        ?: error("Property `$name` is not defined")
-
-// ================= 多版本构建 =================
-
-data class BuildConfig(
-    val name: String,
-    val sinceBuild: String,
-    val untilBuild: String,
-    val platformVersion: String,
-)
-
-val buildConfigs = listOf(
-    BuildConfig("242-252", "242", "252.*", "242"),
-    BuildConfig("253", "253", "253.*", "253"),
-)
-
-buildConfigs.forEach { config ->
-    tasks.register<Exec>("buildPlugin${config.name.replace("-", "")}") {
-        group = "build"
-
-        workingDir = rootDir
-
-        val gradlewCmd =
-            if (System.getProperty("os.name").lowercase().contains("windows")) {
-                "gradlew.bat"
-            } else {
-                "./gradlew"
-            }
-
-        commandLine(
-            gradlewCmd,
-            ":buildPlugin",  // 原来是 :plugin:buildPlugin，现在根项目就是 plugin
-            "-PplatformVersion=${config.platformVersion}",
-            "-PsinceBuild=${config.sinceBuild}",
-            "-PuntilBuild=${config.untilBuild}",
-            "-PversionSuffix=-${config.name}",
+        val forbiddenLegacyProjectDeps = listOf(
+            ":core",
+            ":common",
+            ":util",
+            ":icon",
+            ":messages",
+            ":toolchain",
+            ":notifications",
+            ":cangjie-project",
+            ":cjpm",
+            ":telemetry",
+            ":lsp4ij",
+            ":debugger",
+            ":debugger:common",
+            ":debugger:dap",
+            ":debugger:protobuf",
+            ":formatter",
+            ":highlighter",
+            ":macro",
+            ":namedpipe",
+            ":test-common",
+            ":",
         )
+
+        val moduleBuildFiles = fileTree(rootDir) {
+            include("modules/**/build.gradle.kts")
+            include("product/**/build.gradle.kts")
+        }.files
+
+        fun modulePathFromBuildFile(file: File): String {
+            val relative = file.relativeTo(rootDir).invariantSeparatorsPath
+            val moduleDir = relative.removeSuffix("/build.gradle.kts")
+            return ":" + moduleDir.replace("/", ":")
+        }
+
+        fun layerOf(modulePath: String): String = when {
+            modulePath.startsWith(":modules:foundation") -> "foundation"
+            modulePath.startsWith(":modules:domain:") -> "domain"
+            modulePath.startsWith(":modules:ide:") -> "ide"
+            modulePath.startsWith(":modules:test-support") -> "test"
+            modulePath.startsWith(":product:") -> "product"
+            else -> "other"
+        }
+
+        // 迁移期显式例外：后续完成目录物理迁移后应逐步消除
+        val allowedLayerExceptions = setOf(
+            ":modules:domain:project-model -> :modules:ide:ux",
+            ":modules:domain:package-manager -> :modules:ide:base",
+            ":modules:domain:package-manager -> :modules:ide:ux",
+            ":modules:domain:package-manager -> :modules:ide:project",
+            ":modules:domain:package-manager -> :modules:ide:run",
+        )
+
+        val projectDepRegex = Regex("""project\("(:[^"]+)"\)""")
+
+        moduleBuildFiles.forEach { buildFile ->
+            val sourceModule = modulePathFromBuildFile(buildFile)
+            val sourceLayer = layerOf(sourceModule)
+            val text = buildFile.readText(Charsets.UTF_8)
+            val targets = projectDepRegex.findAll(text).map { it.groupValues[1] }.toList()
+
+            targets.forEach { target ->
+                if (target in forbiddenLegacyProjectDeps) {
+                    violations += "$sourceModule 依赖了被禁止的旧模块 $target（${buildFile.relativeTo(rootDir)}）"
+                }
+
+                if (!target.startsWith(":modules:")) {
+                    return@forEach
+                }
+
+                val targetLayer = layerOf(target)
+                val edge = "$sourceModule -> $target"
+
+                val allowed = when (sourceLayer) {
+                    "foundation" -> targetLayer == "foundation"
+                    "domain" -> targetLayer == "foundation" || targetLayer == "domain"
+                    "ide" -> targetLayer == "foundation" || targetLayer == "domain" || targetLayer == "ide"
+                    "test" -> target.startsWith(":modules:")
+                    "product" -> target.startsWith(":modules:")
+                    else -> true
+                }
+
+                if (!allowed && edge !in allowedLayerExceptions) {
+                    violations += "分层违规依赖: $edge（${buildFile.relativeTo(rootDir)}）"
+                }
+            }
+        }
+
+        val settingsText = file("settings.gradle.kts").readText(Charsets.UTF_8)
+        val forbiddenLegacyIncludes = listOf(
+            "include(\"core\")",
+            "include(\"common\")",
+            "include(\"util\")",
+            "include(\"icon\")",
+            "include(\"messages\")",
+            "include(\"toolchain\")",
+            "include(\"notifications\")",
+            "include(\"cangjie-project\")",
+            "include(\"cjpm\")",
+            "include(\"telemetry\")",
+            "include(\"lsp4ij\")",
+            "include(\"debugger\")",
+            "include(\"formatter\")",
+            "include(\"highlighter\")",
+            "include(\"macro\")",
+            "include(\"namedpipe\")",
+            "include(\"test-common\")",
+        )
+        forbiddenLegacyIncludes.forEach { token ->
+            if (settingsText.contains(token)) {
+                violations += "settings.gradle.kts 包含旧模块入口: $token"
+            }
+        }
+
+        val productBuildText = file("product/idea-plugin/build.gradle.kts").readText(Charsets.UTF_8)
+        if (productBuildText.contains("pluginComposedModule(project(\":modules:test-support\"))")) {
+            violations += "产品插件禁止组合 modules:test-support"
+        }
+
+        val productPluginXmlText = file("product/idea-plugin/src/main/resources/META-INF/plugin.xml")
+            .readText(Charsets.UTF_8)
+        if (productPluginXmlText.contains("org.cangnova.cangjie.testSupport")) {
+            violations += "产品 plugin.xml 禁止包含 org.cangnova.cangjie.testSupport"
+        }
+
+        if (violations.isNotEmpty()) {
+            throw GradleException(
+                buildString {
+                    appendLine("Architecture guard failed with ${violations.size} violation(s):")
+                    violations.forEach { appendLine(" - $it") }
+                }
+            )
+        }
     }
+}
+
+tasks.register("checkArchitecture") {
+    group = "verification"
+    description = "运行架构守卫检查。"
+    dependsOn(architectureGuard)
+}
+
+tasks.matching { it.name == "check" }.configureEach {
+    dependsOn(architectureGuard)
 }

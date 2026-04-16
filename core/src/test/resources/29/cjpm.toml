@@ -1,3 +1,0 @@
-[workspace]
-members = ["CJson", "Example"]
-build-members = []

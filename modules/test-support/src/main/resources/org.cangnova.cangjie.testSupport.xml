@@ -1,0 +1,8 @@
+<idea-plugin package="org.cangnova.cangjie">
+    <dependencies>
+        <module name="org.cangnova.cangjie.foundation"/>
+        <module name="org.cangnova.cangjie.ide.base"/>
+        <module name="org.cangnova.cangjie.domain.projectModel"/>
+        <module name="org.cangnova.cangjie.domain.toolchain"/>
+    </dependencies>
+</idea-plugin>

@@ -1,0 +1,10 @@
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" package="org.cangnova.cangjie.macro">
+    <dependencies>
+        <module name="org.cangnova.cangjie.foundation"/>
+        <module name="org.cangnova.cangjie.ide.ux"/>
+        <module name="org.cangnova.cangjie.domain.toolchain"/>
+        <module name="org.cangnova.cangjie.domain.projectModel"/>
+    </dependencies>
+
+    <xi:include href="/META-INF/cangjie-macro.xml" xpointer="xpointer(/idea-plugin/*)"/>
+</idea-plugin>

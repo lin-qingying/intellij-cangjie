@@ -7,9 +7,9 @@
         <compositeConfiguration>
           <compositeBuild compositeDefinitionSource="SCRIPT">
             <builds>
-              <build path="$PROJECT_DIR$/buildSrc" name="buildSrc">
+              <build path="$PROJECT_DIR$/build-logic" name="build-logic">
                 <projects>
-                  <project path="$PROJECT_DIR$/buildSrc" />
+                  <project path="$PROJECT_DIR$/build-logic" />
                 </projects>
               </build>
             </builds>
@@ -20,27 +20,27 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/buildSrc" />
-            <option value="$PROJECT_DIR$/cangjie-project" />
-            <option value="$PROJECT_DIR$/cjpm" />
-            <option value="$PROJECT_DIR$/common" />
-            <option value="$PROJECT_DIR$/core" />
-            <option value="$PROJECT_DIR$/debugger" />
-            <option value="$PROJECT_DIR$/debugger/common" />
-            <option value="$PROJECT_DIR$/debugger/dap" />
-            <option value="$PROJECT_DIR$/debugger/protobuf" />
-            <option value="$PROJECT_DIR$/formatter" />
-            <option value="$PROJECT_DIR$/highlighter" />
-            <option value="$PROJECT_DIR$/icon" />
-            <option value="$PROJECT_DIR$/lsp4ij" />
-            <option value="$PROJECT_DIR$/macro" />
-            <option value="$PROJECT_DIR$/messages" />
-            <option value="$PROJECT_DIR$/namedpipe" />
-            <option value="$PROJECT_DIR$/notifications" />
-            <option value="$PROJECT_DIR$/telemetry" />
-            <option value="$PROJECT_DIR$/test-common" />
-            <option value="$PROJECT_DIR$/toolchain" />
-            <option value="$PROJECT_DIR$/util" />
+            <option value="$PROJECT_DIR$/build-logic" />
+            <option value="$PROJECT_DIR$/modules" />
+            <option value="$PROJECT_DIR$/modules/domain" />
+            <option value="$PROJECT_DIR$/modules/domain/package-manager" />
+            <option value="$PROJECT_DIR$/modules/domain/project-model" />
+            <option value="$PROJECT_DIR$/modules/domain/telemetry" />
+            <option value="$PROJECT_DIR$/modules/domain/toolchain" />
+            <option value="$PROJECT_DIR$/modules/foundation" />
+            <option value="$PROJECT_DIR$/modules/ide" />
+            <option value="$PROJECT_DIR$/modules/ide/base" />
+            <option value="$PROJECT_DIR$/modules/ide/debugger-api" />
+            <option value="$PROJECT_DIR$/modules/ide/debugger-dap" />
+            <option value="$PROJECT_DIR$/modules/ide/debugger-proto" />
+            <option value="$PROJECT_DIR$/modules/ide/lsp" />
+            <option value="$PROJECT_DIR$/modules/ide/macro" />
+            <option value="$PROJECT_DIR$/modules/ide/project" />
+            <option value="$PROJECT_DIR$/modules/ide/run" />
+            <option value="$PROJECT_DIR$/modules/ide/ux" />
+            <option value="$PROJECT_DIR$/modules/test-support" />
+            <option value="$PROJECT_DIR$/product" />
+            <option value="$PROJECT_DIR$/product/idea-plugin" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="true" />
