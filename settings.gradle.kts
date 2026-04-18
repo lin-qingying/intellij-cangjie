@@ -95,7 +95,22 @@ dependencyResolutionManagement {
         mavenLocal()
         mavenCentral()
         maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies") }
-        maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
+        maven {
+            url = uri("https://repo.huaweicloud.com/repository/maven/")
+            content {
+                // 复合构建下，根工程源码桥接模块会解析 IntelliJ Platform 的 Maven 工件。
+                // 这些坐标如果先命中通用镜像仓库，Gradle 会把后续工件下载也粘在该仓库上，
+                // 一旦镜像同步滞后，就会把 not-found 结果缓存下来并直接导致 IDEA 同步失败。
+                // 因此这里显式禁止华为云仓库接管 JetBrains 平台相关 group，
+                // 统一交给下面的 intellijPlatform/defaultRepositories 体系解析。
+                excludeGroup("com.jetbrains.intellij.platform")
+                excludeGroup("com.jetbrains.intellij")
+                excludeGroup("com.jetbrains.intellij.remoteDev")
+                excludeGroup("org.jetbrains.intellij")
+                excludeGroup("org.jetbrains.intellij.plugins")
+                excludeGroup("com.intellij.platform")
+            }
+        }
         maven { url = uri("https://jitpack.io") }
         maven {
             name = "CangJieGitHubPackages"

@@ -11,6 +11,6 @@ dependencies {
     implementation(project(":modules:ide:debugger-api"))
     implementation(project(":modules:ide:debugger-dap"))
     implementation(project(":modules:ide:debugger-proto"))
-    implementation(libs.cangjieCommonForIde)
-    implementation(libs.cangjiePsiForIde)
+    compileOnly(libs.cangjieCommonForIde)
+    compileOnly(libs.cangjiePsiForIde)
 }

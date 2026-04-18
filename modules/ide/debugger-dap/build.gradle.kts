@@ -8,7 +8,7 @@ dependencies {
     implementation(project(":modules:domain:project-model"))
     implementation(project(":modules:ide:debugger-api"))
     implementation(project(":modules:ide:base"))
-    implementation(libs.cangjiePsiForIde)
-    implementation(libs.cangjieCommonForIde)
+    compileOnly(libs.cangjiePsiForIde)
+    compileOnly(libs.cangjieCommonForIde)
     implementation(libs.lsp4j.debug)
 }

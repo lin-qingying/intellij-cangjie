@@ -9,14 +9,14 @@ dependencies {
     implementation(project(":modules:domain:project-model"))
     implementation(project(":modules:domain:telemetry"))
 
-    implementation(libs.cangjieCommonForIde)
-    implementation(libs.cangjiePsiForIde)
+    compileOnly(libs.cangjieCommonForIde)
+    compileOnly(libs.cangjiePsiForIde)
 
 
-    implementation(libs.cangjieCfirForIde)
-    implementation(libs.cangjieAnalysisApiForIde)
-    implementation(libs.cangjieAnalysisApiCfirForIde)
-    implementation(libs.cangjieAnalysisApiStandaloneForIde)
+    compileOnly(libs.cangjieCfirForIde)
+    compileOnly(libs.cangjieAnalysisApiForIde)
+    compileOnly(libs.cangjieAnalysisApiCfirForIde)
+    compileOnly(libs.cangjieAnalysisApiStandaloneForIde)
     implementation(libs.bundles.jackson)
     implementation(libs.toml4j)
     implementation(libs.jansi)

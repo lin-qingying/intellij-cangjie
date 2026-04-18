@@ -8,9 +8,9 @@ dependencies {
     implementation(project(":modules:domain:project-model"))
     implementation(project(":modules:domain:telemetry"))
     implementation(project(":modules:ide:base"))
-    implementation(libs.cangjieCommonForIde)
-    implementation(libs.cangjieAnalysisApiForIde)
-    implementation(libs.cangjieAnalysisApiCfirForIde)
+    compileOnly(libs.cangjieCommonForIde)
+    compileOnly(libs.cangjieAnalysisApiForIde)
+    compileOnly(libs.cangjieAnalysisApiCfirForIde)
 
     intellijPlatform {
         plugins("com.redhat.devtools.lsp4ij:0.19.2")

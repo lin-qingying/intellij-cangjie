@@ -9,6 +9,6 @@ dependencies {
     implementation(project(":modules:ide:ux"))
     implementation(project(":modules:ide:run"))
     implementation(project(":modules:ide:base"))
-    implementation(libs.cangjieCommonForIde)
-    implementation(libs.cangjiePsiForIde)
+    compileOnly(libs.cangjieCommonForIde)
+    compileOnly(libs.cangjiePsiForIde)
 }

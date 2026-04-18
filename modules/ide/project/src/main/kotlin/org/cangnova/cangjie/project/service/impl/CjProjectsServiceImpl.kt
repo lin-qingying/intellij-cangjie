@@ -113,9 +113,12 @@ val isNewProjectModelImportEnabled: Boolean
         Storage("misc.xml", deprecated = true)
     ]
 )
+@Service(Service.Level.PROJECT)
 internal class CjProjectsServiceImpl(
-    override val intellijProject: Project, @Suppress("UNUSED_PARAMETER") private val cs: CoroutineScope
+    override val intellijProject: Project,
+    @Suppress("UNUSED_PARAMETER") private val cs: CoroutineScope
 ) : CjProjectsService, PersistentStateComponent<Element>, Disposable {
+
     /**
      * 项目提供者缓存
      *

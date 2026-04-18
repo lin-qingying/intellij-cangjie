@@ -9,8 +9,8 @@ dependencies {
     implementation(project(":modules:domain:telemetry"))
     implementation(project(":modules:ide:debugger-api"))
     implementation(project(":modules:ide:base"))
-    implementation(libs.cangjiePsiForIde)
-    implementation(libs.cangjieCommonForIde)
+    compileOnly(libs.cangjiePsiForIde)
+    compileOnly(libs.cangjieCommonForIde)
     implementation("org.jetbrains.pty4j:pty4j:0.13.11") {
         exclude(group = "net.java.dev.jna")
     }

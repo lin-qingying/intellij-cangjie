@@ -7,6 +7,6 @@ dependencies {
     implementation(project(":modules:domain:toolchain"))
     implementation(project(":modules:domain:project-model"))
     implementation(project(":modules:ide:base"))
-    implementation(libs.cangjieCommonForIde)
-    implementation(libs.cangjiePsiForIde)
+    compileOnly(libs.cangjieCommonForIde)
+    compileOnly(libs.cangjiePsiForIde)
 }
