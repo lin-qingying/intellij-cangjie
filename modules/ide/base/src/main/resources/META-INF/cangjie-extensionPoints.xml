@@ -16,5 +16,8 @@
                         interface="org.cangnova.cangjie.psi.CangJiePsiElementFinderBase"
                         area="IDEA_PROJECT"
                         dynamic="true"/>
+        <extensionPoint qualifiedName="org.cangnova.cangjie.cfir.extensions.cfirExtensionRegistrar"
+                        interface="org.cangnova.cangjie.cfir.extensions.CfirExtensionRegistrarAdapter"
+                        area="IDEA_PROJECT"/>
     </extensionPoints>
 </idea-plugin>

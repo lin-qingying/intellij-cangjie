@@ -55,7 +55,6 @@ import org.cangnova.cangjie.analysis.isInjectedFileShouldBeAnalyzed
 import org.cangnova.cangjie.psi.CjDeclarationContainer
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjFile
-import org.cangnova.cangjie.psi.CjScript
 
 internal class CangJieDiagnosticHighlightVisitor : HighlightVisitor, HighlightRangeExtension {
     /**
@@ -169,7 +168,6 @@ internal class CangJieDiagnosticHighlightVisitor : HighlightVisitor, HighlightRa
         val declarations = when (element) {
             is CjFile -> element.declarations
             is CjDeclarationContainer -> element.declarations
-            is CjScript -> element.declarations
             else -> null
         }
         declarations?.forEach { declaration ->

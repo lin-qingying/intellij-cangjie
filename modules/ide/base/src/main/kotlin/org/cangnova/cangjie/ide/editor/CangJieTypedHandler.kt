@@ -72,7 +72,7 @@ internal object CangJieTypedHandlerHelper {
             val offset = editor.caretModel.offset
             val lastToken = file.findElementAt(offset - 1) ?: return false
             val elementType = lastToken.node.elementType
-            if (elementType === CjTokens.DOT || elementType === CjTokens.SAFE_ACCESS) return true
+            if (elementType === CjTokens.DOT ) return true
             if (elementType === CjTokens.REGULAR_STRING_PART && lastToken.textRange.startOffset == offset - 1) {
                 val prevSibling = lastToken.parent.prevSibling
                 return prevSibling is CjSimpleNameStringTemplateEntry
