@@ -52,7 +52,6 @@ import com.intellij.util.Processor
 import org.jetbrains.annotations.Nls
 import org.cangnova.cangjie.analysis.api.CaSession
 import org.cangnova.cangjie.analysis.api.analyze
-import org.cangnova.cangjie.analysis.api.resolution.singleCallOrNull
 import org.cangnova.cangjie.analysis.api.symbols.CaClassLikeSymbol
 import org.cangnova.cangjie.analysis.api.symbols.CaConstructorSymbol
 import org.cangnova.cangjie.analysis.api.symbols.CaDeclarationSymbol
@@ -107,9 +106,7 @@ class CangJieUnusedHighlightingProcessor(private val cjFile: CjFile)  {
                     return
                 }
 
-                val callInfo = with(session) { expression.resolveToCall() }
-                val resolvedCall = callInfo?.successfulCall ?: callInfo?.singleCallOrNull()
-                val resolvedSymbol = resolvedCall?.target ?: with(session) { expression.resolveToSymbol() }
+                val resolvedSymbol = with(session) { expression.resolveToSymbol() }
 
                 when (resolvedSymbol) {
                     is CaLocalVariableSymbol,
@@ -128,18 +125,16 @@ class CangJieUnusedHighlightingProcessor(private val cjFile: CjFile)  {
             }
 
             override fun visitBinaryExpression(expression: CjBinaryExpression) {
-                val callInfo = with(session) { expression.resolveToCall() } ?: return
-                val resolvedCall = callInfo.successfulCall ?: callInfo.singleCallOrNull() ?: return
-                refHolder.registerLocalRef((resolvedCall.target as? CaDeclarationSymbol)?.psi)
+                val resolvedSymbol = with(session) { expression.operationReference.resolveToSymbol() } ?: return
+                refHolder.registerLocalRef((resolvedSymbol as? CaDeclarationSymbol)?.psi)
             }
 
             override fun visitCallExpression(expression: CjCallExpression) {
                 val callee = expression.calleeExpression ?: return
                 if (callee is CjLambdaExpression || callee is CjCallExpression) return
 
-                val callInfo = with(session) { expression.resolveToCall() } ?: return
-                val resolvedCall = callInfo.successfulCall ?: callInfo.singleCallOrNull() ?: callInfo.calls.firstOrNull() ?: return
-                refHolder.registerLocalRef((resolvedCall.target as? CaDeclarationSymbol)?.psi)
+                val resolvedSymbol = with(session) { expression.resolveToSymbol() } ?: return
+                refHolder.registerLocalRef((resolvedSymbol as? CaDeclarationSymbol)?.psi)
             }
 
             override fun visitArrayAccessExpression(expression: CjArrayAccessExpression) {

@@ -22,6 +22,11 @@
  *
  */
 
+@file:OptIn(
+    org.cangnova.cangjie.analysis.api.CaNonPublicApi::class,
+    org.cangnova.cangjie.psi.CjNonPublicApi::class,
+)
+
 package org.cangnova.cangjie.ide.documentation
 
 import com.intellij.codeInsight.documentation.DocumentationManagerUtil
@@ -36,11 +41,11 @@ import com.intellij.platform.backend.presentation.TargetPresentation
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.createSmartPointer
+import org.cangnova.cangjie.analysis.api.CaNonPublicApi
 import org.cangnova.cangjie.analysis.api.CaSession
 import org.cangnova.cangjie.analysis.api.analyze
-import org.cangnova.cangjie.analysis.api.components.allOverriddenSymbols
+import org.cangnova.cangjie.analysis.api.components.findCDoc
 import org.cangnova.cangjie.analysis.api.components.render
-import org.cangnova.cangjie.analysis.api.symbols.CaCallableSymbol
 import org.cangnova.cangjie.analysis.api.symbols.CaClassLikeSymbol
 import org.cangnova.cangjie.analysis.api.symbols.CaDeclarationSymbol
 import org.cangnova.cangjie.analysis.api.symbols.CaNamedFunctionSymbol
@@ -56,6 +61,8 @@ import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.lexer.cdoc.CDocContent
 import org.cangnova.cangjie.lexer.cdoc.CDocTemplate
 import org.cangnova.cangjie.lexer.cdoc.insert
+import org.cangnova.cangjie.lexer.cdoc.psi.api.CDocCommentDescriptor
+import org.cangnova.cangjie.lexer.cdoc.psi.impl.CDocSection
 import org.cangnova.cangjie.psi.CjCallExpression
 import org.cangnova.cangjie.psi.CjConstructor
 import org.cangnova.cangjie.psi.CjDeclaration
@@ -64,6 +71,7 @@ import org.cangnova.cangjie.psi.CjExpression
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjFunction
 import org.cangnova.cangjie.psi.CjNamedFunction
+import org.cangnova.cangjie.psi.CjNonPublicApi
 import org.cangnova.cangjie.psi.CjSecondaryConstructor
 import org.cangnova.cangjie.psi.CjSimpleNameExpression
 import org.cangnova.cangjie.psi.CjValueArgumentList
@@ -78,7 +86,7 @@ import org.jetbrains.annotations.Nls
  *
  * 文档定义头和正文统一复用前端公开能力：
  * - `CaSymbol.render()`
- * - `CaSymbol.documentation()`
+ * - `CaDeclarationSymbol.findCDoc()`
  */
 internal class CangJieDocumentationTarget(
     val element: PsiElement,
@@ -158,21 +166,9 @@ private fun @receiver:Nls StringBuilder.renderCangJieDeclaration(
 }
 context(_: CaSession)
 private fun findCDoc(symbol: CaSymbol): CDocContent? {
-    val cjElement = symbol.psi?.navigationElement as? CjElement
-    cjElement?.findCDocByPsi()?.let {
-        return it
-    }
-
-    if (symbol is CaCallableSymbol) {
-        symbol.allOverriddenSymbols.forEach { overrider ->
-            findCDoc(overrider)?.let {
-                return it
-            }
-        }
-    }
-
-
-return null
+    val declarationSymbol = symbol as? CaDeclarationSymbol ?: return null
+    val descriptor = declarationSymbol.findCDoc() ?: return null
+    return CDocContent(descriptor.primaryTag, descriptor.additionalSections)
 }
 context(_: CaSession)
 private fun renderCDoc(
@@ -277,7 +273,10 @@ internal fun renderDocumentation(declaration: CjDeclaration): CangJieRenderedDoc
         val symbol = declaration.symbol
         CangJieRenderedDocumentation(
             signature = symbol.render().takeIf { it.isNotBlank() },
-            body = symbol.documentation()?.takeIf { it.isNotBlank() },
+            body = (symbol as? CaDeclarationSymbol)
+                ?.findCDoc()
+                ?.renderToDocumentationString()
+                ?.takeIf { it.isNotBlank() },
         )
     }
 
@@ -289,4 +288,44 @@ private fun String.asDocumentationHtml(): String {
         .replace("\r\n", "\n")
         .replace('\r', '\n')
         .replace("\n", "<br/>")
+}
+
+private fun CDocCommentDescriptor.renderToDocumentationString(): String? {
+    val rendered = buildString {
+        val primaryContent = primaryTag.getContent().trim()
+        if (primaryContent.isNotEmpty()) {
+            append(primaryContent)
+        }
+
+        additionalSections
+            .filterNot { section -> section == primaryTag }
+            .forEach { section ->
+                val renderedSection = section.renderSectionLine()
+                if (renderedSection.isNotEmpty()) {
+                    if (isNotEmpty()) appendLine()
+                    append(renderedSection)
+                }
+            }
+    }
+
+    return rendered.ifBlank { null }
+}
+
+private fun CDocSection.renderSectionLine(): String {
+    val tagName = name ?: return ""
+    val content = getContent().trim()
+    val subjectName = getSubjectName()
+
+    return buildString {
+        append("@")
+        append(tagName)
+        if (!subjectName.isNullOrBlank()) {
+            append(" ")
+            append(subjectName)
+        }
+        if (content.isNotEmpty()) {
+            append(" ")
+            append(content)
+        }
+    }
 }
