@@ -44,6 +44,7 @@ import com.intellij.psi.createSmartPointer
 import org.cangnova.cangjie.analysis.api.CaNonPublicApi
 import org.cangnova.cangjie.analysis.api.CaSession
 import org.cangnova.cangjie.analysis.api.analyze
+import org.cangnova.cangjie.analysis.api.components.containingDeclaration
 import org.cangnova.cangjie.analysis.api.components.findCDoc
 import org.cangnova.cangjie.analysis.api.components.render
 import org.cangnova.cangjie.analysis.api.symbols.CaClassLikeSymbol

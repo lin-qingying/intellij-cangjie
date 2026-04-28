@@ -34,6 +34,19 @@
     <extensions defaultExtensionNs="com.intellij">
 <!--        <highlightVisitor implementation="org.cangnova.cangjie.highlighter.visitor.CangJieUnusedDeclarationHighlightingVisitor"/>-->
 
+        <registryKey
+                key="cangjie.analysis.treeChangePreprocessor.fileProcessingLimit"
+                description="The maximum number of files that the tree change preprocessor will process in a single write action before publishing a global modification event."
+                defaultValue="5"
+                restartRequired="true"
+        />
+
+        <psi.treeChangePreprocessor
+                implementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.CangJieIdeOutOfBlockModificationService$OutOfBlockTreeChangePreprocessor"/>
+
+        <daemon.changeLocalityDetector
+                implementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.CangJieChangeLocalityDetector"/>
+
         <highlightRangeExtension implementation="org.cangnova.cangjie.highlighter.visitor.CangJieDiagnosticHighlightVisitor"/>
         <highlightVisitor implementation="org.cangnova.cangjie.highlighter.visitor.CangJieDiagnosticHighlightVisitor"/>
 

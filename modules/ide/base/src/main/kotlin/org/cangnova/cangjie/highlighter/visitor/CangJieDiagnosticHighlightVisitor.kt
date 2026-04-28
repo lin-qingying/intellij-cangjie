@@ -35,6 +35,7 @@ import com.intellij.openapi.application.readAction
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.TextRange
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.createSmartPointer
 import com.intellij.xml.util.XmlStringUtil
 import com.intellij.platform.util.coroutines.childScope
@@ -44,6 +45,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.cangnova.cangjie.CangJiePluginDisposable
+import org.cangnova.cangjie.analysis.api.CaExperimentalApi
 import org.cangnova.cangjie.analysis.api.analyze
 import org.cangnova.cangjie.analysis.api.components.CaDiagnosticCheckerFilter
 import org.cangnova.cangjie.analysis.api.diagnostics.CaDiagnostic
@@ -52,9 +54,9 @@ import org.cangnova.cangjie.analysis.api.diagnostics.CaSeverity
 import org.cangnova.cangjie.analysis.api.diagnostics.getDefaultMessageWithFactoryName
 import org.cangnova.cangjie.analysis.injectionRequiresOnlyEssentialHighlighting
 import org.cangnova.cangjie.analysis.isInjectedFileShouldBeAnalyzed
-import org.cangnova.cangjie.psi.CjDeclarationContainer
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjFile
+import org.cangnova.cangjie.psi.CjTypeStatement
 
 internal class CangJieDiagnosticHighlightVisitor : HighlightVisitor, HighlightRangeExtension {
     /**
@@ -109,9 +111,12 @@ internal class CangJieDiagnosticHighlightVisitor : HighlightVisitor, HighlightRa
     }
 
     private fun analyzeFile(file: CjFile): Map<PsiElement, List<HighlightInfo.Builder>> = analyze(file) {
-        triggerCollectingDiagnostics(file)
+        // 与 Kotlin K2 一致，仅在开启 warmup 时预热公共诊断缓存。
+        if (Registry.`is`(key = "cangjie.highlighting.warmup", defaultValue = true)) {
+            triggerCollectingDiagnostics(file)
+        }
 
-        val diagnostics = file.collectDiagnostics(CaDiagnosticCheckerFilter.EXTENDED_AND_COMMON_CHECKERS)
+        val diagnostics = file.collectDiagnostics(CaDiagnosticCheckerFilter.ONLY_COMMON_CHECKERS)
         val builders = diagnostics.mapNotNull { diagnostic ->
             val psi = diagnostic.psi ?: return@mapNotNull null
             val ranges = diagnostic.effectiveRanges()
@@ -154,20 +159,21 @@ internal class CangJieDiagnosticHighlightVisitor : HighlightVisitor, HighlightRa
      * 提前预热诊断缓存，减少首次进入编辑器时的停顿。
      * 与 Kotlin K2 的 visitor 一样，按声明容器递归触发 analysis-api 诊断计算。
      */
+    @OptIn(CaExperimentalApi::class)
     private fun triggerCollectingDiagnostics(element: CjElement) {
         val pointer = element.createSmartPointer()
         coroutineScope!!.launch {
             readAction {
                 val declaration = pointer.element as? CjElement ?: return@readAction
                 analyze(declaration) {
-                    declaration.diagnostics(CaDiagnosticCheckerFilter.EXTENDED_AND_COMMON_CHECKERS)
+                    declaration.diagnostics(CaDiagnosticCheckerFilter.ONLY_COMMON_CHECKERS)
                 }
             }
         }
 
         val declarations = when (element) {
             is CjFile -> element.declarations
-            is CjDeclarationContainer -> element.declarations
+            is CjTypeStatement -> element.declarations
             else -> null
         }
         declarations?.forEach { declaration ->

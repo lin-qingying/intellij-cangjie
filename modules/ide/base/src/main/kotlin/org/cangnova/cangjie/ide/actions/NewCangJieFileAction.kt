@@ -329,7 +329,6 @@ internal fun createCangJieFileFromTemplate(name: String, template: FileTemplate,
     val directorySeparators = when (template.name) {
         "CangJie File" -> FILE_SEPARATORS
         "CangJie Worksheet" -> FILE_SEPARATORS
-        "CangJie Script" -> FILE_SEPARATORS
         else -> FQNAME_SEPARATORS
     }
 

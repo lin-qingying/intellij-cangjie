@@ -56,7 +56,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.ui.RowIcon
 import com.intellij.util.PlatformIcons
-
+import org.cangnova.cangjie.utils.rethrowIntellijPlatformExceptionIfNeeded
 import javax.swing.Icon
 
 
@@ -80,8 +80,14 @@ abstract class AbstractCangJieIconProvider : IconProvider(), DumbAware {
             return FILE
         }
         if (psiElement is CjFile) {
-
-            val mainClass = getSingleClass(psiElement)
+            val mainClass = try {
+                getSingleClass(psiElement)
+            } catch (exception: Exception) {
+                rethrowIntellijPlatformExceptionIfNeeded(exception)
+                // 图标查询只是 UI 辅助路径；索引中的旧 stub 由后续重建修复，
+                // 这里不能因为一次长度不一致就阻断项目打开或编辑器初始化。
+                null
+            }
             return if (mainClass != null) getIcon(mainClass, flags) else FILE
         }
 
