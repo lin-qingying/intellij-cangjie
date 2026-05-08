@@ -25,6 +25,7 @@ import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.UsefulTestCase
 import java.io.File
 import java.lang.reflect.Method
+import java.util.regex.Pattern
 
 /**
  * 对位 Kotlin `KotlinTestUtils` 的仓颉测试工具入口。
@@ -35,6 +36,8 @@ import java.lang.reflect.Method
  * 3. 目录/文件名的公共规整逻辑。
  */
 object CangJieTestUtils {
+    private val DIRECTIVE_PATTERN: Pattern = Pattern.compile("^//\\s*[!]?([A-Z0-9_]+)(:[ \\t]*(.*))?$", Pattern.MULTILINE)
+
     @JvmStatic
     fun allowProjectRootAccess(testCase: UsefulTestCase): Ref<Disposable> {
         val repositoryRoot = CangJiePluginTestCaseBase.locateRepositoryRoot().toString()
@@ -59,7 +62,11 @@ object CangJieTestUtils {
 
     @JvmStatic
     fun getTestsRoot(testCaseClass: Class<*>): String {
-        return TestMetadataUtil.getTestData(testCaseClass).toString()
+        return (
+            TestMetadataUtil.getTestData(testCaseClass)
+                ?: TestMetadataUtil.getTestRoot(testCaseClass)
+                ?: CangJiePluginTestCaseBase.locateRepositoryRoot().toFile()
+            ).toString()
     }
 
     @JvmStatic
@@ -83,6 +90,22 @@ object CangJieTestUtils {
     @JvmStatic
     fun getMethodMetadata(method: Method): String? {
         return method.getAnnotation(TestMetadata::class.java)?.value
+    }
+
+    @JvmStatic
+    fun parseDirectives(expectedText: String): Directives {
+        return parseDirectives(expectedText, Directives())
+    }
+
+    @JvmStatic
+    fun parseDirectives(expectedText: String, directives: Directives): Directives {
+        val directiveMatcher = DIRECTIVE_PATTERN.matcher(expectedText)
+        while (directiveMatcher.find()) {
+            val name = directiveMatcher.group(1)
+            val value = directiveMatcher.group(3)
+            directives.put(name, value)
+        }
+        return directives
     }
 
     @JvmStatic

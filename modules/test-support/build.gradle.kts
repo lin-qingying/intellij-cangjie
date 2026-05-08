@@ -24,4 +24,8 @@ dependencies {
     testFixturesImplementation(kotlin("test"))
     testFixturesImplementation("junit:junit:4.13.2")
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:5.12.0")
+
+    testImplementation(testFixtures(project(":modules:test-support")))
+    testImplementation(kotlin("test"))
+    testImplementation("junit:junit:4.13.2")
 }

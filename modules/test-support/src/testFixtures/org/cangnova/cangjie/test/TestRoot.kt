@@ -16,11 +16,9 @@
 
 package org.cangnova.cangjie.test
 
-import org.junit.runner.RunWith
-
 /**
- * 旧测试入口保留为框架级别别名，新的 light fixture 测试应直接继承
- * [CangJieLightPlatformCodeInsightFixtureTestCase] 或 [CangJieLightCodeInsightFixtureTestCase]。
+ * 对位 Kotlin `TestRoot` 的测试数据根目录标记。
  */
-@RunWith(CangJieJUnit4TestRunner::class)
-abstract class CangJieTestBase : CangJieLightPlatformCodeInsightFixtureTestCase()
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.CLASS)
+annotation class TestRoot(val value: String)

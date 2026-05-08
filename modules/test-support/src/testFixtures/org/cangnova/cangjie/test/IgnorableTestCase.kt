@@ -16,11 +16,11 @@
 
 package org.cangnova.cangjie.test
 
-import org.junit.runner.RunWith
-
 /**
- * 旧测试入口保留为框架级别别名，新的 light fixture 测试应直接继承
- * [CangJieLightPlatformCodeInsightFixtureTestCase] 或 [CangJieLightCodeInsightFixtureTestCase]。
+ * 对位 Kotlin `IgnorableTestCase`。
+ *
+ * 用于 generated 测试在“忽略但通过”场景下，把解除忽略的后处理回调交还给测试框架。
  */
-@RunWith(CangJieJUnit4TestRunner::class)
-abstract class CangJieTestBase : CangJieLightPlatformCodeInsightFixtureTestCase()
+interface IgnorableTestCase {
+    var ignoreIsPassedCallback: (() -> Nothing)?
+}

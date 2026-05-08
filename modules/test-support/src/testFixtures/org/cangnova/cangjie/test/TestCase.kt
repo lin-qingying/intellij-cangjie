@@ -16,11 +16,22 @@
 
 package org.cangnova.cangjie.test
 
-import org.junit.runner.RunWith
-
 /**
- * 旧测试入口保留为框架级别别名，新的 light fixture 测试应直接继承
- * [CangJieLightPlatformCodeInsightFixtureTestCase] 或 [CangJieLightCodeInsightFixtureTestCase]。
+ * 仓颉 IntelliJ 测试基类共享的最小测试命名契约。
  */
-@RunWith(CangJieJUnit4TestRunner::class)
-abstract class CangJieTestBase : CangJieLightPlatformCodeInsightFixtureTestCase()
+interface TestCase {
+    val testFileExtension: String
+
+    fun getTestName(lowercaseFirstLetter: Boolean): String
+
+    companion object {
+        @JvmStatic
+        fun camelOrWordsToSnake(name: String): String {
+            if (' ' in name) {
+                return name.trim().replace(" ", "_")
+            }
+
+            return name.split("(?=[A-Z])".toRegex()).joinToString("_", transform = String::lowercase)
+        }
+    }
+}

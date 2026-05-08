@@ -5,7 +5,10 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiManager
 import org.cangnova.cangjie.lang.declarations.CangJieBuiltInFileType
 import org.cangnova.cangjie.psi.CjFile
+import org.cangnova.cangjie.test.CANGJIE_WITH_STDLIB
 import org.cangnova.cangjie.test.CangJieLightCodeInsightFixtureTestCase
+import org.cangnova.cangjie.test.ProjectDescriptorKind
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import kotlin.test.assertEquals
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -17,62 +20,64 @@ import kotlin.test.assertTrue
  * 从而覆盖 `.cjo` 文件类型、binary decompiler、builtins provider 与编辑器打开链路。
  */
 class CangJieCompiledFilesHighlightingTest : CangJieLightCodeInsightFixtureTestCase() {
+    @ProjectDescriptorKind(CANGJIE_WITH_STDLIB)
     fun testStdlibStringResolvesFromConfiguredToolchain() {
-        withToolchainStdlibFixture("std.cjo", "std/std.core.cjo", "std/std.objectpool.cjo") {
-            myFixture.configureByText(
-                "stdlibResolve.cj",
-                """
-                package sample
+        myFixture.configureByText(
+            "stdlibResolve.cj",
+            """
+            package sample
 
-                func greet(name: String): String {
-                    return name
-                }
-                """.trimIndent(),
-            )
-
-            val errors = myFixture.doHighlighting(HighlightSeverity.ERROR)
-            val unresolvedErrors = errors.filter { highlight ->
-                highlight.description?.contains("Unresolved reference", ignoreCase = true) == true
+            func greet(name: String): String {
+                return name
             }
+            """.trimIndent(),
+        )
 
-            assertTrue(
-                unresolvedErrors.isEmpty(),
-                "Configured toolchain stdlib should make `String` resolvable. actual=${unresolvedErrors.mapNotNull { it.description }}",
-            )
+        val errors = myFixture.doHighlighting(HighlightSeverity.ERROR)
+        val unresolvedErrors = errors.filter { highlight ->
+            highlight.description?.contains("Unresolved reference", ignoreCase = true) == true
         }
+
+        assertTrue(
+            unresolvedErrors.isEmpty(),
+            "Configured toolchain stdlib should make `String` resolvable. actual=${unresolvedErrors.mapNotNull { it.description }}",
+        )
     }
 
+    @ProjectDescriptorKind(CANGJIE_WITH_STDLIB)
     fun testStdlibCjoOpensAsDecompiledPsi() {
-        withToolchainStdlibFixture("std.cjo", "std/std.core.cjo", "std/std.objectpool.cjo") { sdkHome ->
-            val cjoPath = sdkHome.resolve("modules").resolve("windows_x86_64_llvm").resolve("std").resolve("std.core.cjo")
-            val virtualFile = requireNotNull(VirtualFileManager.getInstance().findFileByNioPath(cjoPath)) {
-                "Cannot locate builtins file at $cjoPath"
-            }
-            assertTrue(
-                virtualFile.extension == "cjo",
-                "Builtins test input must stay on a real `.cjo` file. actualPath=${virtualFile.path}, actualExtension=${virtualFile.extension}",
-            )
-
-            val psiFile = requireNotNull(PsiManager.getInstance(project).findFile(virtualFile)) {
-                "Decompiler should provide PSI for $cjoPath"
-            }
-            assertTrue(
-                psiFile is CjFile,
-                "Expected decompiled `.cjo` PSI to be CjFile, actual=${psiFile::class.qualifiedName}, fileType=${virtualFile.fileType::class.qualifiedName}/${virtualFile.fileType.name}",
-            )
-            assertEquals(
-                CangJieBuiltInFileType.defaultExtension,
-                psiFile.fileType.defaultExtension,
-                "Decompiled PSI must expose the builtins file type contract. actual=${psiFile.fileType::class.qualifiedName}/${psiFile.fileType.name}",
-            )
-            assertTrue(psiFile.text.isNotBlank(), "Decompiled `.cjo` PSI should expose non-empty text")
-            assertTrue(
-                psiFile.text.contains("String") || psiFile.text.contains("std.core"),
-                "Decompiled `.cjo` PSI should expose stdlib declarations. actual preview=${psiFile.text.take(200)}",
-            )
-
-            myFixture.openFileInEditor(virtualFile)
-            assertSame(virtualFile, myFixture.file.virtualFile)
+        val sdkHome = requireNotNull(CjProjectSdkConfig.getInstance(project).getProjectSdk()?.homePath) {
+            "Project descriptor should configure a CangJie test SDK"
         }
+        val cjoPath = sdkHome.resolve("modules").resolve("windows_x86_64_llvm").resolve("std").resolve("std.core.cjo")
+        val virtualFile = requireNotNull(VirtualFileManager.getInstance().findFileByNioPath(cjoPath)) {
+            "Cannot locate builtins file at $cjoPath"
+        }
+        assertEquals(
+            "cjo",
+            virtualFile.extension,
+            "Builtins test input must stay on a real `.cjo` file. actualPath=${virtualFile.path}, actualExtension=${virtualFile.extension}",
+        )
+
+        val psiFile = requireNotNull(PsiManager.getInstance(project).findFile(virtualFile)) {
+            "Decompiler should provide PSI for $cjoPath"
+        }
+        assertTrue(
+            psiFile is CjFile,
+            "Expected decompiled `.cjo` PSI to be CjFile, actual=${psiFile::class.qualifiedName}, fileType=${virtualFile.fileType::class.qualifiedName}/${virtualFile.fileType.name}",
+        )
+        assertEquals(
+            CangJieBuiltInFileType.defaultExtension,
+            psiFile.fileType.defaultExtension,
+            "Decompiled PSI must expose the builtins file type contract. actual=${psiFile.fileType::class.qualifiedName}/${psiFile.fileType.name}",
+        )
+        assertTrue(psiFile.text.isNotBlank(), "Decompiled `.cjo` PSI should expose non-empty text")
+        assertTrue(
+            psiFile.text.contains("String") || psiFile.text.contains("std.core"),
+            "Decompiled `.cjo` PSI should expose stdlib declarations. actual preview=${psiFile.text.take(200)}",
+        )
+
+        myFixture.openFileInEditor(virtualFile)
+        assertSame(virtualFile, myFixture.file.virtualFile)
     }
 }

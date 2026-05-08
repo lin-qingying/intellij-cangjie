@@ -1,7 +1,7 @@
 package org.cangnova.cangjie.test
 
+import com.intellij.testFramework.LightProjectDescriptor
 import java.io.File
-import java.nio.file.Path
 
 /**
  * 对位 Kotlin `KotlinLightCodeInsightFixtureTestCase` 的仓颉插件 light fixture 基类。
@@ -16,6 +16,8 @@ abstract class CangJieLightCodeInsightFixtureTestCase : CangJieLightCodeInsightF
 
     final override fun getTestDataPath(): String = TestMetadataUtil.getTestDataPath(javaClass)
 
+    override fun getProjectDescriptor(): LightProjectDescriptor = getProjectDescriptorFromAnnotation()
+
     override fun fileName(): String =
         CangJieTestUtils.getTestDataFileName(javaClass, name) ?: super.fileName()
 
@@ -23,12 +25,14 @@ abstract class CangJieLightCodeInsightFixtureTestCase : CangJieLightCodeInsightF
 
     protected fun dataFilePath(fileName: String = fileName()): String = dataFile(fileName).path
 
-    protected fun <T> withToolchainStdlibFixture(
-        vararg relativeStdlibPaths: String,
-        action: (sdkHome: Path) -> T,
-    ): T {
-        val sdkHome = CangJiePluginTestCaseBase.createSlimToolchainHome(*relativeStdlibPaths)
-        CangJiePluginTestCaseBase.registerProjectToolchain(project, myFixture.testRootDisposable, sdkHome)
-        return action(sdkHome)
+    protected open fun getDefaultProjectDescriptor(): CangJieLightProjectDescriptor = CangJieLightProjectDescriptor.INSTANCE
+
+    protected fun getProjectDescriptorFromAnnotation(): LightProjectDescriptor {
+        val testMethod = this::class.java.getDeclaredMethod(name)
+        return when (testMethod.getAnnotation(ProjectDescriptorKind::class.java)?.value) {
+            CANGJIE_WITH_STDLIB -> CangJieStdlibLightProjectDescriptor.INSTANCE
+            null -> getDefaultProjectDescriptor()
+            else -> error("Unknown value for project descriptor kind")
+        }
     }
 }

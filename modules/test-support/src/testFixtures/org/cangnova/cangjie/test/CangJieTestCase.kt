@@ -16,11 +16,10 @@
 
 package org.cangnova.cangjie.test
 
-import org.junit.runner.RunWith
-
 /**
- * 旧测试入口保留为框架级别别名，新的 light fixture 测试应直接继承
- * [CangJieLightPlatformCodeInsightFixtureTestCase] 或 [CangJieLightCodeInsightFixtureTestCase]。
+ * 仓颉源码测试默认使用 `.cj` 作为主扩展名。
  */
-@RunWith(CangJieJUnit4TestRunner::class)
-abstract class CangJieTestBase : CangJieLightPlatformCodeInsightFixtureTestCase()
+interface CangJieTestCase : TestCase {
+    override val testFileExtension: String
+        get() = "cj"
+}

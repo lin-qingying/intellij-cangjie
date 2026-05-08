@@ -16,11 +16,8 @@
 
 package org.cangnova.cangjie.test
 
-import org.junit.runner.RunWith
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION)
+annotation class ProjectDescriptorKind(val value: String)
 
-/**
- * 旧测试入口保留为框架级别别名，新的 light fixture 测试应直接继承
- * [CangJieLightPlatformCodeInsightFixtureTestCase] 或 [CangJieLightCodeInsightFixtureTestCase]。
- */
-@RunWith(CangJieJUnit4TestRunner::class)
-abstract class CangJieTestBase : CangJieLightPlatformCodeInsightFixtureTestCase()
+const val CANGJIE_WITH_STDLIB = "CANGJIE_WITH_STDLIB"

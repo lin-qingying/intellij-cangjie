@@ -39,7 +39,6 @@ import kotlin.test.asserter
 @Suppress("LeakingThis")
 @RunWith(CangJieJUnit4TestRunner::class)
 abstract class CangJieLightPlatformCodeInsightFixtureTestCase : BasePlatformTestCase(), CangJieTestCase {
-    open val dataPath: String = ""
     private var vfsDisposable = Ref<Disposable>()
 
     override fun setUp() {
@@ -49,7 +48,7 @@ abstract class CangJieLightPlatformCodeInsightFixtureTestCase : BasePlatformTest
 
     override fun getProjectDescriptor(): LightProjectDescriptor = CangJieLightProjectDescriptor.INSTANCE
 
-    override fun getTestDataPath(): String = "${TestCase.testResourcesPath}/$dataPath"
+    override fun getTestDataPath(): String = TestMetadataUtil.getTestDataPath(javaClass)
 
     protected open fun fileName(): String =
         CangJieTestUtils.getTestDataFileName(javaClass, name) ?: "$testName.$testFileExtension"

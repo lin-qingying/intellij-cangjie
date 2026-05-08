@@ -19,8 +19,7 @@ package org.cangnova.cangjie.test
 import org.junit.runner.RunWith
 
 /**
- * 旧测试入口保留为框架级别别名，新的 light fixture 测试应直接继承
- * [CangJieLightPlatformCodeInsightFixtureTestCase] 或 [CangJieLightCodeInsightFixtureTestCase]。
+ * 不依赖 IntelliJ 平台容器的纯单元测试基类。
  */
 @RunWith(CangJieJUnit4TestRunner::class)
-abstract class CangJieTestBase : CangJieLightPlatformCodeInsightFixtureTestCase()
+abstract class CangJieNoPlatformTestBase : junit.framework.TestCase()

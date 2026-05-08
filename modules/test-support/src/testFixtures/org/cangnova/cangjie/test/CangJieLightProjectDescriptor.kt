@@ -16,6 +16,9 @@
 
 package org.cangnova.cangjie.test
 
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.roots.ContentEntry
+import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.testFramework.LightProjectDescriptor
 
 /**
@@ -28,6 +31,8 @@ import com.intellij.testFramework.LightProjectDescriptor
  * toolchain / stdlib / builtins 等仓颉输入由更高层夹具显式注入。
  */
 open class CangJieLightProjectDescriptor protected constructor() : LightProjectDescriptor() {
+    override fun configureModule(module: Module, model: ModifiableRootModel, contentEntry: ContentEntry) = Unit
+
     companion object {
         @JvmField
         val INSTANCE: CangJieLightProjectDescriptor = CangJieLightProjectDescriptor()

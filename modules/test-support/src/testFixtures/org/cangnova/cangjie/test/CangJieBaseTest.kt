@@ -50,11 +50,3 @@ open class CangJieBaseTest {
         override fun toString(): String = name
     }
 }
-
-/**
- * 仓颉测试文件附带的文本指令集合。
- *
- * 先保留为显式框架类型，后续更高层 generated 测试补入真实字段，
- * 避免直接把未建模数据退化成 `Map<String, String>` 之类的临时结构。
- */
-open class Directives
