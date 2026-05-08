@@ -28,6 +28,17 @@
     <!-- 启用 JPS 插件支持 -->
     <extensions defaultExtensionNs="com.intellij">
         <jps.plugin/>
+
+        <facetType implementation="org.cangnova.cangjie.facet.CangJieFacetTypeImpl"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.facet.CangJieFacetSettingsProvider"
+                serviceImplementation="org.cangnova.cangjie.facet.CangJieFacetSettingsProviderImpl"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.facet.CangJieFacetEditorProviderService"
+                serviceImplementation="org.cangnova.cangjie.ide.base.compilerPreferences.CangJieFacetEditorProviderServiceImpl"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.projectStructure.CangJieProjectStructureProviderService"
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.CaIdeProjectStructureProviderService"/>
     </extensions>
 
     <!-- 注册 JPS 模型序列化扩展 -->
@@ -53,5 +64,9 @@
         <!-- 仓颉测试资源根 -->
         <sourceRootEditHandler
             implementation="org.cangnova.cangjie.config.CangJieTestResourceRootEditHandler"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="org.cangnova.cangjie">
+        <versionInfoProvider implementation="org.cangnova.cangjie.ide.base.compilerPreferences.facet.CangJieVersionInfoProviderByModuleDependencies"/>
     </extensions>
 </idea-plugin>

@@ -1,23 +1,20 @@
 <idea-plugin>
     <extensionPoints>
-        <extensionPoint qualifiedName="org.cangnova.cangjie.cjoProvider"
-                        interface="org.cangnova.cangjie.cjo.CjoProvider"
-                        dynamic="true"/>
         <extensionPoint qualifiedName="org.cangnova.cangjie.newFileHook"
                         interface="org.cangnova.cangjie.ide.actions.NewCangJieFileHook"
                         dynamic="true"/>
+        <extensionPoint qualifiedName="org.cangnova.cangjie.facetConfigurationExtension"
+                        interface="org.cangnova.cangjie.facet.CangJieFacetConfigurationExtension"/>
+        <extensionPoint qualifiedName="org.cangnova.cangjie.facetValidatorCreator"
+                        interface="org.cangnova.cangjie.ide.base.compilerPreferences.facet.CangJieFacetValidatorCreator"/>
+        <extensionPoint qualifiedName="org.cangnova.cangjie.versionInfoProvider"
+                        interface="org.cangnova.cangjie.facet.CangJieVersionInfoProvider"/>
         <extensionPoint qualifiedName="org.cangnova.cangjie.projectConfigurator"
                         interface="org.cangnova.cangjie.ide.configuration.CangJieProjectConfigurator"
-                        dynamic="true"/>
-        <extensionPoint qualifiedName="org.cangnova.cangjie.diagnosticRendererProvider"
-                        interface="org.cangnova.cangjie.diagnostics.rendering.DiagnosticRendererProvider"
                         dynamic="true"/>
         <extensionPoint qualifiedName="cn.cangnova.cangjie.psi.elementFinder"
                         interface="org.cangnova.cangjie.psi.CangJiePsiElementFinderBase"
                         area="IDEA_PROJECT"
                         dynamic="true"/>
-        <extensionPoint qualifiedName="org.cangnova.cangjie.cfir.extensions.cfirExtensionRegistrar"
-                        interface="org.cangnova.cangjie.cfir.extensions.CfirExtensionRegistrarAdapter"
-                        area="IDEA_PROJECT"/>
     </extensionPoints>
 </idea-plugin>

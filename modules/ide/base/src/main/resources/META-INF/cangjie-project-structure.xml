@@ -1,0 +1,30 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <extensionPoint
+                name="cangjieNotUnderContentRootModuleFactory"
+                interface="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.CaNotUnderContentRootModuleFactory"
+                dynamic="true"/>
+        <projectService
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.provider.CaIdeProjectStructureProviderCache"/>
+        <projectService
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.provider.CaIdeProjectStructureState"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.platform.projectStructure.CangJieProjectStructureProvider"
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.provider.CaIdeProjectStructureProvider"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.platform.projectStructure.CaModuleProvider"
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.provider.CaIdeModuleProvider"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.platform.projectStructure.CaResolutionScopeProvider"
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.provider.CaIdeResolutionScopeProvider"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.platform.projectStructure.CangJieModuleDependentsProvider"
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.CaIdeModuleDependentsProvider"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.platform.modification.CaModificationTracker"
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.provider.CaIdeModificationTracker"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.platform.modification.CaSessionInvalidationService"
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.provider.CaIdeSessionInvalidationService"/>
+    </extensions>
+</idea-plugin>

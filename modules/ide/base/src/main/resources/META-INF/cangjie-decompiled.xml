@@ -1,0 +1,20 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <filetype.decompiler
+                filetype="cjo"
+                implementationClass="org.cangnova.cangjie.analysis.decompiled.psi.CaCjoBinaryFileDecompiler"/>
+        <applicationService
+                serviceInterface="org.cangnova.cangjie.analysis.api.decompiled.CaBuiltinsVirtualFileProvider"
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysis.builtins.CaIdeBuiltinsVirtualFileProviderImpl"/>
+        <projectService serviceImplementation="org.cangnova.cangjie.analysis.decompiled.filestubs.CaDecompiledBinarySupport"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.decompiled.CaDecompiledBinaryIndex"
+                serviceImplementation="org.cangnova.cangjie.analysis.decompiled.CaDecompiledBinaryIndexImpl"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.decompiled.CaDecompiledPsiProvider"
+                serviceImplementation="org.cangnova.cangjie.analysis.decompiled.CaDecompiledPsiProviderImpl"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.decompiled.CaDecompiledTextRenderer"
+                serviceImplementation="org.cangnova.cangjie.analysis.decompiled.CaDecompiledTextRendererImpl"/>
+    </extensions>
+</idea-plugin>

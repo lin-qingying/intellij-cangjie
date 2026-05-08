@@ -46,9 +46,6 @@
                 id="language.cangjie"
                 bundle="messages.CangJieBundle"
                 key="CangJie"/>
-        <projectService
-                serviceInterface="org.cangnova.cangjie.project.service.CjProjectsService"
-                serviceImplementation="org.cangnova.cangjie.project.service.impl.CjProjectsServiceImpl"/>
         <toolWindow
                 id="CangJie Projects"
                 factoryClass="org.cangnova.cangjie.project.ui.toolwindow.CjProjectToolWindowFactory"
@@ -75,6 +72,9 @@
                      description="Delay in milliseconds before project refresh after IDE startup"
                      defaultValue="500"
                      restartRequired="false"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.project.service.CjProjectsService"
+                serviceImplementation="org.cangnova.cangjie.project.service.impl.CjProjectsServiceImpl"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.cangnova.cangjie">

@@ -25,13 +25,12 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
         <!-- 宿主声明语言壳，具体实现来自上游 frontend-psi -->
+        <lang.parserDefinition
+            language="CangJie"
+            implementationClass="org.cangnova.cangjie.parsing.CangJieParserDefinition"/>
         <projectService
             serviceInterface="com.intellij.psi.impl.file.PsiDirectoryFactory"
             serviceImplementation="org.cangnova.cangjie.psi.impl.CangJieDirectoryFactory"
             overrides="true"/>
-
-        <lang.parserDefinition
-            language="CangJie"
-            implementationClass="org.cangnova.cangjie.parsing.CangJieParserDefinition"/>
     </extensions>
 </idea-plugin>

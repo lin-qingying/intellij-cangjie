@@ -1,0 +1,37 @@
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+    <!--
+      IDE 产品插件只编排 IDE 版 Analysis API 宿主层。
+      CLI/headless 专用的 decompiled 服务由 analysis 模块自有描述符承载，不能继续透传进 IDEA 插件，
+      否则会与 intellij-ide 自己的 cangjie-decompiled.xml 重复注册。
+    -->
+    <xi:include href="/META-INF/analysis-api/cangjie-analysis-api-impl-base.xml"/>
+    <xi:include href="/META-INF/analysis-api/cangjie-analysis-stubs.xml"/>
+    <xi:include href="/META-INF/analysis-api/cangjie-low-level-api-cfir.xml"/>
+    <xi:include href="/META-INF/analysis-api/cangjie-symbol-light-declarations.xml"/>
+
+    <extensions defaultExtensionNs="org.cangnova.cangjie">
+        <psiReferenceProvider implementation="org.cangnova.cangjie.analysis.api.cfir.references.CaCfirSimpleNameReference$Provider"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.session.CaSessionProvider"
+                serviceImplementation="org.cangnova.cangjie.analysis.api.cfir.session.CaCfirSessionProvider"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.platform.modification.CaSourceModificationService"
+                serviceImplementation="org.cangnova.cangjie.analysis.api.cfir.modification.CaCfirSourceModificationService"/>
+    </extensions>
+
+    <projectListeners>
+        <listener
+                class="org.cangnova.cangjie.analysis.api.cfir.session.CaCfirSessionProvider$SessionInvalidationListener"
+                topic="org.cangnova.cangjie.analysis.low.level.api.cfir.sessions.LLCfirSessionInvalidationListener"/>
+    </projectListeners>
+
+    <extensionPoints>
+        <extensionPoint
+                qualifiedName="org.cangnova.cangjie.cfir.extensions.cfirExtensionRegistrar"
+                interface="org.cangnova.cangjie.cfir.extensions.CfirExtensionRegistrarAdapter"
+                area="IDEA_PROJECT"/>
+    </extensionPoints>
+</idea-plugin>

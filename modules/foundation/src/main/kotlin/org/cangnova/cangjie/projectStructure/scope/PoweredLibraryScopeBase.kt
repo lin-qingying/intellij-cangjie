@@ -30,6 +30,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.NewVirtualFile
 import com.intellij.openapi.vfs.newvfs.NewVirtualFileSystem
+import it.unimi.dsi.fastutil.objects.Object2IntMap
 
 /**
  * 顶层包名提供者接口
@@ -153,13 +154,13 @@ interface TopPackageNamesProvider {
  * @see TopPackageNamesProvider
  * @see LibraryWithoutSourceScope
  */
-  open class PoweredLibraryScopeBase(
+open class PoweredLibraryScopeBase(
     project: Project,
-   val classes: Array<VirtualFile>,
-    sources: Array<VirtualFile>,
+    val classes: Array<VirtualFile>,
+    private val sourceRoots: Array<VirtualFile>,
     override val topPackageNames: Set<String>?,
     private val entriesVirtualFileSystems: Set<NewVirtualFileSystem>?
-) : LibraryScopeBase(project, classes, sources), TopPackageNamesProvider {
+) : LibraryScopeBase(project, classes, sourceRoots), TopPackageNamesProvider, CombinableSourceAndClassRootsScope {
 
     @Deprecated("Use the primary constructor", level = DeprecationLevel.HIDDEN)
     constructor(project: Project, classes: Array<VirtualFile>, sources: Array<VirtualFile>) : this(
@@ -178,58 +179,17 @@ interface TopPackageNamesProvider {
         }
         return super.contains(file)
     }
-}
 
-/**
- * 可组合的源码和类文件根作用域接口
- *
- * 该接口定义了能够暴露其根目录的作用域，使其可以与其他作用域组合。
- * 这是一个内部接口，用于优化多个作用域的组合查找。
- *
- * ## 设计目的
- *
- * 当需要在多个库作用域中查找文件时，将所有作用域的根目录合并到一个
- * [CombinedSourceAndClassRootsScope] 中，可以显著提升查找性能。
- *
- * ## 使用场景
- *
- * - **多库查找**: 同时在多个库中查找符号
- * - **性能优化**: 避免重复遍历多个作用域
- * - **作用域组合**: 创建复合作用域
- */
-interface CombinableSourceAndClassRootsScope {
-    /**
-     * 根目录映射
-     *
-     * 映射从虚拟文件到其在内部索引中的位置。
-     * 这个映射用于快速定位文件所属的根目录。
-     *
-     * @return 根目录到索引位置的映射
-     */
-    val roots: List<VirtualFile>
+    override val roots: Object2IntMap<VirtualFile>
+        get() = (classes + sourceRoots).toCollection(LinkedHashSet()).toObject2IndexMap()
 
-    /**
-     * 相关的模块集合
-     *
-     * 对于纯库作用域，通常返回空集合。
-     * 对于模块相关的作用域，返回相关联的模块。
-     *
-     * @return 模块集合，可能为空
-     */
-    val modules: Set<Module>
+    override val modules: Set<Module>
+        get() = emptySet()
 
-    /**
-     * 是否包含库的类文件根目录
-     *
-     * @return true 如果包含类文件根目录
-     */
-    val includesLibraryClassRoots: Boolean
+    override val includesLibraryClassRoots: Boolean
+        get() = classes.isNotEmpty()
 
-    /**
-     * 是否包含库的源文件根目录
-     *
-     * @return true 如果包含源文件根目录
-     */
-    val includesLibrarySourceRoots: Boolean
+    override val includesLibrarySourceRoots: Boolean
+        get() = sourceRoots.isNotEmpty()
 }
 

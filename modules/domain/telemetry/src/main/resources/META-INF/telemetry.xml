@@ -30,9 +30,6 @@
                            displayType="STICKY_BALLOON"
                            bundle="messages.TelemetryBundle"
                            key="notification.group.title.enable.telemetry"/>
-
-        <!-- Telemetry Settings -->
-        <applicationService serviceImplementation="org.cangnova.telemetry.TelemetrySettings"/>
         <applicationConfigurable
                 parentId="tools"
                 key="settings.telemetry.display.name"
@@ -42,12 +39,6 @@
 
         />
 
-        <!-- Telemetry Services -->
-        <applicationService serviceImplementation="org.cangnova.telemetry.data.TelemetryDataCollector"/>
-        <applicationService serviceImplementation="org.cangnova.telemetry.sender.TelemetryDataSender"/>
-        <applicationService serviceImplementation="org.cangnova.telemetry.impl.DefaultTelemetryService"
-                            serviceInterface="org.cangnova.telemetry.api.TelemetryService"/>
-
         <!-- Startup Activities -->
         <postStartupActivity implementation="org.cangnova.telemetry.TelemetryStartupActivity"/>
 
@@ -56,6 +47,15 @@
                            displayType="BALLOON"
                            bundle="messages.TelemetryBundle"
                            key="notification.group.cangjie.title"/>
+
+        <!-- Telemetry Settings -->
+        <applicationService serviceImplementation="org.cangnova.telemetry.TelemetrySettings"/>
+
+        <!-- Telemetry Services -->
+        <applicationService serviceImplementation="org.cangnova.telemetry.data.TelemetryDataCollector"/>
+        <applicationService serviceImplementation="org.cangnova.telemetry.sender.TelemetryDataSender"/>
+        <applicationService serviceImplementation="org.cangnova.telemetry.impl.DefaultTelemetryService"
+                            serviceInterface="org.cangnova.telemetry.api.TelemetryService"/>
     </extensions>
 
     <actions>

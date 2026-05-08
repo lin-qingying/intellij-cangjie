@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.toolchain.api
 
 import com.intellij.openapi.application.ApplicationManager
-import org.cangnova.cangjie.toolchain.impl.CjSdkRegistryImpl
 import java.nio.file.Path
 
 /**
@@ -122,7 +121,7 @@ interface CjSdkRegistry {
         @JvmStatic
         fun getInstance(): CjSdkRegistry {
             return ApplicationManager.getApplication()
-                .getService(CjSdkRegistryImpl::class.java)
+                .getService(CjSdkRegistry::class.java)
         }
     }
 }

@@ -1,13 +1,13 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
-        <applicationService
-                serviceInterface="org.cangnova.cangjie.ide.debugger.CodeFragmentContextTuner"
-                serviceImplementation="org.cangnova.cangjie.ide.debugger.CangJieCodeFragmentContextTuner"/>
         <projectConfigurable instance="org.cangnova.cangjie.debugger.configurable.DebuggerConfigurable"
                              parentId="language.cangjie"
                              groupId="language.cangjie"
                              id="language.cangjie.debugger"
                              bundle="messages.DebuggerBundle"
                              key="debugger.configurable.title"/>
+        <applicationService
+                serviceInterface="org.cangnova.cangjie.ide.debugger.CodeFragmentContextTuner"
+                serviceImplementation="org.cangnova.cangjie.ide.debugger.CangJieCodeFragmentContextTuner"/>
     </extensions>
 </idea-plugin>

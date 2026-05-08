@@ -28,7 +28,17 @@
     <extensionPoint qualifiedName="org.cangnova.cangjie.cangjieInjectedFilesAnalysisProvider"
                     interface="org.cangnova.cangjie.analysis.CangJieIdeInjectedFilesAnalysisPromoter"
                     dynamic="true"/>
+    <extensionPoint qualifiedName="org.cangnova.cangjie.resolveScopeEnlarger"
+                    interface="org.cangnova.cangjie.projectStructure.CangJieResolveScopeEnlarger"
+                    dynamic="true"/>
 </extensionPoints>
+
+<extensions defaultExtensionNs="org.cangnova.cangjie">
+    <cangjieContentScopeRefiner implementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.scopes.CaIdeResolveScopeEnlargerBridge"/>
+    <cangjieGlobalSearchScopeMergeStrategy implementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.scopes.CaIdeUnionScopeMergeStrategy"/>
+    <cangjieGlobalSearchScopeMergeStrategy implementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.scopes.CaIdeIntersectionScopeMergeStrategy"/>
+    <cangjieGlobalSearchScopeMergeStrategy implementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.scopes.CaIdeCombinableSourceAndClassRootsScopeMergeStrategy"/>
+</extensions>
 
 
     <extensions defaultExtensionNs="com.intellij">
@@ -49,11 +59,24 @@
 
         <highlightRangeExtension implementation="org.cangnova.cangjie.highlighter.visitor.CangJieDiagnosticHighlightVisitor"/>
         <highlightVisitor implementation="org.cangnova.cangjie.highlighter.visitor.CangJieDiagnosticHighlightVisitor"/>
-
-
-
-
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.platform.declarations.CangJieDeclarationProviderFactory"
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.CaIdeDeclarationProviderFactory"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.platform.declarations.CangJieDeclarationProviderMerger"
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.CaIdeDeclarationProviderMerger"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.platform.packages.CangJiePackageProviderFactory"
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.CaIdePackageProviderFactory"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.platform.packages.CangJiePackageProviderMerger"
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.CaIdePackageProviderMerger"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.platform.declarations.CangJieAnnotationsResolverFactory"
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.CaIdeAnnotationsResolverFactory"/>
     </extensions>
+
+    <xi:include href="/META-INF/cangjie-project-structure.xml"/>
     <!-- 宿主只负责编排，analysis 实现完全来自上游 -->
-    <xi:include href="/META-INF/analysis-api/cangjie-analysis-api-cfir.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-ide-analysis-api-cfir.xml"/>
 </idea-plugin>

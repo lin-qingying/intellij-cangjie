@@ -5,5 +5,10 @@
                   implementationClass="org.cangnova.cangjie.lang.CangJieFileType"
                   extensions="cj"
                   fieldName="INSTANCE"/>
+
+        <fileType name="cjo"
+                  implementationClass="org.cangnova.cangjie.lang.declarations.CangJieBuiltInFileType"
+                  extensions="cjo"
+                  fieldName="INSTANCE"/>
     </extensions>
 </idea-plugin>

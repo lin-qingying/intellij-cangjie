@@ -1,3 +1,3 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-    <xi:include href="/META-INF/protodebugger.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/protodebugger.xml"/>
 </idea-plugin>

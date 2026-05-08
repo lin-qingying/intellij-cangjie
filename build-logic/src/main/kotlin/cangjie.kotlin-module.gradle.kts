@@ -5,6 +5,11 @@ plugins {
     id("org.gradle.test-retry")
 }
 
+dependencies {
+    // 统一补齐 Vintage，引导 IntelliJ 插件侧仍然沿用的 JUnit3/JUnit4 测试基类进入 JUnit Platform。
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.10.0")
+}
+
 kotlin {
     jvmToolchain(21)
 }

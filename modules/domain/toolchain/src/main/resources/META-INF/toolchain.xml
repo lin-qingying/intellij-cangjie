@@ -23,18 +23,6 @@
   -->
 
 <idea-plugin>
-    <!-- 服务定义 -->
-    <extensions defaultExtensionNs="com.intellij">
-        <!-- SDK 注册中心服务 -->
-        <applicationService
-                serviceImplementation="org.cangnova.cangjie.toolchain.impl.CjSdkRegistryImpl"/>
-
-        <!-- 项目 SDK 配置服务 -->
-        <projectService
-                serviceInterface="org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig"
-                serviceImplementation="org.cangnova.cangjie.toolchain.impl.CjProjectSdkConfigImpl"/>
-    </extensions>
-
     <!-- 扩展点定义 -->
     <extensionPoints>
         <!-- SDK 检测器扩展点 -->
@@ -58,5 +46,18 @@
 
         <!-- 默认 SDK 发现器 -->
         <sdkDiscoverer implementation="org.cangnova.cangjie.toolchain.impl.CjSdkDiscovererImpl"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- 服务定义 -->
+        <!-- SDK 注册中心服务 -->
+        <applicationService
+                serviceInterface="org.cangnova.cangjie.toolchain.api.CjSdkRegistry"
+                serviceImplementation="org.cangnova.cangjie.toolchain.impl.CjSdkRegistryImpl"/>
+
+        <!-- 项目 SDK 配置服务 -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig"
+                serviceImplementation="org.cangnova.cangjie.toolchain.impl.CjProjectSdkConfigImpl"/>
     </extensions>
 </idea-plugin>

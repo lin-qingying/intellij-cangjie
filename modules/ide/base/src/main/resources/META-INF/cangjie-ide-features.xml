@@ -33,7 +33,6 @@
 
         <highlightingPassFactory
             implementation="org.cangnova.cangjie.highlighter.CangJieBeforeResolveHighlightingPass$Registrar"/>
-
         <applicationService
             serviceInterface="org.cangnova.cangjie.psi.CangJieDeclarationNavigationPolicy"
             serviceImplementation="org.cangnova.cangjie.ide.navigation.CangJieDeclarationNavigationPolicyImpl"/>

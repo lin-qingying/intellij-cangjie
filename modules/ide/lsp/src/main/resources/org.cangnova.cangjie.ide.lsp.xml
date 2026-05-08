@@ -23,5 +23,5 @@
                 key="CangJie.languageServer.astanalyzer"/>
     </extensions>
 
-    <xi:include href="/org.cangnova.cangjie.lsp4ij.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/org.cangnova.cangjie.lsp4ij.xml"/>
 </idea-plugin>

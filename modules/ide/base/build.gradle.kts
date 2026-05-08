@@ -1,5 +1,13 @@
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+
 plugins {
     id("cangjie.intellij-module")
+}
+
+dependencies {
+    intellijPlatform {
+        testFramework(TestFrameworkType.Platform)
+    }
 }
 
 dependencies {
@@ -21,5 +29,12 @@ dependencies {
     implementation(libs.toml4j)
     implementation(libs.jansi)
     testImplementation(testFixtures(project(":modules:test-support")))
+    testImplementation(libs.junit4)
     testImplementation(kotlin("test"))
+    testImplementation(libs.cangjieCommonForIde)
+    testImplementation(libs.cangjiePsiForIde)
+    testImplementation(libs.cangjieCfirForIde)
+    testImplementation(libs.cangjieAnalysisApiForIde)
+    testImplementation(libs.cangjieAnalysisApiCfirForIde)
+    testImplementation(libs.cangjieAnalysisApiStandaloneForIde)
 }

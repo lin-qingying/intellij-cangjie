@@ -1,5 +1,13 @@
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+
 plugins {
     id("cangjie.intellij-product")
+}
+
+dependencies {
+    intellijPlatform {
+        testFramework(TestFrameworkType.Platform)
+    }
 }
 
 dependencies {
@@ -36,4 +44,13 @@ dependencies {
     runtimeOnly("org.slf4j:slf4j-api:2.0.13")
     runtimeOnly("org.slf4j:slf4j-simple:2.0.13")
 
+    testImplementation(testFixtures(project(":modules:test-support")))
+    testImplementation(libs.junit4)
+    testImplementation(kotlin("test"))
+    testImplementation(libs.cangjieCommonForIde)
+    testImplementation(libs.cangjiePsiForIde)
+    testImplementation(libs.cangjieCfirForIde)
+    testImplementation(libs.cangjieAnalysisApiForIde)
+    testImplementation(libs.cangjieAnalysisApiCfirForIde)
+    testImplementation(libs.cangjieAnalysisApiStandaloneForIde)
 }

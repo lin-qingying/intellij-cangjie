@@ -52,10 +52,10 @@
                 implementation="org.cangnova.cangjie.run.CangJieBuildTaskRunner"
                 id="CangJieBuildTaskRunner"
                 order="first"/>
-        <projectService
-                serviceImplementation="org.cangnova.cangjie.run.CangJieBuildSessionsQueueManager"/>
         <notificationGroup
                 id="CangJie Build"
                 displayType="BALLOON"/>
+        <projectService
+                serviceImplementation="org.cangnova.cangjie.run.CangJieBuildSessionsQueueManager"/>
     </extensions>
 </idea-plugin>

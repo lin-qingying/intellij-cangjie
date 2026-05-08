@@ -27,9 +27,11 @@ package org.cangnova.cangjie.ide.documentation
 import com.intellij.lang.documentation.ide.IdeDocumentationTargetProvider
 import com.intellij.platform.backend.documentation.impl.computeDocumentationBlocking
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import org.cangnova.cangjie.CangJieTestBase
+import org.cangnova.cangjie.test.CangJieLightPlatformCodeInsightFixtureTestCase
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
 
-class CangJieQuickDocumentationTest : CangJieTestBase() {
+class CangJieQuickDocumentationTest : CangJieLightPlatformCodeInsightFixtureTestCase() {
 
     fun testTopLevelFunctionDocumentation() {
         val html = configureAndRender(
@@ -146,7 +148,7 @@ class CangJieQuickDocumentationTest : CangJieTestBase() {
 
         val provider = CangJieInlineDocumentationProvider()
         val items = provider.inlineDocumentationItems(file)
-        assertSize(1, items)
+        assertEquals(1, items.size)
 
         val item = items.single()
         val text = item.renderText()

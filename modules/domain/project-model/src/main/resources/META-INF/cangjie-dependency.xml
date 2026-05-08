@@ -25,18 +25,17 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
         <!-- Application-level services -->
+        <!-- External Library Roots Provider: Display dependencies in project view -->
+<!--        <additionalLibraryRootsProvider-->
+<!--                implementation="org.cangnova.cangjie.dependency.ui.CjDependencyLibraryRootsProvider"/>-->
+        <!-- Project-level services -->
         <projectService
                 serviceInterface="org.cangnova.cangjie.project.service.CjDependencyService"
                 serviceImplementation="org.cangnova.cangjie.project.service.impl.CjDependencyServiceImpl"/>
 
-        <!-- Project-level services -->
         <projectService
                 serviceInterface="org.cangnova.cangjie.registry.CjPackageRegistry"
                 serviceImplementation="org.cangnova.cangjie.registry.impl.CjPackageRegistryImpl"/>
-
-        <!-- External Library Roots Provider: Display dependencies in project view -->
-<!--        <additionalLibraryRootsProvider-->
-<!--                implementation="org.cangnova.cangjie.dependency.ui.CjDependencyLibraryRootsProvider"/>-->
     </extensions>
 
     <extensionPoints>

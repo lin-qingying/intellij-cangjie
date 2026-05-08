@@ -11,16 +11,16 @@
         <plugin id="com.redhat.devtools.lsp4ij"/>
     </dependencies>
 
-    <xi:include href="/org.cangnova.cangjie.domain.toolchain.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/org.cangnova.cangjie.domain.projectModel.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/org.cangnova.cangjie.domain.packageManager.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/org.cangnova.cangjie.domain.telemetry.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/org.cangnova.cangjie.ide.ux.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/org.cangnova.cangjie.ide.base.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/org.cangnova.cangjie.ide.project.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/org.cangnova.cangjie.ide.run.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/org.cangnova.cangjie.ide.lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/org.cangnova.cangjie.ide.debuggerApi.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/org.cangnova.cangjie.ide.debuggerDap.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/org.cangnova.cangjie.ide.debuggerProto.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/org.cangnova.cangjie.domain.toolchain.xml"/>
+    <xi:include href="/org.cangnova.cangjie.domain.projectModel.xml"/>
+    <xi:include href="/org.cangnova.cangjie.domain.packageManager.xml"/>
+    <xi:include href="/org.cangnova.cangjie.domain.telemetry.xml"/>
+    <xi:include href="/org.cangnova.cangjie.ide.ux.xml"/>
+    <xi:include href="/org.cangnova.cangjie.ide.base.xml"/>
+    <xi:include href="/org.cangnova.cangjie.ide.project.xml"/>
+    <xi:include href="/org.cangnova.cangjie.ide.run.xml"/>
+    <xi:include href="/org.cangnova.cangjie.ide.lsp.xml"/>
+    <xi:include href="/org.cangnova.cangjie.ide.debuggerApi.xml"/>
+    <xi:include href="/org.cangnova.cangjie.ide.debuggerDap.xml"/>
+    <xi:include href="/org.cangnova.cangjie.ide.debuggerProto.xml"/>
 </idea-plugin>

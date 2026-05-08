@@ -24,11 +24,9 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity implementation="org.cangnova.cangjie.CangJieStartupActivity"/>
-
         <projectService
             serviceInterface="org.cangnova.cangjie.NotPropertiesService"
             serviceImplementation="org.cangnova.cangjie.ide.intentions.NotPropertiesServiceImpl"/>
-
         <applicationService
             serviceInterface="org.cangnova.cangjie.ide.CangJieIconProviderService"
             serviceImplementation="org.cangnova.cangjie.ide.CangJieIconProviderService$CompilerCangJieFileIconProviderService"/>
