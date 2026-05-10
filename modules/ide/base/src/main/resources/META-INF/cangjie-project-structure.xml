@@ -15,9 +15,6 @@
                 serviceInterface="org.cangnova.cangjie.analysis.api.platform.projectStructure.CaModuleProvider"
                 serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.provider.CaIdeModuleProvider"/>
         <projectService
-                serviceInterface="org.cangnova.cangjie.analysis.api.platform.projectStructure.CaResolutionScopeProvider"
-                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.provider.CaIdeResolutionScopeProvider"/>
-        <projectService
                 serviceInterface="org.cangnova.cangjie.analysis.api.platform.projectStructure.CangJieModuleDependentsProvider"
                 serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.CaIdeModuleDependentsProvider"/>
         <projectService

@@ -6,6 +6,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.workspace.jps.entities.LibraryId
 import com.intellij.platform.workspace.jps.entities.ModuleId
+import com.intellij.platform.workspace.storage.EntityStorage
 import org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.modules.CaIdeBuiltinsModule
 import org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.modules.CaIdeLibraryFallbackDependenciesModule
 import org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.modules.library.CaIdeLibraryModule
@@ -49,6 +50,22 @@ class CaIdeProjectStructureProviderCache(
         builder: () -> CaIdeLibraryModule,
     ): CaIdeLibraryModule {
         return libraryModulesByKey.computeIfAbsent(libraryId) { builder() }
+    }
+
+    internal fun removeLibraryBinaryModule(libraryId: LibraryId) {
+        libraryModulesByKey.remove(libraryId)
+        librarySourceModulesByKey.remove(LibrarySourceKey(libraryId))
+        fallbackDependencyModulesByOwnerKey.remove("ide-library:${libraryId.presentableName}")
+    }
+
+    internal fun removeInvalidEntries(snapshot: EntityStorage) {
+        productionSourceModulesById.keys.removeIf { moduleId -> moduleId.resolve(snapshot) == null }
+        testSourceModulesById.keys.removeIf { moduleId -> moduleId.resolve(snapshot) == null }
+
+        val invalidLibraryIds = libraryModulesByKey.keys
+            .filter { libraryId -> libraryId.resolve(snapshot) == null }
+
+        invalidLibraryIds.forEach(::removeLibraryBinaryModule)
     }
 
     internal fun cachedLibrarySourceModule(

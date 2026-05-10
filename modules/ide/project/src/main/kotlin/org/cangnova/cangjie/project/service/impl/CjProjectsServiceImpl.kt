@@ -60,6 +60,9 @@ import org.cangnova.cangjie.project.task.CangJieProjectSyncTask
 import org.cangnova.cangjie.project.workspace.CjWorkspaceModelSync
 import org.cangnova.cangjie.result.CjProcessResult
 import org.cangnova.cangjie.task.taskQueue
+import org.cangnova.cangjie.toolchain.api.CANGJIE_PROJECT_SDK_CONFIG_TOPIC
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfigChangedEvent
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfigListener
 import org.cangnova.cangjie.utils.*
 import org.jdom.Element
 import java.util.concurrent.CompletableFuture
@@ -268,6 +271,14 @@ internal class CjProjectsServiceImpl(
                 object : ModuleListener {
 
                 })
+            subscribe(
+                CANGJIE_PROJECT_SDK_CONFIG_TOPIC,
+                object : CjProjectSdkConfigListener {
+                    override fun projectSdkChanged(event: CjProjectSdkConfigChangedEvent) {
+                        refreshProject()
+                    }
+                },
+            )
 
         }
 

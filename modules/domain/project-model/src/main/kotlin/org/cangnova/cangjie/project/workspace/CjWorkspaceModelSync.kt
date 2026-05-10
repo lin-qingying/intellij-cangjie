@@ -45,6 +45,7 @@ import org.cangnova.cangjie.config.CangJieSourceRootTypes
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.project.model.*
 import org.cangnova.cangjie.project.service.CjDependencyService
+import org.cangnova.cangjie.projectStructure.CangJieProjectStructureProviderService
 import org.cangnova.cangjie.project.workspace.compat.ExcludeUrlCompat
 import org.cangnova.cangjie.project.workspace.compat.SourceRootCompat
 import org.cangnova.cangjie.project.workspace.compat.createExcludeUrl
@@ -82,6 +83,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
 
     companion object {
         private val LOG: Logger = logger<CjWorkspaceModelSync>()
+        private const val STDLIB_LIBRARY_NAME: String = "stdlib"
 
         /**
          * 模块名称前缀，用于避免与其他插件的模块名称冲突
@@ -97,6 +99,11 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
         LegacyBridgeJpsEntitySourceFactory.Companion
             .getInstance(intellijProject)
             .createEntitySourceForModule(contentRootUrl, CANGJIE_EXTERNAL_SOURCE)
+
+    private fun createCangJieProjectLibraryEntitySource(): EntitySource =
+        LegacyBridgeJpsEntitySourceFactory.Companion
+            .getInstance(intellijProject)
+            .createEntitySourceForProjectLibrary(CANGJIE_EXTERNAL_SOURCE)
 
     private fun isCangJieEntitySource(
         entitySource: EntitySource,
@@ -154,6 +161,8 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
             // 清理所有相关的旧模块（包括单模块和工作空间模块）
             cleanupAllProjectModules(storage, project)
         }
+
+        syncProjectStdlibLibrary(storage, project)
 
         // 增量更新：只删除/更新/添加变化的模块
         if (project.isWorkspace) {
@@ -256,6 +265,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
         workspaceModel.update("Sync CangJie Projects") {
             it.applyChangesFrom(storage)
         }
+        CangJieProjectStructureProviderService.getInstance(intellijProject).incOutOfBlockModificationCount()
 
         // 同步完成后，将 IntelliJ Module 关联到 CjModule
         associateIntelliJModules(project)
@@ -384,6 +394,106 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
     }
 
     /**
+     * stdlib 的来源真相是 project SDK 的 stdlib 目录。
+     *
+     * 因此项目结构同步必须先把该目录注册为稳定的项目级共享库，
+     * 后续各模块只允许引用这份库实体，不能在模块依赖构建时临时创建第二份。
+     */
+    private fun syncProjectStdlibLibrary(builder: MutableEntityStorage, project: CjProject) {
+        val sdk = intellijProject.cjSdk
+        val stdlibDirectory = sdk?.stdlibPath?.toFile()
+        val expectedLibraryName = sdk?.let(::stdlibLibraryName)
+        val projectLibraryTableId = LibraryTableId.ProjectLibraryTableId
+
+        val projectStdlibLibraries = builder.entities(LibraryEntity::class.java)
+            .filter { library ->
+                library.tableId == projectLibraryTableId &&
+                    isStdlibLibraryName(library.name)
+            }
+            .toList()
+
+        val staleStdlibLibraries = projectStdlibLibraries.filter { it.name != expectedLibraryName }
+        staleStdlibLibraries.forEach { library ->
+            LOG.info("Removing stale stdlib library entity: ${library.name}")
+            builder.removeEntity(library)
+        }
+
+        if (sdk == null) {
+            LOG.info("Project SDK is not configured, skipping stdlib library registration")
+            return
+        }
+
+        if (stdlibDirectory == null || !stdlibDirectory.exists() || !stdlibDirectory.isDirectory) {
+            LOG.warn("Stdlib directory does not exist for SDK `${sdk.name}`: ${sdk.stdlibPath}")
+            projectStdlibLibraries
+                .filterNot { it in staleStdlibLibraries }
+                .forEach { library ->
+                    LOG.info("Removing unavailable stdlib library entity: ${library.name}")
+                    builder.removeEntity(library)
+                }
+            return
+        }
+
+        val libraryName = expectedLibraryName ?: return
+        val libraryTableId = LibraryTableId.ProjectLibraryTableId
+        val urlManager = WorkspaceModel.getInstance(intellijProject).getVirtualFileUrlManager()
+        val entitySource = createCangJieProjectLibraryEntitySource()
+        val classesRoots = mutableListOf<LibraryRoot>()
+        val sourcesRoots = mutableListOf<LibraryRoot>()
+
+        addPackageRoots(stdlibDirectory, classesRoots, sourcesRoots, urlManager)
+
+        if (classesRoots.isEmpty()) {
+            LOG.warn(
+                "Stdlib directory `${stdlibDirectory.absolutePath}` for SDK `${sdk.name}` does not provide any classes roots"
+            )
+            projectStdlibLibraries
+                .filterNot { it in staleStdlibLibraries }
+                .forEach { library ->
+                    LOG.info("Removing unusable stdlib library entity: ${library.name}")
+                    builder.removeEntity(library)
+                }
+            return
+        }
+
+        val expectedRoots = classesRoots + sourcesRoots
+        val existingLibrary = builder.entities(LibraryEntity::class.java)
+            .firstOrNull { it.name == libraryName && it.tableId == libraryTableId }
+
+        if (existingLibrary != null) {
+            if (existingLibrary.roots.toSet() == expectedRoots.toSet()) {
+                return
+            }
+
+            LOG.info("Refreshing stdlib library entity `${existingLibrary.name}` for SDK `${sdk.name}`")
+            builder.removeEntity(existingLibrary)
+        }
+
+        builder.addEntity(
+            LibraryEntity(
+                name = libraryName,
+                tableId = libraryTableId,
+                roots = expectedRoots,
+                entitySource = entitySource
+            )
+        )
+
+        LOG.info("Registered stdlib project library `$libraryName` from SDK `${sdk.name}`")
+    }
+
+    private fun stdlibLibraryName(sdk: org.cangnova.cangjie.toolchain.api.CjSdk): String {
+        return PackageId(
+            name = STDLIB_LIBRARY_NAME,
+            version = CjVersion(sdk.version?.semver?.parsedVersion),
+            sourceId = SourceId.Stdlib
+        ).toString()
+    }
+
+    private fun isStdlibLibraryName(libraryName: String): Boolean {
+        return libraryName.startsWith("$STDLIB_LIBRARY_NAME:") && libraryName.endsWith("@${SourceId.Stdlib.shortName}")
+    }
+
+    /**
      * 解析模块的依赖图
      *
      * 从指定模块开始解析完整的依赖图，如果解析失败则返回 null。
@@ -478,6 +588,11 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                 return true
             }
 
+            if (hasUnresolvedLibraryDependencies(builder, existingEntity)) {
+                LOG.debug("Library dependencies contain unresolved workspace library id for ${cjModule.name}")
+                return true
+            }
+
             // 4. 比较依赖
             val (expectedModuleDeps, expectedLibraryDeps) = buildAllDependencies(
                 builder,
@@ -513,6 +628,26 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
             LOG.warn("Failed to compare module content for ${cjModule.name}, will update", e)
             return true
         }
+    }
+
+    /**
+     * 现有模块依赖必须只引用当前 workspace storage 内真实存在的库实体。
+     *
+     * stdlib 会随 project SDK 变化被删除或重建；如果模块依赖还指向旧的 `LibraryId`，
+     * 这里必须强制重建模块，避免 analysis project-structure 消费到悬空引用。
+     */
+    private fun hasUnresolvedLibraryDependencies(
+        builder: MutableEntityStorage,
+        existingEntity: ModuleEntity,
+    ): Boolean {
+        val libraries = builder.entities(LibraryEntity::class.java).toList()
+        return existingEntity.dependencies
+            .filterIsInstance<LibraryDependency>()
+            .any { dependency ->
+                libraries.none { library ->
+                    library.name == dependency.library.name && library.tableId == dependency.library.tableId
+                }
+            }
     }
 
     /**
@@ -1142,8 +1277,8 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
      * 根据已解析的依赖信息创建 LibraryEntity 和 LibraryDependency。
      *
      * ## LibraryTableId 选择策略
-     * - Stdlib 依赖：使用 ProjectLibraryTableId（项目级库，所有模块共享）
-     * - 其他依赖（Git, Path, Binary 等）：使用 ModuleLibraryTableId（模块级库）
+     * - Stdlib 依赖：只引用由 SDK 预先注册好的项目级共享库
+     * - 其他依赖（Git, Path, Binary 等）：按现有规则创建独立库实体
      *
      * @param builder 可变的实体存储构建器
      * @param dependency 原始依赖
@@ -1159,20 +1294,18 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
         entitySource: EntitySource,
         moduleName: String
     ): LibraryDependency? {
+        if (resolved is CjPackage.Stdlib) {
+            return createStdlibLibraryDependency(builder, dependency, resolved)
+        }
+
         val urlManager = WorkspaceModel.getInstance(intellijProject).getVirtualFileUrlManager()
 
         // 生成库的唯一名称
         val libraryName = resolved.id.toString()
 
         // 根据依赖类型选择 LibraryTableId
-        // - Stdlib 使用 ProjectLibraryTableId（项目级库，所有模块共享）
-        // - 其他依赖使用 ModuleLibraryTableId（模块级库）
-        val isStdlib = resolved is CjPackage.Stdlib
-        val libraryTableId: LibraryTableId = if (isStdlib) {
-            LibraryTableId.ProjectLibraryTableId
-        } else {
-            LibraryTableId.ModuleLibraryTableId(ModuleId(moduleName))
-        }
+        // - 非 Stdlib 依赖使用 ModuleLibraryTableId（模块级库）
+        val libraryTableId: LibraryTableId = LibraryTableId.ModuleLibraryTableId(ModuleId(moduleName))
 
         // 检查库是否已存在
         val existingLibrary = builder.entities(LibraryEntity::class.java)
@@ -1223,14 +1356,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
             }
 
             is CjPackage.Stdlib -> {
-                // Stdlib 依赖：从 SDK 路径获取
-                val stdlibDir = resolved.path.toFile()
-                if (stdlibDir.exists() && stdlibDir.isDirectory) {
-                    addPackageRoots(stdlibDir, classesRoots, sourcesRoots, urlManager)
-                } else {
-                    LOG.warn("Stdlib path does not exist: ${resolved.path}")
-                    return null
-                }
+                error("Stdlib must be handled by createStdlibLibraryDependency before entering generic library creation")
             }
 
             is CjPackage.Failed -> {
@@ -1282,11 +1408,39 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
             )
         )
 
-        LOG.info("Created library entity: $libraryName (tableId=${if (isStdlib) "Project" else "Module:$moduleName"}) with ${classesRoots.size} classes, ${sourcesRoots.size} sources, ${javadocRoots.size} docs")
+        LOG.info("Created library entity: $libraryName (tableId=Module:$moduleName) with ${classesRoots.size} classes, ${sourcesRoots.size} sources, ${javadocRoots.size} docs")
 
         // 返回库依赖
         return LibraryDependency(
             library = LibraryId(libraryName, libraryTableId),
+            exported = false,
+            scope = mapDependencyScope(dependency.scope)
+        )
+    }
+
+    /**
+     * stdlib 依赖只允许引用已存在的项目级共享库。
+     */
+    private fun createStdlibLibraryDependency(
+        builder: MutableEntityStorage,
+        dependency: CjDependency,
+        resolved: CjPackage.Stdlib,
+    ): LibraryDependency? {
+        val sdk = intellijProject.cjSdk ?: return null
+        val libraryId = LibraryId(stdlibLibraryName(sdk), LibraryTableId.ProjectLibraryTableId)
+        val existingLibrary = builder.entities(LibraryEntity::class.java)
+            .firstOrNull { it.name == libraryId.name && it.tableId == libraryId.tableId }
+
+        if (existingLibrary == null) {
+            LOG.warn(
+                "Stdlib project library `${libraryId.presentableName}` is missing, " +
+                    "dependency `${dependency.name}` (${resolved.id}) cannot be registered"
+            )
+            return null
+        }
+
+        return LibraryDependency(
+            library = libraryId,
             exported = false,
             scope = mapDependencyScope(dependency.scope)
         )

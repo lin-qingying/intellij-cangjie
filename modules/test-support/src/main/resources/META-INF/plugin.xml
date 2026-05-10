@@ -1,0 +1,17 @@
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+    <id>org.cangnova.cangjie.testSupport</id>
+    <name>CangJie Test Support</name>
+
+    <dependencies>
+        <plugin id="com.intellij.modules.platform"/>
+        <plugin id="com.intellij.modules.json"/>
+        <plugin id="org.toml.lang"/>
+        <plugin id="com.intellij.copyright"/>
+    </dependencies>
+
+    <xi:include href="/org.cangnova.cangjie.domain.toolchain.xml"/>
+    <xi:include href="/org.cangnova.cangjie.domain.projectModel.xml"/>
+    <xi:include href="/org.cangnova.cangjie.domain.telemetry.xml"/>
+    <xi:include href="/org.cangnova.cangjie.ide.ux.xml"/>
+    <xi:include href="/org.cangnova.cangjie.ide.base.xml"/>
+</idea-plugin>

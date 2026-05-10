@@ -22,7 +22,7 @@ class CaIdeDeclarationProviderFactory(
     private val project: Project,
 ) : CangJieDeclarationProviderFactory {
     override fun createDeclarationProvider(scope: GlobalSearchScope, contextualModule: CaModule?): CangJieDeclarationProvider {
-        val files = CaIdeScopeCangJieFileCollector(project).collect(scope)
+        val files = CaIdeScopeCangJieFileCollector(project).collect(scope, includeCompiledFiles = false)
         if (files.isEmpty()) return CangJieEmptyDeclarationProvider
 
         return CangJieCompositeDeclarationProvider.create(files.map(::CangJieFileBasedDeclarationProvider))

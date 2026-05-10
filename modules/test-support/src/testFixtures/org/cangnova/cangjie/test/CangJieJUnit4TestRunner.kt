@@ -37,7 +37,7 @@ open class CangJieJUnit4TestRunner(
     private val declaringTestClass: Class<*>,
 ) : BlockJUnit4ClassRunner(declaringTestClass) {
     override fun computeTestMethods(): List<FrameworkMethod> =
-        addJUnit3Methods(super.computeTestMethods(), declaringTestClass)
+        addJUnit3Methods(super.computeTestMethods(), getTestClass().getJavaClass())
 
     companion object {
         fun addJUnit3Methods(junit4Methods: List<FrameworkMethod>, testClass: Class<*>): List<FrameworkMethod> {
@@ -74,7 +74,8 @@ open class CangJieJUnit4TestRunner(
                 method.name.startsWith("test") &&
                 method.returnType == Void.TYPE &&
                 Modifier.isPublic(method.modifiers) &&
-                method.getAnnotation(org.junit.Test::class.java) == null
+                method.getAnnotation(org.junit.Test::class.java) == null &&
+                method.getAnnotation(org.junit.Ignore::class.java) == null
         }
     }
 }

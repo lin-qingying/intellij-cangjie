@@ -37,7 +37,7 @@
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                         Stub 构建器组件                                   │
 │  ┌────────────────────────────────────────────────────────────────────┐ │
-│  │                   ClsStubBuilderComponents                         │ │
+│  │                   CjoStubBuilderContext                            │ │
 │  │  - Project                                                         │ │
 │  │  - PackageMetadataRegistry (跨包查找)                               │ │
 │  │  - ClassDataFinder                                                 │ │
@@ -47,7 +47,7 @@
 │                                    │                                     │
 │                                    ▼                                     │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐  │
-│  │ ClassClsStub    │  │ CallableClsStub │  │   TypeClsStubBuilder    │  │
+│  │ ClassCjoStub    │  │ CallableCjoStub │  │   TypeCjoStubBuilder    │  │
 │  │ Builder         │  │ Builder         │  │   (类型引用构建)         │  │
 │  └────────┬────────┘  └────────┬────────┘  └───────────┬─────────────┘  │
 │           │                    │                       │                 │
@@ -84,7 +84,7 @@ abstract class CangJieMetadataDecompiler<out V : BinaryVersion>(
     private val expectedBinaryVersion: () -> V,
     private val invalidBinaryVersion: () -> V,
     stubVersion: Int
-) : ClassFileDecompilers.Full()
+) : CjoFileDecompilers.Full()
 ```
 
 **核心职责**：
@@ -351,14 +351,14 @@ class PackageMetadataRegistry(private val project: Project) : Disposable {
 
 ### 3.5 类型引用构建
 
-#### 3.5.1 TypeClsStubBuilder
+#### 3.5.1 TypeCjoStubBuilder
 
 负责创建类型引用的 Stub：
 
 ```kotlin
-class TypeClsStubBuilder(
+class TypeCjoStubBuilder(
     private val parentStub: StubElement<out PsiElement>,
-    private val context: ClsStubBuilderContext
+    private val context: CjoStubBuilderContext
 ) {
     /**
      * 创建用户类型 Stub
@@ -410,7 +410,7 @@ CjUserType (最外层)
 1. IDE 触发 Stub 构建 (文件索引)
    │
    ▼
-2. ClassFileDecompilers.findDecompiler(virtualFile)
+2. CjoFileDecompilers.find(virtualFile, CjoFileDecompilers.Full::class.java)
    │ 匹配 CangJieBuiltInDecompiler 或 CangJieMetadataDecompiler
    │
    ▼
@@ -434,17 +434,17 @@ CjUserType (最外层)
    │  registry.registerPackage(packageWrapper)
    │
    ├─ 创建组件
-   │  ClsStubBuilderComponents(project, registry, ...)
+   │  CjoStubBuilderContext(packageFqName, ...)
    │
    └─ 创建声明 Stubs
       │
       ├─ 顶层函数/变量: createPackageDeclarationsStubs()
-      ├─ 类声明: ClassClsStubBuilder.build()
-      ├─ 扩展声明: ExtendClsStubBuilder.build()
-      └─ 类型别名: TypeAliasClsStubBuilder.build()
+      ├─ 类声明: ClassCjoStubBuilder.build()
+      ├─ 扩展声明: ExtendCjoStubBuilder.build()
+      └─ 类型别名: TypeAliasCjoStubBuilder.build()
       │
       ▼
-5. 类型引用解析 (TypeClsStubBuilder)
+5. 类型引用解析 (TypeCjoStubBuilder)
    │
    ├─ extractTypeInfo(typeWrapper, context)
    │  │
@@ -530,8 +530,8 @@ ResolveResult.Success(
 
 - [x] 创建 `PackageMetadataRegistry` 基础实现
 - [x] 创建 `FullIdResolver` 跨包解析
-- [x] 更新 `ClsStubBuilderComponents` 添加必要参数
-- [x] 更新 `TypeClsStubBuilder.extractTypeInfo` 返回完整解析结果
+- [x] 更新 `CjoStubBuilderContext` 添加必要参数
+- [x] 更新 `TypeCjoStubBuilder.extractTypeInfo` 返回完整解析结果
 - [x] 实现 `createUserTypeStub` 支持限定名
 - [x] 更新 `CangJieMetadataStubBuilder` 传递参数
 - [ ] 重构 `PackageMetadataRegistry` 使用 IntelliJ 缓存系统
@@ -553,16 +553,16 @@ ResolveResult.Success(
 | `PackageWrapper.kt` | 包装器定义 |
 | `PackageMetadataRegistry.kt` | 包元数据注册表 |
 | `FullIdResolver.kt` | FullId 解析器 |
-| `TypeClsStubBuilder.kt` | 类型 Stub 构建 |
-| `ClsStubBuilderComponents.kt` | 构建上下文组件 |
+| `TypeCjoStubBuilder.kt` | 类型 Stub 构建 |
+| `CjoStubBuilderContext.kt` | 构建上下文组件 |
 
 ### 辅助文件
 
 | 文件 | 职责 |
 |------|------|
-| `ClassClsStubBuilder.kt` | 类声明 Stub 构建 |
-| `CallableClsStubBuilder.kt` | 函数/变量 Stub 构建 |
-| `clsStubBuilding.kt` | 通用 Stub 构建工具 |
+| `ClassCjoStubBuilder.kt` | 类声明 Stub 构建 |
+| `CallableCjoStubBuilder.kt` | 函数/变量 Stub 构建 |
+| `cjoStubBuilding.kt` | 通用 Stub 构建工具 |
 | `CjDecompiledFile.kt` | 反编译文件 PSI |
 | `CangJieDecompiledFileViewProvider.kt` | 文件视图提供者 |
 

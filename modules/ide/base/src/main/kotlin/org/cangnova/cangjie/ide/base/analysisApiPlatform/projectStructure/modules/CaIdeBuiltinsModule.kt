@@ -2,7 +2,7 @@ package org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.modul
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
-import org.cangnova.cangjie.analysis.api.decompiled.CaBuiltinsVirtualFileProvider
+import org.cangnova.cangjie.analysis.decompiled.psi.BuiltinsVirtualFileProvider
 import org.cangnova.cangjie.analysis.api.projectStructure.CaBuiltinsModule
 
 /**
@@ -21,7 +21,7 @@ internal class CaIdeBuiltinsModule(
         get() = false
 
     override val contentScope: GlobalSearchScope
-        get() = CaBuiltinsVirtualFileProvider.getInstance().createBuiltinsScope(project)
+        get() = BuiltinsVirtualFileProvider.getInstance().createBuiltinsScope(project)
 
     override val moduleDescription: String
         get() = "IDE builtins"

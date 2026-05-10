@@ -62,11 +62,9 @@ object CangJieTestUtils {
 
     @JvmStatic
     fun getTestsRoot(testCaseClass: Class<*>): String {
-        return (
-            TestMetadataUtil.getTestData(testCaseClass)
-                ?: TestMetadataUtil.getTestRoot(testCaseClass)
-                ?: CangJiePluginTestCaseBase.locateRepositoryRoot().toFile()
-            ).toString()
+        return requireNotNull(TestMetadataUtil.getTestData(testCaseClass)) {
+            "No metadata for class: $testCaseClass"
+        }.toString()
     }
 
     @JvmStatic

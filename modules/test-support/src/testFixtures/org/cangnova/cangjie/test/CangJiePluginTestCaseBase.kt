@@ -5,7 +5,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.registerServiceInstance
+import org.cangnova.cangjie.toolchain.api.CANGJIE_PROJECT_SDK_CONFIG_TOPIC
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfigChangedEvent
 import org.cangnova.cangjie.toolchain.api.CjSdk
 import org.cangnova.cangjie.toolchain.api.CjSdkRegistry
 import java.nio.file.Files
@@ -71,13 +73,21 @@ object CangJiePluginTestCaseBase {
         override fun refreshSdk(id: String): CjSdk? = sdkCache[id]
     }
 
-    private class TestCjProjectSdkConfig : CjProjectSdkConfig {
+    private class TestCjProjectSdkConfig(
+        private val project: Project,
+    ) : CjProjectSdkConfig {
         private var sdkId: String? = null
 
         override fun getProjectSdkId(): String? = sdkId
 
         override fun setProjectSdkId(sdkId: String?) {
+            val oldSdkId = this.sdkId
+            if (oldSdkId == sdkId) return
+
             this.sdkId = sdkId
+            project.messageBus
+                .syncPublisher(CANGJIE_PROJECT_SDK_CONFIG_TOPIC)
+                .projectSdkChanged(CjProjectSdkConfigChangedEvent(oldSdkId, sdkId))
         }
 
         override fun getProjectSdk(): CjSdk? {
@@ -110,7 +120,7 @@ object CangJiePluginTestCaseBase {
             application.registerServiceInstance(CjSdkRegistry::class.java, TestCjSdkRegistry())
         }
         if (project.getService(CjProjectSdkConfig::class.java) == null) {
-            project.registerServiceInstance(CjProjectSdkConfig::class.java, TestCjProjectSdkConfig())
+            project.registerServiceInstance(CjProjectSdkConfig::class.java, TestCjProjectSdkConfig(project))
         }
     }
 

@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.ide
 
 
+import org.cangnova.cangjie.analysis.decompiled.psi.file.CjDecompiledFile
 import org.cangnova.cangjie.icon.CangJieIcons.ABSTRACT_CLASS
 import org.cangnova.cangjie.icon.CangJieIcons.ABSTRACT_EXTENSION_FUNCTION
 import org.cangnova.cangjie.icon.CangJieIcons.CLASS

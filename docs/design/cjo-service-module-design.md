@@ -20,7 +20,7 @@
 │                          Stub 构建层                                  │
 │  (analysis/decompiler-to-psi)                                        │
 ├──────────────────────────────────────────────────────────────────────┤
-│  PackageMetadataRegistry ──── FullIdResolver ──── TypeClsStubBuilder │
+│  PackageMetadataRegistry ──── FullIdResolver ──── TypeCjoStubBuilder │
 │  (简单缓存，未完整实现)                                                │
 └────────────────────────────────┬─────────────────────────────────────┘
                                  │ 重复加载
@@ -220,8 +220,8 @@ class CjoFullIdResolverImpl(
 #### 3.3.1 Stub 构建层集成
 
 ```kotlin
-// ClsStubBuilderComponents 使用 CjoPackageService
-class ClsStubBuilderComponents(
+// CjoStubBuilderContext 使用 CjoPackageService
+class CjoStubBuilderContext(
     val project: Project,
     val packageService: CjoPackageService,  // 替换原来的 registry
     val currentPackage: PackageWrapper,
@@ -374,7 +374,7 @@ private fun loadAndCachePackage(
 |------|------|
 | `PackageMetadataRegistry` | 重构为使用 `CjoPackageService` 或删除 |
 | `FullIdResolver` | 重构为实现 `CjoFullIdResolver` 接口 |
-| `ClsStubBuilderComponents` | 使用 `CjoPackageService` |
+| `CjoStubBuilderContext` | 使用 `CjoPackageService` |
 | `CangJieMetadataStubBuilder` | 使用 `CjoPackageService` |
 
 ## 7. 模块结构
@@ -438,7 +438,7 @@ descriptors/deserialization
 ### 阶段 2: 集成现有代码
 - [ ] 重构 `PackageMetadataRegistry` 为使用 `CjoPackageService`
 - [ ] 重构 `FullIdResolver` 实现 `CjoFullIdResolver` 接口
-- [ ] 更新 `ClsStubBuilderComponents` 使用新服务
+- [ ] 更新 `CjoStubBuilderContext` 使用新服务
 - [ ] 更新 `CangJieMetadataStubBuilder`
 
 ### 阶段 3: 清理废弃代码

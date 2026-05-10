@@ -25,6 +25,30 @@
 package org.cangnova.cangjie.toolchain.api
 
 import com.intellij.openapi.project.Project
+import com.intellij.util.messages.Topic
+
+/**
+ * 项目 SDK 配置变更事件。
+ *
+ * SDK 决定 stdlib project library 的真实来源，因此 SDK id 变化必须触发项目模型重新同步。
+ */
+data class CjProjectSdkConfigChangedEvent(
+    val oldSdkId: String?,
+    val newSdkId: String?,
+)
+
+/**
+ * 项目 SDK 配置监听器。
+ */
+interface CjProjectSdkConfigListener {
+    fun projectSdkChanged(event: CjProjectSdkConfigChangedEvent)
+}
+
+val CANGJIE_PROJECT_SDK_CONFIG_TOPIC: Topic<CjProjectSdkConfigListener> = Topic.create(
+    "cangjie project sdk config changes",
+    CjProjectSdkConfigListener::class.java,
+    Topic.BroadcastDirection.TO_PARENT,
+)
 
 /**
  * 项目SDK配置接口

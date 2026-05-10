@@ -26,6 +26,11 @@ dependencies {
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:5.12.0")
 
     testImplementation(testFixtures(project(":modules:test-support")))
+    testImplementation(project(":modules:foundation"))
+    testImplementation(project(":modules:ide:base"))
+    testImplementation(project(":modules:domain:project-model"))
+    testImplementation(project(":modules:domain:toolchain"))
+    testImplementation(libs.cangjieAnalysisApiForIde)
     testImplementation(kotlin("test"))
     testImplementation("junit:junit:4.13.2")
 }

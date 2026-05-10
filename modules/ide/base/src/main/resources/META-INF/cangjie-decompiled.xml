@@ -1,20 +1,34 @@
 <idea-plugin>
+    <extensionPoints>
+        <extensionPoint
+                qualifiedName="org.cangnova.cangjie.cjoFileDecompiler"
+                interface="org.cangnova.cangjie.analysis.decompiled.psi.CjoFileDecompilers$Decompiler"
+                dynamic="true"/>
+    </extensionPoints>
+
+    <extensions defaultExtensionNs="org.cangnova.cangjie">
+        <cjoFileDecompiler implementation="org.cangnova.cangjie.analysis.decompiled.psi.CangJieBuiltInDecompiler"/>
+    </extensions>
+
     <extensions defaultExtensionNs="com.intellij">
         <filetype.decompiler
                 filetype="cjo"
-                implementationClass="org.cangnova.cangjie.analysis.decompiled.psi.CaCjoBinaryFileDecompiler"/>
+                implementationClass="org.cangnova.cangjie.analysis.decompiled.psi.CjoBinaryFileDecompiler"/>
+        <fileType.fileViewProviderFactory
+                filetype="cjo"
+                implementationClass="org.cangnova.cangjie.analysis.decompiled.psi.CangJieDecompiledFileViewProviderFactory"/>
+        <stubElementTypeHolder
+                class="org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes"
+                externalIdPrefix="cangjie."/>
         <applicationService
-                serviceInterface="org.cangnova.cangjie.analysis.api.decompiled.CaBuiltinsVirtualFileProvider"
-                serviceImplementation="org.cangnova.cangjie.ide.base.analysis.builtins.CaIdeBuiltinsVirtualFileProviderImpl"/>
-        <projectService serviceImplementation="org.cangnova.cangjie.analysis.decompiled.filestubs.CaDecompiledBinarySupport"/>
+                serviceInterface="org.cangnova.cangjie.analysis.decompiled.psi.BuiltinsVirtualFileProvider"
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysis.builtins.IdeBuiltinsVirtualFileProviderImpl"/>
+        <projectService serviceImplementation="org.cangnova.cangjie.analysis.decompiler.stub.file.DecompiledPackageDataFinder"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.decompiler.stub.file.CjoModuleDataProvider"
+                serviceImplementation="org.cangnova.cangjie.analysis.decompiled.DecompiledCjoModuleDataProvider"/>
         <projectService
                 serviceInterface="org.cangnova.cangjie.analysis.api.decompiled.CaDecompiledBinaryIndex"
-                serviceImplementation="org.cangnova.cangjie.analysis.decompiled.CaDecompiledBinaryIndexImpl"/>
-        <projectService
-                serviceInterface="org.cangnova.cangjie.analysis.api.decompiled.CaDecompiledPsiProvider"
-                serviceImplementation="org.cangnova.cangjie.analysis.decompiled.CaDecompiledPsiProviderImpl"/>
-        <projectService
-                serviceInterface="org.cangnova.cangjie.analysis.api.decompiled.CaDecompiledTextRenderer"
-                serviceImplementation="org.cangnova.cangjie.analysis.decompiled.CaDecompiledTextRendererImpl"/>
+                serviceImplementation="org.cangnova.cangjie.analysis.decompiled.DecompiledBinaryIndexImpl"/>
     </extensions>
 </idea-plugin>

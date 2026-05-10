@@ -126,9 +126,19 @@ class CaIdeProjectStructureState(
     internal fun getBuiltinsModule(): CaIdeBuiltinsModule = cache.getBuiltinsModule()
 
     internal fun getLibraryBinaryModule(libraryId: LibraryId): CaIdeLibraryModule {
+        return getLibraryBinaryModuleOrNull(libraryId)
+            ?: error("无法按 workspace library id `${libraryId.presentableName}` 恢复 LibraryEntity。")
+    }
+
+    private fun getLibraryBinaryModuleOrNull(libraryId: LibraryId): CaIdeLibraryModule? {
+        val snapshot = project.workspaceModel.currentSnapshot
+        val libraryEntity = libraryId.resolve(snapshot)
+        if (libraryEntity == null) {
+            cache.removeLibraryBinaryModule(libraryId)
+            return null
+        }
+
         val libraryModule = cache.cachedLibraryBinaryModule(libraryId) {
-            val libraryEntity = libraryId.resolve(project.workspaceModel.currentSnapshot)
-                ?: error("无法按 workspace library id `${libraryId.presentableName}` 恢复 LibraryEntity。")
             val binaryRoots = libraryEntity.roots
                 .filter { root -> root.type == LibraryRootTypeId.COMPILED }
                 .mapNotNull { root -> root.url.virtualFile }
@@ -229,6 +239,8 @@ class CaIdeProjectStructureState(
      * 避免不同属性访问时各自重建出不一致的中间结果。
      */
     private fun buildSnapshot(): CaProjectStructureSnapshot {
+        cache.removeInvalidEntries(project.workspaceModel.currentSnapshot)
+
         val snapshotStamp = currentSnapshotStamp()
         val builtinsModule = getBuiltinsModule()
         val sourceEntries = sourceModuleEntries()
@@ -494,12 +506,12 @@ class CaIdeProjectStructureState(
             is LibraryDependency -> {
                 when (scope) {
                     DependencyScope.COMPILE, DependencyScope.PROVIDED -> {
-                        sink += getLibraryBinaryModule(library)
+                        getLibraryBinaryModuleOrNull(library)?.let(sink::add)
                     }
 
                     DependencyScope.TEST -> {
                         if (ownerKind == CaSourceModuleKind.TEST) {
-                            sink += getLibraryBinaryModule(library)
+                            getLibraryBinaryModuleOrNull(library)?.let(sink::add)
                         }
                     }
 

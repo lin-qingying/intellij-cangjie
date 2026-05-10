@@ -29,7 +29,9 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.project.Project
+import org.cangnova.cangjie.toolchain.api.CANGJIE_PROJECT_SDK_CONFIG_TOPIC
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfigChangedEvent
 import org.cangnova.cangjie.toolchain.api.CjSdk
 import org.cangnova.cangjie.toolchain.api.CjSdkRegistry
 
@@ -70,7 +72,13 @@ internal class CjProjectSdkConfigImpl(
     }
 
     override fun setProjectSdkId(sdkId: String?) {
+        val oldSdkId = state.sdkId
+        if (oldSdkId == sdkId) return
+
         state.sdkId = sdkId
+        project.messageBus
+            .syncPublisher(CANGJIE_PROJECT_SDK_CONFIG_TOPIC)
+            .projectSdkChanged(CjProjectSdkConfigChangedEvent(oldSdkId, sdkId))
     }
 
     override fun getProjectSdk(): CjSdk? {

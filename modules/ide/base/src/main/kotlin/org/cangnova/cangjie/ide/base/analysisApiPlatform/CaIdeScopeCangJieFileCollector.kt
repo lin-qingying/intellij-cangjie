@@ -11,7 +11,6 @@ import com.intellij.psi.PsiFileSystemItem
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.analysis.api.decompiled.CaDecompiledBinaryIndex
-import org.cangnova.cangjie.analysis.api.decompiled.CaDecompiledPsiProvider
 import org.cangnova.cangjie.analysis.api.platform.projectStructure.CaModuleProvider
 import org.cangnova.cangjie.analysis.api.projectStructure.CaBuiltinsModule
 import org.cangnova.cangjie.analysis.api.projectStructure.CaLibraryModule
@@ -33,12 +32,13 @@ internal class CaIdeScopeCangJieFileCollector(
     private val psiManager: PsiManager = PsiManager.getInstance(project)
     private val projectStructureProvider: CaModuleProvider = CaModuleProvider.getInstance(project)
     private val decompiledBinaryIndex: CaDecompiledBinaryIndex? = runCatching { CaDecompiledBinaryIndex.getInstance(project) }.getOrNull()
-    private val decompiledPsiProvider: CaDecompiledPsiProvider? = runCatching { CaDecompiledPsiProvider.getInstance(project) }.getOrNull()
 
-    fun collect(scope: GlobalSearchScope): List<CjFile> {
+    fun collect(scope: GlobalSearchScope, includeCompiledFiles: Boolean = true): List<CjFile> {
         val files = linkedSetOf<CjFile>()
         collectSourceFiles(scope, files)
-        collectCompiledFiles(scope, files)
+        if (includeCompiledFiles) {
+            collectCompiledFiles(scope, files)
+        }
         return files.toList()
     }
 
@@ -50,7 +50,6 @@ internal class CaIdeScopeCangJieFileCollector(
 
     private fun collectCompiledFiles(scope: GlobalSearchScope, destination: MutableSet<CjFile>) {
         val binaryIndex = decompiledBinaryIndex ?: return
-        val psiProvider = decompiledPsiProvider ?: return
 
         projectStructureProvider.allModules.forEach { module ->
             when (module) {
@@ -58,7 +57,8 @@ internal class CaIdeScopeCangJieFileCollector(
                     binaryIndex.getBinaryFiles(module)
                         .asSequence()
                         .filter(scope::contains)
-                        .mapNotNull(psiProvider::getDecompiledFile)
+                        .mapNotNull(psiManager::findFile)
+                        .filterIsInstance<CjFile>()
                         .forEach(destination::add)
                 }
 
@@ -66,7 +66,8 @@ internal class CaIdeScopeCangJieFileCollector(
                     binaryIndex.getBinaryFiles(module)
                         .asSequence()
                         .filter(scope::contains)
-                        .mapNotNull(psiProvider::getDecompiledFile)
+                        .mapNotNull(psiManager::findFile)
+                        .filterIsInstance<CjFile>()
                         .forEach(destination::add)
                 }
             }

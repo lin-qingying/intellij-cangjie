@@ -31,7 +31,10 @@ interface TestCase {
                 return name.trim().replace(" ", "_")
             }
 
-            return name.split("(?=[A-Z])".toRegex()).joinToString("_", transform = String::lowercase)
+            return name
+                .split("(?=[A-Z])".toRegex())
+                .filter { it.isNotEmpty() }
+                .joinToString("_", transform = String::lowercase)
         }
     }
 }

@@ -4,12 +4,9 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.vfs.StandardFileSystems
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
-import org.cangnova.cangjie.analysis.api.decompiled.CaBuiltinsRootAware
-import org.cangnova.cangjie.analysis.api.decompiled.CaBuiltinsVirtualFileProvider
-import org.cangnova.cangjie.lang.declarations.CangJieBuiltInFileType
+import org.cangnova.cangjie.analysis.decompiled.psi.BuiltinsVirtualFileProviderBaseImpl
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import kotlin.io.path.pathString
 
@@ -20,12 +17,7 @@ import kotlin.io.path.pathString
  * 仓颉这里同样由 IDE 插件层负责把 toolchain 的标准库根暴露给 Analysis API /
  * decompiled / low-level CFIR，而不是继续沿用 CLI 环境变量语义。
  */
-class CaIdeBuiltinsVirtualFileProviderImpl : CaBuiltinsVirtualFileProvider(), CaBuiltinsRootAware {
-    override fun getBuiltinVirtualFiles(): Set<VirtualFile> {
-        return getBuiltinRootVirtualFiles()
-            .flatMapTo(linkedSetOf(), ::collectBuiltinFiles)
-    }
-
+class IdeBuiltinsVirtualFileProviderImpl : BuiltinsVirtualFileProviderBaseImpl() {
     override fun getBuiltinRootVirtualFiles(): Set<VirtualFile> {
         return ProjectManager.getInstance().openProjects
             .asSequence()
@@ -48,30 +40,10 @@ class CaIdeBuiltinsVirtualFileProviderImpl : CaBuiltinsVirtualFileProvider(), Ca
         val path = sdk.stdlibPath.pathString.replace('\\', '/')
         return StandardFileSystems.local().findFileByPath(path)
             ?: run {
-                logger<CaIdeBuiltinsVirtualFileProviderImpl>().warn(
+                logger<IdeBuiltinsVirtualFileProviderImpl>().warn(
                     "Cannot resolve stdlib path from toolchain `${sdk.name}`: $path",
                 )
                 null
             }
-    }
-
-    private fun collectBuiltinFiles(root: VirtualFile): List<VirtualFile> {
-        if (!root.isDirectory) {
-            return listOfNotNull(root.takeIf(::isBuiltinBinary))
-        }
-
-        val files = linkedSetOf<VirtualFile>()
-        VfsUtilCore.iterateChildrenRecursively(root, null) { child ->
-            if (!child.isDirectory && isBuiltinBinary(child)) {
-                files += child
-            }
-            true
-        }
-        return files.toList()
-    }
-
-    private fun isBuiltinBinary(file: VirtualFile): Boolean {
-        return file.fileType == CangJieBuiltInFileType ||
-            file.extension.equals(CangJieBuiltInFileType.defaultExtension, ignoreCase = true)
     }
 }

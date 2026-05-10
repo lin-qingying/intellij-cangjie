@@ -21,27 +21,13 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class TestMetadataUtilTest : CangJieNoPlatformTestBase() {
-    @TestRoot("intellij-ide/modules/test-support")
-    private open class RootAnnotatedBase
-
-    @TestMetadata("src/test/kotlin/org/cangnova/cangjie/test")
-    private class MetadataAnnotated : RootAnnotatedBase()
-
-    @TestRoot("intellij-ide")
-    private class Outer {
-        @TestMetadata("modules/test-support")
-        class Nested
-    }
-
-    private class RootOnlyAnnotated : RootAnnotatedBase()
-
     fun testGetTestRootFromSuperclassAnnotation() {
-        val root = requireNotNull(TestMetadataUtil.getTestRoot(MetadataAnnotated::class.java))
+        val root = requireNotNull(TestMetadataUtil.getTestRoot(MetadataAnnotatedForMetadataTest::class.java))
         assertTrue(root.path.replace('\\', '/').endsWith("intellij-ide/modules/test-support"))
     }
 
     fun testGetTestDataCombinesRootAndMetadata() {
-        val testData = requireNotNull(TestMetadataUtil.getTestData(MetadataAnnotated::class.java))
+        val testData = requireNotNull(TestMetadataUtil.getTestData(MetadataAnnotatedForMetadataTest::class.java))
         assertTrue(testData.path.replace('\\', '/').endsWith("intellij-ide/modules/test-support/src/test/kotlin/org/cangnova/cangjie/test"))
     }
 
@@ -51,14 +37,25 @@ class TestMetadataUtilTest : CangJieNoPlatformTestBase() {
             if (it.endsWith(File.separator)) it else it + File.separator
         }
 
-        assertEquals(expectedPath, TestMetadataUtil.getTestDataPath(RootOnlyAnnotated::class.java))
+        assertEquals(expectedPath, TestMetadataUtil.getTestDataPath(RootOnlyAnnotatedForMetadataTest::class.java))
     }
 
-    fun testGetAnnotationValueCanReadEnclosingClassAnnotation() {
-        val testRoot = TestMetadataUtil.getAnnotationValue(Outer.Nested::class.java, TestRoot::class.java)
-        val metadata = TestMetadataUtil.getTestMetadata(Outer.Nested::class.java)
+    fun testGetAnnotationValueReadsDirectAndSuperclassAnnotations() {
+        val testRoot = TestMetadataUtil.getAnnotationValue(MetadataAnnotatedForMetadataTest::class.java, TestRoot::class.java)
+        val metadata = TestMetadataUtil.getTestMetadata(DirectlyAnnotatedMetadataTest::class.java)
 
-        assertEquals("intellij-ide", testRoot?.value)
+        assertEquals("intellij-ide/modules/test-support", testRoot?.value)
         assertEquals("modules/test-support", metadata)
     }
 }
+
+@TestRoot("intellij-ide/modules/test-support")
+private open class RootAnnotatedBaseForMetadataTest
+
+@TestMetadata("src/test/kotlin/org/cangnova/cangjie/test")
+private class MetadataAnnotatedForMetadataTest : RootAnnotatedBaseForMetadataTest()
+
+private class RootOnlyAnnotatedForMetadataTest : RootAnnotatedBaseForMetadataTest()
+
+@TestMetadata("modules/test-support")
+private class DirectlyAnnotatedMetadataTest

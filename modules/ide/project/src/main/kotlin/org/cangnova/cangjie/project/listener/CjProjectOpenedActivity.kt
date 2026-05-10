@@ -26,9 +26,39 @@ package org.cangnova.cangjie.project.listener
 
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.startup.ProjectActivity
-import org.cangnova.cangjie.project.event.CjProjectEvent
-import org.cangnova.cangjie.project.event.CjProjectEventType
-import org.cangnova.cangjie.project.event.CjProjectListener
 import org.cangnova.cangjie.project.service.CjProjectsService
+
+/**
+ * 仓颉项目打开启动活动。
+ *
+ * 项目打开后只通过 [CjProjectsService] 进入既有 CjPM 项目发现/刷新流程，
+ * 保证 Workspace Model 中的模块、SDK 驱动 stdlib project library 与项目模型保持一致。
+ */
+class CjProjectOpenedActivity : ProjectActivity {
+    override suspend fun execute(project: Project) {
+        val projectsService = CjProjectsService.getInstance(project)
+        val cjProject = projectsService.cjProject
+
+        if (cjProject.isValid) {
+            LOG.info("Refreshing CangJie project on IDE project open: ${cjProject.name}")
+            projectsService.refreshProject()
+            return
+        }
+
+        val projectDir = project.guessProjectDir()
+        if (projectDir == null) {
+            LOG.warn("Cannot discover CangJie project on IDE project open: project directory is unavailable")
+            return
+        }
+
+        LOG.info("Discovering CangJie project on IDE project open: ${projectDir.path}")
+        projectsService.discoverProject(projectDir)
+    }
+
+    companion object {
+        private val LOG = logger<CjProjectOpenedActivity>()
+    }
+}
 

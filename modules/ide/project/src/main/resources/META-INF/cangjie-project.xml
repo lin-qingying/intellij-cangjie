@@ -56,6 +56,7 @@
         <runAnything.executionProvider
                 order="after RunAnythingRunConfigurationProvider"
                 implementation="org.cangnova.cangjie.project.ui.actions.CjRunAnythingProviderImpl"/>
+        <postStartupActivity implementation="org.cangnova.cangjie.project.listener.CjProjectOpenedActivity"/>
         <registryKey key="org.cangnova.cangjie.project.new.auto.import"
                      defaultValue="true"
                      description="Enable new project model reloading"
