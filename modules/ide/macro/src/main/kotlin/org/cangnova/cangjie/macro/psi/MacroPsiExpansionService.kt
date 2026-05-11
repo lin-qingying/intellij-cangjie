@@ -58,7 +58,7 @@ class MacroPsiExpansionService(private val project: Project) {
     }
       fun isRealMacro(macroExpr: CjMacroExpression): Boolean {
         val project = macroExpr.project ?: return false
-        val expansionService = MacroPsiExpansionService.getInstance(project)
+        val expansionService = getInstance(project)
         if (expansionService.isEnabled() && expansionService.getExpansionResult(macroExpr) != null) {
             return true
         }
@@ -328,7 +328,7 @@ class MacroPsiExpansionService(private val project: Project) {
             }
 
             val errors = PsiTreeUtil.findChildrenOfType(classBody, PsiErrorElement::class.java).toList()
-            val elements = classBody.declarations.filterIsInstance<CjElement>()
+            val elements = classBody.declarations
             return Pair(errors, elements)
         } else if (parent is CjValueArgument) {
             // 调用参数上下文：宏展开结果是一个表达式，使用 createExpression 解析
@@ -353,7 +353,7 @@ class MacroPsiExpansionService(private val project: Project) {
             }
 
             val errors = PsiTreeUtil.findChildrenOfType(block, PsiErrorElement::class.java).toList()
-            val elements = block.statements.filterIsInstance<CjElement>()
+            val elements = block.statements
             return Pair(errors, elements)
         } else {
             // 块级上下文：使用 createBlockCodeFragment 解析为语句/表达式
@@ -366,7 +366,7 @@ class MacroPsiExpansionService(private val project: Project) {
             }
 
             val errors = PsiTreeUtil.findChildrenOfType(block, PsiErrorElement::class.java).toList()
-            val elements = block.statements.filterIsInstance<CjElement>()
+            val elements = block.statements
             return Pair(errors, elements)
         }
     }
