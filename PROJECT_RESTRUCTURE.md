@@ -17,8 +17,8 @@
 
 - 构建体系已从旧根工程脚本式拼装切换到 `build-logic`。
 - 产品层已改为单插件发布模型，内部通过 Gradle 多模块组织代码。
-- `foundation / toolchain / project-model / package-manager / telemetry / ide-base / ide-project / ide-run / ide-lsp / debugger-* / ux` 已纳入新主架构。
-- `ide-macro` 仍按迁移策略暂时排除，不进入当前产品基线。
+- `foundation / toolchain / project-model / package-manager / telemetry / ide-base / ide-project / ide-run / ide-lsp / debugger-* / macro / ux` 已纳入新主架构。
+- `ide-macro` 已纳入主架构（`:modules:ide:macro`）。
 - 旧的聚合式运行时装配问题已经移除，当前以单插件类加载器稳定运行。
 
 ## 已完成的迁移收敛
@@ -40,5 +40,4 @@
 
 ## 后续边界
 
-- `ide-macro` 后续单独迁入，不与当前主链路混合处理。
 - 若未来恢复反编译或其他非主链路能力，必须按新模块边界重新纳管，不能回退到旧工程结构。

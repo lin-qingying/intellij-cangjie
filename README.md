@@ -70,18 +70,10 @@ For detailed project structure, see [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)
 ./gradlew build
 
 # Run plugin in IDE sandbox
-./gradlew :plugin:runIde
+./gradlew :product:idea-plugin:runIde
 
 # Build plugin distribution
-./gradlew :plugin:buildPlugin
-```
-
-### Generating Lexer
-
-After modifying `.flex` files, regenerate the lexer:
-
-```bash
-./gradlew :psi:generateLexers
+./gradlew :product:idea-plugin:buildPlugin
 ```
 
 ### Running Tests
@@ -91,16 +83,19 @@ After modifying `.flex` files, regenerate the lexer:
 ./gradlew test
 
 # Run specific module tests
-./gradlew :psi:test
+./gradlew :modules:ide:project:test
 ```
 
 ### Multi-Version Support
 
+Defaults to IntelliJ Platform 253. To build against a different baseline:
+
 ```bash
-# Build for specific IDE version
 ./gradlew build -PplatformVersion=242
 ./gradlew build -PplatformVersion=253
 ```
+
+Available baselines: 242 / 243 / 251 / 252 / 253 (see `gradle-*.properties`).
 
 ---
 

@@ -68,10 +68,10 @@
 ./gradlew build
 
 # 在 IDE 沙箱中运行插件
-./gradlew :plugin:runIde
+./gradlew :product:idea-plugin:runIde
 
 # 构建插件分发包
-./gradlew :plugin:buildPlugin
+./gradlew :product:idea-plugin:buildPlugin
 ```
 
  
@@ -83,16 +83,19 @@
 ./gradlew test
 
 # 运行特定模块测试
-./gradlew :psi:test
+./gradlew :modules:ide:project:test
 ```
 
 ### 多版本支持
 
+默认基线为 IntelliJ Platform 253，可通过 `gradle-*.properties` 切换：
+
 ```bash
-# 编译特定 IDE 版本
 ./gradlew build -PplatformVersion=242
 ./gradlew build -PplatformVersion=253
 ```
+
+可选基线：242 / 243 / 251 / 252 / 253。
 
 ---
 

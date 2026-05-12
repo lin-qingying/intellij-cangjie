@@ -10,441 +10,176 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⚠️ 严格禁止的操作
 
-**绝对禁止使用任何 Git 回滚命令:**
+**绝对禁止使用任何 Git 回滚命令：**
 
 - 严禁执行 `git reset`
 - 严禁执行 `git checkout -- <file>`
 - 严禁执行 `git restore`
 - 严禁执行任何会撤销用户手动修改的 Git 命令
 
-**原因**: 用户可能在 Claude 工作期间手动编辑文件,任何 Git 回滚操作都会导致用户的工作丢失。
+**原因**：用户可能在 Claude 工作期间手动编辑文件，任何 Git 回滚操作都会导致用户的工作丢失。
 
-**如果发现文件被修改**: 这些修改可能来自:
-- 用户的手动编辑 (应该保留)
-- IDE 的自动格式化/Linter (应该保留)
-- 其他工具的自动处理 (应该保留)
-
-**正确做法**: 永远不要试图"恢复"文件到之前的状态,而是在当前状态的基础上继续工作。
+**如果发现文件被修改**：这些修改可能来自用户手动编辑、IDE 自动格式化 / Linter、其他工具自动处理。**正确做法**：永远不要试图"恢复"文件到之前的状态，而是在当前状态的基础上继续工作。
 
 ## 项目概述
 
-这是一个为 IntelliJ 平台开发的仓颉语言插件，采用多模块 Gradle 架构。项目包含 22 个子模块，从 PSI 解析到调试器支持的完整语言工具链。
+这是基于 IntelliJ Platform Gradle Plugin 2.x 的仓颉语言 **host plugin**（IDE 宿主插件）。
+仓库**不再承载本地 PSI / Parser / Analysis 实现**——这些能力由主仓库 `..`（即 `D:\code\intellij\cangjie` 根工程）的一方模块提供，本仓库通过 `includeBuild("../")` 与 dependency substitution 接入，只负责 IDE 集成壳、产品装配、扩展点接线。
 
-**关键技术栈**:
+**关键技术栈**：
 
-- Kotlin 2.2.0 + Gradle Kotlin DSL
-- IntelliJ Platform SDK (支持版本 242-253)
-- JFlex 词法分析器生成
-- 手写递归下降语法分析器
+- Kotlin + Gradle Kotlin DSL（构建逻辑通过 `build-logic/` 中的 convention plugin 统一）
+- IntelliJ Platform Gradle Plugin 2.10.5
+- 默认基线平台 `platformVersion=253`，向下兼容 4 个版本（242 / 243 / 251 / 252 / 253）
+- Java 工具链由 `foojay-resolver-convention` 自动 provisioning
+
+**架构原则**（见 `docs/architecture-host-plugin.md` 与 `docs/host-upstream-responsibility-matrix.md`）：
+
+- Host：插件装配、IntelliJ 扩展接线、项目集成、调试器 / LSP / formatter / highlighting 集成壳、消息 / 通知 / 遥测 / 图标支撑
+- Upstream（主仓库）：PSI 实现、Parser 实现、Analysis API 实现、stubs / decompiled / light declarations
+- **禁止**将上游能力 reintroduce 为本仓库的本地模块（不要新建本地 `analysis/`、`psi/`、`descriptors/`、`common/`、`util/`、`metadata/`、`macro/`）
+
+## 模块结构
+
+模块清单以 `settings.gradle.kts` 为准。当前接入构建的模块：
+
+**产品装配**
+- `:product:idea-plugin` — 唯一插件入口，承载 `plugin.xml`、`META-INF/cangjie-all.xml` 与最终打包
+
+**Foundation**
+- `:modules:foundation` — 基础设施与公共能力（含历史 `common` / `util` / `messages` / `namedpipe` 已收敛能力）
+
+**Domain（领域能力）**
+- `:modules:domain:toolchain` — 工具链管理
+- `:modules:domain:project-model` — 仓颉项目模型与依赖解析
+- `:modules:domain:package-manager` — CJPM 集成（TOML 配置、依赖、仓库提供）
+- `:modules:domain:telemetry` — 遥测数据收集
+
+**IDE（IDE 集成层）**
+- `:modules:ide:base` — IDE 基础壳（含历史 `core` / `formatter` / `highlighter` 主链路）
+- `:modules:ide:project` — 项目交互（项目识别、Workspace Model 同步、视图）
+- `:modules:ide:run` — 运行 / 调试运行配置
+- `:modules:ide:lsp` — LSP 客户端集成（基于 LSP4IJ）
+- `:modules:ide:debugger-api` — 调试器 API
+- `:modules:ide:debugger-dap` — DAP 调试实现
+- `:modules:ide:debugger-proto` — Protobuf 协议调试实现
+- `:modules:ide:macro` — 宏相关 IDE 能力
+- `:modules:ide:ux` — UX（图标、通知等）
+
+**测试支撑**
+- `:modules:test-support` — 共享测试基建
+
+**构建逻辑**
+- `build-logic/` — Gradle convention plugins（独立 included build）
+
+## 主仓库接入
+
+`settings.gradle.kts` 通过 `includeBuild("../")` 把主仓库源码接入，并对若干工件做 dependency substitution：
+
+- `org.cangnova.cangjie:cangjie-frontend-common-for-ide` → `:prepare:ide-plugin-dependencies-module:cangjie-frontend-common-for-ide-module`
+- `cangjie-frontend-psi-for-ide` → 对应的 `-module` 工件
+- `cangjie-frontend-cfir-for-ide` → 对应的 `-module` 工件
+- `cangjie-frontend-analysis-api-for-ide` / `cangjie-frontend-analysis-api-cfir-for-ide` / `cangjie-frontend-analysis-api-standalone-for-ide` → 对应的 `-module` 工件
+
+这意味着：**修改主仓库 PSI / CFIR / Analysis API 代码后，不需要先发布工件，本仓库 Gradle 同步会直接拿到最新源码产物**。
 
 ## 常用开发命令
 
 ### 构建和运行
 
 ```bash
-# 完整构建项目
-./gradlew build
-
-# 在 IDE 沙箱中运行插件（开发测试）
-./gradlew :plugin:runIde
-
-# 构建插件分发包
-./gradlew :plugin:buildPlugin
-
-# 验证插件兼容性
-./gradlew :plugin:verifyPlugin
-
-# 清理构建产物
+./gradlew build                              # 完整构建
+./gradlew :product:idea-plugin:runIde        # 在 IDE 沙箱中运行插件
+./gradlew :product:idea-plugin:buildPlugin   # 构建插件分发包
+./gradlew :product:idea-plugin:verifyPlugin  # 验证插件兼容性
+./gradlew prepareSandbox                      # 仅准备沙箱
 ./gradlew clean
 ```
-不要进行编译测试，除非明确要求
 
-### 词法分析器生成
+不要主动执行编译测试，除非明确要求。
 
-**重要**: 修改 `.flex` 文件后必须重新生成词法分析器
+### 多版本平台支持
+
+通过 `gradle-*.properties` 切换基线平台（242 / 243 / 251 / 252 / 253）：
 
 ```bash
-# 生成所有词法分析器
-./gradlew :psi:generateLexers
-
-# 单独生成主词法分析器
-./gradlew :psi:generateCangJieLexer
-
-# 单独生成文档注释词法分析器
-./gradlew :psi:generateCDocLexer
+./gradlew build -PplatformVersion=253    # 默认
+./gradlew build -PplatformVersion=242
 ```
 
-生成的文件位置: `psi/src/gen/org/cangnova/cangjie/lexer/`
+版本特定的兼容层位于 `platform/<version>/`（当前仅 `platform/253/`）；业务模块内**不应**散落 if-version 分支，新增兼容代码统一放在 `platform/<version>/` 下。
 
 ### 测试
 
 ```bash
-# 运行所有测试
-./gradlew test
-
-# 运行特定模块测试
-./gradlew :psi:test
-./gradlew :cangjie-project:test
-./gradlew :debugger:test
-
-# 运行特定测试类
-./gradlew test --tests "org.cangnova.cangjie.psi.CjPsiFactoryTest"
-
-# 显示测试输出（调试用）
-./gradlew test -PshowStandardStreams=true
-
-# CI 模式（启用失败重试）
-CI=true ./gradlew test
+./gradlew test                                          # 全部测试
+./gradlew :modules:ide:project:test                     # 单模块测试
+./gradlew :modules:ide:lsp:test --tests "ClassName"     # 单测试类
+./gradlew test -PshowStandardStreams=true               # 显示 stdout/stderr
+CI=true ./gradlew test                                  # CI 模式（启用失败重试）
 ```
 
-### 编译特定模块
+### 上游联动
 
-```bash
-# 编译核心模块
-./gradlew :compileKotlin
+由于 `includeBuild("../")`，主仓库的 Kotlin 修改会被 Gradle 同步自动捕获。如果遇到符号找不到 / API 未更新：
 
-# 编译 PSI 模块（依赖 Lexer 生成）
-./gradlew :psi:compileKotlin
-
-# 编译调试器模块
-./gradlew :debugger:common:compileKotlin
-./gradlew :debugger:protobuf:compileKotlin
-./gradlew :debugger:dap:compileKotlin
-```
-
-## 架构设计
-
-### 模块分层架构
-
-```
-plugin (分发层)
-  ↓
-lsp4ij, debugger, cjpm, cangjie-project (功能层)
-  ↓
-psi, analysis, descriptors, metadata (核心语言层)
-  ↓
-util, common, icon, messages, notifications (基础设施层)
-```
-
-### 核心模块职责
-
-**psi 模块** - 程序结构接口
-
-- 词法分析: `CangJieLexer.flex` → JFlex 生成 → `CangJieLexer.java`
-- 语法分析: `CangJieParsing.kt` (4600+ 行手写递归下降解析器)
-- PSI 树构建: `CangJieParserDefinition.kt`
-- Stub 索引: 通过 `CjStubElementTypes` 加速符号解析
-- 关键文件:
-    - `psi/src/main/kotlin/org/cangnova/cangjie/parsing/CangJieParsing.kt`
-    - `psi/src/main/kotlin/org/cangnova/cangjie/psi/CjElement.kt`
-    - `psi/src/main/kotlin/org/cangnova/cangjie/psi/stubs/`
-
-**cangjie-project 模块** - 项目管理
-
-- 项目模型: `CjProject`, `CjModule`, `CjLibrary`
-- 依赖解析: `CjDependencyResolver`
-- Workspace Model 集成
-- 项目同步任务: `CangJieSyncTask`
-
-**cjpm 模块** - 包管理器集成
-
-- TOML 配置解析: `CjpmTomlConfig`
-- 依赖解析: `CjpmDependencyResolver`
-- 包管理: `CjpmPackageManager`
-- 仓库提供: `CjpmRepositoryProvider`
-
-**debugger 模块** - 调试支持
-
-- `debugger:common` - 公共调试基础设施
-- `debugger:dap` - Debug Adapter Protocol 实现
-- `debugger:protobuf` - Protobuf 协议调试支持
-
-**lsp4ij 模块** - LSP 客户端
-
-- LSP 服务器管理: `CangJieLspServerManager`
-- 进程连接: `CangJieOSProcessStreamConnectionProvider`
-- 依赖 RedHat LSP4IJ 插件 (版本 0.19.0)
-
-**analysis 模块** - 代码分析
-
-- 语义分析和类型推导
-- `decompiler-to-psi` 子模块: 反编译器支持
-- 内置库虚拟文件: `BuiltinsVirtualFileProvider`
-
-### 关键工作流
-
-#### 文件解析流程
-
-```
-.cj 源文件
-  ↓
-CangJieLexer (词法分析) → Token 流
-  ↓
-CangJieParser (语法分析) → AST
-  ↓
-ParserDefinition.createElement() → PSI Tree
-  ↓
-Stub Index 构建 (符号索引)
-  ↓
-IDE 服务 (高亮、补全、导航等)
-```
-
-#### 插件加载流程
-
-```
-IDE 启动
-  ↓
-加载 plugin.xml (包含 xi:include 引用)
-  ↓
-加载所有 cangjie-*.xml 配置 (30+ 个模块化配置)
-  ↓
-注册扩展点和服务
-  ↓
-执行 CangJieStartupActivity
-  ↓
-项目打开 → CjpmProjectProvider 解析项目
-  ↓
-构建索引 → 准备就绪
-```
-
-## 代码生成和配置
-
-### JFlex 词法分析器
-
-**定义文件**: `psi/src/main/kotlin/org/cangnova/cangjie/lexer/CangJieLexer.flex`
-
-**生成配置**: 使用 GrammarKit 插件的 `GenerateLexerTask`
-
-**重要**: 编译任务自动依赖 Lexer 生成:
-
-```kotlin
-tasks.compileKotlin { dependsOn("generateLexers") }
-tasks.compileJava { dependsOn("generateLexers") }
-```
-
-### 手写语法分析器
-
-**核心文件**: `psi/src/main/kotlin/org/cangnova/cangjie/parsing/CangJieParsing.kt`
-
-修改语法分析逻辑:
-
-1. 直接编辑 `CangJieParsing.kt`
-2. 无需运行生成任务
-3. 重新编译即可
-
-### Stub 索引系统
-
-**作用**: 加速符号解析，避免完整解析大文件
-
-**配置位置**: `src/main/resources/META-INF/cangjie-stubindex.xml`
-
-**关键索引**:
-
-- `CangJieClassShortNameIndex` - 类名索引
-- `CangJieFunctionShortNameIndex` - 函数名索引
-- `CangJieTopLevelFunctionByPackageIndex` - 包级函数索引
-- `CangJieSuperClassIndex` - 继承关系索引
-
-**添加新索引**:
-
-1. 创建索引类继承 `StringStubIndexExtension`
-2. 在 `cangjie-stubindex.xml` 中注册
-3. 创建对应的 `StubElementType`
+1. 先在主仓库定向编译相关模块：`./gradlew :cfir:cfir-tree:compileKotlin`（在主仓库根目录执行）
+2. 再回本仓库 Gradle 同步或重新 `runIde`
 
 ## 插件配置系统
 
-### XML 模块化配置
+### XML 接线布局
 
-**主入口**: `plugin/src/main/resources/META-INF/plugin.xml`
+主入口：`product/idea-plugin/src/main/resources/META-INF/plugin.xml`
+通过 `cangjie-all.xml` 用 `xi:include` 聚合：
 
-**配置聚合**: `src/main/resources/META-INF/cangjie-all.xml` 通过 XInclude 引入 30+ 个子配置
+| 配置 | 职责 |
+|---|---|
+| `cangjie-product.xml` | startup、configurables、host product 服务 |
+| `cangjie-language-shell.xml` | parser definition、language shell |
+| `cangjie-editor.xml` | editor handlers、editor shell |
+| `cangjie-ide-features.xml` | 高亮等 IDE 集成 |
+| `cangjie-extensionPoints.xml` | host 自定义扩展点 |
+| `cangjie-project.xml` / `cangjie-dependency.xml` / `cangjie-toolchain.xml` | 项目集成 |
+| `cangjie-run.xml` | 运行集成 |
+| `cangjie-debugger.xml` | 调试器集成 |
+| `cangjie-analysis-entry.xml` | 仅 include 上游 analysis |
 
-**关键配置文件**:
+详见 `docs/xml-wiring-layout.md`。
 
-- `cangjie-core.xml` - 核心服务和启动活动
-- `cangjie-psi.xml` - PSI 定义、折叠、括号匹配
-- `cangjie-highlighting.xml` - 语法高亮配置
-- `cangjie-stubindex.xml` - Stub 索引注册
-- `cangjie-actions.xml` - 菜单和快捷键
-- `cangjie-run.xml` - 运行配置
-- `cangjie-debugger.xml` - 调试器集成
-- `cangjie-extensionPoints.xml` - 自定义扩展点
+### 规则
 
-### 扩展点和服务
+- 每个 XML 文件只描述一个责任域
+- 不允许新增"catch-all"型集中注册文件
+- 上游能力（PSI、Parser、Analysis）的扩展点接线允许，但**不允许**在本仓库重写实现
 
-**应用级服务** (全局单例):
+## 包命名约定
 
-```xml
-
-<applicationService
-        serviceInterface="..."
-        serviceImplementation="..."/>
-```
-
-**项目级服务** (每个项目一个实例):
-
-```xml
-
-<projectService
-        serviceInterface="..."
-        serviceImplementation="..."/>
-```
-
-**自定义扩展点**:
-
-```xml
-
-<extensionPoint qualifiedName="org.cangnova.cangjie.toolchainProvider"
-                interface="org.cangnova.cangjie.toolchain.CjToolchainProvider"
-                dynamic="true"/>
-```
-
-## 多版本支持
-
-### 平台版本配置
-
-项目支持 IntelliJ Platform 242-253，通过不同的 `gradle-*.properties` 文件配置:
-
-```
-gradle.properties          # 默认配置 (platformVersion=242)
-gradle-242.properties      # IDE 2024.2 特定配置
-gradle-243.properties      # IDE 2024.3 特定配置
-gradle-251.properties      # IDE 2025.1 特定配置
-gradle-252.properties      # IDE 2025.2 特定配置
-gradle-253.properties      # IDE 2025.3 特定配置
-```
-
-### 编译特定版本
-
-```bash
-# 编译 IDE 242 版本
-./gradlew build -PplatformVersion=242
-
-# 编译 IDE 253 版本
-./gradlew build -PplatformVersion=253
-```
-
-### 版本特定源码
-
-可以在模块中创建版本特定的源码目录:
-
-```
-src/main/242/     # 仅用于 IDE 242
-src/main/253/     # 仅用于 IDE 253
-```
-
-## 开发工作流建议
-
-### 添加新的 PSI 元素
-
-1. 在 `CjNodeTypes` 或 `CjStubElementTypes` 中定义元素类型
-2. 在 `CangJieParsing.kt` 中添加解析逻辑
-3. 创建 PSI 类实现 (继承 `CjElement`)
-4. 如需索引加速，创建对应的 Stub 类
-5. 在 `ParserDefinition.createElement()` 中处理新类型
-
-### 修改词法规则
-
-1. 编辑 `psi/src/main/kotlin/org/cangnova/cangjie/lexer/CangJieLexer.flex`
-2. 运行 `./gradlew :psi:generateLexers`
-3. 检查生成的 `psi/src/gen/.../CangJieLexer.java`
-4. 重新编译和测试
-
-### 添加新的语言功能
-
-1. **语法扩展**: 修改 `CangJieParsing.kt` 添加解析逻辑
-2. **语义分析**: 在 `analysis` 模块中添加类型推导和检查
-3. **IDE 功能**: 在相应配置文件中注册扩展
-    - 代码补全: 实现 `CompletionContributor`
-    - 引用解析: 实现 `PsiReferenceContributor`
-    - 代码检查: 实现 `LocalInspectionTool`
-4. **测试**: 在 `src/test/` 中添加单元测试
-
-### 调试插件
-
-```bash
-# 启动调试模式的 IDE
-./gradlew :plugin:runIde
-
-# 在 IDE 中设置断点，然后从 IDE 中调试运行
-# Help → Diagnostic Tools → Debug Log Settings
-# 添加: #org.cangnova.cangjie
-```
-
-**查看内部日志**:
-
-- Windows: `%APPDATA%\JetBrains\<IDE>\log\idea.log`
-- Linux: `~/.local/share/JetBrains/<IDE>/log/idea.log`
-- macOS: `~/Library/Logs/JetBrains/<IDE>/idea.log`
+- 核心包：`org.cangnova.cangjie`
+- IDE 功能：`org.cangnova.cangjie.ide.*`
+- 项目管理：`org.cangnova.cangjie.project`
+- 调试器：`org.cangnova.cangjie.debugger`
+- LSP：`org.cangnova.cangjie.lsp`
 
 ## 国际化
 
-### 消息 Bundle
+消息 Bundle 位置：`<module>/src/main/resources/messages/`，主要 Bundle：
 
-**位置**: `src/main/resources/messages/`
+- `CangJieBundle.properties` — 主要 UI 消息
+- `CjBuildBundle.properties` — 构建相关消息
 
-**主要 Bundle**:
-
-- `CangJieBundle.properties` - 主要 UI 消息
-- `CangJieAnalysisBundle.properties` - 代码分析消息
-- `CjBuildBundle.properties` - 构建相关消息
-- `CangJieParsingBundle.properties` - 解析错误消息
-
-**使用方式**:
+使用：
 
 ```kotlin
 import org.cangnova.cangjie.CangJieBundle
-
 val message = CangJieBundle.message("key.in.properties")
-val formatted = CangJieBundle.message("key.with.param", arg1, arg2)
 ```
 
-## 性能优化要点
-
-### Lazy Parsing
-
-Parser 使用延迟解析策略:
-
-```kotlin
-CangJieParsing.createForTopLevel(builder)  // isLazy = true
-```
-
-### Stub 索引使用
-
-频繁访问的符号应该通过 Stub 索引:
-
-```kotlin
-CangJieClassShortNameIndex.getInstance()
-    .get(className, project, scope)
-```
-
-避免直接遍历 PSI 树。
-
-### 缓存机制
-
-利用 IntelliJ 的缓存系统:
-
-```kotlin
-CachedValuesManager.getCachedValue(element) {
-    CachedValueProvider.Result.create(computation(), dependencies)
-}
-```
-
-## 项目结构约定
-
-### 包命名
-
-- 核心包: `org.cangnova.cangjie`
-- PSI: `org.cangnova.cangjie.psi`
-- IDE 功能: `org.cangnova.cangjie.ide.*`
-- 项目管理: `org.cangnova.cangjie.project`
-- 调试器: `org.cangnova.cangjie.debugger`
-
-### 资源文件
+## 资源文件约定
 
 ```
-src/main/resources/
-├── META-INF/              # 插件配置
+<module>/src/main/resources/
+├── META-INF/              # 插件配置（仅 product/idea-plugin）
 ├── messages/              # 国际化消息
 ├── icons/                 # 图标资源
 ├── fileTemplates/         # 文件模板
@@ -453,51 +188,62 @@ src/main/resources/
 └── liveTemplates/         # 实时模板
 ```
 
-## 依赖管理
+## 关键依赖
 
-### 关键依赖
+- **IntelliJ Platform**：通过 `intellijPlatform { ... }` 配置块
+- **Kotlin**：来自 build-logic toolchain
+- **LSP4J**：用于 DAP / LSP 协议
+- **RedHat LSP4IJ**：LSP 客户端宿主插件
+- **Jackson**：TOML / JSON 解析
 
-- **IntelliJ Platform**: 通过 `intellijPlatform` 配置块
-- **Kotlin**: 2.2.0
-- **LSP4J**: 0.21.0 (Debug Adapter Protocol)
-- **RedHat LSP4IJ**: 0.19.0 (LSP 客户端插件)
-- **Jackson**: 2.15.2 (TOML/JSON 解析)
+主仓库工件通过 dependency substitution 接入（见上文）。
 
-### 添加依赖
+## 调试
 
-在对应模块的 `build.gradle.kts` 中:
-
-```kotlin
-dependencies {
-    implementation(project(":moduleName"))
-    intellijPlatform {
-        plugins("com.redhat.devtools.lsp4ij:0.19.0")
-    }
-}
+```bash
+./gradlew :product:idea-plugin:runIde   # 启动调试模式 IDE
 ```
 
-## 常见问题排查
+启用日志：Help → Diagnostic Tools → Debug Log Settings → 添加 `#org.cangnova.cangjie`。
 
-### Lexer 生成失败
+日志位置：
+- Windows：`%APPDATA%\JetBrains\<IDE>\log\idea.log`
+- Linux：`~/.local/share/JetBrains/<IDE>/log/idea.log`
+- macOS：`~/Library/Logs/JetBrains/<IDE>/idea.log`
 
-- 检查 `.flex` 文件语法
-- 确保 JFlex 版本兼容 (项目使用 1.9.2)
-- 查看 `psi/build/` 目录下的生成日志
+## 常见排查
 
-### 编译错误
+### Gradle 同步失败
 
-- 清理缓存: `./gradlew clean`
-- 删除 `.gradle/` 和 `build/` 目录
-- 重新导入 Gradle 项目
+- 删除 `.gradle/` 和 `build/` 重新导入
+- 检查 `gradle.properties` 中 `platformVersion` 是否与 `gradle-<version>.properties` 匹配
+- GitHub Packages 凭据缺失：`GITHUB_PACKAGES_USERNAME` / `GITHUB_PACKAGES_TOKEN` 需要在 `~/.gradle/gradle.properties` 或环境变量中提供（用于解析上游发布工件）
+
+### 主仓库变更未生效
+
+- 在主仓库根目录定向编译相关模块
+- 本仓库 Gradle 同步
 
 ### 插件无法加载
 
-- 检查 `plugin.xml` 中的 `<id>` 和 `<dependencies>`
+- 检查 `plugin.xml` 的 `<id>` 与 `<dependencies>`
 - 验证所有 `xi:include` 引用的文件都存在
-- 运行 `./gradlew :plugin:verifyPlugin`
+- `./gradlew :product:idea-plugin:verifyPlugin`
 
 ### 测试失败
 
-- 检查是否在无头模式: `java.awt.headless=true`
-- 确保测试资源文件位于 `src/test/resources/`
-- 使用 `-PshowStandardStreams=true` 查看详细输出
+- 确认在无头模式：`java.awt.headless=true`
+- 测试资源在 `<module>/src/test/resources/`
+- `-PshowStandardStreams=true` 查看详细输出
+
+## 相关文档
+
+- `README.md` / `README_zh.md` — 用户视角的插件介绍
+- `PROJECT_STRUCTURE.md` — 详细项目结构说明
+- `PROJECT_RESTRUCTURE.md` — IntelliJ Platform Gradle Plugin 2.x 重构进度
+- `docs/architecture-host-plugin.md` — Host 插件架构原则
+- `docs/host-upstream-responsibility-matrix.md` — Host / Upstream 职责矩阵
+- `docs/xml-wiring-layout.md` — XML 接线约定
+- `docs/macro-psi-replacement-design.md` — 宏 PSI 替换设计
+- `docs/design/binary-stub-building-design.md`、`docs/design/cjo-service-module-design.md` — 子系统设计
+- `docs/type/*` — 仓颉类型系统参考文档（基于官方实现）
