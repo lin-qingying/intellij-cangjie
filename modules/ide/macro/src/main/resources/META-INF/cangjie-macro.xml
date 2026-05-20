@@ -107,9 +107,9 @@
                      defaultValue="true"
                      restartRequired="false"/>
 
-        <!-- 宏展开分析开关：启用后文件变更时自动触发宏展开并注入分析结果 -->
+        <!-- 宏展开展示/调试缓存开关：启用后文件变更时自动触发宏展开，但不得注入语义分析 -->
         <registryKey key="cangjie.macro.expansion.analysis.enabled"
-                     description="Enable macro expansion analysis: auto-expand macros on file change and inject results into resolution pipeline"
+                     description="Enable macro expansion preview cache: auto-expand macros on file change for IDE display/debug only"
                      defaultValue="false"
                      restartRequired="false"/>
 

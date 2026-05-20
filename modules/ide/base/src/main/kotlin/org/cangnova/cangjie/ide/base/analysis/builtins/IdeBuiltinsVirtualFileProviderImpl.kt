@@ -3,7 +3,6 @@ package org.cangnova.cangjie.ide.base.analysis.builtins
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.analysis.decompiled.psi.BuiltinsVirtualFileProviderBaseImpl
@@ -37,8 +36,8 @@ class IdeBuiltinsVirtualFileProviderImpl : BuiltinsVirtualFileProviderBaseImpl()
 
     private fun resolveStdlibRoot(project: Project): VirtualFile? {
         val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk() ?: return null
-        val path = sdk.stdlibPath.pathString.replace('\\', '/')
-        return StandardFileSystems.local().findFileByPath(path)
+        val path = sdk.stdlibPath.pathString
+        return resolveLocalRootVirtualFile(path)
             ?: run {
                 logger<IdeBuiltinsVirtualFileProviderImpl>().warn(
                     "Cannot resolve stdlib path from toolchain `${sdk.name}`: $path",

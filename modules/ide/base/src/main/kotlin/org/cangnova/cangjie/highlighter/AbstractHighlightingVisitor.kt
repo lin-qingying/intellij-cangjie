@@ -29,8 +29,17 @@ import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNameIdentifierOwner
 import org.cangnova.cangjie.highlighter.HighlightingFactory
+import org.cangnova.cangjie.psi.CjBindingPattern
+import org.cangnova.cangjie.psi.CjCasePatternElement
+import org.cangnova.cangjie.psi.CjEnumPattern
 import org.cangnova.cangjie.psi.CjNamedDeclaration
+import org.cangnova.cangjie.psi.CjPatternVariable
+import org.cangnova.cangjie.psi.CjTuplePattern
+import org.cangnova.cangjie.psi.CjTypePattern
+import org.cangnova.cangjie.psi.CjVarOrEnumPattern
+import org.cangnova.cangjie.psi.CjVariable
 import org.cangnova.cangjie.psi.CjVisitorUnit
 
 /**
@@ -72,6 +81,29 @@ abstract class AbstractHighlightingVisitor(protected val holder: HighlightInfoHo
 
     protected fun highlightNamedDeclaration(declaration: CjNamedDeclaration, attributesKey: HighlightInfoType) {
         declaration.nameIdentifier?.let { highlightName(it, attributesKey) }
+    }
+
+    /**
+     * 模式变量可能包含多个绑定名，不能只依赖声明本身的 nameIdentifier。
+     */
+    protected fun highlightVariableDeclaration(declaration: CjVariable<*>, attributesKey: HighlightInfoType) {
+        when (declaration) {
+            is CjPatternVariable -> collectPatternDeclarationNamesForHighlight(declaration.pattern)
+                .forEach { pattern ->
+                    pattern.nameIdentifier?.let { identifier -> highlightName(identifier, attributesKey) }
+                }
+
+            else -> highlightNamedDeclaration(declaration, attributesKey)
+        }
+    }
+
+    private fun collectPatternDeclarationNamesForHighlight(pattern: CjCasePatternElement?): List<PsiNameIdentifierOwner> = when (pattern) {
+        is CjBindingPattern -> listOf(pattern)
+        is CjTypePattern -> listOf(pattern)
+        is CjVarOrEnumPattern -> listOf(pattern)
+        is CjEnumPattern -> pattern.patterns.flatMap(::collectPatternDeclarationNamesForHighlight)
+        is CjTuplePattern -> pattern.patterns.flatMap(::collectPatternDeclarationNamesForHighlight)
+        else -> emptyList()
     }
 
 

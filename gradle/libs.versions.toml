@@ -90,6 +90,9 @@ reflections = { module = "org.reflections:reflections", version.ref = "reflectio
 # CangJie 上游 for-ide 系列依赖
 cangjieCommonForIde = { module = "org.cangnova.cangjie:cangjie-frontend-common-for-ide", version.ref = "cangjie" }
 cangjiePsiForIde = { module = "org.cangnova.cangjie:cangjie-frontend-psi-for-ide", version.ref = "cangjie" }
+cangjieCodeInsightFormattingForIde = { module = "org.cangnova.cangjie:cangjie-frontend-code-insight-formatting-for-ide", version.ref = "cangjie" }
+cangjieCodeInsightFoldingForIde = { module = "org.cangnova.cangjie:cangjie-frontend-code-insight-folding-for-ide", version.ref = "cangjie" }
+cangjieCodeInsightHighlightingForIde = { module = "org.cangnova.cangjie:cangjie-frontend-code-insight-highlighting-for-ide", version.ref = "cangjie" }
 cangjieCfirForIde = { module = "org.cangnova.cangjie:cangjie-frontend-cfir-for-ide", version.ref = "cangjie" }
 cangjieAnalysisApiForIde = { module = "org.cangnova.cangjie:cangjie-frontend-analysis-api-for-ide", version.ref = "cangjie" }
 cangjieAnalysisApiCfirForIde = { module = "org.cangnova.cangjie:cangjie-frontend-analysis-api-cfir-for-ide", version.ref = "cangjie" }

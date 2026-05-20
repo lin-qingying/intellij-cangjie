@@ -22,18 +22,17 @@ import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjMacroExpression
 import org.cangnova.cangjie.psi.CjPsiFactory
-import org.cangnova.cangjie.resolve.source.MacroExpandedSourceElement
 
 /**
- * 宏 PSI 替换器
+ * 宏 PSI 替换器。
  *
- * 通过文本替换 + 重新解析的方式执行宏展开替换：
+ * 仅保留为 IDE 展示/调试工具。该对象通过文本替换 + 重新解析的方式执行宏展开替换：
  * 1. 在源文件文本上将宏调用替换为展开文本
  * 2. 用替换后的文本重新解析为完整的 PSI 树
  * 3. 对展开区域内的 PSI 元素附加 [MacroSourceInfo]
  *
- * 这确保展开后的声明（如 class）在 PSI 树中处于正确的层级，
- * 能被 [CjFile.declarations] 正确识别。
+ * 解析结果没有 CFIR macro construction registry / macroOriginId，禁止进入
+ * semantic resolve、analysis 或 IDE degraded-mode fallback。
  */
 object MacroPsiReplacer {
 
@@ -53,12 +52,18 @@ object MacroPsiReplacer {
     )
 
     /**
-     * 对文件执行宏替换，返回重新解析的文件
+     * 对文件执行宏替换，返回重新解析的文件。
+     *
+     * 该 API 只允许用于 IDE 展示/调试，不能作为语义分析输入。
      *
      * @param originalFile 原始源文件
      * @param replacements 宏替换列表（基于原始文件中的 PSI 节点）
      * @return 替换后重新解析的文件，如果没有替换则返回 null
      */
+    @Deprecated(
+        message = "Text replacement macro expansion is display/debug only; semantic paths must use CFIR macro construction.",
+        level = DeprecationLevel.ERROR,
+    )
     fun replaceInCopy(originalFile: CjFile, replacements: List<MacroReplacement>): CjFile? {
         if (replacements.isEmpty()) return null
 
@@ -96,7 +101,7 @@ object MacroPsiReplacer {
             null
         } ?: return null
 
-        // 对展开区域内的 PSI 元素附加 MacroSourceInfo + MACRO_EXPRESSION_KEY
+        // 对展开区域内的 PSI 元素附加 MacroSourceInfo，仅供展示/调试识别。
         var markedCount = 0
         for (expandedRange in expandedRanges) {
             val sourceInfo = MacroSourceInfo(
@@ -132,7 +137,7 @@ object MacroPsiReplacer {
     )
 
     /**
-     * 对指定范围内的 PSI 元素附加 [MacroSourceInfo] 和 [MacroExpandedSourceElement.MACRO_EXPRESSION_KEY]
+     * 对指定范围内的 PSI 元素附加 [MacroSourceInfo]。
      *
      * 遍历 PSI 树，对文本范围完全落在展开区域内的元素标记为宏生成。
      *
@@ -168,15 +173,12 @@ object MacroPsiReplacer {
     }
 
     /**
-     * 将 [MacroSourceInfo] 和 [MacroExpandedSourceElement.MACRO_EXPRESSION_KEY] 附加到 PSI 元素及其所有子节点
+     * 将 [MacroSourceInfo] 附加到 PSI 元素及其所有子节点。
      *
-     * - [MacroSourceInfo.KEY]: 用于 [MacroSyntheticResolveExtension] 判断元素是否由宏生成
-     * - [MACRO_EXPRESSION_KEY]: 用于 [toSourceElement] 自动创建 [MacroExpandedSourceElement]，
-     *   使导航跳转到原始宏表达式，快速文档显示展开后的内容
+     * - [MacroSourceInfo.KEY]: 用于 IDE 展示/调试识别宏生成元素
      */
     private fun attachSourceInfo(element: PsiElement, sourceInfo: MacroSourceInfo, macroExpression: CjMacroExpression) {
         element.putUserData(MacroSourceInfo.KEY, sourceInfo)
-        element.putUserData(MacroExpandedSourceElement.MACRO_EXPRESSION_KEY, macroExpression)
         var child = element.firstChild
         while (child != null) {
             attachSourceInfo(child, sourceInfo, macroExpression)

@@ -31,6 +31,7 @@ import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.lexer.cdoc.parser.CDocKnownTag
 import org.cangnova.cangjie.lexer.cdoc.psi.impl.CDocLink
 import org.cangnova.cangjie.lexer.cdoc.psi.impl.CDocTag
+import org.cangnova.cangjie.codeinsight.highlighting.CangJieHighlightingStructuralRules
 import com.intellij.codeHighlighting.RainbowHighlighter
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder
 import com.intellij.openapi.editor.colors.EditorColorsManager
@@ -110,12 +111,12 @@ class BeforeResolveHighlightingVisitor(holder: HighlightInfoHolder) : AbstractHi
 
 
     override fun visitTypeParameter(parameter: CjTypeParameter) {
-        parameter.nameIdentifier?.let { highlightName(it, CangJieHighlightInfoTypeSemanticNames.TYPE_PARAMETER) }
+        highlightNamedDeclaration(parameter, CangJieHighlightingStructuralRules.highlightInfoTypeForTypeDeclaration(parameter)!!)
         super.visitTypeParameter(parameter)
     }
 
     override fun visitNamedFunction(function: CjNamedFunction) {
-        highlightNamedDeclaration(function, CangJieHighlightInfoTypeSemanticNames.FUNCTION_DECLARATION)
+        highlightNamedDeclaration(function, CangJieHighlightingStructuralRules.highlightInfoTypeForFunction(function)!!)
         super.visitNamedFunction(function)
     }
 
@@ -133,21 +134,28 @@ class BeforeResolveHighlightingVisitor(holder: HighlightInfoHolder) : AbstractHi
     }
 
     override fun visitVariable(variable: CjVariable<*>) {
-        if (variable.isVar) {
-            highlightNamedDeclaration(variable, CangJieHighlightInfoTypeSemanticNames.MUTABLE_VARIABLE)
-        } else {
-            highlightNamedDeclaration(variable, CangJieHighlightInfoTypeSemanticNames.LOCAL_VARIABLE)
-        }
+        highlightVariableDeclaration(variable, CangJieHighlightingStructuralRules.highlightInfoTypeForVariableDeclaration(variable))
         super.visitVariable(variable)
     }
 
+    override fun visitPatternVariable(variable: CjPatternVariable) {
+        highlightVariableDeclaration(variable, CangJieHighlightingStructuralRules.highlightInfoTypeForVariableDeclaration(variable))
+        super.visitPatternVariable(variable)
+    }
+
+    override fun visitFieldVariable(field: CjFieldVariable) {
+        highlightVariableDeclaration(field, CangJieHighlightingStructuralRules.highlightInfoTypeForVariableDeclaration(field))
+        super.visitFieldVariable(field)
+    }
+
     override fun visitProperty(property: CjProperty) {
-        if (property.isVar) {
-            highlightNamedDeclaration(property, CangJieHighlightInfoTypeSemanticNames.MUTABLE_PROPERTY)
-        } else {
-            highlightNamedDeclaration(property, CangJieHighlightInfoTypeSemanticNames.PROPERTY)
-        }
+        highlightNamedDeclaration(property, CangJieHighlightingStructuralRules.highlightInfoTypeForPropertyDeclaration(property))
         super.visitProperty(property)
+    }
+
+    override fun visitParameter(parameter: CjParameter) {
+        highlightNamedDeclaration(parameter, CangJieHighlightingStructuralRules.highlightInfoTypeForParameterDeclaration(parameter))
+        super.visitParameter(parameter)
     }
 
     override fun visitTypeReference(typeReference: CjTypeReference) {
@@ -167,23 +175,23 @@ class BeforeResolveHighlightingVisitor(holder: HighlightInfoHolder) : AbstractHi
     }
 
     override fun visitTypeAlias(typeAlias: CjTypeAlias) {
-        highlightNamedDeclaration(typeAlias, CangJieHighlightInfoTypeSemanticNames.TYPE_ALIAS)
+        highlightNamedDeclaration(typeAlias, CangJieHighlightingStructuralRules.highlightInfoTypeForTypeDeclaration(typeAlias)!!)
 
         super.visitTypeAlias(typeAlias)
     }
 
     override fun visitClass(cclass: CjClass) {
-        highlightNamedDeclaration(cclass, CangJieHighlightInfoTypeSemanticNames.CLASS)
+        highlightNamedDeclaration(cclass, CangJieHighlightingStructuralRules.highlightInfoTypeForClass(cclass))
         super.visitClass(cclass)
     }
 
     override fun visitStruct(cstruct: CjStruct) {
-        highlightNamedDeclaration(cstruct, CangJieHighlightInfoTypeSemanticNames.STRING)
+        highlightNamedDeclaration(cstruct, CangJieHighlightingStructuralRules.highlightInfoTypeForClass(cstruct))
         super.visitStruct(cstruct)
     }
 
     override fun visitInterface(cinterface: CjInterface) {
-        highlightNamedDeclaration(cinterface, CangJieHighlightInfoTypeSemanticNames.INTERFACE)
+        highlightNamedDeclaration(cinterface, CangJieHighlightingStructuralRules.highlightInfoTypeForClass(cinterface))
         super.visitInterface(cinterface)
     }
 }

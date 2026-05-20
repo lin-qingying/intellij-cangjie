@@ -24,81 +24,38 @@
 
 package org.cangnova.cangjie.highlighter
 
-import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.psiUtil.isAbstract
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType
 import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.psi.CjParameter
+import org.cangnova.cangjie.psi.CjProperty
+import org.cangnova.cangjie.psi.CjTypeStatement
+import org.cangnova.cangjie.psi.CjVariable
 
-fun textAttributesKeyForCjElement(element: PsiElement): HighlightInfoType? {
-    return sequence {
-        yield(textAttributesKeyForTypeDeclaration(element))
-        yield(textAttributesKeyForCjFunction(element))
-        yield(textAttributesKeyForPropertyDeclaration(element))
-    }.firstOrNull { it != null }
-}
+/**
+ * IDE 侧结构高亮兼容函数。
+ *
+ * PSI -> HighlightInfoType 规则已经迁入 code-insight/highlighting；这些函数只保留旧 API 名称。
+ */
+fun textAttributesKeyForCjElement(element: PsiElement): HighlightInfoType? =
+    org.cangnova.cangjie.codeinsight.highlighting.textAttributesKeyForCjElement(element)
 
-fun textAttributesForCjVariableDeclaration(variable: CjVariable<*>): HighlightInfoType = when (variable) {
-    is CjPatternVariable -> when {
-        variable.isLocal -> CangJieHighlightInfoTypeSemanticNames.LOCAL_VARIABLE
-        variable.isTopLevel -> CangJieHighlightInfoTypeSemanticNames.PACKAGE_VARIABLE
-        else -> CangJieHighlightInfoTypeSemanticNames.INSTANCE_PROPERTY
-    }
-    is CjFieldVariable -> CangJieHighlightInfoTypeSemanticNames.INSTANCE_PROPERTY
-    else -> CangJieHighlightInfoTypeSemanticNames.INSTANCE_PROPERTY
-}
+fun textAttributesForCjVariableDeclaration(variable: CjVariable<*>): HighlightInfoType =
+    org.cangnova.cangjie.codeinsight.highlighting.textAttributesForCjVariableDeclaration(variable)
 
-private fun CjProperty.isCustomPropertyDeclaration(): Boolean {
-    return getter?.bodyExpression != null || setter?.bodyExpression != null
-}
+fun textAttributesForCjPropertyDeclaration(property: CjProperty): HighlightInfoType =
+    org.cangnova.cangjie.codeinsight.highlighting.textAttributesForCjPropertyDeclaration(property)
 
-fun textAttributesForCjPropertyDeclaration(property: CjProperty): HighlightInfoType = when {
+fun textAttributesForCjParameterDeclaration(parameter: CjParameter): HighlightInfoType =
+    org.cangnova.cangjie.codeinsight.highlighting.textAttributesForCjParameterDeclaration(parameter)
 
-    property.isLocal -> CangJieHighlightInfoTypeSemanticNames.LOCAL_VARIABLE
+fun textAttributesKeyForPropertyDeclaration(declaration: PsiElement): HighlightInfoType? =
+    org.cangnova.cangjie.codeinsight.highlighting.textAttributesKeyForPropertyDeclaration(declaration)
 
-    else -> when {
-        property.isCustomPropertyDeclaration() -> CangJieHighlightInfoTypeSemanticNames.INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION
-        else -> CangJieHighlightInfoTypeSemanticNames.INSTANCE_PROPERTY
-    }
-}
+fun textAttributesKeyForCjFunction(function: PsiElement): HighlightInfoType? =
+    org.cangnova.cangjie.codeinsight.highlighting.textAttributesKeyForCjFunction(function)
 
-fun textAttributesForCjParameterDeclaration(parameter: CjParameter): HighlightInfoType = when {
-    parameter.letOrVarKeyword != null -> CangJieHighlightInfoTypeSemanticNames.INSTANCE_PROPERTY
-    else -> CangJieHighlightInfoTypeSemanticNames.PARAMETER
-}
+fun textAttributesKeyForTypeDeclaration(declaration: PsiElement): HighlightInfoType? =
+    org.cangnova.cangjie.codeinsight.highlighting.textAttributesKeyForTypeDeclaration(declaration)
 
-fun textAttributesKeyForPropertyDeclaration(declaration: PsiElement): HighlightInfoType? = when (declaration) {
-    is CjProperty -> textAttributesForCjPropertyDeclaration(declaration)
-    is CjParameter -> textAttributesForCjParameterDeclaration(declaration)
-    is CjVariable<*> -> textAttributesForCjVariableDeclaration(declaration)
-
-    else -> null
-}
-
-
-fun textAttributesKeyForCjFunction(function: PsiElement): HighlightInfoType? = when (function) {
-    is CjFunction -> CangJieHighlightInfoTypeSemanticNames.FUNCTION_DECLARATION
-    else -> null
-}
-
-fun textAttributesKeyForTypeDeclaration(declaration: PsiElement): HighlightInfoType? = when {
-    declaration is CjTypeParameter -> CangJieHighlightInfoTypeSemanticNames.TYPE_PARAMETER
-    declaration is CjTypeAlias -> CangJieHighlightInfoTypeSemanticNames.TYPE_ALIAS
-    declaration is CjTypeStatement -> when {
-//        declaration.isAnnotation() -> CangJieHighlightInfoTypeSemanticNames.ANNOTATION
-        else -> textAttributesForClass(declaration)
-    }
-
-//    declaration is CjPrimaryConstructor && declaration.containingTypeStatement?.isAnnotation() == true -> CangJieHighlightInfoTypeSemanticNames.ANNOTATION
-
-
-    else -> null
-}
-
-fun textAttributesForClass(cclass: CjTypeStatement): HighlightInfoType = when {
-    cclass is CjInterface -> CangJieHighlightInfoTypeSemanticNames.INTERFACE
-//    cclass.isAnnotation() -> CangJieHighlightInfoTypeSemanticNames.ANNOTATION
-    cclass.isEnum() -> CangJieHighlightInfoTypeSemanticNames.ENUM
-    cclass is CjEnumConstructor -> CangJieHighlightInfoTypeSemanticNames.ENUM_CONSTRUCTOR
-    cclass.isAbstract() -> CangJieHighlightInfoTypeSemanticNames.ABSTRACT_CLASS
-    else -> CangJieHighlightInfoTypeSemanticNames.CLASS
-}
+fun textAttributesForClass(cclass: CjTypeStatement): HighlightInfoType =
+    org.cangnova.cangjie.codeinsight.highlighting.textAttributesForClass(cclass)

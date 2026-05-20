@@ -27,6 +27,7 @@ package org.cangnova.cangjie.lsp4ij
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.psi.PsiFile
 import com.redhat.devtools.lsp4ij.features.semanticTokens.DefaultSemanticTokensColorsProvider
+import org.cangnova.cangjie.highlighter.CangJieHighlightingColors
 
 class CangJieSemanticTokensColorsProvider : DefaultSemanticTokensColorsProvider() {
     /**
@@ -58,30 +59,46 @@ class CangJieSemanticTokensColorsProvider : DefaultSemanticTokensColorsProvider(
         tokenType: String,
         tokenModifiers: List<String>,
         file: PsiFile
-    ): TextAttributesKey? = null
-//    when (tokenType) {
-//        "comment" -> CangJieHighlightingColors.BLOCK_COMMENT
-//        "keyword" -> CangJieHighlightingColors.KEYWORD
-//        "string" -> CangJieHighlightingColors.STRING
-//        "number" -> CangJieHighlightingColors.NUMBER
-////        "regexp" ->
-//        "operator" -> CangJieHighlightingColors.OPERATOR_SIGN
-//        "type" -> CangJieHighlightingColors.TYPE_ALIAS
-//        "enum" -> CangJieHighlightingColors.ENUM
-//        "class" -> CangJieHighlightingColors.CLASS
-//        "interface" -> CangJieHighlightingColors.INTERFACE
-//        "struct" -> CangJieHighlightingColors.STRUCT
-//        "member", "function" ->
-//            CangJieHighlightingColors.FUNCTION_DECLARATION
-//
-//        "parameter" -> CangJieHighlightingColors.PARAMETER
-//        "typeParameter" -> CangJieHighlightingColors.TYPE_PARAMETER
-//        "property" -> CangJieHighlightingColors.PROPERTY
-//        "variable" ->
-//            CangJieHighlightingColors.LOCAL_VARIABLE
-//
-//        else -> super.getTextAttributesKey(tokenType, tokenModifiers, file)
-//    }
+    ): TextAttributesKey? = when (tokenType) {
+        "comment" -> CangJieHighlightingColors.BLOCK_COMMENT
+        "keyword" -> CangJieHighlightingColors.KEYWORD
+        "string" -> CangJieHighlightingColors.STRING
+        "number" -> CangJieHighlightingColors.NUMBER
+        "operator" -> CangJieHighlightingColors.OPERATOR_SIGN
+        "type" -> CangJieHighlightingColors.TYPE_ALIAS
+        "class" -> CangJieHighlightingColors.CLASS
+        "enum" -> CangJieHighlightingColors.ENUM
+        "interface" -> CangJieHighlightingColors.INTERFACE
+        "struct" -> CangJieHighlightingColors.STRUCT
+        "typeParameter" -> CangJieHighlightingColors.TYPE_PARAMETER
+        "parameter" -> CangJieHighlightingColors.PARAMETER
+        "property" -> if ("declaration" in tokenModifiers) {
+            CangJieHighlightingColors.PROPERTY
+        } else {
+            CangJieHighlightingColors.INSTANCE_PROPERTY
+        }
+
+        "variable" -> if ("readonly" in tokenModifiers) {
+            CangJieHighlightingColors.LOCAL_VARIABLE
+        } else {
+            CangJieHighlightingColors.MUTABLE_VARIABLE
+        }
+
+        "enumMember" -> CangJieHighlightingColors.ENUM_CONSTRUCTOR
+        "function", "method" -> if ("declaration" in tokenModifiers) {
+            CangJieHighlightingColors.FUNCTION_DECLARATION
+        } else {
+            CangJieHighlightingColors.FUNCTION_CALL
+        }
+
+        "macro" -> if ("declaration" in tokenModifiers) {
+            CangJieHighlightingColors.MACRO_DECLARATION
+        } else {
+            CangJieHighlightingColors.MACRO_CALL
+        }
+
+        else -> super.getTextAttributesKey(tokenType, tokenModifiers, file)
+    }
 
 
 }

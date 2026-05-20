@@ -19,6 +19,9 @@ dependencies {
 
     compileOnly(libs.cangjieCommonForIde)
     compileOnly(libs.cangjiePsiForIde)
+    compileOnly(libs.cangjieCodeInsightFormattingForIde)
+    compileOnly(libs.cangjieCodeInsightFoldingForIde)
+    compileOnly(libs.cangjieCodeInsightHighlightingForIde)
 
 
     compileOnly(libs.cangjieCfirForIde)
@@ -33,6 +36,9 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation(libs.cangjieCommonForIde)
     testImplementation(libs.cangjiePsiForIde)
+    testImplementation(libs.cangjieCodeInsightFormattingForIde)
+    testImplementation(libs.cangjieCodeInsightFoldingForIde)
+    testImplementation(libs.cangjieCodeInsightHighlightingForIde)
     testImplementation(libs.cangjieCfirForIde)
     testImplementation(libs.cangjieAnalysisApiForIde)
     testImplementation(libs.cangjieAnalysisApiCfirForIde)
