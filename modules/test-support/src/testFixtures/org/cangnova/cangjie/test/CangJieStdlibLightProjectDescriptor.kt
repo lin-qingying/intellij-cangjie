@@ -44,6 +44,7 @@ open class CangJieStdlibLightProjectDescriptor(
         val INSTANCE = CangJieStdlibLightProjectDescriptor(
             "std.cjo",
             "std/std.core.cjo",
+            "std/std.ast.cjo",
             "std/std.objectpool.cjo",
         )
     }

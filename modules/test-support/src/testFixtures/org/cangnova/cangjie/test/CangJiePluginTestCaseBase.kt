@@ -183,7 +183,11 @@ object CangJiePluginTestCaseBase {
         sdkConfig.setProjectSdkId(sdk.id)
 
         Disposer.register(parentDisposable) {
-            sdkConfig.setProjectSdkId(previousSdkId)
+            // light project 在销毁阶段会先关闭 message bus，再执行挂在 project disposable 上的清理。
+            // 此时恢复旧 SDK 配置已经没有意义，反而会命中 disposed project。
+            if (!project.isDisposed) {
+                sdkConfig.setProjectSdkId(previousSdkId)
+            }
             registry.unregisterSdk(sdk.id)
             runCatching {
                 if (sdkHome.exists()) {

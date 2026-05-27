@@ -43,6 +43,7 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import kotlinx.coroutines.*
+import org.cangnova.cangjie.ide.base.analysis.builtins.BuiltinsDecompiledDocumentRefresher
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.project.*
 import org.cangnova.cangjie.project.event.CjProjectEvent
@@ -58,6 +59,7 @@ import org.cangnova.cangjie.project.service.GeneratedFilesHolder
 import org.cangnova.cangjie.project.service.ModifyProjectsOptions
 import org.cangnova.cangjie.project.task.CangJieProjectSyncTask
 import org.cangnova.cangjie.project.workspace.CjWorkspaceModelSync
+import org.cangnova.cangjie.projectStructure.CangJieProjectStructureProviderService
 import org.cangnova.cangjie.result.CjProcessResult
 import org.cangnova.cangjie.task.taskQueue
 import org.cangnova.cangjie.toolchain.api.CANGJIE_PROJECT_SDK_CONFIG_TOPIC
@@ -275,6 +277,9 @@ internal class CjProjectsServiceImpl(
                 CANGJIE_PROJECT_SDK_CONFIG_TOPIC,
                 object : CjProjectSdkConfigListener {
                     override fun projectSdkChanged(event: CjProjectSdkConfigChangedEvent) {
+                        CangJieProjectStructureProviderService.getInstance(intellijProject)
+                            .incOutOfBlockModificationCount()
+                        BuiltinsDecompiledDocumentRefresher.refresh(intellijProject)
                         refreshProject()
                     }
                 },
@@ -518,6 +523,10 @@ internal class CjProjectsServiceImpl(
                                 CangJieFileType.INSTANCE.defaultExtension
                             )
                         }
+
+                        // 标准库 toolchain 恢复后，必须同步刷新 `.cjo` decompiled PSI/document。
+                        // 否则 editor 可能继续持有第一次失败时写入的占位文本 document。
+                        BuiltinsDecompiledDocumentRefresher.refresh(intellijProject)
 
 
                         // 发布项目更新通知

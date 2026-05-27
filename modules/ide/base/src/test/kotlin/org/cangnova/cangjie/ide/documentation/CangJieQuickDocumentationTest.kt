@@ -130,6 +130,21 @@ class CangJieQuickDocumentationTest : CangJieLightPlatformCodeInsightFixtureTest
         assertContains(html!!, "func plain(): Int64")
     }
 
+    fun testTopLevelFunctionDocumentationWithoutDeclaredReturnTypeUsesPsiContainerInfo() {
+        val html = configureAndRender(
+            """
+            package sample.docs
+
+            func gre<caret>et() {
+            }
+            """.trimIndent(),
+        )
+
+        assertNotNull(html)
+        assertContains(html!!, "func greet()")
+        assertContains(html, "sample.docs")
+    }
+
     fun testInlineDocumentationUsesSameBody() {
         val file = myFixture.configureByText(
             "inlineDocs.cj",

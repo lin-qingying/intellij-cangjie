@@ -14,7 +14,9 @@ val sinceBuildProp = providers.gradleProperty("sinceBuild")
 val untilBuildProp = providers.gradleProperty("untilBuild")
 
 intellijPlatform {
-    autoReload = true
+    // 253 平台在 sandbox 启动早期为 dynamic plugin 目录建立 VFS 监听时会触发 LoadingState 违规；
+    // host 插件开发期先关闭自动热重载，避免 runIde 启动阶段落入平台的过早 Registry/VFS 刷新路径。
+    autoReload = false
 
     pluginConfiguration {
         name = "CangJie"

@@ -6,14 +6,19 @@
     -->
     <xi:include href="/META-INF/analysis-api/cangjie-analysis-api-impl-base.xml"/>
     <xi:include href="/META-INF/analysis-api/cangjie-analysis-stubs.xml"/>
+    <xi:include href="/META-INF/analysis-api/cangjie-cj-references.xml"/>
     <xi:include href="/META-INF/analysis-api/cangjie-low-level-api-cfir.xml"/>
     <xi:include href="/META-INF/analysis-api/cangjie-symbol-light-declarations.xml"/>
 
     <extensions defaultExtensionNs="org.cangnova.cangjie">
+        <psiReferenceProvider implementation="org.cangnova.cangjie.analysis.api.cfir.references.CaCfirBasicTypeReference$Provider"/>
         <psiReferenceProvider implementation="org.cangnova.cangjie.analysis.api.cfir.references.CaCfirSimpleNameReference$Provider"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.api.platform.CaPlatformSettings"
+                serviceImplementation="org.cangnova.cangjie.ide.base.analysisApiPlatform.CaIdePlatformSettings"/>
         <projectService
                 serviceInterface="org.cangnova.cangjie.analysis.api.session.CaSessionProvider"
                 serviceImplementation="org.cangnova.cangjie.analysis.api.cfir.session.CaCfirSessionProvider"/>

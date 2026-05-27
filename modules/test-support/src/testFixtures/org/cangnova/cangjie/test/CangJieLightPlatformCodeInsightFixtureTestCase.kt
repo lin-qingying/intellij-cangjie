@@ -16,11 +16,16 @@
 
 package org.cangnova.cangjie.test
 
+import com.intellij.lang.LanguageParserDefinitions
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Ref
+import com.intellij.psi.PsiFile
 import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.RunAll
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
+import org.cangnova.cangjie.lang.CangJieFileType
+import org.cangnova.cangjie.lang.CangJieLanguage
+import org.cangnova.cangjie.parsing.CangJieParserDefinition
 import org.junit.runner.RunWith
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -43,6 +48,7 @@ abstract class CangJieLightPlatformCodeInsightFixtureTestCase : BasePlatformTest
 
     override fun setUp() {
         super.setUp()
+        ensureCangJieParserDefinitionRegistered()
         vfsDisposable = CangJieTestUtils.allowProjectRootAccess(this)
     }
 
@@ -69,6 +75,21 @@ abstract class CangJieLightPlatformCodeInsightFixtureTestCase : BasePlatformTest
             { CangJieTestUtils.disposeVfsRootAccess(vfsDisposable) },
             { super.tearDown() },
         )
+    }
+
+    /**
+     * 模块级 light fixture 测试不依赖 plugin.xml 的文件类型装配，
+     * 直接用仓颉 file type 构造 PSI，避免 `*.cj` 在当前宿主下退化成 plain text。
+     */
+    protected fun configureCangJieByText(text: String): PsiFile {
+        ensureCangJieParserDefinitionRegistered()
+        return myFixture.configureByText(CangJieFileType.INSTANCE, text)
+    }
+
+    private fun ensureCangJieParserDefinitionRegistered() {
+        if (LanguageParserDefinitions.INSTANCE.forLanguage(CangJieLanguage) == null) {
+            LanguageParserDefinitions.INSTANCE.addExplicitExtension(CangJieLanguage, CangJieParserDefinition())
+        }
     }
 
     /** Asserts that the [actual] value is not `null`, with an optional [message]. */

@@ -28,6 +28,7 @@ class CangJieStdlibProjectDescriptorSmokeTest : CangJieLightCodeInsightFixtureTe
 
         assertTrue(sdkHome.resolve("modules").resolve("windows_x86_64_llvm").resolve("std.cjo").toFile().isFile)
         assertTrue(sdkHome.resolve("modules").resolve("windows_x86_64_llvm").resolve("std").resolve("std.core.cjo").toFile().isFile)
+        assertTrue(sdkHome.resolve("modules").resolve("windows_x86_64_llvm").resolve("std").resolve("std.ast.cjo").toFile().isFile)
         assertTrue(sdkHome.resolve("modules").resolve("windows_x86_64_llvm").resolve("std").resolve("std.objectpool.cjo").toFile().isFile)
     }
 }

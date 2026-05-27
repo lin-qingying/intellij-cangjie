@@ -9,9 +9,11 @@
         <plugin id="com.intellij.copyright"/>
     </dependencies>
 
-    <xi:include href="/org.cangnova.cangjie.domain.toolchain.xml"/>
-    <xi:include href="/org.cangnova.cangjie.domain.projectModel.xml"/>
-    <xi:include href="/org.cangnova.cangjie.domain.telemetry.xml"/>
-    <xi:include href="/org.cangnova.cangjie.ide.ux.xml"/>
-    <xi:include href="/org.cangnova.cangjie.ide.base.xml"/>
+    <!--
+      test-support 主 source set 只引入自己的模块描述符，让测试环境通过 module 依赖拉起
+      foundation / ide.base / domain.* 等插件能力；不要在这里直接聚合生产 descriptor，
+      否则当它以 testFixtures 依赖进入产品插件测试时，会把真实产品插件已经装配过的
+      application/project services 再注册一遍，导致 InstanceAlreadyRegisteredException。
+    -->
+    <xi:include href="/org.cangnova.cangjie.testSupport.xml"/>
 </idea-plugin>

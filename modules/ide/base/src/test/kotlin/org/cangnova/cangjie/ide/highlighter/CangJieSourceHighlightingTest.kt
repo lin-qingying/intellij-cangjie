@@ -3,6 +3,7 @@ package org.cangnova.cangjie.ide.highlighter
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiRecursiveElementVisitor
 import org.cangnova.cangjie.highlighter.BeforeResolveHighlightingVisitor
@@ -12,8 +13,7 @@ import kotlin.test.assertTrue
 
 class CangJieSourceHighlightingTest : CangJieLightPlatformCodeInsightFixtureTestCase() {
     fun testSourceDeclarationsUseSharedStructuralHighlightingRules() {
-        myFixture.configureByText(
-            "sourceHighlighting.cj",
+        configureCangJieByText(
             """
             class SourceClass {}
             struct SourceStruct {}
@@ -45,6 +45,25 @@ class CangJieSourceHighlightingTest : CangJieLightPlatformCodeInsightFixtureTest
         assertHighlight(highlights, "member", CangJieHighlightInfoTypeSemanticNames.INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION)
         assertHighlight(highlights, "parameter", CangJieHighlightInfoTypeSemanticNames.PARAMETER)
         assertHighlight(highlights, "localValue", CangJieHighlightInfoTypeSemanticNames.LOCAL_VARIABLE)
+    }
+
+    fun testMalformedValueParameterDoesNotCrashDiagnosticHighlighting() {
+        configureCangJieByText(
+            """
+            func broken(x) {
+                x
+            }
+            """.trimIndent(),
+        )
+
+        val errors = myFixture.doHighlighting(HighlightSeverity.ERROR)
+
+        assertTrue(
+            errors.any { highlight ->
+                highlight.description?.contains("Missing type declaration", ignoreCase = true) == true
+            },
+            "Expected parser error for missing value-parameter type. actual=${errors.mapNotNull { it.description }}",
+        )
     }
 
     private fun collectBeforeResolveHighlights(): List<HighlightInfo> {

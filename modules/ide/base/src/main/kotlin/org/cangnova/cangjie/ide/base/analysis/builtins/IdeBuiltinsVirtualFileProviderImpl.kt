@@ -25,13 +25,14 @@ class IdeBuiltinsVirtualFileProviderImpl : BuiltinsVirtualFileProviderBaseImpl()
             .toCollection(linkedSetOf())
     }
 
-    override fun createBuiltinsScope(project: Project): GlobalSearchScope {
-        val projectRoots = resolveStdlibRoot(project)?.let(::collectBuiltinFiles).orEmpty()
-        if (projectRoots.isNotEmpty()) {
-            return GlobalSearchScope.filesScope(project, projectRoots)
-        }
+    override fun getBuiltinRootVirtualFiles(project: Project): Set<VirtualFile> {
+        if (project.isDisposed) return emptySet()
+        return listOfNotNull(resolveStdlibRoot(project)).toCollection(linkedSetOf())
+    }
 
-        return GlobalSearchScope.filesScope(project, getBuiltinVirtualFiles())
+    override fun createBuiltinsScope(project: Project): GlobalSearchScope {
+        val projectRoots = getBuiltinVirtualFiles(project)
+        return GlobalSearchScope.filesScope(project, projectRoots)
     }
 
     private fun resolveStdlibRoot(project: Project): VirtualFile? {

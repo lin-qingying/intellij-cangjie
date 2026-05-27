@@ -16,17 +16,19 @@
 
 package org.cangnova.cangjie.ide.formatter
 
+import com.intellij.application.options.CodeStyle
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.codeStyle.CodeStyleManager
+import org.cangnova.cangjie.formatter.CangJieCodeStyleSettingsFactory
+import org.cangnova.cangjie.formatter.CangJieFormatter
 import org.cangnova.cangjie.test.CangJieLightPlatformCodeInsightFixtureTestCase
 import kotlin.test.assertEquals
 
 class CangJieFormattingTest : CangJieLightPlatformCodeInsightFixtureTestCase() {
 
     fun testCodeStyleManagerReformatsFunctionBodyAndBinarySpacing() {
-        myFixture.configureByText(
-            "formatting.cj",
+        configureCangJieByText(
             """
             func main(){
             let value=1+2
@@ -47,8 +49,7 @@ class CangJieFormattingTest : CangJieLightPlatformCodeInsightFixtureTestCase() {
     }
 
     fun testCodeStyleManagerReformatsClassAndFunctionBlocks() {
-        myFixture.configureByText(
-            "formatting.cj",
+        configureCangJieByText(
             """
             class Box{
             func value(): Int64{
@@ -76,10 +77,17 @@ class CangJieFormattingTest : CangJieLightPlatformCodeInsightFixtureTestCase() {
      * IDE 侧格式化测试直接走平台 `CodeStyleManager`，验证插件扩展能复用共享 formatter。
      */
     private fun reformatFixtureFile() {
+        CangJieFormatter.ensureFormattingModelRegistered()
         PsiDocumentManager.getInstance(project).commitAllDocuments()
-        WriteCommandAction.runWriteCommandAction(project) {
-            CodeStyleManager.getInstance(project).reformat(myFixture.file)
-        }
+        CodeStyle.doWithTemporarySettings(
+            project,
+            CangJieCodeStyleSettingsFactory.createDefaultSettings(),
+            Runnable {
+                WriteCommandAction.runWriteCommandAction(project) {
+                    CodeStyleManager.getInstance(project).reformat(myFixture.file)
+                }
+            },
+        )
         PsiDocumentManager.getInstance(project).commitAllDocuments()
     }
 }
