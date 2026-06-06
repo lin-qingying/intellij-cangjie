@@ -9,17 +9,12 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiPolyVariantReference
-import org.cangnova.cangjie.analysis.api.CaPlatformInterface
 import org.cangnova.cangjie.analysis.api.platform.CaDeserializedDeclarationsOrigin
 import org.cangnova.cangjie.analysis.api.platform.CaPlatformSettings
-import org.cangnova.cangjie.analysis.api.platform.declarations.createDeclarationProvider
 import org.cangnova.cangjie.analysis.api.projectStructure.CaModuleProvider
 import org.cangnova.cangjie.analysis.decompiled.psi.BuiltinsVirtualFileProvider
 import org.cangnova.cangjie.analysis.low.level.api.cfir.api.getOrBuildCfir
 import org.cangnova.cangjie.analysis.low.level.api.cfir.api.getResolutionFacade
-import org.cangnova.cangjie.builtins.StandardNames
-import org.cangnova.cangjie.name.ClassId
-import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CangJieReferenceProvidersService
 import org.cangnova.cangjie.psi.CjBasicType
 import org.cangnova.cangjie.psi.CjFile
@@ -123,7 +118,7 @@ class CangJieReferenceBindingTest : CangJieLightCodeInsightFixtureTestCase() {
     }
 
     @ProjectDescriptorKind(CANGJIE_WITH_STDLIB)
-    fun testFieldBasicTypeReferenceProvidesTargetAndDocumentation() {
+    fun testFieldBasicTypeReferenceDoesNotProvideTargetOrDocumentation() {
         myFixture.configureByText(
             "fieldBasicTypeBinding.cj",
             """
@@ -135,16 +130,10 @@ class CangJieReferenceBindingTest : CangJieLightCodeInsightFixtureTestCase() {
             """.trimIndent(),
         )
 
-        if (referenceSymbolsAtCaret().isEmpty()) {
-            fail("字段 basic type 引用位必须恢复 reference symbol target。 ${referenceDebugSnapshotAtCaret()}")
-        }
-        if (!referenceTargetElementDebugAtCaret().any { debugName -> debugName.contains("Int64") }) {
-            fail("字段 basic type 引用位提取出的 PSI target 至少应暴露内建声明名。 ${referenceDebugSnapshotAtCaret()}")
-        }
+        assertTrue(referenceSymbolsAtCaret().isEmpty(), "基本类型不是可导航声明，不能暴露 reference symbol target。 ${referenceDebugSnapshotAtCaret()}")
 
         val html = renderDocumentationAtCaret()
-        assertNotNull(html, "字段 basic type 引用位必须能恢复 Quick Documentation target。")
-        assertContains(html, "Int64")
+        assertTrue(html == null, "基本类型没有可导航声明，不应生成 Quick Documentation target。 ${referenceDebugSnapshotAtCaret()}")
     }
 
     fun testInterfaceMemberTypeParameterReferenceRemainsResolvable() {
@@ -254,7 +243,6 @@ class CangJieReferenceBindingTest : CangJieLightCodeInsightFixtureTestCase() {
             append(", basicType=").append(basicType?.let(::renderPsiDebugName) ?: "<none>")
             append(", basicType.references=").append(basicType?.references?.map(::renderReferenceDebugName) ?: emptyList<String>())
             append(", basicType.ownReferences=").append(basicType?.ownReferences?.map(::renderSymbolReferenceDebugName) ?: emptyList<String>())
-            append(", builtins.int64=").append(debugBuiltinsInt64Lookup())
             append(", typeReference=").append(typeReference?.let(::renderPsiDebugName) ?: "<none>")
             append(", typeReference.references=").append(typeReference?.references?.map(::renderReferenceDebugName) ?: emptyList<String>())
             append(", typeReference.ownReferences=").append(typeReference?.ownReferences?.map(::renderSymbolReferenceDebugName) ?: emptyList<String>())
@@ -303,29 +291,6 @@ class CangJieReferenceBindingTest : CangJieLightCodeInsightFixtureTestCase() {
             else -> listOfNotNull(reference.resolve())
         }
         return targets.map(::renderPsiDebugName)
-    }
-
-    @OptIn(CaPlatformInterface::class)
-    private fun debugBuiltinsInt64Lookup(): String {
-        return ApplicationManager.getApplication().executeOnPooledThread(
-            Callable {
-                project.runReadActionInSmartMode {
-                    val builtinsModuleProvider =
-                        project.getService(org.cangnova.cangjie.analysis.api.platform.projectStructure.CaModuleProvider::class.java)
-                    val builtinsModule = builtinsModuleProvider.allModules
-                        .filterIsInstance<org.cangnova.cangjie.analysis.api.projectStructure.CaBuiltinsModule>()
-                        .firstOrNull()
-                        ?: return@runReadActionInSmartMode "<no-builtins-module>"
-                    val classId = ClassId(StandardNames.BASIC_PACKAGE_FQ_NAME, Name.identifier("Int64"))
-                    val analysisScopeDeclarations = project.createDeclarationProvider(myFixture.file.resolveScope, builtinsModule)
-                        .getAllClassesByClassId(classId)
-                    val builtinsScopeDeclarations = project.createDeclarationProvider(builtinsModule.contentScope, builtinsModule)
-                        .getAllClassesByClassId(classId)
-                    "analysis=${analysisScopeDeclarations.map { declaration -> "${declaration::class.java.simpleName}:${declaration.text}" }}; " +
-                        "builtins=${builtinsScopeDeclarations.map { declaration -> "${declaration::class.java.simpleName}:${declaration.text}" }}"
-                }
-            },
-        ).get()
     }
 
     private fun renderDocumentationAtCaret(): String? {

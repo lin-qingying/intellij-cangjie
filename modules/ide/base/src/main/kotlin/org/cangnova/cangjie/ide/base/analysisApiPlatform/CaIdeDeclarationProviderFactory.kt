@@ -12,8 +12,6 @@ import org.cangnova.cangjie.analysis.api.platform.declarations.CangJieDeclaratio
 import org.cangnova.cangjie.analysis.api.platform.declarations.CangJieDeclarationProviderMerger
 import org.cangnova.cangjie.analysis.api.platform.declarations.CangJieEmptyDeclarationProvider
 import org.cangnova.cangjie.analysis.api.platform.declarations.CangJieFileBasedDeclarationProvider
-import org.cangnova.cangjie.analysis.api.projectStructure.CaBuiltinsModule
-import org.cangnova.cangjie.analysis.api.projectStructure.CaLibraryModule
 import org.cangnova.cangjie.analysis.api.projectStructure.CaModule
 
 /**
@@ -30,20 +28,7 @@ class CaIdeDeclarationProviderFactory(
         // 否则 source -> `.cjo` / stdlib 的 reference binding 无法建立。
         val includeCompiledFiles =
             CaPlatformSettings.getInstance(project).deserializedDeclarationsOrigin == CaDeserializedDeclarationsOrigin.STUBS
-        /*
-         * 对齐 Kotlin `createDeclarationProvider(scope, contextualModule)` 的职责边界：
-         * 当查询目标本身就是 builtins / library 模块里的 synthetic or binary 声明时，
-         * provider 不能再被 use-site source scope 裁掉，否则 primitive builtin 这类
-         * 没有源码 PSI 的声明将永远无法回到对应的 decompiled `.cjo` 视图。
-         */
-        val effectiveScope = when (contextualModule) {
-            is CaBuiltinsModule,
-            is CaLibraryModule,
-                -> contextualModule.contentScope
-
-            else -> scope
-        }
-        val files = CaIdeScopeCangJieFileCollector(project).collect(effectiveScope, includeCompiledFiles = includeCompiledFiles)
+        val files = CaIdeScopeCangJieFileCollector(project).collect(scope, includeCompiledFiles = includeCompiledFiles)
         if (files.isEmpty()) return CangJieEmptyDeclarationProvider
 
         return CangJieCompositeDeclarationProvider.create(files.map(::CangJieFileBasedDeclarationProvider))
