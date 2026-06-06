@@ -4,6 +4,9 @@
     <xi:include href="/META-INF/cangjie-filetypes.xml"/>
     <xi:include href="/META-INF/cangjie-language-shell.xml"/>
     <xi:include href="/META-INF/cangjie-editor.xml"/>
+    <xi:include href="/META-INF/code-insight/cangjie-code-insight-refactoring.xml"/>
+    <xi:include href="/META-INF/code-insight/cangjie-code-insight-api.xml"/>
+    <xi:include href="/META-INF/code-insight/cangjie-code-insight-fixes-k2.xml"/>
     <xi:include href="/META-INF/cangjie-ide-features.xml"/>
     <xi:include href="/META-INF/cangjie-analysis-entry.xml"/>
     <xi:include href="/META-INF/cangjie-decompiled.xml"/>
