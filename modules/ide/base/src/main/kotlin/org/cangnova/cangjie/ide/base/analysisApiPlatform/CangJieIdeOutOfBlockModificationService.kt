@@ -20,7 +20,7 @@ import com.intellij.psi.impl.PsiTreeChangePreprocessor
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtilBase
 import com.intellij.psi.util.parentOfType
 import org.cangnova.cangjie.analysis.api.CaPlatformInterface
-import org.cangnova.cangjie.analysis.api.platform.KotlinAnalysisInWriteActionListener
+import org.cangnova.cangjie.analysis.api.platform.CangJieAnalysisInWriteActionListener
 import org.cangnova.cangjie.analysis.api.platform.analysisMessageBus
 import org.cangnova.cangjie.analysis.api.platform.modification.CaElementModificationType
 import org.cangnova.cangjie.analysis.api.platform.modification.CaSourceModificationLocality
@@ -51,7 +51,7 @@ class CangJieIdeOutOfBlockModificationService(private val project: Project) : Di
 
         project.analysisMessageBus
             .connect(this)
-            .subscribe(KotlinAnalysisInWriteActionListener.TOPIC, ContextRemovalAnalysisInWriteActionListener())
+            .subscribe(CangJieAnalysisInWriteActionListener.TOPIC, ContextRemovalAnalysisInWriteActionListener())
     }
 
     private fun handleTreeChangeEvent(event: PsiTreeChangeEventImpl) {
@@ -223,7 +223,7 @@ class CangJieIdeOutOfBlockModificationService(private val project: Project) : Di
         }
     }
 
-    private inner class ContextRemovalAnalysisInWriteActionListener : KotlinAnalysisInWriteActionListener {
+    private inner class ContextRemovalAnalysisInWriteActionListener : CangJieAnalysisInWriteActionListener {
         override fun onEnteringAnalysisInWriteAction() {
             threadLocalContext.remove()
         }
