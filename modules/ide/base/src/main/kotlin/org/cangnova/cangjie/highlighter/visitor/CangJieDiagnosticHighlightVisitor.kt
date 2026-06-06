@@ -52,6 +52,7 @@ import org.cangnova.cangjie.analysis.api.diagnostics.CaDiagnostic
 import org.cangnova.cangjie.analysis.api.diagnostics.CaDiagnosticWithPsi
 import org.cangnova.cangjie.analysis.api.diagnostics.CaSeverity
 import org.cangnova.cangjie.analysis.api.diagnostics.getDefaultMessageWithFactoryName
+import org.cangnova.cangjie.codeinsight.api.applicators.fixes.CangJieQuickFixService
 import org.cangnova.cangjie.analysis.injectionRequiresOnlyEssentialHighlighting
 import org.cangnova.cangjie.analysis.isInjectedFileShouldBeAnalyzed
 import org.cangnova.cangjie.psi.CjElement
@@ -118,7 +119,7 @@ internal class CangJieDiagnosticHighlightVisitor : HighlightVisitor, HighlightRa
 
         val diagnostics = file.collectDiagnostics(CaDiagnosticCheckerFilter.ONLY_COMMON_CHECKERS)
         val builders = diagnostics.mapNotNull { diagnostic ->
-            val psi = diagnostic.psi ?: return@mapNotNull null
+            val psi = diagnostic.psi
             val ranges = diagnostic.effectiveRanges()
             psi to ranges.map { range -> createHighlightInfo(diagnostic, range) }
         }
@@ -164,7 +165,7 @@ internal class CangJieDiagnosticHighlightVisitor : HighlightVisitor, HighlightRa
         val pointer = element.createSmartPointer()
         coroutineScope!!.launch {
             readAction {
-                val declaration = pointer.element as? CjElement ?: return@readAction
+                val declaration = pointer.element ?: return@readAction
                 analyze(declaration) {
                     declaration.diagnostics(CaDiagnosticCheckerFilter.ONLY_COMMON_CHECKERS)
                 }
@@ -176,11 +177,7 @@ internal class CangJieDiagnosticHighlightVisitor : HighlightVisitor, HighlightRa
             is CjTypeStatement -> element.declarations
             else -> null
         }
-        declarations?.forEach { declaration ->
-            if (declaration is CjElement) {
-                triggerCollectingDiagnostics(declaration)
-            }
-        }
+        declarations?.forEach(::triggerCollectingDiagnostics)
     }
 
     private fun CaDiagnosticWithPsi<*>.effectiveRanges(): List<TextRange> {
@@ -195,17 +192,57 @@ internal class CangJieDiagnosticHighlightVisitor : HighlightVisitor, HighlightRa
         }
     }
 
+    context(session: org.cangnova.cangjie.analysis.api.CaSession)
     private fun createHighlightInfo(
         diagnostic: CaDiagnosticWithPsi<*>,
         range: TextRange
     ): HighlightInfo.Builder {
         val message = diagnostic.renderMessage()
         val htmlMessage = XmlStringUtil.wrapInHtml(XmlStringUtil.escapeString(message).replace("\n", "<br>"))
-
-        return HighlightInfo.newHighlightInfo(getHighlightInfoType(diagnostic))
+        val builder = HighlightInfo.newHighlightInfo(getHighlightInfoType(diagnostic))
             .range(range)
             .description(message)
             .escapedToolTip(htmlMessage)
+
+        val quickFixService = CangJieQuickFixService.getInstance()
+        with(quickFixService) {
+            session.getQuickFixesFor(diagnostic)
+        }.forEach { quickFix ->
+            builder.registerFix(quickFix, null, null, null, null)
+        }
+        registerLazyFixes(builder, quickFixService, diagnostic)
+
+        return builder
+    }
+
+    context(session: org.cangnova.cangjie.analysis.api.CaSession)
+    private fun registerLazyFixes(
+        builder: HighlightInfo.Builder,
+        quickFixService: CangJieQuickFixService,
+        originalDiagnostic: CaDiagnosticWithPsi<*>,
+    ) {
+        if (!with(quickFixService) { session.canProduceLazyQuickFixesFor(originalDiagnostic) }) return
+
+        val diagnosticPsiPointer = originalDiagnostic.psi.createSmartPointer()
+        val diagnosticFactoryName = originalDiagnostic.factoryName
+
+        builder.registerLazyFixes { registrar ->
+            val restoredPsi = diagnosticPsiPointer.element as? CjElement ?: return@registerLazyFixes
+
+            analyze(restoredPsi) {
+                val restoredSession = this
+                @OptIn(CaExperimentalApi::class)
+                val restoredDiagnostics = restoredPsi
+                    .diagnostics(CaDiagnosticCheckerFilter.ONLY_COMMON_CHECKERS)
+                    .filter { it.factoryName == diagnosticFactoryName }
+
+                for (diagnostic in restoredDiagnostics) {
+                    for (quickFix in with(quickFixService) { restoredSession.getLazyQuickFixesFor(diagnostic) }) {
+                        registrar.register(quickFix)
+                    }
+                }
+            }
+        }
     }
 
     private fun getHighlightInfoType(diagnostic: CaDiagnostic): HighlightInfoType = when {

@@ -24,7 +24,10 @@
 
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
-
+        <registryKey
+                key="cangjie.highlighting.warmup"
+                description="Whether to eagerly warm up common highlighting diagnostics before editor traversal."
+                defaultValue="true"/>
 
     </extensions>
 </idea-plugin>
