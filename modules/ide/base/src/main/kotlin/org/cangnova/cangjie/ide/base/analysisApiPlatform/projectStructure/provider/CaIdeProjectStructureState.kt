@@ -52,6 +52,8 @@ import org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.module
 import org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.modules.librarySource.CaIdeLibrarySourceModule
 import org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.modules.source.CaIdeSourceModule
 import org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.modules.source.CaIdeSourceModuleBase
+import org.cangnova.cangjie.platform.CangJiePlatforms
+import org.cangnova.cangjie.platform.TargetPlatform
 import org.cangnova.cangjie.psi.CjCodeFragment
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.projectStructure.CaSourceModuleKind
@@ -123,7 +125,11 @@ class CaIdeProjectStructureState(
         is CaModuleCandidate.NotUnderContentRoot -> outsideContentModuleFor(candidate.item)
     }
 
-    internal fun getBuiltinsModule(): CaIdeBuiltinsModule = cache.getBuiltinsModule()
+    internal fun getBuiltinsModule(targetPlatform: TargetPlatform = CangJiePlatforms.defaultCangJiePlatform): CaIdeBuiltinsModule =
+        cache.getBuiltinsModule(targetPlatform)
+
+    internal fun getBuiltinsModules(): List<CaIdeBuiltinsModule> =
+        snapshot.allModules.filterIsInstance<CaIdeBuiltinsModule>()
 
     internal fun getLibraryBinaryModule(libraryId: LibraryId): CaIdeLibraryModule {
         return getLibraryBinaryModuleOrNull(libraryId)
@@ -242,7 +248,6 @@ class CaIdeProjectStructureState(
         cache.removeInvalidEntries(project.workspaceModel.currentSnapshot)
 
         val snapshotStamp = currentSnapshotStamp()
-        val builtinsModule = getBuiltinsModule()
         val sourceEntries = sourceModuleEntries()
         sourceEntries.forEach { entry ->
             refreshRegularDependencies(entry.module, entry.roots.map(PsiFileSystemItem::getVirtualFile), snapshotStamp)
@@ -252,8 +257,14 @@ class CaIdeProjectStructureState(
             .filter(CaDanglingFileModuleImpl::isValid)
             .sortedBy(CaModule::moduleDescription)
 
+        val builtinsModules = activeTargetPlatforms(
+            sourceEntries = sourceEntries,
+            danglingModules = danglingModules,
+        ).map(::getBuiltinsModule)
+            .sortedBy(CaModule::moduleDescription)
+
         val allModules = buildList {
-            add(builtinsModule)
+            addAll(builtinsModules)
             addAll(sourceEntries.map(SourceModuleEntry::module))
             addAll(cache.librarySourceModules().sortedBy(CaModule::moduleDescription))
             addAll(cache.libraryModules().sortedBy(CaModule::moduleDescription))
@@ -474,7 +485,7 @@ class CaIdeProjectStructureState(
         }
 
         dependencies -= owner
-        dependencies -= getBuiltinsModule()
+        dependencies -= getBuiltinsModule(owner.targetPlatform)
         return dependencies.toList()
     }
 
@@ -493,7 +504,7 @@ class CaIdeProjectStructureState(
                 dependency.collectRegularDependencies(owner.kind, this)
             }
             remove(owner)
-            remove(getBuiltinsModule())
+            remove(getBuiltinsModule(owner.targetPlatform))
         }.toList()
     }
 
@@ -629,6 +640,7 @@ class CaIdeProjectStructureState(
                 project = project,
                 dependencyOwnerName = dependencyOwnerName,
                 ownerStableName = ownerKey,
+                targetPlatform = owner.targetPlatform,
             )
         }.also { fallbackModule ->
             refreshRegularDependencies(fallbackModule, listOf(anchorFile), snapshotStamp)
@@ -689,6 +701,24 @@ class CaIdeProjectStructureState(
     private fun toPsiFileSystemItem(file: VirtualFile): PsiFileSystemItem? {
         return psiManager.findDirectory(file) ?: psiManager.findFile(file)
     }
+
+    /**
+     * IDE project-structure 快照中的 builtins 模块需要按活跃目标平台枚举，而不是永远只有一个全局实例。
+     *
+     * 当前即使大多数模块仍然落在默认 `cjnative`，这里也提前和 low-level builtins/session
+     * 的按平台分桶模型对齐；将来一旦 IDE 侧能把某些模块标成 `cjvm`，快照无需再重构。
+     */
+    private fun activeTargetPlatforms(
+        sourceEntries: List<SourceModuleEntry>,
+        danglingModules: List<CaModule>,
+    ): Set<TargetPlatform> = buildSet {
+        addAll(sourceEntries.map { entry -> entry.module.targetPlatform })
+        addAll(cache.libraryModules().map(CaModule::targetPlatform))
+        addAll(cache.librarySourceModules().map(CaModule::targetPlatform))
+        addAll(cache.fallbackDependencyModules().map(CaModule::targetPlatform))
+        addAll(danglingModules.map(CaModule::targetPlatform))
+        addAll(outsideContentModulesByPath.values.map(CaModule::targetPlatform))
+    }.ifEmpty { setOf(CangJiePlatforms.defaultCangJiePlatform) }
 
     private data class SourceModuleEntry(
         val roots: List<PsiFileSystemItem>,

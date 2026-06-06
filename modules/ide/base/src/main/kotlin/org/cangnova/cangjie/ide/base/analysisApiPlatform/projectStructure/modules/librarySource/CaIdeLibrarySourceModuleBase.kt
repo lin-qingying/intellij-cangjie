@@ -8,6 +8,7 @@ import org.cangnova.cangjie.analysis.api.projectStructure.CaLibrarySourceModule
 import org.cangnova.cangjie.analysis.api.projectStructure.CaModule
 import org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.modules.CaIdeModuleContentScope
 import org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.modules.library.CaIdeLibraryModule
+import org.cangnova.cangjie.platform.TargetPlatform
 
 /**
  * IDE 平台库源码模块基类。
@@ -37,6 +38,9 @@ internal abstract class CaIdeLibrarySourceModuleBase(
 
     override val transitiveDependsOnDependencies: List<CaModule>
         get() = binaryLibraryModule.transitiveDependsOnDependencies
+
+    override val targetPlatform: TargetPlatform
+        get() = binaryLibraryModule.targetPlatform
 
     final override val baseContentScope by lazy(LazyThreadSafetyMode.PUBLICATION) {
         CaIdeModuleContentScope(project, sourceRoots.mapNotNull { it.virtualFile }, includeLibrariesInScope = true)

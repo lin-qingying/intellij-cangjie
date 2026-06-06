@@ -19,7 +19,6 @@ import com.intellij.util.containers.ConcurrentFactoryMap
 import com.intellij.workspaceModel.ide.impl.legacyBridge.library.LibraryBridge
 import com.intellij.workspaceModel.ide.impl.legacyBridge.module.findModuleEntity
 import com.intellij.workspaceModel.ide.legacyBridge.ModuleBridge
-import org.cangnova.cangjie.analysis.api.platform.projectStructure.CangJieProjectStructureProviderBase
 import org.cangnova.cangjie.analysis.api.projectStructure.CaLibraryModule
 import org.cangnova.cangjie.analysis.api.projectStructure.CaModule
 import org.cangnova.cangjie.analysis.api.projectStructure.CaNotUnderContentRootModule
@@ -156,8 +155,10 @@ class CaIdeProjectStructureProvider(
     }
 
     override fun getAssociatedCaModules(virtualFile: com.intellij.openapi.vfs.VirtualFile): List<CaModule> {
-        if (virtualFile in state.getBuiltinsModule().contentScope) {
-            return listOf(state.getBuiltinsModule())
+        val builtinsModules = state.getBuiltinsModules()
+            .filter { builtinsModule -> virtualFile in builtinsModule.contentScope }
+        if (builtinsModules.isNotEmpty()) {
+            return builtinsModules
         }
         return when {
             state.isInLibrarySource(virtualFile) -> listOf(state.resolveCandidate(CaModuleCandidate.LibrarySourceFile(virtualFile)))

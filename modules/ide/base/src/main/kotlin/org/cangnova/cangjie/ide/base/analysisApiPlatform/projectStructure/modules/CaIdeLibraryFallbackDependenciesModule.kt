@@ -2,6 +2,7 @@ package org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.modul
 
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.analysis.api.projectStructure.CaLibraryFallbackDependenciesModule
+import org.cangnova.cangjie.platform.TargetPlatform
 
 /**
  * IDE 中的 fallback 依赖模块。
@@ -13,6 +14,7 @@ internal class CaIdeLibraryFallbackDependenciesModule(
     project: Project,
     override val dependencyOwnerName: String,
     private val ownerStableName: String,
+    override val targetPlatform: TargetPlatform,
 ) : CaIdeMutableModule(project, { emptyList() }, includeLibrariesInScope = true), CaLibraryFallbackDependenciesModule {
     override val stableModuleName: String
         get() = "$ownerStableName.fallback"

@@ -3,7 +3,6 @@
 package org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.provider
 
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.workspace.jps.entities.LibraryId
 import com.intellij.platform.workspace.jps.entities.ModuleId
 import com.intellij.platform.workspace.storage.EntityStorage
@@ -12,6 +11,7 @@ import org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.module
 import org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.modules.library.CaIdeLibraryModule
 import org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.modules.librarySource.CaIdeLibrarySourceModule
 import org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.modules.source.CaIdeSourceModule
+import org.cangnova.cangjie.platform.TargetPlatform
 import org.cangnova.cangjie.projectStructure.CaSourceModuleKind
 import java.util.concurrent.ConcurrentHashMap
 
@@ -30,12 +30,15 @@ class CaIdeProjectStructureProviderCache(
     private val libraryModulesByKey = ConcurrentHashMap<LibraryId, CaIdeLibraryModule>()
     private val librarySourceModulesByKey = ConcurrentHashMap<LibrarySourceKey, CaIdeLibrarySourceModule>()
     private val fallbackDependencyModulesByOwnerKey = ConcurrentHashMap<String, CaIdeLibraryFallbackDependenciesModule>()
+    private val builtinsModulesByPlatform = ConcurrentHashMap<TargetPlatform, CaIdeBuiltinsModule>()
 
-    private val builtinsModule: CaIdeBuiltinsModule by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        CaIdeBuiltinsModule(project = project)
-    }
-
-    internal fun getBuiltinsModule(): CaIdeBuiltinsModule = builtinsModule
+    internal fun getBuiltinsModule(targetPlatform: TargetPlatform): CaIdeBuiltinsModule =
+        builtinsModulesByPlatform.computeIfAbsent(targetPlatform) {
+            CaIdeBuiltinsModule(
+                project = project,
+                targetPlatform = targetPlatform,
+            )
+        }
 
     internal fun cachedSourceModule(
         moduleId: ModuleId,

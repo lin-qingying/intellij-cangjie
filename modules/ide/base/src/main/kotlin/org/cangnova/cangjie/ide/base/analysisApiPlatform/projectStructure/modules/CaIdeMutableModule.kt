@@ -8,6 +8,8 @@ import com.intellij.psi.search.GlobalSearchScope
 import org.cangnova.cangjie.analysis.api.platform.projectStructure.CaModuleBase
 import org.cangnova.cangjie.analysis.api.projectStructure.CaModule
 import org.cangnova.cangjie.ide.base.analysisApiPlatform.projectStructure.provider.SnapshotStamp
+import org.cangnova.cangjie.platform.CangJiePlatforms
+import org.cangnova.cangjie.platform.TargetPlatform
 
 /**
  * IDE 平台模块的公共基类。
@@ -29,6 +31,15 @@ internal abstract class CaIdeMutableModule(
     private var dependencyRefreshState: DependencyRefreshState = DependencyRefreshState.Idle
 
     protected fun currentScopeRoots(): List<PsiFileSystemItem> = scopeRootsProvider()
+
+    /**
+     * 当前 IDE 平台还没有像 Kotlin `ModulePlatformCache` / facet target platform 那样的模块级平台来源。
+     *
+     * 在 IDE 侧真正接入可配置的平台模型前，project-structure 中这些可变模块统一暴露前端默认目标平台，
+     * 避免调用方因为 `CaModule.targetPlatform` 缺失而各自发明平台判定逻辑。
+     */
+    override val targetPlatform: TargetPlatform
+        get() = CangJiePlatforms.defaultCangJiePlatform
 
     override val baseContentScope: GlobalSearchScope
         get() = CaIdeModuleContentScope(project, currentScopeRoots().mapNotNull { it.virtualFile }, includeLibrariesInScope)

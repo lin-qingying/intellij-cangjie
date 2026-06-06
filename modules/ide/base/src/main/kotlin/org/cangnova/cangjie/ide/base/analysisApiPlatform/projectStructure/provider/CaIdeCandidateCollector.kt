@@ -27,12 +27,9 @@ internal object CaIdeCandidateCollector {
         virtualFile: VirtualFile,
         state: CaIdeProjectStructureState,
     ): Collection<CaModuleCandidate> {
-        val builtinsModule = state.getBuiltinsModule()
-        return if (virtualFile in builtinsModule.contentScope) {
-            listOf(CaModuleCandidate.FixedModule(builtinsModule))
-        } else {
-            emptyList()
-        }
+        return state.getBuiltinsModules()
+            .filter { builtinsModule -> virtualFile in builtinsModule.contentScope }
+            .map(CaModuleCandidate::FixedModule)
     }
 
     private fun collectCandidatesByVirtualFile(
