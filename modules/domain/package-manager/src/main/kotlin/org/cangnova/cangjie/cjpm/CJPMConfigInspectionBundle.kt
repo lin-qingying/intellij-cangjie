@@ -23,18 +23,18 @@
  */
 package org.cangnova.cangjie.cjpm
 
-import com.intellij.AbstractBundle
-import com.intellij.DynamicBundle
 import org.cangnova.cangjie.messages.AbstractCangJieBundle
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
+
 @NonNls
-private const val BUNDLE: String = "CJPMConfigInspectionBundle"
+private const val BUNDLE: String = "messages.CJPMConfigInspectionBundle"
 
 object CJPMConfigInspectionBundle : AbstractCangJieBundle(BUNDLE) {
     @Nls
     @JvmStatic
-    fun message(@NonNls @PropertyKey(resourceBundle =  BUNDLE) key: String, vararg params: Any): String = getMessage(key, *params)
+    fun message(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =
+        getMessage(key, *params)
 
 }
