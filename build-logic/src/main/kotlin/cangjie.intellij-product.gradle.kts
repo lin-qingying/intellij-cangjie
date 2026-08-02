@@ -59,8 +59,9 @@ fun getIdeJvmArgs(): List<String> {
     val dumpDir = File(rootDir, "dumpTmp").also { it.mkdirs() }
     return listOf(
         "-Xms512m",
-        "-Xmx4096m",
+        "-Xmx6144m",
         "-XX:+UseG1GC",
+        "-XX:+ExitOnOutOfMemoryError",
         "-XX:MaxMetaspaceSize=512m",
         "-Didea.is.internal=true",
         "-Didea.debug.mode=true",
